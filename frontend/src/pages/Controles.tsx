@@ -1,65 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Input, Card, message, Modal, Form, DatePicker, Row, Col, InputNumber, Select, Tag } from 'antd';
-import { PlusOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { 
+  Table, Button, Space, message, Popconfirm, Card, Tag, Badge, 
+  Input, Select, DatePicker, Row, Col, Statistic, Modal, Form,
+  Tooltip, Alert, Divider
+} from 'antd';
+import { 
+  PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, 
+  SearchOutlined, FilterOutlined, WarningOutlined, 
+  CheckCircleOutlined, ReloadOutlined, LineChartOutlined,
+  ExportOutlined
+} from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
 import axios from 'axios';
 import { authService } from '../services/authService';
-import dayjs from 'dayjs';
 import FormularioControl from './FormularioControl';
 import DetalleControl from './DetalleControl';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+
+dayjs.locale('es');
+
+const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 interface Control {
   id: number;
   embarazo_id: number;
-  paciente: number;
-  paciente_nombre?: string;
+  paciente_nombre: string;
   numero_control: number;
   fecha_control: string;
-  semanas_gestacion: number;
-  dias_gestacion?: number;
-  edad_gestacional?: string;
-  peso_actual: number;
-  presion_arterial?: string;
-  presion_arterial_sistolica?: number;
-  presion_arterial_diastolica?: number;
-  altura_uterina: number;
+  edad_gestacional: string;
+  presion_arterial: string;
   frecuencia_cardiaca_fetal: number;
-  imc_actual?: number;
-  clasificacion_imc?: string;
-  observaciones?: string;
-  fecha_registro: string;
+  tiene_alertas: boolean;
+  semanas_gestacion: number;
+  imc_actual: number;
+  clasificacion_imc: string;
+}
+
+interface Estadisticas {
+  total_controles: number;
+  controles_con_alertas: number;
+  distribucion_trimestres: {
+    primer_trimestre: number;
+    segundo_trimestre: number;
+    tercer_trimestre: number;
+  };
+  promedios: {
+    peso_promedio: number;
+    pa_sistolica_promedio: number;
+    pa_diastolica_promedio: number;
+    fcf_promedio: number;
+  };
 }
 
 const Controles: React.FC = () => {
   const [controles, setControles] = useState<Control[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [showDetalle, setShowDetalle] = useState(false);
-  const [selectedControlId, setSelectedControlId] = useState<number | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [detalleVisible, setDetalleVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [controlSeleccionado, setControlSeleccionado] = useState<number | null>(null);
+  const [estadisticas, setEstadisticas] = useState<Estadisticas | null>(null);
   
-  // Modal de eliminación
-  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-  const [controlToDelete, setControlToDelete] = useState<number | null>(null);
-  
-  // Modal de edición
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [controlToEdit, setControlToEdit] = useState<number | null>(null);
-  const [editForm] = Form.useForm();
-  const [loadingEdit, setLoadingEdit] = useState(false);
-  const [imcEditCalculado, setImcEditCalculado] = useState<string>('');
-  const [pamEditCalculada, setPamEditCalculada] = useState<string>('');
+  // Filtros
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroEmbarazo, setFiltroEmbarazo] = useState<number | null>(null);
+  const [filtroTrimestre, setFiltroTrimestre] = useState<string | null>(null);
+  const [filtroAlertas, setFiltroAlertas] = useState<boolean | null>(null);
+  const [filtroFechas, setFiltroFechas] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
 
   useEffect(() => {
     fetchControles();
-  }, []);
+    fetchEstadisticas();
+  }, [filtroEmbarazo, filtroTrimestre, filtroAlertas, filtroFechas]);
 
   const fetchControles = async () => {
     setLoading(true);
     try {
       const token = authService.getToken();
-      const response = await axios.get('http://127.0.0.1:8000/api/controles/', {
+      let url = 'http://127.0.0.1:8000/api/controles/';
+      
+      const params = new URLSearchParams();
+      if (filtroEmbarazo) params.append('embarazo', filtroEmbarazo.toString());
+      if (filtroTrimestre) params.append('trimestre', filtroTrimestre);
+      if (filtroAlertas) params.append('con_alertas', 'true');
+      if (filtroFechas && filtroFechas[0] && filtroFechas[1]) {
+        params.append('fecha_desde', filtroFechas[0].format('YYYY-MM-DD'));
+        params.append('fecha_hasta', filtroFechas[1].format('YYYY-MM-DD'));
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       setControles(response.data);
     } catch (error) {
       console.error('Error al cargar controles:', error);
@@ -69,596 +107,530 @@ const Controles: React.FC = () => {
     }
   };
 
-  const handleSuccess = () => {
-    setShowForm(false);
-    fetchControles();
-  };
-
-  const handleVerDetalle = (id: number) => {
-    setSelectedControlId(id);
-    setShowDetalle(true);
-  };
-
-  // ========== EDITAR ==========
-  const calcularIMCEdit = () => {
-    const peso = editForm.getFieldValue('peso_actual');
-    const talla = editForm.getFieldValue('talla');
-    
-    if (peso && talla) {
-      const tallaM = talla / 100;
-      const imc = peso / (tallaM * tallaM);
-      let clasificacion = '';
-      
-      if (imc < 18.5) clasificacion = 'Bajo peso';
-      else if (imc < 25) clasificacion = 'Normal';
-      else if (imc < 30) clasificacion = 'Sobrepeso';
-      else clasificacion = 'Obesidad';
-      
-      setImcEditCalculado(`${imc.toFixed(2)} - ${clasificacion}`);
-    }
-  };
-
-  const calcularPAMEdit = () => {
-    const sistolica = editForm.getFieldValue('presion_arterial_sistolica');
-    const diastolica = editForm.getFieldValue('presion_arterial_diastolica');
-    
-    if (sistolica && diastolica) {
-      const pam = (sistolica + (2 * diastolica)) / 3;
-      setPamEditCalculada(`PAM: ${pam.toFixed(2)} mmHg`);
-    }
-  };
-
-  const handleEdit = async (id: number) => {
-    console.log('🟡 Abriendo modal de edición para ID:', id);
-    
-    if (showDetalle) {
-      setShowDetalle(false);
-    }
-    
-    setControlToEdit(id);
-    setIsEditModalVisible(true);
-    
+  const fetchEstadisticas = async () => {
     try {
       const token = authService.getToken();
-      const response = await axios.get(`http://127.0.0.1:8000/api/controles/${id}/`, {
+      const response = await axios.get('http://127.0.0.1:8000/api/controles/estadisticas/', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      const control = response.data;
-      editForm.setFieldsValue({
-        numero_control: control.numero_control,
-        fecha_control: dayjs(control.fecha_control),
-        semanas_gestacion: control.semanas_gestacion,
-        dias_gestacion: control.dias_gestacion || 0,
-        peso_actual: control.peso_actual,
-        talla: control.talla,
-        presion_arterial_sistolica: control.presion_arterial_sistolica,
-        presion_arterial_diastolica: control.presion_arterial_diastolica,
-        frecuencia_cardiaca: control.frecuencia_cardiaca,
-        temperatura: control.temperatura,
-        altura_uterina: control.altura_uterina,
-        frecuencia_cardiaca_fetal: control.frecuencia_cardiaca_fetal,
-        presentacion_fetal: control.presentacion_fetal,
-        movimientos_fetales: control.movimientos_fetales,
-        edema: control.edema,
-        proteinuria: control.proteinuria,
-        observaciones: control.observaciones || ''
-      });
-
-      // Calcular IMC y PAM iniciales
-      if (control.peso_actual && control.talla) {
-        const tallaM = control.talla / 100;
-        const imc = control.peso_actual / (tallaM * tallaM);
-        let clasificacion = '';
-        if (imc < 18.5) clasificacion = 'Bajo peso';
-        else if (imc < 25) clasificacion = 'Normal';
-        else if (imc < 30) clasificacion = 'Sobrepeso';
-        else clasificacion = 'Obesidad';
-        setImcEditCalculado(`${imc.toFixed(2)} - ${clasificacion}`);
-      }
-
-      if (control.presion_arterial_sistolica && control.presion_arterial_diastolica) {
-        const pam = (control.presion_arterial_sistolica + (2 * control.presion_arterial_diastolica)) / 3;
-        setPamEditCalculada(`PAM: ${pam.toFixed(2)} mmHg`);
-      }
+      setEstadisticas(response.data);
     } catch (error) {
-      message.error('Error al cargar datos del control');
+      console.error('Error al cargar estadísticas:', error);
+    }
+  };
+
+  const handleEliminar = async (id: number) => {
+    try {
+      const token = authService.getToken();
+      await axios.delete(`http://127.0.0.1:8000/api/controles/${id}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      message.success('Control eliminado correctamente');
+      fetchControles();
+      fetchEstadisticas();
+    } catch (error) {
+      message.error('Error al eliminar el control');
       console.error(error);
     }
   };
 
-  const translateError = (msg: string): string => {
-    const translations: any = {
-      'This field is required.': 'Este campo es obligatorio',
-      'This field may not be blank.': 'Este campo no puede estar en blanco',
-      'Enter a valid date.': 'Ingrese una fecha válida',
-      'Enter a valid number.': 'Ingrese un número válido'
-    };
-    return translations[msg] || msg;
+  const handleVerDetalle = (id: number) => {
+    setControlSeleccionado(id);
+    setDetalleVisible(true);
   };
 
-  const confirmarEdicion = async () => {
-    try {
-      const values = await editForm.validateFields();
-      setLoadingEdit(true);
-      
-      const token = authService.getToken();
-      await axios.put(
-        `http://127.0.0.1:8000/api/controles/${controlToEdit}/`,
-        {
-          numero_control: values.numero_control,
-          fecha_control: dayjs(values.fecha_control).format('YYYY-MM-DD'),
-          semanas_gestacion: values.semanas_gestacion,
-          dias_gestacion: values.dias_gestacion,
-          peso_actual: values.peso_actual,
-          talla: values.talla,
-          presion_arterial_sistolica: values.presion_arterial_sistolica,
-          presion_arterial_diastolica: values.presion_arterial_diastolica,
-          frecuencia_cardiaca: values.frecuencia_cardiaca,
-          temperatura: values.temperatura,
-          altura_uterina: values.altura_uterina,
-          frecuencia_cardiaca_fetal: values.frecuencia_cardiaca_fetal,
-          presentacion_fetal: values.presentacion_fetal,
-          movimientos_fetales: values.movimientos_fetales,
-          edema: values.edema,
-          proteinuria: values.proteinuria,
-          observaciones: values.observaciones || ''
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      message.success('Control actualizado correctamente');
-      setIsEditModalVisible(false);
-      setControlToEdit(null);
-      editForm.resetFields();
-      setImcEditCalculado('');
-      setPamEditCalculada('');
-      fetchControles();
-    } catch (error: any) {
-      console.error('Error al actualizar:', error.response?.data);
-      
-      const errorData = error.response?.data;
-      
-      if (errorData?.errores) {
-        const fieldErrors: any = {};
-        
-        Object.keys(errorData.errores).forEach(key => {
-          const errorArray = errorData.errores[key];
-          let errorMessage = Array.isArray(errorArray) ? errorArray[0] : errorArray;
-          errorMessage = translateError(errorMessage);
-          fieldErrors[key] = errorMessage;
-        });
-        
-        editForm.setFields(
-          Object.keys(fieldErrors).map(field => ({
-            name: field,
-            errors: [fieldErrors[field]]
-          }))
-        );
-        
-        message.error('Por favor corrija los errores en el formulario');
-      } else if (error.errorFields) {
-        message.error('Por favor complete todos los campos requeridos');
-      } else {
-        message.error('Error al actualizar control');
-      }
-    } finally {
-      setLoadingEdit(false);
-    }
+  const handleEditar = (id: number) => {
+    setControlSeleccionado(id);
+    setEditModalVisible(true);
   };
 
-  const cancelarEdicion = () => {
-    setIsEditModalVisible(false);
-    setControlToEdit(null);
-    editForm.resetFields();
-    setImcEditCalculado('');
-    setPamEditCalculada('');
-  };
+  const handleExportar = () => {
+    // Preparar datos para exportar
+    const dataExport = controles.map(c => ({
+      'N° Control': c.numero_control,
+      'Paciente': c.paciente_nombre,
+      'Fecha': dayjs(c.fecha_control).format('DD/MM/YYYY'),
+      'EG': c.edad_gestacional,
+      'PA': c.presion_arterial,
+      'FCF': c.frecuencia_cardiaca_fetal,
+      'Alertas': c.tiene_alertas ? 'Sí' : 'No'
+    }));
 
-  // ========== ELIMINAR ==========
-  const handleDelete = (id: number) => {
-    console.log('🔴 Abriendo modal para eliminar ID:', id);
-    setControlToDelete(id);
-    setIsDeleteModalVisible(true);
-  };
+    // Convertir a CSV
+    const headers = Object.keys(dataExport[0]).join(',');
+    const rows = dataExport.map(row => Object.values(row).join(','));
+    const csv = [headers, ...rows].join('\n');
 
-  const confirmarEliminacion = async () => {
-    if (!controlToDelete) return;
+    // Descargar
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `controles_${dayjs().format('YYYY-MM-DD')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
-    try {
-      const token = authService.getToken();
-      await axios.delete(`http://127.0.0.1:8000/api/controles/${controlToDelete}/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      message.success('Control eliminado correctamente');
-      setIsDeleteModalVisible(false);
-      setControlToDelete(null);
-      fetchControles();
-    } catch (error: any) {
-      console.error('Error al eliminar:', error);
-      message.error('Error al eliminar control');
-    }
+    message.success('Datos exportados correctamente');
   };
 
-  const cancelarEliminacion = () => {
-    setIsDeleteModalVisible(false);
-    setControlToDelete(null);
+  const limpiarFiltros = () => {
+    setBusqueda('');
+    setFiltroEmbarazo(null);
+    setFiltroTrimestre(null);
+    setFiltroAlertas(null);
+    setFiltroFechas(null);
   };
 
-  // ========== TABLA ==========
-  const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 60,
-      sorter: (a: Control, b: Control) => a.id - b.id,
-    },
+  const columns: ColumnsType<Control> = [
     {
       title: 'N° Control',
       dataIndex: 'numero_control',
       key: 'numero_control',
       width: 100,
+      sorter: (a, b) => a.numero_control - b.numero_control,
+      render: (numero: number, record: Control) => (
+        <Space>
+          <Badge 
+            count={numero} 
+            style={{ backgroundColor: record.tiene_alertas ? '#ff4d4f' : '#52c41a' }}
+          />
+          {record.tiene_alertas && (
+            <Tooltip title="Tiene alertas">
+              <WarningOutlined style={{ color: '#ff4d4f' }} />
+            </Tooltip>
+          )}
+        </Space>
+      )
     },
     {
       title: 'Paciente',
       dataIndex: 'paciente_nombre',
       key: 'paciente_nombre',
       width: 200,
-      render: (text: string, record: Control) => text || `Paciente #${record.paciente}`,
-    },
-    {
-      title: 'Embarazo',
-      dataIndex: 'embarazo_id',
-      key: 'embarazo_id',
-      width: 100,
+      ellipsis: true,
+      filteredValue: busqueda ? [busqueda] : null,
+      onFilter: (value, record) => 
+        record.paciente_nombre.toLowerCase().includes(value.toString().toLowerCase()),
+      render: (nombre: string) => (
+        <Tooltip title={nombre}>
+          <strong>{nombre}</strong>
+        </Tooltip>
+      )
     },
     {
       title: 'Fecha Control',
       dataIndex: 'fecha_control',
       key: 'fecha_control',
-      width: 120,
-      render: (text: string) => dayjs(text).format('DD/MM/YYYY'),
+      width: 130,
+      sorter: (a, b) => dayjs(a.fecha_control).unix() - dayjs(b.fecha_control).unix(),
+      render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY')
     },
     {
       title: 'Edad Gestacional',
+      dataIndex: 'edad_gestacional',
       key: 'edad_gestacional',
       width: 140,
-      render: (record: Control) => (
-        <span>
-          {record.semanas_gestacion}+{record.dias_gestacion || 0} semanas
-        </span>
-      ),
+      render: (eg: string, record: Control) => {
+        let color = 'blue';
+        if (record.semanas_gestacion < 13) color = 'cyan';
+        else if (record.semanas_gestacion >= 27) color = 'purple';
+        
+        return <Tag color={color}>{eg} semanas</Tag>;
+      }
     },
     {
-      title: 'PA',
-      key: 'presion_arterial',
+      title: 'Trimestre',
+      key: 'trimestre',
       width: 100,
-      render: (record: Control) => {
-        if (!record.presion_arterial_sistolica || !record.presion_arterial_diastolica) return '-';
-        const sistolica = record.presion_arterial_sistolica;
-        const diastolica = record.presion_arterial_diastolica;
-        
+      render: (_, record: Control) => {
+        let trimestre = 1;
+        let color = 'cyan';
+        if (record.semanas_gestacion >= 27) {
+          trimestre = 3;
+          color = 'purple';
+        } else if (record.semanas_gestacion >= 13) {
+          trimestre = 2;
+          color = 'blue';
+        }
+        return <Tag color={color}>{trimestre}° Trim.</Tag>;
+      }
+    },
+    {
+      title: 'Presión Arterial',
+      dataIndex: 'presion_arterial',
+      key: 'presion_arterial',
+      width: 140,
+      render: (pa: string) => {
+        const [sistolica, diastolica] = pa.split('/').map(Number);
         let color = 'green';
         if (sistolica >= 140 || diastolica >= 90) color = 'red';
         else if (sistolica >= 120 || diastolica >= 80) color = 'orange';
         
-        return (
-          <Tag color={color}>
-            {sistolica}/{diastolica}
-          </Tag>
-        );
-      },
+        return <Tag color={color}>{pa} mmHg</Tag>;
+      }
     },
     {
       title: 'FCF',
       dataIndex: 'frecuencia_cardiaca_fetal',
       key: 'frecuencia_cardiaca_fetal',
-      width: 80,
+      width: 100,
       render: (fcf: number) => {
-        if (!fcf) return '-';
-        const color = (fcf < 110 || fcf > 160) ? 'red' : 'green';
+        let color = 'green';
+        if (fcf < 110 || fcf > 160) color = 'red';
+        else if (fcf < 120 || fcf > 150) color = 'orange';
+        
         return <Tag color={color}>{fcf} lpm</Tag>;
-      },
+      }
+    },
+    {
+      title: 'IMC',
+      key: 'imc',
+      width: 120,
+      render: (_, record: Control) => {
+        if (!record.imc_actual) return '-';
+        
+        let color = 'green';
+        if (record.imc_actual < 18.5 || record.imc_actual >= 30) color = 'red';
+        else if (record.imc_actual >= 25) color = 'orange';
+        
+        return (
+          <Tooltip title={record.clasificacion_imc}>
+            <Tag color={color}>{record.imc_actual.toFixed(1)}</Tag>
+          </Tooltip>
+        );
+      }
+    },
+    {
+      title: 'Estado',
+      key: 'estado',
+      width: 100,
+      render: (_, record: Control) => (
+        record.tiene_alertas ? (
+          <Tag icon={<WarningOutlined />} color="error">Con Alertas</Tag>
+        ) : (
+          <Tag icon={<CheckCircleOutlined />} color="success">Normal</Tag>
+        )
+      )
     },
     {
       title: 'Acciones',
       key: 'acciones',
-      width: 250,
-      fixed: 'right' as const,
-      render: (record: Control) => (
-        <Space>
-          <Button 
-            icon={<EyeOutlined />} 
-            size="small"
-            onClick={() => handleVerDetalle(record.id)}
+      fixed: 'right',
+      width: 180,
+      render: (_, record: Control) => (
+        <Space size="small">
+          <Tooltip title="Ver Detalle">
+            <Button 
+              type="primary" 
+              icon={<EyeOutlined />} 
+              size="small"
+              onClick={() => handleVerDetalle(record.id)}
+            />
+          </Tooltip>
+          <Tooltip title="Editar">
+            <Button 
+              type="default" 
+              icon={<EditOutlined />} 
+              size="small"
+              onClick={() => handleEditar(record.id)}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="¿Eliminar control?"
+            description="Esta acción no se puede deshacer"
+            onConfirm={() => handleEliminar(record.id)}
+            okText="Eliminar"
+            cancelText="Cancelar"
+            okButtonProps={{ danger: true }}
           >
-            Ver
-          </Button>
-          <Button 
-            icon={<EditOutlined />} 
-            size="small" 
-            type="primary"
-            onClick={() => handleEdit(record.id)}
-          >
-            Editar
-          </Button>
-          <Button 
-            icon={<DeleteOutlined />} 
-            size="small" 
-            danger
-            onClick={() => handleDelete(record.id)}
-          >
-            Eliminar
-          </Button>
+            <Tooltip title="Eliminar">
+              <Button 
+                danger 
+                icon={<DeleteOutlined />} 
+                size="small"
+              />
+            </Tooltip>
+          </Popconfirm>
         </Space>
-      ),
-    },
+      )
+    }
   ];
 
-  const filteredControles = controles.filter(c => {
-    if (!searchText) return true;
-    return c.embarazo_id?.toString().includes(searchText) || 
-           c.paciente_nombre?.toLowerCase().includes(searchText.toLowerCase()) ||
-           c.id?.toString().includes(searchText);
-  });
-
-  if (showForm) {
-    return <FormularioControl onCancel={() => setShowForm(false)} onSuccess={handleSuccess} />;
-  }
-
-  if (showDetalle && selectedControlId) {
-    return (
-      <DetalleControl 
-        controlId={selectedControlId} 
-        onBack={() => setShowDetalle(false)}
-        onEdit={handleEdit}
-      />
-    );
-  }
-
   return (
-    <div style={{ padding: 24 }}>
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-          <h2>Controles Prenatales</h2>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowForm(true)}>
-            Nuevo Control
-          </Button>
-        </div>
+    <div>
+      {/* ESTADÍSTICAS */}
+      {estadisticas && (
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={6}>
+            <Card>
+              <Statistic 
+                title="Total Controles" 
+                value={estadisticas.total_controles} 
+                prefix={<LineChartOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Statistic 
+                title="Con Alertas" 
+                value={estadisticas.controles_con_alertas || 0}
+                prefix={<WarningOutlined />}
+                valueStyle={{ color: '#ff4d4f' }}
+                suffix={`/ ${estadisticas.total_controles}`}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Statistic 
+                title="PA Sistólica Promedio" 
+                value={estadisticas.promedios.pa_sistolica_promedio?.toFixed(0) || 0}
+                suffix="mmHg"
+                valueStyle={{ 
+                  color: estadisticas.promedios.pa_sistolica_promedio >= 120 ? '#ff4d4f' : '#52c41a' 
+                }}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card>
+              <Statistic 
+                title="FCF Promedio" 
+                value={estadisticas.promedios.fcf_promedio?.toFixed(0) || 0}
+                suffix="lpm"
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </Card>
+          </Col>
+        </Row>
+      )}
 
-        <Input
-          placeholder="Buscar por paciente, embarazo o ID..."
-          prefix={<SearchOutlined />}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ marginBottom: 16, width: 300 }}
-        />
+      {/* DISTRIBUCIÓN POR TRIMESTRES */}
+      {estadisticas && (
+        <Card style={{ marginBottom: 16 }}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Statistic 
+                title="1er Trimestre" 
+                value={estadisticas.distribucion_trimestres.primer_trimestre}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </Col>
+            <Col span={8}>
+              <Statistic 
+                title="2do Trimestre" 
+                value={estadisticas.distribucion_trimestres.segundo_trimestre}
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </Col>
+            <Col span={8}>
+              <Statistic 
+                title="3er Trimestre" 
+                value={estadisticas.distribucion_trimestres.tercer_trimestre}
+                valueStyle={{ color: '#722ed1' }}
+              />
+            </Col>
+          </Row>
+        </Card>
+      )}
 
+      {/* FILTROS Y BÚSQUEDA */}
+      <Card 
+        title="Controles Prenatales" 
+        extra={
+          <Space>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={() => setModalVisible(true)}
+            >
+              Nuevo Control
+            </Button>
+            <Button 
+              icon={<ExportOutlined />}
+              onClick={handleExportar}
+              disabled={controles.length === 0}
+            >
+              Exportar CSV
+            </Button>
+          </Space>
+        }
+        style={{ marginBottom: 0 }}
+      >
+        <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Input
+                placeholder="Buscar por paciente..."
+                prefix={<SearchOutlined />}
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                allowClear
+              />
+            </Col>
+            <Col span={4}>
+              <Select
+                placeholder="Trimestre"
+                style={{ width: '100%' }}
+                value={filtroTrimestre}
+                onChange={setFiltroTrimestre}
+                allowClear
+              >
+                <Option value="1">1er Trimestre</Option>
+                <Option value="2">2do Trimestre</Option>
+                <Option value="3">3er Trimestre</Option>
+              </Select>
+            </Col>
+            <Col span={4}>
+              <Select
+                placeholder="Alertas"
+                style={{ width: '100%' }}
+                value={filtroAlertas === null ? undefined : filtroAlertas}
+                onChange={(value) => setFiltroAlertas(value === undefined ? null : value)}
+                allowClear
+              >
+                <Option value={true}>Con Alertas</Option>
+                <Option value={false}>Sin Alertas</Option>
+              </Select>
+            </Col>
+            <Col span={6}>
+              <RangePicker
+                style={{ width: '100%' }}
+                format="DD/MM/YYYY"
+                placeholder={['Fecha desde', 'Fecha hasta']}
+                value={filtroFechas}
+                onChange={(dates) => setFiltroFechas(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
+              />
+            </Col>
+            <Col span={2}>
+              <Button 
+                icon={<ReloadOutlined />} 
+                onClick={limpiarFiltros}
+                block
+              >
+                Limpiar
+              </Button>
+            </Col>
+          </Row>
+        </Space>
+
+        {/* ALERTA DE FILTROS ACTIVOS */}
+        {(filtroEmbarazo || filtroTrimestre || filtroAlertas !== null || filtroFechas) && (
+          <Alert
+            message="Filtros activos"
+            description={
+              <Space direction="vertical" size="small">
+                {filtroTrimestre && <span>• Trimestre: {filtroTrimestre}</span>}
+                {filtroAlertas !== null && <span>• {filtroAlertas ? 'Con alertas' : 'Sin alertas'}</span>}
+                {filtroFechas && <span>• Rango de fechas aplicado</span>}
+              </Space>
+            }
+            type="info"
+            closable
+            onClose={limpiarFiltros}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
+        {/* TABLA */}
         <Table
           columns={columns}
-          dataSource={filteredControles}
+          dataSource={controles}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
           scroll={{ x: 1400 }}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => `Total: ${total} controles`,
+            pageSizeOptions: ['10', '20', '50', '100']
+          }}
+          rowClassName={(record) => record.tiene_alertas ? 'row-with-alert' : ''}
         />
       </Card>
 
-      {/* Modal de ELIMINAR */}
+      {/* MODAL NUEVO CONTROL */}
       <Modal
-        title="Confirmar Eliminación"
-        open={isDeleteModalVisible}
-        onOk={confirmarEliminacion}
-        onCancel={cancelarEliminacion}
-        okText="Sí, eliminar"
-        cancelText="Cancelar"
-        okButtonProps={{ danger: true }}
+        title="Nuevo Control Prenatal"
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+        width={1200}
+        destroyOnClose
       >
-        <p>
-          <ExclamationCircleOutlined style={{ color: '#ff4d4f', marginRight: 8 }} />
-          ¿Está seguro de que desea eliminar este control prenatal?
-        </p>
-        <p>Esta acción no se puede deshacer.</p>
+        <FormularioControl
+          onCancel={() => setModalVisible(false)}
+          onSuccess={() => {
+            setModalVisible(false);
+            fetchControles();
+            fetchEstadisticas();
+          }}
+        />
       </Modal>
 
-      {/* Modal de EDITAR */}
+      {/* MODAL EDITAR CONTROL */}
       <Modal
         title="Editar Control Prenatal"
-        open={isEditModalVisible}
-        onOk={confirmarEdicion}
-        onCancel={cancelarEdicion}
-        okText="Guardar Cambios"
-        cancelText="Cancelar"
-        confirmLoading={loadingEdit}
-        width={900}
+        open={editModalVisible}
+        onCancel={() => {
+          setEditModalVisible(false);
+          setControlSeleccionado(null);
+        }}
+        footer={null}
+        width={1200}
+        destroyOnClose
       >
-        <Form form={editForm} layout="vertical">
-          <Row gutter={16}>
-            <Col span={6}>
-              <Form.Item 
-                name="numero_control" 
-                label="N° Control" 
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <InputNumber style={{ width: '100%' }} min={1} />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item 
-                name="fecha_control" 
-                label="Fecha" 
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item 
-                name="semanas_gestacion" 
-                label="Semanas" 
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <InputNumber style={{ width: '100%' }} min={0} max={42} />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="dias_gestacion" label="Días">
-                <InputNumber style={{ width: '100%' }} min={0} max={6} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item 
-                name="peso_actual" 
-                label="Peso (kg)"
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <InputNumber 
-                  style={{ width: '100%' }} 
-                  min={30} 
-                  max={200} 
-                  step={0.1}
-                  onChange={calcularIMCEdit}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item 
-                name="talla" 
-                label="Talla (cm)"
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <InputNumber 
-                  style={{ width: '100%' }} 
-                  min={130} 
-                  max={200}
-                  onChange={calcularIMCEdit}
-                />
-              </Form.Item>
-              {imcEditCalculado && (
-                <div style={{ color: '#52c41a', marginTop: -16, marginBottom: 16 }}>
-                  ✓ IMC: {imcEditCalculado}
-                </div>
-              )}
-            </Col>
-            <Col span={8}>
-              <Form.Item name="altura_uterina" label="AU (cm)">
-                <InputNumber style={{ width: '100%' }} min={0} max={50} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item 
-                name="presion_arterial_sistolica" 
-                label="PA Sistólica"
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <InputNumber 
-                  style={{ width: '100%' }} 
-                  min={70} 
-                  max={220}
-                  onChange={calcularPAMEdit}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item 
-                name="presion_arterial_diastolica" 
-                label="PA Diastólica"
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <InputNumber 
-                  style={{ width: '100%' }} 
-                  min={40} 
-                  max={130}
-                  onChange={calcularPAMEdit}
-                />
-              </Form.Item>
-              {pamEditCalculada && (
-                <div style={{ color: '#52c41a', marginTop: -16, marginBottom: 16 }}>
-                  ✓ {pamEditCalculada}
-                </div>
-              )}
-            </Col>
-            <Col span={8}>
-              <Form.Item name="frecuencia_cardiaca" label="FC (lpm)">
-                <InputNumber style={{ width: '100%' }} min={40} max={200} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="temperatura" label="Temp (°C)">
-                <InputNumber style={{ width: '100%' }} min={35} max={42} step={0.1} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item 
-                name="frecuencia_cardiaca_fetal" 
-                label="FCF (lpm)"
-                rules={[{ required: true, message: 'Obligatorio' }]}
-              >
-                <InputNumber style={{ width: '100%' }} min={100} max={180} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="presentacion_fetal" label="Presentación">
-                <Select>
-                  <Select.Option value="cefalica">Cefálica</Select.Option>
-                  <Select.Option value="podalica">Podálica</Select.Option>
-                  <Select.Option value="transversa">Transversa</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="movimientos_fetales" label="Movimientos">
-                <Select>
-                  <Select.Option value="presentes">Presentes</Select.Option>
-                  <Select.Option value="ausentes">Ausentes</Select.Option>
-                  <Select.Option value="disminuidos">Disminuidos</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="edema" label="Edema">
-                <Select>
-                  <Select.Option value="no">No</Select.Option>
-                  <Select.Option value="leve">Leve</Select.Option>
-                  <Select.Option value="moderado">Moderado</Select.Option>
-                  <Select.Option value="severo">Severo</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="proteinuria" label="Proteinuria">
-                <Select>
-                  <Select.Option value="negativa">Negativa</Select.Option>
-                  <Select.Option value="trazas">Trazas</Select.Option>
-                  <Select.Option value="positiva_1">+</Select.Option>
-                  <Select.Option value="positiva_2">++</Select.Option>
-                  <Select.Option value="positiva_3">+++</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item name="observaciones" label="Observaciones">
-                <Input.TextArea rows={3} placeholder="Observaciones del control..." />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
+        <FormularioControl
+          controlId={controlSeleccionado}
+          onCancel={() => {
+            setEditModalVisible(false);
+            setControlSeleccionado(null);
+          }}
+          onSuccess={() => {
+            setEditModalVisible(false);
+            setControlSeleccionado(null);
+            fetchControles();
+            fetchEstadisticas();
+          }}
+        />
       </Modal>
+
+      {/* MODAL DETALLE CONTROL */}
+      <Modal
+        title="Detalle del Control Prenatal"
+        open={detalleVisible}
+        onCancel={() => {
+          setDetalleVisible(false);
+          setControlSeleccionado(null);
+        }}
+        footer={null}
+        width={1000}
+        destroyOnClose
+      >
+        {controlSeleccionado && (
+          <DetalleControl 
+            controlId={controlSeleccionado}
+            onClose={() => {
+              setDetalleVisible(false);
+              setControlSeleccionado(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      {/* CSS PERSONALIZADO PARA FILAS CON ALERTA */}
+      <style>{`
+        .row-with-alert {
+          background-color: #fff1f0;
+        }
+        .row-with-alert:hover {
+          background-color: #ffe7e5 !important;
+        }
+      `}</style>
     </div>
   );
 };
