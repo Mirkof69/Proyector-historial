@@ -1,11 +1,17 @@
 from rest_framework import serializers
 from .models import Embarazo
 from pacientes.models import Paciente
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+
 
 class EmbarazoSerializer(serializers.ModelSerializer):
+    """Serializer completo para el modelo Embarazo"""
+    
+    paciente_info = serializers.SerializerMethodField()
     paciente_nombre = serializers.SerializerMethodField()
+    edad_gestacional = serializers.SerializerMethodField()
     semanas_gestacion = serializers.SerializerMethodField()
+    semanas_restantes = serializers.SerializerMethodField()
     
     class Meta:
         model = Embarazo
@@ -13,34 +19,76 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             'id',
             'uuid',
             'paciente',
+            'paciente_info',
             'paciente_nombre',
             'numero_gesta',
             'fecha_ultima_menstruacion',
             'fecha_probable_parto',
+            'edad_gestacional',
+            'semanas_gestacion',
+            'semanas_restantes',
             'tipo_embarazo',
             'riesgo_embarazo',
             'estado',
             'notas',
             'medico_responsable',
             'fecha_registro',
-            'semanas_gestacion'
         ]
-        read_only_fields = ['uuid', 'fecha_registro', 'semanas_gestacion']
+        read_only_fields = ['id', 'uuid', 'fecha_registro']
+    
+    def get_paciente_info(self, obj):
+        """Información básica del paciente"""
+        return {
+            'id': obj.paciente.id,
+            'id_clinico': obj.paciente.id_clinico,
+            'nombre_completo': f"{obj.paciente.nombre} {obj.paciente.apellido_paterno}",
+        }
     
     def get_paciente_nombre(self, obj):
         """Obtener nombre completo del paciente"""
         paciente = obj.paciente
-        return f"{paciente.id_clinico} - {paciente.nombre} {paciente.apellido_paterno} {paciente.apellido_materno or ''}"
+        apellido_materno = f" {paciente.apellido_materno}" if paciente.apellido_materno else ""
+        return f"{paciente.id_clinico} - {paciente.nombre} {paciente.apellido_paterno}{apellido_materno}"
+    
+    def get_edad_gestacional(self, obj):
+        """Calcula edad gestacional actual"""
+        if not obj.fecha_ultima_menstruacion:
+            return None
+        
+        today = date.today()
+        diferencia = (today - obj.fecha_ultima_menstruacion).days
+        semanas = diferencia // 7
+        dias = diferencia % 7
+        
+        return {
+            'semanas': semanas,
+            'dias': dias,
+            'texto': f"{semanas} semanas + {dias} días"
+        }
     
     def get_semanas_gestacion(self, obj):
-        """Calcular semanas de gestación"""
+        """Calcular semanas de gestación (formato corto)"""
         if obj.fecha_ultima_menstruacion:
-            hoy = datetime.now().date()
+            hoy = date.today()
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
             dias = diferencia % 7
             return f"{semanas}+{dias}"
         return None
+    
+    def get_semanas_restantes(self, obj):
+        """Calcula semanas restantes hasta FPP"""
+        if not obj.fecha_probable_parto:
+            return None
+        
+        today = date.today()
+        if today >= obj.fecha_probable_parto:
+            return 0
+        
+        diferencia = (obj.fecha_probable_parto - today).days
+        semanas = diferencia // 7
+        
+        return semanas
     
     def validate_paciente(self, value):
         """Validar que el paciente exista"""
@@ -62,10 +110,8 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("La Fecha de Última Menstruación es obligatoria")
         
         # Solo validar que no sea fecha futura
-        if value > datetime.now().date():
+        if value > date.today():
             raise serializers.ValidationError("La FUM no puede ser una fecha futura")
-        
-        # QUITÉ LA VALIDACIÓN DE 42 SEMANAS - AHORA ACEPTA CUALQUIER FECHA PASADA
         
         return value
     
@@ -101,3 +147,54 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             validated_data['fecha_probable_parto'] = validated_data['fecha_ultima_menstruacion'] + timedelta(days=280)
         
         return super().update(instance, validated_data)
+
+
+class EmbarazoListSerializer(serializers.ModelSerializer):
+    """Serializer simplificado para listados"""
+    
+    paciente_nombre = serializers.SerializerMethodField()
+    semanas_gestacion = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Embarazo
+        fields = [
+            'id',
+            'uuid',
+            'paciente_nombre',
+            'numero_gesta',
+            'semanas_gestacion',
+            'tipo_embarazo',
+            'riesgo_embarazo',
+            'estado',
+            'fecha_registro',
+        ]
+    
+    def get_paciente_nombre(self, obj):
+        return f"{obj.paciente.id_clinico} - {obj.paciente.nombre} {obj.paciente.apellido_paterno}"
+    
+    def get_semanas_gestacion(self, obj):
+        if obj.fecha_ultima_menstruacion:
+            hoy = date.today()
+            diferencia = (hoy - obj.fecha_ultima_menstruacion).days
+            semanas = diferencia // 7
+            dias = diferencia % 7
+            return f"{semanas}+{dias}"
+        return None
+
+
+class EmbarazoCreateUpdateSerializer(serializers.ModelSerializer):
+    """Serializer para crear/actualizar embarazos"""
+    
+    class Meta:
+        model = Embarazo
+        fields = [
+            'paciente',
+            'numero_gesta',
+            'fecha_ultima_menstruacion',
+            'fecha_probable_parto',
+            'tipo_embarazo',
+            'riesgo_embarazo',
+            'estado',
+            'notas',
+            'medico_responsable',
+        ]
