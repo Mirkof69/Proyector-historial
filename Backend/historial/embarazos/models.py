@@ -21,7 +21,7 @@ class Embarazo(models.Model):
         ('perdida', 'Pérdida'),
     )
     
-    # Campos EXACTOS de tu base de datos
+    # Campos del modelo
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     paciente = models.ForeignKey(
@@ -32,7 +32,7 @@ class Embarazo(models.Model):
     )
     numero_gesta = models.IntegerField()
     fecha_ultima_menstruacion = models.DateField()
-    fecha_probable_parto = models.DateField(blank=True, null=True)  # ← NUEVA COLUMNA
+    fecha_probable_parto = models.DateField(blank=True, null=True)
     tipo_embarazo = models.CharField(max_length=50, choices=TIPOS, default='simple')
     riesgo_embarazo = models.CharField(max_length=50, choices=RIESGOS, default='bajo')
     estado = models.CharField(max_length=50, choices=ESTADOS, default='activo')
@@ -41,9 +41,9 @@ class Embarazo(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'embarazos'  # Nombre EXACTO de tu tabla
-        managed = False  # NO crear migraciones
+        db_table = 'embarazos'
         ordering = ['-fecha_registro']
+        # managed = False  ← ELIMINADO
     
     def __str__(self):
         return f"Embarazo {self.numero_gesta} - {self.paciente.id_clinico}"

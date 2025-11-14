@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, InputNumber, DatePicker, Button, Card, message, Row, Col, Select } from 'antd';
-import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import { Form, Input, InputNumber, DatePicker, Button, Card, message, Row, Col, Select, Divider, Alert } from 'antd';
+import { SaveOutlined, CloseOutlined, WarningOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { authService } from '../services/authService';
 import dayjs from 'dayjs';
@@ -11,6 +11,7 @@ dayjs.locale('es');
 interface FormularioControlProps {
   onCancel: () => void;
   onSuccess: () => void;
+  controlId?: number | null;
 }
 
 interface Embarazo {
@@ -19,20 +20,27 @@ interface Embarazo {
   paciente_nombre: string;
   numero_gesta: number;
   fecha_ultima_menstruacion: string;
+  fecha_probable_parto: string;
   estado: string;
 }
 
-const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSuccess }) => {
+const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSuccess, controlId }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [embarazos, setEmbarazos] = useState<Embarazo[]>([]);
   const [imcCalculado, setImcCalculado] = useState<string>('');
   const [pamCalculada, setPamCalculada] = useState<string>('');
   const [gananciaCalculada, setGananciaCalculada] = useState<string>('');
+  const [alertasPreliminares, setAlertasPreliminares] = useState<string[]>([]);
+  const [modoEdicion, setModoEdicion] = useState(false);
 
   useEffect(() => {
     fetchEmbarazos();
-  }, []);
+    if (controlId) {
+      setModoEdicion(true);
+      cargarControl(controlId);
+    }
+  }, [controlId]);
 
   const fetchEmbarazos = async () => {
     try {
@@ -44,6 +52,43 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
     } catch (error) {
       console.error('Error al cargar embarazos:', error);
       message.error('Error al cargar lista de embarazos');
+    }
+  };
+
+  const cargarControl = async (id: number) => {
+    try {
+      const token = authService.getToken();
+      const response = await axios.get(`http://127.0.0.1:8000/api/controles/${id}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const control = response.data;
+      form.setFieldsValue({
+        embarazo_id: control.embarazo_id,
+        numero_control: control.numero_control,
+        fecha_control: dayjs(control.fecha_control),
+        semanas_gestacion: control.semanas_gestacion,
+        dias_gestacion: control.dias_gestacion || 0,
+        peso_actual: control.peso_actual,
+        peso_pregestacional: control.peso_pregestacional,
+        talla: control.talla,
+        presion_arterial_sistolica: control.presion_arterial_sistolica,
+        presion_arterial_diastolica: control.presion_arterial_diastolica,
+        frecuencia_cardiaca: control.frecuencia_cardiaca,
+        temperatura: control.temperatura,
+        altura_uterina: control.altura_uterina,
+        frecuencia_cardiaca_fetal: control.frecuencia_cardiaca_fetal,
+        presentacion_fetal: control.presentacion_fetal,
+        movimientos_fetales: control.movimientos_fetales,
+        edema: control.edema,
+        proteinuria: control.proteinuria,
+        observaciones: control.observaciones || ''
+      });
+
+      recalcularTodo();
+    } catch (error) {
+      message.error('Error al cargar datos del control');
+      console.error(error);
     }
   };
 
@@ -72,13 +117,20 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
       const imc = peso / (tallaM * tallaM);
       let clasificacion = '';
       
-      if (imc < 18.5) clasificacion = 'Bajo peso';
-      else if (imc < 25) clasificacion = 'Normal';
-      else if (imc < 30) clasificacion = 'Sobrepeso';
-      else clasificacion = 'Obesidad';
+      if (imc < 18.5) {
+        clasificacion = 'Bajo peso';
+      } else if (imc < 25) {
+        clasificacion = 'Normal';
+      } else if (imc < 30) {
+        clasificacion = 'Sobrepeso';
+      } else {
+        clasificacion = 'Obesidad';
+      }
       
       setImcCalculado(`${imc.toFixed(2)} - ${clasificacion}`);
+      return { valor: imc, clasificacion };
     }
+    return null;
   };
 
   const calcularGananciaPeso = () => {
@@ -87,8 +139,11 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
     
     if (pesoActual && pesoPregestacional) {
       const ganancia = pesoActual - pesoPregestacional;
-      setGananciaCalculada(`${ganancia > 0 ? '+' : ''}${ganancia.toFixed(1)} kg`);
+      const signo = ganancia > 0 ? '+' : '';
+      setGananciaCalculada(`${signo}${ganancia.toFixed(1)} kg`);
+      return ganancia;
     }
+    return null;
   };
 
   const calcularPAM = () => {
@@ -98,7 +153,59 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
     if (sistolica && diastolica) {
       const pam = (sistolica + (2 * diastolica)) / 3;
       setPamCalculada(`PAM: ${pam.toFixed(2)} mmHg`);
+      return pam;
     }
+    return null;
+  };
+
+  const evaluarAlertas = () => {
+    const alertas: string[] = [];
+    
+    const sistolica = form.getFieldValue('presion_arterial_sistolica');
+    const diastolica = form.getFieldValue('presion_arterial_diastolica');
+    if (sistolica >= 140 || diastolica >= 90) {
+      alertas.push('⚠️ Hipertensión detectada');
+    } else if (sistolica >= 120 || diastolica >= 80) {
+      alertas.push('⚠️ Pre-hipertensión');
+    }
+    
+    const fcf = form.getFieldValue('frecuencia_cardiaca_fetal');
+    if (fcf && (fcf < 110 || fcf > 160)) {
+      alertas.push('⚠️ FCF fuera de rango normal');
+    }
+    
+    const edema = form.getFieldValue('edema');
+    if (edema === 'severo' || edema === 'generalizado') {
+      alertas.push('⚠️ Edema severo');
+    }
+    
+    const proteinuria = form.getFieldValue('proteinuria');
+    if (proteinuria && proteinuria !== 'negativa' && proteinuria !== 'trazas') {
+      alertas.push('⚠️ Proteinuria positiva');
+    }
+    
+    const movimientos = form.getFieldValue('movimientos_fetales');
+    if (movimientos === 'ausentes') {
+      alertas.push('🔴 Movimientos fetales ausentes');
+    }
+    
+    const imc = calcularIMC();
+    if (imc) {
+      if (imc.valor < 18.5) {
+        alertas.push('⚠️ Bajo peso materno');
+      } else if (imc.valor >= 30) {
+        alertas.push('⚠️ Obesidad materna');
+      }
+    }
+    
+    setAlertasPreliminares(alertas);
+  };
+
+  const recalcularTodo = () => {
+    calcularIMC();
+    calcularGananciaPeso();
+    calcularPAM();
+    evaluarAlertas();
   };
 
   const translateError = (msg: string): string => {
@@ -106,7 +213,8 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
       'This field is required.': 'Este campo es obligatorio',
       'This field may not be blank.': 'Este campo no puede estar en blanco',
       'Enter a valid date.': 'Ingrese una fecha válida',
-      'Enter a valid number.': 'Ingrese un número válido'
+      'Enter a valid number.': 'Ingrese un número válido',
+      'PA sistólica debe ser mayor que diastólica': 'La presión sistólica debe ser mayor que la diastólica'
     };
     return translations[msg] || msg;
   };
@@ -117,42 +225,81 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
     try {
       const token = authService.getToken();
       const user = authService.getCurrentUser();
-      const embarazoSeleccionado = embarazos.find(e => e.id === values.embarazo);
       
-      await axios.post('http://127.0.0.1:8000/api/controles/', {
-        embarazo_id: values.embarazo,
-        paciente: embarazoSeleccionado?.paciente,
+      const payload: any = {
         numero_control: values.numero_control,
         fecha_control: dayjs(values.fecha_control).format('YYYY-MM-DD'),
         semanas_gestacion: values.semanas_gestacion,
         dias_gestacion: values.dias_gestacion || 0,
         peso_actual: values.peso_actual,
-        peso_pregestacional: values.peso_pregestacional,
+        peso_pregestacional: values.peso_pregestacional || null,
         talla: values.talla,
         presion_arterial_sistolica: values.presion_arterial_sistolica,
         presion_arterial_diastolica: values.presion_arterial_diastolica,
-        frecuencia_cardiaca: values.frecuencia_cardiaca,
-        temperatura: values.temperatura,
+        frecuencia_cardiaca: values.frecuencia_cardiaca || null,
+        temperatura: values.temperatura || null,
         altura_uterina: values.altura_uterina,
         frecuencia_cardiaca_fetal: values.frecuencia_cardiaca_fetal,
-        presentacion_fetal: values.presentacion_fetal,
-        movimientos_fetales: values.movimientos_fetales,
+        presentacion_fetal: values.presentacion_fetal || null,
+        movimientos_fetales: values.movimientos_fetales || 'presentes',
         edema: values.edema || 'no',
         proteinuria: values.proteinuria || 'negativa',
-        observaciones: values.observaciones || '',
-        medico_id: user?.id || 1
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+        observaciones: values.observaciones || ''
+      };
+
+      // ✅ SOLO AGREGAR embarazo_id Y paciente SI ES CREACIÓN
+      if (!modoEdicion) {
+        const embarazoSeleccionado = embarazos.find(e => e.id === values.embarazo_id);
+        payload.embarazo_id = values.embarazo_id;
+        payload.paciente = embarazoSeleccionado?.paciente;
+      }
+
+      if (modoEdicion && controlId) {
+        // ✅ ACTUALIZAR - NO ENVIAR embarazo_id ni paciente
+        const response = await axios.put(`http://127.0.0.1:8000/api/controles/${controlId}/`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Mostrar alertas si las hay
+        if (response.data.alertas && response.data.alertas.length > 0) {
+          const alertasCriticas = response.data.alertas.filter((a: any) => a.tipo === 'critico');
+          if (alertasCriticas.length > 0) {
+            message.warning({
+              content: `Control actualizado con ${alertasCriticas.length} alerta(s) crítica(s)`,
+              duration: 5
+            });
+          }
+        }
+        
+        message.success('Control actualizado exitosamente');
+      } else {
+        // CREAR
+        const response = await axios.post('http://127.0.0.1:8000/api/controles/', payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Mostrar alertas si las hay
+        if (response.data.alertas && response.data.alertas.length > 0) {
+          const alertasCriticas = response.data.alertas.filter((a: any) => a.tipo === 'critico');
+          if (alertasCriticas.length > 0) {
+            message.warning({
+              content: `Control registrado con ${alertasCriticas.length} alerta(s) crítica(s)`,
+              duration: 5
+            });
+          }
+        }
+        
+        message.success('Control prenatal registrado exitosamente');
+      }
       
-      message.success('Control prenatal registrado exitosamente');
       form.resetFields();
       setImcCalculado('');
       setPamCalculada('');
       setGananciaCalculada('');
+      setAlertasPreliminares([]);
       onSuccess();
     } catch (error: any) {
-      console.error('Error al crear control:', error.response?.data);
+      console.error('Error al guardar control:', error.response?.data);
       
       const errorData = error.response?.data;
       
@@ -177,7 +324,7 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
       } else if (errorData?.error) {
         message.error(translateError(errorData.error));
       } else {
-        message.error('Error al registrar control');
+        message.error(`Error al ${modoEdicion ? 'actualizar' : 'registrar'} control`);
       }
     } finally {
       setLoading(false);
@@ -185,7 +332,24 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
   };
 
   return (
-    <Card title="Nuevo Control Prenatal">
+    <Card title={modoEdicion ? "Editar Control Prenatal" : "Nuevo Control Prenatal"}>
+      {alertasPreliminares.length > 0 && (
+        <Alert
+          message="Alertas Preliminares"
+          description={
+            <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+              {alertasPreliminares.map((alerta, index) => (
+                <li key={index}>{alerta}</li>
+              ))}
+            </ul>
+          }
+          type="warning"
+          showIcon
+          icon={<WarningOutlined />}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       <Form
         form={form}
         layout="vertical"
@@ -198,27 +362,29 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
           proteinuria: 'negativa',
           movimientos_fetales: 'presentes'
         }}
+        onValuesChange={recalcularTodo}
       >
-        {/* FILA 1: Embarazo, N° Control, Fecha */}
+        <Divider orientation="left">📋 Datos del Control</Divider>
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="embarazo"
+              name="embarazo_id"
               label="Embarazo"
-              rules={[{ required: true, message: 'Este campo es obligatorio' }]}
+              rules={[{ required: true, message: 'Seleccione un embarazo' }]}
             >
               <Select
                 placeholder="Seleccionar embarazo activo"
                 showSearch
                 optionFilterProp="children"
                 onChange={calcularSemanasGestacion}
+                disabled={modoEdicion}
                 filterOption={(input, option: any) =>
                   option.children.toLowerCase().includes(input.toLowerCase())
                 }
               >
                 {embarazos.map(e => (
                   <Select.Option key={e.id} value={e.id}>
-                    {e.paciente_nombre || `Embarazo #${e.id} - Paciente #${e.paciente}`}
+                    {e.paciente_nombre || `Embarazo #${e.id} - Paciente #${e.paciente}`} (Gesta {e.numero_gesta})
                   </Select.Option>
                 ))}
               </Select>
@@ -248,7 +414,7 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
           </Col>
         </Row>
 
-        {/* FILA 2: Semanas de Gestación */}
+        <Divider orientation="left">🤰 Edad Gestacional</Divider>
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -260,7 +426,6 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 style={{ width: '100%' }} 
                 min={0} 
                 max={42}
-                disabled
                 placeholder="Se calcula automáticamente"
               />
             </Form.Item>
@@ -274,30 +439,25 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 style={{ width: '100%' }} 
                 min={0} 
                 max={6}
-                disabled
                 placeholder="0-6"
               />
             </Form.Item>
           </Col>
         </Row>
 
-        {/* FILA 3: Peso Actual, Peso Pre-gestacional, Talla */}
+        <Divider orientation="left">⚖️ Mediciones Antropométricas</Divider>
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item
               name="peso_actual"
               label="Peso Actual (kg)"
-              rules={[{ required: true, message: 'Este campo es obligatorio' }]}
+              rules={[{ required: true, message: 'Obligatorio' }]}
             >
               <InputNumber 
                 style={{ width: '100%' }} 
                 min={30} 
                 max={200} 
                 step={0.1}
-                onChange={() => {
-                  calcularIMC();
-                  calcularGananciaPeso();
-                }}
                 placeholder="Ej: 65.5"
               />
             </Form.Item>
@@ -312,7 +472,6 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 min={30} 
                 max={200} 
                 step={0.1}
-                onChange={calcularGananciaPeso}
                 placeholder="Opcional"
               />
             </Form.Item>
@@ -326,13 +485,12 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
             <Form.Item
               name="talla"
               label="Talla (cm)"
-              rules={[{ required: true, message: 'Este campo es obligatorio' }]}
+              rules={[{ required: true, message: 'Obligatorio' }]}
             >
               <InputNumber 
                 style={{ width: '100%' }} 
                 min={130} 
                 max={200}
-                onChange={calcularIMC}
                 placeholder="Ej: 165"
               />
             </Form.Item>
@@ -344,7 +502,7 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
           </Col>
         </Row>
 
-        {/* FILA 4: Presión Arterial y FC Materna */}
+        <Divider orientation="left">💓 Signos Vitales Maternos</Divider>
         <Row gutter={16}>
           <Col span={6}>
             <Form.Item
@@ -356,7 +514,6 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 style={{ width: '100%' }} 
                 min={70} 
                 max={220}
-                onChange={calcularPAM}
                 placeholder="Ej: 120"
               />
             </Form.Item>
@@ -371,7 +528,6 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 style={{ width: '100%' }} 
                 min={40} 
                 max={130}
-                onChange={calcularPAM}
                 placeholder="Ej: 80"
               />
             </Form.Item>
@@ -410,7 +566,7 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
           </Col>
         </Row>
 
-        {/* FILA 5: Mediciones Obstétricas */}
+        <Divider orientation="left">👶 Mediciones Obstétricas</Divider>
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item
@@ -435,7 +591,7 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
             >
               <InputNumber 
                 style={{ width: '100%' }} 
-                min={100} 
+                min={90} 
                 max={180}
                 placeholder="110-160"
               />
@@ -450,12 +606,13 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 <Select.Option value="cefalica">Cefálica</Select.Option>
                 <Select.Option value="podalica">Podálica</Select.Option>
                 <Select.Option value="transversa">Transversa</Select.Option>
+                <Select.Option value="oblicua">Oblicua</Select.Option>
               </Select>
             </Form.Item>
           </Col>
         </Row>
 
-        {/* FILA 6: Evaluación Clínica */}
+        <Divider orientation="left">🩺 Evaluación Clínica</Divider>
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item
@@ -466,6 +623,7 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 <Select.Option value="presentes">Presentes</Select.Option>
                 <Select.Option value="ausentes">Ausentes</Select.Option>
                 <Select.Option value="disminuidos">Disminuidos</Select.Option>
+                <Select.Option value="aumentados">Aumentados</Select.Option>
               </Select>
             </Form.Item>
           </Col>
@@ -479,6 +637,7 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 <Select.Option value="leve">Leve</Select.Option>
                 <Select.Option value="moderado">Moderado</Select.Option>
                 <Select.Option value="severo">Severo</Select.Option>
+                <Select.Option value="generalizado">Generalizado</Select.Option>
               </Select>
             </Form.Item>
           </Col>
@@ -493,12 +652,13 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
                 <Select.Option value="positiva_1">+</Select.Option>
                 <Select.Option value="positiva_2">++</Select.Option>
                 <Select.Option value="positiva_3">+++</Select.Option>
+                <Select.Option value="positiva_4">++++</Select.Option>
               </Select>
             </Form.Item>
           </Col>
         </Row>
 
-        {/* FILA 7: Observaciones */}
+        <Divider orientation="left">📝 Observaciones</Divider>
         <Row gutter={16}>
           <Col span={24}>
             <Form.Item
@@ -508,17 +668,29 @@ const FormularioControl: React.FC<FormularioControlProps> = ({ onCancel, onSucce
               <Input.TextArea 
                 rows={4} 
                 placeholder="Observaciones del control prenatal, hallazgos relevantes, indicaciones..."
+                maxLength={1000}
+                showCount
               />
             </Form.Item>
           </Col>
         </Row>
 
-        {/* BOTONES */}
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
-            Guardar Control
+          <Button 
+            type="primary" 
+            htmlType="submit" 
+            loading={loading} 
+            icon={<SaveOutlined />}
+            size="large"
+          >
+            {modoEdicion ? 'Actualizar Control' : 'Guardar Control'}
           </Button>
-          <Button style={{ marginLeft: 8 }} onClick={onCancel} icon={<CloseOutlined />}>
+          <Button 
+            style={{ marginLeft: 8 }} 
+            onClick={onCancel} 
+            icon={<CloseOutlined />}
+            size="large"
+          >
             Cancelar
           </Button>
         </Form.Item>
