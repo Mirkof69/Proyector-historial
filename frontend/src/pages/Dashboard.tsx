@@ -2,8 +2,6 @@
  * =============================================================================
  * DASHBOARD PRINCIPAL
  * =============================================================================
- * Panel de control con estadísticas en tiempo real
- * =============================================================================
  */
 
 import React from 'react';
@@ -12,20 +10,22 @@ import MainLayout from '../components/layout/MainLayout';
 
 // Pages
 import DashboardHome from './DashboardHome';
-import Pacientes from './Pacientes';
-import Embarazos from './Embarazos';
-import Controles from './Controles';
-import Calculadoras from './Calculadoras';
+import Usuarios from './Usuarios';
+import PacientesNew from './PacientesNew';
+import EmbarazosNew from './EmbarazosNew';
+import ControlesNew from './ControlesNew';
+import CalculadorasNew from './CalculadorasNew';
 
 const Dashboard: React.FC = () => {
   return (
     <MainLayout>
       <Routes>
         <Route path="/" element={<DashboardHome />} />
-        <Route path="/pacientes" element={<Pacientes />} />
-        <Route path="/embarazos" element={<Embarazos />} />
-        <Route path="/controles" element={<Controles />} />
-        <Route path="/calculadoras" element={<Calculadoras />} />
+        <Route path="/usuarios" element={<Usuarios />} />
+        <Route path="/pacientes" element={<PacientesNew />} />
+        <Route path="/embarazos" element={<EmbarazosNew />} />
+        <Route path="/controles" element={<ControlesNew />} />
+        <Route path="/calculadoras" element={<CalculadorasNew />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </MainLayout>
