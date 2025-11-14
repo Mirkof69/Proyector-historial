@@ -1,108 +1,140 @@
-import axios from 'axios';
+/**
+ * =============================================================================
+ * SERVICIO DE AUTENTICACIÓN
+ * =============================================================================
+ * Maneja login, logout, registro y gestión de tokens JWT
+ * =============================================================================
+ */
 
-const API_URL = 'http://127.0.0.1:8000/api';
+import api from './api';
+import { LoginCredentials, LoginResponse, Usuario } from '../types';
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  access: string;
-  refresh: string;
-  user: {
-    id: number;
-    email: string;
-    nombre: string;
-    rol: string;
-  };
-}
-
-export const authService = {
+class AuthService {
+  /**
+   * Iniciar sesión
+   */
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    const response = await axios.post(`${API_URL}/usuarios/login/`, credentials);
-    if (response.data.access) {
-      localStorage.setItem('token', response.data.access);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    try {
+      const response = await api.post<LoginResponse>('/usuarios/login/', credentials);
+      const { access, refresh, user } = response.data;
+
+      // Guardar tokens y usuario en localStorage
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        'Error al iniciar sesión'
+      );
     }
-    return response.data;
-  },
+  }
 
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  },
+  /**
+   * Cerrar sesión
+   */
+  async logout(): Promise<void> {
+    try {
+      await api.post('/usuarios/logout/');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    } finally {
+      // Limpiar localStorage
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+    }
+  }
 
-  getToken(): string | null {
-    return localStorage.getItem('token');
-  },
-
-  getCurrentUser() {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  },
-
+  /**
+   * Verificar si el usuario está autenticado
+   */
   isAuthenticated(): boolean {
-    return !!this.getToken();
-  },
+    const token = localStorage.getItem('access_token');
+    const user = localStorage.getItem('user');
+    return !!(token && user);
+  }
 
-  // PACIENTES - CRUD
-  updatePaciente: async (id: number, data: any) => {
-    const token = localStorage.getItem('token');
-    const response = await axios.put(
-      `${API_URL}/pacientes/${id}/`,
-      data,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  },
+  /**
+   * Obtener usuario actual
+   */
+  getCurrentUser(): Usuario | null {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch (error) {
+        return null;
+      }
+    }
+    return null;
+  }
 
-  deletePaciente: async (id: number) => {
-    const token = localStorage.getItem('token');
-    const response = await axios.delete(
-      `${API_URL}/pacientes/${id}/`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  },
+  /**
+   * Obtener perfil del usuario actual
+   */
+  async getProfile(): Promise<Usuario> {
+    const response = await api.get<Usuario>('/usuarios/perfil/');
+    const user = response.data;
+    localStorage.setItem('user', JSON.stringify(user));
+    return user;
+  }
 
-  // EMBARAZOS - CRUD
-  updateEmbarazo: async (id: number, data: any) => {
-    const token = localStorage.getItem('token');
-    const response = await axios.put(
-      `${API_URL}/embarazos/${id}/`,
-      data,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  },
+  /**
+   * Actualizar perfil
+   */
+  async updateProfile(data: Partial<Usuario>): Promise<Usuario> {
+    const response = await api.patch<Usuario>('/usuarios/perfil/', data);
+    const user = response.data;
+    localStorage.setItem('user', JSON.stringify(user));
+    return user;
+  }
 
-  deleteEmbarazo: async (id: number) => {
-    const token = localStorage.getItem('token');
-    const response = await axios.delete(
-      `${API_URL}/embarazos/${id}/`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  },
+  /**
+   * Cambiar contraseña
+   */
+  async changePassword(oldPassword: string, newPassword: string): Promise<void> {
+    await api.post('/usuarios/cambiar-password/', {
+      old_password: oldPassword,
+      new_password: newPassword,
+    });
+  }
 
-  // CONTROLES - CRUD
-  updateControl: async (id: number, data: any) => {
-    const token = localStorage.getItem('token');
-    const response = await axios.put(
-      `${API_URL}/controles/${id}/`,
-      data,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  },
+  /**
+   * Solicitar recuperación de contraseña
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    await api.post('/usuarios/solicitar-recuperacion-password/', { email });
+  }
 
-  deleteControl: async (id: number) => {
-    const token = localStorage.getItem('token');
-    const response = await axios.delete(
-      `${API_URL}/controles/${id}/`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  /**
+   * Recuperar contraseña con token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await api.post('/usuarios/recuperar-password/', {
+      token,
+      new_password: newPassword,
+    });
+  }
+
+  /**
+   * Registro público (para pacientes)
+   */
+  async register(data: {
+    username: string;
+    email: string;
+    password: string;
+    nombre: string;
+    apellido: string;
+    telefono?: string;
+  }): Promise<Usuario> {
+    const response = await api.post<Usuario>('/usuarios/registro/', data);
     return response.data;
   }
-};
+}
+
+export const authService = new AuthService();
+export default authService;
