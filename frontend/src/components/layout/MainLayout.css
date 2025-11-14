@@ -1,0 +1,139 @@
+/**
+ * =============================================================================
+ * ESTILOS DEL LAYOUT PRINCIPAL
+ * =============================================================================
+ */
+
+.main-layout {
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.main-sider {
+  background: #001529 !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.logo-container {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 20px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.logo-icon {
+  font-size: 28px;
+  color: #ff4d4f;
+  animation: heartbeat 1.5s infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.logo-text {
+  color: #ffffff !important;
+  font-size: 18px !important;
+}
+
+/* HEADER */
+.main-header {
+  background: #ffffff;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 99;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.trigger {
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.trigger:hover {
+  color: #1890ff;
+}
+
+.page-title {
+  font-size: 16px;
+  color: #1a1a2e;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.notification-badge {
+  cursor: pointer;
+}
+
+.notification-badge .anticon {
+  transition: color 0.3s;
+}
+
+.notification-badge:hover .anticon {
+  color: #1890ff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.user-info:hover {
+  background: #f0f0f0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-role {
+  font-size: 12px;
+}
+
+/* CONTENT */
+.main-content {
+  margin: 24px;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 8px;
+  min-height: 280px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .page-title {
+    display: none;
+  }
+
+  .main-content {
+    margin: 12px;
+    padding: 16px;
+  }
+
+  .user-details {
+    display: none;
+  }
+}
