@@ -1,0 +1,261 @@
+# =============================================================================
+# REQUIREMENTS.TXT - DEPENDENCIAS DEL PROYECTO
+# =============================================================================
+# Proyecto: Sistema de Historial Médico Obstétrico
+# Backend: Django REST Framework + PostgreSQL
+# =============================================================================
+
+# =============================================================================
+# FRAMEWORK PRINCIPAL - DJANGO
+# =============================================================================
+# Django - Framework web de alto nivel para Python
+Django==4.2.7
+
+# Django REST Framework - Toolkit para crear APIs REST
+djangorestframework==3.14.0
+
+# =============================================================================
+# BASE DE DATOS - POSTGRESQL
+# =============================================================================
+# Psycopg2 - Adaptador de PostgreSQL para Python
+psycopg2-binary==2.9.9
+
+# Django Extensions - Extensiones útiles para Django
+django-extensions==3.2.3
+
+# =============================================================================
+# AUTENTICACIÓN Y SEGURIDAD
+# =============================================================================
+# Simple JWT - Autenticación JWT para Django REST Framework
+djangorestframework-simplejwt==5.3.0
+
+# Django CORS Headers - Manejo de CORS (Cross-Origin Resource Sharing)
+django-cors-headers==4.3.0
+
+# Python Decouple - Manejo de variables de entorno
+python-decouple==3.8
+
+# Django Environ - Alternativa para variables de entorno
+django-environ==0.11.2
+
+# Bcrypt - Hashing de contraseñas más seguro
+bcrypt==4.1.1
+
+# PyJWT - Implementación de JSON Web Tokens
+PyJWT==2.8.0
+
+# =============================================================================
+# CACHE Y SESIONES - REDIS
+# =============================================================================
+# Redis - Cliente de Redis para Python
+redis==5.0.1
+
+# Django Redis - Backend de cache y sesiones con Redis
+django-redis==5.4.0
+
+# =============================================================================
+# VALIDACIÓN Y SERIALIZACIÓN
+# =============================================================================
+# Django Filter - Filtrado avanzado para Django REST Framework
+django-filter==23.5
+
+# DRF Spectacular - Generación automática de documentación OpenAPI/Swagger
+drf-spectacular==0.27.0
+
+# Marshmallow - Serialización y validación de datos
+marshmallow==3.20.1
+
+# Pydantic - Validación de datos usando type hints
+pydantic==2.5.2
+
+# =============================================================================
+# GENERACIÓN DE REPORTES Y DOCUMENTOS
+# =============================================================================
+# ReportLab - Generación de PDFs
+reportlab==4.0.7
+
+# Pillow - Procesamiento de imágenes (requerido por ReportLab)
+Pillow==10.1.0
+
+# OpenPyXL - Lectura y escritura de archivos Excel (xlsx)
+openpyxl==3.1.2
+
+# XlsxWriter - Escritura de archivos Excel con formato avanzado
+XlsxWriter==3.1.9
+
+# Python-docx - Generación de documentos Word
+python-docx==1.1.0
+
+# WeasyPrint - Conversión de HTML a PDF (alternativa a ReportLab)
+WeasyPrint==60.1
+
+# =============================================================================
+# MANEJO DE FECHAS Y TIEMPOS
+# =============================================================================
+# Python-dateutil - Extensiones para datetime
+python-dateutil==2.8.2
+
+# Pytz - Zonas horarias para Python
+pytz==2023.3
+
+# Arrow - Manejo amigable de fechas y tiempos
+arrow==1.3.0
+
+# =============================================================================
+# TAREAS ASÍNCRONAS Y PROGRAMADAS
+# =============================================================================
+# Celery - Cola de tareas asíncronas
+celery==5.3.4
+
+# Django-celery-beat - Programador de tareas periódicas
+django-celery-beat==2.5.0
+
+# Django-celery-results - Almacenamiento de resultados de Celery
+django-celery-results==2.5.1
+
+# =============================================================================
+# EMAIL
+# =============================================================================
+# Django-email-template - Plantillas de email
+django-templated-email==3.0.1
+
+# SendGrid - Servicio de envío de emails (opcional)
+sendgrid==6.11.0
+
+# =============================================================================
+# ANÁLISIS Y PROCESAMIENTO DE DATOS
+# =============================================================================
+# NumPy - Computación numérica
+numpy==1.26.2
+
+# Pandas - Análisis de datos y estadísticas
+pandas==2.1.3
+
+# SciPy - Algoritmos científicos y técnicos
+scipy==1.11.4
+
+# Matplotlib - Generación de gráficas (opcional)
+matplotlib==3.8.2
+
+# =============================================================================
+# TESTING
+# =============================================================================
+# Pytest - Framework de testing
+pytest==7.4.3
+
+# Pytest-django - Plugin de pytest para Django
+pytest-django==4.7.0
+
+# Pytest-cov - Cobertura de código con pytest
+pytest-cov==4.1.0
+
+# Factory Boy - Creación de fixtures para testing
+factory-boy==3.3.0
+
+# Faker - Generación de datos falsos para testing
+Faker==20.1.0
+
+# Coverage - Medición de cobertura de código
+coverage==7.3.2
+
+# =============================================================================
+# UTILIDADES Y HELPERS
+# =============================================================================
+# Requests - Cliente HTTP
+requests==2.31.0
+
+# Python-slugify - Generación de slugs URL-friendly
+python-slugify==8.0.1
+
+# Unidecode - Transliteración de caracteres Unicode
+Unidecode==1.3.7
+
+# Phonenumbers - Validación y formateo de números de teléfono
+phonenumbers==8.13.26
+
+# =============================================================================
+# LOGGING Y MONITOREO
+# =============================================================================
+# Django-debug-toolbar - Toolbar de debugging (solo desarrollo)
+django-debug-toolbar==4.2.0
+
+# Sentry-SDK - Monitoreo de errores en producción
+sentry-sdk==1.38.0
+
+# =============================================================================
+# CALIDAD DE CÓDIGO
+# =============================================================================
+# Flake8 - Linter de código Python
+flake8==6.1.0
+
+# Black - Formateador de código Python
+black==23.11.0
+
+# Isort - Ordenador de imports
+isort==5.12.0
+
+# Pylint - Análisis estático de código
+pylint==3.0.3
+
+# =============================================================================
+# WEBSOCKETS (OPCIONAL - PARA NOTIFICACIONES EN TIEMPO REAL)
+# =============================================================================
+# Channels - Soporte de WebSockets para Django
+channels==4.0.0
+
+# Channels-redis - Backend de Redis para Channels
+channels-redis==4.1.0
+
+# Daphne - Servidor ASGI para Django Channels
+daphne==4.0.0
+
+# =============================================================================
+# ALMACENAMIENTO EN LA NUBE (OPCIONAL)
+# =============================================================================
+# Django-storages - Backends de almacenamiento (S3, Azure, etc.)
+django-storages==1.14.2
+
+# Boto3 - SDK de AWS para Python (para S3)
+boto3==1.33.7
+
+# =============================================================================
+# OTROS
+# =============================================================================
+# Python-magic - Detección de tipos MIME de archivos
+python-magic==0.4.27
+
+# QRCode - Generación de códigos QR
+qrcode==7.4.2
+
+# Barcode - Generación de códigos de barras
+python-barcode==0.15.1
+
+# Cryptography - Criptografía
+cryptography==41.0.7
+
+# =============================================================================
+# SERVIDOR DE PRODUCCIÓN
+# =============================================================================
+# Gunicorn - Servidor WSGI para producción
+gunicorn==21.2.0
+
+# Whitenoise - Servir archivos estáticos en producción
+whitenoise==6.6.0
+
+# =============================================================================
+# NOTAS DE INSTALACIÓN
+# =============================================================================
+# Para instalar todas las dependencias:
+# pip install -r requirements.txt
+#
+# Para actualizar el archivo de dependencias:
+# pip freeze > requirements.txt
+#
+# Para instalar solo las dependencias de desarrollo:
+# pip install -r requirements-dev.txt (crear archivo separado)
+#
+# Para crear entorno virtual:
+# python -m venv venv
+# source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate     # Windows
+# =============================================================================
