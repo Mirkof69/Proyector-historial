@@ -1,13 +1,17 @@
 from pathlib import Path
 from datetime import timedelta
+from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-x10d&-q23_iwn2!+g)sdhtm%i6xgqq&l9px0blz)th_&+eup&&'
+# ===========================================
+# SEGURIDAD - Variables de Entorno
+# ===========================================
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-production')
 
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,22 +60,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'historial.wsgi.application'
 
+# ===========================================
+# BASE DE DATOS - PostgreSQL
+# ===========================================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Historial',
-        'USER': 'postgres',
-        'PASSWORD': '25693',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': config('DB_NAME', default='Historial'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5433'),
     }
 }
 
-# Configuración de Redis Cache
+# ===========================================
+# CACHE - Redis
+# ===========================================
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
@@ -89,8 +98,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+# ===========================================
+# INTERNACIONALIZACIÓN
+# ===========================================
+LANGUAGE_CODE = config('LANGUAGE_CODE', default='es-es')
+TIME_ZONE = config('TIME_ZONE', default='America/La_Paz')
 USE_I18N = True
 USE_TZ = True
 
@@ -110,16 +122,23 @@ REST_FRAMEWORK = {
     ],
 }
 
+# ===========================================
+# JWT - Autenticación
+# ===========================================
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=config('JWT_ACCESS_TOKEN_HOURS', default=1, cast=int)),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=config('JWT_REFRESH_TOKEN_DAYS', default=1, cast=int)),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+# ===========================================
+# CORS - Cross-Origin Resource Sharing
+# ===========================================
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:3000,http://127.0.0.1:3000',
+    cast=Csv()
+)
 
 CORS_ALLOW_CREDENTIALS = True

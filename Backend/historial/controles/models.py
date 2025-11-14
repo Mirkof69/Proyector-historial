@@ -1,5 +1,7 @@
 from django.db import models
 from pacientes.models import Paciente
+from embarazos.models import Embarazo
+from usuarios.models import Usuario
 import uuid
 
 class ControlPrenatal(models.Model):
@@ -33,13 +35,21 @@ class ControlPrenatal(models.Model):
     # Campos principales
     id = models.AutoField(primary_key=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    embarazo_id = models.IntegerField()
+
+    # ✅ RELACIONES CORREGIDAS - ForeignKeys apropiadas
+    embarazo = models.ForeignKey(
+        Embarazo,
+        on_delete=models.CASCADE,
+        db_column='embarazo_id',
+        related_name='controles'
+    )
     paciente = models.ForeignKey(
-        Paciente, 
-        on_delete=models.CASCADE, 
+        Paciente,
+        on_delete=models.CASCADE,
         db_column='paciente_id',
         related_name='controles'
     )
+
     numero_control = models.IntegerField()
     fecha_control = models.DateField()
     
@@ -75,8 +85,25 @@ class ControlPrenatal(models.Model):
     
     # Observaciones y registro
     observaciones = models.TextField(blank=True, null=True)
-    medico_id = models.IntegerField(blank=True, null=True)
-    enfermero_id = models.IntegerField(blank=True, null=True)
+
+    # ✅ RELACIONES CORREGIDAS - ForeignKeys a Usuario
+    medico = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        db_column='medico_id',
+        related_name='controles_medico',
+        blank=True,
+        null=True
+    )
+    enfermero = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        db_column='enfermero_id',
+        related_name='controles_enfermero',
+        blank=True,
+        null=True
+    )
+
     fecha_registro = models.DateTimeField(auto_now_add=True)
     
     class Meta:

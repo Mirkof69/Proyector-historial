@@ -20,7 +20,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
         model = ControlPrenatal
         fields = [
             'id',
-            'embarazo_id',
+            'embarazo',  # ✅ Cambiado de embarazo_id a embarazo (ForeignKey)
             'embarazo_info',
             'paciente',
             'paciente_nombre',
@@ -48,7 +48,8 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
             'edema',
             'proteinuria',
             'observaciones',
-            'medico_id',
+            'medico',      # ✅ Cambiado de medico_id a medico (ForeignKey)
+            'enfermero',   # ✅ Añadido enfermero (ForeignKey)
             'fecha_registro',
         ]
         read_only_fields = ['id', 'fecha_registro']
@@ -124,21 +125,21 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
     
     def get_embarazo_info(self, obj):
         """Información adicional del embarazo"""
-        if obj.embarazo_id:
-            try:
-                embarazo = obj.embarazo_id if hasattr(obj, 'embarazo_id') else obj.embarazo
-                if hasattr(embarazo, 'paciente'):
-                    return {
-                        'id': embarazo.id,
-                        'paciente_id': embarazo.paciente.id,
-                        'paciente_nombre': f"{embarazo.paciente.nombre} {embarazo.paciente.apellido_paterno}",
-                        'numero_gesta': embarazo.numero_gesta if hasattr(embarazo, 'numero_gesta') else None,
-                        'fecha_ultima_menstruacion': embarazo.fecha_ultima_menstruacion,
-                        'fecha_probable_parto': embarazo.fecha_probable_parto,
-                        'estado': embarazo.estado,
-                    }
-            except:
-                pass
+        # ✅ Ahora usa la relación ForeignKey directamente
+        try:
+            if obj.embarazo:
+                embarazo = obj.embarazo
+                return {
+                    'id': embarazo.id,
+                    'paciente_id': embarazo.paciente.id,
+                    'paciente_nombre': f"{embarazo.paciente.nombre} {embarazo.paciente.apellido_paterno}",
+                    'numero_gesta': embarazo.numero_gesta,
+                    'fecha_ultima_menstruacion': str(embarazo.fecha_ultima_menstruacion),
+                    'fecha_probable_parto': str(embarazo.fecha_probable_parto) if embarazo.fecha_probable_parto else None,
+                    'estado': embarazo.estado,
+                }
+        except Exception as e:
+            pass
         return None
     
     def validate(self, data):
@@ -230,12 +231,12 @@ class ControlPrenatalListSerializer(serializers.ModelSerializer):
     edad_gestacional = serializers.SerializerMethodField()
     presion_arterial = serializers.SerializerMethodField()
     tiene_alertas = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = ControlPrenatal
         fields = [
             'id',
-            'embarazo_id',
+            'embarazo',  # ✅ Cambiado de embarazo_id a embarazo
             'paciente_nombre',
             'numero_control',
             'fecha_control',
@@ -288,11 +289,11 @@ class ControlPrenatalListSerializer(serializers.ModelSerializer):
 
 class ControlPrenatalCreateSerializer(serializers.ModelSerializer):
     """Serializer específico para creación de controles"""
-    
+
     class Meta:
         model = ControlPrenatal
         fields = [
-            'embarazo_id',
+            'embarazo',  # ✅ Cambiado de embarazo_id a embarazo
             'paciente',
             'numero_control',
             'fecha_control',
@@ -312,36 +313,32 @@ class ControlPrenatalCreateSerializer(serializers.ModelSerializer):
             'edema',
             'proteinuria',
             'observaciones',
-            'medico_id',
+            'medico',     # ✅ Cambiado de medico_id a medico
+            'enfermero',  # ✅ Añadido enfermero
         ]
-    
+
     def validate(self, data):
         """Validaciones específicas para creación"""
-        # Validar que el embarazo exista y esté activo
-        if 'embarazo_id' in data:
-            try:
-                embarazo = Embarazo.objects.get(id=data['embarazo_id'])
-                if embarazo.estado != 'activo':
-                    raise serializers.ValidationError({
-                        'embarazo_id': 'El embarazo debe estar activo para registrar controles'
-                    })
-                # Establecer automáticamente el paciente si no se proporciona
-                if 'paciente' not in data:
-                    data['paciente'] = embarazo.paciente.id
-            except Embarazo.DoesNotExist:
+        # ✅ Validar que el embarazo exista y esté activo (ahora usa ForeignKey)
+        if 'embarazo' in data:
+            embarazo = data['embarazo']
+            if embarazo.estado != 'activo':
                 raise serializers.ValidationError({
-                    'embarazo_id': 'El embarazo especificado no existe'
+                    'embarazo': 'El embarazo debe estar activo para registrar controles'
                 })
-        
-        # Validar que no exista otro control con el mismo número para este embarazo
-        if 'embarazo_id' in data and 'numero_control' in data:
+            # Establecer automáticamente el paciente si no se proporciona
+            if 'paciente' not in data:
+                data['paciente'] = embarazo.paciente
+
+        # ✅ Validar que no exista otro control con el mismo número (ahora usa ForeignKey)
+        if 'embarazo' in data and 'numero_control' in data:
             exists = ControlPrenatal.objects.filter(
-                embarazo_id=data['embarazo_id'],
+                embarazo=data['embarazo'],
                 numero_control=data['numero_control']
             ).exists()
             if exists:
                 raise serializers.ValidationError({
                     'numero_control': f"Ya existe un control #{data['numero_control']} para este embarazo"
                 })
-        
+
         return super().validate(data)
