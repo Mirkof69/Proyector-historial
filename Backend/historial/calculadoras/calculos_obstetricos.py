@@ -1222,6 +1222,143 @@ class CalculadoraObstetrica:
             'accion': accion
         }
 
+    # =========================================================================
+    # MÉTODOS WRAPPER PARA API (compatibilidad con views.py)
+    # =========================================================================
+
+    @staticmethod
+    def prediccion_parto_pretermino(
+        edad_materna, paridad, parto_pretermino_previo,
+        eg_parto_previo, embarazo_multiple, longitud_cervical, eg_medicion
+    ):
+        """
+        Wrapper que combina predicción por historia y longitud cervical.
+        """
+        # Si hay longitud cervical, usar ese método (más específico)
+        if longitud_cervical:
+            resultado = CalculadoraObstetrica.prediccion_parto_prematuro_longitud_cervical(
+                longitud_cervical_mm=longitud_cervical,
+                eg_semanas=eg_medicion,
+                historia_parto_prematuro=parto_pretermino_previo
+            )
+        else:
+            # Usar método basado en historia
+            resultado = CalculadoraObstetrica.prediccion_parto_preterminobasado_historia(
+                historia_parto_prematuro=parto_pretermino_previo,
+                numero_partos_prematuros=1 if parto_pretermino_previo else 0,
+                eg_parto_prematuro_previo=eg_parto_previo if eg_parto_previo else 37,
+                paridad=paridad,
+                cerclaje_previo=False,
+                incompetencia_cervical=False
+            )
+
+        # Ajustar por embarazo múltiple
+        if embarazo_multiple and 'riesgo_parto_prematuro' in resultado:
+            resultado['riesgo_parto_prematuro'] = min(resultado['riesgo_parto_prematuro'] * 1.5, 99.0)
+            resultado['embarazo_multiple'] = True
+
+        return resultado
+
+    @staticmethod
+    def peso_fetal_estimado(dbp, ca, fl, hc=None):
+        """Wrapper para cálculo de peso fetal (usa Hadlock)."""
+        return CalculadoraObstetrica.calcular_peso_fetal_hadlock(dbp, ca, fl, hc)
+
+    @staticmethod
+    def evaluar_crecimiento_fetal(peso_fetal, eg_semanas):
+        """Wrapper para evaluación de crecimiento fetal."""
+        return CalculadoraObstetrica.evaluar_peso_fetal_percentil(peso_fetal, eg_semanas)
+
+    @staticmethod
+    def doppler_arteria_umbilical(ip, ir, eg_semanas):
+        """Wrapper para Doppler de arteria umbilical."""
+        return CalculadoraObstetrica.interpretar_doppler_arteria_umbilical(ip, ir, eg_semanas)
+
+    @staticmethod
+    def doppler_arteria_cerebral_media(ip, psv, eg_semanas):
+        """Wrapper para Doppler de arteria cerebral media."""
+        return CalculadoraObstetrica.interpretar_doppler_arteria_cerebral_media(ip, psv, eg_semanas)
+
+    @staticmethod
+    def calcular_mom_ip_uterinas_detallado(ip_promedio, eg_semanas):
+        """Wrapper detallado para IP uterinas."""
+        mom = CalculadoraObstetrica.calcular_mom_ip_uterinas(ip_promedio, eg_semanas)
+
+        # Añadir interpretación
+        if mom > 2.0:
+            interpretacion = "IP uterinas elevado - Alto riesgo de preeclampsia/SGA"
+            riesgo = "ALTO"
+        elif mom > 1.5:
+            interpretacion = "IP uterinas moderadamente elevado - Riesgo intermedio"
+            riesgo = "INTERMEDIO"
+        elif mom < 0.5:
+            interpretacion = "IP uterinas muy bajo - Revisar medición"
+            riesgo = "ATÍPICO"
+        else:
+            interpretacion = "IP uterinas normal"
+            riesgo = "BAJO"
+
+        return {
+            'ip_promedio': ip_promedio,
+            'eg_semanas': eg_semanas,
+            'mom': mom,
+            'interpretacion': interpretacion,
+            'riesgo': riesgo
+        }
+
+    @staticmethod
+    def ratio_sflt1_plgf(sflt1, plgf, eg_semanas):
+        """Wrapper para ratio sFlt-1/PlGF."""
+        return CalculadoraObstetrica.interpretar_ratio_sflt1_plgf(sflt1, plgf, eg_semanas)
+
+    @staticmethod
+    def test_no_estresante(fcf_basal, aceleraciones, desaceleraciones,
+                          variabilidad, duracion_minutos, eg_semanas):
+        """
+        Wrapper completo para Test No Estresante.
+        Evalúa FCF basal, aceleraciones, desaceleraciones y variabilidad.
+        """
+        # Primero evaluar FCF basal
+        if fcf_basal < 110:
+            bradicardia = True
+            fcf_interpretacion = "Bradicardia fetal - Requiere evaluación urgente"
+        elif fcf_basal > 160:
+            taquicardia = True
+            fcf_interpretacion = "Taquicardia fetal - Investigar causas (fiebre, hipoxia)"
+        else:
+            bradicardia = False
+            taquicardia = False
+            fcf_interpretacion = "FCF basal normal (110-160 lpm)"
+
+        # Evaluar el NST
+        resultado_nst = CalculadoraObstetrica.interpretar_test_no_estresante(
+            aceleraciones=aceleraciones,
+            variabilidad=variabilidad,
+            deceleraciones=desaceleraciones
+        )
+
+        # Combinar resultados
+        resultado_completo = {
+            'fcf_basal': fcf_basal,
+            'fcf_interpretacion': fcf_interpretacion,
+            'bradicardia': bradicardia,
+            'taquicardia': taquicardia,
+            'aceleraciones': aceleraciones,
+            'variabilidad': variabilidad,
+            'desaceleraciones': desaceleraciones,
+            'duracion_minutos': duracion_minutos,
+            'eg_semanas': eg_semanas,
+            **resultado_nst
+        }
+
+        # Ajustar clasificación final si hay bradicardia/taquicardia
+        if bradicardia or taquicardia:
+            resultado_completo['clasificacion'] = "ANORMAL - FCF BASAL ALTERADA"
+            resultado_completo['accion'] = "CRÍTICO"
+            resultado_completo['recomendacion'] = f"{fcf_interpretacion}. {resultado_nst.get('recomendacion', '')}"
+
+        return resultado_completo
+
 # =============================================================================
 # FIN DEL ARCHIVO
 # =============================================================================
