@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'embarazos',
     'controles',
     'calculadoras',
+    'partos',
 ]
 
 MIDDLEWARE = [

@@ -283,7 +283,7 @@ class ComplicacionParto(models.Model):
     parto = models.ForeignKey(
         Parto,
         on_delete=models.CASCADE,
-        related_name='complicaciones',
+        related_name='complicaciones_list',
         db_column='parto_id'
     )
 
