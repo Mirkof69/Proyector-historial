@@ -134,6 +134,28 @@ class AuthService {
     const response = await api.post<Usuario>('/usuarios/registro/', data);
     return response.data;
   }
+
+  /**
+   * Obtener token de acceso
+   */
+  getToken(): string | null {
+    return localStorage.getItem('access_token');
+  }
+
+  /**
+   * Obtener refresh token
+   */
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token');
+  }
+
+  /**
+   * Verificar si hay token válido
+   */
+  hasToken(): boolean {
+    const token = this.getToken();
+    return token !== null && token !== '';
+  }
 }
 
 export const authService = new AuthService();

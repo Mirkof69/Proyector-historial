@@ -55,6 +55,14 @@ class PacientesService {
   }
 
   /**
+   * Eliminar paciente - Alias para compatibilidad
+   */
+  async deletePaciente(id: number): Promise<any> {
+    await api.delete(`/pacientes/${id}/`);
+    return { success: true, message: 'Paciente eliminado correctamente' };
+  }
+
+  /**
    * Buscar pacientes
    */
   async search(query: string): Promise<Paciente[]> {

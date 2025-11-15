@@ -3,6 +3,7 @@ import { Table, Button, Space, Tag, Input, Card, message, Modal, Form, DatePicke
 import { PlusOutlined, SearchOutlined, EditOutlined, EyeOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { authService } from '../services/authService';
+import { pacientesService } from '../services/pacientesService';
 import FormularioPaciente from './FormularioPaciente';
 import DetallePaciente from './DetallePaciente';
 import dayjs from 'dayjs';
@@ -156,9 +157,9 @@ const Pacientes: React.FC = () => {
 
   const confirmarEliminacion = async () => {
     if (!pacienteToDelete) return;
-    
+
     try {
-      const response = await authService.deletePaciente(pacienteToDelete);
+      const response = await pacientesService.deletePaciente(pacienteToDelete);
       console.log('✅ Respuesta del servidor:', response);
       message.success('Paciente eliminado correctamente');
       setIsDeleteModalVisible(false);
