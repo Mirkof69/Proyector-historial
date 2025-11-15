@@ -21,6 +21,11 @@ import {
   BellOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  FundOutlined,
+  ExperimentOutlined,
+  CalendarOutlined,
+  MedicineBoxFilled,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../services/authService';
@@ -63,7 +68,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     {
       key: '/dashboard/controles',
       icon: <MedicineBoxOutlined />,
-      label: 'Controles',
+      label: 'Controles Prenatales',
+    },
+    {
+      key: '/dashboard/ecografias',
+      icon: <FundOutlined />,
+      label: 'Ecografías',
+    },
+    {
+      key: '/dashboard/laboratorio',
+      icon: <ExperimentOutlined />,
+      label: 'Laboratorio',
+    },
+    {
+      key: '/dashboard/citas',
+      icon: <CalendarOutlined />,
+      label: 'Citas',
+    },
+    {
+      key: '/dashboard/partos',
+      icon: <MedicineBoxFilled />,
+      label: 'Partos',
     },
     {
       key: '/dashboard/calculadoras',
@@ -71,14 +96,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       label: 'Calculadoras FMF',
     },
     {
-      key: '/dashboard/usuarios',
-      icon: <TeamOutlined />,
-      label: 'Usuarios',
+      key: '/dashboard/calculadoras-avanzadas',
+      icon: <BarChartOutlined />,
+      label: 'Calculadoras Avanzadas',
     },
     {
       key: '/dashboard/reportes',
       icon: <FileTextOutlined />,
       label: 'Reportes',
+    },
+    {
+      key: '/dashboard/usuarios',
+      icon: <TeamOutlined />,
+      label: 'Usuarios',
     },
   ];
 
