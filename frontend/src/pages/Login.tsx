@@ -1,43 +1,38 @@
+// ===========================================
+// PÁGINA DE LOGIN
+// ===========================================
+
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { authService } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import '../styles/Login.css';
 
-interface LoginProps {
-  onLoginSuccess: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: { username: string; password: string }) => {
     setLoading(true);
     try {
-      await authService.login({
-        email: values.email,
-        password: values.password
-      });
+      await login(values.username, values.password);
       message.success('Inicio de sesión exitoso');
-      onLoginSuccess();
+      navigate('/dashboard');
     } catch (error: any) {
-      message.error(error.response?.data?.error || 'Error al iniciar sesión');
+      console.error('Error de login:', error);
+      message.error(
+        error.response?.data?.error || 'Error al iniciar sesión. Verifique sus credenciales.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    }}>
-      <Card
-        title="Sistema de Historial Clínico"
-        style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-      >
+    <div className="login-container">
+      <Card className="login-card" title="Sistema de Historial Médico">
         <Form
           name="login"
           onFinish={onFinish}
@@ -45,20 +40,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           layout="vertical"
         >
           <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: 'Por favor ingrese su email' },
-              { type: 'email', message: 'Email inválido' }
-            ]}
+            label="Usuario"
+            name="username"
+            rules={[{ required: true, message: 'Por favor ingrese su usuario' }]}
           >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="Email"
+            <Input 
+              prefix={<UserOutlined />} 
+              placeholder="Usuario" 
               size="large"
             />
           </Form.Item>
 
           <Form.Item
+            label="Contraseña"
             name="password"
             rules={[{ required: true, message: 'Por favor ingrese su contraseña' }]}
           >
@@ -70,11 +64,11 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </Form.Item>
 
           <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              block
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading} 
+              block 
               size="large"
             >
               Iniciar Sesión

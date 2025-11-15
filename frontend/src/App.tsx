@@ -1,34 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import { ConfigProvider } from 'antd';
-import esES from 'antd/locale/es_ES';
+// ===========================================
+// APP PRINCIPAL - CONFIGURACIÓN DE RUTAS
+// ===========================================
+
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Layout } from 'antd';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import { authService } from './services/authService';
+import Dashboard from './pages/dashboard/Dashboard';
+import './App.css';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const { Content } = Layout;
 
-  useEffect(() => {
-    setIsAuthenticated(authService.isAuthenticated());
-  }, []);
+// Componente para proteger rutas
+const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
 
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };
+  if (isLoading) {
+    return <div>Cargando...</div>;
+  }
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
 
+// Componente principal de rutas
+const AppRoutes: React.FC = () => {
   return (
-    <ConfigProvider locale={esES}>
-      {isAuthenticated ? (
-        <Dashboard onLogout={handleLogout} />
-      ) : (
-        <Login onLoginSuccess={handleLoginSuccess} />
-      )}
-    </ConfigProvider>
+    <Router>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Content>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Content>
+      </Layout>
+    </Router>
   );
-}
+};
+
+// App principal
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
+};
 
 export default App;
