@@ -9,6 +9,9 @@
 import api from './api';
 import { Paciente, PacienteForm, PaginatedResponse } from '../types';
 
+// Re-exportar tipos para compatibilidad
+export type { Paciente, PacienteForm };
+
 class PacientesService {
   /**
    * Listar pacientes con paginación y filtros
@@ -21,6 +24,14 @@ class PacientesService {
   }): Promise<PaginatedResponse<Paciente>> {
     const response = await api.get<PaginatedResponse<Paciente>>('/pacientes/', { params });
     return response.data;
+  }
+
+  /**
+   * Obtener todos los pacientes (alias de list)
+   */
+  async getAll(params?: any): Promise<Paciente[]> {
+    const response = await this.list(params);
+    return response.results;
   }
 
   /**

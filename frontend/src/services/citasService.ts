@@ -68,6 +68,14 @@ class CitasService {
   }
 
   /**
+   * Obtener todas las citas (alias de list)
+   */
+  async getAll(params?: any): Promise<Cita[]> {
+    const response = await this.list(params);
+    return response.results;
+  }
+
+  /**
    * Obtener una cita por ID
    */
   async get(id: number): Promise<Cita> {
@@ -177,6 +185,31 @@ class CitasService {
   async getByMedico(medicoId: number, fecha?: string): Promise<Cita[]> {
     const response = await api.get<Cita[]>(`/citas/por-medico/${medicoId}/`, {
       params: { fecha },
+    });
+    return response.data;
+  }
+}
+
+export const citasService = new CitasService();
+export default citasService;
+
+  /**
+   * Obtener citas por fecha
+   */
+  async getByFecha(fecha: string): Promise<Cita[]> {
+    const response = await api.get<Cita[]>('/citas/', {
+      params: { fecha_desde: fecha, fecha_hasta: fecha },
+    });
+    return response.data;
+  }
+}
+
+  /**
+   * Obtener citas por fecha
+   */
+  async getByFecha(fecha: string): Promise<Cita[]> {
+    const response = await api.get<Cita[]>('/citas/', {
+      params: { fecha_desde: fecha, fecha_hasta: fecha },
     });
     return response.data;
   }
