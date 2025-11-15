@@ -1,11 +1,13 @@
 // Página Principal de Usuarios
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Button, Tag, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Tag, message, Space, Popconfirm } from 'antd';
+import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { UsuariosService } from '../../services/api';
 import { Usuario } from '../../types';
 
 const UsuariosPage: React.FC = () => {
+  const navigate = useNavigate();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,6 +24,16 @@ const UsuariosPage: React.FC = () => {
       message.error('Error al cargar usuarios');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await UsuariosService.delete(id);
+      message.success('Usuario eliminado exitosamente');
+      fetchUsuarios();
+    } catch (error) {
+      message.error('Error al eliminar usuario');
     }
   };
 
@@ -68,14 +80,42 @@ const UsuariosPage: React.FC = () => {
         return <Tag color={colors[estado as keyof typeof colors]}>{estado.toUpperCase()}</Tag>;
       },
     },
+    {
+      title: 'Acciones',
+      key: 'acciones',
+      render: (_: any, record: Usuario) => (
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/usuarios/${record.id}`)}
+          />
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/usuarios/${record.id}/edit`)}
+          />
+          <Popconfirm
+            title="¿Está seguro de eliminar este usuario?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Sí"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
   return (
     <div style={{ padding: 24 }}>
-      <Card 
+      <Card
         title="Gestión de Usuarios"
         extra={
-          <Button type="primary" icon={<PlusOutlined />}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/usuarios/new')}
+          >
             Nuevo Usuario
           </Button>
         }

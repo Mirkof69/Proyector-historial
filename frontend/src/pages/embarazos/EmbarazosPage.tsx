@@ -1,11 +1,13 @@
 // Página Principal de Embarazos
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Button, Tag, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Tag, message, Space, Popconfirm } from 'antd';
+import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { EmbarazosService } from '../../services/api';
 import { Embarazo } from '../../types';
 
 const EmbarazosPage: React.FC = () => {
+  const navigate = useNavigate();
   const [embarazos, setEmbarazos] = useState<Embarazo[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,6 +24,16 @@ const EmbarazosPage: React.FC = () => {
       message.error('Error al cargar embarazos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await EmbarazosService.delete(id);
+      message.success('Embarazo eliminado exitosamente');
+      fetchEmbarazos();
+    } catch (error) {
+      message.error('Error al eliminar embarazo');
     }
   };
 
@@ -72,14 +84,42 @@ const EmbarazosPage: React.FC = () => {
         <Tag color={estado === 'activo' ? 'blue' : 'default'}>{estado.toUpperCase()}</Tag>
       ),
     },
+    {
+      title: 'Acciones',
+      key: 'acciones',
+      render: (_: any, record: Embarazo) => (
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/embarazos/${record.id}`)}
+          />
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/embarazos/${record.id}/edit`)}
+          />
+          <Popconfirm
+            title="¿Está seguro de eliminar este embarazo?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Sí"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
   return (
     <div style={{ padding: 24 }}>
-      <Card 
+      <Card
         title="Gestión de Embarazos"
         extra={
-          <Button type="primary" icon={<PlusOutlined />}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/embarazos/new')}
+          >
             Nuevo Embarazo
           </Button>
         }

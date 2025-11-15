@@ -1,11 +1,13 @@
 // Página Principal de Partos
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Button, Tag, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Tag, message, Space, Popconfirm } from 'antd';
+import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { PartosService } from '../../services/api';
 import { Parto } from '../../types';
 
 const PartosPage: React.FC = () => {
+  const navigate = useNavigate();
   const [partos, setPartos] = useState<Parto[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,6 +24,16 @@ const PartosPage: React.FC = () => {
       message.error('Error al cargar partos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await PartosService.delete(id);
+      message.success('Parto eliminado exitosamente');
+      fetchPartos();
+    } catch (error) {
+      message.error('Error al eliminar parto');
     }
   };
 
@@ -82,14 +94,42 @@ const PartosPage: React.FC = () => {
         return <Tag color={colors[estado as keyof typeof colors]}>{estado.toUpperCase()}</Tag>;
       },
     },
+    {
+      title: 'Acciones',
+      key: 'acciones',
+      render: (_: any, record: Parto) => (
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/partos/${record.id}`)}
+          />
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/partos/${record.id}/edit`)}
+          />
+          <Popconfirm
+            title="¿Está seguro de eliminar este parto?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Sí"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
   return (
     <div style={{ padding: 24 }}>
-      <Card 
+      <Card
         title="Gestión de Partos"
         extra={
-          <Button type="primary" icon={<PlusOutlined />}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/partos/new')}
+          >
             Nuevo Parto
           </Button>
         }

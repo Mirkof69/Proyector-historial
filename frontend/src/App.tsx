@@ -17,9 +17,17 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/dashboard/Dashboard';
 import PacientesPage from './pages/pacientes/PacientesPage';
+import PacienteForm from './pages/pacientes/PacienteForm';
+import PacienteDetail from './pages/pacientes/PacienteDetail';
 import EmbarazosPage from './pages/embarazos/EmbarazosPage';
+import EmbarazoForm from './pages/embarazos/EmbarazoForm';
+import EmbarazoDetail from './pages/embarazos/EmbarazoDetail';
 import PartosPage from './pages/partos/PartosPage';
+import PartoForm from './pages/partos/PartoForm';
+import PartoDetail from './pages/partos/PartoDetail';
 import UsuariosPage from './pages/usuarios/UsuariosPage';
+import UsuarioForm from './pages/usuarios/UsuarioForm';
+import UsuarioDetail from './pages/usuarios/UsuarioDetail';
 import './App.css';
 
 const { Header, Content, Sider } = Layout;
@@ -128,11 +136,71 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
+          path="/pacientes/new"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PacienteForm />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pacientes/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PacienteDetail />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pacientes/:id/edit"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PacienteForm />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/embarazos"
           element={
             <ProtectedRoute>
               <MainLayout>
                 <EmbarazosPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/embarazos/new"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <EmbarazoForm />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/embarazos/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <EmbarazoDetail />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/embarazos/:id/edit"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <EmbarazoForm />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -148,11 +216,71 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
+          path="/partos/new"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PartoForm />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partos/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PartoDetail />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partos/:id/edit"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PartoForm />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/usuarios"
           element={
             <ProtectedRoute>
               <MainLayout>
                 <UsuariosPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/usuarios/new"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <UsuarioForm />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/usuarios/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <UsuarioDetail />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/usuarios/:id/edit"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <UsuarioForm />
               </MainLayout>
             </ProtectedRoute>
           }
