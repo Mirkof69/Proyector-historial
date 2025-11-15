@@ -80,13 +80,14 @@ INSTALLED_APPS = [
     'calculadoras',                   # Calculadoras obstétricas (edad gestacional, IMC, riesgos, etc.)
 
     # -------------------------------------------------------------------------
-    # APLICACIONES DEL PROYECTO - MÓDULOS NUEVOS (SE AGREGARÁN)
+    # APLICACIONES DEL PROYECTO - MÓDULOS NUEVOS
     # -------------------------------------------------------------------------
-    # 'partos',                       # Gestión de partos y recién nacidos
-    # 'laboratorio',                  # Exámenes de laboratorio y resultados
-    # 'ecografias',                   # Ecografías y biometría fetal
-    # 'citas',                        # Sistema de agendamiento de citas
-    # 'reportes',                     # Generación de reportes y documentos
+    'ecografias',                     # Ecografías y biometría fetal
+    'laboratorio',                    # Exámenes de laboratorio y resultados
+    'citas',                          # Sistema de agendamiento de citas
+    'partos',                         # Gestión de partos y recién nacidos
+    'calculadoras_avanzadas',         # Calculadoras médicas avanzadas
+    'reportes',                       # Generación de reportes y documentos
 ]
 
 # =============================================================================
