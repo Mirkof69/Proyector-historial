@@ -9,6 +9,9 @@
 import api from './api';
 import { Embarazo, EmbarazoForm, Complicacion, PaginatedResponse } from '../types';
 
+// Re-exportar tipos para compatibilidad
+export type { Embarazo, EmbarazoForm, Complicacion };
+
 class EmbarazosService {
   /**
    * Listar embarazos con paginación y filtros
@@ -22,6 +25,14 @@ class EmbarazosService {
   }): Promise<PaginatedResponse<Embarazo>> {
     const response = await api.get<PaginatedResponse<Embarazo>>('/embarazos/', { params });
     return response.data;
+  }
+
+  /**
+   * Obtener todos los embarazos (alias de list)
+   */
+  async getAll(params?: any): Promise<Embarazo[]> {
+    const response = await this.list(params);
+    return response.results;
   }
 
   /**

@@ -104,6 +104,14 @@ class PartosService {
   }
 
   /**
+   * Obtener todos los partos (alias de list)
+   */
+  async getAll(params?: any): Promise<Parto[]> {
+    const response = await this.list(params);
+    return response.results;
+  }
+
+  /**
    * Obtener un parto por ID
    */
   async get(id: number): Promise<Parto> {

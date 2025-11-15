@@ -188,21 +188,6 @@ class CitasService {
     });
     return response.data;
   }
-}
-
-export const citasService = new CitasService();
-export default citasService;
-
-  /**
-   * Obtener citas por fecha
-   */
-  async getByFecha(fecha: string): Promise<Cita[]> {
-    const response = await api.get<Cita[]>('/citas/', {
-      params: { fecha_desde: fecha, fecha_hasta: fecha },
-    });
-    return response.data;
-  }
-}
 
   /**
    * Obtener citas por fecha

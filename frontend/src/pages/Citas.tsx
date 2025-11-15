@@ -119,10 +119,11 @@ const Citas: React.FC = () => {
 
   const handleEdit = (record: Cita) => {
     setEditingId(record.id);
+    const fechaHora = dayjs(record.fecha_hora);
     form.setFieldsValue({
       ...record,
-      fecha_cita: dayjs(record.fecha_cita),
-      hora_cita: dayjs(record.hora_cita, 'HH:mm:ss'),
+      fecha_cita: fechaHora,
+      hora_cita: fechaHora,
     });
     setModalVisible(true);
   };
@@ -187,11 +188,19 @@ const Citas: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     try {
+      // Combinar fecha y hora en fecha_hora
+      const fechaStr = values.fecha_cita.format('YYYY-MM-DD');
+      const horaStr = values.hora_cita.format('HH:mm:ss');
+      const fecha_hora = `${fechaStr}T${horaStr}`;
+
       const formData = {
         ...values,
-        fecha_cita: values.fecha_cita.format('YYYY-MM-DD'),
-        hora_cita: values.hora_cita.format('HH:mm:ss'),
+        fecha_hora,
       };
+
+      // Eliminar campos temporales del formulario
+      delete formData.fecha_cita;
+      delete formData.hora_cita;
 
       if (editingId) {
         await citasService.update(editingId, formData);
@@ -211,10 +220,10 @@ const Citas: React.FC = () => {
 
   const getListData = (value: Dayjs) => {
     const fechaStr = value.format('YYYY-MM-DD');
-    const citasDelDia = data.filter((cita) => cita.fecha_cita === fechaStr);
+    const citasDelDia = data.filter((cita) => dayjs(cita.fecha_hora).format('YYYY-MM-DD') === fechaStr);
     return citasDelDia.map((cita) => ({
       type: cita.estado === 'confirmada' ? 'success' : cita.estado === 'cancelada' ? 'error' : 'warning',
-      content: `${cita.hora_cita.substring(0, 5)} - ${cita.paciente_nombre}`,
+      content: `${dayjs(cita.fecha_hora).format('HH:mm')} - ${cita.paciente_nombre}`,
     }));
   };
 
@@ -234,17 +243,17 @@ const Citas: React.FC = () => {
   const columns: ColumnsType<Cita> = [
     {
       title: 'Fecha',
-      dataIndex: 'fecha_cita',
-      key: 'fecha_cita',
+      dataIndex: 'fecha_hora',
+      key: 'fecha_hora',
       render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY'),
-      sorter: (a, b) => dayjs(a.fecha_cita).unix() - dayjs(b.fecha_cita).unix(),
+      sorter: (a, b) => dayjs(a.fecha_hora).unix() - dayjs(b.fecha_hora).unix(),
     },
     {
       title: 'Hora',
-      dataIndex: 'hora_cita',
-      key: 'hora_cita',
-      render: (hora: string) => hora.substring(0, 5),
-      sorter: (a, b) => a.hora_cita.localeCompare(b.hora_cita),
+      dataIndex: 'fecha_hora',
+      key: 'hora',
+      render: (fecha_hora: string) => dayjs(fecha_hora).format('HH:mm'),
+      sorter: (a, b) => dayjs(a.fecha_hora).unix() - dayjs(b.fecha_hora).unix(),
     },
     {
       title: 'Paciente',
@@ -432,7 +441,7 @@ const Citas: React.FC = () => {
                       title={
                         <Space>
                           <ClockCircleOutlined />
-                          {cita.hora_cita.substring(0, 5)}
+                          {dayjs(cita.fecha_hora).format('HH:mm')}
                         </Space>
                       }
                       description={
@@ -495,7 +504,7 @@ const Citas: React.FC = () => {
                 >
                   {pacientes.map((pac) => (
                     <Option key={pac.id} value={pac.id}>
-                      {`${pac.nombre} ${pac.apellido} - CI: ${pac.ci}`}
+                      {`${pac.nombre} ${pac.apellido} - DNI: ${pac.dni}`}
                     </Option>
                   ))}
                 </Select>
@@ -523,7 +532,7 @@ const Citas: React.FC = () => {
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="duracion_estimada" label="Duración (minutos)">
+              <Form.Item name="duracion_minutos" label="Duración (minutos)">
                 <Select placeholder="Seleccione duración">
                   <Option value={15}>15 minutos</Option>
                   <Option value={30}>30 minutos</Option>
@@ -625,10 +634,10 @@ const Citas: React.FC = () => {
                 {selectedRecord.paciente_nombre}
               </Descriptions.Item>
               <Descriptions.Item label="Fecha">
-                {dayjs(selectedRecord.fecha_cita).format('DD/MM/YYYY')}
+                {dayjs(selectedRecord.fecha_hora).format('DD/MM/YYYY')}
               </Descriptions.Item>
               <Descriptions.Item label="Hora">
-                {selectedRecord.hora_cita.substring(0, 5)}
+                {dayjs(selectedRecord.fecha_hora).format('HH:mm')}
               </Descriptions.Item>
               <Descriptions.Item label="Tipo de Cita">
                 {selectedRecord.tipo_cita}
@@ -648,9 +657,9 @@ const Citas: React.FC = () => {
                   {selectedRecord.estado}
                 </Tag>
               </Descriptions.Item>
-              {selectedRecord.duracion_estimada && (
+              {selectedRecord.duracion_minutos && (
                 <Descriptions.Item label="Duración Estimada">
-                  {selectedRecord.duracion_estimada} minutos
+                  {selectedRecord.duracion_minutos} minutos
                 </Descriptions.Item>
               )}
               {selectedRecord.medico_nombre && (
@@ -669,15 +678,6 @@ const Citas: React.FC = () => {
               {selectedRecord.observaciones && (
                 <Descriptions.Item label="Observaciones">
                   {selectedRecord.observaciones}
-                </Descriptions.Item>
-              )}
-              {selectedRecord.motivo_cancelacion && (
-                <Descriptions.Item label="Motivo de Cancelación">
-                  <Alert
-                    message={selectedRecord.motivo_cancelacion}
-                    type="error"
-                    showIcon
-                  />
                 </Descriptions.Item>
               )}
             </Descriptions>

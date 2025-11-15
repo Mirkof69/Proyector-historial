@@ -101,7 +101,7 @@ const Laboratorio: React.FC = () => {
     setEditingId(record.id);
     form.setFieldsValue({
       ...record,
-      fecha_examen: dayjs(record.fecha_examen),
+      fecha_solicitud: dayjs(record.fecha_solicitud),
       fecha_resultado: record.fecha_resultado ? dayjs(record.fecha_resultado) : null,
     });
     setFileList([]);
@@ -136,7 +136,7 @@ const Laboratorio: React.FC = () => {
     try {
       const formData: any = {
         ...values,
-        fecha_examen: values.fecha_examen.format('YYYY-MM-DD'),
+        fecha_solicitud: values.fecha_solicitud.format('YYYY-MM-DD'),
         fecha_resultado: values.fecha_resultado ? values.fecha_resultado.format('YYYY-MM-DD') : null,
       };
 
@@ -163,7 +163,7 @@ const Laboratorio: React.FC = () => {
 
   const handleDownloadFile = async (record: ExamenLaboratorio) => {
     try {
-      const blob = await laboratorioService.downloadFile(record.id);
+      const blob = await laboratorioService.downloadResultado(record.id);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -180,11 +180,11 @@ const Laboratorio: React.FC = () => {
 
   const columns: ColumnsType<ExamenLaboratorio> = [
     {
-      title: 'Fecha Examen',
-      dataIndex: 'fecha_examen',
-      key: 'fecha_examen',
+      title: 'Fecha Solicitud',
+      dataIndex: 'fecha_solicitud',
+      key: 'fecha_solicitud',
       render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY'),
-      sorter: (a, b) => dayjs(a.fecha_examen).unix() - dayjs(b.fecha_examen).unix(),
+      sorter: (a, b) => dayjs(a.fecha_solicitud).unix() - dayjs(b.fecha_solicitud).unix(),
     },
     {
       title: 'Tipo',
@@ -303,7 +303,7 @@ const Laboratorio: React.FC = () => {
             >
               {embarazos.map((emb) => (
                 <Option key={emb.id} value={emb.id}>
-                  {`${emb.paciente_nombre} - ${emb.numero_embarazo}`}
+                  {`${emb.paciente_nombre} ${emb.paciente_apellido || ''} - FPP: ${dayjs(emb.fpp).format('DD/MM/YYYY')}`}
                 </Option>
               ))}
             </Select>
@@ -377,7 +377,7 @@ const Laboratorio: React.FC = () => {
                 <Select placeholder="Seleccione embarazo">
                   {embarazos.map((emb) => (
                     <Option key={emb.id} value={emb.id}>
-                      {`${emb.paciente_nombre} - Embarazo ${emb.numero_embarazo}`}
+                      {`${emb.paciente_nombre} ${emb.paciente_apellido || ''} - FPP: ${dayjs(emb.fpp).format('DD/MM/YYYY')}`}
                     </Option>
                   ))}
                 </Select>
@@ -385,9 +385,9 @@ const Laboratorio: React.FC = () => {
             </Col>
             <Col span={6}>
               <Form.Item
-                name="fecha_examen"
-                label="Fecha Examen"
-                rules={[{ required: true, message: 'Ingrese fecha de examen' }]}
+                name="fecha_solicitud"
+                label="Fecha Solicitud"
+                rules={[{ required: true, message: 'Ingrese fecha de solicitud' }]}
               >
                 <DatePicker style={{ width: '100%' }} />
               </Form.Item>
@@ -734,8 +734,8 @@ const Laboratorio: React.FC = () => {
         {selectedRecord && (
           <>
             <Descriptions bordered column={2}>
-              <Descriptions.Item label="Fecha Examen" span={1}>
-                {dayjs(selectedRecord.fecha_examen).format('DD/MM/YYYY')}
+              <Descriptions.Item label="Fecha Solicitud" span={1}>
+                {dayjs(selectedRecord.fecha_solicitud).format('DD/MM/YYYY')}
               </Descriptions.Item>
               <Descriptions.Item label="Fecha Resultado" span={1}>
                 {selectedRecord.fecha_resultado

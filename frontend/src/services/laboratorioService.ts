@@ -117,6 +117,14 @@ class LaboratorioService {
   }
 
   /**
+   * Obtener todos los exámenes (alias de list)
+   */
+  async getAll(params?: any): Promise<ExamenLaboratorio[]> {
+    const response = await this.list(params);
+    return response.results;
+  }
+
+  /**
    * Obtener un examen por ID
    */
   async get(id: number): Promise<ExamenLaboratorio> {

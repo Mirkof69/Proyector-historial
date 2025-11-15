@@ -131,12 +131,12 @@ const Reportes: React.FC = () => {
       const params = {
         fecha_desde: values.fecha_rango[0].format('YYYY-MM-DD'),
         fecha_hasta: values.fecha_rango[1].format('YYYY-MM-DD'),
-        tipo_reporte: values.tipo_reporte,
+        tipo_estadistica: values.tipo_reporte,
         agrupar_por: values.agrupar_por || 'mes',
       };
 
-      const blob = await reportesService.generarEstadisticas(params);
-      downloadPDF(blob, `estadisticas_${params.tipo_reporte}.pdf`);
+      const blob = await reportesService.generarReporteEstadistico(params);
+      downloadPDF(blob, `estadisticas_${params.tipo_estadistica}.pdf`);
       message.success('Reporte estadístico generado correctamente');
     } catch (error) {
       message.error('Error al generar estadísticas');
@@ -338,9 +338,9 @@ const Reportes: React.FC = () => {
                     <Select placeholder="Seleccione embarazo">
                       {embarazos.map((emb) => (
                         <Option key={emb.id} value={emb.id}>
-                          {`${emb.paciente_nombre} - Embarazo ${emb.numero_embarazo} - FUR: ${dayjs(
-                            emb.fecha_ultima_regla
-                          ).format('DD/MM/YYYY')}`}
+                          {`${emb.paciente_nombre} ${emb.paciente_apellido || ''} - FUR: ${dayjs(
+                            emb.fur
+                          ).format('DD/MM/YYYY')} - FPP: ${dayjs(emb.fpp).format('DD/MM/YYYY')}`}
                         </Option>
                       ))}
                     </Select>
@@ -543,7 +543,7 @@ const Reportes: React.FC = () => {
                     <Select placeholder="Seleccione embarazo">
                       {embarazos.map((emb) => (
                         <Option key={emb.id} value={emb.id}>
-                          {`${emb.paciente_nombre} - Embarazo ${emb.numero_embarazo}`}
+                          {`${emb.paciente_nombre} ${emb.paciente_apellido || ''} - FPP: ${dayjs(emb.fpp).format('DD/MM/YYYY')}`}
                         </Option>
                       ))}
                     </Select>

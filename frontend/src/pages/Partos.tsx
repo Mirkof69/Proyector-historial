@@ -272,7 +272,7 @@ const Partos: React.FC = () => {
             >
               {embarazos.map((emb) => (
                 <Option key={emb.id} value={emb.id}>
-                  {`${emb.paciente_nombre} - ${emb.numero_embarazo}`}
+                  {`${emb.paciente_nombre} ${emb.paciente_apellido || ''} - FPP: ${dayjs(emb.fpp).format('DD/MM/YYYY')}`}
                 </Option>
               ))}
             </Select>
@@ -335,7 +335,7 @@ const Partos: React.FC = () => {
                 <Select placeholder="Seleccione embarazo">
                   {embarazos.map((emb) => (
                     <Option key={emb.id} value={emb.id}>
-                      {`${emb.paciente_nombre} - Embarazo ${emb.numero_embarazo}`}
+                      {`${emb.paciente_nombre} ${emb.paciente_apellido || ''} - FPP: ${dayjs(emb.fpp).format('DD/MM/YYYY')}`}
                     </Option>
                   ))}
                 </Select>
@@ -427,12 +427,7 @@ const Partos: React.FC = () => {
 
           <Row gutter={16}>
             <Col span={6}>
-              <Form.Item name="perimetro_cefalico_rn_cm" label="Perímetro Cefálico (cm)">
-                <InputNumber min={20} max={50} step={0.5} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="perimetro_toracico_rn_cm" label="Perímetro Torácico (cm)">
+              <Form.Item name="perimetro_cefalico_cm" label="Perímetro Cefálico (cm)">
                 <InputNumber min={20} max={50} step={0.5} style={{ width: '100%' }} />
               </Form.Item>
             </Col>
@@ -489,12 +484,7 @@ const Partos: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="peso_placenta_gramos" label="Peso Placenta (gramos)">
-                <InputNumber min={100} max={1500} step={10} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
+            <Col span={24}>
               <Form.Item name="anomalias_placenta" label="Anomalías Placenta">
                 <Input placeholder="Describir anomalías si las hay" />
               </Form.Item>
@@ -504,21 +494,10 @@ const Partos: React.FC = () => {
           <Divider>Complicaciones</Divider>
           <Row gutter={16}>
             <Col span={24}>
-              <Form.Item name="complicaciones_maternas" label="Complicaciones Maternas">
+              <Form.Item name="descripcion_complicaciones" label="Complicaciones">
                 <TextArea
                   rows={2}
-                  placeholder="Describir complicaciones maternas si las hubo"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item name="complicaciones_neonatales" label="Complicaciones Neonatales">
-                <TextArea
-                  rows={2}
-                  placeholder="Describir complicaciones del recién nacido si las hubo"
+                  placeholder="Describir complicaciones si las hubo"
                 />
               </Form.Item>
             </Col>
@@ -539,7 +518,7 @@ const Partos: React.FC = () => {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="lugar_parto" label="Lugar del Parto">
+              <Form.Item name="hospital" label="Hospital">
                 <Input placeholder="Hospital, clínica, etc." />
               </Form.Item>
             </Col>
@@ -645,15 +624,9 @@ const Partos: React.FC = () => {
                 </Descriptions.Item>
               )}
 
-              {selectedRecord.perimetro_cefalico_rn_cm && (
+              {selectedRecord.perimetro_cefalico_cm && (
                 <Descriptions.Item label="Perímetro Cefálico">
-                  {selectedRecord.perimetro_cefalico_rn_cm} cm
-                </Descriptions.Item>
-              )}
-
-              {selectedRecord.perimetro_toracico_rn_cm && (
-                <Descriptions.Item label="Perímetro Torácico">
-                  {selectedRecord.perimetro_toracico_rn_cm} cm
+                  {selectedRecord.perimetro_cefalico_cm} cm
                 </Descriptions.Item>
               )}
 
@@ -687,37 +660,21 @@ const Partos: React.FC = () => {
                 </Descriptions.Item>
               )}
 
-              {selectedRecord.peso_placenta_gramos && (
-                <Descriptions.Item label="Peso Placenta">
-                  {selectedRecord.peso_placenta_gramos} g
-                </Descriptions.Item>
-              )}
-
-              {selectedRecord.medico_atencion && (
+              {selectedRecord.medico_nombre && (
                 <Descriptions.Item label="Médico" span={1}>
-                  {selectedRecord.medico_atencion}
+                  {selectedRecord.medico_nombre}
                 </Descriptions.Item>
               )}
 
-              {selectedRecord.lugar_parto && (
-                <Descriptions.Item label="Lugar" span={2}>
-                  {selectedRecord.lugar_parto}
+              {selectedRecord.hospital && (
+                <Descriptions.Item label="Hospital" span={2}>
+                  {selectedRecord.hospital}
                 </Descriptions.Item>
               )}
 
-              {selectedRecord.complicaciones_maternas && (
-                <Descriptions.Item label="Complicaciones Maternas" span={2}>
-                  <Alert message={selectedRecord.complicaciones_maternas} type="warning" showIcon />
-                </Descriptions.Item>
-              )}
-
-              {selectedRecord.complicaciones_neonatales && (
-                <Descriptions.Item label="Complicaciones Neonatales" span={2}>
-                  <Alert
-                    message={selectedRecord.complicaciones_neonatales}
-                    type="warning"
-                    showIcon
-                  />
+              {selectedRecord.descripcion_complicaciones && (
+                <Descriptions.Item label="Complicaciones" span={2}>
+                  <Alert message={selectedRecord.descripcion_complicaciones} type="warning" showIcon />
                 </Descriptions.Item>
               )}
 
