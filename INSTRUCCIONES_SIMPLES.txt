@@ -1,0 +1,132 @@
+========================================
+INSTRUCCIONES PASO A PASO
+Sistema de Historial Medico
+========================================
+
+ANTES DE EMPEZAR:
+-----------------
+
+1. Verifica que tienes Python:
+   Abre CMD y escribe: python --version
+   Debe mostrar: Python 3.8 o superior
+
+   Si no tienes Python:
+   Descarga de: https://www.python.org/downloads/
+   IMPORTANTE: Marca "Add Python to PATH"
+
+2. Verifica que tienes Node.js:
+   Abre CMD y escribe: node --version
+   Debe mostrar: v16.0 o superior
+
+   Si no tienes Node.js:
+   Descarga de: https://nodejs.org/
+
+
+========================================
+PASO 1: INSTALAR (PRIMERA VEZ)
+========================================
+
+1. Abre Command Prompt (CMD)
+
+2. Ve a la carpeta del proyecto:
+   cd Proyector-historial
+
+3. Ejecuta:
+   install.bat
+
+4. Espera 5-10 minutos (descarga e instala todo)
+
+5. Cuando termine veras:
+   "INSTALACION COMPLETADA"
+
+
+========================================
+PASO 2: INICIAR EL SISTEMA
+========================================
+
+1. En CMD, ejecuta:
+   start.bat
+
+2. Se abriran 2 ventanas:
+   - Backend (Django)
+   - Frontend (React)
+
+3. Espera 30 segundos
+
+
+========================================
+PASO 3: ACCEDER
+========================================
+
+1. Abre tu navegador
+
+2. Ve a: http://localhost:3000
+
+3. Login:
+   Usuario: admin
+   Password: admin123
+
+
+========================================
+QUE SE INSTALARA:
+========================================
+
+BACKEND (60+ librerias Python):
+- Django 4.2.7
+- Django REST Framework
+- JWT para autenticacion
+- NumPy, Pandas (datos)
+- Celery (tareas)
+- Y 50+ mas...
+
+FRONTEND (30+ librerias Node.js):
+- React 19.0.0
+- TypeScript
+- Ant Design
+- Three.js (graficos 3D)
+- Axios
+- Y 20+ mas...
+
+
+========================================
+SI ALGO FALLA:
+========================================
+
+ERROR: Python no esta instalado
+SOLUCION: Instala Python de python.org
+
+ERROR: Node.js no esta instalado
+SOLUCION: Instala Node.js de nodejs.org
+
+ERROR: No se pudieron instalar dependencias
+SOLUCION:
+  cd Backend\historial
+  python -m venv venv
+  venv\Scripts\activate
+  pip install -r requirements.txt
+
+
+========================================
+RESUMEN RAPIDO:
+========================================
+
+1. install.bat      (primera vez)
+2. start.bat        (cada vez que uses el sistema)
+3. http://localhost:3000
+4. admin / admin123
+
+
+========================================
+ARCHIVOS CREADOS AUTOMATICAMENTE:
+========================================
+
+Backend\historial\venv\          (entorno virtual Python)
+Backend\historial\.env           (variables de entorno)
+Backend\historial\db.sqlite3     (base de datos)
+frontend\node_modules\           (librerias Node.js)
+frontend\.env                    (variables de entorno)
+
+
+========================================
+FIN DE LAS INSTRUCCIONES
+========================================
