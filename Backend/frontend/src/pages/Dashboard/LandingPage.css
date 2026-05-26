@@ -1,0 +1,571 @@
+/* =============================================================================
+   LANDING PAGE — FETAL MEDICAL FOUNDATION
+   Diseño profesional médico: dark elegante + acentos en rojo y azul
+   ============================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ── VARIABLES ──────────────────────────────────────────────────────────────── */
+:root {
+  --brand-red:    #ff4d4f;
+  --brand-blue:   #1890ff;
+  --brand-dark:   #0d0d0d;
+  --bg-card:      #161616;
+  --bg-section:   #111111;
+  --bg-alt:       #1a1a2e;
+  --text-primary: #ffffff;
+  --text-muted:   rgba(255, 255, 255, 0.65);
+  --border:       rgba(255, 255, 255, 0.08);
+  --max-width:    1200px;
+  --header-h:     72px;
+}
+
+/* ── RESET GLOBAL ───────────────────────────────────────────────────────────── */
+.landing-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--brand-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────────────────────── */
+.landing-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: var(--header-h) !important;
+  line-height: var(--header-h) !important;
+  background: rgba(13, 13, 13, 0.92) !important;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 !important;
+}
+
+.landing-header-content {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+/* Logo */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  font-size: 26px !important;
+  color: var(--brand-red) !important;
+}
+
+.logo-text {
+  margin: 0 !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  white-space: nowrap;
+}
+
+/* Nav links */
+.header-nav .ant-btn-link {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+  font-size: 15px;
+  transition: color 0.2s;
+  padding: 0 8px;
+}
+
+.header-nav .ant-btn-link:hover {
+  color: var(--text-primary) !important;
+}
+
+.btn-login {
+  background: var(--brand-red) !important;
+  border-color: var(--brand-red) !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  height: 40px !important;
+  padding: 0 20px !important;
+}
+
+.btn-login:hover {
+  background: #d9363e !important;
+  border-color: #d9363e !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 77, 79, 0.35) !important;
+}
+
+/* ── HERO ───────────────────────────────────────────────────────────────────── */
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--header-h) + 60px) 32px 80px;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 30%, rgba(255, 77, 79, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 70%, rgba(24, 144, 255, 0.08) 0%, transparent 60%),
+    var(--brand-dark);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.hero-content {
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ribbon fix: make ribbon wrapper full-width visible */
+.hero-content .ant-badge-ribbon-wrapper {
+  display: block;
+}
+
+.hero-text-container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 60px 40px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  backdrop-filter: blur(8px);
+}
+
+.hero-title {
+  font-size: clamp(2.2rem, 5vw, 3.8rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  color: var(--text-primary) !important;
+  margin-bottom: 28px !important;
+  letter-spacing: -0.5px;
+}
+
+.highlight {
+  background: linear-gradient(135deg, var(--brand-red), #ff7875);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-description {
+  font-size: 18px !important;
+  color: var(--text-muted) !important;
+  line-height: 1.7 !important;
+  max-width: 640px;
+  margin: 0 auto 36px !important;
+}
+
+.hero-description strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.hero-buttons {
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px !important;
+  margin-bottom: 40px;
+}
+
+.hero-buttons .ant-btn-primary {
+  height: 52px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  padding: 0 36px !important;
+  border-radius: 10px !important;
+  background: var(--brand-red) !important;
+  border-color: var(--brand-red) !important;
+  box-shadow: 0 8px 24px rgba(255, 77, 79, 0.3) !important;
+  transition: all 0.2s !important;
+}
+
+.hero-buttons .ant-btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 32px rgba(255, 77, 79, 0.45) !important;
+}
+
+.hero-buttons .ant-btn-default {
+  height: 52px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  padding: 0 36px !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+  transition: all 0.2s !important;
+}
+
+.hero-buttons .ant-btn-default:hover {
+  border-color: rgba(255,255,255,0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Badge pills */
+.hero-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.badge {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── SECTIONS COMUNES ───────────────────────────────────────────────────────── */
+.section-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 3vw, 2.6rem) !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  margin-bottom: 16px !important;
+}
+
+.section-description {
+  font-size: 17px !important;
+  color: var(--text-muted) !important;
+  max-width: 600px;
+  margin: 0 auto !important;
+}
+
+/* ── FEATURES ───────────────────────────────────────────────────────────────── */
+.features-section {
+  padding: 100px 0;
+  background: var(--bg-section);
+}
+
+.feature-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  height: 100%;
+  transition: all 0.3s ease !important;
+  cursor: default;
+}
+
+.feature-card:hover {
+  border-color: rgba(255, 77, 79, 0.4) !important;
+  transform: translateY(-6px) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+.feature-card .ant-card-body {
+  padding: 32px !important;
+}
+
+.feature-card .ant-typography {
+  color: var(--text-primary) !important;
+}
+
+.feature-card p.ant-typography {
+  color: var(--text-muted) !important;
+  line-height: 1.7 !important;
+}
+
+.feature-icon {
+  margin-bottom: 20px;
+}
+
+/* ── CALCULADORAS ───────────────────────────────────────────────────────────── */
+.calculadoras-section {
+  padding: 100px 0;
+  background: var(--brand-dark);
+}
+
+.calculadora-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  transition: all 0.25s ease !important;
+  height: 100%;
+}
+
+.calculadora-card:hover {
+  border-color: rgba(24, 144, 255, 0.35) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.calculadora-card .ant-card-body {
+  padding: 20px !important;
+}
+
+.calculadora-card .ant-typography {
+  color: var(--text-primary) !important;
+}
+
+.calculadora-card .ant-typography.ant-typography-secondary {
+  color: var(--text-muted) !important;
+}
+
+/* CTA en medio de calculadoras */
+.cta-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.cta-container .ant-typography {
+  color: var(--text-primary) !important;
+}
+
+.cta-container p.ant-typography {
+  color: var(--text-muted) !important;
+  font-size: 17px !important;
+  margin-bottom: 28px !important;
+}
+
+/* ── BENEFICIOS ─────────────────────────────────────────────────────────────── */
+.beneficios-section {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #0f2027, #1a1a2e, #16213e);
+}
+
+.beneficio-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  text-align: center;
+  padding: 8px !important;
+  height: 100%;
+  transition: all 0.3s !important;
+}
+
+.beneficio-card:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  transform: translateY(-4px) !important;
+}
+
+.beneficio-card .ant-card-body {
+  padding: 28px !important;
+}
+
+.beneficio-card .ant-typography {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.beneficio-card p.ant-typography,
+.beneficio-card span.ant-typography {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.beneficio-icon {
+  margin-bottom: 4px;
+}
+
+/* ── STATS ──────────────────────────────────────────────────────────────────── */
+.stats-section {
+  padding: 80px 0;
+  background: var(--bg-section);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-card {
+  background: transparent !important;
+  border: none !important;
+  text-align: center;
+}
+
+.stat-card .ant-card-body {
+  padding: 16px !important;
+}
+
+.stat-card h2.ant-typography {
+  font-size: 3rem !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, var(--brand-red), #ff7875);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 8px !important;
+}
+
+.stat-card .ant-typography:not(h2) {
+  color: var(--text-muted) !important;
+  font-size: 15px !important;
+  font-weight: 500;
+}
+
+/* ── FINAL CTA ──────────────────────────────────────────────────────────────── */
+.final-cta-section {
+  padding: 100px 0;
+  background: var(--brand-dark);
+}
+
+.final-cta-card {
+  background: linear-gradient(135deg, rgba(255,77,79,0.08), rgba(24,144,255,0.06)) !important;
+  border: 1px solid rgba(255, 77, 79, 0.25) !important;
+  border-radius: 24px !important;
+  padding: 40px !important;
+}
+
+.final-cta-card .ant-typography {
+  color: var(--text-primary) !important;
+}
+
+.final-cta-card p.ant-typography {
+  color: var(--text-muted) !important;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────────────────────── */
+.landing-footer {
+  background: #080808 !important;
+  border-top: 1px solid var(--border);
+  padding: 40px 0 !important;
+}
+
+.footer-content {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 32px;
+  text-align: center;
+}
+
+.footer-content .ant-typography {
+  color: var(--text-muted) !important;
+}
+
+/* ── ANT DESIGN OVERRIDES ───────────────────────────────────────────────────── */
+/* Fix Ant Design Layout background */
+.landing-page .ant-layout {
+  background: var(--brand-dark) !important;
+}
+
+.landing-page .ant-layout-content {
+  background: var(--brand-dark) !important;
+}
+
+/* Ribbon badge */
+.landing-page .ant-badge-ribbon {
+  background: linear-gradient(135deg, #722ed1, #b37feb) !important;
+  font-weight: 600;
+  border-radius: 0 4px 4px 0 !important;
+}
+
+/* Divider */
+.landing-page .ant-divider {
+  border-color: var(--border) !important;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .landing-header-content {
+    padding: 0 20px;
+  }
+
+  .logo-text {
+    font-size: 16px !important;
+  }
+
+  .header-nav .ant-btn-link {
+    display: none;
+  }
+
+  .hero-section {
+    padding: calc(var(--header-h) + 40px) 20px 60px;
+  }
+
+  .hero-text-container {
+    padding: 36px 24px;
+    border-radius: 16px;
+  }
+
+  .hero-title {
+    font-size: 2rem !important;
+  }
+
+  .hero-description {
+    font-size: 16px !important;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-buttons .ant-btn {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .hero-badges {
+    gap: 8px;
+  }
+
+  .badge {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .section-container {
+    padding: 0 20px;
+  }
+
+  .features-section,
+  .calculadoras-section,
+  .beneficios-section,
+  .final-cta-section {
+    padding: 60px 0;
+  }
+
+  .stats-section {
+    padding: 50px 0;
+  }
+
+  .stat-card h2.ant-typography {
+    font-size: 2.2rem !important;
+  }
+
+  .final-cta-card {
+    padding: 24px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.7rem !important;
+  }
+
+  .section-title {
+    font-size: 1.6rem !important;
+  }
+}

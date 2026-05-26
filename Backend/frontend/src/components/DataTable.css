@@ -1,0 +1,276 @@
+/* =============================================================================
+ * ESTILOS PARA DATATABLE
+ * ============================================================================= */
+
+.data-table-container {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.data-table-toolbar {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(to bottom, #fafafa, #fff);
+}
+
+.data-table-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.data-table-stats {
+  margin-top: 12px;
+  padding: 8px 0;
+}
+
+.data-table-main {
+  transition: all 0.3s ease;
+}
+
+.data-table-main .ant-table-thead > tr > th {
+  background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.data-table-main .ant-table-tbody > tr {
+  transition: all 0.2s ease;
+}
+
+.data-table-main .ant-table-tbody > tr:hover {
+  background-color: #f0f5ff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.data-table-main .ant-table-tbody > tr.ant-table-row-selected {
+  background-color: #e6f7ff !important;
+}
+
+.data-table-main .ant-table-cell {
+  padding: 12px 16px;
+}
+
+/* Animaciones para las acciones */
+.data-table-main .ant-btn {
+  transition: all 0.2s ease;
+}
+
+.data-table-main .ant-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .data-table-toolbar {
+    padding: 12px;
+  }
+  
+  .data-table-title {
+    font-size: 16px;
+  }
+  
+  .data-table-main .ant-table-cell {
+    padding: 8px 12px;
+  }
+}
+
+/* Loading overlay con animación */
+.data-table-main .ant-spin-nested-loading > div > .ant-spin {
+  max-height: none;
+}
+
+.data-table-main .ant-spin-container::after {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+/* Paginación mejorada */
+.data-table-main .ant-pagination {
+  margin: 16px 0;
+  padding: 0 16px;
+}
+
+.data-table-main .ant-pagination-item-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.data-table-main .ant-pagination-item-active a {
+  color: #fff;
+}
+
+/* Tags y badges con animación */
+.data-table-main .ant-tag,
+.data-table-main .ant-badge {
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Scroll personalizado */
+.data-table-main .ant-table-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.data-table-main .ant-table-body::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.data-table-main .ant-table-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.data-table-main .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #5568d3 0%, #6a409b 100%);
+}
+
+/* Expanded row con animación */
+.data-table-main .ant-table-expanded-row {
+  background: #fafafa;
+  animation: expandRow 0.3s ease;
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+/* Empty state */
+.data-table-main .ant-empty {
+  padding: 40px 0;
+}
+
+.data-table-main .ant-empty-image {
+  opacity: 0.6;
+  filter: grayscale(30%);
+}
+
+/* Filtros y búsqueda mejorados */
+.data-table-toolbar .ant-input-search {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.data-table-toolbar .ant-input-search .ant-input {
+  border-radius: 20px 0 0 20px;
+}
+
+.data-table-toolbar .ant-input-search .ant-input-search-button {
+  border-radius: 0 20px 20px 0;
+}
+
+/* Botones del toolbar */
+.data-table-toolbar .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.data-table-toolbar .ant-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.data-table-toolbar .ant-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Dropdown de acciones */
+.data-table-actions-dropdown .ant-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.data-table-actions-dropdown .ant-dropdown-menu-item {
+  transition: all 0.2s ease;
+}
+
+.data-table-actions-dropdown .ant-dropdown-menu-item:hover {
+  background: linear-gradient(90deg, #f0f5ff 0%, #e6f7ff 100%);
+}
+
+/* Dark mode support (opcional) */
+@media (prefers-color-scheme: dark) {
+  .data-table-container {
+    background: #1f1f1f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .data-table-toolbar {
+    background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+    border-bottom-color: #3a3a3a;
+  }
+  
+  .data-table-title {
+    color: #f0f0f0;
+  }
+  
+  .data-table-main .ant-table-thead > tr > th {
+    background: linear-gradient(to bottom, #2a2a2a 0%, #252525 100%);
+    color: #f0f0f0;
+    border-bottom-color: #3a3a3a;
+  }
+  
+  .data-table-main .ant-table-tbody > tr {
+    background: #1f1f1f;
+    color: #f0f0f0;
+  }
+  
+  .data-table-main .ant-table-tbody > tr:hover {
+    background-color: #2a3a5a !important;
+  }
+}

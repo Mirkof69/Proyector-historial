@@ -1,0 +1,373 @@
+/**
+ * =============================================================================
+ * TEMA clinical-dark - PALETA DE COLORES INSPIRADA EN clinical-dark AI
+ * =============================================================================
+ * Tema oscuro premium con:
+ * - Fondos: Grises cálidos oscuros (#1C1B1A, #2D2C2A)
+ * - Acento primario: Naranja vibrante (#FF6B35)
+ * - Texto: Blancos suaves con excelente contraste
+ * - Sombras: Profundas y sutiles
+ * - Transiciones: Suaves y elegantes
+ * ============================================================================= */
+
+:root[data-theme="clinical-dark"],
+[data-theme="clinical-dark"],
+.theme-clinical-dark {
+    /* ========== FONDOS - GRISES CÁLIDOS OSCUROS ========== */
+    --bg-primary: #1C1B1A;
+    /* Fondo principal oscuro */
+    --bg-secondary: #2D2C2A;
+    /* Fondo secundario */
+    --bg-tertiary: #3A3835;
+    /* Fondo terciario */
+    --bg-elevated: #343330;
+    /* Fondo elevado (cards, modales) */
+    --bg-hover: #3F3C39;
+    /* Fondo al hacer hover */
+    --bg-active: #4A4744;
+    /* Fondo activo */
+    --bg-input: #2D2C2A;
+    /* Fondo de inputs */
+    --bg-disabled: #262523;
+    /* Fondo deshabilitado */
+
+    /* ========== NARANJA clinical-dark - ACENTO PRIMARIO ========== */
+    --color-primary: #FF6B35;
+    /* Naranja principal */
+    --color-primary-hover: #FF8456;
+    /* Naranja hover */
+    --color-primary-active: #FF5720;
+    /* Naranja activo */
+    --color-primary-light: rgba(255, 107, 53, 0.15);
+    /* Naranja transparente */
+    --color-primary-dark: #E65D30;
+    /* Naranja oscuro */
+
+    /* Gradientes de naranja */
+    --gradient-primary: linear-gradient(135deg, #FF6B35 0%, #FF8456 100%);
+    --gradient-primary-hover: linear-gradient(135deg, #FF8456 0%, #FFA074 100%);
+
+    /* ========== TEXTOS - BLANCOS SUAVES ========== */
+    --text-primary: #E8E6E3;
+    /* Texto principal */
+    --text-secondary: #ABA9A6;
+    /* Texto secundario */
+    --text-tertiary: #6B6966;
+    /* Texto terciario */
+    --text-muted: #4F4D4A;
+    /* Texto muy suave */
+    --text-inverse: #1C1B1A;
+    /* Texto inverso (sobre fondos claros) */
+    --text-placeholder: #5F5D5A;
+    /* Placeholder text */
+    --text-disabled: #3D3B38;
+    /* Texto deshabilitado */
+
+    /* ========== BORDES - SUTILES Y ELEGANTES ========== */
+    --border-subtle: #3D3B38;
+    /* Borde muy sutil */
+    --border-default: #4A4845;
+    /* Borde normal */
+    --border-strong: #5F5D5A;
+    /* Borde fuerte */
+    --border-accent: #FF6B35;
+    /* Borde con acento */
+    --border-hover: #6B6966;
+    /* Borde en hover */
+
+    /* ========== ESTADOS - SUCCESS, WARNING, ERROR, INFO ========== */
+
+    /* Success - Verde */
+    --color-success: #10B981;
+    --color-success-hover: #059669;
+    --color-success-light: rgba(16, 185, 129, 0.15);
+    --color-success-border: rgba(16, 185, 129, 0.3);
+    --color-success-text: #6EE7B7;
+
+    /* Warning - Amarillo/Naranja */
+    --color-warning: #F59E0B;
+    --color-warning-hover: #D97706;
+    --color-warning-light: rgba(245, 158, 11, 0.15);
+    --color-warning-border: rgba(245, 158, 11, 0.3);
+    --color-warning-text: #FCD34D;
+
+    /* Error - Rojo */
+    --color-error: #EF4444;
+    --color-error-hover: #DC2626;
+    --color-error-light: rgba(239, 68, 68, 0.15);
+    --color-error-border: rgba(239, 68, 68, 0.3);
+    --color-error-text: #FCA5A5;
+
+    /* Info - Azul */
+    --color-info: #3B82F6;
+    --color-info-hover: #2563EB;
+    --color-info-light: rgba(59, 130, 246, 0.15);
+    --color-info-border: rgba(59, 130, 246, 0.3);
+    --color-info-text: #93C5FD;
+
+    /* ========== SOMBRAS - PROFUNDAS Y ELEGANTES ========== */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+    --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.7), 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.7), 0 2px 4px -1px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.8), 0 4px 8px -2px rgba(0, 0, 0, 0.6);
+    --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.85), 0 10px 15px -5px rgba(0, 0, 0, 0.6);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+
+    /* Sombras de color */
+    --shadow-primary: 0 8px 24px rgba(255, 107, 53, 0.25);
+    --shadow-primary-hover: 0 12px 32px rgba(255, 107, 53, 0.35);
+    --shadow-success: 0 8px 20px rgba(16, 185, 129, 0.2);
+    --shadow-warning: 0 8px 20px rgba(245, 158, 11, 0.2);
+    --shadow-error: 0 8px 20px rgba(239, 68, 68, 0.25);
+
+    /* ========== OVERLAYS Y MODALES ========== */
+    --overlay-dark: rgba(0, 0, 0, 0.8);
+    --overlay-medium: rgba(0, 0, 0, 0.6);
+    --overlay-light: rgba(0, 0, 0, 0.4);
+
+    /* ========== TRANSICIONES ========== */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ========== BORDER RADIUS ========== */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 24px;
+    --radius-full: 9999px;
+
+    /* ========== SPACING (para consistencia) ========== */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* ========== COLORES ESPECIALES MÉDICOS ========== */
+    --color-prenatal: #8B5CF6;
+    /* Violeta para controles prenatales */
+    --color-critical: #EF4444;
+    /* Rojo para alertas críticas */
+    --color-laboratory: #06B6D4;
+    /* Cyan para laboratorio */
+    --color-appointment: #3B82F6;
+    /* Azul para citas */
+    --color-patient: #10B981;
+    /* Verde para pacientes */
+
+    /* ========== GRÁFICAS Y CHARTS ========== */
+    --chart-grid: rgba(255, 255, 255, 0.08);
+    --chart-axis: rgba(255, 255, 255, 0.3);
+    --chart-color-1: #FF6B35;
+    --chart-color-2: #3B82F6;
+    --chart-color-3: #10B981;
+    --chart-color-4: #F59E0B;
+    --chart-color-5: #8B5CF6;
+    --chart-color-6: #EC4899;
+}
+
+/* ========== APLICACIÓN DEL TEMA clinical-dark ========== */
+
+[data-theme="clinical-dark"] body,
+[data-theme="clinical-dark"] body,
+.theme-clinical-dark body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Cards y contenedores */
+[data-theme="clinical-dark"] .ant-card,
+[data-theme="clinical-dark"] .ant-card {
+    background-color: var(--bg-elevated);
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-md);
+}
+
+[data-theme="clinical-dark"] .ant-card:hover,
+[data-theme="clinical-dark"] .ant-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+}
+
+/* Botones con estilo clinical-dark */
+[data-theme="clinical-dark"] .ant-btn-primary,
+[data-theme="clinical-dark"] .ant-btn-primary {
+    background: var(--gradient-primary);
+    border: none;
+    color: white;
+    font-weight: 500;
+    box-shadow: var(--shadow-primary);
+    transition: all var(--transition-base);
+}
+
+[data-theme="clinical-dark"] .ant-btn-primary:hover,
+[data-theme="clinical-dark"] .ant-btn-primary:hover {
+    background: var(--gradient-primary-hover);
+    box-shadow: var(--shadow-primary-hover);
+    transform: translateY(-1px);
+}
+
+[data-theme="clinical-dark"] .ant-btn-primary:active,
+[data-theme="clinical-dark"] .ant-btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Inputs con estilo clinical-dark */
+[data-theme="clinical-dark"] .ant-input,
+[data-theme="clinical-dark"] .ant-input-number,
+[data-theme="clinical-dark"] .ant-select-selector,
+[data-theme="clinical-dark"] .ant-input,
+[data-theme="clinical-dark"] .ant-input-number,
+[data-theme="clinical-dark"] .ant-select-selector {
+    background-color: var(--bg-input);
+    border-color: var(--border-default);
+    color: var(--text-primary);
+    transition: all var(--transition-base);
+}
+
+[data-theme="clinical-dark"] .ant-input:hover,
+[data-theme="clinical-dark"] .ant-input:hover {
+    border-color: var(--border-hover);
+}
+
+[data-theme="clinical-dark"] .ant-input:focus,
+[data-theme="clinical-dark"] .ant-input-focused,
+[data-theme="clinical-dark"] .ant-input:focus,
+[data-theme="clinical-dark"] .ant-input-focused {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* Tables */
+[data-theme="clinical-dark"] .ant-table,
+[data-theme="clinical-dark"] .ant-table {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+[data-theme="clinical-dark"] .ant-table-thead>tr>th,
+[data-theme="clinical-dark"] .ant-table-thead>tr>th {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--color-primary);
+    font-weight: 600;
+}
+
+[data-theme="clinical-dark"] .ant-table-tbody>tr:hover>td,
+[data-theme="clinical-dark"] .ant-table-tbody>tr:hover>td {
+    background-color: var(--bg-hover);
+}
+
+/* Headers con gradiente naranja */
+[data-theme="clinical-dark"] .notification-header,
+[data-theme="clinical-dark"] .notification-header {
+    background: var(--gradient-primary);
+    border: none;
+    box-shadow: var(--shadow-md);
+}
+
+/* Scrollbar personalizado para tema clinical-dark */
+[data-theme="clinical-dark"] ::-webkit-scrollbar,
+[data-theme="clinical-dark"] ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background: var(--bg-secondary);
+}
+
+[data-theme="clinical-dark"] ::-webkit-scrollbar-track,
+[data-theme="clinical-dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+[data-theme="clinical-dark"] ::-webkit-scrollbar-thumb,
+[data-theme="clinical-dark"] ::-webkit-scrollbar-thumb {
+    background: var(--bg-hover);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--bg-secondary);
+}
+
+[data-theme="clinical-dark"] ::-webkit-scrollbar-thumb:hover,
+[data-theme="clinical-dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+}
+
+/* Modales con fondo oscuro */
+[data-theme="clinical-dark"] .ant-modal-content,
+[data-theme="clinical-dark"] .ant-modal-content {
+    background-color: var(--bg-elevated);
+    box-shadow: var(--shadow-2xl);
+    border: 1px solid var(--border-default);
+}
+
+[data-theme="clinical-dark"] .ant-modal-header,
+[data-theme="clinical-dark"] .ant-modal-header {
+    background: var(--gradient-primary);
+    border-bottom: none;
+    color: white;
+}
+
+[data-theme="clinical-dark"] .ant-modal-header .ant-modal-title,
+[data-theme="clinical-dark"] .ant-modal-header .ant-modal-title {
+    color: white;
+    font-weight: 600;
+}
+
+/* Animaciones suaves */
+[data-theme="clinical-dark"] *,
+[data-theme="clinical-dark"] * {
+    transition-property: background-color, border-color, color, box-shadow, transform;
+    transition-duration: var(--transition-base);
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Excepciones a animaciones */
+[data-theme="clinical-dark"] .no-transition,
+[data-theme="clinical-dark"] input,
+[data-theme="clinical-dark"] textarea,
+[data-theme="clinical-dark"] .no-transition,
+[data-theme="clinical-dark"] input,
+[data-theme="clinical-dark"] textarea {
+    transition: none;
+}
+
+/* Mejoras visuales para KPI cards */
+[data-theme="clinical-dark"] .kpi-card,
+[data-theme="clinical-dark"] .kpi-card {
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+}
+
+[data-theme="clinical-dark"] .kpi-card:hover,
+[data-theme="clinical-dark"] .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-primary-hover);
+    border-color: var(--color-primary);
+}
+
+/* Gradiente en títulos importantes */
+[data-theme="clinical-dark"] .page-title,
+[data-theme="clinical-dark"] .page-title {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* Focus states mejorados */
+[data-theme="clinical-dark"] *:focus-visible,
+[data-theme="clinical-dark"] *:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+}

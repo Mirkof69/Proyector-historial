@@ -1,0 +1,847 @@
+/**
+ * =================================================================================
+ * ESTILOS PARA GESTIÓN DE USUARIOS - COMPATIBLE CON MODO CLARO Y OSCURO
+ * =================================================================================
+ * Usa variables CSS del tema para adaptarse automáticamente
+ * =================================================================================
+ */
+
+.usuarios-page {
+  padding: 24px;
+  background: var(--bg-primary);
+  min-height: 100vh;
+}
+
+/* =================================================================================
+   TARJETAS DE ESTADÍSTICAS
+   ================================================================================= */
+
+.stat-card {
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-4px);
+  border-color: var(--color-primary);
+}
+
+.stat-card .ant-statistic-title {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+/* =================================================================================
+   TABLA DE USUARIOS
+   ================================================================================= */
+
+.usuarios-table-card {
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-card);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.usuarios-table-card .ant-card-head {
+  background: var(--color-primary-gradient);
+  color: white;
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.usuarios-table-card .ant-card-head-title {
+  color: white;
+}
+
+.usuarios-table-card .ant-btn-primary {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  font-weight: 500;
+}
+
+.usuarios-table-card .ant-btn-primary:hover {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  opacity: 0.85;
+}
+
+/* Filas de la tabla */
+.usuarios-table .ant-table-tbody > tr {
+  transition: all 0.3s ease;
+}
+
+.usuarios-table .ant-table-tbody > tr:hover {
+  background: var(--bg-hover) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.usuarios-table .row-inactive {
+  background: var(--color-error-light) !important;
+  opacity: 0.7;
+}
+
+.usuarios-table .row-inactive:hover {
+  opacity: 0.85;
+}
+
+/* Columnas de la tabla */
+.usuarios-table .ant-table-thead > tr > th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+/* =================================================================================
+   AVATARES Y TAGS
+   ================================================================================= */
+
+.ant-avatar {
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ant-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.ant-tag {
+  border-radius: 4px;
+  font-weight: 500;
+  padding: 4px 12px;
+  transition: all 0.3s ease;
+}
+
+.ant-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* =================================================================================
+   SWITCHES Y BOTONES
+   ================================================================================= */
+
+.ant-switch {
+  transition: all 0.3s ease;
+}
+
+.ant-switch:hover {
+  box-shadow: 0 0 8px rgba(24, 144, 255, 0.4);
+}
+
+.ant-btn {
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.ant-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ant-btn-primary {
+  background: var(--color-primary-gradient);
+  border: none;
+  font-weight: 500;
+}
+
+.ant-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.ant-btn-danger {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: none;
+}
+
+.ant-btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* =================================================================================
+   MODALES
+   ================================================================================= */
+
+.usuario-modal .ant-modal-header {
+  background: var(--color-primary-gradient);
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  padding: 16px 24px;
+}
+
+.usuario-modal .ant-modal-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.usuario-modal .ant-modal-close {
+  color: white;
+}
+
+.usuario-modal .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.usuario-modal .ant-modal-body {
+  padding: 24px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--bg-primary);
+}
+
+.usuario-modal .ant-card {
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.usuario-modal .ant-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.usuario-modal .ant-card-head {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+/* =================================================================================
+   FORMULARIOS
+   ================================================================================= */
+
+.ant-form-item-label > label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ant-input,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker {
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-input:hover,
+.ant-input-number:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.ant-input:focus,
+.ant-input-number:focus,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.ant-input-password {
+  border-radius: 4px;
+}
+
+.ant-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* =================================================================================
+   TRANSFER (Selector de Permisos)
+   ================================================================================= */
+
+.ant-transfer {
+  animation: fadeIn 0.5s ease;
+}
+
+.ant-transfer-list {
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-card);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.ant-transfer-list-header {
+  background: var(--color-primary-gradient);
+  color: white;
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  font-weight: 600;
+}
+
+.ant-transfer-list-content-item {
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.ant-transfer-list-content-item:hover {
+  background: var(--bg-hover);
+}
+
+.ant-transfer-operation .ant-btn {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.ant-transfer-operation .ant-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+/* =================================================================================
+   ALERTAS
+   ================================================================================= */
+
+.ant-alert {
+  border-radius: 6px;
+  animation: slideDown 0.4s ease;
+}
+
+.ant-alert-info {
+  background: var(--color-info-light);
+  border: 1px solid var(--color-info-border);
+}
+
+.ant-alert-warning {
+  background: var(--color-warning-light);
+  border: 1px solid var(--color-warning-border);
+}
+
+.ant-alert-success {
+  background: var(--color-success-light);
+  border: 1px solid var(--color-success-border);
+}
+
+.ant-alert-error {
+  background: var(--color-error-light);
+  border: 1px solid var(--color-error-border);
+}
+
+/* =================================================================================
+   ANIMACIONES
+   ================================================================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Aplicar animación de entrada a las tarjetas */
+.stat-card,
+.usuarios-table-card {
+  animation: fadeIn 0.6s ease;
+}
+
+/* =================================================================================
+   UPLOAD DE FOTO
+   ================================================================================= */
+
+.ant-upload {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  border-color: var(--border-color);
+}
+
+.ant-upload:hover {
+  border-color: var(--color-primary);
+}
+
+.ant-upload-list-item {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+}
+
+.ant-upload-list-item:hover {
+  background: var(--bg-hover);
+}
+
+/* =================================================================================
+   TABLA DE HORARIOS
+   ================================================================================= */
+
+.ant-table-small .ant-table-thead > tr > th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ant-table-small .ant-table-tbody > tr > td {
+  padding: 8px;
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+.ant-table-small .ant-table-tbody > tr:hover {
+  background: var(--bg-hover);
+}
+
+/* =================================================================================
+   DROPDOWN MENU
+   ================================================================================= */
+
+.ant-dropdown-menu {
+  border-radius: 6px;
+  box-shadow: var(--shadow-lg);
+  animation: slideDown 0.3s ease;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.ant-dropdown-menu-item {
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+}
+
+.ant-dropdown-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.ant-dropdown-menu-item-danger:hover {
+  background: var(--color-error-light);
+}
+
+/* =================================================================================
+   POPCONFIRM
+   ================================================================================= */
+
+.ant-popover {
+  border-radius: 6px;
+  animation: fadeIn 0.3s ease;
+}
+
+.ant-popover-inner {
+  border-radius: 6px;
+  background: var(--bg-elevated);
+}
+
+.ant-popover-inner-content {
+  color: var(--text-primary);
+}
+
+.ant-popover-buttons .ant-btn-primary {
+  background: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.ant-popover-buttons .ant-btn-primary:hover {
+  opacity: 0.85;
+}
+
+/* =================================================================================
+   RESPONSIVE
+   ================================================================================= */
+
+@media (max-width: 768px) {
+  .usuarios-page {
+    padding: 16px;
+  }
+
+  .stat-card .ant-statistic-content {
+    font-size: 22px;
+  }
+
+  .usuario-modal .ant-modal-body {
+    padding: 16px;
+  }
+
+  .ant-transfer {
+    flex-direction: column;
+  }
+
+  .ant-transfer-list {
+    width: 100% !important;
+    margin-bottom: 16px;
+  }
+}
+
+/* =================================================================================
+   SCROLLBAR PERSONALIZADO
+   ================================================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* =================================================================================
+   MEJORAS VISUALES ADICIONALES
+   ================================================================================= */
+
+.ant-divider {
+  border-color: var(--border-color);
+  margin: 16px 0;
+}
+
+.ant-divider-horizontal.ant-divider-with-text {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ant-select-dropdown {
+  border-radius: 6px;
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.ant-picker-dropdown {
+  border-radius: 6px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Badges y estados */
+.ant-badge-status-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.ant-badge-status-success {
+  background: var(--color-success);
+}
+
+.ant-badge-status-error {
+  background: var(--color-error);
+}
+
+/* Typography enhancements */
+.ant-typography {
+  color: var(--text-primary);
+}
+
+.ant-typography-secondary {
+  color: var(--text-secondary);
+}
+
+/* Inputs con íconos */
+.ant-input-affix-wrapper {
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+}
+
+.ant-input-affix-wrapper:hover {
+  border-color: var(--color-primary);
+}
+
+.ant-input-affix-wrapper-focused {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.ant-input-affix-wrapper input {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+/* Cards pequeñas en el formulario */
+.usuario-modal .ant-card-small .ant-card-head {
+  padding: 8px 12px;
+  min-height: 40px;
+  background: var(--bg-secondary);
+}
+
+.usuario-modal .ant-card-small .ant-card-body {
+  padding: 12px;
+  background: var(--bg-elevated);
+}
+
+/* Feedback visual en validación */
+.ant-form-item-has-error .ant-input,
+.ant-form-item-has-error .ant-input-affix-wrapper,
+.ant-form-item-has-error .ant-select-selector {
+  border-color: var(--color-error);
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.ant-form-item-has-success .ant-input,
+.ant-form-item-has-success .ant-input-affix-wrapper {
+  border-color: var(--color-success);
+}
+
+/* Loading states */
+.ant-spin {
+  color: var(--color-primary);
+}
+
+.ant-spin-dot-item {
+  background-color: var(--color-primary);
+}
+
+/* =================================================================================
+   MODO OSCURO - AJUSTES ESPECÍFICOS
+   ================================================================================= */
+
+[data-theme="dark"] .usuarios-page {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] .stat-card {
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+}
+
+[data-theme="dark"] .usuarios-table-card {
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .ant-table {
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .ant-table-tbody > tr > td {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .usuario-modal .ant-modal-content {
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .usuario-modal .ant-modal-body {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] .ant-transfer-list {
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .ant-transfer-list-body {
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .ant-select-item {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .ant-select-item-option-selected {
+  background: var(--color-primary-light);
+}
+
+[data-theme="dark"] .ant-picker-panel-container {
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .ant-picker-panel {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .ant-picker-cell {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .ant-picker-cell:hover .ant-picker-cell-inner {
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .ant-textarea {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* =================================================================================
+   TÍTULOS Y TEXTOS CON ICONOS
+   ================================================================================= */
+
+.usuarios-table-card .ant-card-head-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.usuarios-table-card .ant-card-head-title .anticon {
+  font-size: 20px;
+}
+
+/* =================================================================================
+   MEJORAS DE ACCESIBILIDAD
+   ================================================================================= */
+
+.ant-btn:focus-visible,
+.ant-input:focus-visible,
+.ant-select-selector:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Alto contraste para texto importante */
+.usuarios-table .ant-table-tbody > tr > td strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Asegurar contraste en modo oscuro */
+[data-theme="dark"] .ant-tag {
+  border-color: var(--border-color-dark);
+}
+
+[data-theme="dark"] .row-inactive {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-left: 3px solid var(--color-error);
+}
+
+/* =================================================================================
+   BOTONES DE ACCIONES
+   ================================================================================= */
+
+.acciones-buttons .ant-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.acciones-buttons .ant-btn:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.acciones-buttons .ant-btn:active {
+  transform: translateY(0) scale(1);
+}
+
+/* =================================================================================
+   DRAWER ANIMADO
+   ================================================================================= */
+
+.usuario-drawer-animated .ant-drawer-content-wrapper {
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.usuario-drawer-animated .ant-drawer-body > div {
+  animation: fadeIn 0.5s ease-out 0.2s both;
+}
+
+.usuario-drawer-animated .ant-drawer-header {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Animaciones de elementos internos del drawer */
+.usuario-drawer-animated .ant-avatar {
+  animation: bounceIn 0.6s ease-out 0.3s both;
+}
+
+.usuario-drawer-animated .ant-descriptions,
+.usuario-drawer-animated .ant-card {
+  animation: fadeIn 0.4s ease-out 0.4s both;
+}
+
+.usuario-drawer-animated .ant-divider {
+  animation: slideInRight 0.5s ease-out 0.3s both;
+}
+
+/* Hover effects en el drawer */
+.usuario-drawer-animated .ant-btn {
+  transition: all 0.3s ease;
+}
+
+.usuario-drawer-animated .ant-btn:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* =================================================================================
+   RESPONSIVE PARA BOTONES DE ACCIONES
+   ================================================================================= */
+
+@media (max-width: 1200px) {
+  .acciones-buttons {
+    flex-wrap: wrap;
+  }
+
+  .acciones-buttons .ant-btn {
+    margin: 2px;
+  }
+}

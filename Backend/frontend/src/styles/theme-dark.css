@@ -1,0 +1,548 @@
+/* =============================================================================
+   TEMA OSCURO - NEGRO/NARANJA ESTILO CLAUDE
+   =============================================================================
+   Este archivo contiene todos los estilos específicos para el tema oscuro
+   Se aplica cuando data-theme="dark" está presente en el elemento raíz
+============================================================================= */
+
+[data-theme="dark"] {
+    /* ========== COMPONENTES GLOBALES ========== */
+
+    /* Body y Layout */
+    body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    /* Cards */
+    .ant-card {
+        background-color: var(--bg-elevated);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .ant-card-head {
+        background-color: var(--bg-secondary);
+        border-bottom-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .ant-card-hoverable:hover {
+        box-shadow: var(--shadow-card-hover);
+        border-color: var(--color-primary);
+    }
+
+    /* Botones */
+    .ant-btn {
+        border-color: var(--border-color);
+        background-color: var(--bg-elevated);
+        color: var(--text-primary);
+    }
+
+    .ant-btn:hover {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+    }
+
+    .ant-btn-primary {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: var(--text-inverse);
+    }
+
+    .ant-btn-primary:hover {
+        background-color: var(--color-primary-hover);
+        border-color: var(--color-primary-hover);
+    }
+
+    /* Inputs */
+    .ant-input,
+    .ant-input-number,
+    .ant-select-selector,
+    .ant-picker {
+        background-color: var(--bg-elevated);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .ant-input::placeholder {
+        color: var(--text-tertiary);
+    }
+
+    .ant-input:focus,
+    .ant-input-focused,
+    .ant-select-focused .ant-select-selector {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px var(--color-primary-light);
+    }
+
+    /* Tables */
+    .ant-table {
+        background-color: var(--bg-elevated);
+        color: var(--text-primary);
+    }
+
+    .ant-table-thead>tr>th {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        border-bottom-color: var(--border-color);
+    }
+
+    .ant-table-tbody>tr>td {
+        border-bottom-color: var(--border-color);
+    }
+
+    .ant-table-tbody>tr:hover>td {
+        background-color: var(--bg-hover);
+    }
+
+    .ant-table-row-selected>td {
+        background-color: rgba(255, 107, 53, 0.1);
+    }
+
+    /* Modales */
+    .ant-modal-content {
+        background-color: var(--bg-elevated);
+        color: var(--text-primary);
+    }
+
+    .ant-modal-header {
+        background-color: var(--bg-secondary);
+        border-bottom-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .ant-modal-footer {
+        border-top-color: var(--border-color);
+    }
+
+    .ant-modal-mask {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    /* Drawers */
+    .ant-drawer-content {
+        background-color: var(--bg-elevated);
+        color: var(--text-primary);
+    }
+
+    .ant-drawer-header {
+        background-color: var(--bg-secondary);
+        border-bottom-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    /* Tabs */
+    .ant-tabs-nav {
+        color: var(--text-secondary);
+    }
+
+    .ant-tabs-tab {
+        color: var(--text-secondary);
+    }
+
+    .ant-tabs-tab:hover {
+        color: var(--color-primary);
+    }
+
+    .ant-tabs-tab-active {
+        color: var(--color-primary) !important;
+    }
+
+    .ant-tabs-ink-bar {
+        background-color: var(--color-primary);
+    }
+
+    .ant-tabs-content {
+        color: var(--text-primary);
+    }
+
+    /* Tags */
+    .ant-tag {
+        background-color: var(--bg-secondary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    /* Alertas */
+    .ant-alert-success {
+        background-color: var(--color-success-light);
+        border-color: var(--color-success-border);
+    }
+
+    .ant-alert-warning {
+        background-color: var(--color-warning-light);
+        border-color: var(--color-warning-border);
+    }
+
+    .ant-alert-error {
+        background-color: var(--color-error-light);
+        border-color: var(--color-error-border);
+    }
+
+    .ant-alert-info {
+        background-color: var(--color-info-light);
+        border-color: var(--color-info-border);
+    }
+
+    /* Notifications */
+    .ant-notification-notice {
+        background-color: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    /* Messages */
+    .ant-message-notice-content {
+        background-color: var(--bg-elevated);
+        color: var(--text-primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Dropdowns */
+    .ant-dropdown-menu {
+        background-color: var(--bg-elevated);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .ant-dropdown-menu-item {
+        color: var(--text-primary);
+    }
+
+    .ant-dropdown-menu-item:hover {
+        background-color: var(--bg-hover);
+    }
+
+    /* Select */
+    .ant-select-dropdown {
+        background-color: var(--bg-elevated);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .ant-select-item {
+        color: var(--text-primary);
+    }
+
+    .ant-select-item:hover {
+        background-color: var(--bg-hover);
+    }
+
+    .ant-select-item-option-selected {
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
+    }
+
+    /* Progress */
+    .ant-progress-bg {
+        background-color: var(--color-primary);
+    }
+
+    .ant-progress-text {
+        color: var(--text-primary);
+    }
+
+    /* Timeline */
+    .ant-timeline-item-tail {
+        border-left-color: var(--border-color);
+    }
+
+    .ant-timeline-item-head {
+        background-color: var(--bg-primary);
+        border-color: var(--color-primary);
+    }
+
+    /* Divider */
+    .ant-divider {
+        border-top-color: var(--border-color);
+    }
+
+    /* Breadcrumb */
+    .ant-breadcrumb a {
+        color: var(--text-link);
+    }
+
+    .ant-breadcrumb a:hover {
+        color: var(--text-link-hover);
+    }
+
+    /* Pagination */
+    .ant-pagination-item {
+        background-color: var(--bg-elevated);
+        border-color: var(--border-color);
+    }
+
+    .ant-pagination-item a {
+        color: var(--text-primary);
+    }
+
+    .ant-pagination-item-active {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary);
+    }
+
+    .ant-pagination-item-active a {
+        color: var(--text-inverse);
+    }
+
+    /* ========== COMPONENTES PERSONALIZADOS ========== */
+
+    /* DataTable */
+    .data-table {
+        background-color: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+    }
+
+    .data-table__header {
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+        border-bottom: 2px solid var(--color-primary);
+    }
+
+    .data-table__actions {
+        background-color: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .data-table__row:hover {
+        background-color: var(--bg-hover);
+        border-left: 3px solid var(--color-primary);
+    }
+
+    /* Notification System */
+    .notification-critical {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+        border-left: 4px solid var(--color-critical);
+    }
+
+    .notification-medical {
+        background: linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(167, 139, 250, 0.05) 100%);
+        border-left: 4px solid var(--color-prenatal);
+    }
+
+    /* Cards Médicas */
+    .kpi-card {
+        background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+        border: 1px solid var(--border-color);
+        transition: all var(--transition-base) var(--transition-ease);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-card-hover);
+        border-color: var(--color-primary);
+    }
+
+    .kpi-card-pacientes {
+        border-top: 3px solid var(--color-primary);
+    }
+
+    .kpi-card-embarazos {
+        border-top: 3px solid var(--color-success);
+    }
+
+    .kpi-card-alertas {
+        border-top: 3px solid var(--color-error);
+    }
+
+    .kpi-card-citas {
+        border-top: 3px solid var(--color-warning);
+    }
+
+    /* Header de Paciente */
+    .header-paciente {
+        background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, var(--bg-elevated) 100%);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--color-primary);
+    }
+
+    /* Gráficas */
+    .recharts-cartesian-grid line {
+        stroke: var(--chart-grid);
+    }
+
+    .recharts-text {
+        fill: var(--text-secondary);
+    }
+
+    .recharts-tooltip-wrapper {
+        outline: none;
+    }
+
+    .recharts-default-tooltip {
+        background-color: var(--bg-elevated) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Timeline Médica */
+    .timeline-medical .ant-timeline-item-head {
+        border-color: var(--color-primary);
+        background-color: var(--bg-elevated);
+    }
+
+    .timeline-medical .ant-timeline-item-content {
+        background-color: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius-md);
+    }
+
+    /* Formularios Médicos */
+    .form-section {
+        background-color: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .form-section__header {
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+        border-bottom: 2px solid var(--color-primary);
+        padding: var(--spacing-md);
+        margin: calc(var(--spacing-lg) * -1);
+        margin-bottom: var(--spacing-lg);
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+
+    /* Badges de Estado */
+    .badge-activo {
+        background-color: var(--color-success);
+        color: var(--text-inverse);
+    }
+
+    .badge-pendiente {
+        background-color: var(--color-warning);
+        color: var(--text-inverse);
+    }
+
+    .badge-cancelado {
+        background-color: var(--color-error);
+        color: var(--text-inverse);
+    }
+
+    /* Cards de Alertas */
+    .alerta-card {
+        background-color: var(--bg-elevated);
+        border-left-width: 4px;
+        border-left-style: solid;
+    }
+
+    .alerta-card.alerta-critico {
+        border-left-color: var(--color-critical);
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, var(--bg-elevated) 100%);
+    }
+
+    .alerta-card.alerta-advertencia {
+        border-left-color: var(--color-warning);
+        background: linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, var(--bg-elevated) 100%);
+    }
+
+    .alerta-card.alerta-info {
+        border-left-color: var(--color-info);
+        background: linear-gradient(90deg, rgba(96, 165, 250, 0.1) 0%, var(--bg-elevated) 100%);
+    }
+
+    /* Dashboard Container */
+    .dashboard-container {
+        background-color: var(--bg-primary);
+        min-height: 100vh;
+        padding: var(--spacing-lg);
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+        border-bottom: 2px solid var(--color-primary);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+        border-radius: var(--border-radius-lg);
+    }
+
+    .page-title {
+        color: var(--text-primary);
+        margin: 0;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+    }
+
+    /* Stats Cards */
+    .stat-card {
+        background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+        transition: all var(--transition-base) var(--transition-ease);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-card-hover);
+        border-color: var(--color-primary);
+    }
+
+    .stat-card__value {
+        color: var(--color-primary);
+        font-size: var(--font-size-3xl);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .stat-card__label {
+        color: var(--text-secondary);
+        font-size: var(--font-size-sm);
+    }
+
+    /* Empty States */
+    .ant-empty-description {
+        color: var(--text-secondary);
+    }
+
+    /* Loading States */
+    .ant-spin-dot-item {
+        background-color: var(--color-primary);
+    }
+
+    /* ========== TRANSICIONES SUAVES DE TEMA ========== */
+
+    * {
+        transition-property: background-color, border-color, color;
+        transition-duration: var(--transition-base);
+        transition-timing-function: var(--transition-ease);
+    }
+
+    /* Excluir transiciones de elementos que no lo necesitan */
+    *:not(.no-theme-transition) {
+        transition: background-color var(--transition-base) var(--transition-ease),
+            border-color var(--transition-base) var(--transition-ease),
+            color var(--transition-base) var(--transition-ease);
+    }
+
+    /* ========== ACCESIBILIDAD ========== */
+
+    /* Alto contraste para texto */
+    strong,
+    b {
+        color: var(--text-primary);
+    }
+
+    /* Links visibles */
+    a {
+        color: var(--text-link);
+    }
+
+    a:hover {
+        color: var(--text-link-hover);
+    }
+
+    /* Focus visible */
+    *:focus-visible {
+        outline-color: var(--color-primary);
+    }
+}

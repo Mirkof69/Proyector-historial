@@ -1,0 +1,39 @@
+# Microservicio de IA
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# TensorFlow/Keras
+*.h5
+*.pb
+*.ckpt
+*.hdf5
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Datasets
+datasets/
+temp/
+*.jpg
+*.png
+*.dicom
+*.dcm
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

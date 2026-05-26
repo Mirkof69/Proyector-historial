@@ -1,0 +1,85 @@
+# ═══════════════════════════════════════════════════════════
+# .GITIGNORE - Fetal Medical System
+# ═══════════════════════════════════════════════════════════
+
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+**/.venv/
+**/.venv_gpu/
+**/venv/
+**/env/
+**/ENV/
+Backend/.venv/
+venv/
+env/
+ENV/
+*.env.local
+
+# ─── Node.js ───
+Backend/frontend/node_modules/
+Backend/frontend/build/
+Backend/frontend/dist/
+Backend/frontend/.next/
+
+# ─── Django ───
+Backend/staticfiles/
+Backend/logs/
+*.log
+*.sqlite3
+
+# ─── Media & Uploads ───
+Backend/media/
+*.tmp
+*.temp
+
+# ─── IDE ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Environment ──
+.env
+.env.local
+.env.production
+.env.*.local
+
+# ─── Docker ───
+docker-compose.override.yml
+
+# ─── ML/AI ───
+Backend/Microservicio_IA/temp/
+Backend/Microservicio_IA/datasets/
+Backend/Microservicio_IA/datasets_pathology/
+Backend/Microservicio_IA/*.keras
+Backend/Microservicio_IA/trained_models/
+*.h5
+*.pt
+*.pth
+
+# ─── Documentation ───
+Backend/docs/*.pdf
+
+# ─── Datasets pesados ───
+zip/*.zip
+zip/*.rar
+*.zip
+*.rar
+zip/docs/diagrama uml png/*.png

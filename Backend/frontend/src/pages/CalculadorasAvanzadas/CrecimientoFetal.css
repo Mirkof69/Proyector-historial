@@ -1,0 +1,109 @@
+.crecimiento-fetal-page {
+  padding: 24px;
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  min-height: 100vh;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.crecimiento-fetal-page .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.crecimiento-fetal-page .ant-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.crecimiento-fetal-page .ant-statistic-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.crecimiento-fetal-page .ant-statistic-content {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.crecimiento-fetal-page .ant-btn-primary {
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  border: none;
+  border-radius: 8px;
+  height: 45px;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+  transition: all 0.3s ease;
+}
+
+.crecimiento-fetal-page .ant-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.6);
+}
+
+.crecimiento-fetal-page .ant-alert {
+  border-radius: 8px;
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.crecimiento-fetal-page .recharts-wrapper {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.crecimiento-fetal-page .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  color: white;
+  font-weight: bold;
+}
+
+.crecimiento-fetal-page .ant-divider-horizontal.ant-divider-with-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #00bcd4;
+  margin: 32px 0;
+}
+
+.percentil-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.percentil-normal {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.percentil-rciu {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.percentil-macrosomia {
+  background-color: #fff3cd;
+  color: #856404;
+}

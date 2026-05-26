@@ -1,0 +1,566 @@
+/* =============================================================================
+   ECOGRAFÍAS - ESTILOS COMPLETOS
+   =============================================================================
+   Galería de imágenes, reportes, mediciones y visualizador
+============================================================================= */
+
+/* ========== CONTAINER PRINCIPAL ========== */
+.ecografias-container {
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+/* ========== HEADER ========== */
+.ecografias-header {
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  color: #fff;
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.ecografias-header::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -15%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+}
+
+.ecografias-header__content {
+  position: relative;
+  z-index: 1;
+}
+
+.ecografias-header__title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-sm);
+}
+
+.ecografias-header__summary {
+  display: flex;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.ecografias-header__stat {
+  text-align: center;
+}
+
+.ecografias-header__stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.ecografias-header__stat-label {
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========== GALERÍA DE ECOGRAFÍAS ========== */
+.ecografias-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.ecografia-card {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-base) var(--transition-ease);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  animation: scaleIn 0.4s var(--transition-ease) backwards;
+}
+
+.ecografia-card:hover {
+  transform: translateY(-8px) rotate(1deg);
+  box-shadow: var(--shadow-xl);
+}
+
+.ecografia-card__image-container {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.ecografia-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow) var(--transition-ease);
+}
+
+.ecografia-card:hover .ecografia-card__image {
+  transform: scale(1.1);
+}
+
+.ecografia-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 64px;
+}
+
+.ecografia-card__badge {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ecografia-card__content {
+  padding: var(--spacing-lg);
+}
+
+.ecografia-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.ecografia-card__date {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.ecografia-card__info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ecografia-card__info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ecografia-card__info-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ecografia-card__info-value {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.ecografia-card__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.ecografia-card__action-btn {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.ecografia-card__action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Animación escalonada */
+.ecografia-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.ecografia-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.ecografia-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.ecografia-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.ecografia-card:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.ecografia-card:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+/* ========== BOTÓN AÑADIR ECOGRAFÍA ========== */
+.ecografia-add-card {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.ecografia-add-card:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  transform: scale(1.02);
+}
+
+.ecografia-add-card__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--border-radius-round);
+  background: var(--color-primary-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  transition: transform var(--transition-base) var(--transition-spring);
+}
+
+.ecografia-add-card:hover .ecografia-add-card__icon {
+  transform: rotate(90deg);
+}
+
+.ecografia-add-card__text {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+/* ========== MODAL DE VISUALIZACIÓN ========== */
+.ecografia-modal {
+  max-width: 1200px !important;
+}
+
+.ecografia-modal__viewer {
+  background-color: #000;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.ecografia-modal__image {
+  max-width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+}
+
+.ecografia-modal__controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  padding: var(--spacing-lg);
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.ecografia-modal__control-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-round);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--transition-ease);
+}
+
+.ecografia-modal__control-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.ecografia-modal__sidebar {
+  padding: var(--spacing-lg);
+  background-color: var(--bg-elevated);
+  height: 600px;
+  overflow-y: auto;
+}
+
+.ecografia-modal__section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.ecografia-modal__section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.ecografia-modal__measurements {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.ecografia-modal__measurement {
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+}
+
+.ecografia-modal__measurement-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.ecografia-modal__measurement-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.ecografia-modal__conclusion {
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid var(--color-primary);
+}
+
+.ecografia-modal__conclusion-text {
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  font-size: var(--font-size-sm);
+}
+
+/* ========== FORMULARIO DE REPORTE ========== */
+.ecografia-form {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.ecografia-form__section {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ecografia-form__section:last-child {
+  border-bottom: none;
+}
+
+.ecografia-form__section-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ecografia-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+/* ========== UPLOAD DE IMÁGENES ========== */
+.ecografia-upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-3xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-base) var(--transition-ease);
+  background-color: var(--bg-secondary);
+}
+
+.ecografia-upload-area:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.ecografia-upload-area__icon {
+  font-size: 48px;
+  color: var(--text-tertiary);
+  margin-bottom: var(--spacing-md);
+}
+
+.ecografia-upload-area__text {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-sm);
+}
+
+.ecografia-upload-area__hint {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.ecografia-upload-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.ecografia-upload-preview__item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.ecografia-upload-preview__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ecografia-upload-preview__remove {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--border-radius-round);
+  background-color: var(--color-error);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast) var(--transition-ease);
+}
+
+.ecografia-upload-preview__remove:hover {
+  transform: scale(1.1);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .ecografias-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .ecografia-modal__viewer {
+    min-height: 400px;
+  }
+
+  .ecografia-modal__sidebar {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .ecografias-container {
+    padding: var(--spacing-md);
+  }
+
+  .ecografias-header {
+    padding: var(--spacing-lg);
+  }
+
+  .ecografias-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .ecografia-card__info {
+    grid-template-columns: 1fr;
+  }
+
+  .ecografia-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ecografia-upload-preview {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .ecografia-modal__measurements {
+    grid-template-columns: 1fr;
+  }
+
+  .ecografias-header__summary {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+}
+
+/* ========== MODO IMPRESIÓN ========== */
+@media print {
+
+  .ecografia-card__actions,
+  .ecografia-add-card,
+  .ecografia-modal__controls,
+  .ecografia-upload-area {
+    display: none !important;
+  }
+
+  .ecografias-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ecografia-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

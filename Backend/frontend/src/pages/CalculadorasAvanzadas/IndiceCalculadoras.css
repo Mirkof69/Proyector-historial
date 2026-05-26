@@ -1,0 +1,138 @@
+﻿@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.indice-calculadoras-page {
+  padding: 24px;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.header-section {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.header-section h2 {
+  margin-bottom: 16px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.calculadora-card {
+  height: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: scaleIn 0.4s ease-out;
+  cursor: pointer;
+}
+
+.calculadora-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  transition: all 0.3s ease;
+}
+
+.calculadora-card:hover .card-icon-container {
+  transform: scale(1.1);
+}
+
+.calculadora-card .ant-card-meta-title {
+  color: #262626;
+  transition: color 0.3s ease;
+}
+
+.calculadora-card:hover .ant-card-meta-title {
+  color: #1890ff;
+}
+
+.calculadora-card .ant-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.calculadora-card .ant-btn-primary {
+  transition: all 0.3s ease;
+}
+
+.calculadora-card .ant-btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .indice-calculadoras-page {
+    padding: 16px;
+  }
+
+  .header-section h2 {
+    font-size: 24px;
+  }
+
+  .card-icon-container {
+    height: 100px;
+  }
+
+  .card-icon-container svg {
+    font-size: 36px !important;
+  }
+}
+
+/* Animation delays for stagger effect */
+.calculadora-card:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.calculadora-card:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.calculadora-card:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+.calculadora-card:nth-child(4) {
+  animation-delay: 0.15s;
+}
+
+.calculadora-card:nth-child(5) {
+  animation-delay: 0.2s;
+}
+
+.calculadora-card:nth-child(6) {
+  animation-delay: 0.25s;
+}
+
+.calculadora-card:nth-child(7) {
+  animation-delay: 0.3s;
+}
+
+.calculadora-card:nth-child(8) {
+  animation-delay: 0.35s;
+}

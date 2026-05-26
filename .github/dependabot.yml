@@ -1,0 +1,186 @@
+version: 2
+updates:
+  # ──────────────────────────────────────────────
+  # BACKEND - Python (Django)
+  # ──────────────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/Backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/La_Paz"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "owner"
+    labels:
+      - "dependencies"
+      - "backend"
+      - "python"
+    commit-message:
+      prefix: "chore(backend)"
+      include: "scope"
+    groups:
+      django-minor:
+        patterns:
+          - "django*"
+          - "djangorestframework*"
+        update-types:
+          - "minor"
+          - "patch"
+      python-patches:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+
+  # ──────────────────────────────────────────────
+  # FRONTEND - Node.js (React)
+  # ──────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/Backend/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/La_Paz"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "owner"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "typescript"
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@testing-library/*"
+        update-types:
+          - "minor"
+          - "patch"
+      tailwind:
+        patterns:
+          - "tailwindcss*"
+          - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
+      frontend-patches:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+
+  # ──────────────────────────────────────────────
+  # AI MICROSERVICE - Python (FastAPI + TensorFlow)
+  # ──────────────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/Backend/Microservicio_IA"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "America/La_Paz"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "owner"
+    labels:
+      - "dependencies"
+      - "ai-service"
+      - "python"
+    commit-message:
+      prefix: "chore(ai-service)"
+      include: "scope"
+    ignore:
+      # TensorFlow major updates can break compatibility; review manually
+      - dependency-name: "tensorflow"
+        update-types: ["version-update:semver-major"]
+    groups:
+      fastapi-ecosystem:
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+        update-types:
+          - "minor"
+          - "patch"
+      ai-patches:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+
+  # ──────────────────────────────────────────────
+  # DOCKER
+  # ──────────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/Backend"
+    file: "Dockerfile.backend"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "America/La_Paz"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/Backend"
+    file: "Dockerfile.frontend"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "America/La_Paz"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/Backend/Microservicio_IA"
+    file: "Dockerfile"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "America/La_Paz"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "ai-service"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  # ──────────────────────────────────────────────
+  # GITHUB ACTIONS
+  # ──────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "06:00"
+      timezone: "America/La_Paz"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "owner"
+    labels:
+      - "dependencies"
+      - "ci-cd"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"

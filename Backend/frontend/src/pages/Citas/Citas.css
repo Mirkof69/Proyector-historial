@@ -1,0 +1,596 @@
+/* =============================================================================
+   CITAS - ESTILOS COMPLETOS
+   =============================================================================
+   Calendario premium, gestión de citas y recordatorios
+============================================================================= */
+
+/* ========== CONTAINER PRINCIPAL ========== */
+.citas-container {
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+/* ========== HEADER ========== */
+.citas-header {
+  background: linear-gradient(135deg, #8b5cf6 0%, rgba(139, 92, 246, 0.8) 100%);
+  color: #fff;
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.citas-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -15%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.citas-header__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.citas-header__title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-sm);
+}
+
+.citas-header__date {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+.citas-header__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* ========== VISTA SELECTOR ========== */
+.citas-view-selector {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-card);
+}
+
+.citas-view-btns {
+  display: flex;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+}
+
+.citas-view-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-base) var(--transition-ease);
+  font-weight: var(--font-weight-medium);
+}
+
+.citas-view-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+.citas-view-btn.active {
+  background-color: #8b5cf6;
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ========== CALENDARIO ========== */
+.citas-calendario {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.citas-calendario__header {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #8b5cf6;
+}
+
+.citas-calendario__mes {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.citas-calendario__nav {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.citas-calendario__nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius-round);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-base) var(--transition-ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.citas-calendario__nav-btn:hover {
+  background-color: #8b5cf6;
+  color: #fff;
+  border-color: #8b5cf6;
+  transform: scale(1.1);
+}
+
+.citas-calendario__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background-color: var(--bg-elevated);
+}
+
+.citas-calendario__dia-nombre {
+  padding: var(--spacing-md);
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.citas-calendario__dia {
+  min-height: 120px;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--transition-ease);
+  position: relative;
+  background-color: var(--bg-elevated);
+}
+
+.citas-calendario__dia:hover {
+  background-color: var(--bg-hover);
+  transform: scale(1.02);
+  z-index: 1;
+  box-shadow: var(--shadow-md);
+}
+
+.citas-calendario__dia--otro-mes {
+  background-color: var(--bg-secondary);
+  opacity: 0.5;
+}
+
+.citas-calendario__dia--hoy {
+  background-color: rgba(139, 92, 246, 0.1);
+  border-color: #8b5cf6;
+  border-width: 2px;
+}
+
+.citas-calendario__dia-numero {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.citas-calendario__dia--hoy .citas-calendario__dia-numero {
+  color: #8b5cf6;
+  font-size: var(--font-size-lg);
+}
+
+.citas-calendario__dia-eventos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.citas-calendario__evento {
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--transition-ease);
+}
+
+.citas-calendario__evento:hover {
+  transform: translateX(2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.citas-calendario__evento--consulta {
+  background-color: #3b82f6;
+}
+
+.citas-calendario__evento--control {
+  background-color: #10b981;
+}
+
+.citas-calendario__evento--emergencia {
+  background-color: #ef4444;
+  animation: pulse 2s infinite;
+}
+
+.citas-calendario__evento--seguimiento {
+  background-color: #f59e0b;
+}
+
+/* ========== LISTA DE CITAS ========== */
+.citas-lista {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.citas-lista__header {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+  padding: var(--spacing-lg);
+  border-bottom: 2px solid #8b5cf6;
+}
+
+.citas-lista__titulo {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.citas-lista__contenido {
+  padding: var(--spacing-lg);
+}
+
+.cita-item {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-md);
+  transition: all var(--transition-base) var(--transition-ease);
+  cursor: pointer;
+}
+
+.cita-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+  border-color: #8b5cf6;
+}
+
+.cita-item__hora {
+  width: 80px;
+  flex-shrink: 0;
+  text-align: center;
+  padding: var(--spacing-sm);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #fff;
+  border-radius: var(--border-radius-md);
+}
+
+.cita-item__hora-numero {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.cita-item__hora-periodo {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.cita-item__content {
+  flex: 1;
+}
+
+.cita-item__paciente {
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-xs);
+}
+
+.cita-item__tipo {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+}
+
+.cita-item__motivo {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.cita-item__meta {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.cita-item__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  justify-content: center;
+}
+
+.cita-item__status {
+  padding: 4px 12px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+
+.cita-item__status--confirmada {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.cita-item__status--pendiente {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.cita-item__status--cancelada {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+/* ========== MODAL NUEVA CITA ========== */
+.cita-modal {
+  max-width: 700px !important;
+}
+
+.cita-form {
+  background-color: var(--bg-elevated);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+}
+
+.cita-form__section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.cita-form__section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid #8b5cf6;
+}
+
+.cita-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.cita-tipo-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.cita-tipo-option {
+  padding: var(--spacing-md);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-base) var(--transition-ease);
+  background-color: var(--bg-elevated);
+}
+
+.cita-tipo-option:hover {
+  border-color: #8b5cf6;
+  transform: translateY(-2px);
+}
+
+.cita-tipo-option.active {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, var(--bg-elevated) 100%);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.cita-tipo-option__icon {
+  font-size: 32px;
+  margin-bottom: var(--spacing-sm);
+  color: #8b5cf6;
+}
+
+.cita-tipo-option__label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* ========== RECORDATORIOS ========== */
+.citas-recordatorios {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.citas-recordatorios__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.recordatorio-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-sm);
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.recordatorio-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.recordatorio-item__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-round);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.recordatorio-item__content {
+  flex: 1;
+}
+
+.recordatorio-item__texto {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.recordatorio-item__fecha {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1200px) {
+  .citas-calendario__dia {
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .citas-container {
+    padding: var(--spacing-md);
+  }
+
+  .citas-header {
+    padding: var(--spacing-lg);
+  }
+
+  .citas-header__content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .citas-calendario__grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .citas-calendario__dia {
+    min-height: 80px;
+    padding: var(--spacing-xs);
+  }
+
+  .citas-calendario__dia-numero {
+    font-size: var(--font-size-sm);
+  }
+
+  .citas-calendario__evento {
+    font-size: 8px;
+  }
+
+  .cita-item {
+    flex-direction: column;
+  }
+
+  .cita-item__hora {
+    width: 100%;
+  }
+
+  .cita-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cita-tipo-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .citas-view-selector {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .citas-view-btns {
+    width: 100%;
+  }
+
+  .citas-view-btn {
+    flex: 1;
+  }
+
+  .citas-calendario__dia {
+    min-height: 60px;
+  }
+}
+
+/* ========== MODO IMPRESIÓN ========== */
+@media print {
+
+  .citas-header__actions,
+  .citas-view-selector,
+  .cita-item__actions,
+  .citas-recordatorios {
+    display: none !important;
+  }
+
+  .citas-calendario,
+  .citas-lista {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  .citas-calendario__dia {
+    border: 1px solid #000;
+  }
+}

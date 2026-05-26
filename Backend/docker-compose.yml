@@ -1,0 +1,234 @@
+version: '3.8'
+
+networks:
+  fetal-network:
+    driver: bridge
+    internal: false
+  fetal-internal:
+    driver: bridge
+    internal: true
+
+services:
+  # ─── BASE DE DATOS ──────────────────────────────────────────────
+  db:
+    image: postgres:16
+    networks:
+      - fetal-internal
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=historial
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?DB_PASSWORD required}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── CACHE ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    networks:
+      - fetal-internal
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD required}"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── MENSAJERÍA ────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    networks:
+      - fetal-internal
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-fetalmedical}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS required}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── BACKEND DJANGO ────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    networks:
+      - fetal-network
+      - fetal-internal
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DB_NAME=historial
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD required}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD required}
+      - RABBITMQ_USER=${RABBITMQ_USER:-fetalmedical}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS required}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - DEBUG=${DEBUG:-0}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY required}
+      - AI_SERVICE_URL=http://ia_service:8000
+    restart: unless-stopped
+
+  # ─── CELERY WORKER ─────────────────────────────────────────────
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    networks:
+      - fetal-internal
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DB_NAME=historial
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD required}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD required}
+      - CELERY_BROKER_URL=pyamqp://${RABBITMQ_USER:-fetalmedical}:${RABBITMQ_PASS:?RABBITMQ_PASS required}@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD required}@redis:6379/0
+    command: celery -A celery_app worker --loglevel=info --concurrency=4
+    restart: unless-stopped
+
+  # ─── FRONTEND REACT ────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+    networks:
+      - fetal-network
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # ─── MICROSERVICIO IA / FASTAPI ────────────────────────────────
+  ia_service:
+    build:
+      context: ./Microservicio_IA
+      dockerfile: Dockerfile
+    networks:
+      - fetal-internal
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./Microservicio_IA/trained_models:/app/trained_models
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - MODEL_PATH=/app/trained_models/efficientnet_b4.pth
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # ─── SERVIDOR PACS DICOM ───────────────────────────────────────
+  orthanc:
+    image: jodogne/orthanc:1.12.1
+    networks:
+      - fetal-internal
+    ports:
+      - "8042:8042"
+    volumes:
+      - orthanc_data:/var/lib/orthanc/db
+    environment:
+      - ORTHANC__NAME=Fetal Medical Bolivia
+      - ORTHANC__AUTHENTICATION_ENABLED=true
+      - ORTHANC__REGISTERED_USERS=${ORTHANC_USER:-fetalmedical}:${ORTHANC_PASS:?ORTHANC_PASS required}
+      - ORTHANC__DICOM_SERVER_ENABLED=true
+      - ORTHANC__DICOM_AE_TITLE=FETALMEDICAL
+    restart: unless-stopped
+
+  # ─── ALMACENAMIENTO DICOM ON-PREMISE (MINIO) ──────────────────
+  minio:
+    image: minio/minio:latest
+    networks:
+      - fetal-internal
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY required}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:?MINIO_SECRET_KEY required}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ─── API GATEWAY ───────────────────────────────────────────────
+  kong:
+    image: kong:3.6
+    networks:
+      - fetal-network
+      - fetal-internal
+    ports:
+      - "443:8443"
+      - "8002:8002"
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/etc/kong/kong.yml
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8002
+      - KONG_JWT_SECRET=${KONG_JWT_SECRET:?KONG_JWT_SECRET required}
+      - KONG_IA_SECRET=${KONG_IA_SECRET:-ia-internal-secret}
+    volumes:
+      - ../kong/kong.yml:/etc/kong/kong.yml:ro
+    depends_on:
+      - backend
+      - frontend
+      - ia_service
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  orthanc_data:
+  minio_data:

@@ -1,0 +1,1 @@
+import React from 'react'; import { Card } from 'antd'; const AntecedentesGinecoObstetricos: React.FC = () => <Card><h1>AntecedentesGinecoObstetricos</h1></Card>; export default AntecedentesGinecoObstetricos;

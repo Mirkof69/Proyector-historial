@@ -1,0 +1,535 @@
+/* =============================================================================
+   LABORATORIO - ESTILOS COMPLETOS
+   =============================================================================
+   Tablas de resultados, badges de estado, interpretación automática
+============================================================================= */
+
+/* ========== CONTAINER PRINCIPAL ========== */
+.laboratorio-container {
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+/* ========== HEADER CON FILTROS ========== */
+.laboratorio-header {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, var(--bg-elevated) 100%);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--color-info);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.laboratorio-header__title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.laboratorio-filters {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.laboratorio-filter-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-base) var(--transition-ease);
+  font-weight: var(--font-weight-medium);
+}
+
+.laboratorio-filter-btn:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.laboratorio-filter-btn--active {
+  background: var(--color-primary-gradient);
+  border-color: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ========== CATEGORÍAS TABS ========== */
+.laboratorio-categories {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  display: flex;
+  gap: var(--spacing-sm);
+  overflow-x: auto;
+  box-shadow: var(--shadow-card);
+}
+
+.laboratorio-category-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-base) var(--transition-ease);
+  white-space: nowrap;
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.laboratorio-category-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.laboratorio-category-btn--active {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border-bottom: 3px solid var(--color-primary);
+}
+
+.laboratorio-category-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== TABLA DE RESULTADOS ========== */
+.laboratorio-table {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.laboratorio-table .ant-table-thead>tr>th {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--color-primary);
+  color: var(--text-primary);
+}
+
+.laboratorio-table .ant-table-tbody>tr {
+  transition: all var(--transition-fast) var(--transition-ease);
+}
+
+.laboratorio-table .ant-table-tbody>tr:hover {
+  background-color: var(--bg-hover);
+  transform: translateX(4px);
+  box-shadow: -4px 0 0 var(--color-primary);
+}
+
+/* Filas con resultados anormales */
+.laboratorio-table .ant-table-tbody>tr.row-anormal {
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.laboratorio-table .ant-table-tbody>tr.row-anormal:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  box-shadow: -4px 0 0 var(--color-error);
+}
+
+/* ========== BADGES Y ESTADOS ========== */
+.laboratorio-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 4px 12px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.laboratorio-badge--normal {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.laboratorio-badge--anormal {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  animation: pulse 2s infinite;
+}
+
+.laboratorio-badge--pendiente {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+}
+
+.laboratorio-badge--procesando {
+  background-color: var(--color-info-light);
+  color: var(--color-info);
+  border: 1px solid var(--color-info);
+}
+
+/* ========== CELDA DE RESULTADO ========== */
+.laboratorio-resultado {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.laboratorio-resultado__value {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+}
+
+.laboratorio-resultado__value--normal {
+  color: var(--color-success);
+}
+
+.laboratorio-resultado__value--anormal {
+  color: var(--color-error);
+  font-size: var(--font-size-lg);
+  animation: subtle-pulse 1.5s infinite;
+}
+
+.laboratorio-resultado__icon {
+  font-size: 16px;
+}
+
+.laboratorio-resultado__icon--warning {
+  color: var(--color-error);
+}
+
+/* ========== VALORES DE REFERENCIA ========== */
+.laboratorio-referencia {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  font-family: var(--font-family-code);
+  background-color: var(--bg-secondary);
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* ========== TRENDS Y GRÁFICOS ========== */
+.laboratorio-trend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+}
+
+.laboratorio-trend__icon {
+  font-size: 18px;
+}
+
+.laboratorio-trend--up {
+  color: var(--color-error);
+}
+
+.laboratorio-trend--down {
+  color: var(--color-success);
+}
+
+.laboratorio-trend--stable {
+  color: var(--text-tertiary);
+}
+
+.laboratorio-mini-chart {
+  width: 100px;
+  height: 30px;
+}
+
+/* ========== PANEL DE INTERPRETACIÓN ========== */
+.laboratorio-interpretacion {
+  background: linear-gradient(135deg, var(--color-info-light) 0%, var(--bg-elevated) 100%);
+  border: 1px solid var(--color-info);
+  border-left-width: 4px;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+}
+
+.laboratorio-interpretacion__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-info);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.laboratorio-interpretacion__content {
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  font-size: var(--font-size-sm);
+}
+
+.laboratorio-interpretacion__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+/* ========== CARDS DE RESUMEN ========== */
+.laboratorio-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.laboratorio-summary-card {
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base) var(--transition-ease);
+  animation: fadeInUp 0.4s var(--transition-ease) backwards;
+}
+
+.laboratorio-summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.laboratorio-summary-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: var(--spacing-md);
+}
+
+.laboratorio-summary-card--hematologia .laboratorio-summary-card__icon {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--color-error);
+}
+
+.laboratorio-summary-card--bioquimica .laboratorio-summary-card__icon {
+  background-color: rgba(96, 165, 250, 0.15);
+  color: var(--color-info);
+}
+
+.laboratorio-summary-card--serologia .laboratorio-summary-card__icon {
+  background-color: rgba(251, 191, 36, 0.15);
+  color: var(--color-warning);
+}
+
+.laboratorio-summary-card--orina .laboratorio-summary-card__icon {
+  background-color: rgba(74, 222, 128, 0.15);
+  color: var(--color-success);
+}
+
+.laboratorio-summary-card__value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.laboratorio-summary-card__label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Animaciones escalonadas */
+.laboratorio-summary-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.laboratorio-summary-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.laboratorio-summary-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.laboratorio-summary-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+/* ========== ARCHIVO ADJUNTO ========== */
+.laboratorio-archivo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: all var(--transition-fast) var(--transition-ease);
+  font-size: var(--font-size-sm);
+}
+
+.laboratorio-archivo:hover {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.laboratorio-archivo__icon {
+  color: var(--color-error);
+  font-size: 16px;
+}
+
+/* ========== MODAL DE DETALLE ========== */
+.laboratorio-detail-modal {
+  max-width: 800px !important;
+}
+
+.laboratorio-detail-header {
+  background: var(--color-primary-gradient);
+  padding: var(--spacing-xl);
+  margin: calc(var(--spacing-xl) * -1);
+  margin-bottom: var(--spacing-xl);
+  color: #fff;
+}
+
+.laboratorio-detail-header__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-sm);
+}
+
+.laboratorio-detail-header__meta {
+  display: flex;
+  gap: var(--spacing-xl);
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.laboratorio-detail-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.laboratorio-detail-section__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.laboratorio-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.laboratorio-detail-item {
+  padding: var(--spacing-md);
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+}
+
+.laboratorio-detail-item__label {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.laboratorio-detail-item__value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .laboratorio-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .laboratorio-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .laboratorio-container {
+    padding: var(--spacing-md);
+  }
+
+  .laboratorio-header {
+    padding: var(--spacing-lg);
+  }
+
+  .laboratorio-filters {
+    flex-direction: column;
+  }
+
+  .laboratorio-filter-btn {
+    width: 100%;
+  }
+
+  .laboratorio-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .laboratorio-categories {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .laboratorio-category-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .laboratorio-resultado {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .laboratorio-trend {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ========== MODO IMPRESIÓN ========== */
+@media print {
+
+  .laboratorio-filters,
+  .laboratorio-categories,
+  .laboratorio-interpretacion__actions {
+    display: none !important;
+  }
+
+  .laboratorio-table {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  .laboratorio-table .ant-table-tbody>tr.row-anormal {
+    border-left: 4px solid #000;
+  }
+}
