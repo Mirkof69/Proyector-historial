@@ -1,0 +1,715 @@
+/**
+ * =============================================================================
+ * THEME ENHANCEMENTS - GLASSMORPHISM & DARK MODE PERFECTION
+ * =============================================================================
+ * Estilos avanzados para tema claro y oscuro con glassmorphism elegante
+ * =============================================================================
+ */
+
+/* ============================================
+   VARIABLES ADICIONALES PARA GLASSMORPHISM
+   ============================================ */
+:root {
+  /* Glassmorphism - Tema Claro */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --glass-backdrop: blur(10px);
+
+  /* Sombras mejoradas */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  /* Gradientes elegantes */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  --gradient-warning: linear-gradient(135deg, #faad14 0%, #ffc53d 100%);
+  --gradient-error: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+}
+
+[data-theme='dark'],
+.dark {
+  /* Glassmorphism - Tema Oscuro */
+  --glass-bg: rgba(20, 20, 20, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+
+  /* Sombras para tema oscuro */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================
+   ANT DESIGN - MODAL GLASSMORPHISM
+   ============================================ */
+.ant-modal-content {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+.ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-modal-title {
+  color: var(--color-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.ant-modal-body {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-modal-footer {
+  background: transparent !important;
+  border-top: 1px solid var(--color-border) !important;
+}
+
+/* ============================================
+   ANT DESIGN - NOTIFICATION GLASSMORPHISM
+   ============================================ */
+.ant-notification {
+  backdrop-filter: none !important;
+}
+
+.ant-notification-notice {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  border-radius: 12px !important;
+}
+
+.ant-notification-notice-message {
+  color: var(--color-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.ant-notification-notice-description {
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-notification-notice-icon {
+  color: var(--color-text-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - DRAWER GLASSMORPHISM
+   ============================================ */
+.ant-drawer-content {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+.ant-drawer-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-drawer-title {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-drawer-body {
+  color: var(--color-text-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - DROPDOWN & MENU DARK MODE
+   ============================================ */
+.ant-dropdown,
+.ant-select-dropdown {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.ant-dropdown-menu,
+.ant-select-dropdown-menu {
+  background: transparent !important;
+}
+
+.ant-dropdown-menu-item,
+.ant-select-item {
+  color: var(--color-text-primary) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-dropdown-menu-item:hover,
+.ant-select-item:hover,
+.ant-select-item-option-active {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-select-item-option-selected {
+  background: var(--color-bg-active) !important;
+  color: var(--color-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - TABLE DARK MODE
+   ============================================ */
+.ant-table {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-table-thead > tr > th {
+  background: var(--color-bg-tertiary) !important;
+  color: var(--color-text-primary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  font-weight: 600 !important;
+}
+
+.ant-table-tbody > tr {
+  background: var(--color-bg-secondary) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--color-bg-hover) !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-table-pagination {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-pagination-item a {
+  color: var(--color-text-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - INPUT & FORM DARK MODE
+   ============================================ */
+.ant-input,
+.ant-input-number,
+.ant-input-number-input,
+.ant-select-selector,
+.ant-picker,
+.ant-input-textarea {
+  background-color: var(--color-bg-tertiary) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-number input::placeholder,
+.ant-select-selection-placeholder,
+.ant-picker-input > input::placeholder {
+  color: var(--color-text-tertiary) !important;
+}
+
+.ant-input:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: var(--color-primary) !important;
+}
+
+.ant-input:focus,
+.ant-input-focused,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+  background-color: var(--color-bg-secondary) !important;
+}
+
+.ant-input-affix-wrapper {
+  background-color: var(--color-bg-tertiary) !important;
+  border-color: var(--color-border) !important;
+}
+
+.ant-input-affix-wrapper:hover {
+  border-color: var(--color-primary) !important;
+}
+
+.ant-input-affix-wrapper-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* ============================================
+   ANT DESIGN - CARD DARK MODE
+   ============================================ */
+.ant-card {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-border) !important;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+}
+
+.ant-card-head {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-card-head-title {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-card-body {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-card-hoverable:hover {
+  box-shadow: var(--shadow-lg) !important;
+  transform: translateY(-2px) !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - BUTTON ENHANCEMENTS
+   ============================================ */
+.ant-btn-primary {
+  background: var(--gradient-primary) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px 0 rgba(102, 126, 234, 0.4) !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6) !important;
+}
+
+.ant-btn-default {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-btn-default:hover {
+  background: var(--color-bg-hover) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+.ant-btn-text {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-btn-text:hover {
+  background: var(--color-bg-hover) !important;
+}
+
+/* ============================================
+   ANT DESIGN - ALERT DARK MODE
+   ============================================ */
+.ant-alert {
+  background-color: var(--color-bg-tertiary) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.ant-alert-message {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-alert-description {
+  color: var(--color-text-secondary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - TABS DARK MODE
+   ============================================ */
+.ant-tabs-nav {
+  background: transparent !important;
+}
+
+.ant-tabs-tab {
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-tabs-tab:hover {
+  color: var(--color-primary) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--color-primary) !important;
+  font-weight: 600 !important;
+}
+
+.ant-tabs-ink-bar {
+  background: var(--gradient-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - TOOLTIP DARK MODE
+   ============================================ */
+.ant-tooltip-inner {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.ant-tooltip-arrow-content {
+  background: var(--color-bg-elevated) !important;
+}
+
+/* ============================================
+   ANT DESIGN - PICKER (DATE) DARK MODE
+   ============================================ */
+.ant-picker-panel-container {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.ant-picker-header {
+  color: var(--color-text-primary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-picker-header button {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-picker-body {
+  background: transparent !important;
+}
+
+.ant-picker-cell {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-picker-cell:hover .ant-picker-cell-inner {
+  background: var(--color-bg-hover) !important;
+}
+
+.ant-picker-cell-selected .ant-picker-cell-inner {
+  background: var(--gradient-primary) !important;
+}
+
+.ant-picker-cell-today .ant-picker-cell-inner {
+  border-color: var(--color-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - TAG ENHANCEMENTS
+   ============================================ */
+.ant-tag {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  padding: 2px 10px !important;
+}
+
+/* ============================================
+   ANT DESIGN - STATISTIC DARK MODE
+   ============================================ */
+.ant-statistic-title {
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-statistic-content {
+  color: var(--color-text-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - TIMELINE DARK MODE
+   ============================================ */
+.ant-timeline-item-head {
+  background-color: var(--color-bg-secondary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.ant-timeline-item-content {
+  color: var(--color-text-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - BADGE & AVATAR
+   ============================================ */
+.ant-avatar {
+  background: var(--gradient-primary) !important;
+  color: #ffffff !important;
+}
+
+.ant-badge-count {
+  background: var(--gradient-error) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* ============================================
+   ANT DESIGN - SPIN (LOADING)
+   ============================================ */
+.ant-spin-dot-item {
+  background-color: var(--color-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - PROGRESS
+   ============================================ */
+.ant-progress-bg {
+  background: var(--gradient-primary) !important;
+}
+
+/* ============================================
+   ANT DESIGN - BREADCRUMB
+   ============================================ */
+.ant-breadcrumb a {
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-breadcrumb a:hover {
+  color: var(--color-primary) !important;
+}
+
+.ant-breadcrumb-separator {
+  color: var(--color-text-tertiary) !important;
+}
+
+/* ============================================
+   ICONOS - SIEMPRE VISIBLES
+   ============================================ */
+.anticon {
+  color: currentColor !important;
+  transition: color 0.3s ease !important;
+}
+
+/* Iconos de estado con colores específicos */
+.ant-btn .anticon {
+  color: inherit !important;
+}
+
+.icon-success,
+.ant-result-success .anticon {
+  color: #52c41a !important;
+}
+
+.icon-warning,
+.ant-result-warning .anticon {
+  color: #faad14 !important;
+}
+
+.icon-error,
+.ant-result-error .anticon {
+  color: #ff4d4f !important;
+}
+
+.icon-info,
+.ant-result-info .anticon {
+  color: #1890ff !important;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO MEJORADO
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* ============================================
+   ANIMACIONES SUAVES GLOBALES
+   ============================================ */
+* {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+/* Excepciones (elementos que no deben tener transición general) */
+*:has(.ant-spin),
+.ant-spin *,
+*:has(.ant-progress),
+.ant-progress * {
+  transition: none !important;
+}
+
+/* ============================================
+   CLASE GLASS CARD REUTILIZABLE
+   ============================================ */
+.glass-card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+/* ============================================
+   TYPOGRAPHY ENHANCEMENTS
+   ============================================ */
+.ant-typography {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-typography-secondary {
+  color: var(--color-text-secondary) !important;
+}
+
+h1.ant-typography,
+h2.ant-typography,
+h3.ant-typography,
+h4.ant-typography,
+h5.ant-typography,
+h6.ant-typography {
+  color: var(--color-text-primary) !important;
+}
+
+/* ============================================
+   LAYOUT COMPONENTS
+   ============================================ */
+.ant-layout {
+  background: var(--color-bg-primary) !important;
+}
+
+.ant-layout-header {
+  background: var(--color-bg-secondary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-layout-sider {
+  background: var(--color-bg-secondary) !important;
+  border-right: 1px solid var(--color-border) !important;
+}
+
+.ant-layout-content {
+  background: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-layout-footer {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border-top: 1px solid var(--color-border) !important;
+}
+
+/* ============================================
+   MENU DARK MODE
+   ============================================ */
+.ant-menu {
+  background: transparent !important;
+  color: var(--color-text-primary) !important;
+}
+
+.ant-menu-item {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-menu-item:hover {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-primary) !important;
+}
+
+.ant-menu-item-selected {
+  background: var(--color-bg-active) !important;
+  color: var(--color-primary) !important;
+}
+
+.ant-menu-submenu-title {
+  color: var(--color-text-primary) !important;
+}
+
+.ant-menu-submenu-title:hover {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-primary) !important;
+}
+
+/* ============================================
+   FIX ESPECÍFICOS PARA TEMA OSCURO
+   ============================================ */
+[data-theme='dark'],
+.dark {
+  /* Asegurar contraste en elementos interactivos */
+  .ant-checkbox-wrapper {
+    color: var(--color-text-primary) !important;
+  }
+
+  .ant-checkbox-inner {
+    background-color: var(--color-bg-tertiary) !important;
+    border-color: var(--color-border) !important;
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+  }
+
+  .ant-radio-wrapper {
+    color: var(--color-text-primary) !important;
+  }
+
+  .ant-radio-inner {
+    background-color: var(--color-bg-tertiary) !important;
+    border-color: var(--color-border) !important;
+  }
+
+  .ant-radio-checked .ant-radio-inner {
+    border-color: var(--color-primary) !important;
+  }
+
+  .ant-switch {
+    background-color: var(--color-bg-tertiary) !important;
+  }
+
+  .ant-switch-checked {
+    background: var(--gradient-primary) !important;
+  }
+
+  /* Dividers */
+  .ant-divider {
+    border-color: var(--color-border) !important;
+  }
+
+  /* Empty state */
+  .ant-empty-description {
+    color: var(--color-text-secondary) !important;
+  }
+
+  /* Collapse */
+  .ant-collapse {
+    background: var(--color-bg-secondary) !important;
+    border-color: var(--color-border) !important;
+  }
+
+  .ant-collapse-header {
+    color: var(--color-text-primary) !important;
+  }
+
+  .ant-collapse-content {
+    background: var(--color-bg-tertiary) !important;
+    border-color: var(--color-border) !important;
+  }
+}

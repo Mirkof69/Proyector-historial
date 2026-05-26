@@ -1,0 +1,167 @@
+/* ==================================================================================
+ * VACUNAS - ESTILOS Y ANIMACIONES
+ * ================================================================================== */
+
+.vacunas-page {
+  padding: 24px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vacunas-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  animation: slideInDown 0.6s ease;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vacunas-page .page-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.vacunas-page .page-header p {
+  margin: 4px 0 0 0;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.vacunas-page .stats-row {
+  margin-bottom: 24px;
+}
+
+.vacunas-page .stats-row .ant-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.vacunas-page .stats-row .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.vacunas-page .filters-card {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  animation: slideInUp 0.7s ease;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vacunas-page .table-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.8s ease;
+}
+
+.vacunas-page .table-card .ant-table-thead>tr>th {
+  background-color: var(--bg-tertiary, #f0f5ff);
+  font-weight: 600;
+  color: var(--color-primary, #1890ff);
+}
+
+.vacunas-page .table-card .ant-table-tbody>tr:hover {
+  background-color: var(--bg-hover, #f0f5ff);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Animaciones para los botones */
+.vacunas-page button {
+  transition: all 0.3s ease;
+}
+
+.vacunas-page button:hover {
+  transform: scale(1.05);
+}
+
+/* Badge Ribbons animados */
+.vacunas-page .ant-badge-ribbon {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Drawer */
+.vacunas-page .ant-drawer-content {
+  background: var(--bg-card, #ffffff);
+}
+
+/* Progress bars */
+.vacunas-page .ant-progress-line {
+  transition: all 0.3s ease;
+}
+
+/* Tags animados */
+.vacunas-page .ant-tag {
+  transition: all 0.2s ease;
+}
+
+.vacunas-page .ant-tag:hover {
+  transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .vacunas-page {
+    padding: 16px;
+  }
+
+  .vacunas-page .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .vacunas-page .page-header h1 {
+    font-size: 24px;
+  }
+}

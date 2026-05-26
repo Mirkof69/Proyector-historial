@@ -1,0 +1,50 @@
+﻿/* =============================================================================
+   CALENDARIO-CITAS.CSS
+   ============================================================================= */
+
+.calendario-citas-container {
+  padding: 30px;
+  background-color: #f4f7fe;
+  min-height: 100vh;
+}
+
+.calendario-header {
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  padding: 20px 30px;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(112, 144, 176, 0.08);
+}
+
+.calendario-card {
+  border-radius: 16px;
+  box-shadow: 0 20px 27px 0 rgba(112, 144, 176, 0.05);
+  border: none;
+  background: var(--color-cardBg, #ffffff);
+}
+
+.ant-picker-calendar {
+  border-radius: 12px;
+}
+
+.cita-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 2px 0;
+}
+
+.cita-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+}

@@ -1,0 +1,189 @@
+﻿/* =============================================================================
+   CHARTS - ESTILOS COMPLETOS
+   =============================================================================
+   Estilos para componente de gráficas médicas
+============================================================================= */
+
+/* ========== CONTAINER PRINCIPAL ========== */
+.medical-chart {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.medical-chart:hover {
+    box-shadow: var(--shadow-card-hover);
+}
+
+/* ========== HEADER ========== */
+.medical-chart__header {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.medical-chart__title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.medical-chart__subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ========== BODY ========== */
+.medical-chart__body {
+    position: relative;
+}
+
+/* ========== LOADING STATE ========== */
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+}
+
+.chart-loading .ant-spin {
+    color: var(--color-primary);
+}
+
+/* ========== EMPTY STATE ========== */
+.chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+}
+
+.chart-empty .ant-empty-description {
+    color: var(--text-tertiary);
+}
+
+/* ========== TOOLTIP PERSONALIZADO ========== */
+.chart-tooltip {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    box-shadow: var(--shadow-md);
+}
+
+.chart-tooltip__label {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chart-tooltip__item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 2px 0;
+}
+
+.chart-tooltip__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.chart-tooltip__name {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.chart-tooltip__value {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-left: auto;
+}
+
+/* ========== RECHARTS OVERRIDES ========== */
+.recharts-wrapper {
+    font-family: var(--font-family);
+}
+
+.recharts-cartesian-axis-tick-value {
+    fill: var(--text-secondary);
+    font-size: 12px;
+}
+
+.recharts-legend-wrapper {
+    padding-top: var(--spacing-md);
+}
+
+.recharts-legend-item-text {
+    color: var(--text-primary) !important;
+    font-size: var(--font-size-sm);
+}
+
+.recharts-surface {
+    overflow: visible;
+}
+
+/* Grid lines */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+    stroke: var(--chart-grid);
+    stroke-dasharray: 3 3;
+}
+
+/* Radar grid */
+.recharts-polar-grid-angle line,
+.recharts-polar-grid-concentric-polygon {
+    stroke: var(--chart-grid);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .medical-chart {
+        padding: var(--spacing-md);
+    }
+
+    .medical-chart__title {
+        font-size: var(--font-size-lg);
+    }
+
+    .recharts-legend-item {
+        margin-right: var(--spacing-xs) !important;
+    }
+
+    .recharts-legend-item-text {
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .medical-chart__header {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .chart-tooltip {
+        font-size: 12px;
+    }
+}
+
+/* ========== MODO IMPRESIÓN ========== */
+@media print {
+    .medical-chart {
+        break-inside: avoid;
+        box-shadow: none !important;
+    }
+
+    .rechart-tooltip {
+        display: none !important;
+    }
+}

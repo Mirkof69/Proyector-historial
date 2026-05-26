@@ -1,0 +1,33 @@
+[
+  {
+    "model": "ia_medica.modelocnnconfig",
+    "pk": 1,
+    "fields": {
+      "nombre": "Modelo Perinatal EfficientNetB4 v1",
+      "codigo": "perinatal_efficientnet_v1",
+      "descripcion": "Modelo CNN EfficientNetB4 entrenado para análisis de ecografías perinatales.",
+      "arquitectura": "EfficientNetB4",
+      "estado": "activo",
+      "version": "1.0.0",
+      "accuracy": 0.871,
+      "sensitivity": 0.879,
+      "specificity": 0.865,
+      "auc_roc": 0.923,
+      "f1_score": 0.871,
+      "dataset_entrenamiento": "Dataset clínico perinatal base v1",
+      "total_imagenes_entrenamiento": 5400,
+      "epocas_entrenamiento": 50,
+      "fecha_entrenamiento": "2026-05-01",
+      "ruta_pesos": "models/perinatal_v1/weights.h5",
+      "clases_detectables": ["normal", "riesgo_bajo", "riesgo_medio", "riesgo_alto"],
+      "parametros_config": {
+        "input_shape": [224, 224, 3],
+        "umbral_confianza": 0.70,
+        "umbral_riesgo_preeclampsia": 0.65,
+        "umbral_riesgo_parto_prematuro": 0.60
+      },
+      "fecha_creacion": "2026-05-03T00:00:00Z",
+      "fecha_actualizacion": "2026-05-03T00:00:00Z"
+    }
+  }
+]

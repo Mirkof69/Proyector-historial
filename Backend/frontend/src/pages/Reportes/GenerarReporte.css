@@ -1,0 +1,56 @@
+.generar-reporte-container {
+  padding: 30px;
+  background-color: #f4f7fe;
+  min-height: 100vh;
+}
+
+.reporte-header {
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  padding: 20px 30px;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(112, 144, 176, 0.08);
+}
+
+.reporte-form-card {
+  border-radius: 16px;
+  box-shadow: 0 20px 27px 0 rgba(112, 144, 176, 0.05);
+  border: none;
+  background: var(--color-cardBg, #ffffff);
+}
+
+.reporte-preview-card {
+  border-radius: 16px;
+  box-shadow: 0 20px 27px 0 rgba(112, 144, 176, 0.05);
+  border: none;
+  background: var(--color-cardBg, #ffffff);
+  min-height: 400px;
+}
+
+.reporte-tipo-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.reporte-tipo-card {
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reporte-tipo-card:hover {
+  border-color: #1890ff;
+  background: #e6f7ff;
+  transform: translateY(-4px);
+}
+
+.reporte-tipo-card.active {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}

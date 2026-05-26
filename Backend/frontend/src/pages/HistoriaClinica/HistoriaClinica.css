@@ -1,0 +1,695 @@
+/* =============================================================================
+   HISTORIA CLÍNICA - ESTILOS COMPLETOS
+   =============================================================================
+   Estilos específicos para el módulo de Historia Clínica
+   Incluye dashboard, cards, gráficas, tabs y responsive
+============================================================================= */
+
+/* ========== CONTAINER PRINCIPAL ========== */
+.historia-clinica-container {
+    background-color: var(--bg-primary);
+    min-height: 100vh;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.historia-clinica-content {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+}
+
+/* ========== HEADER DEL PACIENTE ========== */
+.header-paciente {
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-base) var(--transition-ease);
+    animation: slideInLeft var(--transition-base) var(--transition-ease);
+}
+
+.header-paciente:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+}
+
+.header-paciente__avatar {
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--color-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.header-paciente__nombre {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    line-height: var(--line-height-tight);
+}
+
+.header-paciente__info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-top: var(--spacing-sm);
+}
+
+.header-paciente__info-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.header-paciente__tag-estado {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+}
+
+.header-paciente__alergias {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm);
+    background-color: rgba(255, 77, 79, 0.1);
+    border-left: 3px solid var(--color-error);
+    border-radius: var(--border-radius-sm);
+}
+
+.header-paciente__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+/* ========== CARD SHADOW GLOBAL ========== */
+.card-shadow {
+    box-shadow: var(--shadow-card);
+    border-radius: var(--border-radius-lg);
+    transition: all var(--transition-base) var(--transition-ease);
+    border: 1px solid var(--border-color);
+}
+
+.card-shadow:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-4px);
+}
+
+/* ========== DASHBOARD TAB ========== */
+.dashboard-tab {
+    animation: fadeIn var(--transition-base) var(--transition-ease);
+}
+
+.dashboard-tab .ant-alert {
+    border-radius: var(--border-radius-md);
+    border-left-width: 4px;
+    border-left-style: solid;
+    animation: slideInLeft 0.3s var(--transition-ease);
+}
+
+.dashboard-tab .ant-alert-error {
+    border-left-color: var(--color-critical);
+    background: linear-gradient(90deg, rgba(245, 34, 45, 0.1) 0%, var(--bg-elevated) 100%);
+}
+
+.dashboard-tab .ant-alert-warning {
+    border-left-color: var(--color-warning);
+    background: linear-gradient(90deg, rgba(250, 173, 20, 0.1) 0%, var(--bg-elevated) 100%);
+}
+
+/* ========== CARD EMBARAZO ACTUAL ========== */
+.card-embarazo {
+    text-align: center;
+}
+
+.card-embarazo__progress {
+    margin: var(--spacing-lg) 0;
+}
+
+.card-embarazo__details {
+    margin-top: var(--spacing-lg);
+    text-align: left;
+}
+
+.card-embarazo .ant-progress-circle {
+    transition: all var(--transition-slow) var(--transition-spring);
+}
+
+.card-embarazo:hover .ant-progress-circle {
+    transform: scale(1.05);
+}
+
+/* ========== GRÁFICAS ========== */
+.grafica-container {
+    padding: var(--spacing-md);
+    background-color: var(--bg-elevated);
+    border-radius: var(--border-radius-lg);
+}
+
+.grafica-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.grafica-title__icon {
+    color: var(--color-primary);
+}
+
+.recharts-wrapper {
+    margin: 0 auto;
+}
+
+/* Tooltip personalizado */
+.recharts-default-tooltip {
+    background-color: var(--bg-elevated) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius-md) !important;
+    box-shadow: var(--shadow-lg) !important;
+    padding: var(--spacing-sm) !important;
+}
+
+.recharts-tooltip-label {
+    color: var(--text-primary) !important;
+    font-weight: var(--font-weight-semibold) !important;
+    margin-bottom: var(--spacing-xs) !important;
+}
+
+.recharts-tooltip-item {
+    color: var(--text-secondary) !important;
+    font-size: var(--font-size-sm) !important;
+}
+
+/* ========== SIGNOS VITALES CARD ========== */
+.signos-vitales-card {
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+}
+
+.signos-vitales-card .ant-statistic {
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.signos-vitales-card .ant-statistic:hover {
+    background-color: var(--bg-hover);
+    transform: translateY(-2px);
+}
+
+.signos-vitales-card .ant-statistic-title {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: var(--font-weight-semibold);
+}
+
+.signos-vitales-card .ant-statistic-content {
+    color: var(--text-primary);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+}
+
+/* ========== TABS PRINCIPAL ========== */
+.main-tabs-card {
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-color);
+}
+
+.main-tabs-card .ant-tabs-nav {
+    background-color: var(--bg-secondary);
+    margin-bottom: 0;
+    padding: 0 var(--spacing-lg);
+}
+
+.main-tabs-card .ant-tabs-tab {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.main-tabs-card .ant-tabs-tab:hover {
+    color: var(--color-primary);
+}
+
+.main-tabs-card .ant-tabs-tab-active {
+    background-color: var(--bg-elevated);
+}
+
+.main-tabs-card .ant-tabs-ink-bar {
+    height: 3px;
+    background: var(--color-primary-gradient);
+}
+
+.main-tabs-card .ant-tabs-content {
+    min-height: 400px;
+}
+
+/* ========== TAB CONTROLES ========== */
+.tab-controles__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.tab-controles__table {
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+}
+
+.tab-controles__table .ant-table-thead>tr>th {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.5px;
+}
+
+.tab-controles__table .ant-table-tbody>tr {
+    transition: all var(--transition-fast) var(--transition-ease);
+}
+
+.tab-controles__table .ant-table-tbody>tr:hover {
+    background-color: var(--bg-hover);
+    transform: translateX(4px);
+    box-shadow: -3px 0 0 var(--color-primary);
+}
+
+.tab-controles__expandable {
+    background-color: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-left: 3px solid var(--color-primary);
+}
+
+/* ========== TAB ECOGRAFÍAS ========== */
+.ecografias-gallery {
+    padding: var(--spacing-md);
+}
+
+.ecografia-card {
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-base) var(--transition-ease);
+    border: 1px solid var(--border-color);
+}
+
+.ecografia-card:hover {
+    transform: translateY(-8px) rotate(1deg);
+    box-shadow: var(--shadow-xl);
+}
+
+.ecografia-card__cover {
+    height: 150px;
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 40px;
+}
+
+.ecografia-card__meta {
+    padding: var(--spacing-md);
+}
+
+.ecografia-card__info {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: var(--line-height-relaxed);
+}
+
+.ecografia-card__info p {
+    margin-bottom: var(--spacing-xs);
+}
+
+.ecografia-add-button {
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius-lg);
+    transition: all var(--transition-base) var(--transition-ease);
+    cursor: pointer;
+    background-color: var(--bg-secondary);
+}
+
+.ecografia-add-button:hover {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    transform: scale(1.02);
+}
+
+/* ========== TAB LABORATORIO ========== */
+.lab-table {
+    border-radius: var(--border-radius-md);
+}
+
+.lab-table .ant-table-row-anormal {
+    background-color: rgba(255, 77, 79, 0.05);
+}
+
+.lab-badge-anormal {
+    animation: pulse 2s infinite;
+}
+
+.lab-resultado-normal {
+    color: var(--color-success);
+    font-weight: var(--font-weight-semibold);
+}
+
+.lab-resultado-anormal {
+    color: var(--color-error);
+    font-weight: var(--font-weight-bold);
+    animation: subtle-pulse 1.5s infinite;
+}
+
+@keyframes subtle-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* ========== TAB NOTAS EVOLUCIÓN ========== */
+.notas-timeline {
+    padding: var(--spacing-lg);
+}
+
+.notas-timeline .ant-timeline-item {
+    padding-bottom: var(--spacing-xl);
+}
+
+.nota-card {
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base) var(--transition-ease);
+    border: 1px solid var(--border-color);
+}
+
+.nota-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.nota-card__header {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nota-card__soap {
+    padding: 0;
+}
+
+.nota-card__soap .ant-descriptions-item-label {
+    background-color: var(--bg-secondary);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.nota-card__soap .ant-descriptions-item-content {
+    color: var(--text-secondary);
+    line-height: var(--line-height-relaxed);
+}
+
+.nota-redactar-button {
+    border-radius: var(--border-radius-lg);
+    height: auto;
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* ========== VACUNAS Y TRATAMIENTOS ========== */
+.vacunas-card,
+.tratamientos-card {
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+}
+
+.vacuna-item {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color-light);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.vacuna-item:last-child {
+    border-bottom: none;
+}
+
+.vacuna-item:hover {
+    background-color: var(--bg-hover);
+    padding-left: var(--spacing-sm);
+}
+
+.tratamiento-item {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color-light);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.tratamiento-item:last-child {
+    border-bottom: none;
+}
+
+.tratamiento-item:hover {
+    background-color: var(--bg-hover);
+    padding-left: var(--spacing-sm);
+}
+
+.tratamiento-activo {
+    border-left: 3px solid var(--color-success);
+}
+
+.tratamiento-suspendido {
+    opacity: 0.6;
+    border-left: 3px solid var(--color-error);
+}
+
+/* ========== MODALES Y DRAWERS ========== */
+.drawer-notas {
+    background-color: var(--bg-elevated);
+}
+
+.drawer-notas__section-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.drawer-notas__form-item {
+    margin-bottom: var(--spacing-lg);
+}
+
+.modal-receta {
+    border-radius: var(--border-radius-lg);
+}
+
+.modal-riesgo {
+    border-radius: var(--border-radius-lg);
+}
+
+/* ========== BREADCRUMB ========== */
+.historia-breadcrumb {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-sm) 0;
+}
+
+.historia-breadcrumb .ant-breadcrumb-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--text-secondary);
+    transition: color var(--transition-fast) var(--transition-ease);
+}
+
+.historia-breadcrumb .ant-breadcrumb-link:hover {
+    color: var(--color-primary);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1200px) {
+    .historia-clinica-container {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+
+    .header-paciente__avatar {
+        width: 64px;
+        height: 64px;
+    }
+
+    .header-paciente__nombre {
+        font-size: var(--font-size-xl);
+    }
+}
+
+@media (max-width: 768px) {
+    .historia-clinica-container {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .header-paciente {
+        padding: var(--spacing-md);
+    }
+
+    .header-paciente__info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .header-paciente__actions {
+        width: 100%;
+    }
+
+    .tab-controles__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .signos-vitales-card .ant-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .ecografias-gallery .ant-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .main-tabs-card .ant-tabs-tab {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .header-paciente__avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .header-paciente__nombre {
+        font-size: var(--font-size-lg);
+    }
+
+    .signos-vitales-card .ant-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* ========== MODO IMPRESIÓN ========== */
+@media print {
+
+    .header-paciente__actions,
+    .tab-controles__header .ant-space,
+    .ecografia-add-button,
+    .nota-redactar-button {
+        display: none !important;
+    }
+
+    .historia-clinica-container {
+        padding: 0;
+    }
+
+    .card-shadow,
+    .main-tabs-card {
+        box-shadow: none !important;
+        border: 1px solid #000;
+    }
+
+    .ant-tabs-content {
+        page-break-inside: avoid;
+    }
+}
+
+/* ========== ANIMACIONES ADICIONALES ========== */
+@keyframes card-entrance {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-shadow {
+    animation: card-entrance 0.4s var(--transition-ease) backwards;
+}
+
+.card-shadow:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.card-shadow:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.card-shadow:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.card-shadow:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+/* ========== ACCESIBILIDAD ========== */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Alto contraste para formularios */
+@media (prefers-contrast: high) {
+
+    .ant-input,
+    .ant-select-selector {
+        border-width: 2px;
+    }
+
+    .ant-btn-primary {
+        border-width: 2px;
+    }
+}

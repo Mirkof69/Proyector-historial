@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Django
+*.log
+logs/
+staticfiles/
+media/
+db.sqlite3
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.production
+!.env.example
+!.env.docker.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node.js (frontend)
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.next/
+frontend/.expo/
+frontend/package-lock.json
+
+# AI Microservice
+Microservicio_IA/trained_models/*.h5
+Microservicio_IA/trained_models/*.keras
+Microservicio_IA/temp/
+Microservicio_IA/datasets/
+Microservicio_IA/datasets_pathology/
+Microservicio_IA/logs/
+
+# Docker
+*.pid
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Generated documentation
+docs/*.pdf
+
+# Temporary files
+*.tmp
+*.bak
+*.cache

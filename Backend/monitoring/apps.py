@@ -1,0 +1,9 @@
+"""Apps module."""
+from django.apps import AppConfig
+
+
+class MonitoringConfig(AppConfig):
+    """Monitoringconfig"""
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "monitoring"
+    verbose_name = "Monitoring & Health Checks"

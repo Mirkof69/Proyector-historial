@@ -1,0 +1,1 @@
+import React from 'react'; import { Card } from 'antd'; const FormularioAntecedenteGineco: React.FC = () => <Card><h1>FormularioAntecedenteGineco</h1></Card>; export default FormularioAntecedenteGineco;

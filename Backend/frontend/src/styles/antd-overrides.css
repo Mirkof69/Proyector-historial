@@ -1,0 +1,1605 @@
+/**
+ * =============================================================================
+ * ANT DESIGN OVERRIDES - SISTEMA COMPLETO
+ * =============================================================================
+ * Overrides CSS para todos los componentes de Ant Design
+ * Soporte perfecto de modo claro y oscuro
+ * Sin fondos blancos, sin textos invisibles, sin problemas de contraste
+ * =============================================================================
+ */
+
+/* ============================================================================
+   PREVENCIÓN DE FLASH BLANCO AL CAMBIAR TEMA
+   ============================================================================ */
+
+html,
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Prevenir flash blanco en elementos específicos */
+.ant-layout,
+.ant-layout-content,
+.ant-layout-header,
+.ant-layout-footer,
+.ant-layout-sider {
+  transition: background-color 0.2s ease !important;
+}
+
+/* ============================================================================
+   LAYOUT COMPLETO
+   ============================================================================ */
+
+/* Layout principal */
+.ant-layout {
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+}
+
+/* Header */
+.ant-layout-header {
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0 24px;
+  height: 64px;
+  line-height: 64px;
+}
+
+/* Sider (barra lateral) */
+.ant-layout-sider {
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+}
+
+.ant-layout-sider-trigger {
+  background-color: var(--bg-sidebar);
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-color);
+}
+
+.ant-layout-sider-zero-width-trigger {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+/* Content */
+.ant-layout-content {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Footer */
+.ant-layout-footer {
+  background-color: var(--bg-header);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   MENÚ (MENU)
+   ============================================================================ */
+
+/* Menú principal */
+.ant-menu {
+  background-color: transparent;
+  border-right: none;
+  color: var(--text-secondary);
+}
+
+.ant-menu-item,
+.ant-menu-submenu-title {
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.ant-menu-item:hover,
+.ant-menu-submenu-title:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.ant-menu-item-selected {
+  background-color: var(--bg-active);
+  color: var(--color-primary);
+}
+
+.ant-menu-item-selected::after {
+  border-right-color: var(--color-primary);
+}
+
+.ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: var(--color-primary);
+}
+
+/* Submenú */
+.ant-menu-submenu > .ant-menu {
+  background-color: var(--bg-secondary);
+}
+
+/* Iconos del menú */
+.ant-menu-item .anticon,
+.ant-menu-submenu-title .anticon {
+  color: inherit;
+}
+
+/* ============================================================================
+   TABLA (TABLE)
+   ============================================================================ */
+
+/* Contenedor de tabla */
+.ant-table-wrapper {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Tabla principal */
+.ant-table {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* Header de tabla */
+.ant-table-thead > tr > th {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ant-table-thead > tr > th::before {
+  background-color: var(--border-color);
+}
+
+/* Cuerpo de tabla */
+.ant-table-tbody > tr > td {
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Hover de fila */
+.ant-table-tbody > tr:hover > td {
+  background-color: var(--bg-hover);
+}
+
+/* Fila seleccionada */
+.ant-table-tbody > tr.ant-table-row-selected > td {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.dark .ant-table-tbody > tr.ant-table-row-selected > td {
+  background-color: rgba(59, 130, 246, 0.12);
+}
+
+/* Footer de tabla */
+.ant-table-footer {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+/* Paginación en tabla */
+.ant-table-pagination.ant-pagination {
+  margin: 16px 0;
+}
+
+/* Vacío */
+.ant-table-placeholder {
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+}
+
+.ant-table-placeholder .ant-empty-description {
+  color: var(--text-tertiary);
+}
+
+/* ============================================================================
+   CARD (TARJETAS)
+   ============================================================================ */
+
+.ant-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+}
+
+.ant-card-head {
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-card-head-title {
+  color: var(--text-primary);
+}
+
+.ant-card-extra {
+  color: var(--text-secondary);
+}
+
+.ant-card-body {
+  color: var(--text-secondary);
+}
+
+.ant-card-actions {
+  background-color: transparent;
+  border-top: 1px solid var(--border-color);
+}
+
+.ant-card-actions > li {
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-color);
+}
+
+.ant-card-actions > li:hover {
+  color: var(--color-primary);
+}
+
+/* Card con grid */
+.ant-card-grid {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+}
+
+.ant-card-grid:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================================================
+   INPUTS Y FORMULARIOS
+   ============================================================================ */
+
+/* Input */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-picker {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-input::placeholder,
+.ant-input-affix-wrapper input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-input-number:hover,
+.ant-picker:hover {
+  border-color: var(--border-color-dark);
+}
+
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused,
+.ant-input-number:focus,
+.ant-input-number-focused,
+.ant-picker:focus,
+.ant-picker-focused {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-input:focus,
+.dark .ant-input-focused,
+.dark .ant-input-affix-wrapper:focus,
+.dark .ant-input-affix-wrapper-focused,
+.dark .ant-input-number:focus,
+.dark .ant-input-number-focused,
+.dark .ant-picker:focus,
+.dark .ant-picker-focused {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.ant-input-disabled,
+.ant-input-affix-wrapper-disabled {
+  background-color: var(--bg-secondary);
+  color: var(--text-disabled);
+}
+
+/* TextArea */
+.ant-input-textarea-show-count::after {
+  color: var(--text-tertiary);
+}
+
+/* Input Group */
+.ant-input-group-addon {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* Input affix (iconos dentro del input) */
+.ant-input-affix-wrapper .anticon {
+  color: var(--text-tertiary);
+}
+
+/* Label de formulario */
+.ant-form-item-label > label {
+  color: var(--text-primary);
+}
+
+.ant-form-item-label > label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+  color: var(--color-danger);
+}
+
+/* Mensaje de error */
+.ant-form-item-explain-error {
+  color: var(--color-danger);
+}
+
+/* Mensaje de éxito */
+.ant-form-item-explain-success {
+  color: var(--color-success);
+}
+
+/* ============================================================================
+   SELECT
+   ============================================================================ */
+
+.ant-select {
+  color: var(--text-primary);
+}
+
+.ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: var(--border-color-dark);
+}
+
+.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.ant-select-selector {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-select-arrow {
+  color: var(--text-tertiary);
+}
+
+.ant-select-clear {
+  background-color: var(--bg-input);
+  color: var(--text-tertiary);
+}
+
+/* Dropdown de select */
+.ant-select-dropdown {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.ant-select-item {
+  color: var(--text-primary);
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: var(--bg-hover);
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--color-primary);
+}
+
+.dark .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* Multiple select */
+.ant-select-multiple .ant-select-selection-item {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   BUTTON
+   ============================================================================ */
+
+/* Botón por defecto */
+.ant-btn-default {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-btn-default:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-color-dark);
+  color: var(--color-primary);
+}
+
+/* Botón ghost */
+.ant-btn-background-ghost.ant-btn-default {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.ant-btn-background-ghost.ant-btn-default:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Botón text */
+.ant-btn-text {
+  color: var(--text-primary);
+}
+
+.ant-btn-text:hover {
+  background-color: var(--bg-hover);
+}
+
+/* Botón link */
+.ant-btn-link {
+  color: var(--text-link);
+}
+
+.ant-btn-link:hover {
+  color: var(--text-link-hover);
+}
+
+/* Botón deshabilitado */
+.ant-btn-default[disabled],
+.ant-btn-default[disabled]:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-disabled);
+}
+
+/* ============================================================================
+   MODAL
+   ============================================================================ */
+
+.ant-modal-mask {
+  background-color: var(--bg-overlay);
+}
+
+.ant-modal-content {
+  background-color: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-2xl);
+}
+
+.ant-modal-header {
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-modal-title {
+  color: var(--text-primary);
+}
+
+.ant-modal-body {
+  color: var(--text-secondary);
+}
+
+.ant-modal-footer {
+  background-color: transparent;
+  border-top: 1px solid var(--border-color);
+}
+
+.ant-modal-close {
+  color: var(--text-secondary);
+}
+
+.ant-modal-close:hover {
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   DRAWER
+   ============================================================================ */
+
+.ant-drawer-mask {
+  background-color: var(--bg-overlay);
+}
+
+.ant-drawer-content-wrapper {
+  box-shadow: var(--shadow-2xl);
+}
+
+.ant-drawer-content {
+  background-color: var(--bg-modal);
+  color: var(--text-primary);
+}
+
+.ant-drawer-header {
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-drawer-title {
+  color: var(--text-primary);
+}
+
+.ant-drawer-body {
+  background-color: transparent;
+}
+
+.ant-drawer-footer {
+  background-color: transparent;
+  border-top: 1px solid var(--border-color);
+}
+
+.ant-drawer-close {
+  color: var(--text-secondary);
+}
+
+.ant-drawer-close:hover {
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   DROPDOWN & POPOVER
+   ============================================================================ */
+
+.ant-dropdown-menu {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.ant-dropdown-menu-item,
+.ant-dropdown-menu-submenu-title {
+  color: var(--text-primary);
+}
+
+.ant-dropdown-menu-item:hover,
+.ant-dropdown-menu-submenu-title:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-dropdown-menu-item-selected {
+  background-color: var(--bg-active);
+  color: var(--color-primary);
+}
+
+.ant-dropdown-menu-item-disabled {
+  color: var(--text-disabled);
+}
+
+/* Popover */
+.ant-popover {
+  color: var(--text-primary);
+}
+
+.ant-popover-inner {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.ant-popover-title {
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-popover-inner-content {
+  color: var(--text-secondary);
+}
+
+.ant-popover-arrow-content {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+/* ============================================================================
+   TOOLTIP
+   ============================================================================ */
+
+.ant-tooltip-inner {
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #ffffff;
+}
+
+.dark .ant-tooltip-inner {
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #000000;
+}
+
+.ant-tooltip-arrow-content {
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+.dark .ant-tooltip-arrow-content {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* ============================================================================
+   NOTIFICATION
+   ============================================================================ */
+
+.ant-notification-notice {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.ant-notification-notice-message {
+  color: var(--text-primary);
+}
+
+.ant-notification-notice-description {
+  color: var(--text-secondary);
+}
+
+.ant-notification-notice-close {
+  color: var(--text-tertiary);
+}
+
+.ant-notification-notice-close:hover {
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   MESSAGE
+   ============================================================================ */
+
+.ant-message-notice-content {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   PAGINATION
+   ============================================================================ */
+
+.ant-pagination-item {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.ant-pagination-item a {
+  color: var(--text-primary);
+}
+
+.ant-pagination-item:hover {
+  border-color: var(--color-primary);
+}
+
+.ant-pagination-item:hover a {
+  color: var(--color-primary);
+}
+
+.ant-pagination-item-active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.ant-pagination-item-active a {
+  color: #ffffff;
+}
+
+.ant-pagination-prev button,
+.ant-pagination-next button {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-pagination-prev:hover button,
+.ant-pagination-next:hover button {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.ant-pagination-disabled button {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-disabled);
+}
+
+/* Jump */
+.ant-pagination-options-quick-jumper {
+  color: var(--text-primary);
+}
+
+.ant-pagination-options-quick-jumper input {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   TABS
+   ============================================================================ */
+
+.ant-tabs {
+  color: var(--text-primary);
+}
+
+.ant-tabs-nav {
+  color: var(--text-secondary);
+}
+
+.ant-tabs-nav::before {
+  border-bottom-color: var(--border-color);
+}
+
+.ant-tabs-tab {
+  color: var(--text-secondary);
+}
+
+.ant-tabs-tab:hover {
+  color: var(--text-primary);
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--color-primary);
+}
+
+.ant-tabs-ink-bar {
+  background-color: var(--color-primary);
+}
+
+.ant-tabs-content-holder {
+  color: var(--text-primary);
+}
+
+/* Tabs tipo card */
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: var(--bg-card);
+  border-bottom-color: var(--bg-card);
+}
+
+/* ============================================================================
+   COLLAPSE (ACCORDION)
+   ============================================================================ */
+
+.ant-collapse {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+.ant-collapse-item {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ant-collapse-header {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.ant-collapse-header:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-collapse-content {
+  background-color: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.ant-collapse-content-box {
+  background-color: transparent;
+}
+
+/* ============================================================================
+   TAG
+   ============================================================================ */
+
+.ant-tag {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-tag-close-icon {
+  color: var(--text-tertiary);
+}
+
+.ant-tag-close-icon:hover {
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   BADGE
+   ============================================================================ */
+
+.ant-badge-status-dot {
+  border: 1px solid var(--bg-card);
+}
+
+.ant-badge-status-text {
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   ALERT
+   ============================================================================ */
+
+.ant-alert {
+  border-radius: var(--radius-md);
+}
+
+.ant-alert-success {
+  background-color: var(--color-success-light);
+  border-color: var(--color-success);
+}
+
+.ant-alert-info {
+  background-color: var(--color-info-light);
+  border-color: var(--color-info);
+}
+
+.ant-alert-warning {
+  background-color: var(--color-warning-light);
+  border-color: var(--color-warning);
+}
+
+.ant-alert-error {
+  background-color: var(--color-danger-light);
+  border-color: var(--color-danger);
+}
+
+.ant-alert-message {
+  color: var(--text-primary);
+}
+
+.ant-alert-description {
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   PROGRESS
+   ============================================================================ */
+
+.ant-progress-text {
+  color: var(--text-primary);
+}
+
+.ant-progress-bg {
+  background-color: var(--color-primary);
+}
+
+/* ============================================================================
+   STEPS
+   ============================================================================ */
+
+.ant-steps-item-title {
+  color: var(--text-primary);
+}
+
+.ant-steps-item-description {
+  color: var(--text-secondary);
+}
+
+.ant-steps-item-wait .ant-steps-item-icon {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.ant-steps-item-process .ant-steps-item-icon {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon {
+  background-color: var(--bg-card);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ============================================================================
+   TIMELINE
+   ============================================================================ */
+
+.ant-timeline-item-head {
+  background-color: var(--bg-card);
+  border-color: var(--color-primary);
+}
+
+.ant-timeline-item-tail {
+  border-left-color: var(--border-color);
+}
+
+.ant-timeline-item-content {
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   TREE
+   ============================================================================ */
+
+.ant-tree {
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+.ant-tree-node-content-wrapper {
+  color: var(--text-primary);
+}
+
+.ant-tree-node-content-wrapper:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-tree-node-selected {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-tree-node-selected {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================================================
+   EMPTY
+   ============================================================================ */
+
+.ant-empty-description {
+  color: var(--text-tertiary);
+}
+
+/* ============================================================================
+   AVATAR
+   ============================================================================ */
+
+.ant-avatar {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+/* ============================================================================
+   CALENDAR
+   ============================================================================ */
+
+.ant-picker-calendar {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+.ant-picker-calendar-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ant-picker-calendar-header .ant-picker-calendar-year-select,
+.ant-picker-calendar-header .ant-picker-calendar-month-select {
+  color: var(--text-primary);
+}
+
+.ant-picker-cell {
+  color: var(--text-primary);
+}
+
+.ant-picker-cell:hover:not(.ant-picker-cell-selected):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end):not(.ant-picker-cell-range-hover-start):not(.ant-picker-cell-range-hover-end) .ant-picker-cell-inner {
+  background-color: var(--bg-hover);
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+  border-color: var(--color-primary);
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+/* ============================================================================
+   DATE PICKER & TIME PICKER
+   ============================================================================ */
+
+.ant-picker-dropdown {
+  background-color: transparent;
+}
+
+.ant-picker-panel-container {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.ant-picker-panel {
+  background-color: transparent;
+  border: none;
+}
+
+.ant-picker-header {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ant-picker-header button {
+  color: var(--text-secondary);
+}
+
+.ant-picker-header button:hover {
+  color: var(--text-primary);
+}
+
+.ant-picker-content th {
+  color: var(--text-secondary);
+}
+
+.ant-picker-footer {
+  background-color: transparent;
+  border-top: 1px solid var(--border-color);
+}
+
+.ant-picker-time-panel {
+  border-left: 1px solid var(--border-color);
+}
+
+.ant-picker-time-panel-column {
+  color: var(--text-primary);
+}
+
+.ant-picker-time-panel-cell-inner {
+  color: var(--text-primary);
+}
+
+.ant-picker-time-panel-cell-inner:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================================================
+   RADIO & CHECKBOX
+   ============================================================================ */
+
+.ant-radio-wrapper,
+.ant-checkbox-wrapper {
+  color: var(--text-primary);
+}
+
+.ant-radio-inner,
+.ant-checkbox-inner {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+}
+
+.ant-radio:hover .ant-radio-inner,
+.ant-checkbox:hover .ant-checkbox-inner {
+  border-color: var(--color-primary);
+}
+
+.ant-radio-checked .ant-radio-inner {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.ant-radio-disabled .ant-radio-inner,
+.ant-checkbox-disabled .ant-checkbox-inner {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+/* Radio button */
+.ant-radio-button-wrapper {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-radio-button-wrapper:hover {
+  color: var(--color-primary);
+}
+
+.ant-radio-button-wrapper-checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+/* ============================================================================
+   SWITCH
+   ============================================================================ */
+
+.ant-switch {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.dark .ant-switch {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.ant-switch-checked {
+  background-color: var(--color-primary);
+}
+
+.ant-switch-loading,
+.ant-switch-disabled {
+  opacity: 0.4;
+}
+
+/* ============================================================================
+   SLIDER
+   ============================================================================ */
+
+.ant-slider-rail {
+  background-color: var(--bg-secondary);
+}
+
+.ant-slider-track {
+  background-color: var(--color-primary);
+}
+
+.ant-slider-handle {
+  background-color: #ffffff;
+  border: 2px solid var(--color-primary);
+}
+
+.ant-slider-handle:focus {
+  box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-slider-handle:focus {
+  box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.15);
+}
+
+.ant-slider-mark-text {
+  color: var(--text-secondary);
+}
+
+.ant-slider-mark-text-active {
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   UPLOAD
+   ============================================================================ */
+
+.ant-upload.ant-upload-drag {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.ant-upload.ant-upload-drag:hover {
+  border-color: var(--color-primary);
+}
+
+.ant-upload.ant-upload-drag p.ant-upload-drag-icon .anticon {
+  color: var(--color-primary);
+}
+
+.ant-upload.ant-upload-drag p.ant-upload-text {
+  color: var(--text-primary);
+}
+
+.ant-upload.ant-upload-drag p.ant-upload-hint {
+  color: var(--text-secondary);
+}
+
+.ant-upload-list-item {
+  border-color: var(--border-color);
+  background-color: var(--bg-card);
+}
+
+.ant-upload-list-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-upload-list-item-name {
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   TRANSFER
+   ============================================================================ */
+
+.ant-transfer {
+  color: var(--text-primary);
+}
+
+.ant-transfer-list {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.ant-transfer-list-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.ant-transfer-list-content-item {
+  color: var(--text-primary);
+}
+
+.ant-transfer-list-content-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-transfer-list-content-item-checked {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-transfer-list-content-item-checked {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================================================
+   CASCADER
+   ============================================================================ */
+
+.ant-cascader-menu {
+  background-color: var(--bg-elevated);
+  border-right: 1px solid var(--border-color);
+}
+
+.ant-cascader-menu-item {
+  color: var(--text-primary);
+}
+
+.ant-cascader-menu-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-cascader-menu-item-active {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-cascader-menu-item-active {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================================================
+   SEGMENTED
+   ============================================================================ */
+
+.ant-segmented {
+  background-color: var(--bg-secondary);
+}
+
+.ant-segmented-item {
+  color: var(--text-secondary);
+}
+
+.ant-segmented-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.ant-segmented-item-selected {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.ant-segmented-thumb {
+  background-color: var(--bg-card);
+}
+
+/* ============================================================================
+   SPIN (LOADING)
+   ============================================================================ */
+
+.ant-spin {
+  color: var(--color-primary);
+}
+
+.ant-spin-dot-item {
+  background-color: var(--color-primary);
+}
+
+.ant-spin-text {
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   RESULT
+   ============================================================================ */
+
+.ant-result-title {
+  color: var(--text-primary);
+}
+
+.ant-result-subtitle {
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   DESCRIPTIONS
+   ============================================================================ */
+
+.ant-descriptions-view {
+  border: 1px solid var(--border-color);
+}
+
+.ant-descriptions-header {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ant-descriptions-item-label {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-right: 1px solid var(--border-color);
+}
+
+.ant-descriptions-item-content {
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-color);
+}
+
+.ant-descriptions-row {
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+
+.ant-typography {
+  color: var(--text-primary);
+}
+
+.ant-typography-secondary {
+  color: var(--text-secondary);
+}
+
+.ant-typography-success {
+  color: var(--color-success);
+}
+
+.ant-typography-warning {
+  color: var(--color-warning);
+}
+
+.ant-typography-danger {
+  color: var(--color-danger);
+}
+
+.ant-typography-disabled {
+  color: var(--text-disabled);
+}
+
+/* ============================================================================
+   DIVIDER
+   ============================================================================ */
+
+.ant-divider {
+  border-top-color: var(--border-color);
+  border-left-color: var(--border-color);
+}
+
+.ant-divider-with-text {
+  color: var(--text-primary);
+}
+
+.ant-divider-inner-text {
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   ANCHOR
+   ============================================================================ */
+
+.ant-anchor {
+  color: var(--text-secondary);
+}
+
+.ant-anchor-link {
+  padding: var(--spacing-xs) 0;
+}
+
+.ant-anchor-link-title {
+  color: var(--text-secondary);
+}
+
+.ant-anchor-link-title:hover {
+  color: var(--color-primary);
+}
+
+.ant-anchor-link-active > .ant-anchor-link-title {
+  color: var(--color-primary);
+}
+
+.ant-anchor-ink::before {
+  background-color: var(--border-color);
+}
+
+.ant-anchor-ink-ball {
+  border-color: var(--color-primary);
+}
+
+/* ============================================================================
+   RATE (ESTRELLAS)
+   ============================================================================ */
+
+.ant-rate-star {
+  color: var(--border-color);
+}
+
+.ant-rate-star-half .ant-rate-star-first,
+.ant-rate-star-full .ant-rate-star-second {
+  color: #fadb14;
+}
+
+/* ============================================================================
+   MENTIONS
+   ============================================================================ */
+
+.ant-mentions-dropdown {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.ant-mentions-dropdown-menu-item {
+  color: var(--text-primary);
+}
+
+.ant-mentions-dropdown-menu-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.ant-mentions-dropdown-menu-item-active {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.dark .ant-mentions-dropdown-menu-item-active {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================================================
+   SCROLLBAR PERSONALIZADO PARA COMPONENTES ANT DESIGN
+   ============================================================================ */
+
+/* Aplicar a todos los componentes con scroll */
+.ant-table-body::-webkit-scrollbar,
+.ant-select-dropdown::-webkit-scrollbar,
+.ant-dropdown-menu::-webkit-scrollbar,
+.ant-modal-body::-webkit-scrollbar,
+.ant-drawer-body::-webkit-scrollbar,
+.ant-picker-panel::-webkit-scrollbar,
+.ant-transfer-list-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ant-table-body::-webkit-scrollbar-track,
+.ant-select-dropdown::-webkit-scrollbar-track,
+.ant-dropdown-menu::-webkit-scrollbar-track,
+.ant-modal-body::-webkit-scrollbar-track,
+.ant-drawer-body::-webkit-scrollbar-track,
+.ant-picker-panel::-webkit-scrollbar-track,
+.ant-transfer-list-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+}
+
+.ant-table-body::-webkit-scrollbar-thumb,
+.ant-select-dropdown::-webkit-scrollbar-thumb,
+.ant-dropdown-menu::-webkit-scrollbar-thumb,
+.ant-modal-body::-webkit-scrollbar-thumb,
+.ant-drawer-body::-webkit-scrollbar-thumb,
+.ant-picker-panel::-webkit-scrollbar-thumb,
+.ant-transfer-list-content::-webkit-scrollbar-thumb {
+  background: var(--border-color-dark);
+  border-radius: var(--radius-full);
+}
+
+.ant-table-body::-webkit-scrollbar-thumb:hover,
+.ant-select-dropdown::-webkit-scrollbar-thumb:hover,
+.ant-dropdown-menu::-webkit-scrollbar-thumb:hover,
+.ant-modal-body::-webkit-scrollbar-thumb:hover,
+.ant-drawer-body::-webkit-scrollbar-thumb:hover,
+.ant-picker-panel::-webkit-scrollbar-thumb:hover,
+.ant-transfer-list-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* ============================================================================
+   RESPONSIVE - AJUSTES PARA MÓVIL
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  /* Layout más compacto en móvil */
+  .ant-layout-header {
+    padding: 0 16px;
+    height: 56px;
+    line-height: 56px;
+  }
+
+  /* Modal full screen en móvil */
+  .ant-modal {
+    max-width: 100%;
+    margin: 0;
+    padding-bottom: 0;
+  }
+
+  .ant-modal-content {
+    border-radius: 0;
+  }
+
+  /* Drawer full width en móvil */
+  .ant-drawer-content-wrapper {
+    width: 100% !important;
+  }
+
+  /* Tabla scroll horizontal en móvil */
+  .ant-table {
+    overflow-x: auto;
+  }
+
+  /* Tabs scroll horizontal en móvil */
+  .ant-tabs-nav {
+    overflow-x: auto;
+  }
+}
+
+/* ============================================================================
+   ACCESIBILIDAD - REDUCIR MOVIMIENTO
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .ant-layout,
+  .ant-layout-content,
+  .ant-layout-header,
+  .ant-layout-footer,
+  .ant-layout-sider,
+  .ant-modal-mask,
+  .ant-drawer-mask,
+  .ant-message-notice,
+  .ant-notification-notice,
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================
+   PRINT - ESTILOS PARA IMPRESIÓN
+   ============================================================================ */
+
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header,
+  .ant-layout-footer,
+  .ant-btn,
+  .ant-pagination,
+  .ant-back-top {
+    display: none !important;
+  }
+
+  .ant-table {
+    page-break-inside: avoid;
+  }
+
+  .ant-card {
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}

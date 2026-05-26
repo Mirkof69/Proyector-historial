@@ -1,0 +1,59 @@
+/**
+ * =============================================================================
+ * DATE RANGE SELECTOR - TEMA OSCURO
+ * =============================================================================
+ */
+
+.date-range-selector {
+    padding: 16px;
+    background: var(--bg-elevated, #141414);
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border-subtle, #2a2a2a);
+}
+
+.date-range-presets {
+    margin-bottom: 12px;
+}
+
+.preset-button {
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    background: var(--bg-secondary, #1a1a1a);
+    border-color: var(--border-color, #2a2a2a);
+    color: var(--text-primary, #f9fafb);
+}
+
+.preset-button:hover {
+    background: var(--bg-hover, #202020);
+    border-color: var(--primary-color, #5c6bc0);
+    color: var(--text-primary, #f9fafb);
+}
+
+.preset-button.active {
+    background: var(--primary-color, #5c6bc0);
+    border-color: var(--primary-color, #5c6bc0);
+    color: #fff;
+}
+
+.date-range-custom {
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle, #2a2a2a);
+}
+
+.date-range-compare {
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle, #2a2a2a);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .date-range-selector {
+        padding: 12px;
+    }
+
+    .preset-button {
+        font-size: 12px;
+        padding: 4px 12px;
+    }
+}

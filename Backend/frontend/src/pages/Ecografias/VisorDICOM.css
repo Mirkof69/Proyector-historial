@@ -1,0 +1,43 @@
+.viewer-tool-indicator {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #fff;
+  background: rgba(24, 144, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.viewer-info-overlay-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.viewer-info-overlay-bottom {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.viewer-gradcam-overlay {
+  position: absolute;
+  pointer-events: none;
+  width: 512px;
+  height: 512px;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+}

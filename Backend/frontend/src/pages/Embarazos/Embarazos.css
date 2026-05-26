@@ -1,0 +1,846 @@
+/* =============================================================================
+   EMBARAZOS - ESTILOS COMPLETOS
+   =============================================================================
+   Formularios de embarazo, dashboard, calculadoras y validaciones
+============================================================================= */
+
+/* ========== CONTAINER PRINCIPAL ========== */
+.embarazos-container {
+    background-color: var(--bg-primary);
+    min-height: 100vh;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.embarazos-form-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ========== HEADER ========== */
+.embarazos-header {
+    background: linear-gradient(135deg, rgba(114, 46, 209, 0.1) 0%, var(--bg-elevated) 100%);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--color-prenatal);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-card);
+    animation: fadeInDown var(--transition-base) var(--transition-ease);
+}
+
+.embarazos-header__title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.embarazos-header__icon {
+    width: 48px;
+    height: 48px;
+    background: var(--color-primary-gradient);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+}
+
+.embarazos-header__breadcrumb {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* ========== FORMULARIO WIZARD ========== */
+.embarazos-wizard {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    animation: scaleIn 0.4s var(--transition-ease);
+}
+
+.embarazos-wizard__steps {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+    padding: var(--spacing-xl) var(--spacing-lg);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.embarazos-wizard__step {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.embarazos-wizard__step:hover {
+    background-color: var(--bg-hover);
+}
+
+.embarazos-wizard__step--active {
+    background-color: var(--color-primary-light);
+}
+
+.embarazos-wizard__step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--border-radius-round);
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-secondary);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.embarazos-wizard__step--active .embarazos-wizard__step-number {
+    background: var(--color-primary-gradient);
+    border-color: var(--color-primary);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.embarazos-wizard__step--completed .embarazos-wizard__step-number {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
+    color: #fff;
+}
+
+.embarazos-wizard__step-content {
+    flex: 1;
+}
+
+.embarazos-wizard__step-title {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.embarazos-wizard__step-description {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+/* ========== SECCIONES DEL FORMULARIO ========== */
+.embarazos-form-section {
+    padding: var(--spacing-xl);
+    background-color: var(--bg-elevated);
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    animation: fadeInUp 0.4s var(--transition-ease);
+}
+
+.embarazos-form-section__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.embarazos-form-section__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-md);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.embarazos-form-section__title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.embarazos-form-section__subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+/* ========== GRUPOS DE FORMULARIO ========== */
+.embarazos-form-group {
+    margin-bottom: var(--spacing-xl);
+}
+
+.embarazos-form-group__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.embarazos-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.embarazos-form-input {
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.embarazos-form-input .ant-input,
+.embarazos-form-input .ant-select-selector,
+.embarazos-form-input .ant-picker {
+    height: var(--input-height-lg);
+    border-radius: var(--border-radius-md);
+    border: 2px solid var(--border-color);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.embarazos-form-input .ant-input:focus,
+.embarazos-form-input .ant-input-focused,
+.embarazos-form-input .ant-select-focused .ant-select-selector,
+.embarazos-form-input .ant-picker-focused {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.embarazos-form-input--error .ant-input,
+.embarazos-form-input--error .ant-select-selector {
+    border-color: var(--color-error);
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+/* ========== CALCULADORA DE FPP ========== */
+.embarazos-calculadora {
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--bg-elevated) 100%);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.embarazos-calculadora__title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.embarazos-calculadora__input-group {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.embarazos-calculadora__result {
+    background-color: var(--bg-elevated);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    border-left: 4px solid var(--color-success);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeIn 0.3s var(--transition-ease);
+}
+
+.embarazos-calculadora__result-item {
+    text-align: center;
+}
+
+.embarazos-calculadora__result-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-xs);
+}
+
+.embarazos-calculadora__result-value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-success);
+}
+
+/* ========== INDICADOR DE RIESGO ========== */
+.embarazos-riesgo-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.embarazos-riesgo-option {
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--transition-base) var(--transition-ease);
+    text-align: center;
+    background-color: var(--bg-elevated);
+}
+
+.embarazos-riesgo-option:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.embarazos-riesgo-option__icon {
+    font-size: 32px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.embarazos-riesgo-option__label {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+}
+
+.embarazos-riesgo-option--bajo {
+    border-color: var(--color-low-risk);
+}
+
+.embarazos-riesgo-option--bajo:hover,
+.embarazos-riesgo-option--bajo.active {
+    background: linear-gradient(135deg, rgba(74, 222, 128, 0.1) 0%, var(--bg-elevated) 100%);
+    border-color: var(--color-low-risk);
+    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+}
+
+.embarazos-riesgo-option--bajo .embarazos-riesgo-option__icon {
+    color: var(--color-low-risk);
+}
+
+.embarazos-riesgo-option--alto {
+    border-color: var(--color-high-risk);
+}
+
+.embarazos-riesgo-option--alto:hover,
+.embarazos-riesgo-option--alto.active {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, var(--bg-elevated) 100%);
+    border-color: var(--color-high-risk);
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
+}
+
+.embarazos-riesgo-option--alto .embarazos-riesgo-option__icon {
+    color: var(--color-high-risk);
+}
+
+.embarazos-riesgo-option--muy-alto {
+    border-color: var(--color-critical);
+}
+
+.embarazos-riesgo-option--muy-alto:hover,
+.embarazos-riesgo-option--muy-alto.active {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, var(--bg-elevated) 100%);
+    border-color: var(--color-critical);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    animation: pulse 2s infinite;
+}
+
+.embarazos-riesgo-option--muy-alto .embarazos-riesgo-option__icon {
+    color: var(--color-critical);
+}
+
+/* ========== TABLA DE PARIDAD ========== */
+.embarazos-paridad-table {
+    background-color: var(--bg-elevated);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.embarazos-paridad-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.embarazos-paridad-row:last-child {
+    border-bottom: none;
+}
+
+.embarazos-paridad-item {
+    text-align: center;
+}
+
+.embarazos-paridad-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-xs);
+}
+
+.embarazos-paridad-value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+}
+
+/* ========== ALERTAS Y ADVERTENCIAS ========== */
+.embarazos-alert {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-md);
+    border-left-width: 4px;
+    border-left-style: solid;
+    animation: slideInLeft 0.3s var(--transition-ease);
+}
+
+.embarazos-alert--warning {
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, var(--bg-elevated) 100%);
+    border-left-color: var(--color-warning);
+}
+
+.embarazos-alert--error {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, var(--bg-elevated) 100%);
+    border-left-color: var(--color-error);
+}
+
+.embarazos-alert--info {
+    background: linear-gradient(90deg, rgba(96, 165, 250, 0.1) 0%, var(--bg-elevated) 100%);
+    border-left-color: var(--color-info);
+}
+
+.embarazos-alert__title {
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.embarazos-alert__content {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* ========== BOTONES DE ACCIÓN ========== */
+.embarazos-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    background-color: var(--bg-secondary);
+    border-top: 2px solid var(--border-color);
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin-top: var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+}
+
+.embarazos-actions__left,
+.embarazos-actions__right {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.embarazos-btn {
+    height: 44px;
+    padding: 0 var(--spacing-xl);
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-base) var(--transition-ease);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.embarazos-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.embarazos-btn--primary {
+    background: var(--color-primary-gradient);
+    border: none;
+    color: #fff;
+}
+
+.embarazos-btn--primary:hover {
+    box-shadow: 0 8px 20px rgba(24, 144, 255, 0.3);
+}
+
+/* ========== PROGRESS INDICATOR ========== */
+.embarazos-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: var(--bg-secondary);
+    z-index: 1000;
+}
+
+.embarazos-progress__bar {
+    height: 100%;
+    background: var(--color-primary-gradient);
+    transition: width 0.3s var(--transition-ease);
+    box-shadow: 0 0 10px var(--color-primary);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .embarazos-container {
+        padding: var(--spacing-md);
+    }
+
+    .embarazos-form-section {
+        padding: var(--spacing-lg);
+    }
+
+    .embarazos-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .embarazos-riesgo-selector {
+        grid-template-columns: 1fr;
+    }
+
+    .embarazos-paridad-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .embarazos-actions {
+        flex-direction: column;
+    }
+
+    .embarazos-actions__left,
+    .embarazos-actions__right {
+        width: 100%;
+    }
+
+    .embarazos-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .embarazos-calculadora__input-group {
+        flex-direction: column;
+    }
+
+    .embarazos-calculadora__result {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .embarazos-header__title {
+        font-size: var(--font-size-2xl);
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .embarazos-wizard__steps {
+        padding: var(--spacing-md);
+    }
+
+    .embarazos-paridad-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========== MODO OSCURO - NEGRO CON NARANJA ========== */
+html.dark .action-card,
+body.dark-theme .action-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+    border: 2px solid #333333 !important;
+    transition: all 0.3s ease;
+}
+
+html.dark .action-card:hover,
+body.dark-theme .action-card:hover {
+    background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%) !important;
+    border-color: #ff6b35 !important;
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3) !important;
+    transform: translateY(-4px);
+}
+
+html.dark .action-card .anticon,
+body.dark-theme .action-card .anticon {
+    color: #ff6b35 !important;
+    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.4));
+}
+
+html.dark .action-card .ant-typography,
+body.dark-theme .action-card .ant-typography {
+    color: #ffffff !important;
+}
+
+html.dark .stats-card,
+body.dark-theme .stats-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+    border: 1px solid #333333 !important;
+}
+
+html.dark .stats-card:hover,
+body.dark-theme .stats-card:hover {
+    border-color: #ff6b35 !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2) !important;
+}
+
+html.dark .stats-card .ant-statistic-title,
+body.dark-theme .stats-card .ant-statistic-title {
+    color: #b8b8b8 !important;
+}
+
+html.dark .stats-card .ant-statistic-content,
+body.dark-theme .stats-card .ant-statistic-content {
+    color: #ffffff !important;
+}
+
+html.dark .embarazos-container,
+body.dark-theme .embarazos-container {
+    background-color: #0a0a0a;
+}
+
+html.dark .embarazos-header,
+body.dark-theme .embarazos-header {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, #1a1a1a 100%);
+    border-color: #2a2a2a;
+    border-left-color: #ff6b35;
+}
+
+html.dark .embarazos-header__title,
+body.dark-theme .embarazos-header__title {
+    color: #ffffff;
+}
+
+html.dark .embarazos-header__breadcrumb,
+body.dark-theme .embarazos-header__breadcrumb {
+    color: #b8b8b8;
+}
+
+html.dark .embarazos-header__icon,
+body.dark-theme .embarazos-header__icon {
+    background: linear-gradient(135deg, #ff6b35 0%, #d94f1f 100%);
+}
+
+html.dark .ant-table,
+body.dark-theme .ant-table {
+    background: #1a1a1a;
+}
+
+html.dark .ant-table-thead > tr > th,
+body.dark-theme .ant-table-thead > tr > th {
+    background: #0a0a0a !important;
+    color: #ffffff !important;
+    border-color: #2a2a2a !important;
+}
+
+html.dark .ant-table-tbody > tr > td,
+body.dark-theme .ant-table-tbody > tr > td {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+    border-color: #2a2a2a !important;
+}
+
+html.dark .ant-table-tbody > tr:hover > td,
+body.dark-theme .ant-table-tbody > tr:hover > td {
+    background: rgba(255, 107, 53, 0.08) !important;
+}
+
+html.dark .ant-input,
+html.dark .ant-select-selector,
+html.dark .ant-picker,
+body.dark-theme .ant-input,
+body.dark-theme .ant-select-selector,
+body.dark-theme .ant-picker {
+    background-color: #1a1a1a !important;
+    border-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
+
+html.dark .ant-input:focus,
+html.dark .ant-select-focused .ant-select-selector,
+html.dark .ant-picker-focused,
+body.dark-theme .ant-input:focus,
+body.dark-theme .ant-select-focused .ant-select-selector,
+body.dark-theme .ant-picker-focused {
+    border-color: #ff6b35 !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.1) !important;
+}
+
+html.dark .ant-btn-primary,
+body.dark-theme .ant-btn-primary {
+    background: linear-gradient(135deg, #ff6b35 0%, #d94f1f 100%) !important;
+    border-color: #ff6b35 !important;
+}
+
+html.dark .ant-btn-primary:hover,
+body.dark-theme .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #d94f1f 0%, #ff6b35 100%) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* Drawer de Resumen de Embarazo - Modo Oscuro */
+html.dark .embarazo-resumen-drawer.ant-drawer .ant-drawer-content,
+body.dark-theme .embarazo-resumen-drawer.ant-drawer .ant-drawer-content {
+    background: #0a0a0a !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-drawer-header,
+body.dark-theme .embarazo-resumen-drawer .ant-drawer-header {
+    background: #0a0a0a !important;
+    border-bottom-color: #2a2a2a !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-drawer-title,
+body.dark-theme .embarazo-resumen-drawer .ant-drawer-title {
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-drawer-body,
+body.dark-theme .embarazo-resumen-drawer .ant-drawer-body {
+    background: #0a0a0a !important;
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-drawer-close,
+body.dark-theme .embarazo-resumen-drawer .ant-drawer-close {
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-header-section,
+body.dark-theme .embarazo-resumen-drawer .drawer-header-section {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+    padding: 20px;
+    margin-bottom: 24px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-header-section .ant-typography,
+body.dark-theme .embarazo-resumen-drawer .drawer-header-section .ant-typography {
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-descriptions,
+body.dark-theme .embarazo-resumen-drawer .drawer-descriptions {
+    background: #1a1a1a !important;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-title,
+body.dark-theme .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-title {
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-item-label,
+body.dark-theme .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-item-label {
+    background: #0a0a0a !important;
+    color: #b8b8b8 !important;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-item-content,
+body.dark-theme .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-item-content {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-view,
+body.dark-theme .embarazo-resumen-drawer .drawer-descriptions .ant-descriptions-view {
+    border-color: #2a2a2a !important;
+}
+
+html.dark .embarazo-resumen-drawer .drawer-descriptions tbody tr,
+body.dark-theme .embarazo-resumen-drawer .drawer-descriptions tbody tr {
+    border-color: #2a2a2a !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-timeline-item-tail,
+body.dark-theme .embarazo-resumen-drawer .ant-timeline-item-tail {
+    border-left-color: #2a2a2a !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-timeline-item-content,
+body.dark-theme .embarazo-resumen-drawer .ant-timeline-item-content {
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-divider-horizontal.ant-divider-with-text,
+body.dark-theme .embarazo-resumen-drawer .ant-divider-horizontal.ant-divider-with-text {
+    border-color: #2a2a2a !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-divider-inner-text,
+body.dark-theme .embarazo-resumen-drawer .ant-divider-inner-text {
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-alert,
+body.dark-theme .embarazo-resumen-drawer .ant-alert {
+    background: rgba(255, 107, 53, 0.1) !important;
+    border-color: #ff6b35 !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-alert-message,
+body.dark-theme .embarazo-resumen-drawer .ant-alert-message {
+    color: #ffffff !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-statistic-title,
+body.dark-theme .embarazo-resumen-drawer .ant-statistic-title {
+    color: #b8b8b8 !important;
+}
+
+html.dark .embarazo-resumen-drawer .ant-statistic-content,
+body.dark-theme .embarazo-resumen-drawer .ant-statistic-content {
+    color: #ffffff !important;
+}
+
+/* ========== MODO IMPRESIÓN ========== */
+@media print {
+
+    .embarazos-actions,
+    .embarazos-header__actions,
+    .embarazos-wizard__steps {
+        display: none !important;
+    }
+
+    .embarazos-form-section {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #000;
+    }
+
+    .embarazos-progress {
+        display: none;
+    }
+}

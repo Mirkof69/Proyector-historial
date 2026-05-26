@@ -1,0 +1,60 @@
+/* =============================================================================
+   DETALLE-PARTO.CSS - Theme-Aware Styles
+   ============================================================================= */
+
+.detalle-parto-container {
+  padding: 30px;
+  background-color: var(--bg-secondary);
+  min-height: 100vh;
+  transition: background-color 0.3s ease;
+}
+
+.header-card {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-shadow {
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-shadow:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-color-dark);
+}
+
+.apgar-score-display {
+  font-size: 64px;
+  font-weight: 800;
+  text-align: center;
+  margin: 20px 0;
+  color: var(--text-primary);
+}
+
+/* ========== DARK THEME OVERRIDES ========== */
+[data-theme="dark"] .detalle-parto-container {
+  background-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .header-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-shadow {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-shadow:hover {
+  border-color: var(--color-primary);
+}

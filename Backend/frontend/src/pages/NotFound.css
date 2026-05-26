@@ -1,0 +1,40 @@
+.not-found-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ant-result-404 .ant-result-title {
+    color: #595959;
+    font-size: 48px !important;
+    margin-bottom: 24px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ant-result-404 .ant-result-subtitle {
+    font-size: 18px !important;
+    color: #8c8c8c;
+}
+
+.ant-card-body {
+    padding: 40px !important;
+}

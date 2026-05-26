@@ -1,0 +1,137 @@
+/* =============================================================================
+   THEME TOGGLE - ESTILOS
+   =============================================================================
+   Estilos para el componente de cambio de tema
+============================================================================= */
+
+/* ========== Variante Default ========== */
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.theme-toggle:hover {
+    background-color: var(--bg-hover);
+}
+
+.theme-toggle__label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    user-select: none;
+    transition: color var(--transition-base) var(--transition-ease);
+}
+
+.theme-toggle__switch {
+    background-color: var(--bg-active);
+}
+
+.theme-toggle__switch.ant-switch-checked {
+    background-color: var(--color-primary);
+}
+
+.theme-toggle__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    animation: iconFade var(--transition-fast) var(--transition-ease);
+}
+
+/* ========== Variante Icon Only ========== */
+.theme-toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background-color: transparent;
+    border-radius: var(--border-radius-round);
+    cursor: pointer;
+    transition: all var(--transition-base) var(--transition-ease);
+    position: relative;
+}
+
+.theme-toggle-icon:hover {
+    background-color: var(--bg-hover);
+}
+
+.theme-toggle-icon:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle-icon__bulb {
+    font-size: 20px;
+    color: var(--text-secondary);
+    transition: all var(--transition-base) var(--transition-ease);
+}
+
+.theme-toggle-icon__bulb--active {
+    color: var(--color-primary);
+    animation: bulbGlow 0.5s var(--transition-ease);
+}
+
+/* ========== Variante Minimal ========== */
+.theme-toggle-minimal {
+    display: inline-flex;
+}
+
+/* ========== Animaciones ========== */
+@keyframes iconFade {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes bulbGlow {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    25% {
+        transform: rotate(-10deg) scale(1.1);
+    }
+
+    50% {
+        transform: rotate(10deg) scale(1.1);
+    }
+
+    75% {
+        transform: rotate(-10deg) scale(1.1);
+    }
+
+    100% {
+        transform: rotate(0deg) scale(1);
+    }
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+    .theme-toggle__label {
+        display: none;
+    }
+}
+
+/* ========== Accesibilidad ========== */
+.theme-toggle-icon:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Modo de alto contraste */
+@media (prefers-contrast: high) {
+    .theme-toggle-icon__bulb {
+        font-weight: var(--font-weight-bold);
+    }
+}
