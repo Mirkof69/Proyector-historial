@@ -1,21 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { triajeService, TriajeEnfermeria } from '../../services/triajeService';
+import { Table, Button, Card, Row, Col, Typography, Space } from 'antd';
 import {
-  Table, Button, Input, Select, DatePicker, Tag, Tooltip, Space,
-  Card, Row, Col, Statistic, Typography
-} from 'antd';
-import {
-  EditOutlined, DeleteOutlined, EyeOutlined, PlusOutlined,
-  SearchOutlined, FilterOutlined, PrinterOutlined, ExportOutlined,
-  CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined,
-  DashboardOutlined, MedicineBoxOutlined, HeartOutlined, AlertOutlined,
-  WarningOutlined
+  PlusOutlined, PrinterOutlined, ExportOutlined, MedicineBoxOutlined,
 } from '@ant-design/icons';
 import { useAntdApp } from '../../hooks/useMessage';
 import { exportarExcel } from '../../utils/excelExport';
 import dayjs from 'dayjs';
 import es from 'dayjs/locale/es';
+import TriajeStats from './components/TriajeStats';
+import TriajeFiltros from './components/TriajeFiltros';
+import { buildTriajeColumns } from './components/triajeColumns';
 
 dayjs.locale(es);
 const { Title, Text } = Typography;
@@ -42,6 +38,11 @@ const Triaje: React.FC = () => {
     pendiente: triajesArray.filter(t => t.estado === 'pendiente').length,
     completado: triajesArray.filter(t => t.estado === 'completado').length,
   }), [triajesArray]);
+
+  const presionAlta = useMemo(
+    () => triajesArray.filter(t => t.alerta_presion_alta).length,
+    [triajesArray]
+  );
 
   const loadTriajes = useCallback(async () => {
     setLoading(true);
@@ -148,119 +149,10 @@ const Triaje: React.FC = () => {
     }
   }, [filteredTriajes, message]);
 
-  const columns = useMemo(() => [
-    {
-      title: 'Paciente',
-      key: 'paciente',
-      render: (_: any, record: TriajeEnfermeria) => (
-        <Space direction="vertical" size={0}>
-          <Text strong>{record.paciente_info?.nombre_completo || record.paciente_nombre || 'Sin nombre'}</Text>
-          <Text type="secondary" style={{ fontSize: '12px' }}>{(record.paciente_info as any)?.id_clinico || '-'}</Text>
-        </Space>
-      ),
-    },
-    {
-      title: 'Fecha/Hora',
-      key: 'fecha_hora',
-      width: 150,
-      render: (_: any, record: TriajeEnfermeria) => (
-        <Space direction="vertical" size={0}>
-          <Text>{dayjs(record.fecha_hora || record.fecha_registro).format('DD/MM/YYYY')}</Text>
-          <Text type="secondary">{dayjs(record.fecha_hora || record.fecha_registro).format('HH:mm')}</Text>
-        </Space>
-      ),
-      sorter: (a: TriajeEnfermeria, b: TriajeEnfermeria) =>
-        new Date(a.fecha_hora || a.fecha_registro || 0).getTime() -
-        new Date(b.fecha_hora || b.fecha_registro || 0).getTime(),
-    },
-    {
-      title: 'Prioridad',
-      dataIndex: 'prioridad',
-      key: 'prioridad',
-      width: 120,
-      render: (prioridad: string) => {
-        if (!prioridad) return <Tag>Sin prioridad</Tag>;
-        const config: { [key: string]: { color: string; icon: React.ReactNode } } = {
-          urgente: { color: 'red', icon: <AlertOutlined /> },
-          alto: { color: 'orange', icon: <WarningOutlined /> },
-          normal: { color: 'blue', icon: <ClockCircleOutlined /> },
-          bajo: { color: 'green', icon: <CheckCircleOutlined /> },
-        };
-        const { color, icon } = config[prioridad] || { color: 'default', icon: null };
-        return <Tag color={color} icon={icon}>{prioridad.toUpperCase()}</Tag>;
-      },
-    },
-    {
-      title: 'Estado',
-      dataIndex: 'estado',
-      key: 'estado',
-      width: 130,
-      render: (estado: string) => {
-        const config: { [key: string]: { color: string; icon: React.ReactNode } } = {
-          pendiente: { color: 'warning', icon: <ClockCircleOutlined /> },
-          completado: { color: 'success', icon: <CheckCircleOutlined /> },
-          cancelado: { color: 'error', icon: <CloseCircleOutlined /> },
-        };
-        const { color, icon } = config[estado] || { color: 'default', icon: null };
-        return <Tag color={color} icon={icon}>{estado?.toUpperCase() || 'PENDIENTE'}</Tag>;
-      },
-    },
-    {
-      title: 'Motivo',
-      key: 'motivo',
-      ellipsis: true,
-      render: (_: any, record: TriajeEnfermeria) => (
-        <Tooltip title={record.motivo_consulta || record.motivo_visita}>
-          <Text ellipsis style={{ maxWidth: 200 }}>{record.motivo_consulta || record.motivo_visita}</Text>
-        </Tooltip>
-      ),
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      fixed: 'right' as const,
-      width: 150,
-      render: (_: any, record: TriajeEnfermeria) => (
-        <Space>
-          <Tooltip title="Ver detalles">
-            <Button
-              type="primary"
-              ghost
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => navigate(`/dashboard/triaje/${record.id}`)}
-            />
-          </Tooltip>
-          <Tooltip title="Editar">
-            <Button
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/dashboard/triaje/${record.id}/editar`)}
-            />
-          </Tooltip>
-          {record.estado === 'pendiente' && (
-            <Tooltip title="Completar">
-              <Button
-                size="small"
-                type="primary"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleMarkComplete(record.id!)}
-              />
-            </Tooltip>
-          )}
-          <Tooltip title="Eliminar">
-            <Button
-              danger
-              ghost
-              size="small"
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id!)}
-            />
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ], [navigate, handleDelete, handleMarkComplete]);
+  const columns = useMemo(
+    () => buildTriajeColumns(navigate, handleMarkComplete, handleDelete),
+    [navigate, handleMarkComplete, handleDelete]
+  );
 
   return (
     <div className="animate-fade-in" style={{ padding: '24px' }}>
@@ -301,108 +193,30 @@ const Triaje: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        <Col xs={12} sm={8} md={4}>
-          <Card className="blue-gradient stat-card">
-            <Statistic title="Total" value={stats.total} valueStyle={{ color: '#fff' }} />
-            <DashboardOutlined className="stat-icon-bg" />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} md={4}>
-          <Card className="orange-gradient stat-card">
-            <Statistic title="Pendientes" value={stats.pendiente} valueStyle={{ color: '#fff' }} />
-            <ClockCircleOutlined className="stat-icon-bg" />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} md={4}>
-          <Card className="green-gradient stat-card">
-            <Statistic title="Completados" value={stats.completado} valueStyle={{ color: '#fff' }} />
-            <CheckCircleOutlined className="stat-icon-bg" />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} md={4}>
-          <Card className="purple-gradient stat-card" style={{ background: 'linear-gradient(120deg, #ff4d4f 0%, #ff7a45 100%)' }}>
-            <Statistic title="Urgentes" value={stats.urgente} valueStyle={{ color: '#fff' }} />
-            <AlertOutlined className="stat-icon-bg" />
-          </Card>
-        </Col>
-        <Col xs={12} sm={8} md={4}>
-          <Card className="stat-card" style={{ background: 'linear-gradient(120deg, #13c2c2 0%, #1890ff 100%)' }}>
-            <Statistic title="Presión Alta" value={triajesArray.filter(t => t.alerta_presion_alta).length} valueStyle={{ color: '#fff' }} />
-            <HeartOutlined className="stat-icon-bg" />
-          </Card>
-        </Col>
-      </Row>
+      <TriajeStats
+        total={stats.total}
+        pendiente={stats.pendiente}
+        completado={stats.completado}
+        urgente={stats.urgente}
+        presionAlta={presionAlta}
+      />
 
-      <Card className="shadow-card" style={{ marginBottom: '24px' }}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} md={8}>
-            <Input
-              placeholder="Buscar por paciente, motivo..."
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              size="large"
-              allowClear
-            />
-          </Col>
-          <Col xs={12} md={4}>
-            <Select
-              placeholder="Estado"
-              value={filterState}
-              onChange={setFilterState}
-              style={{ width: '100%' }}
-              allowClear
-              size="large"
-              options={[
-                { label: 'Pendiente', value: 'pendiente' },
-                { label: 'Completado', value: 'completado' },
-              ]}
-            />
-          </Col>
-          <Col xs={12} md={4}>
-            <Select
-              placeholder="Prioridad"
-              value={filterPriority}
-              onChange={setFilterPriority}
-              style={{ width: '100%' }}
-              allowClear
-              size="large"
-              options={[
-                { label: 'Urgente', value: 'urgente' },
-                { label: 'Alto', value: 'alto' },
-                { label: 'Normal', value: 'normal' },
-                { label: 'Bajo', value: 'bajo' },
-              ]}
-            />
-          </Col>
-          <Col xs={24} md={4}>
-            <DatePicker
-              value={filterDate}
-              onChange={setFilterDate}
-              placeholder="Fecha"
-              style={{ width: '100%' }}
-              format="DD/MM/YYYY"
-              size="large"
-            />
-          </Col>
-          <Col xs={24} md={4}>
-            <Button
-              icon={<FilterOutlined />}
-              onClick={() => {
-                setSearchText('');
-                setFilterState('');
-                setFilterPriority('');
-                setFilterDate(null);
-              }}
-              block
-              size="large"
-            >
-              Limpiar
-            </Button>
-          </Col>
-        </Row>
-      </Card>
+      <TriajeFiltros
+        searchText={searchText}
+        filterState={filterState}
+        filterPriority={filterPriority}
+        filterDate={filterDate}
+        onSearchChange={setSearchText}
+        onStateChange={setFilterState}
+        onPriorityChange={setFilterPriority}
+        onDateChange={setFilterDate}
+        onLimpiar={() => {
+          setSearchText('');
+          setFilterState('');
+          setFilterPriority('');
+          setFilterDate(null);
+        }}
+      />
 
       <Table
         columns={columns}
