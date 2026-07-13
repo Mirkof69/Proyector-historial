@@ -214,7 +214,6 @@ const Controles: React.FC = () => {
   // ========== FUNCIÓN DE CARGA DE DATOS - OPTIMIZADA CON CARGA PARALELA ==========
   const loadData = useCallback(async () => {
     setLoading(true);
-    const startTime = performance.now();
 
     try {
 
@@ -268,15 +267,10 @@ const Controles: React.FC = () => {
       const allEmbarazos = embarazosResponses.flatMap((res: any) => res.data.results || []);
       const allPacientes = pacientesResponses.flatMap((res: any) => res.data.results || []);
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-
       setControles(allControles);
       setEmbarazos(allEmbarazos.filter((e: Embarazo) => e.estado === 'activo'));
       setPacientes(allPacientes);
       dispatchUI({ type: 'SET_LAST_LOADED', payload: dayjs().format('DD/MM/YYYY HH:mm:ss') });
-      message.success(`${allControles.length} controles cargados in ${loadTime}s`);
     } catch (error: any) {
       message.error('Error al cargar datos. Verifique su conexión e intente nuevamente.');
       setControles([]);

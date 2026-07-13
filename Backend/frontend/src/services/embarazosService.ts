@@ -21,6 +21,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TIPOS Y ENUMS
@@ -330,7 +331,7 @@ export const embarazosService = {
   async crear(data: Partial<Embarazo>): Promise<Embarazo> {
     try {
       const response = await api.post<Embarazo>('/embarazos/', data);
-      console.log('✅ Embarazo creado exitosamente');
+      logger.log('✅ Embarazo creado exitosamente');
       return normalizeSingleResponse<Embarazo>(response.data);
     } catch (error: any) {
       console.error('❌ Error creando embarazo:', error);
@@ -351,7 +352,7 @@ export const embarazosService = {
   async actualizar(id: number, data: Partial<Embarazo>): Promise<Embarazo> {
     try {
       const response = await api.put<Embarazo>(`/embarazos/${id}/`, data);
-      console.log(`✅ Embarazo ${id} actualizado exitosamente`);
+      logger.log(`✅ Embarazo ${id} actualizado exitosamente`);
       return normalizeSingleResponse<Embarazo>(response.data);
     } catch (error: any) {
       console.error(`❌ Error actualizando embarazo ${id}:`, error);
@@ -365,7 +366,7 @@ export const embarazosService = {
   async actualizarParcial(id: number, data: Partial<Embarazo>): Promise<Embarazo> {
     try {
       const response = await api.patch<Embarazo>(`/embarazos/${id}/`, data);
-      console.log(`✅ Embarazo ${id} actualizado parcialmente`);
+      logger.log(`✅ Embarazo ${id} actualizado parcialmente`);
       return normalizeSingleResponse<Embarazo>(response.data);
     } catch (error: any) {
       console.error(`❌ Error en actualización parcial del embarazo ${id}:`, error);
@@ -386,7 +387,7 @@ export const embarazosService = {
   async eliminar(id: number): Promise<void> {
     try {
       await api.delete(`/embarazos/${id}/`);
-      console.log(`✅ Embarazo ${id} eliminado exitosamente`);
+      logger.log(`✅ Embarazo ${id} eliminado exitosamente`);
     } catch (error: any) {
       console.error(`❌ Error eliminando embarazo ${id}:`, error);
       throw error;
@@ -481,7 +482,7 @@ export const embarazosService = {
   async calcularFPP(fum: string): Promise<CalculoFPP> {
     try {
       const response = await api.post<CalculoFPP>('/embarazos/calcular_fpp/', { fum });
-      console.log('✅ FPP calculada exitosamente');
+      logger.log('✅ FPP calculada exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error calculando FPP:', error);
@@ -535,7 +536,7 @@ export const embarazosService = {
   async calcularRiesgoDetallado(embarazoId: number): Promise<any> {
     try {
       const response = await api.get(`/embarazos/${embarazoId}/calcular-riesgo-detallado/`);
-      console.log(`✅ Riesgo detallado del embarazo ${embarazoId} calculado`);
+      logger.log(`✅ Riesgo detallado del embarazo ${embarazoId} calculado`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -566,7 +567,7 @@ export const embarazosService = {
   }): Promise<any> {
     try {
       const response = await api.get(`/embarazos/${embarazoId}/timeline-completo/`, { params });
-      console.log(`✅ Timeline completo del embarazo ${embarazoId} obtenido`);
+      logger.log(`✅ Timeline completo del embarazo ${embarazoId} obtenido`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -633,7 +634,7 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/controles/`,
         data
       );
-      console.log('✅ Control prenatal creado');
+      logger.log('✅ Control prenatal creado');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error creando control prenatal:', error);
@@ -672,7 +673,7 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/ecografias/`,
         data
       );
-      console.log('✅ Ecografía registrada');
+      logger.log('✅ Ecografía registrada');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error registrando ecografía:', error);
@@ -711,7 +712,7 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/riesgos/`,
         data
       );
-      console.log('✅ Riesgo obstétrico registrado');
+      logger.log('✅ Riesgo obstétrico registrado');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error registrando riesgo:', error);
@@ -750,7 +751,7 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/complicaciones/`,
         data
       );
-      console.log('✅ Complicación registrada');
+      logger.log('✅ Complicación registrada');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error registrando complicación:', error);
@@ -807,7 +808,7 @@ export const embarazosService = {
       const response = await api.get(`/embarazos/${embarazoId}/generar-pdf/`, {
         responseType: 'blob'
       });
-      console.log(`✅ PDF del embarazo ${embarazoId} generado`);
+      logger.log(`✅ PDF del embarazo ${embarazoId} generado`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error generando PDF del embarazo ${embarazoId}:`, error);
@@ -828,7 +829,7 @@ export const embarazosService = {
         params: filtros,
         responseType: 'blob'
       });
-      console.log('✅ Excel de embarazos exportado');
+      logger.log('✅ Excel de embarazos exportado');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error exportando Excel:', error);

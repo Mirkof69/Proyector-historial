@@ -1,3 +1,4 @@
+/* eslint-disable react-doctor/prefer-dynamic-import */
 import React, { useState, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -46,6 +47,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { vacunasService, RegistroVacuna } from '../../services/vacunasService';
 import { useAntdApp } from '../../hooks/useMessage';
 import './Vacunas.css';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
   ResponsiveContainer, PieChart, Pie, Cell,
   Tooltip as RechartsTooltip, Legend,
@@ -72,6 +74,32 @@ const FULL_WIDTH_STYLE = { width: '100%' as const };
 const AXIS_TICK_STYLE = { fill: '#64748b', fontSize: 12 };
 const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 
+// ── Estado de filtros (reducer a nivel de módulo: identidad estable) ─────────
+interface FiltrosVacunasState {
+  searchText: string;
+  dateRange: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
+  filtroVacuna: string;
+  filtroEstado: string;
+}
+
+type FiltrosVacunasAction =
+  | { type: 'SET_SEARCH'; payload: string }
+  | { type: 'SET_DATE_RANGE'; payload: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null }
+  | { type: 'SET_FILTRO_VACUNA'; payload: string }
+  | { type: 'SET_FILTRO_ESTADO'; payload: string }
+  | { type: 'LIMPIAR' };
+
+const filtrosVacunasReducer = (state: FiltrosVacunasState, action: FiltrosVacunasAction): FiltrosVacunasState => {
+  switch (action.type) {
+    case 'SET_SEARCH': return { ...state, searchText: action.payload };
+    case 'SET_DATE_RANGE': return { ...state, dateRange: action.payload };
+    case 'SET_FILTRO_VACUNA': return { ...state, filtroVacuna: action.payload };
+    case 'SET_FILTRO_ESTADO': return { ...state, filtroEstado: action.payload };
+    case 'LIMPIAR': return { searchText: '', dateRange: null, filtroVacuna: 'todas', filtroEstado: 'todas' };
+    default: return state;
+  }
+};
+
 const Vacunas: React.FC = () => {
   const navigate = useNavigate();
   const { message, modal } = useAntdApp();
@@ -80,31 +108,6 @@ const Vacunas: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [selectedVacuna, setSelectedVacuna] = useState<RegistroVacunaExtended | null>(null);
-
-  interface FiltrosVacunasState {
-    searchText: string;
-    dateRange: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
-    filtroVacuna: string;
-    filtroEstado: string;
-  }
-
-  type FiltrosVacunasAction =
-    | { type: 'SET_SEARCH'; payload: string }
-    | { type: 'SET_DATE_RANGE'; payload: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null }
-    | { type: 'SET_FILTRO_VACUNA'; payload: string }
-    | { type: 'SET_FILTRO_ESTADO'; payload: string }
-    | { type: 'LIMPIAR' };
-
-  const filtrosVacunasReducer = (state: FiltrosVacunasState, action: FiltrosVacunasAction): FiltrosVacunasState => {
-    switch (action.type) {
-      case 'SET_SEARCH': return { ...state, searchText: action.payload };
-      case 'SET_DATE_RANGE': return { ...state, dateRange: action.payload };
-      case 'SET_FILTRO_VACUNA': return { ...state, filtroVacuna: action.payload };
-      case 'SET_FILTRO_ESTADO': return { ...state, filtroEstado: action.payload };
-      case 'LIMPIAR': return { searchText: '', dateRange: null, filtroVacuna: 'todas', filtroEstado: 'todas' };
-      default: return state;
-    }
-  };
 
   const [filtros, dispatchFiltros] = useReducer(filtrosVacunasReducer, {
     searchText: '',
@@ -307,7 +310,7 @@ const Vacunas: React.FC = () => {
           <Space>
             <Tag color="cyan">Dosis {record.numero_dosis}</Tag>
             {record.tipo_vacuna_info?.dosis_requeridas && (
-              <small style={{ color: '#999' }}>de {record.tipo_vacuna_info.dosis_requeridas}</small>
+              <small style={{ color: '#999' }}>de {record.tipo_vacuna_info?.dosis_requeridas}</small>
             )}
           </Space>
         </Space>

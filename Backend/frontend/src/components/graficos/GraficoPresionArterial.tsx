@@ -4,12 +4,12 @@
  * durante el embarazo con alertas para hipertensión gestacional y preeclampsia
  */
 import React, { Suspense, useCallback, useMemo } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ReferenceLine, ReferenceArea
-} from 'recharts';
 import { Card, Typography, Alert, Space, Tag, Spin } from 'antd';
 import { WarningOutlined } from '@ant-design/icons';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
+import {
+  ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceArea, ReferenceLine, Line
+} from 'recharts';
 
 const { Title, Text } = Typography;
 
@@ -78,6 +78,7 @@ const GraficoPresionArterial: React.FC<Props> = ({
     data,
     title = 'Evolución de Presión Arterial'
 }) => {
+
     // Sanitize data
     const sanitizedData = (data || []).map(d => ({
         ...d,
@@ -109,6 +110,8 @@ const GraficoPresionArterial: React.FC<Props> = ({
     }, []);
 
     const formatLabel = useCallback((label: string | number) => `Semana ${label}`, []);
+
+
 
     return (
         <Card>

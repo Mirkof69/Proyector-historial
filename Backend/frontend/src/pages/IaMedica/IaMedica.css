@@ -1,3 +1,23 @@
+/* Paleta oscura mate fija — no depende de variables de tema (que en este
+   entorno no se aplican de forma confiable a todos los componentes/portales).
+   Colores deliberadamente apagados, sin brillos ni tonos saturados. */
+:root {
+  --ia-bg: #161616;
+  --ia-bg-alt: #1c1c1c;
+  --ia-border: #2e2e2e;
+  --ia-text: #e3e3e3;
+  --ia-text-secondary: #a3a3a3;
+  --ia-text-tertiary: #767676;
+  --ia-danger: #b35c5c;
+  --ia-danger-bg: #2a1818;
+  --ia-warning: #b08d57;
+  --ia-warning-bg: #2a2418;
+  --ia-success: #5a8f6b;
+  --ia-success-bg: #182a1e;
+  --ia-info: #5b8db8;
+  --ia-info-bg: #182530;
+}
+
 .ia-medica-container {
   padding: 24px;
   max-width: 1400px;
@@ -14,15 +34,11 @@
 .ia-medica-header h1 {
   font-size: 24px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ia-text);
   margin: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.ia-medica-header h1 svg {
-  color: var(--primary-color);
 }
 
 .stats-grid {
@@ -33,19 +49,13 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--ia-bg);
+  border: 1px solid var(--ia-border);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   display: flex;
   align-items: center;
   gap: 16px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon {
@@ -58,29 +68,14 @@
   font-size: 24px;
 }
 
-.stat-icon.primary {
-  background: #e0e7ff;
-  color: #4f46e5;
-}
-
-.stat-icon.success {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.stat-icon.warning {
-  background: #fef9c3;
-  color: #ca8a04;
-}
-
-.stat-icon.danger {
-  background: #fee2e2;
-  color: #dc2626;
-}
+.stat-icon.primary { background: #23253a; color: #7b85c9; }
+.stat-icon.success { background: var(--ia-success-bg); color: var(--ia-success); }
+.stat-icon.warning { background: var(--ia-warning-bg); color: var(--ia-warning); }
+.stat-icon.danger { background: var(--ia-danger-bg); color: var(--ia-danger); }
 
 .stat-content h3 {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--ia-text-secondary);
   margin: 0 0 4px 0;
   font-weight: 500;
 }
@@ -88,15 +83,15 @@
 .stat-content p {
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ia-text);
   margin: 0;
 }
 
 .gallery-container {
-  background: white;
+  background: var(--ia-bg);
+  border: 1px solid var(--ia-border);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .gallery-toolbar {
@@ -106,23 +101,20 @@
   margin-bottom: 24px;
 }
 
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+.gallery-toolbar .ant-typography {
+  color: var(--ia-text) !important;
 }
 
 .image-card {
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  background: #f8fafc;
+  border: 1px solid var(--ia-border);
+  background: var(--ia-bg-alt);
   transition: all 0.3s ease;
 }
 
 .image-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px);
+  border-color: #3a3a3a;
 }
 
 .image-card-header {
@@ -137,7 +129,6 @@
   height: 100%;
   object-fit: cover;
   opacity: 0.9;
-  transition: opacity 0.3s ease;
 }
 
 .image-card:hover .image-card-header img {
@@ -156,7 +147,7 @@
 
 .image-title {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ia-text);
   margin-bottom: 8px;
   font-size: 16px;
   white-space: nowrap;
@@ -169,7 +160,7 @@
   flex-direction: column;
   gap: 4px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--ia-text-secondary);
   margin-bottom: 16px;
 }
 
@@ -182,7 +173,7 @@
 .cnn-result {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--ia-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -195,22 +186,35 @@
   font-weight: 600;
 }
 
-.cnn-score.normal { color: #16a34a; }
-.cnn-score.warning { color: #ca8a04; }
-.cnn-score.danger { color: #dc2626; }
+.cnn-score.normal { color: var(--ia-success); }
+.cnn-score.warning { color: var(--ia-warning); }
+.cnn-score.danger { color: var(--ia-danger); }
 
 .image-card-footer {
   padding: 12px 16px;
-  background: white;
-  border-top: 1px solid var(--border-color);
+  background: var(--ia-bg-alt);
+  border-top: 1px solid var(--ia-border);
   display: flex;
   gap: 8px;
 }
 
 /* Modal de Análisis CNN */
-.cnn-analysis-modal .ant-modal-content {
+.cnn-analysis-modal .ant-modal-content,
+.cnn-analysis-modal .ant-modal-header {
+  background: var(--ia-bg) !important;
   border-radius: 16px;
-  overflow: hidden;
+}
+
+.cnn-analysis-modal .ant-modal-title {
+  color: var(--ia-text) !important;
+}
+
+.cnn-analysis-modal .ant-modal-body {
+  color: var(--ia-text);
+}
+
+.cnn-analysis-modal .ant-modal-close {
+  color: var(--ia-text-secondary) !important;
 }
 
 .analysis-container {
@@ -259,41 +263,42 @@
   gap: 16px;
 }
 
-.result-header.normal { background: #f0fdf4; border: 1px solid #bbf7d0; }
-.result-header.warning { background: #fefce8; border: 1px solid #fef08a; }
-.result-header.danger { background: #fef2f2; border: 1px solid #fecaca; }
+.result-header.normal { background: var(--ia-success-bg); border: 1px solid var(--ia-success); }
+.result-header.warning { background: var(--ia-warning-bg); border: 1px solid var(--ia-warning); }
+.result-header.danger { background: var(--ia-danger-bg); border: 1px solid var(--ia-danger); }
 
 .result-icon {
   font-size: 32px;
 }
 
-.result-header.normal .result-icon { color: #16a34a; }
-.result-header.warning .result-icon { color: #ca8a04; }
-.result-header.danger .result-icon { color: #dc2626; }
+.result-header.normal .result-icon { color: var(--ia-success); }
+.result-header.warning .result-icon { color: var(--ia-warning); }
+.result-header.danger .result-icon { color: var(--ia-danger); }
 
 .result-info h3 {
   margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
+  color: var(--ia-text);
 }
 
 .result-info p {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--ia-text-secondary);
   font-size: 14px;
 }
 
 .findings-list {
-  background: #f8fafc;
+  background: var(--ia-bg-alt);
   border-radius: 12px;
   padding: 16px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--ia-border);
 }
 
 .findings-list h4 {
   margin: 0 0 12px 0;
   font-size: 15px;
-  color: var(--text-primary);
+  color: var(--ia-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -304,7 +309,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px dashed var(--border-color);
+  border-bottom: 1px dashed var(--ia-border);
 }
 
 .finding-item:last-child {
@@ -313,23 +318,23 @@
 
 .finding-name {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--ia-text);
 }
 
 .finding-conf {
-  color: var(--text-secondary);
+  color: var(--ia-text-secondary);
   font-size: 13px;
 }
 
 .recommendations-box {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
+  background: var(--ia-info-bg);
+  border: 1px solid var(--ia-info);
   border-radius: 12px;
   padding: 16px;
 }
 
 .recommendations-box h4 {
-  color: #0369a1;
+  color: var(--ia-text);
   margin: 0 0 12px 0;
   display: flex;
   align-items: center;
@@ -339,7 +344,7 @@
 .recommendations-box ul {
   margin: 0;
   padding-left: 20px;
-  color: #0c4a6e;
+  color: var(--ia-text-secondary);
 }
 
 .recommendations-box li {
@@ -356,4 +361,59 @@
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 3px;
+}
+
+/* Forzar componentes Ant Design dentro del modal a fondo oscuro mate:
+   Table y Alert traen fondo blanco fijo en su tema por defecto y no
+   siguen el resto de la pagina aqui. */
+.cnn-analysis-modal .ant-table,
+.cnn-analysis-modal .ant-table-container,
+.cnn-analysis-modal .ant-table-cell,
+.cnn-analysis-modal .ant-table-thead > tr > th,
+.cnn-analysis-modal .ant-table-tbody > tr > td {
+  background: var(--ia-bg-alt) !important;
+  color: var(--ia-text) !important;
+  border-color: var(--ia-border) !important;
+}
+
+.cnn-analysis-modal .ant-table-tbody > tr:hover > td {
+  background: #232323 !important;
+}
+
+.cnn-analysis-modal .ant-alert {
+  background: var(--ia-bg-alt) !important;
+  border-color: var(--ia-border) !important;
+}
+
+.cnn-analysis-modal .ant-alert-message,
+.cnn-analysis-modal .ant-alert-description {
+  color: var(--ia-text) !important;
+}
+
+.cnn-analysis-modal .ant-alert-info {
+  background: var(--ia-info-bg) !important;
+  border-color: var(--ia-info) !important;
+}
+
+.cnn-analysis-modal .ant-alert-warning {
+  background: var(--ia-warning-bg) !important;
+  border-color: var(--ia-warning) !important;
+}
+
+.cnn-analysis-modal .ant-alert-error {
+  background: var(--ia-danger-bg) !important;
+  border-color: var(--ia-danger) !important;
+}
+
+.cnn-analysis-modal .ant-descriptions-item-label,
+.cnn-analysis-modal .ant-descriptions-item-content {
+  color: var(--ia-text) !important;
+}
+
+.cnn-analysis-modal .ant-divider {
+  border-color: var(--ia-border) !important;
+}
+
+.cnn-analysis-modal .ant-divider-inner-text {
+  color: var(--ia-text) !important;
 }

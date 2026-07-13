@@ -389,6 +389,36 @@ function reducer(state: EmbarazosState, action: EmbarazosAction): EmbarazosState
     }
 }
 
+// ── Cálculos obstétricos puros (nivel de módulo: identidad estable) ──────────
+const calcularFPP = (fum: Dayjs) => {
+  // Regla de Naegele: FUM + 280 días estándar
+  return fum.add(280, 'day');
+};
+
+const calcularEdadGestacional = (fum: Dayjs) => {
+  const hoy = dayjs();
+  const diffDias = hoy.diff(fum, 'day');
+  const semanas = Math.floor(diffDias / 7);
+  const dias = diffDias % 7;
+  return { semanas, dias };
+};
+
+const calcularIMC = (peso: number, talla: number) => {
+  if (!peso || !talla) return null;
+  const tallaMetros = talla / 100; // cm a m
+  const imc = peso / (tallaMetros * tallaMetros);
+
+  let clasificacion = '';
+  let color = '';
+
+  if (imc < 18.5) { clasificacion = 'Bajo Peso'; color = 'orange'; }
+  else if (imc < 25) { clasificacion = 'Peso Normal'; color = 'green'; }
+  else if (imc < 30) { clasificacion = 'Sobrepeso'; color = 'orange'; }
+  else { clasificacion = 'Obesidad'; color = 'red'; }
+
+  return { valor: imc.toFixed(2), clasificacion, color };
+};
+
 const Embarazos: React.FC = () => {
     const navigate = useNavigate();
     const { message, modal } = useAntdApp();
@@ -403,7 +433,6 @@ const Embarazos: React.FC = () => {
 
     const loadEmbarazos = useCallback(async () => {
         dispatch({ type: 'SET_LOADING', payload: true });
-        const startTime = performance.now();
 
         try {
 
@@ -507,12 +536,8 @@ const Embarazos: React.FC = () => {
             });
 
             dispatch({ type: 'SET_EMBARAZOS', payload: listaProcesada });
-
-            const endTime = performance.now();
-            const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-            message.success(`${listaProcesada.length} state.embarazos cargados en ${loadTime}s`, 3);
         } catch (error) {
-            message.error('No se pudo cargar la lista de state.embarazos. Verifique su conexión.');
+            message.error('No se pudo cargar la lista de embarazos. Verifique su conexión.');
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }
@@ -576,34 +601,7 @@ const Embarazos: React.FC = () => {
     // 4. CÁLCULOS OBSTÉTRICOS AUTOMÁTICOS
     // =============================================================================
 
-    const calcularFPP = (fum: Dayjs) => {
-        // Regla de Naegele: FUM + 7 días - 3 meses + 1 año (o simplemente + 280 días estándar)
-        return fum.add(280, 'day');
-    };
-
-    const calcularEdadGestacional = (fum: Dayjs) => {
-        const hoy = dayjs();
-        const diffDias = hoy.diff(fum, 'day');
-        const semanas = Math.floor(diffDias / 7);
-        const dias = diffDias % 7;
-        return { semanas, dias };
-    };
-
-    const calcularIMC = (peso: number, talla: number) => {
-        if (!peso || !talla) return null;
-        const tallaMetros = talla / 100; // Convertir cm a m
-        const imc = peso / (tallaMetros * tallaMetros);
-
-        let clasificacion = '';
-        let color = '';
-
-        if (imc < 18.5) { clasificacion = 'Bajo Peso'; color = 'orange'; }
-        else if (imc < 25) { clasificacion = 'Peso Normal'; color = 'green'; }
-        else if (imc < 30) { clasificacion = 'Sobrepeso'; color = 'orange'; }
-        else { clasificacion = 'Obesidad'; color = 'red'; }
-
-        return { valor: imc.toFixed(2), clasificacion, color };
-    };
+    // Cálculos obstétricos puros: ver definiciones a nivel de módulo (arriba).
 
     // Handler para cambio de FUM en el formulario
     const handleFUMChange = useCallback((date: Dayjs | null) => {
@@ -747,7 +745,7 @@ const Embarazos: React.FC = () => {
             loadEmbarazos();
         } catch (error: any) {
             if (error.response) {
-                message.error(`Error del servidor: ${error.response.data.detail || 'Datos inválidos'}`);
+                message.error(`Error del servidor: ${error.response.data?.detail || 'Datos inválidos'}`);
             } else if (error.errorFields) {
                 message.warning("Por favor complete todos los campos obligatorios");
             } else {

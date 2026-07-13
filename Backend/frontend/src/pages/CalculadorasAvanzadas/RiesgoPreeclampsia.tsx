@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Card, Form, InputNumber, Button, Row, Col, Statistic, Alert, Divider, Table, Tag, Checkbox, Typography } from 'antd';
 import { ExperimentOutlined, HeartOutlined, SafetyOutlined, MedicineBoxOutlined, WarningOutlined } from '@ant-design/icons';
-import './RiesgoPreeclampsia.css';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, ComposedChart, Area
 } from 'recharts';
+import './RiesgoPreeclampsia.css';
 
 const { Title, Text } = Typography;
 
@@ -247,70 +248,6 @@ const calcularRiesgo = (valores: DatosRiesgo): ResultadoRiesgo => {
     };
 };
 
-const _datosEjemploRiesgo: DatosRiesgo = {
-  edad: 28,
-  peso: 65,
-  talla: 160,
-  semanas: 12,
-  plgf: 45.5,
-  sflt1: 1680,
-  pappa: 1.5,
-  map: 88,
-  uta_pi: 1.8,
-  historia_previa: false,
-  hipertension: false,
-  diabetes: false,
-  obesidad: false,
-  gestacion_multiple: false,
-  raza_afro: false
-};
-
-const _resultadoEjemploRiesgo = calcularRiesgo(_datosEjemploRiesgo);
-
-const _historialEjemploRiesgo: RegistroRiesgo[] = [
-  {
-    ..._resultadoEjemploRiesgo,
-    fecha: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-    semanas: 12
-  },
-  {
-    riesgo_pe_precoz: 0.8,
-    riesgo_pe_tardia: 2.1,
-    plgf_mom: 1.15,
-    sflt1_mom: 1.05,
-    pappa_mom: 1.42,
-    map_mom: 0.96,
-    uta_pi_mom: 1.06,
-    ratio_sflt_plgf: 36.9,
-    clasificacion: '🟢 BAJO RIESGO',
-    color: '#52c41a',
-    interpretacion: 'Riesgo bajo de preeclampsia. Continuar con seguimiento prenatal habitual.',
-    recomendacion: 'Seguimiento prenatal estándar según protocolo.',
-    aspirina_indicada: false,
-    seguimiento: 'Control prenatal estándar.',
-    fecha: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-    semanas: 11.5
-  },
-  {
-    riesgo_pe_precoz: 1.2,
-    riesgo_pe_tardia: 2.5,
-    plgf_mom: 1.08,
-    sflt1_mom: 1.12,
-    pappa_mom: 1.35,
-    map_mom: 0.98,
-    uta_pi_mom: 1.12,
-    ratio_sflt_plgf: 38.5,
-    clasificacion: '🟢 BAJO RIESGO',
-    color: '#52c41a',
-    interpretacion: 'Riesgo bajo de preeclampsia. Continuar con seguimiento prenatal habitual.',
-    recomendacion: 'Seguimiento prenatal estándar según protocolo.',
-    aspirina_indicada: false,
-    seguimiento: 'Control prenatal estándar.',
-    fecha: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-    semanas: 11
-  }
-];
-
 const EXPERIMENT_ICON_2 = <ExperimentOutlined />;
 const MEDICINE_BOX_ICON_5 = <MedicineBoxOutlined />;
 
@@ -321,14 +258,10 @@ const formatRatioTooltip = (value: any) => value ? Number(value).toFixed(1) : '0
 
 const RiesgoPreeclampsia: React.FC = () => {
   const [form] = Form.useForm();
-  const [resultado, setResultado] = useState<ResultadoRiesgo | null>(_resultadoEjemploRiesgo);
-  const [historial, setHistorial] = useState<RegistroRiesgo[]>(_historialEjemploRiesgo);
-  const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(true);
+  const [resultado, setResultado] = useState<ResultadoRiesgo | null>(null);
+  const [historial, setHistorial] = useState<RegistroRiesgo[]>([]);
 
   const onFinish = (values: DatosRiesgo) => {
-    // Cambiar a modo de datos reales (ya no mostrar datos de ejemplo)
-    setUsandoDatosEjemplo(false);
-
     const res = calcularRiesgo(values);
     setResultado(res);
 
@@ -430,7 +363,6 @@ const RiesgoPreeclampsia: React.FC = () => {
           <Card title={
             <>
               <HeartOutlined /> Datos Maternos y Biomarcadores
-              {usandoDatosEjemplo && <Tag color="blue" style={{ marginLeft: 8 }}>Datos de Ejemplo</Tag>}
             </>
           } className="form-card">
             <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -611,7 +543,6 @@ const RiesgoPreeclampsia: React.FC = () => {
       {resultado && (
         <>
           <Divider>📊 Análisis de Biomarcadores (MoM)</Divider>
-
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={12}>
               <Card title="Biomarcadores MoM vs Referencia">
@@ -706,7 +637,7 @@ const RiesgoPreeclampsia: React.FC = () => {
             </Col>
           </Row>
 
-          <Divider>📋 Historial de Evaluaciones</Divider>
+      <Divider>📋 Historial de Evaluaciones</Divider>
 
           <Card>
             <Table

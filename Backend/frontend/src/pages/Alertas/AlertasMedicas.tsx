@@ -25,6 +25,7 @@ const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.Cart
 const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })) as any);
 const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
 import { useNavigate } from 'react-router-dom';
+import { reportesService, AlertaMedica } from '../../services/reportesService';
 import dayjs from 'dayjs';
 import './AlertasMedicas.css';
 
@@ -40,9 +41,10 @@ const RELOAD_ICON_MEMO = <ReloadOutlined />;
 const FILTER_ICON_MEMO = <FilterOutlined />;
 const BELL_ICON_MEMO = <BellOutlined />;
 
-const getSeveridadIcon = (severidad: string) => {
-  switch (severidad) {
-    case 'critica': return <ExclamationCircleOutlined />;
+const getSeveridadIcon = (prioridad: string) => {
+  switch (prioridad) {
+    case 'critica':
+    case 'emergencia': return <ExclamationCircleOutlined />;
     case 'alta': return <WarningOutlined />;
     case 'media': return <ClockCircleOutlined />;
     case 'baja': return <BellOutlined />;
@@ -50,199 +52,87 @@ const getSeveridadIcon = (severidad: string) => {
   }
 };
 
-interface AlertaMedica {
-  id: number;
-  paciente: number;
-  paciente_nombre: string;
-  paciente_id_clinico?: string;
-  tipo_alerta: string;
-  severidad: 'baja' | 'media' | 'alta' | 'critica';
-  mensaje: string;
-  descripcion?: string;
-  resuelta: boolean;
-  fecha_creacion: string;
-  fecha_resolucion?: string;
-  resuelto_por?: string;
-  modulo_origen?: string;
-  valores_referencia?: string;
-}
-
 const renderPieLabel = ({ name, percent }: { name: string; percent: number }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`;
 
+const getSeveridadColor = (prioridad: string) => {
+  const colors: any = {
+    baja: 'blue',
+    media: 'orange',
+    alta: 'red',
+    critica: 'magenta',
+    emergencia: 'red'
+  };
+  return colors[prioridad] || 'default';
+};
+
 const AlertasMedicas: React.FC = () => {
-  const { message } = useAntdApp();
+  const {modal,  message } = useAntdApp();
   const navigate = useNavigate();
-  const [alertas, setAlertas] = useState<AlertaMedica[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedAlerta, setSelectedAlerta] = useState<AlertaMedica | null>(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [filterSeveridad, setFilterSeveridad] = useState<string>('all');
-  const [filterEstado, setFilterEstado] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<any>(null);
-  const [modalNuevaAlerta, setModalNuevaAlerta] = useState(false);
+  const [state, setState] = useState({
+    alertas: [] as AlertaMedica[],
+    loading: false,
+    selectedAlerta: null as AlertaMedica | null,
+    drawerVisible: false,
+    searchText: '',
+    filterSeveridad: 'all',
+    filterEstado: 'all',
+    dateRange: null as any,
+    modalNuevaAlerta: false
+  });
+  const {
+    alertas,
+    loading,
+    selectedAlerta,
+    drawerVisible,
+    searchText,
+    filterSeveridad,
+    filterEstado,
+    dateRange,
+    modalNuevaAlerta
+  } = state;
   const mountedRef = useRef(false);
   useEffect(() => { mountedRef.current = true; }, []);
   const filtrosAvanzadosVisibleRef = useRef(false);
   const [form] = Form.useForm();
 
-  const handleCrearAlerta = useCallback((values: any) => {
-    const now = new Date().toISOString();
-    const nuevaAlerta: AlertaMedica = {
-      id: alertas.length + 1,
-      paciente: parseInt(values.paciente),
-      paciente_nombre: values.paciente_nombre,
-      paciente_id_clinico: values.paciente_id_clinico,
-      tipo_alerta: values.tipo_alerta,
-      severidad: values.severidad,
-      mensaje: values.mensaje,
-      descripcion: values.descripcion,
-      resuelta: false,
-      fecha_creacion: now,
-      modulo_origen: values.modulo_origen,
-      valores_referencia: values.valores_referencia
-    };
-    setAlertas(prev => [nuevaAlerta, ...prev]);
-    message.success('Alerta creada correctamente');
-    setModalNuevaAlerta(false);
-    form.resetFields();
-  }, [alertas.length, form]);
+  const handleCrearAlerta = useCallback(async (values: any) => {
+    try {
+      await reportesService.crearAlerta({
+        titulo: values.titulo,
+        descripcion: values.descripcion,
+        tipo: values.tipo,
+        prioridad: values.prioridad,
+        paciente_id: values.paciente_id ? parseInt(values.paciente_id, 10) : undefined,
+        modulo_origen: values.modulo_origen,
+        accion_recomendada: values.accion_recomendada,
+        valor_actual: values.valor_actual,
+        valor_umbral: values.valor_umbral,
+      });
+      message.success('Alerta creada correctamente');
+      setState(prev => ({ ...prev, modalNuevaAlerta: false }));
+      form.resetFields();
+      cargarAlertas();
+    } catch (error) {
+      message.error('Error al crear la alerta');
+    }
+    // eslint-disable-next-line react-doctor/exhaustive-deps
+  }, [form, message]);
 
   const cargarAlertas = useCallback(async () => {
-    setLoading(true);
+    setState(prev => ({ ...prev, loading: true }));
     try {
-      // Datos de ejemplo más completos
-      const datosEjemplo: AlertaMedica[] = [
-        {
-          id: 1,
-          paciente: 1,
-          paciente_nombre: 'María García López',
-          paciente_id_clinico: 'PAC-001',
-          tipo_alerta: 'Presión Arterial Alta',
-          severidad: 'critica',
-          mensaje: 'Presión arterial 180/110 mmHg - Riesgo de preeclampsia severa',
-          descripcion: 'Paciente en semana 34 de gestación. Requiere atención inmediata.',
-          resuelta: false,
-          fecha_creacion: '2024-12-18T08:30:00',
-          modulo_origen: 'Triaje',
-          valores_referencia: 'Normal: <140/90 mmHg'
-        },
-        {
-          id: 2,
-          paciente: 2,
-          paciente_nombre: 'Carmen Rodríguez Pérez',
-          paciente_id_clinico: 'PAC-002',
-          tipo_alerta: 'Glucemia Elevada',
-          severidad: 'alta',
-          mensaje: 'Glucosa en ayunas: 145 mg/dL - Posible diabetes gestacional',
-          descripcion: 'Realizar test de tolerancia oral a la glucosa',
-          resuelta: false,
-          fecha_creacion: '2024-12-18T09:15:00',
-          modulo_origen: 'Laboratorio',
-          valores_referencia: 'Normal: <105 mg/dL'
-        },
-        {
-          id: 3,
-          paciente: 3,
-          paciente_nombre: 'Ana Martínez Silva',
-          paciente_id_clinico: 'PAC-003',
-          tipo_alerta: 'Hemoglobina Baja',
-          severidad: 'media',
-          mensaje: 'Hemoglobina: 9.2 g/dL - Anemia moderada',
-          descripcion: 'Indicar suplemento de hierro',
-          resuelta: true,
-          fecha_creacion: '2024-12-17T14:20:00',
-          fecha_resolucion: '2024-12-17T16:00:00',
-          resuelto_por: 'Dr. Juan Pérez',
-          modulo_origen: 'Laboratorio',
-          valores_referencia: 'Normal: >11 g/dL'
-        },
-        {
-          id: 4,
-          paciente: 4,
-          paciente_nombre: 'Laura Fernández Torres',
-          paciente_id_clinico: 'PAC-004',
-          tipo_alerta: 'Proteínas en Orina',
-          severidad: 'alta',
-          mensaje: 'Proteinuria: 350 mg/24h - Signo de preeclampsia',
-          descripcion: 'Monitoreo cercano de presión arterial y función renal',
-          resuelta: false,
-          fecha_creacion: '2024-12-18T10:00:00',
-          modulo_origen: 'Laboratorio',
-          valores_referencia: 'Normal: <300 mg/24h'
-        },
-        {
-          id: 5,
-          paciente: 5,
-          paciente_nombre: 'Patricia Gómez Ruiz',
-          paciente_id_clinico: 'PAC-005',
-          tipo_alerta: 'Peso Materno Bajo',
-          severidad: 'media',
-          mensaje: 'Ganancia de peso insuficiente: +3 kg en 20 semanas',
-          descripcion: 'Evaluación nutricional requerida',
-          resuelta: true,
-          fecha_creacion: '2024-12-16T11:30:00',
-          fecha_resolucion: '2024-12-17T09:00:00',
-          resuelto_por: 'Dra. María González',
-          modulo_origen: 'Control Prenatal',
-          valores_referencia: 'Esperado: +5-9 kg a las 20 semanas'
-        },
-        {
-          id: 6,
-          paciente: 6,
-          paciente_nombre: 'Isabel López Castro',
-          paciente_id_clinico: 'PAC-006',
-          tipo_alerta: 'Plaquetas Bajas',
-          severidad: 'alta',
-          mensaje: 'Plaquetas: 85,000/μL - Trombocitopenia',
-          descripcion: 'Descartar síndrome HELLP',
-          resuelta: false,
-          fecha_creacion: '2024-12-18T11:45:00',
-          modulo_origen: 'Laboratorio',
-          valores_referencia: 'Normal: >150,000/μL'
-        },
-        {
-          id: 7,
-          paciente: 7,
-          paciente_nombre: 'Rosa Sánchez Morales',
-          paciente_id_clinico: 'PAC-007',
-          tipo_alerta: 'Vacuna Vencida',
-          severidad: 'baja',
-          mensaje: 'Vacuna Tdap pendiente - Debe aplicarse antes de semana 36',
-          descripcion: 'Actualmente en semana 33',
-          resuelta: true,
-          fecha_creacion: '2024-12-15T13:00:00',
-          fecha_resolucion: '2024-12-17T14:30:00',
-          resuelto_por: 'Enf. Carlos Ramírez',
-          modulo_origen: 'Vacunas',
-          valores_referencia: 'Aplicar entre semanas 27-36'
-        },
-        {
-          id: 8,
-          paciente: 8,
-          paciente_nombre: 'Elena Díaz Jiménez',
-          paciente_id_clinico: 'PAC-008',
-          tipo_alerta: 'Líquido Amniótico Bajo',
-          severidad: 'alta',
-          mensaje: 'ILA: 4 cm - Oligohidramnios',
-          descripcion: 'Requiere evaluación Doppler fetal',
-          resuelta: false,
-          fecha_creacion: '2024-12-18T12:15:00',
-          modulo_origen: 'Ecografía',
-          valores_referencia: 'Normal: 8-18 cm'
-        }
-      ];
-      setAlertas(datosEjemplo);
-      message.success(`${datosEjemplo.length} alertas cargadas`);
+      const data = await reportesService.listarAlertas();
+      setState(prev => ({ ...prev, alertas: data }));
     } catch (error) {
       message.error('Error al cargar alertas');
     } finally {
-      setLoading(false);
+      setState(prev => ({ ...prev, loading: false }));
     }
-  }, []);
+  }, [message]);
 
   useEffect(() => {
     cargarAlertas();
+    // eslint-disable-next-line react-doctor/exhaustive-deps
   }, [cargarAlertas]);
 
   const filteredAlertas = useMemo(() => {
@@ -251,21 +141,20 @@ const AlertasMedicas: React.FC = () => {
     // Filtro por texto
     if (searchText) {
       filtered = filtered.filter(alerta =>
-        alerta.paciente_nombre.toLowerCase().includes(searchText.toLowerCase()) ||
-        alerta.tipo_alerta.toLowerCase().includes(searchText.toLowerCase()) ||
-        alerta.mensaje.toLowerCase().includes(searchText.toLowerCase())
+        (alerta.paciente_nombre || '').toLowerCase().includes(searchText.toLowerCase()) ||
+        alerta.titulo.toLowerCase().includes(searchText.toLowerCase()) ||
+        (alerta.descripcion || '').toLowerCase().includes(searchText.toLowerCase())
       );
     }
 
-    // Filtro por severidad
+    // Filtro por prioridad
     if (filterSeveridad !== 'all') {
-      filtered = filtered.filter(alerta => alerta.severidad === filterSeveridad);
+      filtered = filtered.filter(alerta => alerta.prioridad === filterSeveridad);
     }
 
     // Filtro por estado
     if (filterEstado !== 'all') {
-      const resuelta = filterEstado === 'resuelta';
-      filtered = filtered.filter(alerta => alerta.resuelta === resuelta);
+      filtered = filtered.filter(alerta => alerta.estado === filterEstado);
     }
 
     // Filtro por rango de fechas
@@ -279,30 +168,20 @@ const AlertasMedicas: React.FC = () => {
     return filtered;
   }, [alertas, searchText, filterSeveridad, filterEstado, dateRange]);
 
-  const getSeveridadColor = (severidad: string) => {
-    const colors: any = {
-      baja: 'blue',
-      media: 'orange',
-      alta: 'red',
-      critica: 'magenta'
-    };
-    return colors[severidad] || 'default';
-  };
-
   const marcarResuelta = (id: number) => {
-    Modal.confirm({
+    modal.confirm({
       title: '¿Marcar como resuelta?',
       content: '¿Está seguro de que desea marcar esta alerta como resuelta?',
       okText: 'Sí, marcar',
       cancelText: 'Cancelar',
-      onOk: () => {
-        const updatedAlertas = alertas.map(alerta =>
-          alerta.id === id
-            ? { ...alerta, resuelta: true, fecha_resolucion: new Date().toISOString() }
-            : alerta
-        );
-        setAlertas(updatedAlertas);
-        message.success('Alerta marcada como resuelta');
+      onOk: async () => {
+        try {
+          await reportesService.marcarAlertaResuelta(id);
+          message.success('Alerta marcada como resuelta');
+          cargarAlertas();
+        } catch (error) {
+          message.error('Error al marcar la alerta como resuelta');
+        }
       }
     });
   };
@@ -310,10 +189,10 @@ const AlertasMedicas: React.FC = () => {
   // Datos para gráficas
   const getSeveridadData = () => {
     const counts = {
-      baja: alertas.filter(a => a.severidad === 'baja').length,
-      media: alertas.filter(a => a.severidad === 'media').length,
-      alta: alertas.filter(a => a.severidad === 'alta').length,
-      critica: alertas.filter(a => a.severidad === 'critica').length
+      baja: alertas.filter(a => a.prioridad === 'baja').length,
+      media: alertas.filter(a => a.prioridad === 'media').length,
+      alta: alertas.filter(a => a.prioridad === 'alta').length,
+      critica: alertas.filter(a => a.prioridad === 'critica' || a.prioridad === 'emergencia').length
     };
     return [
       { name: 'Baja', value: counts.baja, color: '#1890ff' },
@@ -336,13 +215,13 @@ const AlertasMedicas: React.FC = () => {
   };
 
   const getTiempoResolucionData = () => {
-    const resueltas = alertas.filter(a => a.resuelta && a.fecha_resolucion);
+    const resueltas = alertas.filter(a => a.estado === 'resuelta' && a.fecha_resolucion);
     return resueltas.map(alerta => {
       const inicio = dayjs(alerta.fecha_creacion);
       const fin = dayjs(alerta.fecha_resolucion);
       const horas = fin.diff(inicio, 'hour', true);
       return {
-        tipo: alerta.tipo_alerta.substring(0, 15) + '...',
+        tipo: alerta.titulo.substring(0, 15) + '...',
         horas: Number(horas.toFixed(1))
       };
     });
@@ -360,69 +239,67 @@ const AlertasMedicas: React.FC = () => {
       title: 'Paciente',
       dataIndex: 'paciente_nombre',
       key: 'paciente',
-      render: (nombre: string, record: AlertaMedica) => (
+      render: (nombre: string | null) => nombre || '—'
+    },
+    {
+      title: 'Título / Tipo',
+      dataIndex: 'titulo',
+      key: 'titulo',
+      render: (titulo: string, record: AlertaMedica) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{nombre}</div>
-          <div style={{ fontSize: 12, color: '#999' }}>{record.paciente_id_clinico}</div>
+          <div style={{ fontWeight: 500 }}>{titulo}</div>
+          <Tag icon={<BellOutlined />}>{record.tipo_display || record.tipo}</Tag>
         </div>
       )
     },
     {
-      title: 'Tipo de Alerta',
-      dataIndex: 'tipo_alerta',
-      key: 'tipo',
-      render: (tipo: string) => (
-        <Tag icon={<BellOutlined />}>{tipo}</Tag>
-      )
-    },
-    {
-      title: 'Severidad',
-      dataIndex: 'severidad',
-      key: 'severidad',
-      render: (sev: string) => (
+      title: 'Prioridad',
+      dataIndex: 'prioridad',
+      key: 'prioridad',
+      render: (prioridad: string, record: AlertaMedica) => (
         <Badge
-          count={sev.toUpperCase()}
+          count={record.prioridad_display || prioridad.toUpperCase()}
           style={{
-            backgroundColor: getSeveridadColor(sev),
+            backgroundColor: getSeveridadColor(prioridad),
             fontWeight: 'bold'
           }}
         />
       ),
       sorter: (a: AlertaMedica, b: AlertaMedica) => {
-        const orden = { baja: 1, media: 2, alta: 3, critica: 4 };
-        return (orden[a.severidad] || 0) - (orden[b.severidad] || 0);
+        const orden: Record<string, number> = { baja: 1, media: 2, alta: 3, critica: 4, emergencia: 5 };
+        return (orden[a.prioridad] || 0) - (orden[b.prioridad] || 0);
       }
     },
     {
-      title: 'Mensaje',
-      dataIndex: 'mensaje',
-      key: 'mensaje',
+      title: 'Descripción',
+      dataIndex: 'descripcion',
+      key: 'descripcion',
       ellipsis: true
     },
     {
       title: 'Módulo Origen',
-      dataIndex: 'modulo_origen',
+      dataIndex: 'modulo_origen_display',
       key: 'modulo',
-      render: (modulo: string) => (
-        <Tag color="cyan">{modulo || 'N/A'}</Tag>
+      render: (modulo: string, record: AlertaMedica) => (
+        <Tag color="cyan">{modulo || record.modulo_origen}</Tag>
       )
     },
     {
       title: 'Estado',
-      dataIndex: 'resuelta',
+      dataIndex: 'estado',
       key: 'estado',
-      render: (resuelta: boolean) => (
-        resuelta ? (
-          <Badge status="success" text="Resuelta" />
-        ) : (
-          <Badge status="error" text="Pendiente" />
-        )
-      ),
+      render: (estado: string, record: AlertaMedica) => {
+        const status = estado === 'resuelta' ? 'success' : estado === 'descartada' ? 'default' : 'error';
+        return <Badge status={status as any} text={record.estado_display || estado} />;
+      },
       filters: [
-        { text: 'Pendiente', value: false },
-        { text: 'Resuelta', value: true }
+        { text: 'Activa', value: 'activa' },
+        { text: 'Revisada', value: 'revisada' },
+        { text: 'Resuelta', value: 'resuelta' },
+        { text: 'Descartada', value: 'descartada' },
+        { text: 'Escalada', value: 'escalada' }
       ],
-      onFilter: (value: any, record: AlertaMedica) => record.resuelta === value
+      onFilter: (value: any, record: AlertaMedica) => record.estado === value
     },
     {
       title: 'Fecha',
@@ -441,13 +318,12 @@ const AlertasMedicas: React.FC = () => {
             type="link"
             icon={<FileTextOutlined />}
             onClick={() => {
-              setSelectedAlerta(record);
-              setDrawerVisible(true);
+              setState(prev => ({ ...prev, selectedAlerta: record, drawerVisible: true }));
             }}
           >
             Detalle
           </Button>
-          {!record.resuelta && (
+          {record.estado !== 'resuelta' && record.estado !== 'descartada' && (
             <Button
               type="link"
               icon={<CheckOutlined />}
@@ -463,8 +339,8 @@ const AlertasMedicas: React.FC = () => {
 
   // Estadísticas
   const totalAlertas = alertas.length;
-  const alertasPendientes = alertas.filter(a => !a.resuelta).length;
-  const alertasCriticas = alertas.filter(a => a.severidad === 'critica' && !a.resuelta).length;
+  const alertasPendientes = alertas.filter(a => a.estado === 'activa' || a.estado === 'revisada' || a.estado === 'escalada').length;
+  const alertasCriticas = alertas.filter(a => (a.prioridad === 'critica' || a.prioridad === 'emergencia') && a.estado !== 'resuelta' && a.estado !== 'descartada').length;
   const alertasHoy = alertas.filter(a => dayjs(a.fecha_creacion).isSame(dayjs(), 'day')).length;
 
   return (
@@ -593,12 +469,12 @@ const AlertasMedicas: React.FC = () => {
             placeholder="Buscar por paciente, tipo o mensaje..."
             prefix={<SearchOutlined />}
             value={searchText}
-            onChange={e => setSearchText(e.target.value)}
+            onChange={e => setState(prev => ({ ...prev, searchText: e.target.value }))}
             style={{ width: 300 }}
           />
           <Select
             value={filterSeveridad}
-            onChange={setFilterSeveridad}
+            onChange={val => setState(prev => ({ ...prev, filterSeveridad: val }))}
             style={{ width: 150 }}
           >
             <Select.Option value="all">Todas las severidades</Select.Option>
@@ -609,16 +485,19 @@ const AlertasMedicas: React.FC = () => {
           </Select>
           <Select
             value={filterEstado}
-            onChange={setFilterEstado}
+            onChange={val => setState(prev => ({ ...prev, filterEstado: val }))}
             style={{ width: 150 }}
           >
             <Select.Option value="all">Todos los estados</Select.Option>
-            <Select.Option value="pendiente">Pendientes</Select.Option>
+            <Select.Option value="activa">Activas</Select.Option>
+            <Select.Option value="revisada">Revisadas</Select.Option>
             <Select.Option value="resuelta">Resueltas</Select.Option>
+            <Select.Option value="descartada">Descartadas</Select.Option>
+            <Select.Option value="escalada">Escaladas</Select.Option>
           </Select>
           <RangePicker
             value={dateRange}
-            onChange={setDateRange}
+            onChange={val => setState(prev => ({ ...prev, dateRange: val }))}
             format="DD/MM/YYYY"
           />
           <Button
@@ -630,7 +509,7 @@ const AlertasMedicas: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setModalNuevaAlerta(true)}
+            onClick={() => setState(prev => ({ ...prev, modalNuevaAlerta: true }))}
           >
             Nueva Alerta
           </Button>
@@ -640,20 +519,26 @@ const AlertasMedicas: React.FC = () => {
           >
             Filtros Avanzados
           </Button>
-          {filteredAlertas.length > 0 && filteredAlertas.some(a => !a.resuelta) && (
+          {filteredAlertas.length > 0 && filteredAlertas.some(a => a.estado !== 'resuelta' && a.estado !== 'descartada') && (
             <Button
               type="default"
               icon={<CheckCircleOutlined />}
               onClick={() => {
-                Modal.confirm({
+                modal.confirm({
                   title: '¿Marcar todas como resueltas?',
-                  content: '¿Está seguro de marcar todas las alertas pendientes como resueltas?',
+                  content: '¿Está seguro de marcar todas las alertas pendientes (filtradas) como resueltas?',
                   okText: 'Sí',
                   cancelText: 'No',
-                  onOk: () => {
-                    const updated = alertas.map(a => ({ ...a, resuelta: true }));
-                    setAlertas(updated);
-                    message.success('Todas las alertas marcadas como resueltas');
+                  onOk: async () => {
+                    const pendientes = filteredAlertas.filter(a => a.estado !== 'resuelta' && a.estado !== 'descartada');
+                    try {
+                      await Promise.all(pendientes.map(a => reportesService.marcarAlertaResuelta(a.id)));
+                      message.success('Todas las alertas filtradas marcadas como resueltas');
+                      cargarAlertas();
+                    } catch (error) {
+                      message.error('Error al marcar algunas alertas como resueltas');
+                      cargarAlertas();
+                    }
                   }
                 });
               }}
@@ -672,7 +557,7 @@ const AlertasMedicas: React.FC = () => {
               description="No se encontraron alertas con los filtros aplicados"
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             >
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalNuevaAlerta(true)}>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setState(prev => ({ ...prev, modalNuevaAlerta: true }))}>
                 Crear Primera Alerta
               </Button>
             </Empty>
@@ -687,7 +572,7 @@ const AlertasMedicas: React.FC = () => {
                 showSizeChanger: true,
                 showTotal: (total) => `Total: ${total} alertas`
               }}
-              rowClassName={(record) => !record.resuelta && record.severidad === 'critica' ? 'alerta-critica-row' : ''}
+              rowClassName={(record) => record.estado === 'activa' && (record.prioridad === 'critica' || record.prioridad === 'emergencia') ? 'alerta-critica-row' : ''}
             />
           )}
         </Spin>
@@ -698,51 +583,51 @@ const AlertasMedicas: React.FC = () => {
         title="Detalle de Alerta"
         placement="right"
         width={600}
-        onClose={() => setDrawerVisible(false)}
+        onClose={() => setState(prev => ({ ...prev, drawerVisible: false }))}
         open={drawerVisible}
       >
         {selectedAlerta && (
           <div>
             <Descriptions column={1} bordered>
               <Descriptions.Item label="ID Alerta">#{selectedAlerta.id}</Descriptions.Item>
+              <Descriptions.Item label="Título">{selectedAlerta.titulo}</Descriptions.Item>
               <Descriptions.Item label="Paciente">
-                <strong>{selectedAlerta.paciente_nombre}</strong>
-                <br />
-                <small>{selectedAlerta.paciente_id_clinico}</small>
+                {selectedAlerta.paciente_nombre || '—'}
               </Descriptions.Item>
-              <Descriptions.Item label="Tipo de Alerta">{selectedAlerta.tipo_alerta}</Descriptions.Item>
-              <Descriptions.Item label="Severidad">
-                <Tag color={getSeveridadColor(selectedAlerta.severidad)}>
-                  {selectedAlerta.severidad.toUpperCase()}
+              <Descriptions.Item label="Tipo de Alerta">{selectedAlerta.tipo_display || selectedAlerta.tipo}</Descriptions.Item>
+              <Descriptions.Item label="Prioridad">
+                <Tag color={getSeveridadColor(selectedAlerta.prioridad)}>
+                  {(selectedAlerta.prioridad_display || selectedAlerta.prioridad).toUpperCase()}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Módulo Origen">{selectedAlerta.modulo_origen || 'N/A'}</Descriptions.Item>
-              <Descriptions.Item label="Mensaje">{selectedAlerta.mensaje}</Descriptions.Item>
-              <Descriptions.Item label="Descripción">{selectedAlerta.descripcion || 'Sin descripción adicional'}</Descriptions.Item>
-              <Descriptions.Item label="Valores de Referencia">{selectedAlerta.valores_referencia || 'N/A'}</Descriptions.Item>
+              <Descriptions.Item label="Módulo Origen">{selectedAlerta.modulo_origen_display || selectedAlerta.modulo_origen}</Descriptions.Item>
+              <Descriptions.Item label="Descripción">{selectedAlerta.descripcion}</Descriptions.Item>
+              <Descriptions.Item label="Acción Recomendada">{selectedAlerta.accion_recomendada || 'Sin acción registrada'}</Descriptions.Item>
+              <Descriptions.Item label="Valor Actual / Umbral">
+                {selectedAlerta.valor_actual || '—'} / {selectedAlerta.valor_umbral || '—'}
+              </Descriptions.Item>
               <Descriptions.Item label="Estado">
-                {selectedAlerta.resuelta ? (
-                  <Badge status="success" text="Resuelta" />
-                ) : (
-                  <Badge status="error" text="Pendiente" />
-                )}
+                <Badge
+                  status={selectedAlerta.estado === 'resuelta' ? 'success' : selectedAlerta.estado === 'descartada' ? 'default' : 'error'}
+                  text={selectedAlerta.estado_display || selectedAlerta.estado}
+                />
               </Descriptions.Item>
               <Descriptions.Item label="Fecha de Creación">
                 {dayjs(selectedAlerta.fecha_creacion).format('DD/MM/YYYY HH:mm:ss')}
               </Descriptions.Item>
-              {selectedAlerta.resuelta && (
+              {selectedAlerta.estado === 'resuelta' && (
                 <>
                   <Descriptions.Item label="Fecha de Resolución">
-                    {dayjs(selectedAlerta.fecha_resolucion).format('DD/MM/YYYY HH:mm:ss')}
+                    {selectedAlerta.fecha_resolucion ? dayjs(selectedAlerta.fecha_resolucion).format('DD/MM/YYYY HH:mm:ss') : '—'}
                   </Descriptions.Item>
-                  <Descriptions.Item label="Resuelto Por">
-                    {selectedAlerta.resuelto_por || 'N/A'}
+                  <Descriptions.Item label="Comentario de Resolución">
+                    {selectedAlerta.comentario_resolucion || '—'}
                   </Descriptions.Item>
                 </>
               )}
             </Descriptions>
 
-            {!selectedAlerta.resuelta && (
+            {selectedAlerta.estado !== 'resuelta' && selectedAlerta.estado !== 'descartada' && (
               <div style={{ marginTop: 24 }}>
                 <Space style={{ width: '100%' }} direction="vertical">
                   <Button
@@ -750,7 +635,7 @@ const AlertasMedicas: React.FC = () => {
                     icon={<CheckOutlined />}
                     onClick={() => {
                       marcarResuelta(selectedAlerta.id);
-                      setDrawerVisible(false);
+                      setState(prev => ({ ...prev, drawerVisible: false }));
                     }}
                     block
                   >
@@ -758,7 +643,7 @@ const AlertasMedicas: React.FC = () => {
                   </Button>
                   <Button
                     icon={<CloseOutlined />}
-                    onClick={() => setDrawerVisible(false)}
+                    onClick={() => setState(prev => ({ ...prev, drawerVisible: false }))}
                     block
                   >
                     Cerrar sin Resolver
@@ -780,11 +665,11 @@ const AlertasMedicas: React.FC = () => {
                         <p style={{ fontSize: 12, color: '#999' }}>
                           {dayjs(selectedAlerta.fecha_creacion).format('DD/MM/YYYY HH:mm:ss')}
                         </p>
-                        <p style={{ fontSize: 12 }}>Origen: {selectedAlerta.modulo_origen}</p>
+                        <p style={{ fontSize: 12 }}>Origen: {selectedAlerta.modulo_origen_display || selectedAlerta.modulo_origen}</p>
                       </>
                     ),
                   },
-                  ...(selectedAlerta.resuelta
+                  ...(selectedAlerta.estado === 'resuelta'
                     ? [
                         {
                           color: 'green',
@@ -792,9 +677,8 @@ const AlertasMedicas: React.FC = () => {
                             <>
                               <p><strong>Alerta Resuelta</strong></p>
                               <p style={{ fontSize: 12, color: '#999' }}>
-                                {dayjs(selectedAlerta.fecha_resolucion).format('DD/MM/YYYY HH:mm:ss')}
+                                {selectedAlerta.fecha_resolucion ? dayjs(selectedAlerta.fecha_resolucion).format('DD/MM/YYYY HH:mm:ss') : ''}
                               </p>
-                              <p style={{ fontSize: 12 }}>Por: {selectedAlerta.resuelto_por}</p>
                             </>
                           ),
                         },
@@ -805,15 +689,17 @@ const AlertasMedicas: React.FC = () => {
             </div>
 
             {/* Botón para ver paciente */}
-            <div style={{ marginTop: 24 }}>
-              <Button
-                type="dashed"
-                block
-                onClick={() => navigate(`/dashboard/pacientes/${selectedAlerta.paciente}`)}
-              >
-                Ver Expediente del Paciente
-              </Button>
-            </div>
+            {selectedAlerta.paciente_id && (
+              <div style={{ marginTop: 24 }}>
+                <Button
+                  type="dashed"
+                  block
+                  onClick={() => navigate(`/dashboard/pacientes/${selectedAlerta.paciente_id}`)}
+                >
+                  Ver Expediente del Paciente
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Drawer>
@@ -823,7 +709,7 @@ const AlertasMedicas: React.FC = () => {
         title="Crear Nueva Alerta Médica"
         open={modalNuevaAlerta}
         onCancel={() => {
-          setModalNuevaAlerta(false);
+          setState(prev => ({ ...prev, modalNuevaAlerta: false }));
           form.resetFields();
         }}
         onOk={() => {
@@ -832,42 +718,55 @@ const AlertasMedicas: React.FC = () => {
         width={600}
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="paciente_nombre" label="Nombre del Paciente" rules={[{ required: true }]}>
-            <Input placeholder="Nombre completo" />
+          <Form.Item name="titulo" label="Título" rules={[{ required: true }]}>
+            <Input placeholder="Ej: Presión arterial alta" />
           </Form.Item>
-          <Form.Item name="paciente_id_clinico" label="ID Clínico" rules={[{ required: true }]}>
-            <Input placeholder="PAC-XXX" />
+          <Form.Item name="paciente_id" label="ID Paciente">
+            <Input type="number" placeholder="ID numérico (opcional)" />
           </Form.Item>
-          <Form.Item name="paciente" label="ID Paciente" rules={[{ required: true }]}>
-            <Input type="number" placeholder="ID numérico" />
+          <Form.Item name="tipo" label="Tipo de Alerta" rules={[{ required: true }]}>
+            <Select>
+              <Select.Option value="valor_critico">Valor crítico detectado</Select.Option>
+              <Select.Option value="seguimiento_vencido">Seguimiento vencido</Select.Option>
+              <Select.Option value="medicamento_contraindicado">Medicamento contraindicado</Select.Option>
+              <Select.Option value="riesgo_alto">Riesgo alto detectado</Select.Option>
+              <Select.Option value="resultado_anormal">Resultado anormal</Select.Option>
+              <Select.Option value="cita_perdida">Cita perdida</Select.Option>
+              <Select.Option value="protocolo_incumplido">Protocolo no seguido</Select.Option>
+              <Select.Option value="auditoria">Requiere auditoría</Select.Option>
+            </Select>
           </Form.Item>
-          <Form.Item name="tipo_alerta" label="Tipo de Alerta" rules={[{ required: true }]}>
-            <Input placeholder="Ej: Presión Arterial Alta" />
-          </Form.Item>
-          <Form.Item name="severidad" label="Severidad" rules={[{ required: true }]}>
+          <Form.Item name="prioridad" label="Prioridad" rules={[{ required: true }]}>
             <Select>
               <Select.Option value="baja">Baja</Select.Option>
               <Select.Option value="media">Media</Select.Option>
               <Select.Option value="alta">Alta</Select.Option>
               <Select.Option value="critica">Crítica</Select.Option>
+              <Select.Option value="emergencia">Emergencia</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="mensaje" label="Mensaje" rules={[{ required: true }]}>
-            <Input.TextArea rows={2} placeholder="Mensaje principal de la alerta" />
+          <Form.Item name="descripcion" label="Descripción" rules={[{ required: true }]}>
+            <Input.TextArea rows={3} placeholder="Descripción detallada de la alerta" />
           </Form.Item>
-          <Form.Item name="descripcion" label="Descripción">
-            <Input.TextArea rows={3} placeholder="Descripción detallada (opcional)" />
+          <Form.Item name="accion_recomendada" label="Acción Recomendada" rules={[{ required: true }]}>
+            <Input.TextArea rows={2} placeholder="Qué debe hacer el equipo médico" />
           </Form.Item>
-          <Form.Item name="modulo_origen" label="Módulo Origen">
+          <Form.Item name="modulo_origen" label="Módulo Origen" rules={[{ required: true }]}>
             <Select>
-              <Select.Option value="Triaje">Triaje</Select.Option>
-              <Select.Option value="Laboratorio">Laboratorio</Select.Option>
-              <Select.Option value="Control Prenatal">Control Prenatal</Select.Option>
-              <Select.Option value="Ecografía">Ecografía</Select.Option>
-              <Select.Option value="Vacunas">Vacunas</Select.Option>
+              <Select.Option value="pacientes">Módulo de Pacientes</Select.Option>
+              <Select.Option value="embarazos">Módulo de Embarazos</Select.Option>
+              <Select.Option value="controles">Controles Prenatales</Select.Option>
+              <Select.Option value="ecografias">Ecografías</Select.Option>
+              <Select.Option value="laboratorio">Laboratorio</Select.Option>
+              <Select.Option value="calculadoras">Calculadoras Médicas</Select.Option>
+              <Select.Option value="partos">Partos</Select.Option>
+              <Select.Option value="sistema">Sistema</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="valores_referencia" label="Valores de Referencia">
+          <Form.Item name="valor_actual" label="Valor Actual">
+            <Input placeholder="Ej: 150/95 mmHg" />
+          </Form.Item>
+          <Form.Item name="valor_umbral" label="Valor Umbral">
             <Input placeholder="Ej: Normal: <140/90 mmHg" />
           </Form.Item>
         </Form>

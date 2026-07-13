@@ -16,8 +16,8 @@
  */
 
 import React, { useState } from 'react';
-import {
-  Card,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card,
   Tabs,
   Form,
   Input,
@@ -28,7 +28,6 @@ import {
   Row,
   Col,
   Divider,
-  message,
   Alert,
   Statistic,
   Typography,
@@ -38,8 +37,7 @@ import {
   Timeline,
   Table,
   Tooltip,
-  Switch,
-} from 'antd';
+  Switch} from "antd";
 import {
   CalculatorOutlined,
   CalendarOutlined,
@@ -54,11 +52,11 @@ import {
   ExperimentOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import calculoHistorialService, { TipoCalculadora } from '../../services/calculoHistorialService';
 import './CalculadorasAvanzadas.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
-const { TabPane } = Tabs;
 
 // Hoisted tab labels (static JSX - avoids recreation on every render)
 const tabEdadGestacional = (
@@ -125,6 +123,15 @@ interface ResultadoCalculo {
 interface ResultadoCardProps {
   resultado: ResultadoCalculo;
 }
+
+const guardarResultado = (tipo: TipoCalculadora, inputs: any, resultado: ResultadoCalculo) => {
+  calculoHistorialService.crear({
+    tipo_calculadora: tipo,
+    inputs_json: inputs,
+    resultado_json: resultado,
+    resultado_resumen: typeof resultado.valor === 'string' ? resultado.valor : JSON.stringify(resultado.valor).slice(0, 250),
+  });
+};
 
 const ResultadoCard: React.FC<ResultadoCardProps> = ({ resultado }) => (
   <Card
@@ -249,6 +256,7 @@ const ResultadoCard: React.FC<ResultadoCardProps> = ({ resultado }) => (
 
 const CalculadorasAvanzadas: React.FC = () => {
   const [formEdadGestacional] = Form.useForm();
+  const { message } = useAntdApp();
   const [formBishop] = Form.useForm();
   const [formIMC] = Form.useForm();
   const [formPreeclampsia] = Form.useForm();
@@ -257,21 +265,51 @@ const CalculadorasAvanzadas: React.FC = () => {
   const [formPesoFetal] = Form.useForm();
   const [formApgar] = Form.useForm();
 
-  const [resultadoEdadGestacional, setResultadoEdadGestacional] =
-    useState<ResultadoCalculo | null>(null);
-  const [resultadoBishop, setResultadoBishop] = useState<ResultadoCalculo | null>(null);
-  const [resultadoIMC, setResultadoIMC] = useState<ResultadoCalculo | null>(null);
-  const [resultadoPreeclampsia, setResultadoPreeclampsia] =
-    useState<ResultadoCalculo | null>(null);
-  const [resultadoDiabetes, setResultadoDiabetes] = useState<ResultadoCalculo | null>(
-    null
-  );
-  const [resultadoILA, setResultadoILA] = useState<ResultadoCalculo | null>(null);
-  const [resultadoPesoFetal, setResultadoPesoFetal] = useState<ResultadoCalculo | null>(
-    null
-  );
-  const [resultadoApgar, setResultadoApgar] = useState<ResultadoCalculo | null>(null);
+  const [resultados, setResultados] = useState({
+    edadGestacional: null as ResultadoCalculo | null,
+    bishop: null as ResultadoCalculo | null,
+    imc: null as ResultadoCalculo | null,
+    preeclampsia: null as ResultadoCalculo | null,
+    diabetes: null as ResultadoCalculo | null,
+    ila: null as ResultadoCalculo | null,
+    pesoFetal: null as ResultadoCalculo | null,
+    apgar: null as ResultadoCalculo | null,
+  });
 
+  const resultadoEdadGestacional = resultados.edadGestacional;
+  const setResultadoEdadGestacional = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, edadGestacional: val }));
+
+  const resultadoBishop = resultados.bishop;
+  const setResultadoBishop = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, bishop: val }));
+
+  const resultadoIMC = resultados.imc;
+  const setResultadoIMC = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, imc: val }));
+
+  const resultadoPreeclampsia = resultados.preeclampsia;
+  const setResultadoPreeclampsia = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, preeclampsia: val }));
+
+  const resultadoDiabetes = resultados.diabetes;
+  const setResultadoDiabetes = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, diabetes: val }));
+
+  const resultadoILA = resultados.ila;
+  const setResultadoILA = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, ila: val }));
+
+  const resultadoPesoFetal = resultados.pesoFetal;
+  const setResultadoPesoFetal = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, pesoFetal: val }));
+
+  const resultadoApgar = resultados.apgar;
+  const setResultadoApgar = (val: ResultadoCalculo | null) =>
+    setResultados((prev) => ({ ...prev, apgar: val }));
+
+  // Persistencia en backend: esta pantalla nunca guardaba nada, ni siquiera
+  // en localStorage — el resultado se perdía al cambiar de pestaña.
   // ==========================================================================
   // CALCULADORA 1: EDAD GESTACIONAL Y FPP
   // ==========================================================================
@@ -322,6 +360,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoEdadGestacional(resultado);
+      guardarResultado('edad_gestacional', values, resultado);
       message.success('Edad gestacional calculada correctamente');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -383,6 +422,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoBishop(resultado);
+      guardarResultado('bishop', values, resultado);
       message.success('Score de Bishop calculado correctamente');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -459,6 +499,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoIMC(resultado);
+      guardarResultado('imc', values, resultado);
       message.success('IMC calculado correctamente');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -563,6 +604,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoPreeclampsia(resultado);
+      guardarResultado('riesgo_preeclampsia', values, resultado);
       message.success('Riesgo de preeclampsia calculado correctamente');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -640,6 +682,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoDiabetes(resultado);
+      guardarResultado('diabetes_gestacional', values, resultado);
       message.success('Tamizaje de diabetes gestacional calculado');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -730,6 +773,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoILA(resultado);
+      guardarResultado('ila', values, resultado);
       message.success('Índice de líquido amniótico calculado');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -823,6 +867,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoPesoFetal(resultado);
+      guardarResultado('peso_fetal', values, resultado);
       message.success('Peso fetal estimado calculado');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -903,6 +948,7 @@ const CalculadorasAvanzadas: React.FC = () => {
       };
 
       setResultadoApgar(resultado);
+      guardarResultado('apgar', values, resultado);
       message.success('Score de Apgar calculado');
     } catch (error) {
       message.error('Error en el cálculo');
@@ -932,12 +978,11 @@ const CalculadorasAvanzadas: React.FC = () => {
           style={{ marginBottom: 24 }}
         />
 
-        <Tabs defaultActiveKey="1" type="card">
-          {/* TAB 1: EDAD GESTACIONAL */}
-          <TabPane
-            tab={tabEdadGestacional}
-            key="1"
-          >
+        <Tabs defaultActiveKey="1" type="card" items={[
+          {
+            key: "1",
+            label: tabEdadGestacional,
+            children: (
             <Card type="inner" title="Calcular Edad Gestacional y FPP">
               <Form
                 form={formEdadGestacional}
@@ -980,13 +1025,13 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoEdadGestacional && <ResultadoCard resultado={resultadoEdadGestacional} />}
             </Card>
-          </TabPane>
+            )
+          },
 
-          {/* TAB 2: BISHOP */}
-          <TabPane
-            tab={tabBishop}
-            key="2"
-          >
+          {
+            key: "2",
+            label: tabBishop,
+            children: (
             <Card type="inner" title="Evaluar Maduración Cervical">
               <Form form={formBishop} layout="vertical" onFinish={calcularBishop}>
                 <Row gutter={16}>
@@ -1067,13 +1112,13 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoBishop && <ResultadoCard resultado={resultadoBishop} />}
             </Card>
-          </TabPane>
+            )
+          },
 
-          {/* TAB 3: IMC */}
-          <TabPane
-            tab={tabIMC}
-            key="3"
-          >
+          {
+            key: "3",
+            label: tabIMC,
+            children: (
             <Card type="inner" title="Calcular Índice de Masa Corporal">
               <Form form={formIMC} layout="vertical" onFinish={calcularIMC}>
                 <Row gutter={16}>
@@ -1116,13 +1161,13 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoIMC && <ResultadoCard resultado={resultadoIMC} />}
             </Card>
-          </TabPane>
+            )
+          },
 
-          {/* TAB 4: PREECLAMPSIA */}
-          <TabPane
-            tab={tabPreeclampsia}
-            key="4"
-          >
+          {
+            key: "4",
+            label: tabPreeclampsia,
+            children: (
             <Card type="inner" title="Evaluar Riesgo de Preeclampsia">
               <Form
                 form={formPreeclampsia}
@@ -1227,13 +1272,13 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoPreeclampsia && <ResultadoCard resultado={resultadoPreeclampsia} />}
             </Card>
-          </TabPane>
+            )
+          },
 
-          {/* TAB 5: DIABETES GESTACIONAL */}
-          <TabPane
-            tab={tabDiabetesGestacional}
-            key="5"
-          >
+          {
+            key: "5",
+            label: tabDiabetesGestacional,
+            children: (
             <Card type="inner" title="Tamizaje de Diabetes Gestacional (CTOG 100g)">
               <Alert
                 message="Curva de Tolerancia a la Glucosa Oral - 100g"
@@ -1305,13 +1350,13 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoDiabetes && <ResultadoCard resultado={resultadoDiabetes} />}
             </Card>
-          </TabPane>
+            )
+          },
 
-          {/* TAB 6: ILA */}
-          <TabPane
-            tab={tabILA}
-            key="6"
-          >
+          {
+            key: "6",
+            label: tabILA,
+            children: (
             <Card type="inner" title="Calcular Índice de Líquido Amniótico (ILA)">
               <Alert
                 message="Técnica de 4 Cuadrantes"
@@ -1395,13 +1440,13 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoILA && <ResultadoCard resultado={resultadoILA} />}
             </Card>
-          </TabPane>
+            )
+          },
 
-          {/* TAB 7: PESO FETAL */}
-          <TabPane
-            tab={tabPesoFetal}
-            key="7"
-          >
+          {
+            key: "7",
+            label: tabPesoFetal,
+            children: (
             <Card type="inner" title="Estimación de Peso Fetal (Fórmula de Hadlock)">
               <Alert
                 message="Biometría Fetal Requerida"
@@ -1482,13 +1527,13 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoPesoFetal && <ResultadoCard resultado={resultadoPesoFetal} />}
             </Card>
-          </TabPane>
+            )
+          },
 
-          {/* TAB 8: APGAR */}
-          <TabPane
-            tab={tabApgar}
-            key="8"
-          >
+          {
+            key: "8",
+            label: tabApgar,
+            children: (
             <Card type="inner" title="Evaluar Score de Apgar del Recién Nacido">
               <Alert
                 message="Evaluación Neonatal"
@@ -1573,8 +1618,9 @@ const CalculadorasAvanzadas: React.FC = () => {
               </Form>
               {resultadoApgar && <ResultadoCard resultado={resultadoApgar} />}
             </Card>
-          </TabPane>
-        </Tabs>
+            )
+          },
+        ]} />
       </Card>
     </div>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Drawer, Space, Button, Descriptions, Divider, Card, Tag } from 'antd';
 import {
   CalendarOutlined,
@@ -21,7 +21,53 @@ interface CitasDrawerProps {
   getEstadoTag: (estado: EstadoCita) => React.ReactNode;
 }
 
-const CitasDrawer: React.FC<CitasDrawerProps> = ({
+interface QuickLink {
+  icon: React.ReactNode;
+  label: string;
+  path: (pacienteId: number) => string;
+  primary?: boolean;
+}
+
+const QUICK_LINKS: QuickLink[] = [
+  {
+    icon: <UserOutlined />,
+    label: 'Ver Paciente: {nombre}',
+    path: (id) => `/dashboard/pacientes?id=${id}`,
+  },
+  {
+    icon: <MedicineBoxOutlined />,
+    label: 'Ver Embarazos del Paciente',
+    path: (id) => `/dashboard/embarazos?paciente=${id}`,
+  },
+  {
+    icon: <MedicineBoxOutlined />,
+    label: 'Ver Controles Prenatales',
+    path: (id) => `/dashboard/controles?paciente=${id}`,
+  },
+  {
+    icon: <SearchOutlined />,
+    label: 'Ver Ecografías',
+    path: (id) => `/dashboard/ecografias?paciente=${id}`,
+  },
+  {
+    icon: <ExclamationCircleOutlined />,
+    label: 'Ver Exámenes de Laboratorio',
+    path: (id) => `/dashboard/laboratorio?paciente=${id}`,
+  },
+  {
+    icon: <CalendarOutlined />,
+    label: 'Ver Información de Parto',
+    path: (id) => `/dashboard/partos?paciente=${id}`,
+  },
+  {
+    icon: <UserOutlined />,
+    label: 'Ver Historia Clínica Completa',
+    path: (id) => `/dashboard/pacientes/${id}/historia`,
+    primary: true,
+  },
+];
+
+const CitasDrawer: React.FC<CitasDrawerProps> = React.memo(({
   visible,
   cita,
   canChange,
@@ -30,19 +76,26 @@ const CitasDrawer: React.FC<CitasDrawerProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleVerCompleto = () => {
+  const handleVerCompleto = useCallback(() => {
     if (cita) {
       onClose();
       navigate(`/dashboard/citas/${cita.id}`);
     }
-  };
+  }, [cita, onClose, navigate]);
 
-  const handleEditar = () => {
+  const handleEditar = useCallback(() => {
     if (cita) {
       onClose();
       navigate(`/dashboard/citas/${cita.id}/editar`);
     }
-  };
+  }, [cita, onClose, navigate]);
+
+  const handleNavigate = useCallback((path: string) => {
+    onClose();
+    navigate(path);
+  }, [onClose, navigate]);
+
+  if (!cita) return null;
 
   return (
     <Drawer
@@ -50,7 +103,7 @@ const CitasDrawer: React.FC<CitasDrawerProps> = ({
         <Space>
           <CalendarOutlined />
           Vista Rápida de Cita
-          {cita && getEstadoTag(cita.estado)}
+          {getEstadoTag(cita.estado)}
         </Space>
       }
       placement="right"
@@ -70,127 +123,57 @@ const CitasDrawer: React.FC<CitasDrawerProps> = ({
         </Space>
       }
     >
-      {cita && (
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
-          <Descriptions title="Información de la Cita" bordered column={1} size="small">
-            <Descriptions.Item label="Paciente">
-              <strong>{cita.paciente_info?.nombre_completo || 'No especificado'}</strong>
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <Descriptions title="Información de la Cita" bordered column={1} size="small">
+          <Descriptions.Item label="Paciente">
+            <strong>{cita.paciente_info?.nombre_completo || 'No especificado'}</strong>
+          </Descriptions.Item>
+          <Descriptions.Item label="Fecha y Hora">
+            {dayjs(cita.fecha_cita).format('DD/MM/YYYY - HH:mm')}
+          </Descriptions.Item>
+          <Descriptions.Item label="Tipo de Cita">
+            <Tag color="blue">{cita.tipo_cita}</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="Estado">
+            {getEstadoTag(cita.estado)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Médico">
+            {cita.medico_info?.nombre || 'No asignado'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Motivo">
+            {cita.motivo || 'No especificado'}
+          </Descriptions.Item>
+          {cita.observaciones && (
+            <Descriptions.Item label="Observaciones">
+              {cita.observaciones}
             </Descriptions.Item>
-            <Descriptions.Item label="Fecha y Hora">
-              {dayjs(cita.fecha_cita).format('DD/MM/YYYY - HH:mm')}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tipo de Cita">
-              <Tag color="blue">{cita.tipo_cita}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Estado">
-              {getEstadoTag(cita.estado)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Médico">
-              {cita.medico_info?.nombre || 'No asignado'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Motivo">
-              {cita.motivo || 'No especificado'}
-            </Descriptions.Item>
-            {cita.observaciones && (
-              <Descriptions.Item label="Observaciones">
-                {cita.observaciones}
-              </Descriptions.Item>
-            )}
-          </Descriptions>
+          )}
+        </Descriptions>
 
-          <Divider orientation="left">🔗 Acceso Rápido a Módulos</Divider>
-          <Card size="small">
-            <Space direction="vertical" style={{ width: '100%' }} size="small">
-              <Button
-                type="link"
-                icon={<UserOutlined />}
-                block
-                style={{ textAlign: 'left' }}
-                onClick={() => {
-                  onClose();
-                  navigate(`/dashboard/pacientes?id=${cita.paciente}`);
-                }}
-              >
-                Ver Paciente: {cita.paciente_info?.nombre_completo || 'No especificado'}
-              </Button>
-              <Button
-                type="link"
-                icon={<MedicineBoxOutlined />}
-                block
-                style={{ textAlign: 'left' }}
-                onClick={() => {
-                  onClose();
-                  navigate(`/dashboard/embarazos?paciente=${cita.paciente}`);
-                }}
-              >
-                Ver Embarazos del Paciente
-              </Button>
-              <Button
-                type="link"
-                icon={<MedicineBoxOutlined />}
-                block
-                style={{ textAlign: 'left' }}
-                onClick={() => {
-                  onClose();
-                  navigate(`/dashboard/controles?paciente=${cita.paciente}`);
-                }}
-              >
-                Ver Controles Prenatales
-              </Button>
-              <Button
-                type="link"
-                icon={<SearchOutlined />}
-                block
-                style={{ textAlign: 'left' }}
-                onClick={() => {
-                  onClose();
-                  navigate(`/dashboard/ecografias?paciente=${cita.paciente}`);
-                }}
-              >
-                Ver Ecografías
-              </Button>
-              <Button
-                type="link"
-                icon={<ExclamationCircleOutlined />}
-                block
-                style={{ textAlign: 'left' }}
-                onClick={() => {
-                  onClose();
-                  navigate(`/dashboard/laboratorio?paciente=${cita.paciente}`);
-                }}
-              >
-                Ver Exámenes de Laboratorio
-              </Button>
-              <Button
-                type="link"
-                icon={<CalendarOutlined />}
-                block
-                style={{ textAlign: 'left' }}
-                onClick={() => {
-                  onClose();
-                  navigate(`/dashboard/partos?paciente=${cita.paciente}`);
-                }}
-              >
-                Ver Información de Parto
-              </Button>
-              <Divider style={{ margin: '8px 0' }} />
-              <Button
-                type="primary"
-                icon={<UserOutlined />}
-                block
-                onClick={() => {
-                  onClose();
-                  navigate(`/dashboard/pacientes/${cita.paciente}/historia`);
-                }}
-              >
-                Ver Historia Clínica Completa
-              </Button>
-            </Space>
-          </Card>
-        </Space>
-      )}
+        <Divider orientation="left">Acceso Rápido a Módulos</Divider>
+        <Card size="small">
+          <Space direction="vertical" style={{ width: '100%' }} size="small">
+            {QUICK_LINKS.map((link) => {
+              const label = link.label.replace('{nombre}', cita.paciente_info?.nombre_completo || '');
+              const isLastPrimary = link.primary;
+              return (
+                <Button
+                  key={link.label}
+                  type={isLastPrimary ? 'primary' : 'link'}
+                  icon={link.icon}
+                  block
+                  style={isLastPrimary ? undefined : { textAlign: 'left' }}
+                  onClick={() => handleNavigate(link.path(cita.paciente))}
+                >
+                  {label}
+                </Button>
+              );
+            })}
+          </Space>
+        </Card>
+      </Space>
     </Drawer>
   );
-};
+});
 
 export default CitasDrawer;

@@ -7,6 +7,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 export interface EvolucionEmbarazo {
     id?: number;
@@ -104,7 +105,7 @@ export const evolucionesService = {
     async crear(data: Partial<EvolucionEmbarazo>): Promise<EvolucionEmbarazo> {
         try {
             const response = await api.post<EvolucionEmbarazo>('/evoluciones/', data);
-            console.log('✅ Evolución creada');
+            logger.log('✅ Evolución creada');
             return normalizeSingleResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error('❌ Error creando evolución:', error);
@@ -119,7 +120,7 @@ export const evolucionesService = {
     async actualizar(id: number, data: Partial<EvolucionEmbarazo>): Promise<EvolucionEmbarazo> {
         try {
             const response = await api.put<EvolucionEmbarazo>(`/evoluciones/${id}/`, data);
-            console.log(`✅ Evolución ${id} actualizada`);
+            logger.log(`✅ Evolución ${id} actualizada`);
             return normalizeSingleResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error(`❌ Error actualizando evolución ${id}:`, error);
@@ -134,7 +135,7 @@ export const evolucionesService = {
     async eliminar(id: number): Promise<void> {
         try {
             await api.delete(`/evoluciones/${id}/`);
-            console.log(`✅ Evolución ${id} eliminada`);
+            logger.log(`✅ Evolución ${id} eliminada`);
         } catch (error: any) {
             console.error(`❌ Error eliminando evolución ${id}:`, error);
             throw error;

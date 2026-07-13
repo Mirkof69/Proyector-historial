@@ -1,13 +1,12 @@
 import React, { useState, useReducer, useEffect } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
 import { notificacionesService, Notificacion } from '../../services/notificacionesService';
-import {
-  Card, List, Button, Badge, Space, Dropdown,
+import {Card, List, Button, Badge, Space, Dropdown,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Menu, message, Empty, Avatar, Typography,
+  Menu, Empty, Avatar, Typography,
   Drawer, Descriptions, DatePicker, Select, Input, Tooltip, Popconfirm, Row, Col, Table,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Tag, Statistic, Spin as _Spin
-} from 'antd';
+  Tag, Statistic, Spin as _Spin} from "antd";
 import {
   DeleteOutlined,
   CheckOutlined,
@@ -44,37 +43,79 @@ const FILTER_ICON_3 = <FilterOutlined />;
 const RELOAD_ICON_3 = <ReloadOutlined />;
 const BELL_ICON_2 = <BellOutlined />;
 
+// ── Estado de filtros (reducer a nivel de módulo: identidad estable) ─────────
+interface FiltrosNotifState {
+  searchText: string;
+  filterType: string | undefined;
+  filterRead: string | undefined;
+  dateRange: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
+}
+
+type FiltrosNotifAction =
+  | { type: 'SET_SEARCH'; payload: string }
+  | { type: 'SET_TYPE'; payload: string | undefined }
+  | { type: 'SET_READ'; payload: string | undefined }
+  | { type: 'SET_DATE_RANGE'; payload: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null }
+  | { type: 'LIMPIAR' };
+
+const filtrosNotifReducer = (state: FiltrosNotifState, action: FiltrosNotifAction): FiltrosNotifState => {
+  switch (action.type) {
+    case 'SET_SEARCH': return { ...state, searchText: action.payload };
+    case 'SET_TYPE': return { ...state, filterType: action.payload };
+    case 'SET_READ': return { ...state, filterRead: action.payload };
+    case 'SET_DATE_RANGE': return { ...state, dateRange: action.payload };
+    case 'LIMPIAR': return { searchText: '', filterType: undefined, filterRead: 'todas', dateRange: null };
+    default: return state;
+  }
+};
+
+// Mapeadores puros de tipo → icono/etiqueta/clase (nivel de módulo).
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'error': return <WarningOutlined />;
+    case 'warning': return <WarningOutlined />;
+    case 'success': return <CheckOutlined />;
+    case 'cita': return <CalendarOutlined />;
+    case 'examen': return <MedicineBoxOutlined />;
+    case 'documento': return <FileTextOutlined />;
+    case 'info':
+    default: return <MessageOutlined />;
+  }
+};
+
+const getTypeLabel = (type: string) => {
+  switch (type) {
+    case 'error': return 'Alerta';
+    case 'warning': return 'Advertencia';
+    case 'success': return 'Éxito';
+    case 'cita': return 'Cita';
+    case 'examen': return 'Examen';
+    case 'documento': return 'Documento';
+    case 'info': return 'Información';
+    default: return type;
+  }
+};
+
+const getTypeClass = (type: string) => {
+  switch (type) {
+    case 'error': return 'alerta';
+    case 'warning': return 'alerta';
+    case 'success': return 'mensaje';
+    case 'cita': return 'cita';
+    case 'examen': return 'examen';
+    case 'documento': return 'recordatorio';
+    case 'info': return 'mensaje';
+    default: return 'default';
+  }
+};
+
   const Notificaciones: React.FC = () => {
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [notificaciones, setNotificaciones] = useState<Notificacion[] | undefined>(undefined);
+  const { message } = useAntdApp();
   const [loading, setLoading] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notificacion | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
-
-  interface FiltrosNotifState {
-    searchText: string;
-    filterType: string | undefined;
-    filterRead: string | undefined;
-    dateRange: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
-  }
-
-  type FiltrosNotifAction =
-    | { type: 'SET_SEARCH'; payload: string }
-    | { type: 'SET_TYPE'; payload: string | undefined }
-    | { type: 'SET_READ'; payload: string | undefined }
-    | { type: 'SET_DATE_RANGE'; payload: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null }
-    | { type: 'LIMPIAR' };
-
-  const filtrosNotifReducer = (state: FiltrosNotifState, action: FiltrosNotifAction): FiltrosNotifState => {
-    switch (action.type) {
-      case 'SET_SEARCH': return { ...state, searchText: action.payload };
-      case 'SET_TYPE': return { ...state, filterType: action.payload };
-      case 'SET_READ': return { ...state, filterRead: action.payload };
-      case 'SET_DATE_RANGE': return { ...state, dateRange: action.payload };
-      case 'LIMPIAR': return { searchText: '', filterType: undefined, filterRead: 'todas', dateRange: null };
-      default: return state;
-    }
-  };
 
   const [filtros, dispatchFiltros] = useReducer(filtrosNotifReducer, {
     searchText: '',
@@ -85,12 +126,13 @@ const BELL_ICON_2 = <BellOutlined />;
 
   // Estadísticas
   const stats = {
-    total: notificaciones.length,
-    nuevas: notificaciones.filter(n => !n.leida).length,
-    alertas: notificaciones.filter(n => n.tipo === 'error' || n.tipo === 'warning').length,
-    info: notificaciones.filter(n => n.tipo === 'info' || n.tipo === 'success').length,
+    total: notificaciones?.length || 0,
+    nuevas: notificaciones?.filter(n => !n.leida).length || 0,
+    alertas: notificaciones?.filter(n => n.tipo === 'error' || n.tipo === 'warning').length || 0,
+    info: notificaciones?.filter(n => n.tipo === 'info' || n.tipo === 'success').length || 0,
   };
 
+  // eslint-disable-next-line react-doctor/no-initialize-state
   useEffect(() => {
     loadNotificaciones();
   }, []);
@@ -152,7 +194,7 @@ const BELL_ICON_2 = <BellOutlined />;
   };
 
   // Filtrado
-  const filteredNotificaciones = notificaciones.filter(item => {
+  const filteredNotificaciones = (notificaciones || []).filter(item => {
     const matchesSearch = filtros.searchText
       ? item.titulo.toLowerCase().includes(filtros.searchText.toLowerCase()) ||
       item.mensaje.toLowerCase().includes(filtros.searchText.toLowerCase())
@@ -172,45 +214,6 @@ const BELL_ICON_2 = <BellOutlined />;
 
     return matchesSearch && matchesType && matchesRead && matchesDate;
   });
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'error': return <WarningOutlined />;
-      case 'warning': return <WarningOutlined />;
-      case 'success': return <CheckOutlined />;
-      case 'cita': return <CalendarOutlined />;
-      case 'examen': return <MedicineBoxOutlined />;
-      case 'documento': return <FileTextOutlined />;
-      case 'info':
-      default: return <MessageOutlined />;
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'error': return 'Alerta';
-      case 'warning': return 'Advertencia';
-      case 'success': return 'Éxito';
-      case 'cita': return 'Cita';
-      case 'examen': return 'Examen';
-      case 'documento': return 'Documento';
-      case 'info': return 'Información';
-      default: return type;
-    }
-  };
-
-  const getTypeClass = (type: string) => {
-    switch (type) {
-      case 'error': return 'alerta';
-      case 'warning': return 'alerta';
-      case 'success': return 'mensaje';
-      case 'cita': return 'cita';
-      case 'examen': return 'examen';
-      case 'documento': return 'recordatorio';
-      case 'info': return 'mensaje';
-      default: return 'default';
-    }
-  };
 
   const columns = [
     {
@@ -345,7 +348,7 @@ const BELL_ICON_2 = <BellOutlined />;
                   label: 'Eliminar todas leídas',
                   danger: true,
                   onClick: () => {
-                    for (const n of notificaciones.filter(n => n.leida)) {
+                    for (const n of (notificaciones || []).filter(n => n.leida)) {
                       handleDelete(n.id);
                     }
                   }
@@ -423,7 +426,7 @@ const BELL_ICON_2 = <BellOutlined />;
         </Col>
       </Row>
 
-      <Card className="filters-card" bodyStyle={{ padding: '16px 24px' }}>
+      <Card className="filters-card" styles={{ body: { padding: '16px 24px' } }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} md={6}>
             <Input

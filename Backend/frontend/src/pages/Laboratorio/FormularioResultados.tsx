@@ -48,7 +48,7 @@ const FormularioResultados: React.FC<FormularioResultadosProps> = ({
     };
 
     cargarValoresReferencia();
-  }, [tipoExamenId]);
+  }, [tipoExamenId, message]);
 
   const handleSubmit = async (values: any) => {
     setLoading(true);

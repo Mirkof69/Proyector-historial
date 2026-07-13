@@ -7,11 +7,10 @@
  */
 
 import React, { useReducer, useEffect } from 'react';
-import {
-  Card, Row, Col, Badge, List, Tag, Button, Space, Modal,
-  Statistic, Empty, Spin, message, Divider,
-  Select, Input, DatePicker, Tabs, Alert, Avatar, Tooltip
-} from 'antd';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card, Row, Col, Badge, List, Tag, Button, Space, Modal,
+  Statistic, Empty, Spin, Divider,
+  Select, Input, DatePicker, Tabs, Alert, Avatar, Tooltip} from "antd";
 import {
   BellOutlined, WarningOutlined, CheckCircleOutlined,
   ClockCircleOutlined, ExclamationCircleOutlined,
@@ -21,6 +20,7 @@ import {
   CloseCircleOutlined, CalendarOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { reportesService, AlertaMedica as AlertaMedicaReal } from '../../services/reportesService';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import es from 'dayjs/locale/es';
@@ -32,22 +32,58 @@ const { Option } = Select;
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 
+// Tipo de vista usado por esta pantalla: misma forma que el modelo real
+// AlertaMedica del backend (reportes/models.py), con "tipo" reutilizado
+// para el filtro de prioridad y "categoria"/"notas" derivados de campos reales.
 interface AlertaMedica {
   id: number;
   titulo: string;
   descripcion: string;
   tipo: 'critica' | 'alta' | 'media' | 'baja' | 'info';
-  prioridad: number;
+  prioridad: string;
   paciente_id?: number;
-  paciente_nombre?: string;
+  paciente_nombre?: string | null;
   estado: 'activa' | 'en_proceso' | 'resuelta' | 'descartada';
   fecha_creacion: string;
-  fecha_actualizacion?: string;
   fecha_resolucion?: string;
   categoria: string;
   asignado_a?: string;
   notas?: string;
 }
+
+const mapEstadoReal = (estado: AlertaMedicaReal['estado']): AlertaMedica['estado'] => {
+  if (estado === 'revisada' || estado === 'escalada') return 'en_proceso';
+  if (estado === 'resuelta') return 'resuelta';
+  if (estado === 'descartada') return 'descartada';
+  return 'activa';
+};
+
+const mapEstadoVistaABackend = (estado: AlertaMedica['estado']): AlertaMedicaReal['estado'] | '' => {
+  if (estado === 'en_proceso') return 'revisada';
+  return estado || '';
+};
+
+const mapTipoReal = (prioridad: AlertaMedicaReal['prioridad']): AlertaMedica['tipo'] => {
+  if (prioridad === 'critica' || prioridad === 'emergencia') return 'critica';
+  if (prioridad === 'alta') return 'alta';
+  if (prioridad === 'media') return 'media';
+  return 'baja';
+};
+
+const mapAlertaReal = (alerta: AlertaMedicaReal): AlertaMedica => ({
+  id: alerta.id,
+  titulo: alerta.titulo,
+  descripcion: alerta.descripcion || '',
+  tipo: mapTipoReal(alerta.prioridad),
+  prioridad: alerta.prioridad_display || alerta.prioridad,
+  paciente_id: alerta.paciente_id,
+  paciente_nombre: alerta.paciente_nombre,
+  estado: mapEstadoReal(alerta.estado),
+  fecha_creacion: alerta.fecha_creacion,
+  fecha_resolucion: alerta.fecha_resolucion,
+  categoria: alerta.modulo_origen_display || alerta.modulo_origen,
+  notas: alerta.comentario_resolucion || alerta.comentario_revision || undefined,
+});
 
 interface AlertState {
   alertas: AlertaMedica[];
@@ -112,8 +148,30 @@ function alertReducer(state: AlertState, action: AlertAction): AlertState {
   }
 }
 
+const getTipoConfig = (tipo: string) => {
+  const configs: Record<string, { icon: React.ReactElement; color: string; text: string }> = {
+    'critica': { icon: <FireOutlined />, color: '#f5222d', text: 'Crítica' },
+    'alta': { icon: <WarningOutlined />, color: '#fa8c16', text: 'Alta' },
+    'media': { icon: <ExclamationCircleOutlined />, color: '#faad14', text: 'Media' },
+    'baja': { icon: <InfoCircleOutlined />, color: '#1890ff', text: 'Baja' },
+    'info': { icon: <BellOutlined />, color: '#52c41a', text: 'Información' },
+  };
+  return configs[tipo] || configs['info'];
+};
+
+const getEstadoConfig = (estado: string) => {
+  const configs: Record<string, { icon: React.ReactElement; color: string; text: string }> = {
+    'activa': { icon: <AlertOutlined />, color: 'error', text: 'Activa' },
+    'en_proceso': { icon: <SyncOutlined spin />, color: 'processing', text: 'En Proceso' },
+    'resuelta': { icon: <CheckCircleOutlined />, color: 'success', text: 'Resuelta' },
+    'descartada': { icon: <CloseCircleOutlined />, color: 'default', text: 'Descartada' },
+  };
+  return configs[estado] || configs['activa'];
+};
+
 const SistemaAlertas: React.FC = () => {
   const navigate = useNavigate();
+  const { message } = useAntdApp();
   const [state, dispatch] = useReducer(alertReducer, initialAlertState);
   const { alertas, loading, filtroTipo, filtroEstado, busqueda, alertaSeleccionada, modalVisible, rangoFechas, vistaActiva } = state;
 
@@ -130,72 +188,8 @@ const SistemaAlertas: React.FC = () => {
   const cargarAlertas = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      // Simular data - en producción viene del backend
-      const dataMock: AlertaMedica[] = [
-        {
-          id: 1,
-          titulo: 'Presión Arterial Crítica',
-          descripcion: 'Paciente María González presenta PA 180/110',
-          tipo: 'critica',
-          prioridad: 1,
-          paciente_id: 123,
-          paciente_nombre: 'María González',
-          estado: 'activa',
-          fecha_creacion: dayjs().subtract(15, 'minutes').toISOString(),
-          categoria: 'Signos Vitales',
-          asignado_a: 'Dr. Carlos Ruiz',
-        },
-        {
-          id: 2,
-          titulo: 'Control Prenatal Vencido',
-          descripcion: 'Ana Torres tiene control prenatal vencido hace 5 días',
-          tipo: 'alta',
-          prioridad: 2,
-          paciente_id: 124,
-          paciente_nombre: 'Ana Torres',
-          estado: 'activa',
-          fecha_creacion: dayjs().subtract(2, 'hours').toISOString(),
-          categoria: 'Control Prenatal',
-        },
-        {
-          id: 3,
-          titulo: 'Resultado de Laboratorio Anormal',
-          descripcion: 'Glucosa elevada - 180 mg/dL',
-          tipo: 'media',
-          prioridad: 3,
-          paciente_id: 125,
-          paciente_nombre: 'Laura Medina',
-          estado: 'en_proceso',
-          fecha_creacion: dayjs().subtract(5, 'hours').toISOString(),
-          categoria: 'Laboratorio',
-          asignado_a: 'Dra. Elena Vega',
-        },
-        {
-          id: 4,
-          titulo: 'Cita Próxima No Confirmada',
-          descripcion: 'Cita de ecografía mañana sin confirmación',
-          tipo: 'baja',
-          prioridad: 4,
-          paciente_id: 126,
-          paciente_nombre: 'Carmen Silva',
-          estado: 'activa',
-          fecha_creacion: dayjs().subtract(1, 'day').toISOString(),
-          categoria: 'Citas',
-        },
-        {
-          id: 5,
-          titulo: 'Recordatorio de Vacunación',
-          descripcion: 'Vacuna Tdap pendiente',
-          tipo: 'info',
-          prioridad: 5,
-          paciente_id: 127,
-          paciente_nombre: 'Rosa Paredes',
-          estado: 'activa',
-          fecha_creacion: dayjs().subtract(3, 'days').toISOString(),
-          categoria: 'Vacunación',
-        },
-      ];
-      dispatch({ type: 'SET_ALERTAS', payload: dataMock });
+      const data = await reportesService.listarAlertas();
+      dispatch({ type: 'SET_ALERTAS', payload: data.map(mapAlertaReal) });
     } catch (error) {
       message.error('Error cargando alertas');
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -233,27 +227,6 @@ const SistemaAlertas: React.FC = () => {
     resueltas: alertas.filter(a => a.estado === 'resuelta').length,
   };
 
-  const getTipoConfig = (tipo: string) => {
-    const configs: Record<string, { icon: React.ReactElement; color: string; text: string }> = {
-      'critica': { icon: <FireOutlined />, color: '#f5222d', text: 'Crítica' },
-      'alta': { icon: <WarningOutlined />, color: '#fa8c16', text: 'Alta' },
-      'media': { icon: <ExclamationCircleOutlined />, color: '#faad14', text: 'Media' },
-      'baja': { icon: <InfoCircleOutlined />, color: '#1890ff', text: 'Baja' },
-      'info': { icon: <BellOutlined />, color: '#52c41a', text: 'Información' },
-    };
-    return configs[tipo] || configs['info'];
-  };
-
-  const getEstadoConfig = (estado: string) => {
-    const configs: Record<string, { icon: React.ReactElement; color: string; text: string }> = {
-      'activa': { icon: <AlertOutlined />, color: 'error', text: 'Activa' },
-      'en_proceso': { icon: <SyncOutlined spin />, color: 'processing', text: 'En Proceso' },
-      'resuelta': { icon: <CheckCircleOutlined />, color: 'success', text: 'Resuelta' },
-      'descartada': { icon: <CloseCircleOutlined />, color: 'default', text: 'Descartada' },
-    };
-    return configs[estado] || configs['activa'];
-  };
-
   const handleVerDetalle = (alerta: AlertaMedica) => {
     dispatch({ type: 'SET_ALERTA_SELECCIONADA', payload: alerta });
     dispatch({ type: 'SET_MODAL_VISIBLE', payload: true });
@@ -261,7 +234,7 @@ const SistemaAlertas: React.FC = () => {
 
   const handleResolverAlerta = async (id: number) => {
     try {
-      // En producción: await alertasService.resolver(id);
+      await reportesService.marcarAlertaResuelta(id);
       message.success('Alerta resuelta');
       cargarAlertas();
       dispatch({ type: 'SET_MODAL_VISIBLE', payload: false });

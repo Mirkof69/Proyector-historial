@@ -19,6 +19,7 @@ import axios, {
   AxiosRequestConfig
 } from 'axios';
 import { notification, Modal } from 'antd';
+import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. CONFIGURACIÓN BÁSICA Y CONSTANTES
@@ -36,11 +37,11 @@ const getApiUrl = (): string => {
   return `http://${window.location.hostname}:8000/api`;
 };
 
-const API_URL = getApiUrl();
+export const API_URL = getApiUrl();
 const TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT || '30000', 10);
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-const PUBLIC_ROUTES = ['/login/', '/usuarios/login/', '/token/refresh/', '/register/'];
+const PUBLIC_ROUTES = ['/login/', '/usuarios/login/', '/token/refresh/'];
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 2. INSTANCIAS DE AXIOS
@@ -86,7 +87,7 @@ export const saveTokens = (accessToken: string, refreshToken?: string): void => 
     localStorage.setItem('refresh_token', refreshToken);
   }
   if (IS_DEV) {
-    console.log('✅ Tokens guardados/actualizados correctamente');
+    logger.log('✅ Tokens guardados/actualizados correctamente');
   }
 };
 
@@ -96,7 +97,7 @@ const clearAuth = (): void => {
   localStorage.removeItem('token');
   localStorage.removeItem('user:v1');
   if (IS_DEV) {
-    console.log('🧹 Sesión limpiada - Usuario deslogueado');
+    logger.log('🧹 Sesión limpiada - Usuario deslogueado');
   }
 };
 
@@ -117,7 +118,7 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     if (IS_DEV) {
-      console.log(`🚀 [REQ] ${config.method?.toUpperCase()} ${config.url}`, {
+      logger.log(`🚀 [REQ] ${config.method?.toUpperCase()} ${config.url}`, {
         headers: config.headers,
         data: config.data,
         params: config.params
@@ -179,7 +180,7 @@ const refreshAccessToken = async (): Promise<string> => {
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     if (IS_DEV) {
-      console.log(`✅ [RES] ${response.status} ${response.config.url}`);
+      logger.log(`✅ [RES] ${response.status} ${response.config.url}`);
     }
     return response;
   },
@@ -267,7 +268,7 @@ apiClient.interceptors.response.use(
         content: 'No se pudo conectar con el servidor. Verifique su conexión a internet.',
       });
     } else if (status === 400) {
-      const data = error.response.data as Record<string, any> | { detail?: string };
+      const data = error.response?.data as Record<string, any> | { detail?: string };
       let content: string = 'Solicitud incorrecta.';
 
       if (data && typeof data === 'object' && 'detail' in data && data.detail) {
@@ -283,7 +284,7 @@ apiClient.interceptors.response.use(
       Modal.error({
         title: '⚠️ Datos Inválidos',
         content: content,
-        bodyStyle: { whiteSpace: 'pre-line' }
+        styles: { body: { whiteSpace: 'pre-line' } }
       });
     }
 
@@ -295,7 +296,7 @@ apiClient.interceptors.response.use(
 // 7. MÉTODOS DE ACCESO A LA API (WRAPPERS)
 // ═══════════════════════════════════════════════════════════════════════════
 
-const get = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+export const get = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
   const response = await apiClient.get<T>(url, config);
   return response.data;
 };
@@ -310,7 +311,7 @@ export const put = async <T = any>(url: string, data?: any, config?: AxiosReques
   return response.data;
 };
 
-const patch = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+export const patch = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
   const response = await apiClient.patch<T>(url, data, config);
   return response.data;
 };
@@ -337,7 +338,7 @@ export const postFormData = async <T = any>(url: string, formData: FormData, con
 
 const login = async (email: string, password: string): Promise<any> => {
   try {
-    if (IS_DEV) console.log('🔐 Enviando credenciales...');
+    if (IS_DEV) logger.log('🔐 Enviando credenciales...');
     const response = await apiClient.post('/usuarios/login/', { email, password });
     const data = response.data;
     const accessToken = data.access || data.token || data.access_token;
@@ -358,7 +359,7 @@ const login = async (email: string, password: string): Promise<any> => {
       localStorage.setItem('user:v1', JSON.stringify(safeUser));
     }
 
-    if (IS_DEV) console.log('✅ Login exitoso');
+    if (IS_DEV) logger.log('✅ Login exitoso');
     return data;
   } catch (error: any) {
     if (IS_DEV) console.error('❌ Login fallido:', error);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Drawer, Avatar, Typography, Divider, Descriptions, Badge, Tag } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { UserOutlined, MedicineBoxOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { Usuario } from '../../../services/usuariosService';
 
 const { Title, Text } = Typography;
@@ -18,8 +18,6 @@ const ROLES_CONFIG: Record<string, ROLES_CONFIG_TYPE> = {
   enfermero: { nombre: 'Enfermero', color: '#2ecc71', icon: <MedicineBoxOutlined /> },
   administrador: { nombre: 'Administrador', color: '#e74c3c', icon: <SafetyCertificateOutlined /> },
 };
-
-import { MedicineBoxOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 
 interface UsuarioDetailDrawerProps {
   usuario: Usuario | null;

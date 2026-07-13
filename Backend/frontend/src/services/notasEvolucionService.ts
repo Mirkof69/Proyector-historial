@@ -7,6 +7,7 @@
  */
 
 import api, { PaginatedResponse } from './api';
+import { logger } from '../utils/logger';
 
 // ═════════════════════════════════════════════════════════════════════════
 // TIPOS E INTERFACES
@@ -142,8 +143,8 @@ class NotasEvolucionService {
     async getNotaById(id: number): Promise<NotaEvolucion> {
         try {
             const response = await api.get<NotaEvolucion>(`${this.baseUrl}/${id}/`);
-            console.log('✅ Nota de evolución obtenida:', id);
-            return response.data || response;
+            logger.log('✅ Nota de evolución obtenida:', id);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error obteniendo nota ${id}:`, error);
             throw error;
@@ -156,8 +157,8 @@ class NotasEvolucionService {
     async crearNota(data: NotaEvolucionCreate): Promise<NotaEvolucion> {
         try {
             const response = await api.post<NotaEvolucion>(`${this.baseUrl}/`, data);
-            console.log('✅ Nota de evolución creada');
-            return response.data || response;
+            logger.log('✅ Nota de evolución creada');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error creando nota de evolución:', error);
             throw error;
@@ -170,8 +171,8 @@ class NotasEvolucionService {
     async actualizarNota(id: number, data: Partial<NotaEvolucionCreate>): Promise<NotaEvolucion> {
         try {
             const response = await api.patch<NotaEvolucion>(`${this.baseUrl}/${id}/`, data);
-            console.log('✅ Nota de evolución actualizada:', id);
-            return response.data || response;
+            logger.log('✅ Nota de evolución actualizada:', id);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error actualizando nota ${id}:`, error);
             throw error;
@@ -184,7 +185,7 @@ class NotasEvolucionService {
     async eliminarNota(id: number): Promise<void> {
         try {
             await api.delete(`${this.baseUrl}/${id}/`);
-            console.log('✅ Nota de evolución eliminada:', id);
+            logger.log('✅ Nota de evolución eliminada:', id);
         } catch (error: any) {
             console.error(`❌ Error eliminando nota ${id}:`, error);
             throw error;
@@ -208,10 +209,10 @@ class NotasEvolucionService {
             if (params?.page) queryParams.append('page', params.page.toString());
             if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
 
-            const url = `${this.baseUrl}/por_paciente/?${queryParams.toString()}`;
+            const url = `${this.baseUrl}/por-paciente/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<NotaEvolucion>>(url);
-            console.log(`✅ Notas del paciente ${pacienteId} obtenidas`);
-            return response.data || response;
+            logger.log(`✅ Notas del paciente ${pacienteId} obtenidas`);
+            return response.data;
         } catch (error: any) {
             // Suprimir error si es 404 (es normal que un paciente no tenga notas aún)
             if (error.response?.status !== 404) {
@@ -236,8 +237,8 @@ class NotasEvolucionService {
 
             const url = `${this.baseUrl}/por_embarazo/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<NotaEvolucion>>(url);
-            console.log(`✅ Notas del embarazo ${embarazoId} obtenidas`);
-            return response.data || response;
+            logger.log(`✅ Notas del embarazo ${embarazoId} obtenidas`);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error obteniendo notas del embarazo ${embarazoId}:`, error);
             throw error;
@@ -258,10 +259,10 @@ class NotasEvolucionService {
             if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
             if (params?.tipo_consulta) queryParams.append('tipo_consulta', params.tipo_consulta);
 
-            const url = `${this.baseUrl}/mis_notas/?${queryParams.toString()}`;
+            const url = `${this.baseUrl}/mis-notas/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<NotaEvolucion>>(url);
-            console.log('✅ Mis notas obtenidas');
-            return response.data || response;
+            logger.log('✅ Mis notas obtenidas');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error obteniendo mis notas:', error);
             throw error;
@@ -274,8 +275,8 @@ class NotasEvolucionService {
     async revisarNota(id: number): Promise<NotaEvolucion> {
         try {
             const response = await api.post<NotaEvolucion>(`${this.baseUrl}/${id}/revisar/`);
-            console.log(`✅ Nota ${id} revisada`);
-            return response.data || response;
+            logger.log(`✅ Nota ${id} revisada`);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error revisando nota ${id}:`, error);
             throw error;
@@ -300,8 +301,8 @@ class NotasEvolucionService {
 
             const url = `${this.baseUrl}/estadisticas/?${queryParams.toString()}`;
             const response = await api.get<EstadisticasNotas>(url);
-            console.log('✅ Estadísticas de notas obtenidas');
-            return response.data || response;
+            logger.log('✅ Estadísticas de notas obtenidas');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error obteniendo estadísticas:', error);
             throw error;

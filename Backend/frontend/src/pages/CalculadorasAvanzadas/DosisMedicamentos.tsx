@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, Form, InputNumber, Button, Row, Col, Statistic, Alert, Divider, Table, Tag, Select, Typography, Switch } from 'antd';
 import { MedicineBoxOutlined, WarningOutlined, SafetyOutlined, ExperimentOutlined } from '@ant-design/icons';
-import './DosisMedicamentos.css';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, LineChart, Line
 } from 'recharts';
+import './DosisMedicamentos.css';
+
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -49,11 +51,36 @@ const renderAlertasLabel = (props: any) => {
   return `${tipo}: ${cantidad}`;
 };
 
+// Calcular Clearance de Creatinina (Cockcroft-Gault)
+const calcularCLCr = (peso: number, edad: number, creatinina: number, es_mujer: boolean = true): number => {
+  const factor_mujer = es_mujer ? 0.85 : 1.0;
+  return ((140 - edad) * peso * factor_mujer) / (72 * creatinina);
+};
+
+// Medicamentos obstétricos disponibles
+const medicamentos = [
+  { value: 'oxitocina', label: 'Oxitocina (Inducción/Conducción)' },
+  { value: 'misoprostol', label: 'Misoprostol (Maduración cervical/HPP)' },
+  { value: 'metilergonovina', label: 'Metilergonovina (Atonía uterina)' },
+  { value: 'sulfato_mg', label: 'Sulfato de Magnesio (Eclampsia/Neuroprotección)' },
+  { value: 'nifedipino', label: 'Nifedipino (Tocolisis/HTA)' },
+  { value: 'labetalol', label: 'Labetalol (Crisis hipertensiva)' },
+  { value: 'hidralazina', label: 'Hidralazina (Crisis hipertensiva)' },
+  { value: 'betametasona', label: 'Betametasona (Maduración pulmonar)' },
+  { value: 'penicilina_g', label: 'Penicilina G (Profilaxis EGB)' },
+  { value: 'cefazolina', label: 'Cefazolina (Profilaxis quirúrgica)' },
+  { value: 'ampicilina', label: 'Ampicilina (Corioamnionitis)' },
+  { value: 'metronidazol', label: 'Metronidazol (Infección anaerobios)' },
+  { value: 'heparina', label: 'Heparina (Anticoagulación)' },
+  { value: 'enoxaparina', label: 'Enoxaparina (Tromboprofilaxis)' },
+  { value: 'insulina', label: 'Insulina regular (Diabetes gestacional)' },
+  { value: 'carboprost', label: 'Carboprost (HPP refractaria)' }
+];
+
 const DosisMedicamentos: React.FC = () => {
   const [form] = Form.useForm();
   const [resultado, setResultado] = useState<ResultadoDosis | null>(null);
   const [historial, setHistorial] = useState<RegistroDosis[]>([]);
-  const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(true);
 
   const tooltipFormatter = useCallback((value: any) => value ? `${value} ${resultado?.unidad ?? ''}` : '', [resultado?.unidad]);
 
@@ -200,84 +227,7 @@ const DosisMedicamentos: React.FC = () => {
     };
   }, []);
 
-  // Cargar datos de ejemplo al inicio
-  useEffect(() => {
-    // Datos de ejemplo: Paciente embarazada con función renal normal
-    const datosEjemplo: DatosPaciente = {
-      peso: 70,
-      edad: 30,
-      creatinina: 0.9,
-      semanas: 38,
-      es_embarazada: true,
-      medicamento: 'oxitocina',
-      via: 'IV'
-    };
-
-    const resultadoEjemplo = calcularDosis(datosEjemplo);
-    setResultado(resultadoEjemplo);
-
-    // Crear historial de ejemplo
-    const historialEjemplo: RegistroDosis[] = [
-      {
-        ...resultadoEjemplo,
-        fecha: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-        peso: 70
-      },
-      {
-        medicamento: 'Sulfato de Magnesio',
-        dosis_calculada: 4,
-        unidad: 'g',
-        frecuencia: 'Carga: 4-6g IV en 15-20 min. Mantenimiento: 1-2 g/h',
-        via: 'IV',
-        dosis_min: 4,
-        dosis_max: 6,
-        clcr: 95,
-        ajuste_renal: 'Sin ajuste necesario. Monitoreo de reflejos, FR, diuresis.',
-        contraindicaciones: ['Insuficiencia renal severa', 'Bloqueo cardíaco'],
-        precauciones: ['Monitoreo reflejos patelares', 'FR >12/min'],
-        interacciones: ['Bloqueadores neuromusculares', 'Nifedipino'],
-        categoria_fda: 'A (para eclampsia)',
-        interpretacion: 'Sulfato de Magnesio: Anticonvulsivante de elección en eclampsia.',
-        color: '#52c41a',
-        fecha: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-        peso: 70
-      }
-    ];
-
-    setHistorial(historialEjemplo);
-  }, [calcularDosis]);
-
-  // Medicamentos obstétricos disponibles
-  const medicamentos = [
-    { value: 'oxitocina', label: 'Oxitocina (Inducción/Conducción)' },
-    { value: 'misoprostol', label: 'Misoprostol (Maduración cervical/HPP)' },
-    { value: 'metilergonovina', label: 'Metilergonovina (Atonía uterina)' },
-    { value: 'sulfato_mg', label: 'Sulfato de Magnesio (Eclampsia/Neuroprotección)' },
-    { value: 'nifedipino', label: 'Nifedipino (Tocolisis/HTA)' },
-    { value: 'labetalol', label: 'Labetalol (Crisis hipertensiva)' },
-    { value: 'hidralazina', label: 'Hidralazina (Crisis hipertensiva)' },
-    { value: 'betametasona', label: 'Betametasona (Maduración pulmonar)' },
-    { value: 'penicilina_g', label: 'Penicilina G (Profilaxis EGB)' },
-    { value: 'cefazolina', label: 'Cefazolina (Profilaxis quirúrgica)' },
-    { value: 'ampicilina', label: 'Ampicilina (Corioamnionitis)' },
-    { value: 'metronidazol', label: 'Metronidazol (Infección anaerobios)' },
-    { value: 'heparina', label: 'Heparina (Anticoagulación)' },
-    { value: 'enoxaparina', label: 'Enoxaparina (Tromboprofilaxis)' },
-    { value: 'insulina', label: 'Insulina regular (Diabetes gestacional)' },
-    { value: 'carboprost', label: 'Carboprost (HPP refractaria)' }
-  ];
-
-  // Calcular Clearance de Creatinina (Cockcroft-Gault)
-  const calcularCLCr = (peso: number, edad: number, creatinina: number, es_mujer: boolean = true): number => {
-    const factor_mujer = es_mujer ? 0.85 : 1.0;
-    return ((140 - edad) * peso * factor_mujer) / (72 * creatinina);
-  };
-
-
   const onFinish = (valores: DatosPaciente) => {
-    // Cambiar a modo de datos reales
-    setUsandoDatosEjemplo(false);
-
     const res = calcularDosis(valores);
     setResultado(res);
 
@@ -368,7 +318,6 @@ const DosisMedicamentos: React.FC = () => {
           <Card title={
             <>
               <ExperimentOutlined /> Datos del Paciente y Medicamento
-              {usandoDatosEjemplo && <Tag color="blue" style={{ marginLeft: 8 }}>Datos de Ejemplo</Tag>}
             </>
           }>
             <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -526,7 +475,6 @@ const DosisMedicamentos: React.FC = () => {
       {resultado && (
         <>
           <Divider>📊 Análisis de Dosis y Seguridad</Divider>
-
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={12}>
               <Card title="Rango de Dosis Terapéutica">

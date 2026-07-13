@@ -19,6 +19,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TIPOS Y ENUMS
@@ -624,7 +625,7 @@ export const partosService = {
   async crear(data: Partial<Parto>): Promise<Parto> {
     try {
       const response = await api.post<Parto>('/partos/', data);
-      console.log('✅ Parto creado exitosamente');
+      logger.log('✅ Parto creado exitosamente');
       return normalizeSingleResponse<Parto>(response.data);
     } catch (error: any) {
       console.error('❌ Error creando parto:', error);
@@ -645,7 +646,7 @@ export const partosService = {
   async actualizar(id: number, data: Partial<Parto>): Promise<Parto> {
     try {
       const response = await api.put<Parto>(`/partos/${id}/`, data);
-      console.log(`✅ Parto ${id} actualizado exitosamente`);
+      logger.log(`✅ Parto ${id} actualizado exitosamente`);
       return normalizeSingleResponse<Parto>(response.data);
     } catch (error: any) {
       console.error(`❌ Error actualizando parto ${id}:`, error);
@@ -659,7 +660,7 @@ export const partosService = {
   async actualizarParcial(id: number, data: Partial<Parto>): Promise<Parto> {
     try {
       const response = await api.patch<Parto>(`/partos/${id}/`, data);
-      console.log(`✅ Parto ${id} actualizado parcialmente`);
+      logger.log(`✅ Parto ${id} actualizado parcialmente`);
       return normalizeSingleResponse<Parto>(response.data);
     } catch (error: any) {
       console.error(`❌ Error en actualización parcial del parto ${id}:`, error);
@@ -680,7 +681,7 @@ export const partosService = {
   async eliminar(id: number): Promise<void> {
     try {
       await api.delete(`/partos/${id}/`);
-      console.log(`✅ Parto ${id} eliminado exitosamente`);
+      logger.log(`✅ Parto ${id} eliminado exitosamente`);
     } catch (error: any) {
       console.error(`❌ Error eliminando parto ${id}:`, error);
       throw error;
@@ -785,7 +786,7 @@ export const partosService = {
    */
   async obtenerRecienNacidos(partoId: number): Promise<RecienNacido[]> {
     try {
-      const response = await api.get<RecienNacido[]>(`/partos/${partoId}/recien-nacidos/`);
+      const response = await api.get<RecienNacido[]>(`/partos/recien-nacidos/?parto=${partoId}`);
       return normalizeListResponse<RecienNacido>(response.data);
     } catch (error: any) {
       console.error(`❌ Error obteniendo recién nacidos del parto ${partoId}:`, error);
@@ -805,8 +806,8 @@ export const partosService = {
    */
   async crearRecienNacido(partoId: number, data: Partial<RecienNacido>): Promise<RecienNacido> {
     try {
-      const response = await api.post<RecienNacido>(`/partos/${partoId}/recien-nacidos/`, data);
-      console.log('✅ Recién nacido registrado exitosamente');
+      const response = await api.post<RecienNacido>(`/partos/recien-nacidos/`, { ...data, parto: partoId });
+      logger.log('✅ Recién nacido registrado exitosamente');
       return normalizeSingleResponse<RecienNacido>(response.data);
     } catch (error: any) {
       console.error('❌ Error registrando recién nacido:', error);
@@ -824,10 +825,10 @@ export const partosService = {
   ): Promise<RecienNacido> {
     try {
       const response = await api.put<RecienNacido>(
-        `/partos/${partoId}/recien-nacidos/${recienNacidoId}/`,
+        `/partos/recien-nacidos/${recienNacidoId}/`,
         data
       );
-      console.log(`✅ Recién nacido ${recienNacidoId} actualizado`);
+      logger.log(`✅ Recién nacido ${recienNacidoId} actualizado`);
       return normalizeSingleResponse<RecienNacido>(response.data);
     } catch (error: any) {
       console.error(`❌ Error actualizando recién nacido ${recienNacidoId}:`, error);
@@ -840,8 +841,8 @@ export const partosService = {
    */
   async eliminarRecienNacido(partoId: number, recienNacidoId: number): Promise<void> {
     try {
-      await api.delete(`/partos/${partoId}/recien-nacidos/${recienNacidoId}/`);
-      console.log(`✅ Recién nacido ${recienNacidoId} eliminado`);
+      await api.delete(`/partos/recien-nacidos/${recienNacidoId}/`);
+      logger.log(`✅ Recién nacido ${recienNacidoId} eliminado`);
     } catch (error: any) {
       console.error(`❌ Error eliminando recién nacido ${recienNacidoId}:`, error);
       throw error;
@@ -857,7 +858,7 @@ export const partosService = {
    */
   async obtenerPartogramas(partoId: number): Promise<PartogramaRegistro[]> {
     try {
-      const response = await api.get<PartogramaRegistro[]>(`/partos/${partoId}/partogramas/`);
+      const response = await api.get<PartogramaRegistro[]>(`/partos/partograma/?parto=${partoId}`);
       return normalizeListResponse<PartogramaRegistro>(response.data);
     } catch (error: any) {
       console.error(`❌ Error obteniendo partogramas del parto ${partoId}:`, error);
@@ -874,10 +875,10 @@ export const partosService = {
   ): Promise<PartogramaRegistro> {
     try {
       const response = await api.post<PartogramaRegistro>(
-        `/partos/${partoId}/partogramas/`,
-        data
+        `/partos/partograma/`,
+        { ...data, parto: partoId }
       );
-      console.log('✅ Registro de partograma creado');
+      logger.log('✅ Registro de partograma creado');
       return normalizeSingleResponse<PartogramaRegistro>(response.data);
     } catch (error: any) {
       console.error('❌ Error creando registro de partograma:', error);
@@ -895,10 +896,10 @@ export const partosService = {
   ): Promise<PartogramaRegistro> {
     try {
       const response = await api.put<PartogramaRegistro>(
-        `/partos/${partoId}/partogramas/${registroId}/`,
+        `/partos/partograma/${registroId}/`,
         data
       );
-      console.log(`✅ Registro de partograma ${registroId} actualizado`);
+      logger.log(`✅ Registro de partograma ${registroId} actualizado`);
       return normalizeSingleResponse<PartogramaRegistro>(response.data);
     } catch (error: any) {
       console.error(`❌ Error actualizando registro de partograma ${registroId}:`, error);
@@ -911,8 +912,8 @@ export const partosService = {
    */
   async eliminarRegistroPartograma(partoId: number, registroId: number): Promise<void> {
     try {
-      await api.delete(`/partos/${partoId}/partogramas/${registroId}/`);
-      console.log(`✅ Registro de partograma ${registroId} eliminado`);
+      await api.delete(`/partos/partograma/${registroId}/`);
+      logger.log(`✅ Registro de partograma ${registroId} eliminado`);
     } catch (error: any) {
       console.error(`❌ Error eliminando registro de partograma ${registroId}:`, error);
       throw error;
@@ -929,7 +930,7 @@ export const partosService = {
   async obtenerComplicaciones(partoId: number): Promise<ComplicacionParto[]> {
     try {
       const response = await api.get<ComplicacionParto[]>(
-        `/partos/${partoId}/complicaciones/`
+        `/partos/complicaciones/?parto=${partoId}`
       );
       return normalizeListResponse<ComplicacionParto>(response.data);
     } catch (error: any) {
@@ -947,10 +948,10 @@ export const partosService = {
   ): Promise<ComplicacionParto> {
     try {
       const response = await api.post<ComplicacionParto>(
-        `/partos/${partoId}/complicaciones/`,
-        data
+        `/partos/complicaciones/`,
+        { ...data, parto: partoId }
       );
-      console.log('✅ Complicación registrada');
+      logger.log('✅ Complicación registrada');
       return normalizeSingleResponse<ComplicacionParto>(response.data);
     } catch (error: any) {
       console.error('❌ Error registrando complicación:', error);
@@ -968,10 +969,10 @@ export const partosService = {
   ): Promise<ComplicacionParto> {
     try {
       const response = await api.put<ComplicacionParto>(
-        `/partos/${partoId}/complicaciones/${complicacionId}/`,
+        `/partos/complicaciones/${complicacionId}/`,
         data
       );
-      console.log(`✅ Complicación ${complicacionId} actualizada`);
+      logger.log(`✅ Complicación ${complicacionId} actualizada`);
       return normalizeSingleResponse<ComplicacionParto>(response.data);
     } catch (error: any) {
       console.error(`❌ Error actualizando complicación ${complicacionId}:`, error);
@@ -984,8 +985,8 @@ export const partosService = {
    */
   async eliminarComplicacion(partoId: number, complicacionId: number): Promise<void> {
     try {
-      await api.delete(`/partos/${partoId}/complicaciones/${complicacionId}/`);
-      console.log(`✅ Complicación ${complicacionId} eliminada`);
+      await api.delete(`/partos/complicaciones/${complicacionId}/`);
+      logger.log(`✅ Complicación ${complicacionId} eliminada`);
     } catch (error: any) {
       console.error(`❌ Error eliminando complicación ${complicacionId}:`, error);
       throw error;
@@ -1078,7 +1079,7 @@ export const partosService = {
       const response = await api.get(`/partos/${partoId}/generar-pdf/`, {
         responseType: 'blob'
       });
-      console.log(`✅ PDF del parto ${partoId} generado`);
+      logger.log(`✅ PDF del parto ${partoId} generado`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error generando PDF del parto ${partoId}:`, error);
@@ -1094,7 +1095,7 @@ export const partosService = {
       const response = await api.get(`/partos/${partoId}/partograma-pdf/`, {
         responseType: 'blob'
       });
-      console.log(`✅ PDF del partograma ${partoId} generado`);
+      logger.log(`✅ PDF del partograma ${partoId} generado`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error generando PDF del partograma ${partoId}:`, error);
@@ -1115,7 +1116,7 @@ export const partosService = {
         params: filtros,
         responseType: 'blob'
       });
-      console.log('✅ Excel de partos exportado');
+      logger.log('✅ Excel de partos exportado');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error exportando Excel:', error);

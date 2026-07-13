@@ -23,6 +23,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TIPOS Y ENUMS
@@ -40,6 +41,34 @@ type TipoReporte =
   | 'administrativa';
 
 type FormatoExportacion = 'pdf' | 'excel' | 'csv' | 'json';
+
+// El backend usa el código interno "pd" (no "pdf") para PDF en
+// ReporteGenerado.FORMATO_CHOICES y TipoReporte.get_formatos_disponibles().
+export const formatoAlBackend = (formato: string): string => (formato === 'pdf' ? 'pd' : formato);
+export const formatoDelBackend = (formato: string): string => (formato === 'pd' ? 'pdf' : formato);
+
+export interface TipoReporteConfig {
+  id: number;
+  nombre: string;
+  codigo: string;
+  descripcion?: string;
+  categoria: 'estadistico' | 'paciente' | 'institucional' | 'regulatorio' | 'clinico' | 'financiero';
+  categoria_display?: string;
+  frecuencia?: string;
+  frecuencia_display?: string;
+  automatico?: boolean;
+  confidencial?: boolean;
+  activo: boolean;
+  incluir_fecha_inicio?: boolean;
+  incluir_fecha_fin?: boolean;
+  incluir_paciente?: boolean;
+  incluir_medico?: boolean;
+  incluir_servicio?: boolean;
+  formato_pdf?: boolean;
+  formato_excel?: boolean;
+  formato_csv?: boolean;
+  formato_json?: boolean;
+}
 
 type PeriodoReporte = 'dia' | 'semana' | 'mes' | 'trimestre' | 'semestre' | 'anio' | 'personalizado';
 
@@ -326,32 +355,52 @@ interface ReporteCitas {
 
 export interface Reporte {
   id: number;
-  tipo: TipoReporte;
-  titulo: string;
-  descripcion?: string;
+  tipo_reporte: number;
+  tipo_reporte_nombre?: string;
   formato: FormatoExportacion;
-  estado: 'generando' | 'completado' | 'error';
-  fecha_generacion: string;
+  estado: 'pendiente' | 'procesando' | 'completado' | 'error' | 'expirado';
+  estado_display?: string;
   fecha_solicitud: string;
-  solicitado_por?: number;
+  fecha_completado?: string;
+  usuario_solicitante?: number;
   parametros?: Record<string, any>;
-  archivo_url?: string;
+  ruta_archivo?: string;
+  total_registros?: number;
+  mensaje_error?: string;
 }
 
-interface AlertaMedica {
+export interface AlertaMedica {
   id: number;
-  tipo: 'critica' | 'urgente' | 'moderada' | 'leve';
   titulo: string;
-  mensaje: string;
+  descripcion?: string;
+  tipo: string;
+  tipo_display?: string;
+  prioridad: 'baja' | 'media' | 'alta' | 'critica' | 'emergencia';
+  prioridad_display?: string;
+  estado: 'activa' | 'revisada' | 'resuelta' | 'descartada' | 'escalada';
+  estado_display?: string;
   paciente_id?: number;
-  paciente_nombre?: string;
+  paciente_nombre?: string | null;
   embarazo_id?: number;
+  medico_responsable_id?: number;
+  modulo_origen: string;
+  modulo_origen_display?: string;
+  registro_origen_id?: number;
+  valor_actual?: string;
+  valor_umbral?: string;
+  accion_recomendada?: string;
+  protocolo_seguimiento?: string;
   fecha_creacion: string;
+  fecha_vencimiento?: string;
+  fecha_revision?: string;
   fecha_resolucion?: string;
-  estado: 'activa' | 'resuelta' | 'descartada';
-  requiere_accion_inmediata: boolean;
-  notas_resolucion?: string;
-  resuelto_por?: number;
+  usuario_revision_id?: number;
+  usuario_resolucion_id?: number;
+  comentario_revision?: string;
+  comentario_resolucion?: string;
+  color_prioridad?: string;
+  es_vencida?: boolean;
+  tiempo_transcurrido?: number;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -421,7 +470,7 @@ export interface DashboardKPIs {
  * Normaliza respuestas del backend que pueden venir como array directo
  * o envueltas en un objeto con 'results', 'data', etc.
  */
-function normalizeListResponse<T>(data: any): T[] {
+export function normalizeListResponse<T>(data: any): T[] {
   if (Array.isArray(data)) {
     return data as T[];
   }
@@ -887,7 +936,7 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      console.log(`✅ Reporte ${tipoReporte} exportado a PDF`);
+      logger.log(`✅ Reporte ${tipoReporte} exportado a PDF`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error exportando reporte ${tipoReporte} a PDF:`, error);
@@ -907,7 +956,7 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      console.log(`✅ Reporte ${tipoReporte} exportado a Excel`);
+      logger.log(`✅ Reporte ${tipoReporte} exportado a Excel`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error exportando reporte ${tipoReporte} a Excel:`, error);
@@ -927,7 +976,7 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      console.log(`✅ Reporte ${tipoReporte} exportado a CSV`);
+      logger.log(`✅ Reporte ${tipoReporte} exportado a CSV`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error exportando reporte ${tipoReporte} a CSV:`, error);
@@ -1075,7 +1124,7 @@ export const reportesService = {
   }): Promise<{ id: number; nombre: string }> {
     try {
       const response = await api.post('/reportes/guardar-configuracion/', config);
-      console.log('✅ Configuración de reporte guardada');
+      logger.log('✅ Configuración de reporte guardada');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error guardando configuración:', error);
@@ -1207,43 +1256,164 @@ export const reportesService = {
   },
 
   /**
-   * Obtiene vista previa de reporte (mock para UI)
+   * Lista los tipos de reporte configurados (activos por defecto)
    */
-  async getReportePreview(parametros: any): Promise<any> {
-    // Simulamos una respuesta del servidor para la vista previa
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          tipo_nombre: parametros.nombre || 'Reporte Personalizado',
-          formato: parametros.formato || 'pdf',
-          fecha_inicio: parametros.rango_fechas ? parametros.rango_fechas[0].format('DD/MM/YYYY') : 'N/A',
-          fecha_fin: parametros.rango_fechas ? parametros.rango_fechas[1].format('DD/MM/YYYY') : 'N/A',
-          total_registros: Math.floor(Math.random() * 500) + 50,
-          tamanio_estimado: parametros.formato === 'pdf' ? '2.5 MB' : '500 KB',
-          tiempo_estimado: 'Aprox. 10-15 segundos'
-        });
-      }, 1000);
+  async listarTiposReporte(soloActivos: boolean = true): Promise<TipoReporteConfig[]> {
+    const response = await api.get<any>('/reportes/tipos-reporte/', {
+      params: soloActivos ? { activo: true } : undefined,
     });
+    return normalizeListResponse<TipoReporteConfig>(response.data);
   },
 
   /**
-   * Genera un nuevo reporte
+   * Obtiene el detalle completo de un tipo de reporte (incluye filtros y formatos disponibles)
+   */
+  async obtenerTipoReporte(id: number): Promise<TipoReporteConfig> {
+    const response = await api.get<TipoReporteConfig>(`/reportes/tipos-reporte/${id}/`);
+    return normalizeSingleResponse<TipoReporteConfig>(response.data);
+  },
+
+  /**
+   * Obtiene una alerta médica por ID
+   */
+  async obtenerAlerta(id: number): Promise<AlertaMedica> {
+    const response = await api.get<AlertaMedica>(`/reportes/alertas-medicas/${id}/`);
+    return normalizeSingleResponse<AlertaMedica>(response.data);
+  },
+
+  /**
+   * Lista todas las alertas médicas (paginadas en el backend)
+   */
+  async listarAlertas(params?: {
+    tipo?: string;
+    prioridad?: string;
+    estado?: string;
+    paciente_id?: number;
+    embarazo_id?: number;
+    search?: string;
+  }): Promise<AlertaMedica[]> {
+    try {
+      const response = await api.get<any>('/reportes/alertas-medicas/', { params });
+      return normalizeListResponse<AlertaMedica>(response.data);
+    } catch (error: any) {
+      console.error('❌ Error listando alertas médicas:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Crea una nueva alerta médica
+   */
+  async crearAlerta(payload: Partial<AlertaMedica>): Promise<AlertaMedica> {
+    const response = await api.post<AlertaMedica>('/reportes/alertas-medicas/', payload);
+    return normalizeSingleResponse<AlertaMedica>(response.data);
+  },
+
+  /**
+   * Marca una alerta como revisada
+   */
+  async marcarAlertaRevisada(id: number, comentario?: string): Promise<AlertaMedica> {
+    const response = await api.post<AlertaMedica>(
+      `/reportes/alertas-medicas/${id}/marcar_revisada/`,
+      { comentario },
+    );
+    return normalizeSingleResponse<AlertaMedica>(response.data);
+  },
+
+  /**
+   * Marca una alerta como resuelta
+   */
+  async marcarAlertaResuelta(id: number, comentario?: string): Promise<AlertaMedica> {
+    const response = await api.post<AlertaMedica>(
+      `/reportes/alertas-medicas/${id}/marcar_resuelta/`,
+      { comentario },
+    );
+    return normalizeSingleResponse<AlertaMedica>(response.data);
+  },
+
+  /**
+   * Descarta una alerta
+   */
+  async descartarAlerta(id: number, comentario?: string): Promise<AlertaMedica> {
+    const response = await api.post<AlertaMedica>(
+      `/reportes/alertas-medicas/${id}/descartar/`,
+      { comentario },
+    );
+    return normalizeSingleResponse<AlertaMedica>(response.data);
+  },
+
+  /**
+   * Estadísticas agregadas de alertas médicas (cacheadas 60s en el backend)
+   */
+  async getEstadisticasAlertas(): Promise<{
+    total_alertas: number;
+    alertas_activas: number;
+    alertas_criticas_activas: number;
+    por_tipo: Array<{ tipo: string; count: number }>;
+    por_prioridad: Array<{ prioridad: string; count: number }>;
+    por_estado: Array<{ estado: string; count: number }>;
+  }> {
+    const response = await api.get<any>('/reportes/alertas-medicas/estadisticas/');
+    return normalizeSingleResponse(response.data);
+  },
+
+  /**
+   * Obtiene vista previa real de un reporte (sin generarlo), contando
+   * registros reales que entrarían según el tipo y rango de fechas.
+   */
+  async getReportePreview(parametros: any): Promise<{
+    tipo_nombre: string;
+    formato: string;
+    fecha_inicio: string | null;
+    fecha_fin: string | null;
+    total_registros: number;
+    tamanio_estimado_kb: number;
+  }> {
+    const fechaInicio = parametros.rango_fechas ? parametros.rango_fechas[0].format('YYYY-MM-DD') : null;
+    const fechaFin = parametros.rango_fechas ? parametros.rango_fechas[1].format('YYYY-MM-DD') : null;
+    const response = await api.post<any>('/reportes/reportes-generados/preview/', {
+      tipo_reporte: parametros.tipo_reporte,
+      formato: parametros.formato || 'pdf',
+      fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin,
+    });
+    return normalizeSingleResponse(response.data);
+  },
+
+  /**
+   * Solicita la generación de un nuevo reporte. Crea un ReporteGenerado real
+   * en estado "pendiente" — el procesamiento real (armado del archivo) ocurre
+   * por separado; esta llamada no devuelve un archivo inmediato.
    */
   async generateReporte(
-    tipo: TipoReporte,
-    parametros: Record<string, any>,
+    tipoReporteId: number,
+    parametros: {
+      fecha_inicio?: string;
+      fecha_fin?: string;
+      filtro_paciente?: number;
+      filtro_medico?: number;
+      filtro_servicio?: string;
+      [key: string]: any;
+    },
     formato: FormatoExportacion
   ): Promise<Reporte> {
     try {
-      const response = await api.post<Reporte>('/reportes/generar/', {
-        tipo,
-        parametros,
-        formato
+      const { fecha_inicio, fecha_fin, filtro_paciente, filtro_medico, filtro_servicio, ...resto } = parametros;
+      const response = await api.post<Reporte>('/reportes/reportes-generados/solicitar/', {
+        tipo_reporte: tipoReporteId,
+        formato: formatoAlBackend(formato),
+        fecha_inicio,
+        fecha_fin,
+        filtro_paciente,
+        filtro_medico,
+        filtro_servicio,
+        parametros: resto,
       });
-      console.log(`✅ Reporte ${tipo} generado exitosamente`);
-      return normalizeSingleResponse<Reporte>(response.data);
+      logger.log(`✅ Solicitud de reporte ${tipoReporteId} creada`);
+      const reporte = normalizeSingleResponse<Reporte>(response.data);
+      return { ...reporte, formato: formatoDelBackend(reporte.formato as string) as FormatoExportacion };
     } catch (error: any) {
-      console.error(`❌ Error generando reporte ${tipo}:`, error);
+      console.error(`❌ Error solicitando reporte ${tipoReporteId}:`, error);
       throw error;
     }
   },
@@ -1253,10 +1423,10 @@ export const reportesService = {
    */
   async downloadReporte(reporteId: number): Promise<Blob> {
     try {
-      const response = await api.get(`/reportes/${reporteId}/descargar/`, {
+      const response = await api.get(`/reportes/reportes-generados/${reporteId}/descargar/`, {
         responseType: 'blob'
       });
-      console.log(`✅ Reporte ${reporteId} descargado`);
+      logger.log(`✅ Reporte ${reporteId} descargado`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error descargando reporte ${reporteId}:`, error);
@@ -1274,7 +1444,7 @@ export const reportesService = {
         emails,
         mensaje
       });
-      console.log(`✅ Reporte ${reporteId} compartido por email a ${emails.length} destinatarios`);
+      logger.log(`✅ Reporte ${reporteId} compartido por email a ${emails.length} destinatarios`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -1297,7 +1467,7 @@ export const reportesService = {
       const response = await api.post<AlertaMedica>(`/reportes/alertas/${alertaId}/resolver/`, {
         notas_resolucion: notasResolucion
       });
-      console.log(`✅ Alerta ${alertaId} resuelta`);
+      logger.log(`✅ Alerta ${alertaId} resuelta`);
       return normalizeSingleResponse<AlertaMedica>(response.data);
     } catch (error: any) {
       console.error(`❌ Error resolviendo alerta ${alertaId}:`, error);
@@ -1321,7 +1491,7 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      console.log('✅ PDF mejorado descargado exitosamente');
+      logger.log('✅ PDF mejorado descargado exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error descargando PDF mejorado:', error);
@@ -1341,7 +1511,7 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      console.log('✅ Excel descargado exitosamente');
+      logger.log('✅ Excel descargado exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error descargando Excel:', error);

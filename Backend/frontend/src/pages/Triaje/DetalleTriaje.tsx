@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Card, Descriptions, Tag, Button, Space, Alert, Row, Col, Progress, Divider, Typography, Skeleton } from 'antd';
 import {
     ArrowLeftOutlined,
@@ -37,11 +37,9 @@ const DetalleTriaje: React.FC = () => {
         }
     }, [message]);
 
-    const loadedIdRef = useRef<number | null>(null);
-    if (id && loadedIdRef.current !== parseInt(id)) {
-        loadedIdRef.current = parseInt(id);
-        cargarTriaje(parseInt(id));
-    }
+    useEffect(() => {
+        if (id) cargarTriaje(parseInt(id));
+    }, [id, cargarTriaje]);
 
     const getClasificacionIMC = useMemo(() => (imc: number) => {
         if (imc < 18.5) return { text: 'Bajo peso', color: 'blue' };

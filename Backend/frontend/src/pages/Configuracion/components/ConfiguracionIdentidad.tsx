@@ -14,11 +14,12 @@ interface ConfiguracionIdentidadProps {
   configData: any;
 }
 
+const SHOP_ICON = <ShopOutlined />;
+const UPLOAD_ICON = <UploadOutlined />;
+const SAVE_ICON = <SaveOutlined />;
+
 const ConfiguracionIdentidad: React.FC<ConfiguracionIdentidadProps> = ({ form, saving, onSave, logoFileRef, configData }) => {
   const { message } = useAntdApp();
-  const shopIcon = <ShopOutlined />;
-  const uploadIcon = <UploadOutlined />;
-  const saveIcon = <SaveOutlined />;
 
   return (
     <Card className="shadow-sm">
@@ -29,7 +30,7 @@ const ConfiguracionIdentidad: React.FC<ConfiguracionIdentidadProps> = ({ form, s
             <Row gutter={16}>
               <Col span={24}>
                 <Form.Item name="nombre_clinica" label="Nombre de la Clínica / Consultorio" rules={[{ required: true }]}>
-                  <Input size="large" prefix={shopIcon} />
+                  <Input size="large" prefix={SHOP_ICON} />
                 </Form.Item>
               </Col>
               <Col span={24}>
@@ -60,7 +61,7 @@ const ConfiguracionIdentidad: React.FC<ConfiguracionIdentidadProps> = ({ form, s
               />
             </div>
             <Upload maxCount={1} beforeUpload={() => false} onChange={(info) => { logoFileRef.current = info.file; }}>
-              <Button icon={uploadIcon}>Subir Nuevo Logo</Button>
+              <Button icon={UPLOAD_ICON}>Subir Nuevo Logo</Button>
             </Upload>
             <Paragraph type="secondary" style={{ fontSize: 12, marginTop: 10 }}>
               Recomendado: PNG transparente, 300x300px. Se usará en recetas y reportes.
@@ -71,7 +72,7 @@ const ConfiguracionIdentidad: React.FC<ConfiguracionIdentidadProps> = ({ form, s
         <Divider />
 
         <Row justify="end">
-          <Button type="primary" htmlType="submit" icon={saveIcon} size="large" loading={saving}>
+          <Button type="primary" htmlType="submit" icon={SAVE_ICON} size="large" loading={saving}>
             Guardar Configuración General
           </Button>
         </Row>

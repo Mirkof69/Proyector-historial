@@ -14,6 +14,7 @@ interface DetalleCitaHeaderProps {
   onVolver: () => void;
   onEditar: () => void;
   editable: boolean;
+  children?: React.ReactNode;
 }
 
 const DetalleCitaHeader: React.FC<DetalleCitaHeaderProps> = ({
@@ -22,6 +23,7 @@ const DetalleCitaHeader: React.FC<DetalleCitaHeaderProps> = ({
   onVolver,
   onEditar,
   editable,
+  children,
 }) => (
   <Card
     title={
@@ -43,7 +45,9 @@ const DetalleCitaHeader: React.FC<DetalleCitaHeaderProps> = ({
         )}
       </Space>
     }
-  />
+  >
+    {children}
+  </Card>
 );
 
 export default DetalleCitaHeader;

@@ -8,7 +8,6 @@ import AyudaDocumentacion from './components/AyudaDocumentacion';
 import AyudaSoporteTecnico from './components/AyudaSoporteTecnico';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 const tabGuiasRapidas = <span><BulbOutlined /> Guías Rápidas</span>;
 const tabPreguntasFrecuentes = <span><QuestionCircleOutlined /> Preguntas Frecuentes</span>;
@@ -69,23 +68,28 @@ const Ayuda: React.FC = () => {
 
       <div style={{ padding: '0 24px 40px', marginTop: -40 }}>
         <Card variant="borderless" style={{ borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', minHeight: 600 }}>
-          <Tabs defaultActiveKey="1" size="large" centered>
-            <TabPane tab={tabGuiasRapidas} key="1">
-              <AyudaGuiasRapidas />
-            </TabPane>
-
-            <TabPane tab={tabPreguntasFrecuentes} key="2">
-              <AyudaPreguntasFrecuentes searchQuery={searchQuery} />
-            </TabPane>
-
-            <TabPane tab={tabDocumentacion} key="3">
-              <AyudaDocumentacion />
-            </TabPane>
-
-            <TabPane tab={tabSoporteTecnico} key="4">
-              <AyudaSoporteTecnico form={form} />
-            </TabPane>
-          </Tabs>
+          <Tabs defaultActiveKey="1" size="large" centered items={[
+            {
+              key: "1",
+              label: tabGuiasRapidas,
+              children: <AyudaGuiasRapidas />
+            },
+            {
+              key: "2",
+              label: tabPreguntasFrecuentes,
+              children: <AyudaPreguntasFrecuentes searchQuery={searchQuery} />
+            },
+            {
+              key: "3",
+              label: tabDocumentacion,
+              children: <AyudaDocumentacion />
+            },
+            {
+              key: "4",
+              label: tabSoporteTecnico,
+              children: <AyudaSoporteTecnico form={form} />
+            }
+          ]} />
         </Card>
       </div>
 

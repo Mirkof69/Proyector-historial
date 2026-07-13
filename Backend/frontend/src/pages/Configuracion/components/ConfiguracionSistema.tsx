@@ -25,6 +25,10 @@ interface ConfiguracionSistemaProps {
   onEliminarBackup: (filename: string) => void;
 }
 
+const SAVE_ICON = <SaveOutlined />;
+const DATABASE_ICON = <DatabaseOutlined />;
+const DELETE_ICON = <DeleteOutlined />;
+
 const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
   formSmtp,
   diasRetencion,
@@ -37,9 +41,6 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
   onEliminarBackup
 }) => {
   const { message } = useAntdApp();
-  const saveIcon = <SaveOutlined />;
-  const databaseIcon = <DatabaseOutlined />;
-  const deleteIcon = <DeleteOutlined />;
 
   return (
     <Row gutter={24}>
@@ -82,7 +83,7 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
             />
 
             <Divider />
-            <Button htmlType="submit" icon={saveIcon}>Guardar Técnica</Button>
+            <Button htmlType="submit" icon={SAVE_ICON}>Guardar Técnica</Button>
           </Form>
         </Card>
       </Col>
@@ -91,7 +92,7 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
         <Card
           title="Copias de Seguridad (Backups)"
           className="shadow-sm"
-          extra={<Button type="primary" size="small" icon={databaseIcon} onClick={onCreateBackup}>Crear Backup</Button>}
+          extra={<Button type="primary" size="small" icon={DATABASE_ICON} onClick={onCreateBackup}>Crear Backup</Button>}
           style={{ height: '100%' }}
         >
           <List
@@ -107,7 +108,7 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
                   cancelText="Cancelar"
                   onConfirm={() => onEliminarBackup(item.id)}
                 >
-                  <Button type="text" danger size="small" icon={deleteIcon} />
+                  <Button type="text" danger size="small" icon={DELETE_ICON} />
                 </Popconfirm>
               ]}>
                 <List.Item.Meta

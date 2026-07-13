@@ -1,6 +1,11 @@
 import { useCallback } from 'react';
 import { authService } from '../services/authService';
 
+/**
+ * @deprecated Usa `useAuth().hasPermission` de AuthContext en su lugar.
+ * Este hook no reacciona a cambios de estado de autenticación.
+ * Se eliminará en una versión futura.
+ */
 export const usePermissions = () => {
   /**
    * Verifica si el usuario tiene un permiso específico

@@ -14,8 +14,8 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Layout,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Layout,
   Card,
   Button,
   Typography,
@@ -26,9 +26,7 @@ import {
   Spin,
   Space,
   Divider,
-  message,
-  Tag,
-} from 'antd';
+  Tag} from "antd";
 import {
   QrcodeOutlined,
   KeyOutlined,
@@ -53,6 +51,7 @@ interface TotpConfirmForm {
 }
 
 const SetupMfa: React.FC = () => {
+  const { message } = useAntdApp();
   const [confirmForm] = Form.useForm<TotpConfirmForm>();
   const [setupData, setSetupData] = useState<MfaSetupResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -150,7 +149,7 @@ const SetupMfa: React.FC = () => {
             borderRadius: 16,
             boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
           }}
-          bodyStyle={{ padding: 36 }}
+          styles={{ body: { padding: 36 } }}
         >
           {/* Título */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>

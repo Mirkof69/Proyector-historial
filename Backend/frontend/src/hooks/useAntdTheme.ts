@@ -29,10 +29,24 @@ import type { ThemeConfig } from 'antd';
  * ```
  */
 const useAntdTheme = (): ThemeConfig => {
-  const { themeName } = useTheme();
+  const { themeName, fontScaleFactor } = useTheme();
 
   // Obtener tokens según el tema actual
   const themeConfig = getThemeTokens(themeName);
+
+  // Accesibilidad: escalar el tamaño de fuente base según la preferencia del
+  // usuario (turnos largos). Se aplica sobre el token, así todo Ant Design se
+  // reescala de forma consistente.
+  if (fontScaleFactor && fontScaleFactor !== 1) {
+    const baseFont = (themeConfig.token?.fontSize as number) ?? 14;
+    return {
+      ...themeConfig,
+      token: {
+        ...themeConfig.token,
+        fontSize: Math.round(baseFont * fontScaleFactor),
+      },
+    };
+  }
 
   return themeConfig;
 };

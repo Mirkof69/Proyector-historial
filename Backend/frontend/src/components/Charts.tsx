@@ -8,13 +8,14 @@
  */
 
 import React, { useMemo, Suspense } from 'react';
-import {
-  LineChart, Line, BarChart, Bar, AreaChart, Area,
-  PieChart, Pie, RadarChart, Radar, ScatterChart, Scatter,
-  ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, Cell, PolarGrid, PolarAngleAxis, PolarRadiusAxis
-} from 'recharts';
 import { Empty, Spin } from 'antd';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
+import {
+  ResponsiveContainer, LineChart, Line, BarChart, Bar,
+  AreaChart, Area, PieChart, Pie, Cell,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ScatterChart, Scatter, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend
+} from 'recharts';
 import './Charts.css';
 
 // ==========================================
@@ -66,6 +67,14 @@ interface ChartConfig {
 // ==========================================
 // COLORES PREDEFINIDOS
 // ==========================================
+
+// Animación de entrada consistente para todas las gráficas: suave y breve
+// (no distrae al médico que revisa datos bajo presión de tiempo).
+const CHART_ANIM = {
+    animationDuration: 800,
+    animationBegin: 0,
+    animationEasing: 'ease-out' as const,
+};
 
 const CHART_COLORS = {
     primary: ['#1890ff', '#40a9ff', '#69c0ff', '#91d5ff', '#bae7ff'],
@@ -192,7 +201,7 @@ const MedicalLineChart: React.FC<ChartConfig> = ({
                         strokeWidth={s.strokeWidth || 2}
                         dot={{ r: 4 }}
                         activeDot={{ r: 6 }}
-                        isAnimationActive={animate}
+                        isAnimationActive={animate} animationDuration={CHART_ANIM.animationDuration} animationEasing={CHART_ANIM.animationEasing}
                     />
                 ))}
             </LineChart>
@@ -261,7 +270,7 @@ const MedicalBarChart: React.FC<ChartConfig> = ({
                         name={s.name || s.dataKey}
                         fill={s.color || colors[index % colors.length]}
                         stackId={stacked ? 'stack' : undefined}
-                        isAnimationActive={animate}
+                        isAnimationActive={animate} animationDuration={CHART_ANIM.animationDuration} animationEasing={CHART_ANIM.animationEasing}
                     />
                 ))}
             </BarChart>
@@ -333,7 +342,7 @@ export const MedicalAreaChart: React.FC<ChartConfig> = ({
                         fill={s.color || colors[index % colors.length]}
                         fillOpacity={0.6}
                         stackId={stacked ? 'stack' : undefined}
-                        isAnimationActive={animate}
+                        isAnimationActive={animate} animationDuration={CHART_ANIM.animationDuration} animationEasing={CHART_ANIM.animationEasing}
                     />
                 ))}
             </AreaChart>
@@ -388,15 +397,18 @@ const MedicalPieChart: React.FC<ChartConfig> = ({
                 )}
                 {showLegend && <Legend />}
                 <Pie
-                    data={data}
+                    data={sanitizedData}
                     dataKey={dataKey}
                     nameKey={nameKey}
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
                     label
+                    isAnimationActive
+                    animationDuration={CHART_ANIM.animationDuration}
+                    animationBegin={CHART_ANIM.animationBegin}
                 >
-                    {data.map((entry, index) => (
+                    {sanitizedData.map((entry, index) => (
                         <Cell key={`cell-${entry.name || entry.dataKey || index}`} fill={colors[index % colors.length]} />
                     ))}
                 </Pie>
@@ -536,7 +548,7 @@ const MedicalScatterChart: React.FC<ChartConfig> = ({
                         name={s.name || s.dataKey}
                         data={data}
                         fill={s.color || colors[index % colors.length]}
-                        isAnimationActive={animate}
+                        isAnimationActive={animate} animationDuration={CHART_ANIM.animationDuration} animationEasing={CHART_ANIM.animationEasing}
                     />
                 ))}
             </ScatterChart>
@@ -607,7 +619,7 @@ const MedicalComposedChart: React.FC<ChartConfig> = ({
                                 dataKey={s.dataKey}
                                 name={s.name || s.dataKey}
                                 fill={color}
-                                isAnimationActive={animate}
+                                isAnimationActive={animate} animationDuration={CHART_ANIM.animationDuration} animationEasing={CHART_ANIM.animationEasing}
                             />
                         );
                     } else if (s.type === 'area') {
@@ -620,7 +632,7 @@ const MedicalComposedChart: React.FC<ChartConfig> = ({
                                 stroke={color}
                                 fill={color}
                                 fillOpacity={0.6}
-                                isAnimationActive={animate}
+                                isAnimationActive={animate} animationDuration={CHART_ANIM.animationDuration} animationEasing={CHART_ANIM.animationEasing}
                             />
                         );
                     } else {
@@ -632,7 +644,7 @@ const MedicalComposedChart: React.FC<ChartConfig> = ({
                                 name={s.name || s.dataKey}
                                 stroke={color}
                                 strokeWidth={s.strokeWidth || 2}
-                                isAnimationActive={animate}
+                                isAnimationActive={animate} animationDuration={CHART_ANIM.animationDuration} animationEasing={CHART_ANIM.animationEasing}
                             />
                         );
                     }
@@ -683,175 +695,5 @@ const Charts: React.FC<ChartConfig> = (props) => {
         </div>
     );
 };
-
-// ==========================================
-// GRÁFICAS PREDEFINIDAS ESPECÍFICAS
-// ==========================================
-
-/**
- * Gráfica de Curva de Peso Fetal
- */
-export const FetaWeightChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="area"
-        data={data}
-        series={[
-            { dataKey: 'peso', name: 'Peso (g)', color: '#722ed1' },
-            { dataKey: 'pesoMinimo', name: 'Mínimo P10', color: '#ffc53d' },
-            { dataKey: 'pesoMaximo', name: 'Máximo P90', color: '#ffc53d' }
-        ]}
-        xAxisKey="semana"
-        title="Curva de Peso Fetal"
-        subtitle="Evolución del peso estimado del feto"
-        colors={CHART_COLORS.prenatal}
-        height={350}
-    />
-);
-
-/**
- * Gráfica de Presión Arterial
- */
-export const BloodPressureChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="line"
-        data={data}
-        series={[
-            { dataKey: 'sistolica', name: 'Sistólica', color: '#f5222d' },
-            { dataKey: 'diastolica', name: 'Diastólica', color: '#1890ff' }
-        ]}
-        xAxisKey="fecha"
-        title="Presión Arterial"
-        subtitle="Evolución de la presión arterial"
-        height={300}
-    />
-);
-
-/**
- * Gráfica de Altura Uterina
- */
-export const UterineHeightChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="area"
-        data={data}
-        series={[
-            { dataKey: 'altura', name: 'Altura Uterina (cm)', color: '#722ed1' }
-        ]}
-        xAxisKey="semana"
-        title="Altura Uterina"
-        subtitle="Crecimiento en centímetros por semana"
-        colors={CHART_COLORS.prenatal}
-        height={300}
-    />
-);
-
-/**
- * Gráfica de Resultados de Laboratorio
- */
-export const LabResultsChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="bar"
-        data={data}
-        series={[
-            { dataKey: 'hemoglobina', name: 'Hemoglobina', color: '#f5222d' },
-            { dataKey: 'hematocrito', name: 'Hematocrito', color: '#1890ff' },
-            { dataKey: 'glucosa', name: 'Glucosa', color: '#52c41a' }
-        ]}
-        xAxisKey="fecha"
-        title="Resultados de Laboratorio"
-        subtitle="Comparativa de valores"
-        colors={CHART_COLORS.laboratorio}
-        height={350}
-    />
-);
-
-/**
- * Gráfica de Distribución de Partos
- */
-export const BirthDistributionChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="pie"
-        data={data}
-        series={[{ dataKey: 'value', name: 'name' }]}
-        title="Distribución de Vías de Parto"
-        subtitle="Porcentaje por tipo de parto"
-        colors={['#52c41a', '#1890ff', '#faad14', '#f5222d']}
-        height={300}
-    />
-);
-
-/**
- * Gráfica de Evolución del IMC
- */
-export const BMIEvolutionChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="line"
-        data={data}
-        series={[
-            { dataKey: 'imc', name: 'IMC', color: '#1890ff' }
-        ]}
-        xAxisKey="fecha"
-        title="Evolución del IMC"
-        subtitle="Índice de masa corporal durante el embarazo"
-        height={300}
-    />
-);
-
-/**
- * Gráfica de Corre lación Peso-Talla Fetal (Scatter)
- */
-export const FetalWeightHeightCorrelation: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="scatter"
-        data={data}
-        series={[
-            { dataKey: 'peso', name: 'Peso vs Talla', color: '#722ed1' }
-        ]}
-        xAxisKey="talla"
-        yAxisKey="peso"
-        title="Correlación Peso-Talla Fetal"
-        subtitle="Análisis de dispersión peso vs altura"
-        colors={CHART_COLORS.prenatal}
-        height={350}
-    />
-);
-
-/**
- * Gráfica Combinada de Evolución Prenatal (Composed)
- */
-export const PrenatalEvolutionComposed: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="composed"
-        data={data}
-        series={[
-            { dataKey: 'peso', name: 'Peso Materno (kg)', color: '#1890ff', type: 'bar' },
-            { dataKey: 'presionSistolica', name: 'PA Sistólica', color: '#f5222d', type: 'line' },
-            { dataKey: 'alturaUterina', name: 'Altura Uterina (cm)', color: '#722ed1', type: 'area' }
-        ]}
-        xAxisKey="semana"
-        title="Evolución Prenatal Integral"
-        subtitle="Combinación de indicadores clave"
-        colors={CHART_COLORS.prenatal}
-        height={400}
-    />
-);
-
-/**
- * Gráfica de Análisis de Riesgo (Scatter)
- */
-export const RiskAnalysisScatter: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => (
-    <Charts
-        type="scatter"
-        data={data}
-        series={[
-            { dataKey: 'riesgo', name: 'Nivel de Riesgo', color: '#f5222d' }
-        ]}
-        xAxisKey="edad"
-        yAxisKey="imc"
-        title="Análisis de Factores de Riesgo"
-        subtitle="Edad vs IMC con nivel de riesgo"
-        colors={CHART_COLORS.error}
-        height={350}
-    />
-);
 
 export default Charts;

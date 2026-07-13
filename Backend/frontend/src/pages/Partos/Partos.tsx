@@ -13,9 +13,9 @@
  */
 
 import React, { useState, useReducer, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
-import {
-  Table,
+import {Table,
   Button,
   Input,
   Space,
@@ -25,12 +25,10 @@ import {
   Tag,
   Tooltip,
   Modal,
-  message,
   DatePicker,
   Select,
   Statistic,
-  Typography,
-} from 'antd';
+  Typography} from "antd";
 import {
   PlusOutlined,
   SearchOutlined,
@@ -54,8 +52,7 @@ import './Partos.css';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface FiltrosPartosState {
   searchText: string;
@@ -79,7 +76,48 @@ const filtrosPartosReducer = (state: FiltrosPartosState, action: FiltrosPartosAc
   }
 };
 
+// ── Helpers puros (nivel de módulo: identidad estable entre renders) ─────────
+const getViaPartoColor = (via: string) => {
+  const colores: Record<string, string> = {
+    vaginal_espontaneo: 'green',
+    vaginal_instrumentado: 'blue',
+    cesarea_electiva: 'orange',
+    cesarea_urgencia: 'red',
+    cesarea_emergencia: 'volcano',
+  };
+  return colores[via] || 'default';
+};
+
+const getViaPartoLabel = (via: string) => {
+  return via?.replace(/_/g, ' ').toUpperCase() || 'NO ESPECIFICADO';
+};
+
+// Detectar si es aborto basado en edad gestacional
+const esAborto = (edadGestacional: string | undefined) => {
+  if (!edadGestacional) return false;
+  try {
+    const semanas = parseInt(edadGestacional.split('+')[0]);
+    return semanas < 20;
+  } catch {
+    return false;
+  }
+};
+
+// Obtener etiqueta de tipo de aborto
+const getTipoAbortoLabel = (tipoAborto: string) => {
+  const etiquetas: Record<string, string> = {
+    espontaneo: 'Aborto Espontáneo',
+    inducido: 'Aborto Inducido',
+    incompleto: 'Aborto Incompleto',
+    completo: 'Aborto Completo',
+    diferido: 'Aborto Diferido/Retenido',
+    inevitable: 'Aborto Inevitable',
+  };
+  return etiquetas[tipoAborto] || tipoAborto.toUpperCase();
+};
+
 const Partos: React.FC = () => {
+  const { message, modal } = useAntdApp();
   const navigate = useNavigate();
   const { canAdd, canChange, canDelete } = usePermissions();
   const [loading, setLoading] = useState(false);
@@ -136,7 +174,6 @@ const Partos: React.FC = () => {
   // ==========================================================================
   const cargarPartos = useCallback(async () => {
     setLoading(true);
-    const startTime = performance.now();
 
     try {
 
@@ -166,13 +203,8 @@ const Partos: React.FC = () => {
         }
       }
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-
       if (isMounted.current) {
         setPartos(allPartos);
-        message.success(`${allPartos.length} partos cargados en ${loadTime}s`);
       }
     } catch (error) {
       if (isMounted.current) {
@@ -204,7 +236,7 @@ const Partos: React.FC = () => {
   };
 
   const handleDelete = (parto: any) => {
-    Modal.confirm({
+    modal.confirm({
       title: '⚠️ ¿Confirmar eliminación permanente del parto?',
       icon: <WarningOutlined />,
       content: (
@@ -277,47 +309,7 @@ const Partos: React.FC = () => {
     }
   };
 
-  // ==========================================================================
-  // HELPERS
-  // ==========================================================================
-  const getViaPartoColor = (via: string) => {
-    const colores: Record<string, string> = {
-      vaginal_espontaneo: 'green',
-      vaginal_instrumentado: 'blue',
-      cesarea_electiva: 'orange',
-      cesarea_urgencia: 'red',
-      cesarea_emergencia: 'volcano',
-    };
-    return colores[via] || 'default';
-  };
-
-  const getViaPartoLabel = (via: string) => {
-    return via?.replace(/_/g, ' ').toUpperCase() || 'NO ESPECIFICADO';
-  };
-
-  // ✅ HELPER: Detectar si es aborto basado en edad gestacional
-  const esAborto = (edadGestacional: string | undefined) => {
-    if (!edadGestacional) return false;
-    try {
-      const semanas = parseInt(edadGestacional.split('+')[0]);
-      return semanas < 20;
-    } catch {
-      return false;
-    }
-  };
-
-  // ✅ HELPER: Obtener etiqueta de tipo de aborto
-  const getTipoAbortoLabel = (tipoAborto: string) => {
-    const etiquetas: Record<string, string> = {
-      espontaneo: 'Aborto Espontáneo',
-      inducido: 'Aborto Inducido',
-      incompleto: 'Aborto Incompleto',
-      completo: 'Aborto Completo',
-      diferido: 'Aborto Diferido/Retenido',
-      inevitable: 'Aborto Inevitable',
-    };
-    return etiquetas[tipoAborto] || tipoAborto.toUpperCase();
-  };
+  // Helpers puros hoisteados a nivel de módulo (ver arriba del componente).
 
   // ==========================================================================
   // COLUMNAS TABLA

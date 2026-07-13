@@ -10,8 +10,8 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Layout,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Layout,
   Card,
   Form,
   Input,
@@ -19,12 +19,10 @@ import {
   Typography,
   Divider,
   Space,
-  message,
   Alert,
   Checkbox,
   Steps,
-  Result,
-} from 'antd';
+  Result} from "antd";
 import {
   UserOutlined,
   LockOutlined,
@@ -77,6 +75,7 @@ interface LoginProps {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+  const { message } = useAntdApp();
   const [credForm] = Form.useForm<CredentialsForm>();
   const [totpForm] = Form.useForm<TotpForm>();
 
@@ -204,7 +203,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     if (error?.response) {
       const status = error.response.status;
-      const data = error.response.data;
+      const data = error.response?.data;
 
       if (status === 401) {
         errorMessage = 'Email o contraseña incorrectos.';

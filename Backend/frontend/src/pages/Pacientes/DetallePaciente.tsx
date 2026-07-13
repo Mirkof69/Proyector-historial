@@ -1,3 +1,4 @@
+/* eslint-disable react-doctor/prefer-dynamic-import */
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -17,6 +18,7 @@ import {
   Statistic,
   Timeline,
   Empty,
+  Tooltip as AntTooltip,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
@@ -35,18 +37,22 @@ import {
   PhoneOutlined,
   HomeOutlined,
   ExperimentOutlined,
+  RobotOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { pacientesService, Paciente } from '../../services/pacientesService';
 import { triajeService } from '../../services/triajeService';
 import { antecedentesService } from '../../services/antecedentesService';
 import { notasEvolucionService } from '../../services/notasEvolucionService';
 import { vacunasService } from '../../services/vacunasService';
+import { ecografiasService } from '../../services/ecografiasService';
 import { Embarazo } from '../../services/embarazosService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import dayjs from 'dayjs';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend,
   ResponsiveContainer, AreaChart, Area, ComposedChart
 } from 'recharts';
 
@@ -54,6 +60,19 @@ const { Title, Text } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 const renderVacunaLabel = (entry: any) => `${entry.name}: ${entry.value}`;
+
+const getEstadoCivilConGenero = (estadoCivil: string | undefined, genero: string | undefined): string => {
+  if (!estadoCivil) return '-';
+  const esFemenino = genero === 'femenino';
+  switch (estadoCivil) {
+    case 'soltero': return esFemenino ? 'Soltera' : 'Soltero';
+    case 'casado': return esFemenino ? 'Casada' : 'Casado';
+    case 'divorciado': return esFemenino ? 'Divorciada' : 'Divorciado';
+    case 'viudo': return esFemenino ? 'Viuda' : 'Viudo';
+    case 'union_libre': return 'Unión Libre';
+    default: return estadoCivil;
+  }
+};
 
 const DetallePaciente: React.FC = () => {
   const { message } = useAntdApp();
@@ -71,6 +90,7 @@ const DetallePaciente: React.FC = () => {
   const [antecedentes, setAntecedentes] = useState<any[]>([]);
   const [notasEvolucion, setNotasEvolucion] = useState<any[]>([]);
   const [vacunas, setVacunas] = useState<any[]>([]);
+  const [ecografias, setEcografias] = useState<any[]>([]);
   const isMounted = useRef(true);
 
   useEffect(() => {
@@ -81,25 +101,6 @@ const DetallePaciente: React.FC = () => {
   }, []);
 
   // ✅ Función para mostrar estado civil según género
-  const getEstadoCivilConGenero = (estadoCivil: string | undefined, genero: string | undefined): string => {
-    if (!estadoCivil) return '-';
-    const esFemenino = genero === 'femenino';
-    switch (estadoCivil) {
-      case 'soltero':
-        return esFemenino ? 'Soltera' : 'Soltero';
-      case 'casado':
-        return esFemenino ? 'Casada' : 'Casado';
-      case 'divorciado':
-        return esFemenino ? 'Divorciada' : 'Divorciado';
-      case 'viudo':
-        return esFemenino ? 'Viuda' : 'Viudo';
-      case 'union_libre':
-        return 'Unión Libre';
-      default:
-        return estadoCivil;
-    }
-  };
-
   const fetchData = async (pacienteId: number) => {
     loadingRef.current = true;
     try {
@@ -111,6 +112,7 @@ const DetallePaciente: React.FC = () => {
         antecedentesData,
         notasData,
         vacunasData,
+        ecografiasData,
       ] = await Promise.all([
         pacientesService.getById(pacienteId),
         pacientesService.getEmbarazos(pacienteId),
@@ -124,6 +126,7 @@ const DetallePaciente: React.FC = () => {
           const data = res.results || res;
           return Array.isArray(data) ? data.filter((v: any) => v.paciente === pacienteId) : [];
         }),
+        ecografiasService.obtenerPorPaciente(pacienteId),
       ]);
 
       if (isMounted.current) {
@@ -133,6 +136,7 @@ const DetallePaciente: React.FC = () => {
         setAntecedentes(antecedentesData);
         setNotasEvolucion(notasData);
         setVacunas(vacunasData);
+        setEcografias(Array.isArray(ecografiasData) ? ecografiasData : (ecografiasData?.results || []));
         message.success('Datos cargados correctamente');
       }
     } catch (error) {
@@ -146,15 +150,14 @@ const DetallePaciente: React.FC = () => {
     }
   };
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (id && loadedIdRef.current !== parseInt(id)) {
-    loadedIdRef.current = parseInt(id);
-    fetchData(parseInt(id));
-  }
+  useEffect(() => {
+    if (id) fetchData(parseInt(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleEdit = () => {
     if (paciente) {
-      navigate(`/pacientes/editar/${paciente.id}`);
+      navigate(FRONTEND_ROUTES.DASHBOARD.PACIENTES_EDITAR(paciente.id));
     }
   };
 
@@ -486,7 +489,7 @@ const DetallePaciente: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="fecha" fontSize={12} />
                   <YAxis fontSize={12} />
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                   <Line type="monotone" dataKey="PA_Sistolica" stroke="#ff4d4f" name="PA Sistólica" strokeWidth={2} />
                   <Line type="monotone" dataKey="PA_Diastolica" stroke="#1890ff" name="PA Diastólica" strokeWidth={2} />
@@ -518,7 +521,7 @@ const DetallePaciente: React.FC = () => {
                       <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <RechartsTooltip />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -538,7 +541,7 @@ const DetallePaciente: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="tipo" fontSize={12} />
                   <YAxis fontSize={12} />
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                   <Bar dataKey="cantidad" fill="#8884d8" name="Cantidad de Notas" />
                 </BarChart>
@@ -557,7 +560,7 @@ const DetallePaciente: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="fecha" fontSize={12} />
                   <YAxis fontSize={12} />
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                   <Area type="monotone" dataKey="PA_Sistolica" stroke="#ff4d4f" fill="#ff4d4f" fillOpacity={0.3} name="PA Sistólica" />
                   <Area type="monotone" dataKey="PA_Diastolica" stroke="#1890ff" fill="#1890ff" fillOpacity={0.3} name="PA Diastólica" />
@@ -580,7 +583,7 @@ const DetallePaciente: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="fecha" fontSize={12} />
                   <YAxis fontSize={12} />
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                   <Area type="monotone" dataKey="Temperatura" fill="#faad14" stroke="#faad14" fillOpacity={0.2} name="Temperatura (°C)" />
                   <Bar dataKey="FC" fill="#52c41a" name="Frecuencia Cardíaca" />
@@ -804,6 +807,44 @@ const DetallePaciente: React.FC = () => {
                 },
                 {
                   key: '6',
+                  label: (
+                    <span>
+                      <ScanOutlined /> Ecografías ({ecografias.length})
+                    </span>
+                  ),
+                  children: (
+                    <Table
+                      dataSource={ecografias}
+                      columns={[
+                        { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
+                        { title: 'Fecha', dataIndex: 'fecha_ecografia', key: 'fecha_ecografia', width: 120,
+                          render: (f: string) => dayjs(f).format('DD/MM/YYYY') },
+                        { title: 'Tipo', dataIndex: 'tipo_ecografia', key: 'tipo_ecografia', width: 150,
+                          render: (t: string) => <Tag>{t?.replace(/_/g, ' ')}</Tag> },
+                        { title: 'Edad Gestacional', key: 'eg', width: 120,
+                          render: (_: any, r: any) => `${r.edad_gestacional_semanas || 0}+${r.edad_gestacional_dias || 0}` },
+                        { title: 'Diagnóstico', dataIndex: 'diagnostico', key: 'diagnostico', ellipsis: true },
+                        { title: 'IA', key: 'ia', width: 60, align: 'center' as const,
+                          render: (_: any, r: any) => (r as any).tiene_analisis_ia
+                            ? <AntTooltip title="Tiene análisis IA"><RobotOutlined style={{ color: '#722ed1', fontSize: 18 }} /></AntTooltip>
+                            : null },
+                        { title: 'Acción', key: 'accion', width: 100,
+                          render: (_: any, r: any) => (
+                            <Button type="link" size="small" icon={<EyeOutlined />}
+                              onClick={() => navigate(`/dashboard/ecografias/${r.id}`)}>
+                              Ver
+                            </Button>
+                          ) },
+                      ]}
+                      rowKey="id"
+                      pagination={{ pageSize: 5 }}
+                      locale={{ emptyText: <Empty description="No hay ecografías registradas" /> }}
+                      size="small"
+                    />
+                  ),
+                },
+                {
+                  key: '7',
                   label: (
                     <span>
                       <LineChartOutlined /> Timeline Completo

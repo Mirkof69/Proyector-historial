@@ -43,13 +43,13 @@ const CLOSE_ICON_2 = <CloseOutlined />;
 const SAVE_ICON_3 = <SaveOutlined />;
 
 const FormularioEmbarazo: React.FC = () => {
-  const { message } = useAntdApp();
+  const {modal,  message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [form] = Form.useForm();
   // const { validateEmbarazo } = useEmbarazoValidation(); // No usado actualmente
   const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [fppCalculada, setFppCalculada] = useState<string>('');
   const [edadGestacional, setEdadGestacional] = useState<string>('');
@@ -128,7 +128,7 @@ const FormularioEmbarazo: React.FC = () => {
     } catch (error: any) {
       message.error('Error al cargar lista de pacientes');
     }
-  }, []);
+  }, [message]);
 
   const handleCancel = useCallback(() => {
     navigate(FRONTEND_ROUTES.DASHBOARD.EMBARAZOS);
@@ -156,12 +156,14 @@ const FormularioEmbarazo: React.FC = () => {
     } finally {
       setLoadingData(false);
     }
-  }, [calcularFPP, calcularIMC, form, handleCancel]);
+  }, [calcularFPP, calcularIMC, form, handleCancel, message]);
 
   useEffect(() => {
     cargarPacientes();
     if (isEditing) {
       cargarEmbarazo(parseInt(id!));
+    } else {
+      setLoadingData(false);
     }
   }, [id, isEditing, cargarPacientes, cargarEmbarazo]);
 
@@ -199,7 +201,7 @@ const FormularioEmbarazo: React.FC = () => {
       navigate(FRONTEND_ROUTES.DASHBOARD.EMBARAZOS);
     } catch (error: any) {
       if (error.response?.data) {
-        const errorData = error.response.data;
+        const errorData = error.response?.data;
         if (errorData.errores) {
           const fieldErrors = Object.keys(errorData.errores).map((field) => ({
             name: field,
@@ -209,7 +211,7 @@ const FormularioEmbarazo: React.FC = () => {
           }));
           form.setFields(fieldErrors);
         } else if (errorData.detail) {
-          Modal.error({ title: 'Error', content: errorData.detail });
+          modal.error({ title: 'Error', content: errorData.detail });
         }
       }
       message.error('Error al guardar el embarazo');

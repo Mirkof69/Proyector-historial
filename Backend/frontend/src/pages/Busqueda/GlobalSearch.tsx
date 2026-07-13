@@ -9,10 +9,9 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Card, Input, Tabs, Table, Tag, Space, Button, Row, Col, Statistic,
-  Empty, Spin, Badge, Tooltip, Segmented, Typography, message
-} from 'antd';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card, Input, Tabs, Table, Tag, Space, Button, Row, Col, Statistic,
+  Empty, Spin, Badge, Tooltip, Segmented, Typography} from "antd";
 import {
   SearchOutlined, UserOutlined, HeartOutlined, CalendarOutlined,
   FileImageOutlined, ExperimentOutlined, FileTextOutlined,
@@ -29,7 +28,6 @@ import { consultoriosService } from '../../services/consultoriosService';
 import dayjs from 'dayjs';
 
 const { Search } = Input;
-const { TabPane } = Tabs;
 const { Title, Text } = Typography;
 
 interface SearchResult {
@@ -46,8 +44,29 @@ interface SearchResult {
 
 const EYE_ICON_2 = <EyeOutlined />;
 
+const calculateRelevance = (query: string, fields: (string | undefined)[]): number => {
+  let score = 0;
+  const queryLower = query.toLowerCase();
+  const words = queryLower.split(' ');
+  const wordSet = new Set(words);
+
+  fields.forEach(field => {
+    if (!field) return;
+    const fieldLower = field.toLowerCase();
+    if (fieldLower === queryLower) score += 100;
+    else if (fieldLower.startsWith(queryLower)) score += 50;
+    else if (fieldLower.includes(queryLower)) score += 25;
+    wordSet.forEach(word => {
+      if (fieldLower.includes(word)) score += 10;
+    });
+  });
+
+  return score;
+};
+
 const GlobalSearch: React.FC = () => {
   const navigate = useNavigate();
+  const { message } = useAntdApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState<'all' | 'pacientes' | 'clinical'>('all');
@@ -352,30 +371,6 @@ const GlobalSearch: React.FC = () => {
   };
 
   // Calcular relevancia de búsqueda (scoring simple)
-  const calculateRelevance = (query: string, fields: (string | undefined)[]): number => {
-    let score = 0;
-    const queryLower = query.toLowerCase();
-    const words = queryLower.split(' ');
-    const wordSet = new Set(words);
-
-    fields.forEach(field => {
-      if (!field) return;
-      const fieldLower = field.toLowerCase();
-
-      // Coincidencia exacta
-      if (fieldLower === queryLower) score += 100;
-      // Empieza con el query
-      else if (fieldLower.startsWith(queryLower)) score += 50;
-      // Contiene el query
-      else if (fieldLower.includes(queryLower)) score += 25;
-      // Palabras individuales
-      wordSet.forEach(word => {
-        if (fieldLower.includes(word)) score += 10;
-      });
-    });
-
-    return score;
-  };
 
   // Navegar a detalle según tipo
   const handleViewDetail = (result: SearchResult) => {
@@ -642,126 +637,148 @@ const GlobalSearch: React.FC = () => {
       {searchQuery && totalResults > 0 && (
         <Card>
           <Spin spinning={loading}>
-            <Tabs defaultActiveKey="all" type="card">
-              <TabPane
-                tab={tabTodos}
-                key="all"
-              >
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  {pacientesResults.length > 0 && (
-                    <div>
-                      <Title level={5}><UserOutlined /> Pacientes ({pacientesResults.length})</Title>
-                      <Table
-                        columns={getColumns('paciente')}
-                        dataSource={pacientesResults.slice(0, 5)}
-                        rowKey="id"
-                        pagination={false}
-                        size="small"
-                      />
-                    </div>
-                  )}
-                  {embarazosResults.length > 0 && (
-                    <div>
-                      <Title level={5}><HeartOutlined /> Embarazos ({embarazosResults.length})</Title>
-                      <Table
-                        columns={getColumns('embarazo')}
-                        dataSource={embarazosResults.slice(0, 5)}
-                        rowKey="id"
-                        pagination={false}
-                        size="small"
-                      />
-                    </div>
-                  )}
-                  {citasResults.length > 0 && (
-                    <div>
-                      <Title level={5}><CalendarOutlined /> Citas ({citasResults.length})</Title>
-                      <Table
-                        columns={getColumns('cita')}
-                        dataSource={citasResults.slice(0, 5)}
-                        rowKey="id"
-                        pagination={false}
-                        size="small"
-                      />
-                    </div>
-                  )}
-                  {evolucionesResults.length > 0 && (
-                    <div>
-                      <Title level={5}><FileTextOutlined /> Evoluciones ({evolucionesResults.length})</Title>
-                      <Table
-                        columns={getColumns('evolucion')}
-                        dataSource={evolucionesResults.slice(0, 5)}
-                        rowKey="id"
-                        pagination={false}
-                        size="small"
-                      />
-                    </div>
-                  )}
-                </Space>
-              </TabPane>
-
-              <TabPane tab={tabPacientes} key="pacientes">
-                <Table
-                  columns={getColumns('paciente')}
-                  dataSource={pacientesResults}
-                  rowKey="id"
-                  pagination={{ pageSize: 20 }}
-                />
-              </TabPane>
-
-              <TabPane tab={tabEmbarazos} key="embarazos">
-                <Table
-                  columns={getColumns('embarazo')}
-                  dataSource={embarazosResults}
-                  rowKey="id"
-                  pagination={{ pageSize: 20 }}
-                />
-              </TabPane>
-
-              <TabPane tab={tabCitas} key="citas">
-                <Table
-                  columns={getColumns('cita')}
-                  dataSource={citasResults}
-                  rowKey="id"
-                  pagination={{ pageSize: 20 }}
-                />
-              </TabPane>
-
-              <TabPane tab={tabEcografias} key="ecografias">
-                <Table
-                  columns={getColumns('ecografia')}
-                  dataSource={ecografiasResults}
-                  rowKey="id"
-                  pagination={{ pageSize: 20 }}
-                />
-              </TabPane>
-
-              <TabPane tab={tabLaboratorio} key="laboratorio">
-                <Table
-                  columns={getColumns('laboratorio')}
-                  dataSource={laboratorioResults}
-                  rowKey="id"
-                  pagination={{ pageSize: 20 }}
-                />
-              </TabPane>
-
-              <TabPane tab={tabEvoluciones} key="evoluciones">
-                <Table
-                  columns={getColumns('evolucion')}
-                  dataSource={evolucionesResults}
-                  rowKey="id"
-                  pagination={{ pageSize: 20 }}
-                />
-              </TabPane>
-
-              <TabPane tab={tabConsultorios} key="consultorios">
-                <Table
-                  columns={getColumns('consultorio')}
-                  dataSource={consultoriosResults}
-                  rowKey="id"
-                  pagination={{ pageSize: 20 }}
-                />
-              </TabPane>
-            </Tabs>
+            <Tabs defaultActiveKey="all" type="card" items={[
+              {
+                key: "all",
+                label: tabTodos,
+                children: (
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    {pacientesResults.length > 0 && (
+                      <div>
+                        <Title level={5}><UserOutlined /> Pacientes ({pacientesResults.length})</Title>
+                        <Table
+                          columns={getColumns('paciente')}
+                          dataSource={pacientesResults.slice(0, 5)}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                        />
+                      </div>
+                    )}
+                    {embarazosResults.length > 0 && (
+                      <div>
+                        <Title level={5}><HeartOutlined /> Embarazos ({embarazosResults.length})</Title>
+                        <Table
+                          columns={getColumns('embarazo')}
+                          dataSource={embarazosResults.slice(0, 5)}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                        />
+                      </div>
+                    )}
+                    {citasResults.length > 0 && (
+                      <div>
+                        <Title level={5}><CalendarOutlined /> Citas ({citasResults.length})</Title>
+                        <Table
+                          columns={getColumns('cita')}
+                          dataSource={citasResults.slice(0, 5)}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                        />
+                      </div>
+                    )}
+                    {evolucionesResults.length > 0 && (
+                      <div>
+                        <Title level={5}><FileTextOutlined /> Evoluciones ({evolucionesResults.length})</Title>
+                        <Table
+                          columns={getColumns('evolucion')}
+                          dataSource={evolucionesResults.slice(0, 5)}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                        />
+                      </div>
+                    )}
+                  </Space>
+                )
+              },
+              {
+                key: "pacientes",
+                label: tabPacientes,
+                children: (
+                  <Table
+                    columns={getColumns('paciente')}
+                    dataSource={pacientesResults}
+                    rowKey="id"
+                    pagination={{ pageSize: 20 }}
+                  />
+                )
+              },
+              {
+                key: "embarazos",
+                label: tabEmbarazos,
+                children: (
+                  <Table
+                    columns={getColumns('embarazo')}
+                    dataSource={embarazosResults}
+                    rowKey="id"
+                    pagination={{ pageSize: 20 }}
+                  />
+                )
+              },
+              {
+                key: "citas",
+                label: tabCitas,
+                children: (
+                  <Table
+                    columns={getColumns('cita')}
+                    dataSource={citasResults}
+                    rowKey="id"
+                    pagination={{ pageSize: 20 }}
+                  />
+                )
+              },
+              {
+                key: "ecografias",
+                label: tabEcografias,
+                children: (
+                  <Table
+                    columns={getColumns('ecografia')}
+                    dataSource={ecografiasResults}
+                    rowKey="id"
+                    pagination={{ pageSize: 20 }}
+                  />
+                )
+              },
+              {
+                key: "laboratorio",
+                label: tabLaboratorio,
+                children: (
+                  <Table
+                    columns={getColumns('laboratorio')}
+                    dataSource={laboratorioResults}
+                    rowKey="id"
+                    pagination={{ pageSize: 20 }}
+                  />
+                )
+              },
+              {
+                key: "evoluciones",
+                label: tabEvoluciones,
+                children: (
+                  <Table
+                    columns={getColumns('evolucion')}
+                    dataSource={evolucionesResults}
+                    rowKey="id"
+                    pagination={{ pageSize: 20 }}
+                  />
+                )
+              },
+              {
+                key: "consultorios",
+                label: tabConsultorios,
+                children: (
+                  <Table
+                    columns={getColumns('consultorio')}
+                    dataSource={consultoriosResults}
+                    rowKey="id"
+                    pagination={{ pageSize: 20 }}
+                  />
+                )
+              }
+            ]} />
           </Spin>
         </Card>
       )}

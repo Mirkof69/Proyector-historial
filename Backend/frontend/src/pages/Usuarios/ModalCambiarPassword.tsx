@@ -5,17 +5,15 @@
  */
 
 import React, { useState } from 'react';
-import {
-  Modal,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Modal,
   Form,
   Input,
   Button,
   Space,
-  message,
   Alert,
   Divider,
-  Typography,
-} from 'antd';
+  Typography} from "antd";
 import { LockOutlined, KeyOutlined } from '@ant-design/icons';
 import { usuariosService, Usuario } from '../../services/usuariosService';
 
@@ -32,6 +30,7 @@ const ModalCambiarPassword: React.FC<ModalCambiarPasswordProps> = ({
   usuario,
   onClose,
 }) => {
+  const { message } = useAntdApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +55,7 @@ const ModalCambiarPassword: React.FC<ModalCambiarPasswordProps> = ({
       onClose(true);
     } catch (error: any) {
       if (error.response?.data) {
-        const errors = error.response.data;
+        const errors = error.response?.data;
         Object.keys(errors).forEach(key => {
           if (Array.isArray(errors[key])) {
             message.error(`${key}: ${errors[key].join(', ')}`);

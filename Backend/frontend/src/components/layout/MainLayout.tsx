@@ -75,7 +75,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
 
   // Hook de Tema (Si no tienes ThemeContext, puedes usar valores fijos o un estado local simple)
   // Si da error, comenta estas líneas y usa colores fijos abajo.
-  const { theme, themeName, setTheme } = useTheme();
+  const { theme, themeName, setTheme, fontScale, setFontScale } = useTheme();
 
   // Estados locales
   const [collapsed, setCollapsed] = useState(false);
@@ -354,6 +354,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
       key: 'mocha',
       label: <Space><BgColorsOutlined style={{ color: '#8b4513' }} /> Tema Moca</Space>,
       onClick: () => setTheme('mocha'),
+    },
+    { type: 'divider' },
+    {
+      key: 'font-label',
+      type: 'group',
+      label: 'Tamaño de texto (accesibilidad)',
+      children: [
+        {
+          key: 'font-normal',
+          label: <Space><span style={{ fontSize: 13 }}>A</span> Normal {fontScale === 'normal' ? '✓' : ''}</Space>,
+          onClick: () => setFontScale('normal'),
+        },
+        {
+          key: 'font-grande',
+          label: <Space><span style={{ fontSize: 16 }}>A</span> Grande {fontScale === 'grande' ? '✓' : ''}</Space>,
+          onClick: () => setFontScale('grande'),
+        },
+        {
+          key: 'font-extra',
+          label: <Space><span style={{ fontSize: 19 }}>A</span> Extra grande {fontScale === 'extra' ? '✓' : ''}</Space>,
+          onClick: () => setFontScale('extra'),
+        },
+      ],
     },
   ];
 

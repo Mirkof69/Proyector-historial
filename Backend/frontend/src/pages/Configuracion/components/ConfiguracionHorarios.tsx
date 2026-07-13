@@ -23,8 +23,9 @@ interface ConfiguracionHorariosProps {
   onSave: () => void;
 }
 
+const SAVE_ICON = <SaveOutlined />;
+
 const ConfiguracionHorarios: React.FC<ConfiguracionHorariosProps> = ({ horarios, setHorarios, saving, onSave }) => {
-  const saveIcon = <SaveOutlined />;
 
   return (
     <Card className="shadow-sm">
@@ -84,7 +85,7 @@ const ConfiguracionHorarios: React.FC<ConfiguracionHorariosProps> = ({ horarios,
       />
 
       <div style={{ marginTop: 24, textAlign: 'right' }}>
-        <Button type="primary" icon={saveIcon} onClick={onSave} loading={saving}>
+        <Button type="primary" icon={SAVE_ICON} onClick={onSave} loading={saving}>
           Actualizar Horarios
         </Button>
       </div>

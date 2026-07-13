@@ -33,7 +33,7 @@ const TabNotasEvolucion: React.FC<TabNotasEvolucionProps> = ({ notas, setDrawerN
           <Card
             key={nota.id}
             style={{ marginBottom: 16, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-            bodyStyle={{ padding: 0 }}
+            styles={{ body: { padding: 0 } }}
           >
             <div style={{ padding: '12px 16px', background: '#fafafa', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Space>

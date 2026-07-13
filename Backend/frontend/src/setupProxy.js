@@ -9,4 +9,12 @@ module.exports = function (app) {
       secure: false,
     })
   );
+  app.use(
+    '/media',
+    createProxyMiddleware({
+      target: 'http://localhost:8000',
+      changeOrigin: true,
+      secure: false,
+    })
+  );
 };

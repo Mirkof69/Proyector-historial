@@ -13,6 +13,7 @@ import {
   WarningOutlined
 } from '@ant-design/icons';
 import { useAntdApp } from '../../hooks/useMessage';
+import { exportarExcel } from '../../utils/excelExport';
 import dayjs from 'dayjs';
 import es from 'dayjs/locale/es';
 
@@ -48,9 +49,6 @@ const Triaje: React.FC = () => {
       const data = await triajeService.listar();
       if (Array.isArray(data)) {
         setTriajes(data);
-        if (data.length > 0) {
-          message.success(`${data.length} triajes cargados correctamente`);
-        }
       } else {
         setTriajes([]);
       }
@@ -108,6 +106,47 @@ const Triaje: React.FC = () => {
       return matchSearch && matchState && matchPriority && matchDate;
     });
   }, [triajesArray, searchText, filterState, filterPriority, filterDate]);
+
+  const handleExportExcel = useCallback(() => {
+    try {
+      const datos = filteredTriajes.map(t => ({
+        paciente: t.paciente_info?.nombre_completo || t.paciente_nombre || '-',
+        fecha: dayjs(t.fecha_hora || t.fecha_registro).format('DD/MM/YYYY HH:mm'),
+        prioridad: t.prioridad?.toUpperCase() || '-',
+        estado: t.estado?.toUpperCase() || 'PENDIENTE',
+        motivo: t.motivo_consulta || t.motivo_visita || '-',
+        peso_kg: t.peso_kg ?? t.peso ?? '-',
+        talla_cm: t.talla_cm ?? t.talla ?? '-',
+        presion: t.presion_arterial || (t.presion_sistolica && t.presion_diastolica ? `${t.presion_sistolica}/${t.presion_diastolica}` : '-'),
+        temperatura: t.temperatura ?? '-',
+        frecuencia_cardiaca: t.frecuencia_cardiaca ?? '-',
+      }));
+      const columnas = {
+        paciente: 'Paciente',
+        fecha: 'Fecha/Hora',
+        prioridad: 'Prioridad',
+        estado: 'Estado',
+        motivo: 'Motivo',
+        peso_kg: 'Peso (kg)',
+        talla_cm: 'Talla (cm)',
+        presion: 'Presión Arterial',
+        temperatura: 'Temperatura',
+        frecuencia_cardiaca: 'FC',
+      };
+      exportarExcel(
+        datos,
+        columnas,
+        {
+          filename: `triaje_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
+          sheetName: 'Triaje',
+          title: `Registro de Triaje - ${dayjs().format('DD/MM/YYYY')}`,
+        },
+      );
+      message.success('Archivo Excel generado exitosamente');
+    } catch (error) {
+      message.error('Error al generar el archivo Excel');
+    }
+  }, [filteredTriajes, message]);
 
   const columns = useMemo(() => [
     {
@@ -242,7 +281,7 @@ const Triaje: React.FC = () => {
                   </Button>
                   <Button
                     icon={<ExportOutlined />}
-                    onClick={() => message.success(`Exportando registros...`)}
+                    onClick={handleExportExcel}
                   >
                     Exportar
                   </Button>

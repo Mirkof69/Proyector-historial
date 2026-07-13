@@ -7,18 +7,15 @@
  * ==================================================================================
  */
 
-import React, { useState, useRef } from 'react';
-import {
-  Card,
-  Button,
+import React, { useState, useEffect } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Button,
   Space,
-  message,
   Spin,
   Alert,
   Row,
   Col,
-  Modal,
-} from 'antd';
+  Modal} from "antd";
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -31,8 +28,10 @@ import { citasService, Cita, EstadoCita } from '../../services/citasService';
 import { getEstadoTag } from './utils/citasUtils';
 import DetalleCitaInfo from './components/DetalleCitaInfo';
 import DetalleCitaSidebar from './components/DetalleCitaSidebar';
+import DetalleCitaHeader from './components/DetalleCitaHeader';
 
 const DetalleCita: React.FC = () => {
+  const { modal, message } = useAntdApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
@@ -50,11 +49,10 @@ const DetalleCita: React.FC = () => {
     }
   };
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (id && loadedIdRef.current !== parseInt(id)) {
-    loadedIdRef.current = parseInt(id);
-    cargarCita(parseInt(id));
-  }
+  useEffect(() => {
+    if (id) cargarCita(parseInt(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleVolver = () => {
     navigate('/dashboard/citas');
@@ -118,26 +116,12 @@ const DetalleCita: React.FC = () => {
         />
       )}
 
-      <Card
-        title={
-          <Space>
-            <CalendarOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-            <span style={{ fontSize: 20, fontWeight: 600 }}>Detalle de Cita #{cita.id}</span>
-            {getEstadoTag(cita.estado)}
-          </Space>
-        }
-        extra={
-          <Space>
-            <Button icon={<ArrowLeftOutlined />} onClick={handleVolver}>
-              Volver
-            </Button>
-            {!['completada', 'cancelada', 'no_asistio'].includes(cita.estado) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={handleEditar}>
-                Editar
-              </Button>
-            )}
-          </Space>
-        }
+      <DetalleCitaHeader
+        citaId={cita.id}
+        estado={cita.estado}
+        onVolver={handleVolver}
+        onEditar={handleEditar}
+        editable={!['completada', 'cancelada', 'no_asistio'].includes(cita.estado)}
       >
         <Row gutter={[16, 16]}>
           <Col xs={24} lg={16}>
@@ -158,7 +142,7 @@ const DetalleCita: React.FC = () => {
               }}
               onCancelar={async () => {
                 if (!cita?.id) return;
-                Modal.confirm({
+                modal.confirm({
                   title: '¿Cancelar esta cita?',
                   content: '¿Está seguro de querer cancelar esta cita?',
                   okText: 'Sí, cancelar',
@@ -190,7 +174,7 @@ const DetalleCita: React.FC = () => {
             />
           </Col>
         </Row>
-      </Card>
+      </DetalleCitaHeader>
     </div>
   );
 };

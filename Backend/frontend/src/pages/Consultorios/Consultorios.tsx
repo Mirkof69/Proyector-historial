@@ -7,11 +7,11 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  Card, Row, Col, Table, Button, Input, Select, Space, Statistic,
-  Tag, message, Popconfirm, Tooltip, Modal, Form, InputNumber, Switch,
-  Divider, Drawer, Descriptions, List, DatePicker, Badge, Tabs
-} from 'antd';
+import { useAntdApp } from "../../hooks/useMessage";
+import { useAuth } from "../../hooks/useAuth";
+import {Card, Row, Col, Table, Button, Input, Select, Space, Statistic,
+  Tag, Popconfirm, Tooltip, Modal, Form, InputNumber, Switch,
+  Divider, Drawer, Descriptions, List, DatePicker, Badge, Tabs} from "antd";
 import {
   PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined,
   EyeOutlined, HomeOutlined, ToolOutlined, CheckCircleOutlined,
@@ -46,6 +46,8 @@ const searchIcon = <SearchOutlined />;
 
 const Consultorios: React.FC = () => {
   const [consultorios, setConsultorios] = useState<Consultorio[]>([]);
+  const { message } = useAntdApp();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<string>('');
@@ -142,7 +144,7 @@ const Consultorios: React.FC = () => {
       tiene_oxigeno: false,
       tiene_aspirador: false,
       estado: 'disponible',
-      capacidad: 1,
+      capacidad_personas: 1,
     });
     setModalVisible(true);
   };
@@ -239,7 +241,7 @@ const Consultorios: React.FC = () => {
         fecha_reserva: values.fecha_reserva.format('YYYY-MM-DD'),
         hora_inicio: values.hora_inicio.format('HH:mm'),
         hora_fin: values.hora_fin.format('HH:mm'),
-        solicitado_por: 1, // TODO: usar usuario actual
+        solicitado_por: user?.id,
       };
 
       await consultoriosService.crearReserva(dataToSend);
@@ -366,26 +368,6 @@ const Consultorios: React.FC = () => {
       setEstadisticas(data);
     } catch (error) {
       message.error('Error cargando estadísticas');
-      // Datos mock en caso de error
-      setEstadisticas({
-        consultorio_id: consultorioId,
-        consultorio_nombre: 'Consultorio',
-        periodo: {
-          inicio: dayjs().subtract(30, 'days').format('YYYY-MM-DD'),
-          fin: dayjs().format('YYYY-MM-DD')
-        },
-        horas_totales_disponibles: 240,
-        horas_ocupadas: 180,
-        horas_libres: 60,
-        tasa_ocupacion: 75,
-        total_consultas: 45,
-        total_procedimientos: 12,
-        total_emergencias: 3,
-        medicos_usuarios: 5,
-        total_mantenimientos: 2,
-        horas_mantenimiento: 4,
-        promedio_ocupacion_dia: 6,
-      });
     } finally {
       setLoadingEstadisticas(false);
     }
@@ -423,11 +405,6 @@ const Consultorios: React.FC = () => {
       }
     } catch (error) {
       message.error('Error verificando disponibilidad');
-      // Mock result en caso de error
-      setResultadoDisponibilidad({
-        disponible: true,
-        motivo: 'Verificación simulada (backend no disponible)'
-      });
     } finally {
       setVerificandoDisponibilidad(false);
     }
@@ -511,8 +488,8 @@ const Consultorios: React.FC = () => {
     },
     {
       title: 'Capacidad',
-      dataIndex: 'capacidad',
-      key: 'capacidad',
+      dataIndex: 'capacidad_personas',
+      key: 'capacidad_personas',
       width: 100,
       align: 'center' as const,
     },
@@ -882,7 +859,7 @@ const Consultorios: React.FC = () => {
             tiene_oxigeno: false,
             tiene_aspirador: false,
             estado: 'disponible',
-            capacidad: 1,
+            capacidad_personas: 1,
           }}
         >
           <Divider orientation="left">Información Básica</Divider>
@@ -953,7 +930,7 @@ const Consultorios: React.FC = () => {
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item label="Capacidad" name="capacidad">
+              <Form.Item label="Capacidad" name="capacidad_personas">
                 <InputNumber min={1} max={20} style={{ width: '100%' }} />
               </Form.Item>
             </Col>

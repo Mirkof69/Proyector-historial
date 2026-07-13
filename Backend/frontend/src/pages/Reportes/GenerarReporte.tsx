@@ -12,9 +12,9 @@
  * =============================================================================
  */
 
-import React, { useState } from 'react';
-import {
-  Card,
+import React, { useState, useEffect } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card,
   Form,
   Input,
   Button,
@@ -24,7 +24,6 @@ import {
   Row,
   Col,
   Divider,
-  message,
   Alert,
   Radio,
   Spin,
@@ -35,8 +34,8 @@ import {
   Progress,
   Timeline,
   Tag,
-  Descriptions, // ✅ AGREGAR ESTO
-} from 'antd';
+  Descriptions,
+} from "antd";
 import {
   ArrowLeftOutlined,
   FileTextOutlined,
@@ -52,7 +51,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { reportesService } from '../../services/reportesService';
+import { reportesService, TipoReporteConfig } from '../../services/reportesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import './GenerarReporte.css';
 
@@ -63,18 +62,28 @@ const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 
 interface FormValues {
-  tipo_reporte: string;
+  tipo_reporte: number;
   nombre: string;
   descripcion?: string;
   formato: string;
-  rango_fechas: [dayjs.Dayjs, dayjs.Dayjs];
+  rango_fechas?: [dayjs.Dayjs, dayjs.Dayjs];
   incluir_graficos?: boolean;
   incluir_estadisticas?: boolean;
   agrupar_por?: string;
   filtros_adicionales?: string[];
 }
 
+const iconoPorCategoria: Record<string, React.ReactElement> = {
+  estadistico: <BarChartOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
+  paciente: <FileTextOutlined style={{ fontSize: 48, color: '#52c41a' }} />,
+  institucional: <FileTextOutlined style={{ fontSize: 48, color: '#722ed1' }} />,
+  regulatorio: <FileTextOutlined style={{ fontSize: 48, color: '#fa8c16' }} />,
+  clinico: <FileTextOutlined style={{ fontSize: 48, color: '#ff4d4f' }} />,
+  financiero: <BarChartOutlined style={{ fontSize: 48, color: '#13c2c2' }} />,
+};
+
 const GenerarReportePage: React.FC = () => {
+  const { modal, message } = useAntdApp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tipoReporteParam = searchParams.get('tipo');
@@ -83,94 +92,54 @@ const GenerarReportePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [generando, setGenerando] = useState(false);
   const [pasoActual, setPasoActual] = useState(0);
-  const [tipoSeleccionado, setTipoSeleccionado] = useState<string>('');
+  const [tiposReporte, setTiposReporte] = useState<TipoReporteConfig[]>([]);
+  const [cargandoTipos, setCargandoTipos] = useState(true);
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<number | null>(null);
   const [progresoGeneracion, setProgresoGeneracion] = useState(0);
   const [reporteGenerado, setReporteGenerado] = useState<any>(null);
   const [vistaPrevia, setVistaPrevia] = useState<any>(null);
+  const [tipoDetalle, setTipoDetalle] = useState<TipoReporteConfig | null>(null);
 
-  // Tipos de reportes disponibles
-  const tiposReporte = [
-    {
-      id: 'partos_mes',
-      nombre: 'Partos del Mes',
-      descripcion: 'Reporte mensual de todos los partos registrados con estadísticas',
-      categoria: 'estadistico',
-      icono: <BarChartOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
-      campos_requeridos: ['rango_fechas'],
-      opciones: ['incluir_graficos', 'incluir_estadisticas'],
-    },
-    {
-      id: 'controles_prenatales',
-      nombre: 'Controles Prenatales',
-      descripcion: 'Resumen de controles prenatales realizados por período',
-      categoria: 'estadistico',
-      icono: <FileTextOutlined style={{ fontSize: 48, color: '#52c41a' }} />,
-      campos_requeridos: ['rango_fechas'],
-      opciones: ['incluir_graficos', 'agrupar_por'],
-    },
-    {
-      id: 'ecografias_mes',
-      nombre: 'Ecografías del Mes',
-      descripcion: 'Listado detallado de ecografías realizadas',
-      categoria: 'listado',
-      icono: <FileTextOutlined style={{ fontSize: 48, color: '#722ed1' }} />,
-      campos_requeridos: ['rango_fechas'],
-      opciones: ['agrupar_por'],
-    },
-    {
-      id: 'laboratorios_pendientes',
-      nombre: 'Laboratorios Pendientes',
-      descripcion: 'Exámenes de laboratorio sin resultados',
-      categoria: 'listado',
-      icono: <FileTextOutlined style={{ fontSize: 48, color: '#fa8c16' }} />,
-      campos_requeridos: [],
-      opciones: [],
-    },
-    {
-      id: 'pacientes_alto_riesgo',
-      nombre: 'Pacientes de Alto Riesgo',
-      descripcion: 'Embarazos clasificados como alto riesgo',
-      categoria: 'listado',
-      icono: <FileTextOutlined style={{ fontSize: 48, color: '#ff4d4f' }} />,
-      campos_requeridos: [],
-      opciones: ['incluir_estadisticas'],
-    },
-    {
-      id: 'indicadores_clinicos',
-      nombre: 'Indicadores Clínicos',
-      descripcion: 'Dashboard de indicadores de calidad asistencial',
-      categoria: 'estadistico',
-      icono: <BarChartOutlined style={{ fontSize: 48, color: '#13c2c2' }} />,
-      campos_requeridos: ['rango_fechas'],
-      opciones: ['incluir_graficos', 'incluir_estadisticas'],
-    },
-  ];
+  useEffect(() => {
+    let activo = true;
+    (async () => {
+      try {
+        const tipos = await reportesService.listarTiposReporte(true);
+        if (!activo) return;
+        setTiposReporte(tipos);
 
-  const initializedRef = React.useRef(false);
-  if (!initializedRef.current) {
-    initializedRef.current = true;
-    if (tipoReporteParam) {
-      const tipoEncontrado = tiposReporte.find((t) => t.id === tipoReporteParam);
-      if (tipoEncontrado) {
-        setTipoSeleccionado(tipoReporteParam);
-        form.setFieldsValue({
-          tipo_reporte: tipoReporteParam,
-          nombre: tipoEncontrado.nombre,
-          descripcion: tipoEncontrado.descripcion,
-          formato: 'pdf',
-          rango_fechas: [dayjs().startOf('month'), dayjs().endOf('month')],
-        });
-        setPasoActual(1);
+        const tipoIdParam = tipoReporteParam ? Number(tipoReporteParam) : null;
+        const tipoEncontrado = tipoIdParam ? tipos.find((t) => t.id === tipoIdParam) : null;
+        if (tipoEncontrado) {
+          setTipoSeleccionado(tipoEncontrado.id);
+          form.setFieldsValue({
+            tipo_reporte: tipoEncontrado.id,
+            nombre: tipoEncontrado.nombre,
+            descripcion: tipoEncontrado.descripcion,
+            formato: 'pdf',
+            rango_fechas: [dayjs().startOf('month'), dayjs().endOf('month')],
+          });
+          setPasoActual(1);
+          reportesService.obtenerTipoReporte(tipoEncontrado.id)
+            .then(setTipoDetalle)
+            .catch(() => setTipoDetalle(null));
+        }
+      } catch {
+        message.error('Error al cargar los tipos de reporte configurados');
+      } finally {
+        if (activo) setCargandoTipos(false);
       }
-    }
-  }
+    })();
+    return () => { activo = false; };
+    // eslint-disable-next-line react-doctor/exhaustive-deps
+  }, []);
 
   // ==========================================================================
   // HANDLERS
   // ==========================================================================
   const handleVolver = () => {
     if (generando) {
-      Modal.confirm({
+      modal.confirm({
         title: '¿Cancelar generación?',
         content: 'El reporte se está generando. ¿Desea cancelar?',
         okText: 'Sí, cancelar',
@@ -182,7 +151,7 @@ const GenerarReportePage: React.FC = () => {
     }
   };
 
-  const handleTipoReporteChange = (tipoId: string) => {
+  const handleTipoReporteChange = async (tipoId: number) => {
     const tipo = tiposReporte.find((t) => t.id === tipoId);
     if (tipo) {
       setTipoSeleccionado(tipoId);
@@ -190,6 +159,12 @@ const GenerarReportePage: React.FC = () => {
         nombre: tipo.nombre,
         descripcion: tipo.descripcion,
       });
+    }
+    try {
+      const detalle = await reportesService.obtenerTipoReporte(tipoId);
+      setTipoDetalle(detalle);
+    } catch {
+      setTipoDetalle(null);
     }
   };
 
@@ -246,38 +221,25 @@ const GenerarReportePage: React.FC = () => {
 
     try {
       const values: FormValues = await form.validateFields();
-      const data = {
-        ...values,
-        rango_fechas: values.rango_fechas
-          ? [
-              values.rango_fechas[0].format('YYYY-MM-DD'),
-              values.rango_fechas[1].format('YYYY-MM-DD'),
-            ]
-          : undefined,
-      };
+      const { tipo_reporte, formato, rango_fechas, nombre, descripcion, ...opciones } = values;
 
-
-      // Simular progreso
-      const interval = setInterval(() => {
-        setProgresoGeneracion((prev) => {
-          if (prev >= 90) {
-            clearInterval(interval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 500);
+      setProgresoGeneracion(50);
 
       const resultado = await reportesService.generateReporte(
-        values.tipo_reporte as any, 
-        data, 
-        values.formato as any
+        tipo_reporte,
+        {
+          fecha_inicio: rango_fechas ? rango_fechas[0].format('YYYY-MM-DD') : undefined,
+          fecha_fin: rango_fechas ? rango_fechas[1].format('YYYY-MM-DD') : undefined,
+          nombre,
+          descripcion,
+          ...opciones,
+        },
+        formato as any
       );
-      clearInterval(interval);
       setProgresoGeneracion(100);
       setReporteGenerado(resultado);
 
-      message.success('✅ Reporte generado correctamente');
+      message.success('Solicitud de reporte creada correctamente');
       setPasoActual(3);
     } catch (error: any) {
       message.error(
@@ -292,16 +254,23 @@ const GenerarReportePage: React.FC = () => {
     if (!reporteGenerado) return;
 
     try {
-      await reportesService.downloadReporte(reporteGenerado.id);
+      const blob = await reportesService.downloadReporte(reporteGenerado.id);
+      const extension = reporteGenerado.formato === 'pdf' ? 'pdf' : 'xlsx';
+      reportesService.descargarArchivo(blob, `reporte_${reporteGenerado.id}.${extension}`);
       message.success('Reporte descargado correctamente');
-    } catch (error) {
-      message.error('Error al descargar el reporte');
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        message.warning('El reporte todavía se está procesando, intente descargarlo más tarde');
+      } else {
+        message.error('Error al descargar el reporte');
+      }
     }
   };
 
   const handleGenerarOtro = () => {
     form.resetFields();
-    setTipoSeleccionado('');
+    setTipoSeleccionado(null);
+    setTipoDetalle(null);
     setPasoActual(0);
     setReporteGenerado(null);
     setVistaPrevia(null);
@@ -319,52 +288,73 @@ const GenerarReportePage: React.FC = () => {
           Elija el tipo de reporte que desea generar
         </Paragraph>
 
-        <Form.Item
-          name="tipo_reporte"
-          rules={[{ required: true, message: 'Seleccione un tipo de reporte' }]}
-        >
-          <Radio.Group
-            style={{ width: '100%' }}
-            onChange={(e) => handleTipoReporteChange(e.target.value)}
+        {cargandoTipos ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin />
+          </div>
+        ) : tiposReporte.length === 0 ? (
+          <Alert
+            type="warning"
+            showIcon
+            message="No hay tipos de reporte configurados"
+            description="Un administrador debe crear al menos un Tipo de Reporte activo antes de poder generar reportes."
+          />
+        ) : (
+          <Form.Item
+            name="tipo_reporte"
+            rules={[{ required: true, message: 'Seleccione un tipo de reporte' }]}
           >
-            <Row gutter={[16, 16]}>
-              {tiposReporte.map((tipo) => (
-                <Col xs={24} sm={12} md={8} key={tipo.id}>
-                  <Card
-                    hoverable
-                    className={
-                      tipoSeleccionado === tipo.id ? 'reporte-card-selected' : ''
-                    }
-                  >
-                    <Radio value={tipo.id} style={{ width: '100%' }}>
-                      <Space direction="vertical" style={{ width: '100%' }}>
-                        <div style={{ textAlign: 'center' }}>{tipo.icono}</div>
-                        <Title level={5} style={{ marginBottom: 8 }}>
-                          {tipo.nombre}
-                        </Title>
-                        <Paragraph
-                          type="secondary"
-                          style={{ marginBottom: 8, fontSize: 12 }}
-                        >
-                          {tipo.descripcion}
-                        </Paragraph>
-                        <Tag color={tipo.categoria === 'estadistico' ? 'blue' : 'green'}>
-                          {tipo.categoria}
-                        </Tag>
-                      </Space>
-                    </Radio>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </Radio.Group>
-        </Form.Item>
+            <Radio.Group
+              style={{ width: '100%' }}
+              onChange={(e) => handleTipoReporteChange(e.target.value)}
+            >
+              <Row gutter={[16, 16]}>
+                {tiposReporte.map((tipo) => (
+                  <Col xs={24} sm={12} md={8} key={tipo.id}>
+                    <Card
+                      hoverable
+                      className={
+                        tipoSeleccionado === tipo.id ? 'reporte-card-selected' : ''
+                      }
+                    >
+                      <Radio value={tipo.id} style={{ width: '100%' }}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <div style={{ textAlign: 'center' }}>
+                            {iconoPorCategoria[tipo.categoria] || <FileTextOutlined style={{ fontSize: 48 }} />}
+                          </div>
+                          <Title level={5} style={{ marginBottom: 8 }}>
+                            {tipo.nombre}
+                          </Title>
+                          <Paragraph
+                            type="secondary"
+                            style={{ marginBottom: 8, fontSize: 12 }}
+                          >
+                            {tipo.descripcion}
+                          </Paragraph>
+                          <Tag color={tipo.categoria === 'estadistico' ? 'blue' : 'green'}>
+                            {tipo.categoria_display || tipo.categoria}
+                          </Tag>
+                        </Space>
+                      </Radio>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </Radio.Group>
+          </Form.Item>
+        )}
       </div>
     );
   };
 
   const renderPaso1 = () => {
-    const tipoActual = tiposReporte.find((t) => t.id === tipoSeleccionado);
+    const formatosDisponibles = tipoDetalle
+      ? [
+          tipoDetalle.formato_pdf !== false && 'pdf',
+          tipoDetalle.formato_excel !== false && 'excel',
+        ].filter(Boolean)
+      : ['pdf', 'excel'];
+    const requiereFechas = tipoDetalle?.incluir_fecha_inicio || tipoDetalle?.incluir_fecha_fin;
 
     return (
       <div>
@@ -416,23 +406,27 @@ const GenerarReportePage: React.FC = () => {
               rules={[{ required: true, message: 'Seleccione el formato' }]}
             >
               <Radio.Group size="large">
-                <Radio value="pdf">
-                  <Space>
-                    <FilePdfOutlined style={{ color: '#ff4d4f' }} />
-                    PDF
-                  </Space>
-                </Radio>
-                <Radio value="excel">
-                  <Space>
-                    <FileExcelOutlined style={{ color: '#52c41a' }} />
-                    Excel
-                  </Space>
-                </Radio>
+                {formatosDisponibles.includes('pdf') && (
+                  <Radio value="pdf">
+                    <Space>
+                      <FilePdfOutlined style={{ color: '#ff4d4f' }} />
+                      PDF
+                    </Space>
+                  </Radio>
+                )}
+                {formatosDisponibles.includes('excel') && (
+                  <Radio value="excel">
+                    <Space>
+                      <FileExcelOutlined style={{ color: '#52c41a' }} />
+                      Excel
+                    </Space>
+                  </Radio>
+                )}
               </Radio.Group>
             </Form.Item>
           </Col>
 
-          {tipoActual?.campos_requeridos?.includes('rango_fechas') && (
+          {requiereFechas && (
             <Col xs={24} md={12}>
               <Form.Item
                 name="rango_fechas"
@@ -449,38 +443,27 @@ const GenerarReportePage: React.FC = () => {
             </Col>
           )}
 
-          {tipoActual?.opciones && tipoActual.opciones.length > 0 && (
-            <Col xs={24}>
-              <Divider>Opciones Adicionales</Divider>
-
-              {tipoActual.opciones.includes('incluir_graficos') && (
-                <Form.Item name="incluir_graficos" valuePropName="checked">
-                  <Checkbox>Incluir gráficos estadísticos</Checkbox>
-                </Form.Item>
-              )}
-
-              {tipoActual.opciones.includes('incluir_estadisticas') && (
-                <Form.Item name="incluir_estadisticas" valuePropName="checked">
-                  <Checkbox>Incluir resumen estadístico</Checkbox>
-                </Form.Item>
-              )}
-
-              {tipoActual.opciones.includes('agrupar_por') && (
-                <Form.Item
-                  name="agrupar_por"
-                  label="Agrupar por"
-                  tooltip="Criterio de agrupación de datos"
-                >
-                  <Select placeholder="Seleccione criterio" allowClear>
-                    <Option value="semana">Semana</Option>
-                    <Option value="mes">Mes</Option>
-                    <Option value="medico">Médico</Option>
-                    <Option value="tipo">Tipo</Option>
-                  </Select>
-                </Form.Item>
-              )}
-            </Col>
-          )}
+          <Col xs={24}>
+            <Divider>Opciones Adicionales</Divider>
+            <Form.Item name="incluir_graficos" valuePropName="checked">
+              <Checkbox>Incluir gráficos estadísticos</Checkbox>
+            </Form.Item>
+            <Form.Item name="incluir_estadisticas" valuePropName="checked">
+              <Checkbox>Incluir resumen estadístico</Checkbox>
+            </Form.Item>
+            <Form.Item
+              name="agrupar_por"
+              label="Agrupar por"
+              tooltip="Criterio de agrupación de datos"
+            >
+              <Select placeholder="Seleccione criterio" allowClear>
+                <Option value="semana">Semana</Option>
+                <Option value="mes">Mes</Option>
+                <Option value="medico">Médico</Option>
+                <Option value="tipo">Tipo</Option>
+              </Select>
+            </Form.Item>
+          </Col>
         </Row>
       </div>
     );
@@ -511,16 +494,17 @@ const GenerarReportePage: React.FC = () => {
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Rango de Fechas">
-                {vistaPrevia.fecha_inicio} - {vistaPrevia.fecha_fin}
+                {vistaPrevia.fecha_inicio && vistaPrevia.fecha_fin
+                  ? `${dayjs(vistaPrevia.fecha_inicio).format('DD/MM/YYYY')} - ${dayjs(vistaPrevia.fecha_fin).format('DD/MM/YYYY')}`
+                  : 'Sin restricción de fechas'}
               </Descriptions.Item>
               <Descriptions.Item label="Registros a Incluir">
                 <Text strong>{vistaPrevia.total_registros}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Tamaño Estimado">
-                {vistaPrevia.tamanio_estimado}
-              </Descriptions.Item>
-              <Descriptions.Item label="Tiempo Estimado">
-                {vistaPrevia.tiempo_estimado}
+                {vistaPrevia.tamanio_estimado_kb >= 1024
+                  ? `${(vistaPrevia.tamanio_estimado_kb / 1024).toFixed(1)} MB`
+                  : `${vistaPrevia.tamanio_estimado_kb} KB`}
               </Descriptions.Item>
             </Descriptions>
 
@@ -632,33 +616,34 @@ const GenerarReportePage: React.FC = () => {
         ) : reporteGenerado ? (
           <div style={{ textAlign: 'center', padding: '50px 0' }}>
             <CheckCircleOutlined
-              style={{ fontSize: 64, color: '#52c41a', marginBottom: 24 }}
+              style={{ fontSize: 64, color: reporteGenerado.estado === 'completado' ? '#52c41a' : '#1890ff', marginBottom: 24 }}
             />
-            <Title level={3}>¡Reporte Generado Exitosamente!</Title>
+            <Title level={3}>
+              {reporteGenerado.estado === 'completado' ? '¡Reporte Listo!' : 'Solicitud de Reporte Creada'}
+            </Title>
             <Paragraph type="secondary">
-              El reporte se ha generado correctamente y está listo para descargar
+              {reporteGenerado.estado === 'completado'
+                ? 'El reporte se generó correctamente y está listo para descargar.'
+                : 'La solicitud se registró correctamente y se está procesando. Podrá descargarlo cuando el estado cambie a "Completado".'}
             </Paragraph>
 
             <Card style={{ marginTop: 24, textAlign: 'left' }}>
               <Descriptions column={1} bordered>
-                <Descriptions.Item label="Nombre">
-                  {reporteGenerado.nombre}
+                <Descriptions.Item label="Tipo de Reporte">
+                  {reporteGenerado.tipo_reporte_nombre}
                 </Descriptions.Item>
                 <Descriptions.Item label="Formato">
                   <Tag color={reporteGenerado.formato === 'pdf' ? 'red' : 'green'}>
                     {reporteGenerado.formato?.toUpperCase()}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Tamaño">
-                  {reporteGenerado.tamanio}
+                <Descriptions.Item label="Estado">
+                  <Tag color={reporteGenerado.estado === 'completado' ? 'success' : reporteGenerado.estado === 'error' ? 'error' : 'processing'}>
+                    {reporteGenerado.estado_display || reporteGenerado.estado}
+                  </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Registros">
-                  {reporteGenerado.total_registros}
-                </Descriptions.Item>
-                <Descriptions.Item label="Fecha Generación">
-                  {dayjs(reporteGenerado.fecha_generacion).format(
-                    'DD/MM/YYYY HH:mm'
-                  )}
+                <Descriptions.Item label="Fecha de Solicitud">
+                  {dayjs(reporteGenerado.fecha_solicitud).format('DD/MM/YYYY HH:mm')}
                 </Descriptions.Item>
               </Descriptions>
             </Card>
@@ -668,6 +653,7 @@ const GenerarReportePage: React.FC = () => {
                 type="primary"
                 size="large"
                 icon={<DownloadOutlined />}
+                disabled={reporteGenerado.estado !== 'completado'}
                 onClick={handleDescargarReporte}
               >
                 Descargar Reporte

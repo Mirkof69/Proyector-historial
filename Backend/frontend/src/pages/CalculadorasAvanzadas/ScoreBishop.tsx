@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
-import {
-  Card, Row, Col, Form, Select, Button, Statistic, Alert, Table,
-  Descriptions, Space, Tag, message, Divider
-} from 'antd';
+import React, { useState, lazy, Suspense } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card, Row, Col, Form, Select, Button, Statistic, Alert, Table,
+  Descriptions, Space, Tag, Divider, Spin} from "antd";
 import {
   CalculatorOutlined, CheckCircleOutlined, WarningOutlined,
   CloseCircleOutlined, TrophyOutlined, HistoryOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import './ScoreBishop.css';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell
-} from 'recharts';
+
+const BarChart = lazy(() => import('recharts').then(m => ({ default: m.BarChart })) as any);
+const Bar = lazy(() => import('recharts').then(m => ({ default: m.Bar })) as any);
+const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
+const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
+const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
+const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
+const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
+const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
+const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })) as any);
+const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
+const PieChart = lazy(() => import('recharts').then(m => ({ default: m.PieChart })) as any);
+const Pie = lazy(() => import('recharts').then(m => ({ default: m.Pie })) as any);
+const Cell = lazy(() => import('recharts').then(m => ({ default: m.Cell })) as any);
 
 interface BishopScore {
   dilatacion: number;
@@ -46,7 +55,58 @@ const BISHOP_DOMAIN = [0, 3];
 const TENDENCIA_DOMAIN = [0, 13];
 const renderPieLabel = ({ name, value }: { name: string; value: number }) => `${name}: ${value}`;
 
+const calcularBishop = (values: BishopScore): ResultadoBishop => {
+  const puntaje =
+    values.dilatacion +
+    values.borramiento +
+    values.estacion +
+    values.consistencia +
+    values.posicion;
+
+  let clasificacion = '';
+  let color = '';
+  let interpretacion = '';
+  let recomendacion = '';
+  let probabilidadExito = 0;
+
+  if (puntaje >= 8) {
+    clasificacion = 'FAVORABLE';
+    color = 'success';
+    interpretacion =
+      'Cérvix favorable para inducción. Alta probabilidad de parto vaginal exitoso (>90%).';
+    recomendacion =
+      'Proceder con inducción según indicación clínica. Oxitocina IV o amniotomía. Monitoreo materno-fetal continuo.';
+    probabilidadExito = 90 + puntaje;
+  } else if (puntaje >= 6) {
+    clasificacion = 'INTERMEDIO';
+    color = 'warning';
+    interpretacion =
+      'Cérvix moderadamente favorable. Probabilidad intermedia de éxito (70-85%).';
+    recomendacion =
+      'Considerar maduración cervical con prostaglandinas (misoprostol 25 µg vaginal cada 3-6h o dinoprostona gel). Reevaluar Bishop en 12-24h antes de proceder con oxitocina.';
+    probabilidadExito = 65 + puntaje * 2;
+  } else {
+    clasificacion = 'DESFAVORABLE';
+    color = 'error';
+    interpretacion =
+      'Cérvix desfavorable. Alta probabilidad de falla de inducción y necesidad de cesárea (>40%).';
+    recomendacion =
+      'Maduración cervical obligatoria: prostaglandinas vaginales (misoprostol, dinoprostona) o sonda Foley. NO iniciar oxitocina. Reevaluar Bishop cada 24h. Considerar cesárea electiva según indicación.';
+    probabilidadExito = 30 + puntaje * 5;
+  }
+
+  return {
+    puntaje,
+    clasificacion,
+    color,
+    interpretacion,
+    recomendacion,
+    probabilidadExito: Math.min(probabilidadExito, 99)
+  };
+};
+
 const ScoreBishop: React.FC = () => {
+  const { message } = useAntdApp();
   const [form] = Form.useForm();
   const [resultado, setResultado] = useState<ResultadoBishop | null>(null);
   const [historial, setHistorial] = useState<HistorialBishop[]>([
@@ -92,56 +152,6 @@ const ScoreBishop: React.FC = () => {
     }
   ]);
   const [loading, setLoading] = useState(false);
-
-  const calcularBishop = (values: BishopScore): ResultadoBishop => {
-    const puntaje =
-      values.dilatacion +
-      values.borramiento +
-      values.estacion +
-      values.consistencia +
-      values.posicion;
-
-    let clasificacion = '';
-    let color = '';
-    let interpretacion = '';
-    let recomendacion = '';
-    let probabilidadExito = 0;
-
-    if (puntaje >= 8) {
-      clasificacion = 'FAVORABLE';
-      color = 'success';
-      interpretacion =
-        'Cérvix favorable para inducción. Alta probabilidad de parto vaginal exitoso (>90%).';
-      recomendacion =
-        'Proceder con inducción según indicación clínica. Oxitocina IV o amniotomía. Monitoreo materno-fetal continuo.';
-      probabilidadExito = 90 + puntaje;
-    } else if (puntaje >= 6) {
-      clasificacion = 'INTERMEDIO';
-      color = 'warning';
-      interpretacion =
-        'Cérvix moderadamente favorable. Probabilidad intermedia de éxito (70-85%).';
-      recomendacion =
-        'Considerar maduración cervical con prostaglandinas (misoprostol 25 µg vaginal cada 3-6h o dinoprostona gel). Reevaluar Bishop en 12-24h antes de proceder con oxitocina.';
-      probabilidadExito = 65 + puntaje * 2;
-    } else {
-      clasificacion = 'DESFAVORABLE';
-      color = 'error';
-      interpretacion =
-        'Cérvix desfavorable. Alta probabilidad de falla de inducción y necesidad de cesárea (>40%).';
-      recomendacion =
-        'Maduración cervical obligatoria: prostaglandinas vaginales (misoprostol, dinoprostona) o sonda Foley. NO iniciar oxitocina. Reevaluar Bishop cada 24h. Considerar cesárea electiva según indicación.';
-      probabilidadExito = 30 + puntaje * 5;
-    }
-
-    return {
-      puntaje,
-      clasificacion,
-      color,
-      interpretacion,
-      recomendacion,
-      probabilidadExito: Math.min(probabilidadExito, 99)
-    };
-  };
 
   const onFinish = (values: BishopScore) => {
     setLoading(true);
@@ -407,17 +417,19 @@ const ScoreBishop: React.FC = () => {
           {/* Gráfica de Parámetros */}
           {resultado && (
             <Card title="Distribución de Parámetros" style={{ marginTop: 16 }}>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={getRadarData()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="parametro" />
-                  <YAxis domain={BISHOP_DOMAIN} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar name="Valor Actual" dataKey="valor" fill="#1890ff" />
-                  <Bar name="Máximo" dataKey="maxValor" fill="#52c41a" opacity={0.3} />
-                </BarChart>
-              </ResponsiveContainer>
+              <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={getRadarData()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="parametro" />
+                    <YAxis domain={BISHOP_DOMAIN} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar name="Valor Actual" dataKey="valor" fill="#1890ff" />
+                    <Bar name="Máximo" dataKey="maxValor" fill="#52c41a" opacity={0.3} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Suspense>
             </Card>
           )}
         </Col>
@@ -497,60 +509,66 @@ const ScoreBishop: React.FC = () => {
               <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
                 <Col xs={24} md={12}>
                   <Card title="Distribución Poblacional (n=5)" bordered={false}>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={getDistribucionPie()}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={renderPieLabel}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {getDistribucionPie().map((entry) => (
-                            <Cell key={`cell-${entry.name}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={getDistribucionPie()}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={renderPieLabel}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {getDistribucionPie().map((entry) => (
+                              <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </Suspense>
                   </Card>
                 </Col>
 
                 <Col xs={24} md={12}>
                   <Card title="Histograma de Puntajes" bordered={false}>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={getHistogramaData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="rango" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="cantidad" fill="#1890ff">
-                          {getHistogramaData().map((entry) => (
-                            <Cell key={`cell-${entry.rango}`} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={getHistogramaData()}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="rango" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="cantidad" fill="#1890ff">
+                            {getHistogramaData().map((entry) => (
+                              <Cell key={`cell-${entry.rango}`} fill={entry.color} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Suspense>
                   </Card>
                 </Col>
 
                 <Col span={24}>
                   <Card title="Tendencia de Evaluaciones" bordered={false}>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={getTendenciaData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="fecha" />
-                        <YAxis domain={TENDENCIA_DOMAIN} />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="puntaje" stroke="#1890ff" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <LineChart data={getTendenciaData()}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="fecha" />
+                          <YAxis domain={TENDENCIA_DOMAIN} />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="puntaje" stroke="#1890ff" strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </Suspense>
                   </Card>
                 </Col>
               </Row>

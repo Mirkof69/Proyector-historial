@@ -32,6 +32,7 @@ import {
 } from '@ant-design/icons';
 import axios from 'axios';
 import { useAuth } from '../../hooks/useAuth';
+import { API_URL } from '../../services/api';
 
 // ==========================================
 // 1. DEFINICIÓN DE TIPOS (INTERFACES)
@@ -74,7 +75,6 @@ interface Reporte {
 }
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
 
 interface EstadoTagProps {
   estado: string;
@@ -110,7 +110,7 @@ const IconoFormato: React.FC<IconoFormatoProps> = ({ formato }) => {
 // ==========================================
 
 const DetalleReporte: React.FC = () => {
-  const { message } = useAntdApp();
+  const {modal,  message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -120,9 +120,6 @@ const DetalleReporte: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [descargando, setDescargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Configuración de API (Ajustar según tu variable de entorno)
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
   // ==========================================
   // 3. LÓGICA DE CONEXIÓN (FETCH DATA)
@@ -160,7 +157,7 @@ const DetalleReporte: React.FC = () => {
     } finally {
       if (!silencioso) setLoading(false);
     }
-  }, [id, API_URL, getToken]);
+  }, [id, API_URL, getToken, message]);
 
   useEffect(() => {
     obtenerDetalleReporte();
@@ -197,7 +194,7 @@ const DetalleReporte: React.FC = () => {
   };
 
   const handleDelete = () => {
-    Modal.confirm({
+    modal.confirm({
       title: '¿Eliminar reporte?',
       content: 'Esta acción no se puede deshacer. El archivo físico también será eliminado del servidor.',
       okText: 'Sí, Eliminar',
@@ -308,154 +305,157 @@ const DetalleReporte: React.FC = () => {
         }
       >
         {/* CONTENIDO PRINCIPAL CON TABS */}
-        <Tabs defaultActiveKey="1">
-          
-          {/* TAB 1: RESUMEN GENERAL */}
-          <TabPane tab="Información General" key="1">
-            <Descriptions 
-              bordered 
-              column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
-              layout="vertical"
-            >
-              <Descriptions.Item label="Estado Actual">
-                <EstadoTag estado={reporte.estado} />
-              </Descriptions.Item>
-              
-              <Descriptions.Item label="Tipo de Reporte">
-                <Tag color="blue">{reporte.tipo_reporte}</Tag>
-              </Descriptions.Item>
+        <Tabs defaultActiveKey="1" items={[
+          {
+            key: "1",
+            label: "Información General",
+            children: (
+              <>
+                <Descriptions 
+                  bordered 
+                  column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
+                  layout="vertical"
+                >
+                  <Descriptions.Item label="Estado Actual">
+                    <EstadoTag estado={reporte.estado} />
+                  </Descriptions.Item>
+                  
+                  <Descriptions.Item label="Tipo de Reporte">
+                    <Tag color="blue">{reporte.tipo_reporte}</Tag>
+                  </Descriptions.Item>
 
-              <Descriptions.Item label="Formato">
-                <Tag color="geekblue">{reporte.formato}</Tag>
-              </Descriptions.Item>
+                  <Descriptions.Item label="Formato">
+                    <Tag color="geekblue">{reporte.formato}</Tag>
+                  </Descriptions.Item>
 
-              <Descriptions.Item label="Generado Por">
-                <Space>
-                  <Badge status="processing" />
-                  <Text strong>{reporte.creado_por.nombre_completo}</Text>
-                  <Text type="secondary">({reporte.creado_por.rol})</Text>
-                </Space>
-              </Descriptions.Item>
+                  <Descriptions.Item label="Generado Por">
+                    <Space>
+                      <Badge status="processing" />
+                      <Text strong>{reporte.creado_por.nombre_completo}</Text>
+                      <Text type="secondary">({reporte.creado_por.rol})</Text>
+                    </Space>
+                  </Descriptions.Item>
 
-              <Descriptions.Item label="Fecha de Finalización">
-                {reporte.fecha_actualizacion ? new Date(reporte.fecha_actualizacion).toISOString().slice(0, 16).replace('T', ' ') : '-'}
-              </Descriptions.Item>
+                  <Descriptions.Item label="Fecha de Finalización">
+                    {reporte.fecha_actualizacion ? new Date(reporte.fecha_actualizacion).toISOString().slice(0, 16).replace('T', ' ') : '-'}
+                  </Descriptions.Item>
 
-              <Descriptions.Item label="Metadatos del Archivo">
-                {reporte.resumen_data ? (
-                   <Space direction="vertical" size={0}>
-                     <Text>Registros: {reporte.resumen_data.total_registros}</Text>
-                     {reporte.resumen_data.tiempo_procesamiento_seg && (
-                       <Text type="secondary">Tiempo: {reporte.resumen_data.tiempo_procesamiento_seg}s</Text>
-                     )}
-                   </Space>
-                ) : (
-                  <Text type="secondary">No disponible</Text>
+                  <Descriptions.Item label="Metadatos del Archivo">
+                    {reporte.resumen_data ? (
+                       <Space direction="vertical" size={0}>
+                         <Text>Registros: {reporte.resumen_data.total_registros}</Text>
+                         {reporte.resumen_data.tiempo_procesamiento_seg && (
+                           <Text type="secondary">Tiempo: {reporte.resumen_data.tiempo_procesamiento_seg}s</Text>
+                         )}
+                       </Space>
+                    ) : (
+                      <Text type="secondary">No disponible</Text>
+                    )}
+                  </Descriptions.Item>
+                </Descriptions>
+
+                <Divider />
+
+                <Paragraph>
+                  <InfoCircleOutlined style={{ color: '#1890ff', marginRight: 8 }} />
+                  Este reporte fue generado automáticamente por el sistema Fetal Medical.
+                  Los datos reflejan el estado de la base de datos al momento de la creación.
+                </Paragraph>
+
+                {reporte.estado === 'FALLIDO' && (
+                  <Alert
+                    style={{ marginTop: 20 }}
+                    message="Causa del Error"
+                    description={reporte.mensaje_error || "Error desconocido durante la generación del reporte."}
+                    type="error"
+                    showIcon
+                    icon={<InfoCircleOutlined />}
+                  />
                 )}
-              </Descriptions.Item>
-            </Descriptions>
+              </>
+            )
+          },
+          {
+            key: "2",
+            label: "Filtros Aplicados",
+            children: (
+              <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8 }}>
+                <Alert
+                  message="Auditoría de Filtros"
+                  description="Estos son los parámetros exactos que se utilizaron para generar este documento."
+                  type="info"
+                  showIcon
+                  icon={<InfoCircleOutlined />}
+                  style={{ marginBottom: 15 }}
+                />
 
-            <Divider />
+                <Descriptions title="Parámetros" bordered size="small" column={1}>
+                  {Object.entries(reporte.parametros_busqueda).map(([key, value]) => (
+                    <Descriptions.Item label={key.replace(/_/g, ' ').toUpperCase()} key={key}>
+                      {typeof value === 'boolean'
+                        ? (value ? 'SÍ' : 'NO')
+                        : Array.isArray(value)
+                          ? value.join(', ')
+                          : String(value || 'N/A')}
+                    </Descriptions.Item>
+                  ))}
+                </Descriptions>
 
-            <Paragraph>
-              <InfoCircleOutlined style={{ color: '#1890ff', marginRight: 8 }} />
-              Este reporte fue generado automáticamente por el sistema Fetal Medical.
-              Los datos reflejan el estado de la base de datos al momento de la creación.
-            </Paragraph>
+                <Divider>Tabla de Parámetros</Divider>
 
-            {reporte.estado === 'FALLIDO' && (
-              <Alert
-                style={{ marginTop: 20 }}
-                message="Causa del Error"
-                description={reporte.mensaje_error || "Error desconocido durante la generación del reporte."}
-                type="error"
-                showIcon
-                icon={<InfoCircleOutlined />}
-              />
-            )}
-          </TabPane>
-
-          {/* TAB 2: CRITERIOS DE BÚSQUEDA (JSON VIEWER) */}
-          <TabPane tab="Filtros Aplicados" key="2">
-            <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8 }}>
-              <Alert
-                message="Auditoría de Filtros"
-                description="Estos son los parámetros exactos que se utilizaron para generar este documento."
-                type="info"
-                showIcon
-                icon={<InfoCircleOutlined />}
-                style={{ marginBottom: 15 }}
-              />
-
-              {/* Renderizado dinámico del objeto JSON de parámetros */}
-              <Descriptions title="Parámetros" bordered size="small" column={1}>
-                {Object.entries(reporte.parametros_busqueda).map(([key, value]) => (
-                  <Descriptions.Item label={key.replace(/_/g, ' ').toUpperCase()} key={key}>
-                    {/* Manejo de valores booleanos, nulos o arrays */}
-                    {typeof value === 'boolean'
+                <Table
+                  dataSource={Object.entries(reporte.parametros_busqueda).map(([key, value], index) => ({
+                    key: index,
+                    parametro: key.replace(/_/g, ' ').toUpperCase(),
+                    valor: typeof value === 'boolean'
                       ? (value ? 'SÍ' : 'NO')
                       : Array.isArray(value)
                         ? value.join(', ')
-                        : String(value || 'N/A')}
-                  </Descriptions.Item>
-                ))}
-              </Descriptions>
-
-              <Divider>Tabla de Parámetros</Divider>
-
-              <Table
-                dataSource={Object.entries(reporte.parametros_busqueda).map(([key, value], index) => ({
-                  key: index,
-                  parametro: key.replace(/_/g, ' ').toUpperCase(),
-                  valor: typeof value === 'boolean'
-                    ? (value ? 'SÍ' : 'NO')
-                    : Array.isArray(value)
-                      ? value.join(', ')
-                      : String(value || 'N/A'),
-                  tipo: Array.isArray(value) ? 'Array' : typeof value
-                }))}
-                columns={[
-                  {
-                    title: 'Parámetro',
-                    dataIndex: 'parametro',
-                    key: 'parametro',
-                    render: (text) => <Text strong>{text}</Text>
-                  },
-                  {
-                    title: 'Valor',
-                    dataIndex: 'valor',
-                    key: 'valor',
-                  },
-                  {
-                    title: 'Tipo',
-                    dataIndex: 'tipo',
-                    key: 'tipo',
-                    render: (tipo) => <Tag color="blue">{tipo}</Tag>
-                  }
-                ]}
-                pagination={false}
-                size="small"
-              />
-            </div>
-          </TabPane>
-          
-          {/* TAB 3: VISTA PREVIA (Solo si hay URL y es soportado por navegador) */}
-          {reporte.archivo_url && reporte.formato === 'PDF' && (
-            <TabPane tab="Vista Previa (PDF)" key="3">
-               <div style={{ height: '600px', width: '100%', border: '1px solid #d9d9d9' }}>
-                    <iframe 
-                      src={reporte.archivo_url.startsWith('http') ? reporte.archivo_url : `${API_URL.replace('/api', '')}${reporte.archivo_url}`}
-                      width="100%" 
-                      height="100%" 
-                      title="Vista Previa PDF"
-                      sandbox="allow-scripts"
-                      style={{ border: 'none' }}
-                    />
-               </div>
-            </TabPane>
-          )}
-
-        </Tabs>
+                        : String(value || 'N/A'),
+                    tipo: Array.isArray(value) ? 'Array' : typeof value
+                  }))}
+                  columns={[
+                    {
+                      title: 'Parámetro',
+                      dataIndex: 'parametro',
+                      key: 'parametro',
+                      render: (text) => <Text strong>{text}</Text>
+                    },
+                    {
+                      title: 'Valor',
+                      dataIndex: 'valor',
+                      key: 'valor',
+                    },
+                    {
+                      title: 'Tipo',
+                      dataIndex: 'tipo',
+                      key: 'tipo',
+                      render: (tipo) => <Tag color="blue">{tipo}</Tag>
+                    }
+                  ]}
+                  pagination={false}
+                  size="small"
+                />
+              </div>
+            )
+          },
+          ...(reporte.archivo_url && reporte.formato === 'PDF' ? [{
+            key: "3",
+            label: "Vista Previa (PDF)",
+            children: (
+              <div style={{ height: '600px', width: '100%', border: '1px solid #d9d9d9' }}>
+                <iframe 
+                  src={reporte.archivo_url.startsWith('http') ? reporte.archivo_url : `${API_URL.replace('/api', '')}${reporte.archivo_url}`}
+                  width="100%" 
+                  height="100%" 
+                  title="Vista Previa PDF"
+                  sandbox="allow-scripts"
+                  style={{ border: 'none' }}
+                />
+              </div>
+            )
+          }] : [])
+        ]} />
       </Card>
     </div>
   );

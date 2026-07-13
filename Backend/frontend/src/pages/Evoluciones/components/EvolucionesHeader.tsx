@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Row, Col, Space, Typography } from 'antd';
-import { PlusOutlined, ReloadOutlined, FileTextOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, FileTextOutlined, ExportOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
@@ -8,9 +8,10 @@ const { Title, Text } = Typography;
 interface EvolucionesHeaderProps {
   loading: boolean;
   onReload: () => void;
+  onExport: () => void;
 }
 
-const EvolucionesHeader: React.FC<EvolucionesHeaderProps> = ({ loading, onReload }) => {
+const EvolucionesHeader: React.FC<EvolucionesHeaderProps> = ({ loading, onReload, onExport }) => {
   const navigate = useNavigate();
 
   return (
@@ -37,6 +38,13 @@ const EvolucionesHeader: React.FC<EvolucionesHeaderProps> = ({ loading, onReload
               className="btn-success-gradient"
             >
               Nueva Evolución
+            </Button>
+            <Button
+              size="large"
+              icon={<ExportOutlined />}
+              onClick={onExport}
+            >
+              Exportar
             </Button>
             <Button
               size="large"

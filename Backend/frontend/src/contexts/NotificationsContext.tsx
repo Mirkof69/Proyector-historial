@@ -10,6 +10,24 @@
 import React, { createContext, useState, useEffect, useRef, ReactNode, useCallback, useContext, useMemo } from 'react';
 import { notificacionesService, Notificacion } from '../services/notificacionesService';
 import { useAuth } from '../hooks/useAuth';
+import { API_URL } from '../services/api';
+
+/**
+ * URL del WebSocket de notificaciones (ws/notifications/ del backend Channels).
+ * El backend autentica vía query string: ?token=<jwt access>
+ */
+const getWebSocketUrl = (token: string): string => {
+    let base: string;
+    if (API_URL.startsWith('http')) {
+        // http://host:8000/api -> ws://host:8000
+        base = API_URL.replace(/^http/, 'ws').replace(/\/api\/?$/, '');
+    } else {
+        // API relativa (túnel https) -> wss sobre el mismo host
+        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        base = `${proto}://${window.location.host}`;
+    }
+    return `${base}/ws/notifications/?token=${encodeURIComponent(token)}`;
+};
 
 interface NotificationsContextType {
     notifications: Notificacion[];
@@ -102,10 +120,74 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
         }
     }, [refreshNotifications]);
 
+    // ── WebSocket en tiempo real (ws/notifications/) ─────────────────────────
+    // El polling de abajo queda como fallback si el WS no conecta.
+    const wsRef = useRef<WebSocket | null>(null);
+    const wsRetryRef = useRef<number>(0);
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        let disposed = false;
+        let reconnectTimer: NodeJS.Timeout | null = null;
+
+        const connect = () => {
+            const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+            if (!token || disposed) return;
+
+            try {
+                const ws = new WebSocket(getWebSocketUrl(token));
+                wsRef.current = ws;
+
+                ws.onopen = () => {
+                    wsRetryRef.current = 0;
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        // Cualquier notificación entrante refresca la lista completa
+                        if (data.type === 'notification' || data.type === 'pending_notifications') {
+                            refreshNotifications(true);
+                        }
+                    } catch {
+                        // Mensaje no-JSON: ignorar
+                    }
+                };
+
+                ws.onclose = (event) => {
+                    wsRef.current = null;
+                    // 4001 = token inválido: no reintentar hasta re-login
+                    if (disposed || event.code === 4001) return;
+                    // Backoff exponencial con tope de 60s
+                    const delay = Math.min(60000, 2000 * 2 ** wsRetryRef.current);
+                    wsRetryRef.current += 1;
+                    reconnectTimer = setTimeout(connect, delay);
+                };
+
+                ws.onerror = () => {
+                    ws.close();
+                };
+            } catch {
+                // WebSocket no soportado o URL inválida: el polling sigue funcionando
+            }
+        };
+
+        connect();
+
+        return () => {
+            disposed = true;
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (wsRef.current) {
+                wsRef.current.close();
+                wsRef.current = null;
+            }
+        };
+    }, [isAuthenticated, refreshNotifications]);
+
     useEffect(() => {
         // ✅ AUTHENTICATION FIX: Solo cargar si hay sesión activa
         if (!isAuthenticated) {
-            console.log('⚠️ No hay sesión activa - omitiendo carga de notificaciones');
             return; // No cargar notificaciones si no hay autenticación
         }
 
