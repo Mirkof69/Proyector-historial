@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Avatar, Space, Tag, Tooltip, Switch, Button, Popconfirm, Typography } from 'antd';
-import { UserOutlined, MailOutlined, PhoneOutlined, EyeOutlined, EditOutlined, KeyOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, PhoneOutlined, EyeOutlined, EditOutlined, KeyOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined, MedicineBoxOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { Usuario } from '../../../services/usuariosService';
 
 const { Text } = Typography;
@@ -28,8 +28,6 @@ interface UsuariosTableProps {
   onEliminar: (id: number) => void;
   onToggleActivo: (usuario: Usuario) => void;
 }
-
-import { MedicineBoxOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 
 const UsuariosTable: React.FC<UsuariosTableProps> = ({
   usuarios,

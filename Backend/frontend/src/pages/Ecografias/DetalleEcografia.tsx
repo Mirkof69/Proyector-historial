@@ -7,9 +7,9 @@
  * =============================================================================
  */
 
-import React, { useState, useRef } from 'react';
-import {
-  Card,
+import React, { useState, useEffect } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card,
   Descriptions,
   Button,
   Space,
@@ -22,7 +22,6 @@ import {
   Timeline,
   Statistic,
   Collapse,
-  message,
   Spin,
   Typography,
   Badge,
@@ -30,8 +29,7 @@ import {
   Checkbox,
   Tabs,
   Upload,
-  Empty,
-} from 'antd';
+  Empty} from "antd";
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -55,10 +53,16 @@ import dayjs from 'dayjs';
 import { ecografiasService, Ecografia } from '../../services/ecografiasService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import { useAuth } from '../../hooks/useAuth';
+import { API_URL } from '../../services/api';
 
 const { Title, Text, Paragraph } = Typography;
 
+const handleImprimir = () => {
+  window.print();
+};
+
 const DetalleEcografia: React.FC = () => {
+  const { modal, message } = useAntdApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { getToken } = useAuth();
@@ -81,11 +85,9 @@ const DetalleEcografia: React.FC = () => {
     }
   }, [id]);
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (id && loadedIdRef.current !== Number(id)) {
-    loadedIdRef.current = Number(id);
-    cargarDatos();
-  }
+  useEffect(() => {
+    if (id) cargarDatos();
+  }, [id, cargarDatos]);
 
   // ==========================================================================
   // HANDLERS
@@ -99,7 +101,7 @@ const DetalleEcografia: React.FC = () => {
   };
 
   const handleEliminar = () => {
-    Modal.confirm({
+    modal.confirm({
       title: '¿Eliminar esta ecografía?',
       icon: <ExclamationCircleOutlined />,
       content: 'Esta acción no se puede deshacer.',
@@ -116,10 +118,6 @@ const DetalleEcografia: React.FC = () => {
         }
       },
     });
-  };
-
-  const handleImprimir = () => {
-    window.print();
   };
 
   const handleImageUpload = (info: any) => {
@@ -721,7 +719,7 @@ const DetalleEcografia: React.FC = () => {
             {/* Sección de subida de imágenes */}
             <Upload
               name="imagen"
-              action={`${process.env.REACT_APP_API_URL}/ecografias/${id}/subir_imagen/`}
+              action={`${API_URL}/ecografias/${id}/subir_imagen/`}
               headers={{
                 'Authorization': `Bearer ${getToken()}`,
               }}

@@ -59,7 +59,6 @@ export interface Paciente {
 
 export interface Embarazo {
   id: number;
-  activo: boolean;
   estado: string;
   fecha_ultima_menstruacion: string;
   fecha_probable_parto: string;

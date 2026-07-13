@@ -70,22 +70,25 @@ const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
 
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats>({
-    total_pacientes: 0,
-    pacientes_nuevos_mes: 0,
-    embarazos_activos: 0,
-    embarazos_riesgo_alto: 0,
-    controles_hoy: 0,
-    alertas_pendientes: 0,
-    citas_hoy_count: 0
+  const [state, setState] = useState({
+    loading: true,
+    stats: {
+      total_pacientes: 0,
+      pacientes_nuevos_mes: 0,
+      embarazos_activos: 0,
+      embarazos_riesgo_alto: 0,
+      controles_hoy: 0,
+      alertas_pendientes: 0,
+      citas_hoy_count: 0
+    } as DashboardStats,
+    actividades: [] as ActividadReciente[],
+    citasHoy: [] as CitaHoy[],
+    chartData: [] as any[],
+    lastUpdated: null as Date | null,
+    error: null as string | null,
+    alertasMedicas: [] as AlertaMedica[]
   });
-  const [actividades, setActividades] = useState<ActividadReciente[]>([]);
-  const [citasHoy, setCitasHoy] = useState<CitaHoy[]>([]);
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [alertasMedicas, setAlertasMedicas] = useState<AlertaMedica[]>([]);
+  const { loading, stats, actividades, citasHoy, chartData, lastUpdated, error, alertasMedicas } = state;
 
   const cardPermissions: Record<string, string> = useMemo(() => ({
     'Pacientes': 'view_paciente',
@@ -125,8 +128,11 @@ const DashboardHome: React.FC = () => {
   }, [cardPermissions]);
 
   const cargarDatosDashboard = useCallback(async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
-    setError(null);
+    if (!isSilent) {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+    } else {
+      setState(prev => ({ ...prev, error: null }));
+    }
     const startTime = performance.now();
 
     try {
@@ -146,7 +152,7 @@ const DashboardHome: React.FC = () => {
         dayjs(c.fecha_hora || c.fecha).format('YYYY-MM-DD') === hoy
       ) : [];
 
-      setStats({
+      const stats = {
         total_pacientes: statsBasicas.total_pacientes || 0,
         pacientes_nuevos_mes: statsBasicas.pacientes_nuevos_mes || 0,
         embarazos_activos: statsBasicas.embarazos_activos || 0,
@@ -154,12 +160,12 @@ const DashboardHome: React.FC = () => {
         controles_hoy: statsBasicas.controles_hoy || 0,
         alertas_pendientes: statsBasicas.alertas_pendientes || statsBasicas.embarazos_riesgo_alto || 0,
         citas_hoy_count: statsBasicas.citas_hoy_count || 0
-      });
+      };
 
       const logsReales = logsResponse.results || [];
       const actividadesConKeys = logsReales.map((log: any, index: number) => ({
         id: log.id,
-        usuario: log.user_name || log.usuario || 'Sistema',
+        usuario: log.user_name || (log.usuario && typeof log.usuario === 'object' ? (log.usuario.nombre_completo || log.usuario.email || log.usuario.username || 'Sistema') : log.usuario) || 'Sistema',
         accion: log.details || log.accion || log.action || `Evento: ${log.modulo || 'sistema'}`,
         fecha: log.created_at || log.fecha,
         tipo: ((log.action === 'login' || log.accion === 'crear') ? 'success' :
@@ -167,8 +173,6 @@ const DashboardHome: React.FC = () => {
             log.accion === 'eliminar' || log.action === 'delete' ? 'danger' : 'info') as 'info' | 'warning' | 'success' | 'danger',
         _uniqueKey: `log-${log.id || index}-${Date.now()}`
       }));
-
-      setActividades(actividadesConKeys as any);
 
       const citasHoyFormateadas = citasHoyData.slice(0, 5).map((cita: any, index: number) => ({
         id: cita.id,
@@ -178,8 +182,6 @@ const DashboardHome: React.FC = () => {
         estado: cita.estado || 'PENDIENTE',
         _uniqueKey: `cita-${cita.id}-${index}-${Date.now()}`
       }));
-
-      setCitasHoy(citasHoyFormateadas);
 
       const diasMes = dayjs().daysInMonth();
       const diasData = [];
@@ -203,30 +205,35 @@ const DashboardHome: React.FC = () => {
         diasData.push({ name: `Día ${dayjs().date()}`, pacientes: 0, citas: 0 });
       }
 
-      setChartData(diasData);
-
       const alertasConKeys = alertas.slice(0, 5).map((alerta: any, index: number) => ({
         ...alerta,
         _uniqueKey: `alerta-${alerta.id}-${index}-${Date.now()}`
       }));
-      setAlertasMedicas(alertasConKeys);
 
       if (alertas.length > alertasMedicas.length && alertasMedicas.length > 0) {
         try {
           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
           audio.volume = 0.3;
-          audio.play().catch(() => {});
-        } catch (e) {}
+          audio.play().catch(() => { });
+        } catch (e) { }
       }
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-      setLastUpdated(new Date());
-      setLoading(false);
+      setState(prev => ({
+        ...prev,
+        stats,
+        actividades: actividadesConKeys,
+        citasHoy: citasHoyFormateadas,
+        chartData: diasData,
+        alertasMedicas: alertasConKeys,
+        lastUpdated: new Date(),
+        loading: false
+      }));
     } catch (err) {
-      if (!isSilent) setError("No se pudo conectar con el servicio de estadísticas.");
-      setLoading(false);
+      setState(prev => ({
+        ...prev,
+        error: isSilent ? prev.error : "No se pudo conectar con el servicio de estadísticas.",
+        loading: false
+      }));
     }
   }, [alertasMedicas.length]);
 

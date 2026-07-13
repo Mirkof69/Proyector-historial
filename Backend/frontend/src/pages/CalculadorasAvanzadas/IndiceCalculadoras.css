@@ -61,7 +61,7 @@
 }
 
 .calculadora-card .ant-card-meta-title {
-  color: #262626;
+  color: var(--text-primary);
   transition: color 0.3s ease;
 }
 

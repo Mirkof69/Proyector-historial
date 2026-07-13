@@ -64,72 +64,72 @@ const renderCTGLabel = (props: any) => {
   return `${categoria}: ${frecuencia}%`;
 };
 
+const getDataBPP = (resultado: ResultadoSufrimiento) => [
+  { componente: 'NST', puntos: resultado.bpp_componentes.nst, maximo: 2 },
+  { componente: 'Respiración', puntos: resultado.bpp_componentes.respiracion, maximo: 2 },
+  { componente: 'Movimientos', puntos: resultado.bpp_componentes.movimientos, maximo: 2 },
+  { componente: 'Tono', puntos: resultado.bpp_componentes.tono, maximo: 2 },
+  { componente: 'Líquido', puntos: resultado.bpp_componentes.liquido, maximo: 2 },
+];
+
+const getDataCTG = () => [
+  { categoria: 'Cat I\nNormal', frecuencia: 60, color: '#52c41a' },
+  { categoria: 'Cat II\nIndeterminado', frecuencia: 30, color: '#faad14' },
+  { categoria: 'Cat III\nAnormal', frecuencia: 10, color: '#ff4d4f' },
+];
+
+const getDataDoppler = (form: any, resultado: ResultadoSufrimiento) => {
+  const valores = form.getFieldsValue();
+  return [
+    { parametro: 'AU PI', valor: valores.arteria_umbilical_pi || 0, normal: 1.0, limite: 1.4 },
+    { parametro: 'AU RI', valor: valores.arteria_umbilical_ri || 0, normal: 0.55, limite: 0.7 },
+    { parametro: 'ACM PI', valor: valores.arteria_cerebral_media_pi || 0, normal: 1.8, limite: 1.0 },
+    { parametro: 'CPR', valor: resultado?.relacion_cp || 0, normal: 1.5, limite: 1.0 },
+  ];
+};
+
+const getDataRadar = (resultado: ResultadoSufrimiento, form: any) => [
+  { categoria: 'BPP', puntaje: (resultado.bpp_score / 10) * 100, fullMark: 100 },
+  { categoria: 'CTG', puntaje: resultado.ctg_categoria.includes('I') ? 100 : resultado.ctg_categoria.includes('II') ? 50 : 0, fullMark: 100 },
+  { categoria: 'Doppler', puntaje: resultado.doppler_anormal ? 30 : 100, fullMark: 100 },
+  { categoria: 'LA', puntaje: form.getFieldValue('volumen_liquido') >= 5 ? 100 : (form.getFieldValue('volumen_liquido') / 5) * 100, fullMark: 100 },
+  { categoria: 'Crecimiento', puntaje: form.getFieldValue('peso_estimado_percentil'), fullMark: 100 },
+];
+
+const columnasHistorial = [
+  { title: 'Fecha/Hora', dataIndex: 'fecha', key: 'fecha' },
+  {
+    title: 'BPP Score', dataIndex: 'bpp_score', key: 'bpp_score',
+    render: (score: number) => {
+      let color = 'green';
+      if (score <= 2) color = 'red';
+      else if (score <= 4) color = 'orange';
+      else if (score === 6) color = 'gold';
+      return <Tag color={color}>{score}/10</Tag>;
+    },
+  },
+  {
+    title: 'CTG', dataIndex: 'ctg_categoria', key: 'ctg_categoria',
+    render: (cat: string) => {
+      let color = 'green';
+      if (cat.includes('III')) color = 'red';
+      else if (cat.includes('II')) color = 'orange';
+      return <Tag color={color}>{cat}</Tag>;
+    },
+  },
+  {
+    title: 'Nivel de Riesgo', dataIndex: 'nivel_riesgo', key: 'nivel_riesgo',
+    render: (riesgo: string) => {
+      let color = 'green';
+      if (riesgo.includes('CRÍTICO')) color = 'red';
+      else if (riesgo === 'ALTO') color = 'orange';
+      else if (riesgo === 'MODERADO') color = 'gold';
+      return <Tag color={color}>{riesgo}</Tag>;
+    },
+  },
+];
+
 export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> = ({ resultado, historial, form }) => {
-  const getDataBPP = () => [
-    { componente: 'NST', puntos: resultado.bpp_componentes.nst, maximo: 2 },
-    { componente: 'Respiración', puntos: resultado.bpp_componentes.respiracion, maximo: 2 },
-    { componente: 'Movimientos', puntos: resultado.bpp_componentes.movimientos, maximo: 2 },
-    { componente: 'Tono', puntos: resultado.bpp_componentes.tono, maximo: 2 },
-    { componente: 'Líquido', puntos: resultado.bpp_componentes.liquido, maximo: 2 },
-  ];
-
-  const getDataCTG = () => [
-    { categoria: 'Cat I\nNormal', frecuencia: 60, color: '#52c41a' },
-    { categoria: 'Cat II\nIndeterminado', frecuencia: 30, color: '#faad14' },
-    { categoria: 'Cat III\nAnormal', frecuencia: 10, color: '#ff4d4f' },
-  ];
-
-  const getDataDoppler = () => {
-    const valores = form.getFieldsValue();
-    return [
-      { parametro: 'AU PI', valor: valores.arteria_umbilical_pi || 0, normal: 1.0, limite: 1.4 },
-      { parametro: 'AU RI', valor: valores.arteria_umbilical_ri || 0, normal: 0.55, limite: 0.7 },
-      { parametro: 'ACM PI', valor: valores.arteria_cerebral_media_pi || 0, normal: 1.8, limite: 1.0 },
-      { parametro: 'CPR', valor: resultado?.relacion_cp || 0, normal: 1.5, limite: 1.0 },
-    ];
-  };
-
-  const getDataRadar = () => [
-    { categoria: 'BPP', puntaje: (resultado.bpp_score / 10) * 100, fullMark: 100 },
-    { categoria: 'CTG', puntaje: resultado.ctg_categoria.includes('I') ? 100 : resultado.ctg_categoria.includes('II') ? 50 : 0, fullMark: 100 },
-    { categoria: 'Doppler', puntaje: resultado.doppler_anormal ? 30 : 100, fullMark: 100 },
-    { categoria: 'LA', puntaje: form.getFieldValue('volumen_liquido') >= 5 ? 100 : (form.getFieldValue('volumen_liquido') / 5) * 100, fullMark: 100 },
-    { categoria: 'Crecimiento', puntaje: form.getFieldValue('peso_estimado_percentil'), fullMark: 100 },
-  ];
-
-  const columnasHistorial = [
-    { title: 'Fecha/Hora', dataIndex: 'fecha', key: 'fecha' },
-    {
-      title: 'BPP Score', dataIndex: 'bpp_score', key: 'bpp_score',
-      render: (score: number) => {
-        let color = 'green';
-        if (score <= 2) color = 'red';
-        else if (score <= 4) color = 'orange';
-        else if (score === 6) color = 'gold';
-        return <Tag color={color}>{score}/10</Tag>;
-      },
-    },
-    {
-      title: 'CTG', dataIndex: 'ctg_categoria', key: 'ctg_categoria',
-      render: (cat: string) => {
-        let color = 'green';
-        if (cat.includes('III')) color = 'red';
-        else if (cat.includes('II')) color = 'orange';
-        return <Tag color={color}>{cat}</Tag>;
-      },
-    },
-    {
-      title: 'Nivel de Riesgo', dataIndex: 'nivel_riesgo', key: 'nivel_riesgo',
-      render: (riesgo: string) => {
-        let color = 'green';
-        if (riesgo.includes('CRÍTICO')) color = 'red';
-        else if (riesgo === 'ALTO') color = 'orange';
-        else if (riesgo === 'MODERADO') color = 'gold';
-        return <Tag color={color}>{riesgo}</Tag>;
-      },
-    },
-  ];
-
   return (
     <>
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
@@ -161,9 +161,13 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
 
       <Card title="Recomendaciones de Manejo" style={{ marginTop: 16 }}>
         <Space direction="vertical" style={{ width: '100%' }}>
-          {resultado.recomendaciones.map((rec) => (
-            <Alert key={`rec-${rec}`} message={rec} type={resultado.nivel_riesgo.includes('CRÍTICO') ? 'error' : resultado.nivel_riesgo === 'ALTO' ? 'warning' : 'info'} showIcon />
-          ))}
+          {(() => {
+            // Tipo constante por render: se calcula una vez fuera del map.
+            const tipoRec = resultado.nivel_riesgo.includes('CRÍTICO') ? 'error' : resultado.nivel_riesgo === 'ALTO' ? 'warning' : 'info';
+            return resultado.recomendaciones.map((rec) => (
+              <Alert key={`rec-${rec}`} message={rec} type={tipoRec} showIcon />
+            ));
+          })()}
         </Space>
       </Card>
 
@@ -173,7 +177,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
         <Col xs={24} lg={12}>
           <Card title="Perfil Biofísico - Componentes">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getDataBPP()}>
+              <BarChart data={getDataBPP(resultado)}>
                 <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="componente" /><YAxis domain={BPP_SCORE_DOMAIN} ticks={BPP_TICKS} /><Tooltip /><Legend />
                 <Bar dataKey="puntos" fill="#eb2f96" name="Puntos Obtenidos" /><Bar dataKey="maximo" fill="#d9d9d9" name="Máximo" />
               </BarChart>
@@ -195,7 +199,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
         <Col xs={24} lg={12}>
           <Card title="Índices Doppler">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getDataDoppler()}>
+              <BarChart data={getDataDoppler(form, resultado)}>
                 <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="parametro" /><YAxis /><Tooltip /><Legend />
                 <Bar dataKey="valor" fill="#722ed1" name="Valor Actual" /><Bar dataKey="normal" fill="#52c41a" name="Normal" /><Bar dataKey="limite" fill="#ff4d4f" name="Límite" />
               </BarChart>
@@ -205,7 +209,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
         <Col xs={24} lg={12}>
           <Card title="Evaluación Multidimensional - Scores">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getDataRadar()}>
+              <BarChart data={getDataRadar(resultado, form)}>
                 <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="categoria" /><YAxis domain={BPP_DOMAIN} label={SCORE_LABEL} /><Tooltip /><Legend />
                 <Bar dataKey="puntaje" fill="#eb2f96" name="Puntaje" />
               </BarChart>

@@ -33,14 +33,13 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Form,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Form,
   Input,
   InputNumber,
   DatePicker,
   Button,
   Card,
-  message,
   Row,
   Col,
   Select,
@@ -49,8 +48,7 @@ import {
   Space,
   Typography,
   Tag,
-  Modal,
-} from 'antd';
+  Modal} from "antd";
 import {
   SaveOutlined,
   CloseOutlined,
@@ -73,6 +71,7 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 const FormularioControl: React.FC = () => {
+  const { modal, message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [form] = Form.useForm();
@@ -99,23 +98,11 @@ const FormularioControl: React.FC = () => {
 
   const isEditing = !!id;
 
-  const fetchData = useCallback(async () => {
-    try {
-      const pacientesData = await pacientesService.getAll();
-      setPacientes(pacientesData);
-      const embarazosData = await embarazosService.getAll();
-      const embarazosActivos = embarazosData.filter((e: Embarazo) => e.estado === 'activo');
-      setEmbarazos(embarazosActivos);
-      message.success('Datos cargados correctamente');
-    } catch (error: any) {
-      message.error('Error al cargar datos iniciales');
-    }
-  }, []);
-
-  const loadControl = useCallback(async (controlId: number) => {
+  const loadControl = useCallback(async (controlId: number, currentEmbarazos?: Embarazo[]) => {
     try {
       const data = await controlesService.getById(controlId);
-      const embarazo = embarazos.find((e) => e.id === data.embarazo);
+      const listToSearch = currentEmbarazos || embarazos;
+      const embarazo = listToSearch.find((e) => e.id === data.embarazo);
       setSelectedEmbarazo(embarazo || null);
       const formValues = {
         embarazo: data.embarazo,
@@ -150,14 +137,25 @@ const FormularioControl: React.FC = () => {
   }, [form, embarazos]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (isEditing && embarazos.length > 0 && pacientes.length > 0) {
-      loadControl(parseInt(id!));
-    }
-  }, [id, isEditing, embarazos, pacientes, loadControl]);
+    const cargarTodo = async () => {
+      try {
+        const pacientesData = await pacientesService.getAll();
+        setPacientes(pacientesData);
+        const embarazosData = await embarazosService.getAll();
+        const embarazosActivos = embarazosData.filter((e: Embarazo) => e.estado === 'activo');
+        setEmbarazos(embarazosActivos);
+        
+        if (isEditing && id) {
+          await loadControl(parseInt(id), embarazosActivos);
+        } else {
+          message.success('Datos cargados correctamente');
+        }
+      } catch (error) {
+        message.error('Error al cargar datos iniciales');
+      }
+    };
+    cargarTodo();
+  }, [id, isEditing, loadControl]);
 
   const getNombrePaciente = (embarazoId: number): string => {
     const embarazo = embarazos.find((e) => e.id === embarazoId);
@@ -470,7 +468,7 @@ const FormularioControl: React.FC = () => {
     } catch (error: any) {
 
       if (error.response?.data) {
-        const errorData = error.response.data;
+        const errorData = error.response?.data;
 
         // Si hay errores específicos por campo
         if (typeof errorData === 'object' && !errorData.message && !errorData.detail && !errorData.errores) {
@@ -479,7 +477,7 @@ const FormularioControl: React.FC = () => {
             return `${field}: ${msgArray.join(', ')}`;
           });
 
-          Modal.error({
+          modal.error({
             title: '❌ Error al Guardar Control',
             content: (
               <div>
@@ -503,13 +501,13 @@ const FormularioControl: React.FC = () => {
           message.error('Por favor corrija los errores en el formulario');
         } else {
           const msg = errorData.detail || errorData.message || 'Error desconocido';
-          Modal.error({
+          modal.error({
             title: '❌ Error al Guardar Control',
             content: msg,
           });
         }
       } else {
-        Modal.error({
+        modal.error({
           title: '❌ Error al Guardar Control',
           content: error.message || 'Error desconocido',
         });
@@ -806,7 +804,7 @@ const FormularioControl: React.FC = () => {
                     size="large"
                     onChange={(value) => {
                       if (value && (value < 100 || value > 220)) {
-                        Modal.warning({
+                        modal.warning({
                           title: '⚠️ Advertencia: Talla Fuera de Rango',
                           content: 'La talla debe estar entre 120 y 220 cm.',
                         });

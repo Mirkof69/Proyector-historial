@@ -204,6 +204,21 @@ const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
   );
 };
 
+const steps = [
+  {
+    title: 'Paciente y Médico',
+    description: 'Seleccione el paciente y el médico',
+  },
+  {
+    title: 'Fecha y Hora',
+    description: 'Programe la cita',
+  },
+  {
+    title: 'Detalles',
+    description: 'Complete la información',
+  },
+];
+
 const FormularioCita: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -385,20 +400,7 @@ const FormularioCita: React.FC = () => {
     return horario?.disponible !== false;
   };
 
-  const steps = [
-    {
-      title: 'Paciente y Médico',
-      description: 'Seleccione el paciente y el médico',
-    },
-    {
-      title: 'Fecha y Hora',
-      description: 'Programe la cita',
-    },
-    {
-      title: 'Detalles',
-      description: 'Complete la información',
-    },
-  ];
+
 
   return (
     <div style={{ padding: 24 }}>

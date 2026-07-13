@@ -127,6 +127,46 @@ function calendarioReducer(state: CalendarioState, action: CalendarioAction): Ca
   }
 }
 
+const getEstadoBadge = (estado: string): BadgeProps['status'] => {
+  const estados: Record<string, BadgeProps['status']> = {
+    pendiente: 'warning',
+    confirmada: 'processing',
+    completada: 'success',
+    cancelada: 'error',
+  };
+  return estados[estado] || 'default';
+};
+
+const getEstadoColor = (estado: string): string => {
+  const colores: Record<string, string> = {
+    pendiente: '#faad14',
+    confirmada: '#1890ff',
+    completada: '#52c41a',
+    cancelada: '#ff4d4f',
+  };
+  return colores[estado] || '#d9d9d9';
+};
+
+const getTipoColor = (tipo: string): string => {
+  const colores: Record<string, string> = {
+    control_prenatal: '#1890ff',
+    ecografia: '#722ed1',
+    consulta_general: '#13c2c2',
+    emergencia: '#ff4d4f',
+    seguimiento: '#52c41a',
+    laboratorio: '#fa8c16',
+    procedimiento: '#eb2f96',
+  };
+  return colores[tipo] || '#d9d9d9';
+};
+
+const esAtrasada = (fechaHora: string, estado: string): boolean => {
+  return (
+    dayjs(fechaHora).isBefore(dayjs()) &&
+    (estado === 'pendiente' || estado === 'confirmada')
+  );
+};
+
 const CalendarioCitas: React.FC = () => {
   const navigate = useNavigate();
   const { message } = useAntdApp();
@@ -212,46 +252,6 @@ const CalendarioCitas: React.FC = () => {
       message.info('No hay citas programadas para este día');
     }
   }, [getCitasDelDia, message]);
-
-  const getEstadoBadge = (estado: string): BadgeProps['status'] => {
-    const estados: Record<string, BadgeProps['status']> = {
-      pendiente: 'warning',
-      confirmada: 'processing',
-      completada: 'success',
-      cancelada: 'error',
-    };
-    return estados[estado] || 'default';
-  };
-
-  const getEstadoColor = (estado: string): string => {
-    const colores: Record<string, string> = {
-      pendiente: '#faad14',
-      confirmada: '#1890ff',
-      completada: '#52c41a',
-      cancelada: '#ff4d4f',
-    };
-    return colores[estado] || '#d9d9d9';
-  };
-
-  const getTipoColor = (tipo: string): string => {
-    const colores: Record<string, string> = {
-      control_prenatal: '#1890ff',
-      ecografia: '#722ed1',
-      consulta_general: '#13c2c2',
-      emergencia: '#ff4d4f',
-      seguimiento: '#52c41a',
-      laboratorio: '#fa8c16',
-      procedimiento: '#eb2f96',
-    };
-    return colores[tipo] || '#d9d9d9';
-  };
-
-  const esAtrasada = (fechaHora: string, estado: string): boolean => {
-    return (
-      dayjs(fechaHora).isBefore(dayjs()) &&
-      (estado === 'pendiente' || estado === 'confirmada')
-    );
-  };
 
   // ==========================================================================
   // RENDER DEL CALENDARIO

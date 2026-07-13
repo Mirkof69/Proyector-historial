@@ -23,6 +23,14 @@ export interface ImagenEcografica {
   };
 }
 
+export interface SugerenciaDiagnostica {
+  patologia: string;
+  confianza: number;
+  descripcion: string;
+  icd10: string;
+  recomendacion: string;
+}
+
 export interface AnalisisCNN {
   id: number;
   modelo_usado: string;
@@ -41,15 +49,27 @@ export interface AnalisisCNN {
   fecha_analisis: string;
   es_normal: boolean;
   requiere_atencion: boolean;
+  sugerencia_diagnostica_data?: SugerenciaDiagnostica;
+  mapa_calor?: string;
+  patologias?: string[];
+  shap_valores?: Record<string, number>;
+  tiempo_inferencia_ms?: number;
+  nivel_riesgo?: string;
 }
 
 // ── Tipos del Microservicio IA (EfficientNet-B4 FastAPI) ──────────────────────
 
 export interface Pathology {
-  name: string;
-  probability: number;
+  pathology: string;
+  confidence: number;
   icd10?: string;
   description?: string;
+  severity?: string;
+  requires_specialist?: boolean;
+  recommendation?: string;
+  ultrasound_type?: string;
+  gestational_weeks?: string;
+  ultrasound_markers?: string;
 }
 
 export interface BiometryResult {
@@ -61,36 +81,100 @@ export interface BiometryResult {
 }
 
 export interface ShapRiskScores {
-  riesgo_preeclampsia: number;
-  riesgo_parto_prematuro: number;
-  riesgo_rciu: number;
-  riesgo_placenta_previa: number;
-  riesgo_global: number;
-  [key: string]: number;
+  riesgo_preeclampsia?: number;
+  riesgo_parto_prematuro?: number;
+  riesgo_hemorragia?: number;
+  riesgo_diabetes_gestacional?: number;
+  riesgo_mortalidad_perinatal?: number;
+  riesgo_global?: number;
+  [key: string]: number | undefined;
 }
 
 export interface PathologyDetection {
   pathologies: Pathology[];
-  normal_probability: number;
-  threshold_used: number;
-  total_pathologies_detected: number;
+  total_detected: number;
+  requires_specialist?: boolean;
+  all_probabilities?: Record<string, number>;
+  mensaje?: string;
 }
 
-export interface BiometryAssessment {
-  measurements: BiometryResult;
-  percentiles?: Record<string, number>;
+// La API devuelve la biometría en formato plano: { BPD_mm, HC_mm, ..., disponible, motivo? }
+export interface BiometryAssessment extends BiometryResult {
+  disponible: boolean;
+  metodo?: string;
+  motivo?: string;
   alerts?: string[];
 }
 
+export interface ReporteNarrativoIA {
+  clasificacion_clinica: string;
+  tipo_embarazo: string;
+  edad_gestacional: string;
+  trimestre: string;
+  tipo_imagen: string;
+  biometria: {
+    LCC_CRL: string | null;
+    DBP: string | null;
+    CC: string | null;
+    CA: string | null;
+    LF: string | null;
+    TN: string | null;
+    LA: string;
+    placenta: string;
+    FCF: string | null;
+    peso_estimado: string | null;
+  };
+  patologias_detectadas: string[];
+  clasificacion_riesgo: string;
+  tipo_seguimiento: string;
+  descripcion_ecografia: string;
+  hallazgos: string[];
+  signos_normales: string[];
+  signos_alarma: string[];
+  hallazgos_visuales_complementarios: string[];
+  recomendaciones: string[];
+  diagnostico_presuntivo: string;
+  pronostico: string;
+  nota_tecnica: string;
+  _error_llm?: string;
+}
+
+export interface UltrasoundValidation {
+  es_ecografia_obstetrica_valida: boolean;
+  tipo_ecografia?: string;
+  calidad_suficiente?: boolean;
+  sharpness?: number;
+  contrast?: number;
+  motivo?: string;
+  motivo_calidad?: string;
+  motivo_validez?: string;
+  mensaje?: string;
+  saturacion_media?: number;
+}
+
+export interface ClinicalRecommendations {
+  urgencia: string;
+  especialista_requerido: string;
+  tiempo_recomendado: string;
+  estudios_adicionales: string[];
+}
+
 export interface AnalisisCNNCompleto {
-  model_version: string;
-  inference_time_ms: number;
+  status: string;
+  fuente: string;
+  modelo_version: string;
   score_global: number;
   gradcam_base64?: string;
   shap_risk_scores?: ShapRiskScores;
+  ultrasound_validation?: UltrasoundValidation;
+  pregnancy_assessment?: Record<string, any>;
   pathology_detection: PathologyDetection;
   biometry: BiometryAssessment;
-  image_quality?: Record<string, any>;
+  liquido_amniotico?: Record<string, any>;
+  placenta?: Record<string, any>;
+  clinical_recommendations?: ClinicalRecommendations;
+  riesgo_preeclampsia?: number;
+  riesgo_parto_prematuro?: number;
   filename?: string;
   ecografia_id?: string;
 }
@@ -148,6 +232,13 @@ export const iaMedicaService = {
     return response.data;
   },
 
+  // Reporte narrativo de IA local (LLM con visión, Ollama) — grounded en el
+  // resultado real del CNN, requiere que la imagen ya tenga analisis_cnn.
+  generarReporteNarrativo: async (id: number): Promise<ReporteNarrativoIA> => {
+    const response = await api.post(`/ia/imagenes/${id}/reporte-narrativo/`);
+    return response.data;
+  },
+
   // Obtener estadísticas globales
   getEstadisticas: async () => {
     const response = await api.get('/ia/imagenes/estadisticas/');
@@ -162,17 +253,19 @@ export const iaMedicaService = {
 
   // Análisis completo EfficientNet-B4 con Grad-CAM + SHAP (microservicio FastAPI)
   analyzeWithAI: async (
-    file: File,
+    file?: File,
     ecografiaId?: string,
   ): Promise<{ status: string; ai_analysis: AnalisisCNNCompleto; message: string }> => {
     const formData = new FormData();
-    formData.append('file', file);
+    if (file) {
+      formData.append('file', file);
+    }
     if (ecografiaId) {
       formData.append('ecografia_id', ecografiaId);
     }
     const response = await api.post('/ecografias/analyze-with-ai/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 30000, // 30s — la inferencia CNN puede tomar hasta 3s + red
+      timeout: 30000,
     });
     return response.data;
   },
@@ -223,6 +316,15 @@ export const iaMedicaService = {
     );
 
     return { imagen: uploadRes.data, analisis: analisisRes.data };
+  },
+
+  // Vincular imagen IA a una Ecografía del módulo ecografias
+  vincularAEcografia: async (imagenIaId: number, pacienteId: number) => {
+    const response = await api.post('/ecografias/crear-desde-ia/', {
+      imagen_ia_id: imagenIaId,
+      paciente_id: pacienteId,
+    });
+    return response.data;
   },
 
   // Consulta IA (NLP) - Mantener compatibilidad con módulo original

@@ -1,12 +1,24 @@
-import React, { useEffect, useReducer } from 'react';
-import { Card, Form, InputNumber, Button, Row, Col, Statistic, Alert, Divider, Table, Tag, Select, Typography } from 'antd';
+import React, { useReducer, lazy, Suspense } from 'react';
+import { Card, Form, InputNumber, Button, Row, Col, Statistic, Alert, Divider, Table, Tag, Select, Typography, Spin } from 'antd';
 import { ExperimentOutlined, LineChartOutlined, BarChartOutlined, AlertOutlined, SafetyOutlined } from '@ant-design/icons';
 import './CrecimientoFetal.css';
-import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ComposedChart, Area, ReferenceLine
-} from 'recharts';
+
+const BarChart = lazy(() => import('recharts').then(m => ({ default: m.BarChart })) as any);
+const Bar = lazy(() => import('recharts').then(m => ({ default: m.Bar })) as any);
+const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })) as any);
+const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
+const PieChart = lazy(() => import('recharts').then(m => ({ default: m.PieChart })) as any);
+const Pie = lazy(() => import('recharts').then(m => ({ default: m.Pie })) as any);
+const Cell = lazy(() => import('recharts').then(m => ({ default: m.Cell })) as any);
+const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
+const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
+const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
+const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
+const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
+const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
+const ComposedChart = lazy(() => import('recharts').then(m => ({ default: m.ComposedChart })) as any);
+const Area = lazy(() => import('recharts').then(m => ({ default: m.Area })) as any);
+const ReferenceLine = lazy(() => import('recharts').then(m => ({ default: m.ReferenceLine })) as any);
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -22,19 +34,11 @@ interface GrowthState {
 }
 
 type GrowthAction =
-  | { type: 'INIT_WITH_EXAMPLE'; payload: { datos: DatosBiometria; resultado: ResultadoCrecimiento; historial: RegistroCrecimiento[] } }
   | { type: 'CALCULATE'; payload: { datos: DatosBiometria; resultado: ResultadoCrecimiento; registro: RegistroCrecimiento } }
   | { type: 'RESET' };
 
 function growthReducer(state: GrowthState, action: GrowthAction): GrowthState {
   switch (action.type) {
-    case 'INIT_WITH_EXAMPLE':
-      return {
-        resultado: action.payload.resultado,
-        historial: action.payload.historial,
-        datosBiometria: action.payload.datos,
-        usandoDatosEjemplo: true,
-      };
     case 'CALCULATE':
       return {
         resultado: action.payload.resultado,
@@ -47,7 +51,7 @@ function growthReducer(state: GrowthState, action: GrowthAction): GrowthState {
         resultado: null,
         historial: [],
         datosBiometria: null,
-        usandoDatosEjemplo: true,
+        usandoDatosEjemplo: false,
       };
     default:
       return state;
@@ -58,7 +62,7 @@ const initialGrowthState: GrowthState = {
   resultado: null,
   historial: [],
   datosBiometria: null,
-  usandoDatosEjemplo: true,
+  usandoDatosEjemplo: false,
 };
 
 interface DatosBiometria {
@@ -101,12 +105,92 @@ const formatRatioTooltip = (value: any) => value ? Number(value).toFixed(3) : ''
 const renderPercentilLabel = ({ name, value }: { name: string; value: number }) => `${name}: p${(value || 0).toFixed(0)}`;
 const formatPercentilTooltip = (value: any) => value ? `p${Number(value).toFixed(1)}` : '';
 
+// Fórmulas de Hadlock para EFW
+const calcularEFW = (valores: DatosBiometria): number => {
+  const { bpd, hc, ac, fl, formula } = valores;
+  let efw = 0;
+
+  switch (formula) {
+    case 'hadlock1':
+      const log_efw1 = 1.3596 + 0.0064 * hc + 0.0424 * ac + 0.174 * fl + 0.00061 * bpd * ac - 0.00386 * ac * fl;
+      efw = Math.pow(10, log_efw1);
+      break;
+    case 'hadlock2':
+      const log_efw2 = 1.304 + 0.05281 * ac + 0.1938 * fl - 0.004 * ac * fl;
+      efw = Math.pow(10, log_efw2);
+      break;
+    case 'hadlock3':
+      const log_efw3 = 1.335 - 0.0034 * ac * fl + 0.0316 * bpd + 0.0457 * ac + 0.1623 * fl;
+      efw = Math.pow(10, log_efw3);
+      break;
+    case 'hadlock4':
+      const log_efw4 = 1.326 - 0.00326 * ac * fl + 0.0107 * hc + 0.0438 * ac + 0.158 * fl;
+      efw = Math.pow(10, log_efw4);
+      break;
+    default:
+      efw = 0;
+  }
+
+  return efw;
+};
+
+// Percentiles de EFW según edad gestacional (basado en curvas Intergrowth-21st)
+const getMedianaEFW = (semanas: number): number => {
+  const medianas: { [key: number]: number } = {
+    20: 300, 21: 360, 22: 430, 23: 501, 24: 600, 25: 660, 26: 760,
+    27: 875, 28: 1005, 29: 1153, 30: 1319, 31: 1502, 32: 1702,
+    33: 1918, 34: 2146, 35: 2383, 36: 2622, 37: 2859, 38: 3083,
+    39: 3288, 40: 3462, 41: 3597, 42: 3685
+  };
+  const semana_int = Math.round(semanas);
+  return medianas[semana_int] || 2500;
+};
+
+const getSDEFW = (semanas: number): number => {
+  return getMedianaEFW(semanas) * 0.15;
+};
+
+const zscoreToPercentile = (zscore: number): number => {
+  const t = 1 / (1 + 0.2316419 * Math.abs(zscore));
+  const d = 0.3989423 * Math.exp(-zscore * zscore / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+
+  if (zscore > 0) {
+    return (1 - p) * 100;
+  } else {
+    return p * 100;
+  }
+};
+
+const calcularPercentil = (efw: number, semanas: number): number => {
+  const mediana = getMedianaEFW(semanas);
+  const sd = getSDEFW(semanas);
+  const zscore = (efw - mediana) / sd;
+  return zscoreToPercentile(zscore);
+};
+
+// Percentiles de biometría individual (BPD, HC, AC, FL)
+const calcularPercentilBiometria = (valor: number, tipo: 'bpd' | 'hc' | 'ac' | 'fl', semanas: number): number => {
+  const medianas: { [key: string]: { [key: number]: number } } = {
+    bpd: { 20: 47, 22: 54, 24: 61, 26: 67, 28: 73, 30: 78, 32: 83, 34: 87, 36: 90, 38: 93, 40: 95 },
+    hc: { 20: 175, 22: 200, 24: 224, 26: 247, 28: 269, 30: 289, 32: 307, 34: 323, 36: 336, 38: 347, 40: 355 },
+    ac: { 20: 150, 22: 175, 24: 201, 26: 227, 28: 253, 30: 279, 32: 304, 34: 327, 36: 348, 38: 366, 40: 381 },
+    fl: { 20: 33, 22: 39, 24: 45, 26: 51, 28: 56, 30: 61, 32: 65, 34: 69, 36: 72, 38: 75, 40: 77 }
+  };
+
+  const semana_int = Math.round(semanas);
+  const mediana = medianas[tipo][semana_int] || medianas[tipo][Math.min(...Object.keys(medianas[tipo]).reduce<number[]>((acc, k) => { const n = Number(k); if (n <= semana_int) acc.push(n); return acc; }, []))];
+  const sd = mediana * 0.1;
+  const zscore = (valor - mediana) / sd;
+
+  return zscoreToPercentile(zscore);
+};
+
 const CrecimientoFetal: React.FC = () => {
   const [form] = Form.useForm();
   const [state, dispatch] = useReducer(growthReducer, initialGrowthState);
   const { resultado, historial, datosBiometria, usandoDatosEjemplo } = state;
 
-  // Cargar datos de ejemplo al inicio
   const calcularCrecimiento = React.useCallback((valores: DatosBiometria): ResultadoCrecimiento => {
     const efw = calcularEFW(valores);
     const percentil = calcularPercentil(efw, valores.semanas);
@@ -173,167 +257,6 @@ const CrecimientoFetal: React.FC = () => {
       categoria
     };
   }, []);
-
-  useEffect(() => {
-    const datosEjemplo: DatosBiometria = {
-      semanas: 28,
-      bpd: 73,
-      hc: 269,
-      ac: 253,
-      fl: 56,
-      formula: 'hadlock4'
-    };
-
-    const resultadoEjemplo = calcularCrecimiento(datosEjemplo);
-
-    const historialEjemplo: RegistroCrecimiento[] = [
-      {
-        ...resultadoEjemplo,
-        fecha: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-        semanas: 28,
-        bpd: 73,
-        hc: 269,
-        ac: 253,
-        fl: 56
-      },
-      {
-        efw: 875,
-        percentil: 52,
-        clasificacion: '🟢 NORMAL',
-        color: '#52c41a',
-        interpretacion: 'Peso fetal estimado dentro de rango normal. Crecimiento adecuado.',
-        recomendacion: 'Continuar con seguimiento prenatal habitual.',
-        zscore: 0.05,
-        desviacion_estandar: 131.25,
-        bpd_percentil: 51,
-        hc_percentil: 50,
-        ac_percentil: 49,
-        fl_percentil: 52,
-        categoria: 'NORMAL',
-        fecha: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-        semanas: 27,
-        bpd: 70,
-        hc: 260,
-        ac: 243,
-        fl: 54
-      },
-      {
-        efw: 760,
-        percentil: 50,
-        clasificacion: '🟢 NORMAL',
-        color: '#52c41a',
-        interpretacion: 'Peso fetal estimado dentro de rango normal. Crecimiento adecuado.',
-        recomendacion: 'Continuar con seguimiento prenatal habitual.',
-        zscore: 0,
-        desviacion_estandar: 114,
-        bpd_percentil: 48,
-        hc_percentil: 52,
-        ac_percentil: 50,
-        fl_percentil: 49,
-        categoria: 'NORMAL',
-        fecha: new Date(Date.now() - 63 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-        semanas: 26,
-        bpd: 67,
-        hc: 247,
-        ac: 227,
-        fl: 51
-      }
-    ];
-
-    dispatch({
-      type: 'INIT_WITH_EXAMPLE',
-      payload: { datos: datosEjemplo, resultado: resultadoEjemplo, historial: historialEjemplo }
-    });
-  }, [calcularCrecimiento]);
-
-  // Fórmulas de Hadlock para EFW
-  const calcularEFW = (valores: DatosBiometria): number => {
-    const { bpd, hc, ac, fl, formula } = valores;
-    let efw = 0;
-
-    switch (formula) {
-      case 'hadlock1':
-        // Hadlock 1: log10(EFW) = 1.3596 + 0.0064*HC + 0.0424*AC + 0.174*FL + 0.00061*BPD*AC - 0.00386*AC*FL
-        const log_efw1 = 1.3596 + 0.0064 * hc + 0.0424 * ac + 0.174 * fl + 0.00061 * bpd * ac - 0.00386 * ac * fl;
-        efw = Math.pow(10, log_efw1);
-        break;
-      case 'hadlock2':
-        // Hadlock 2: log10(EFW) = 1.304 + 0.05281*AC + 0.1938*FL - 0.004*AC*FL
-        const log_efw2 = 1.304 + 0.05281 * ac + 0.1938 * fl - 0.004 * ac * fl;
-        efw = Math.pow(10, log_efw2);
-        break;
-      case 'hadlock3':
-        // Hadlock 3: log10(EFW) = 1.335 - 0.0034*AC*FL + 0.0316*BPD + 0.0457*AC + 0.1623*FL
-        const log_efw3 = 1.335 - 0.0034 * ac * fl + 0.0316 * bpd + 0.0457 * ac + 0.1623 * fl;
-        efw = Math.pow(10, log_efw3);
-        break;
-      case 'hadlock4':
-        // Hadlock 4: log10(EFW) = 1.326 - 0.00326*AC*FL + 0.0107*HC + 0.0438*AC + 0.158*FL
-        const log_efw4 = 1.326 - 0.00326 * ac * fl + 0.0107 * hc + 0.0438 * ac + 0.158 * fl;
-        efw = Math.pow(10, log_efw4);
-        break;
-      default:
-        efw = 0;
-    }
-
-    return efw;
-  };
-
-  // Percentiles de EFW según edad gestacional (basado en curvas Intergrowth-21st)
-  const getMedianaEFW = (semanas: number): number => {
-    const medianas: { [key: number]: number } = {
-      20: 300, 21: 360, 22: 430, 23: 501, 24: 600, 25: 660, 26: 760,
-      27: 875, 28: 1005, 29: 1153, 30: 1319, 31: 1502, 32: 1702,
-      33: 1918, 34: 2146, 35: 2383, 36: 2622, 37: 2859, 38: 3083,
-      39: 3288, 40: 3462, 41: 3597, 42: 3685
-    };
-    const semana_int = Math.round(semanas);
-    return medianas[semana_int] || 2500;
-  };
-
-  const getSDEFW = (semanas: number): number => {
-    // Desviación estándar aproximada (15% de la mediana)
-    return getMedianaEFW(semanas) * 0.15;
-  };
-
-  const calcularPercentil = (efw: number, semanas: number): number => {
-    const mediana = getMedianaEFW(semanas);
-    const sd = getSDEFW(semanas);
-    const zscore = (efw - mediana) / sd;
-
-    // Convertir Z-score a percentil usando aproximación
-    return zscoreToPercentile(zscore);
-  };
-
-  const zscoreToPercentile = (zscore: number): number => {
-    // Aproximación de la función de distribución acumulada normal
-    const t = 1 / (1 + 0.2316419 * Math.abs(zscore));
-    const d = 0.3989423 * Math.exp(-zscore * zscore / 2);
-    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-
-    if (zscore > 0) {
-      return (1 - p) * 100;
-    } else {
-      return p * 100;
-    }
-  };
-
-  // Percentiles de biometría individual (BPD, HC, AC, FL)
-  const calcularPercentilBiometria = (valor: number, tipo: 'bpd' | 'hc' | 'ac' | 'fl', semanas: number): number => {
-    const medianas: { [key: string]: { [key: number]: number } } = {
-      bpd: { 20: 47, 22: 54, 24: 61, 26: 67, 28: 73, 30: 78, 32: 83, 34: 87, 36: 90, 38: 93, 40: 95 },
-      hc: { 20: 175, 22: 200, 24: 224, 26: 247, 28: 269, 30: 289, 32: 307, 34: 323, 36: 336, 38: 347, 40: 355 },
-      ac: { 20: 150, 22: 175, 24: 201, 26: 227, 28: 253, 30: 279, 32: 304, 34: 327, 36: 348, 38: 366, 40: 381 },
-      fl: { 20: 33, 22: 39, 24: 45, 26: 51, 28: 56, 30: 61, 32: 65, 34: 69, 36: 72, 38: 75, 40: 77 }
-    };
-
-    const semana_int = Math.round(semanas);
-    const mediana = medianas[tipo][semana_int] || medianas[tipo][Math.min(...Object.keys(medianas[tipo]).reduce<number[]>((acc, k) => { const n = Number(k); if (n <= semana_int) acc.push(n); return acc; }, []))];
-    const sd = mediana * 0.1; // Aproximación: SD = 10% de la mediana
-    const zscore = (valor - mediana) / sd;
-
-    return zscoreToPercentile(zscore);
-  };
 
   const onFinish = (values: DatosBiometria) => {
     const res = calcularCrecimiento(values);
@@ -616,21 +539,23 @@ const CrecimientoFetal: React.FC = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={16}>
               <Card title="Curva de Peso Fetal Estimado (EFW) - Percentiles Intergrowth-21st">
-                <ResponsiveContainer width="100%" height={350}>
-                  <ComposedChart data={getDataCurvasCrecimiento()}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="semana" label={{ value: 'Semanas de Gestación', position: 'insideBottom', offset: -5 }} />
-                    <YAxis label={{ value: 'Peso (g)', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip formatter={formatPesoTooltip} />
-                    <Legend />
-                    <Area type="monotone" dataKey="p3" fill="#f5222d15" stroke="#f5222d" strokeWidth={1} name="p3" />
-                    <Area type="monotone" dataKey="p10" fill="#fa8c1615" stroke="#fa8c16" strokeWidth={1} name="p10" />
-                    <Line type="monotone" dataKey="p50" stroke="#1890ff" strokeWidth={3} name="p50 (Mediana)" dot={false} />
-                    <Line type="monotone" dataKey="p90" stroke="#fa8c16" strokeWidth={1} name="p90" dot={false} />
-                    <Line type="monotone" dataKey="p97" stroke="#f5222d" strokeWidth={1} name="p97" dot={false} />
-                    <Line type="monotone" dataKey="actual" stroke="#52c41a" strokeWidth={4} name="EFW Actual" dot={{ r: 8, fill: '#52c41a' }} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <ComposedChart data={getDataCurvasCrecimiento()}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="semana" label={{ value: 'Semanas de Gestación', position: 'insideBottom', offset: -5 }} />
+                      <YAxis label={{ value: 'Peso (g)', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip formatter={formatPesoTooltip} />
+                      <Legend />
+                      <Area type="monotone" dataKey="p3" fill="#f5222d15" stroke="#f5222d" strokeWidth={1} name="p3" />
+                      <Area type="monotone" dataKey="p10" fill="#fa8c1615" stroke="#fa8c16" strokeWidth={1} name="p10" />
+                      <Line type="monotone" dataKey="p50" stroke="#1890ff" strokeWidth={3} name="p50 (Mediana)" dot={false} />
+                      <Line type="monotone" dataKey="p90" stroke="#fa8c16" strokeWidth={1} name="p90" dot={false} />
+                      <Line type="monotone" dataKey="p97" stroke="#f5222d" strokeWidth={1} name="p97" dot={false} />
+                      <Line type="monotone" dataKey="actual" stroke="#52c41a" strokeWidth={4} name="EFW Actual" dot={{ r: 8, fill: '#52c41a' }} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </Suspense>
                 <div style={{ marginTop: 12, fontSize: 12, color: '#666' }}>
                   <p><strong>Interpretación de percentiles:</strong></p>
                   <p>• {'<'}p3: RCIU severo | p3-p10: PEG | p10-p90: Normal | p90-p97: GEG | {'>'}p97: Macrosomía</p>
@@ -640,39 +565,43 @@ const CrecimientoFetal: React.FC = () => {
 
             <Col xs={24} lg={8}>
               <Card title="Valores Biométricos vs Percentiles">
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={getDataBiometria()}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="parametro" />
-                    <YAxis yAxisId="left" orientation="left" label={{ value: 'Valor (mm)', angle: -90, position: 'insideLeft' }} />
-                    <YAxis yAxisId="right" orientation="right" label={{ value: 'Percentil', angle: 90, position: 'insideRight' }} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar yAxisId="left" dataKey="valor" fill="#1890ff" name="Valor Medido (mm)" />
-                    <Bar yAxisId="right" dataKey="percentil" fill="#52c41a" name="Percentil" />
-                    <ReferenceLine yAxisId="right" y={50} stroke="red" strokeDasharray="3 3" label="p50" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={getDataBiometria()}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="parametro" />
+                      <YAxis yAxisId="left" orientation="left" label={{ value: 'Valor (mm)', angle: -90, position: 'insideLeft' }} />
+                      <YAxis yAxisId="right" orientation="right" label={{ value: 'Percentil', angle: 90, position: 'insideRight' }} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="valor" fill="#1890ff" name="Valor Medido (mm)" />
+                      <Bar yAxisId="right" dataKey="percentil" fill="#52c41a" name="Percentil" />
+                      <ReferenceLine yAxisId="right" y={50} stroke="red" strokeDasharray="3 3" label="p50" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Suspense>
               </Card>
             </Col>
 
             <Col xs={24} lg={12}>
               <Card title="Ratios de Proporciones Fetales">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={getDataProporcionesFetales()} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={PROPORCIONES_DOMAIN} />
-                    <YAxis dataKey="ratio" type="category" />
-                    <Tooltip formatter={formatRatioTooltip} />
-                    <Legend />
-                    <Bar dataKey="valor" name="Valor Calculado">
-                      {getDataProporcionesFetales().map((entry) => (
-                        <Cell key={`cell-${entry.ratio}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                    <ReferenceLine x={1.0} stroke="#666" strokeDasharray="3 3" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={getDataProporcionesFetales()} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" domain={PROPORCIONES_DOMAIN} />
+                      <YAxis dataKey="ratio" type="category" />
+                      <Tooltip formatter={formatRatioTooltip} />
+                      <Legend />
+                      <Bar dataKey="valor" name="Valor Calculado">
+                        {getDataProporcionesFetales().map((entry) => (
+                          <Cell key={`cell-${entry.ratio}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                      <ReferenceLine x={1.0} stroke="#666" strokeDasharray="3 3" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Suspense>
                 <div style={{ marginTop: 12, fontSize: 12, color: '#666' }}>
                   <p><strong>HC/AC:</strong> {'>'} 1 sugiere asimetría cefálica (RCIU tipo II)</p>
                   <p><strong>FL/AC:</strong> Útil para detectar anomalías esqueléticas</p>
@@ -683,42 +612,46 @@ const CrecimientoFetal: React.FC = () => {
 
             <Col xs={24} lg={12}>
               <Card title="Distribución de Percentiles Biométricos">
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={getDataDistribucionPercentiles()}
-                      label={renderPercentilLabel}
-                      outerRadius={100}
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {getDataDistribucionPercentiles().map((entry, index) => {
-                        const colors = ['#1890ff', '#52c41a', '#faad14', '#722ed1'];
-                        return <Cell key={`cell-${entry.name}`} fill={colors[index % colors.length]} />;
-                      })}
-                    </Pie>
-                    <Tooltip formatter={formatPercentilTooltip} />
-                  </PieChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={getDataDistribucionPercentiles()}
+                        label={renderPercentilLabel}
+                        outerRadius={100}
+                        dataKey="value"
+                        nameKey="name"
+                      >
+                        {getDataDistribucionPercentiles().map((entry, index) => {
+                          const colors = ['#1890ff', '#52c41a', '#faad14', '#722ed1'];
+                          return <Cell key={`cell-${entry.name}`} fill={colors[index % colors.length]} />;
+                        })}
+                      </Pie>
+                      <Tooltip formatter={formatPercentilTooltip} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Suspense>
               </Card>
             </Col>
 
             {historial.length > 1 && (
               <Col xs={24}>
                 <Card title="Evolución del Crecimiento Fetal">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={getDataEvolucion()}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="evaluacion" />
-                      <YAxis yAxisId="left" label={{ value: 'EFW (g)', angle: -90, position: 'insideLeft' }} />
-                      <YAxis yAxisId="right" orientation="right" label={{ value: 'Percentil', angle: 90, position: 'insideRight' }} />
-                      <Tooltip />
-                      <Legend />
-                      <Line yAxisId="left" type="monotone" dataKey="efw" stroke="#1890ff" strokeWidth={3} name="EFW (g)" dot={{ r: 5 }} />
-                      <Line yAxisId="left" type="monotone" dataKey="p50" stroke="#52c41a" strokeWidth={2} strokeDasharray="5 5" name="p50 Esperado" dot={{ r: 4 }} />
-                      <Line yAxisId="right" type="monotone" dataKey="percentil" stroke="#fa8c16" strokeWidth={2} name="Percentil Actual" dot={{ r: 5 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={getDataEvolucion()}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="evaluacion" />
+                        <YAxis yAxisId="left" label={{ value: 'EFW (g)', angle: -90, position: 'insideLeft' }} />
+                        <YAxis yAxisId="right" orientation="right" label={{ value: 'Percentil', angle: 90, position: 'insideRight' }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line yAxisId="left" type="monotone" dataKey="efw" stroke="#1890ff" strokeWidth={3} name="EFW (g)" dot={{ r: 5 }} />
+                        <Line yAxisId="left" type="monotone" dataKey="p50" stroke="#52c41a" strokeWidth={2} strokeDasharray="5 5" name="p50 Esperado" dot={{ r: 4 }} />
+                        <Line yAxisId="right" type="monotone" dataKey="percentil" stroke="#fa8c16" strokeWidth={2} name="Percentil Actual" dot={{ r: 5 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Suspense>
                 </Card>
               </Col>
             )}

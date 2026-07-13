@@ -13,9 +13,9 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Card,
+import {Card,
   Descriptions,
   Button,
   Space,
@@ -25,14 +25,12 @@ import {
   Col,
   Divider,
   Timeline,
-  message,
   Spin,
   Typography,
   Badge,
   Modal,
   Statistic,
-  Collapse,
-} from 'antd';
+  Collapse} from "antd";
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -67,8 +65,45 @@ const PRINTER_ICON_2 = <PrinterOutlined />;
 const EDIT_ICON_3 = <EditOutlined />;
 const DELETE_ICON_4 = <DeleteOutlined />;
 
+// ── Helpers puros (nivel de módulo: identidad estable entre renders) ─────────
+const handleImprimir = () => {
+  window.print();
+};
+
+const getViaPartoColor = (via: string) => {
+  const colores: Record<string, string> = {
+    vaginal_espontaneo: 'green',
+    vaginal_instrumentado: 'blue',
+    cesarea_electiva: 'orange',
+    cesarea_urgencia: 'red',
+    cesarea_emergencia: 'volcano',
+  };
+  return colores[via] || 'default';
+};
+
+const getApgarInterpretacion = (apgar: number) => {
+  if (apgar >= 7) {
+    return { text: 'Normal', color: 'success', icon: <CheckCircleOutlined /> };
+  } else if (apgar >= 4) {
+    return { text: 'Depresión moderada', color: 'warning', icon: <ExclamationCircleOutlined /> };
+  } else {
+    return { text: 'Depresión severa', color: 'error', icon: <WarningOutlined /> };
+  }
+};
+
+const getClasificacionPeso = (peso: number) => {
+  if (peso < 2500) {
+    return { text: 'Bajo peso', color: 'orange' };
+  } else if (peso >= 2500 && peso <= 4000) {
+    return { text: 'Peso adecuado', color: 'green' };
+  } else {
+    return { text: 'Macrosomía', color: 'red' };
+  }
+};
+
 const DetalleParto: React.FC = () => {
   const navigate = useNavigate();
+  const { message, modal } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [parto, setParto] = useState<Parto | null>(null);
@@ -159,11 +194,9 @@ const DetalleParto: React.FC = () => {
     }
   }, [id]);
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (id && loadedIdRef.current !== Number(id)) {
-    loadedIdRef.current = Number(id);
-    cargarDatos();
-  }
+  useEffect(() => {
+    if (id) cargarDatos();
+  }, [id, cargarDatos]);
 
 
 
@@ -179,7 +212,7 @@ const DetalleParto: React.FC = () => {
   };
 
   const handleEliminar = () => {
-    Modal.confirm({
+    modal.confirm({
       title: '¿Eliminar este registro de parto?',
       icon: <ExclamationCircleOutlined />,
       content: 'Esta acción no se puede deshacer.',
@@ -198,34 +231,9 @@ const DetalleParto: React.FC = () => {
     });
   };
 
-  const handleImprimir = () => {
-    window.print();
-  };
-
   // ==========================================================================
   // FUNCIONES AUXILIARES
   // ==========================================================================
-  const getViaPartoColor = (via: string) => {
-    const colores: Record<string, string> = {
-      vaginal_espontaneo: 'green',
-      vaginal_instrumentado: 'blue',
-      cesarea_electiva: 'orange',
-      cesarea_urgencia: 'red',
-      cesarea_emergencia: 'volcano',
-    };
-    return colores[via] || 'default';
-  };
-
-  const getApgarInterpretacion = (apgar: number) => {
-    if (apgar >= 7) {
-      return { text: 'Normal', color: 'success', icon: <CheckCircleOutlined /> };
-    } else if (apgar >= 4) {
-      return { text: 'Depresión moderada', color: 'warning', icon: <ExclamationCircleOutlined /> };
-    } else {
-      return { text: 'Depresión severa', color: 'error', icon: <WarningOutlined /> };
-    }
-  };
-
   const calcularDuracionTrabajoParto = () => {
     if (!parto?.fecha_inicio_trabajo_parto || !parto?.fecha_parto) return null;
 
@@ -237,16 +245,6 @@ const DetalleParto: React.FC = () => {
     const minutos = duracion.minutes();
 
     return `${horas}h ${minutos}min`;
-  };
-
-  const getClasificacionPeso = (peso: number) => {
-    if (peso < 2500) {
-      return { text: 'Bajo peso', color: 'orange' };
-    } else if (peso >= 2500 && peso <= 4000) {
-      return { text: 'Peso adecuado', color: 'green' };
-    } else {
-      return { text: 'Macrosomía', color: 'red' };
-    }
   };
 
   const getEdadGestacionalCategoria = () => {

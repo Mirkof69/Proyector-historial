@@ -5,15 +5,16 @@
 
 .calculadoras-avanzadas-container {
   padding: 30px;
-  background-color: #f4f7fe;
+  background-color: var(--bg-secondary);
   min-height: 100vh;
+  color: var(--text-primary);
 }
 
 .calculadora-avanzada-card {
   border-radius: 16px;
   box-shadow: 0 20px 27px 0 rgba(112, 144, 176, 0.05);
-  border: none;
-  background: var(--color-cardBg, #ffffff);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
   margin-bottom: 24px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

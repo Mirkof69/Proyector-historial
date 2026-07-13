@@ -8,14 +8,14 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Form,
+import { useAntdApp } from "../../hooks/useMessage";
+import { useAuth } from "../../hooks/useAuth";
+import {Form,
   Input,
   InputNumber,
   Select,
   Button,
   Card,
-  message,
   Space,
   Row,
   Col,
@@ -23,8 +23,7 @@ import {
   Divider,
   DatePicker,
   Radio,
-  Tooltip
-} from 'antd';
+  Tooltip} from "antd";
 import {
   SaveOutlined,
   CloseOutlined,
@@ -44,6 +43,8 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const FormularioNotaEvolucion: React.FC = () => {
+  const { message } = useAntdApp();
+  const { user } = useAuth();
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -299,7 +300,7 @@ const FormularioNotaEvolucion: React.FC = () => {
       const notaData: NotaEvolucionCreate = {
         ...values,
         fecha_consulta: values.fecha_consulta ? values.fecha_consulta.toISOString() : new Date().toISOString(),
-        medico: 1, // TODO: Obtener del usuario logueado
+        medico: user?.id,
       };
 
       if (id) {

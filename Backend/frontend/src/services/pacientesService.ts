@@ -12,6 +12,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INTERFACES Y TIPOS
@@ -194,19 +195,19 @@ interface FiltrosPaciente {
  */
 function normalizeListResponse<T>(data: any): T[] {
     if (!data) {
-        console.log('⚠️ Respuesta vacía o null');
+        logger.log('⚠️ Respuesta vacía o null');
         return [];
     }
     if (Array.isArray(data)) {
-        console.log(`✓ Respuesta como array directo (${data.length} elementos)`);
+        logger.log(`✓ Respuesta como array directo (${data.length} elementos)`);
         return data;
     }
     if (data.results && Array.isArray(data.results)) {
-        console.log(`✓ Respuesta paginada (${data.results.length} elementos, total: ${data.count})`);
+        logger.log(`✓ Respuesta paginada (${data.results.length} elementos, total: ${data.count})`);
         return data.results;
     }
     if (typeof data === 'object' && Object.keys(data).length === 0) {
-        console.log('⚠️ Respuesta es objeto vacío');
+        logger.log('⚠️ Respuesta es objeto vacío');
         return [];
     }
     console.warn('⚠️ Formato de respuesta inesperado:', JSON.stringify(data).substring(0, 200));
@@ -256,7 +257,7 @@ const pacientesService = {
                 }
             }
 
-            console.log(`✅ ${allPacientes.length} pacientes obtenidos`);
+            logger.log(`✅ ${allPacientes.length} pacientes obtenidos`);
             return allPacientes;
         } catch (error: any) {
             console.error('❌ Error listando pacientes:', error);
@@ -277,7 +278,7 @@ const pacientesService = {
     async obtener(id: number): Promise<Paciente> {
         try {
             const response = await api.get(`/pacientes/${id}/`);
-            console.log(`✅ Paciente ${id} obtenido`);
+            logger.log(`✅ Paciente ${id} obtenido`);
             return normalizeSingleResponse<Paciente>(response.data);
         } catch (error: any) {
             console.error(`❌ Error obteniendo paciente ${id}:`, error);
@@ -301,7 +302,7 @@ const pacientesService = {
             this.validarDatosPaciente(data);
 
             const response = await api.post('/pacientes/', data);
-            console.log('✅ Paciente creado exitosamente');
+            logger.log('✅ Paciente creado exitosamente');
             return normalizeSingleResponse<Paciente>(response.data);
         } catch (error: any) {
             console.error('❌ Error creando paciente:', error);
@@ -322,7 +323,7 @@ const pacientesService = {
     async actualizar(id: number, data: Partial<Paciente>): Promise<Paciente> {
         try {
             const response = await api.patch(`/pacientes/${id}/`, data);
-            console.log(`✅ Paciente ${id} actualizado`);
+            logger.log(`✅ Paciente ${id} actualizado`);
             return normalizeSingleResponse<Paciente>(response.data);
         } catch (error: any) {
             console.error(`❌ Error actualizando paciente ${id}:`, error);
@@ -343,7 +344,7 @@ const pacientesService = {
     async eliminar(id: number): Promise<void> {
         try {
             await api.delete(`/pacientes/${id}/`);
-            console.log(`✅ Paciente ${id} eliminado`);
+            logger.log(`✅ Paciente ${id} eliminado`);
         } catch (error: any) {
             console.error(`❌ Error eliminando paciente ${id}:`, error);
             throw error;
@@ -464,7 +465,7 @@ const pacientesService = {
                 `/pacientes/${pacienteId}/antecedentes-personales/`,
                 data
             );
-            console.log('✅ Antecedentes personales guardados');
+            logger.log('✅ Antecedentes personales guardados');
             return response.data;
         } catch (error: any) {
             console.error('❌ Error guardando antecedentes personales:', error);
@@ -500,7 +501,7 @@ const pacientesService = {
                 `/pacientes/${pacienteId}/antecedentes-familiares/`,
                 data
             );
-            console.log('✅ Antecedentes familiares guardados');
+            logger.log('✅ Antecedentes familiares guardados');
             return response.data;
         } catch (error: any) {
             console.error('❌ Error guardando antecedentes familiares:', error);
@@ -536,7 +537,7 @@ const pacientesService = {
                 `/pacientes/${pacienteId}/antecedentes-obstetricos/`,
                 data
             );
-            console.log('✅ Antecedentes obstétricos guardados');
+            logger.log('✅ Antecedentes obstétricos guardados');
             return response.data;
         } catch (error: any) {
             console.error('❌ Error guardando antecedentes obstétricos:', error);
@@ -572,7 +573,7 @@ const pacientesService = {
                 `/pacientes/${pacienteId}/antecedentes-ginecologicos/`,
                 data
             );
-            console.log('✅ Antecedentes ginecológicos guardados');
+            logger.log('✅ Antecedentes ginecológicos guardados');
             return response.data;
         } catch (error: any) {
             console.error('❌ Error guardando antecedentes ginecológicos:', error);
@@ -792,7 +793,7 @@ const pacientesService = {
             const response = await api.get(`/pacientes/${pacienteId}/reporte-pdf/`, {
                 responseType: 'blob'
             });
-            console.log(`✅ PDF del paciente ${pacienteId} generado`);
+            logger.log(`✅ PDF del paciente ${pacienteId} generado`);
             return response.data;
         } catch (error: any) {
             console.error('❌ Error generando PDF:', error);
@@ -808,7 +809,7 @@ const pacientesService = {
             const response = await api.get(`/pacientes/${pacienteId}/exportar-excel/`, {
                 responseType: 'blob'
             });
-            console.log(`✅ Excel exportado para paciente ${pacienteId}`);
+            logger.log(`✅ Excel exportado para paciente ${pacienteId}`);
             return response.data;
         } catch (error: any) {
             console.error('❌ Error exportando Excel:', error);
@@ -825,7 +826,7 @@ const pacientesService = {
                 params: filtros,
                 responseType: 'blob'
             });
-            console.log('✅ Lista de pacientes exportada');
+            logger.log('✅ Lista de pacientes exportada');
             return response.data;
         } catch (error: any) {
             console.error('❌ Error exportando lista:', error);

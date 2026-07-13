@@ -150,32 +150,6 @@ export const calcularGananciaPesoRecomendada = (imcPregestacional: number, seman
   };
 };
 
-export const interpretarLaboratorio = (examen: string, valor: number, unidad: string, semanasEG: number): { normal: boolean; interpretacion: string } => {
-  const referencias: { [key: string]: { min: number; max: number; unidad: string } } = {
-    'HEMOGLOBINA': { min: 11, max: 14, unidad: 'g/dL' },
-    'HEMATOCRITO': { min: 33, max: 44, unidad: '%' },
-    'LEUCOCITOS': { min: 6000, max: 17000, unidad: '/mm³' },
-    'PLAQUETAS': { min: 150000, max: 400000, unidad: '/mm³' },
-    'GLUCOSA': { min: 70, max: 105, unidad: 'mg/dL' },
-    'CREATININA': { min: 0.4, max: 0.9, unidad: 'mg/dL' },
-    'UREA': { min: 13, max: 35, unidad: 'mg/dL' },
-    'TGO': { min: 0, max: 40, unidad: 'U/L' },
-    'TGP': { min: 0, max: 40, unidad: 'U/L' },
-    'PROTEINAS_ORINA': { min: 0, max: 150, unidad: 'mg/24h' }
-  };
-
-  const ref = referencias[examen.toUpperCase()];
-  if (!ref) return { normal: true, interpretacion: 'Sin referencia disponible' };
-
-  const normal = valor >= ref.min && valor <= ref.max;
-  let interpretacion = normal ? 'NORMAL' : 'ANORMAL';
-  if (!normal) {
-    if (valor < ref.min) interpretacion += ' - BAJO';
-    if (valor > ref.max) interpretacion += ' - ELEVADO';
-  }
-  return { normal, interpretacion };
-};
-
 export const calcularRiesgoPreeclampsia = (
   edad: number,
   imc: number,

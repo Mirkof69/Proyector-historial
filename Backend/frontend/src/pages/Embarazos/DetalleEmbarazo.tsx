@@ -1,10 +1,10 @@
 /**
  * =============================================================================
- * MÃ“DULO: EMBARAZOS - DETALLE COMPLETO
+ * MÓDULO: EMBARAZOS - DETALLE COMPLETO
  * =============================================================================
  * Muestra todos los detalles de un embarazo individual
- * Incluye progreso gestacional, controles y anÃ¡lisis mÃ©dico
- * Con cÃ¡lculos automÃ¡ticos y visualizaciones mejoradas
+ * Incluye progreso gestacional, controles y análisis médico
+ * Con cálculos automáticos y visualizaciones mejoradas
  * =============================================================================
  */
 
@@ -81,6 +81,62 @@ const checkCircleIcon3 = <CheckCircleOutlined />;
 const soundIcon = <SoundOutlined />;
 const experimentIcon2 = <ExperimentOutlined />;
 
+// ── Cálculos obstétricos y config (puros, nivel de módulo) ───────────────────
+const calcularSemanasGestacion = (fum: string) => {
+  const hoy = dayjs();
+  const fechaFum = dayjs(fum);
+  const diasDiferencia = hoy.diff(fechaFum, 'day');
+  const semanas = Math.floor(diasDiferencia / 7);
+  const dias = diasDiferencia % 7;
+  return { semanas, dias, texto: `${semanas} semanas + ${dias} días` };
+};
+
+const calcularDiasRestantes = (fpp: string) => {
+  const hoy = dayjs();
+  const fechaFpp = dayjs(fpp);
+  const diasRestantes = fechaFpp.diff(hoy, 'day');
+  return diasRestantes > 0 ? diasRestantes : 0;
+};
+
+const calcularProgreso = (fum: string) => {
+  const hoy = dayjs();
+  const fechaFum = dayjs(fum);
+  const diasTranscurridos = hoy.diff(fechaFum, 'day');
+  const progreso = Math.min((diasTranscurridos / 280) * 100, 100);
+  return Math.round(progreso);
+};
+
+const getTrimestre = (semanas: number) => {
+  if (semanas < 13) return { numero: 1, texto: 'Primer Trimestre', color: 'cyan' };
+  if (semanas < 28) return { numero: 2, texto: 'Segundo Trimestre', color: 'blue' };
+  return { numero: 3, texto: 'Tercer Trimestre', color: 'purple' };
+};
+
+const calcularIMCClasificacion = (imc: number) => {
+  if (imc < 18.5) return { texto: 'Bajo peso', color: 'orange' };
+  if (imc < 25) return { texto: 'Normal', color: 'green' };
+  if (imc < 30) return { texto: 'Sobrepeso', color: 'orange' };
+  return { texto: 'Obesidad', color: 'red' };
+};
+
+const getEstadoConfig = (estado: string) => {
+  const configs = {
+    activo: { color: 'success', icon: checkCircleIcon3, texto: 'ACTIVO' },
+    finalizado: { color: 'default', icon: infoCircleIcon, texto: 'FINALIZADO' },
+    perdida: { color: 'error', icon: warningIcon, texto: 'PÉRDIDA' },
+  };
+  return configs[estado as keyof typeof configs] || configs.activo;
+};
+
+const getRiesgoConfig = (riesgo: string) => {
+  const configs = {
+    bajo: { color: 'success', texto: 'BAJO RIESGO' },
+    medio: { color: 'warning', texto: 'RIESGO MEDIO' },
+    alto: { color: 'error', texto: 'ALTO RIESGO' },
+  };
+  return configs[riesgo as keyof typeof configs] || configs.bajo;
+};
+
 const DetalleEmbarazo: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -134,11 +190,10 @@ const DetalleEmbarazo: React.FC = () => {
     }
   };
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (id && loadedIdRef.current !== parseInt(id)) {
-    loadedIdRef.current = parseInt(id);
-    fetchEmbarazo(parseInt(id));
-  }
+  useEffect(() => {
+    if (id) fetchEmbarazo(parseInt(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fetchControles = async (embarazoId: number) => {
@@ -159,7 +214,7 @@ const DetalleEmbarazo: React.FC = () => {
     }
   };
 
-  // âœ¨ NUEVA FUNCIÃ“N - Calcular riesgo detallado
+  // âœ¨ NUEVA FUNCIÓN - Calcular riesgo detallado
   const handleCalcularRiesgo = async () => {
     if (!embarazo?.id) return;
     setModalRiesgoVisible(true);
@@ -182,7 +237,7 @@ const DetalleEmbarazo: React.FC = () => {
     }
   };
 
-  // âœ¨ NUEVA FUNCIÃ“N - Ver timeline completo
+  // âœ¨ NUEVA FUNCIÓN - Ver timeline completo
   const handleVerTimeline = async () => {
     if (!embarazo?.id) return;
     setModalTimelineVisible(true);
@@ -211,44 +266,6 @@ const DetalleEmbarazo: React.FC = () => {
     }
   };
 
-  // ========== CÃLCULOS OBSTÃ‰TRICOS ==========
-  const calcularSemanasGestacion = (fum: string) => {
-    const hoy = dayjs();
-    const fechaFum = dayjs(fum);
-    const diasDiferencia = hoy.diff(fechaFum, 'day');
-    const semanas = Math.floor(diasDiferencia / 7);
-    const dias = diasDiferencia % 7;
-    return { semanas, dias, texto: `${semanas} semanas + ${dias} dÃ­as` };
-  };
-
-  const calcularDiasRestantes = (fpp: string) => {
-    const hoy = dayjs();
-    const fechaFpp = dayjs(fpp);
-    const diasRestantes = fechaFpp.diff(hoy, 'day');
-    return diasRestantes > 0 ? diasRestantes : 0;
-  };
-
-  const calcularProgreso = (fum: string) => {
-    const hoy = dayjs();
-    const fechaFum = dayjs(fum);
-    const diasTranscurridos = hoy.diff(fechaFum, 'day');
-    const progreso = Math.min((diasTranscurridos / 280) * 100, 100);
-    return Math.round(progreso);
-  };
-
-  const getTrimestre = (semanas: number) => {
-    if (semanas < 13) return { numero: 1, texto: 'Primer Trimestre', color: 'cyan' };
-    if (semanas < 28) return { numero: 2, texto: 'Segundo Trimestre', color: 'blue' };
-    return { numero: 3, texto: 'Tercer Trimestre', color: 'purple' };
-  };
-
-  const calcularIMCClasificacion = (imc: number) => {
-    if (imc < 18.5) return { texto: 'Bajo peso', color: 'orange' };
-    if (imc < 25) return { texto: 'Normal', color: 'green' };
-    if (imc < 30) return { texto: 'Sobrepeso', color: 'orange' };
-    return { texto: 'Obesidad', color: 'red' };
-  };
-
   // ========== HANDLERS ==========
   const handleBack = () => {
     navigate(FRONTEND_ROUTES.DASHBOARD.EMBARAZOS);
@@ -266,25 +283,6 @@ const DetalleEmbarazo: React.FC = () => {
 
   const handleVerControl = (controlId: number) => {
     navigate(FRONTEND_ROUTES.DASHBOARD.CONTROLES_DETALLE(controlId));
-  };
-
-  // ========== COLORES POR ESTADO/RIESGO ==========
-  const getEstadoConfig = (estado: string) => {
-    const configs = {
-      activo: { color: 'success', icon: checkCircleIcon3, texto: 'ACTIVO' },
-      finalizado: { color: 'default', icon: infoCircleIcon, texto: 'FINALIZADO' },
-      perdida: { color: 'error', icon: warningIcon, texto: 'PÃ‰RDIDA' },
-    };
-    return configs[estado as keyof typeof configs] || configs.activo;
-  };
-
-  const getRiesgoConfig = (riesgo: string) => {
-    const configs = {
-      bajo: { color: 'success', texto: 'BAJO RIESGO' },
-      medio: { color: 'warning', texto: 'RIESGO MEDIO' },
-      alto: { color: 'error', texto: 'ALTO RIESGO' },
-    };
-    return configs[riesgo as keyof typeof configs] || configs.bajo;
   };
 
   if (loadingRef.current) {
@@ -310,7 +308,7 @@ const DetalleEmbarazo: React.FC = () => {
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description={
               <span>
-                No se encontrÃ³ el embarazo solicitado
+                No se encontró el embarazo solicitado
                 <br />
                 <Text type="secondary">El embarazo no existe o ha sido eliminado</Text>
               </span>
@@ -325,7 +323,7 @@ const DetalleEmbarazo: React.FC = () => {
     );
   }
 
-  // ========== CÃLCULOS ==========
+  // ========== CÁLCULOS ==========
   const eg = calcularSemanasGestacion(embarazo.fecha_ultima_menstruacion);
   const diasRestantes = calcularDiasRestantes(embarazo.fecha_probable_parto || new Date().toISOString());
   const progreso = calcularProgreso(embarazo.fecha_ultima_menstruacion);
@@ -366,7 +364,7 @@ const DetalleEmbarazo: React.FC = () => {
           onClick={handleCalcularRiesgo}
           style={{ borderColor: '#ff4d4f', color: '#ff4d4f' }}
         >
-          AnÃ¡lisis de Riesgo Detallado
+          Análisis de Riesgo Detallado
         </Button>
         <Button
           icon={historyIcon2}
@@ -381,7 +379,7 @@ const DetalleEmbarazo: React.FC = () => {
       {embarazo.riesgo_embarazo === 'alto' && embarazo.estado === 'activo' && (
         <Alert
           message="Embarazo de Alto Riesgo"
-          description="Este embarazo requiere seguimiento mÃ©dico especializado y controles mÃ¡s frecuentes."
+          description="Este embarazo requiere seguimiento médico especializado y controles más frecuentes."
           type="error"
           showIcon
           icon={warningIcon2}
@@ -392,7 +390,7 @@ const DetalleEmbarazo: React.FC = () => {
       {controlesConAlertas > 0 && (
         <Alert
           message={`Controles con Alertas: ${controlesConAlertas}`}
-          description="Se han detectado alertas mÃ©dicas en los controles prenatales. Revise el historial de controles."
+          description="Se han detectado alertas médicas en los controles prenatales. Revise el historial de controles."
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
@@ -400,7 +398,7 @@ const DetalleEmbarazo: React.FC = () => {
         />
       )}
 
-      {/* ========== ESTADÃSTICAS RÃPIDAS ========== */}
+      {/* ========== ESTADÍSTICAS RÁPIDAS ========== */}
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12} md={6}>
           <Card>
@@ -419,9 +417,9 @@ const DetalleEmbarazo: React.FC = () => {
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
-              title="DÃ­as hasta FPP"
+              title="Días hasta FPP"
               value={diasRestantes}
-              suffix="dÃ­as"
+              suffix="días"
               prefix={<ClockCircleOutlined />}
               valueStyle={{ color: diasRestantes < 30 ? '#ff4d4f' : '#52c41a' }}
             />
@@ -468,7 +466,7 @@ const DetalleEmbarazo: React.FC = () => {
         </Col>
       </Row>
 
-      {/* ========== INFORMACIÃ“N PRINCIPAL ========== */}
+      {/* ========== INFORMACIÓN PRINCIPAL ========== */}
       <Card
         title={
           <Space>
@@ -490,7 +488,7 @@ const DetalleEmbarazo: React.FC = () => {
         }
       >
         <Descriptions bordered column={2} size="middle">
-          {/* INFORMACIÃ“N DE LA PACIENTE */}
+          {/* INFORMACIÓN DE LA PACIENTE */}
           <Descriptions.Item label={<><UserOutlined /> Paciente</>} span={2}>
             <Space>
               <Text strong style={{ fontSize: 16 }}>
@@ -500,15 +498,15 @@ const DetalleEmbarazo: React.FC = () => {
             </Space>
           </Descriptions.Item>
 
-          {/* DATOS OBSTÃ‰TRICOS */}
-          <Descriptions.Item label="NÃºmero de Gesta">
+          {/* DATOS OBSTÉTRICOS */}
+          <Descriptions.Item label="Número de Gesta">
             <Tag color="geekblue" style={{ fontSize: 14 }}>
               G{embarazo.numero_gesta}
             </Tag>
           </Descriptions.Item>
 
-          <Descriptions.Item label="FÃ³rmula ObstÃ©trica">
-            <Tooltip title="Gesta-Partos-CesÃ¡reas-Abortos">
+          <Descriptions.Item label="Fórmula Obstétrica">
+            <Tooltip title="Gesta-Partos-Cesáreas-Abortos">
               <Tag color="purple" style={{ fontSize: 14 }}>
                 {formulaObstetrica}
               </Tag>
@@ -527,7 +525,7 @@ const DetalleEmbarazo: React.FC = () => {
           </Descriptions.Item>
 
           {/* FECHAS IMPORTANTES */}
-          <Descriptions.Item label={<><CalendarOutlined /> Fecha Ãšltima MenstruaciÃ³n (FUM)</>}>
+          <Descriptions.Item label={<><CalendarOutlined /> Fecha Última Menstruación (FUM)</>}>
             <Text strong>{dayjs(embarazo.fecha_ultima_menstruacion).format('DD/MM/YYYY')}</Text>
           </Descriptions.Item>
 
@@ -535,7 +533,7 @@ const DetalleEmbarazo: React.FC = () => {
             <Space>
               <Text strong>{dayjs(embarazo.fecha_probable_parto).format('DD/MM/YYYY')}</Text>
               <Tag color={diasRestantes < 30 ? 'error' : 'success'}>
-                {diasRestantes} dÃ­as
+                {diasRestantes} días
               </Tag>
             </Space>
           </Descriptions.Item>
@@ -566,18 +564,18 @@ const DetalleEmbarazo: React.FC = () => {
               />
               <Space>
                 <Text>
-                  <strong>{diasRestantes} dÃ­as restantes</strong> hasta la FPP
+                  <strong>{diasRestantes} días restantes</strong> hasta la FPP
                 </Text>
                 {diasRestantes < 30 && (
                   <Tag color="orange" icon={infoCircleIcon2}>
-                    TÃ©rmino cercano
+                    Término cercano
                   </Tag>
                 )}
               </Space>
             </Space>
           </Descriptions.Item>
 
-          {/* DATOS ANTROPOMÃ‰TRICOS */}
+          {/* DATOS ANTROPOMÉTRICOS */}
           {embarazo.peso_pregestacional && (
             <Descriptions.Item label="Peso Pregestacional">
               {embarazo.peso_pregestacional} kg
@@ -601,19 +599,19 @@ const DetalleEmbarazo: React.FC = () => {
 
           {/* OTROS DATOS */}
           {embarazo.grupo_sanguineo_pareja && (
-            <Descriptions.Item label="Grupo SanguÃ­neo Pareja" span={2}>
+            <Descriptions.Item label="Grupo Sanguíneo Pareja" span={2}>
               <Tag color="red">{embarazo.grupo_sanguineo_pareja}</Tag>
             </Descriptions.Item>
           )}
 
           {embarazo.medico_responsable && (
-            <Descriptions.Item label="MÃ©dico Responsable" span={2}>
+            <Descriptions.Item label="Médico Responsable" span={2}>
               <Text>{embarazo.medico_responsable}</Text>
             </Descriptions.Item>
           )}
 
           {embarazo.notas && (
-            <Descriptions.Item label="Observaciones ClÃ­nicas" span={2}>
+            <Descriptions.Item label="Observaciones Clínicas" span={2}>
               <Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
                 {embarazo.notas}
               </Paragraph>
@@ -632,7 +630,7 @@ const DetalleEmbarazo: React.FC = () => {
         </Descriptions>
       </Card>
 
-      {/* ========== TABS CON INFORMACIÃ“N ADICIONAL ========== */}
+      {/* ========== TABS CON INFORMACIÓN ADICIONAL ========== */}
       <Card style={{ marginTop: 16 }} title={<><MedicineBoxOutlined /> Seguimiento del Embarazo</>}>
         <Tabs defaultActiveKey="controles" items={[
           {
@@ -652,7 +650,7 @@ const DetalleEmbarazo: React.FC = () => {
               <>
                 <Alert
                   message={`${controles.length} control(es) prenatal(es) registrado(s)`}
-                  description={ultimoControl && `Ãšltimo control: ${dayjs(ultimoControl.fecha_control).format('DD/MM/YYYY')}`}
+                  description={ultimoControl && `Último control: ${dayjs(ultimoControl.fecha_control).format('DD/MM/YYYY')}`}
                   type="info"
                   showIcon
                   style={{ marginBottom: 16 }}
@@ -737,13 +735,13 @@ const DetalleEmbarazo: React.FC = () => {
             children: (
               <>
                 <Alert
-                  message="MÃ³dulo en Desarrollo"
-                  description="El registro y visualizaciÃ³n de ecografÃ­as estarÃ¡ disponible prÃ³ximamente."
+                  message="Módulo en Desarrollo"
+                  description="El registro y visualización de ecografías estará disponible próximamente."
                   type="info"
                   showIcon
                   style={{ marginBottom: 16 }}
                 />
-                <Empty description="No hay ecografÃ­as registradas" />
+                <Empty description="No hay ecografías registradas" />
               </>
             ),
           },
@@ -753,8 +751,8 @@ const DetalleEmbarazo: React.FC = () => {
             children: (
               <>
                 <Alert
-                  message="MÃ³dulo en Desarrollo"
-                  description="Los resultados de laboratorio se mostrarÃ¡n aquÃ­ prÃ³ximamente."
+                  message="Módulo en Desarrollo"
+                  description="Los resultados de laboratorio se mostrarán aquí próximamente."
                   type="info"
                   showIcon
                   style={{ marginBottom: 16 }}
@@ -766,8 +764,8 @@ const DetalleEmbarazo: React.FC = () => {
         ]} />
       </Card>
 
-      {/* ========== LÃNEA DE TIEMPO ========== */}
-      <Card title={<><CalendarOutlined /> LÃ­nea de Tiempo del Embarazo</>} style={{ marginTop: 16 }}>
+      {/* ========== LÍNEA DE TIEMPO ========== */}
+      <Card title={<><CalendarOutlined /> Línea de Tiempo del Embarazo</>} style={{ marginTop: 16 }}>
         <Timeline
           mode="left"
           items={[
@@ -787,7 +785,7 @@ const DetalleEmbarazo: React.FC = () => {
               label: dayjs(embarazo.fecha_ultima_menstruacion).format('DD/MM/YYYY'),
               children: (
                 <>
-                  <strong>Fecha Ãšltima MenstruaciÃ³n (FUM)</strong>
+                  <strong>Fecha Última Menstruación (FUM)</strong>
                   <br />
                   <Text type="secondary">Inicio del embarazo</Text>
                 </>
@@ -812,7 +810,7 @@ const DetalleEmbarazo: React.FC = () => {
                 label: dayjs(ultimoControl!.fecha_control).format('DD/MM/YYYY'),
                 children: (
                   <>
-                    <strong>Ãšltimo Control Prenatal</strong>
+                    <strong>Último Control Prenatal</strong>
                     <br />
                     <Text type="secondary">Control #{ultimoControl!.numero_control}</Text>
                   </>
@@ -826,7 +824,7 @@ const DetalleEmbarazo: React.FC = () => {
                 <>
                   <strong>Fecha Probable de Parto (FPP)</strong>
                   <br />
-                  <Text type="secondary">{diasRestantes} dÃ­as restantes</Text>
+                  <Text type="secondary">{diasRestantes} días restantes</Text>
                 </>
               )
             }
@@ -834,12 +832,12 @@ const DetalleEmbarazo: React.FC = () => {
         />
       </Card>
 
-      {/* NUEVO MODAL - AnÃ¡lisis de Riesgo Detallado */}
+      {/* NUEVO MODAL - Análisis de Riesgo Detallado */}
       <Modal
         title={
           <Space>
             <SafetyOutlined style={{ color: '#ff4d4f' }} />
-            <span>AnÃ¡lisis de Riesgo ObstÃ©trico Detallado</span>
+            <span>Análisis de Riesgo Obstétrico Detallado</span>
           </Space>
         }
         open={modalRiesgoVisible}
@@ -906,7 +904,7 @@ const DetalleEmbarazo: React.FC = () => {
                 />
               )}
 
-              <Divider orientation="left">Recomendaciones MÃ©dicas</Divider>
+              <Divider orientation="left">Recomendaciones Médicas</Divider>
               {riesgoDetallado.recomendaciones && riesgoDetallado.recomendaciones.length > 0 ? (
                 <List
                   dataSource={riesgoDetallado.recomendaciones}
@@ -923,7 +921,7 @@ const DetalleEmbarazo: React.FC = () => {
               ) : (
                 <Alert
                   message="Continuar con controles regulares"
-                  description="Mantener el seguimiento prenatal segÃºn calendario establecido."
+                  description="Mantener el seguimiento prenatal según calendario establecido."
                   type="info"
                   showIcon
                 />
@@ -968,7 +966,7 @@ const DetalleEmbarazo: React.FC = () => {
             <Space direction="vertical" style={{ width: '100%' }} size="large">
               <Alert
                 message="Historial Completo"
-                description="Todos los eventos registrados del embarazo en orden cronolÃ³gico."
+                description="Todos los eventos registrados del embarazo en orden cronológico."
                 type="info"
                 showIcon
                 icon={historyIcon2}
@@ -1043,7 +1041,7 @@ const DetalleEmbarazo: React.FC = () => {
 
               {timelineData.estadisticas && (
                 <>
-                  <Divider orientation="left">EstadÃ­sticas del Embarazo</Divider>
+                  <Divider orientation="left">Estadísticas del Embarazo</Divider>
                   <Row gutter={16}>
                     <Col span={6}>
                       <Statistic
@@ -1054,7 +1052,7 @@ const DetalleEmbarazo: React.FC = () => {
                     </Col>
                     <Col span={6}>
                       <Statistic
-                        title="EcografÃ­as"
+                        title="Ecografías"
                         value={timelineData.estadisticas.total_ecografias || 0}
                         prefix={<SoundOutlined />}
                       />

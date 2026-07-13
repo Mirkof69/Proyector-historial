@@ -1,3 +1,4 @@
+/* eslint-disable react-doctor/prefer-dynamic-import */
 /**
  * =============================================================================
  * REPORTES - DASHBOARD Y GESTIÓN
@@ -7,14 +8,14 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Card, Table, Button, Space, Input, Select, DatePicker, Tag, Tooltip,
   Modal, Row, Col, Statistic, Empty, Typography, Spin, Tabs
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
-  EyeOutlined, DownloadOutlined, DeleteOutlined, PlusOutlined,
+  EyeOutlined, DownloadOutlined, PlusOutlined,
   SearchOutlined, FilterOutlined, ReloadOutlined, FileTextOutlined,
   FilePdfOutlined, FileExcelOutlined, BarChartOutlined,
   ExclamationCircleOutlined, CalendarOutlined, ClockCircleOutlined,
@@ -27,6 +28,7 @@ import { reportesService, Reporte, DashboardKPIs } from '../../services/reportes
 import { FRONTEND_ROUTES } from '../../config/routes';
 import DateRangeSelector, { DateRange } from '../../components/DateRangeSelector';
 import './Reportes.css';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
@@ -40,13 +42,14 @@ const { Title, Text, Paragraph } = Typography;
 // Colores para gráficos
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
+const calcularPorcentaje = (valor: number, total: number) => {
+  if (total === 0) return 0;
+  return ((valor / total) * 100).toFixed(1);
+};
+
 const RenderKPIs: React.FC<{ kpis: DashboardKPIs | null }> = ({ kpis }) => {
   if (!kpis) return null;
 
-  const calcularPorcentaje = (valor: number, total: number) => {
-    if (total === 0) return 0;
-    return ((valor / total) * 100).toFixed(1);
-  };
 
   const totalPacientes = kpis.kpis?.pacientes_activos?.valor || 0;
   const totalEmbarazos = kpis.kpis?.embarazos_activos?.valor || 0;
@@ -239,7 +242,10 @@ interface RenderHistoryProps {
   setBusqueda: (v: string) => void;
   setFiltroTipo: (v: string) => void;
 }
-const RenderHistory: React.FC<RenderHistoryProps> = ({ reportes, busqueda, filtroTipo, loading, setBusqueda, setFiltroTipo }) => (
+const RenderHistory: React.FC<RenderHistoryProps> = ({ reportes, busqueda, filtroTipo, loading, setBusqueda, setFiltroTipo }) => {
+  const navigate = useNavigate();
+  const { message } = useAntdApp();
+  return (
   <div className="reportes-history">
     <div className="reportes-history__header" style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div>
@@ -260,22 +266,43 @@ const RenderHistory: React.FC<RenderHistoryProps> = ({ reportes, busqueda, filtr
     </div>
     <Table
       dataSource={reportes.filter(r =>
-        (r.titulo?.toLowerCase().includes(busqueda.toLowerCase()) ||
-          r.tipo.toLowerCase().includes(busqueda.toLowerCase())) &&
-        (!filtroTipo || r.tipo === filtroTipo)
+        (r.tipo_reporte_nombre?.toLowerCase().includes(busqueda.toLowerCase())) &&
+        (!filtroTipo || r.tipo_reporte_nombre?.toLowerCase().includes(filtroTipo.toLowerCase()))
       )}
       loading={loading}
       rowKey="id"
       columns={[
-        { title: 'Reporte', dataIndex: 'titulo', key: 'titulo', render: (text, record) => (<Space>{record.formato === 'pdf' ? <FilePdfOutlined style={{ color: '#ff4d4f' }} /> : <FileExcelOutlined style={{ color: '#52c41a' }} />}<Text strong>{text || `Reporte de ${record.tipo}`}</Text></Space>) },
-        { title: 'Tipo', dataIndex: 'tipo', key: 'tipo', render: (tipo: string) => <Tag color="blue">{tipo.toUpperCase()}</Tag> },
-        { title: 'Fecha', dataIndex: 'fecha_generacion', key: 'fecha_generacion', render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY HH:mm') },
-        { title: 'Estado', dataIndex: 'estado', key: 'estado', render: (estado: string) => (<Tag color={estado === 'completado' ? 'success' : estado === 'generando' ? 'processing' : 'error'}>{estado.toUpperCase()}</Tag>) },
-        { title: 'Acciones', key: 'acciones', render: (_, record) => (<Space><Tooltip title="Ver Detalles"><Button icon={<EyeOutlined />} size="small" /></Tooltip><Tooltip title="Descargar"><Button icon={<DownloadOutlined />} size="small" type="primary" disabled={record.estado !== 'completado'} onClick={() => record.archivo_url && window.open(record.archivo_url)} /></Tooltip><Tooltip title="Eliminar"><Button icon={<DeleteOutlined />} size="small" danger /></Tooltip></Space>) }
+        { title: 'Reporte', dataIndex: 'tipo_reporte_nombre', key: 'tipo_reporte_nombre', render: (text, record) => (<Space>{record.formato === 'pdf' ? <FilePdfOutlined style={{ color: '#ff4d4f' }} /> : <FileExcelOutlined style={{ color: '#52c41a' }} />}<Text strong>{text || 'Reporte sin tipo'}</Text></Space>) },
+        { title: 'Fecha', dataIndex: 'fecha_solicitud', key: 'fecha_solicitud', render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY HH:mm') },
+        { title: 'Estado', dataIndex: 'estado', key: 'estado', render: (estado: string, record) => (<Tag color={estado === 'completado' ? 'success' : estado === 'error' ? 'error' : 'processing'}>{record.estado_display || estado.toUpperCase()}</Tag>) },
+        { title: 'Acciones', key: 'acciones', render: (_, record) => (
+          <Space>
+            <Tooltip title="Ver Detalles">
+              <Button icon={<EyeOutlined />} size="small" onClick={() => navigate(`${FRONTEND_ROUTES.DASHBOARD.REPORTES}/${record.id}`)} />
+            </Tooltip>
+            <Tooltip title="Descargar">
+              <Button
+                icon={<DownloadOutlined />}
+                size="small"
+                type="primary"
+                disabled={record.estado !== 'completado'}
+                onClick={async () => {
+                  try {
+                    const blob = await reportesService.downloadReporte(record.id);
+                    reportesService.descargarArchivo(blob, `reporte_${record.id}.${record.formato === 'pdf' ? 'pdf' : 'xlsx'}`);
+                  } catch {
+                    message.error('Error al descargar el reporte');
+                  }
+                }}
+              />
+            </Tooltip>
+          </Space>
+        ) }
       ]}
     />
   </div>
-);
+  );
+};
 
 const RenderGenerator: React.FC<{ onGenerateReporte: (tipo: string) => void }> = ({ onGenerateReporte }) => (
   <div className="reportes-generator">
@@ -319,32 +346,7 @@ const ReportesPage: React.FC = () => {
   const [stackedBarData, setStackedBarData] = useState<any[]>([]);
   const [distributionData, setDistributionData] = useState<any>(null);
 
-  useEffect(() => {
-    cargarDatos();
-
-    // Auto-refresh cada 30 segundos si está habilitado
-    let interval: NodeJS.Timeout | null = null;
-    if (autoRefresh) {
-      interval = setInterval(() => {
-        cargarDatos();
-      }, 30000); // 30 segundos
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [periodo, autoRefresh]);
-
-  // Reloj en tiempo real - actualiza cada segundo
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
     setLoading(true);
     try {
       // Cargar KPIs y Dashboard
@@ -372,7 +374,32 @@ const ReportesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [message]);
+
+  useEffect(() => {
+    cargarDatos();
+
+    // Auto-refresh cada 30 segundos si está habilitado
+    let interval: NodeJS.Timeout | null = null;
+    if (autoRefresh) {
+      interval = setInterval(() => {
+        cargarDatos();
+      }, 30000); // 30 segundos
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [periodo, autoRefresh, cargarDatos]);
+
+  // Reloj en tiempo real - actualiza cada segundo
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const handleGenerarReporte = (tipo: string) => {
     // Navegar a la página de generación o abrir modal

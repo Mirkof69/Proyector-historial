@@ -109,7 +109,6 @@ const Laboratorio: React.FC = () => {
 
   const cargarExamenes = useCallback(async () => {
     setLoading(true);
-    const startTime = performance.now();
 
     try {
 
@@ -142,12 +141,7 @@ const Laboratorio: React.FC = () => {
         }
       }
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-
       examenesRef.current = allExamenes;
-      message.success(`${allExamenes.length} exámenes cargados en ${loadTime}s`);
     } catch (error) {
       message.error('Error al cargar los exámenes de laboratorio');
       examenesRef.current = [];

@@ -1,184 +1,75 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
-import { ConfigProvider, App as AntdApp, Spin } from 'antd';
+import { ConfigProvider, App as AntdApp, Spin, Empty } from 'antd';
 import esES from 'antd/locale/es_ES';
 import { ThemeProvider } from './contexts/ThemeContext';
 import useAntdTheme from './hooks/useAntdTheme';
 
-// --- NOTIFICATIONS SYSTEM ---
 import { NotificationsProvider } from './contexts/NotificationsContext';
-
-// --- ERROR HANDLING ---
 import ErrorBoundary from './components/common/ErrorBoundary';
 import PageTransition from './components/common/PageTransition';
-
-// --- SERVICIOS Y HOOKS ---
 import { useAuth } from './hooks/useAuth';
 
-// --- PAGINAS PÚBLICAS ---
+// --- PUBLIC PAGES (eager - needed before auth) ---
 import Login from './pages/Login/Login';
 import LandingPage from './pages/Dashboard/LandingPage';
 import SetupMfa from './pages/SetupMfa/SetupMfa';
-
-// --- LAYOUT PRINCIPAL ---
 import DashboardLayout from './pages/Dashboard/Dashboard';
-
-// --- PÁGINAS ESTÁTICAS (no lazy) ---
-import Perfil from './pages/Perfil';
-import Configuracion from './pages/Configuracion';
-import Ayuda from './pages/Ayuda/Ayuda';
-import DetalleReporte from './pages/Reportes/DetalleReporte';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
-
-// --- MÓDULO AUDITORÍA ---
-import Auditoria from './pages/Auditoria/Auditoria';
-
-// --- MÓDULO LOGS Y ESTADÍSTICAS ---
-import AccessLogs from './pages/AccessLogs';
-import Statistics from './pages/Statistics';
-
-// --- MÓDULO EMBARAZOS ---
-import Embarazos from './pages/Embarazos/Embarazos';
-import DetalleEmbarazo from './pages/Embarazos/DetalleEmbarazo';
-import FormularioEmbarazo from './pages/Embarazos/FormularioEmbarazo';
-
-// --- MÓDULO CONTROLES ---
-import Controles from './pages/Controles/Controles';
-import DetalleControl from './pages/Controles/DetalleControl';
-import FormularioControl from './pages/Controles/FormularioControl';
-
-// --- MÓDULO ECOGRAFÍAS ---
-import Ecografias from './pages/Ecografias/Ecografias';
-import DetalleEcografia from './pages/Ecografias/DetalleEcografia';
-import FormularioEcografia from './pages/Ecografias/FormularioEcografia';
-import VisorDICOM from './pages/Ecografias/VisorDICOM';
-
-// --- MÓDULO LABORATORIO ---
-import Laboratorio from './pages/Laboratorio/Laboratorio';
-import DetalleLaboratorio from './pages/Laboratorio/DetalleLaboratorio';
-import FormularioLaboratorio from './pages/Laboratorio/FormularioLaboratorio';
-
-// --- MÓDULO CITAS ---
-import Citas from './pages/Citas/Citas';
-import FormularioCita from './pages/Citas/FormularioCita';
-import DetalleCita from './pages/Citas/DetalleCita';
-import CalendarioCitas from './pages/CalendarioCitas/CalendarioCitas';
-
-// --- IA Assistant & IA Medica ---
-import IAAsistenteMedico from './components/IAAsistenteMedico/IAAsistenteMedico';
-import IaMedica from './pages/IaMedica/IaMedica';
-
-// --- MÓDULO REPORTES ---
-import Reportes from './pages/Reportes/Reportes';
-import GenerarReporte from './pages/Reportes/GenerarReporte';
-import GeneradorPDFAutomatico from './pages/Reportes/GeneradorPDFAutomatico';
-
-// --- NUEVOS MÓDULOS ---
-import Evoluciones from './pages/Evoluciones/Evoluciones';
-import DetalleEvolucion from './pages/Evoluciones/DetalleEvolucion';
-import FormularioEvolucion from './pages/Evoluciones/FormularioEvolucion';
-import Antecedentes from './pages/Antecedentes/Antecedentes';
-import Consultorios from './pages/Consultorios/Consultorios';
-import FormularioConsultorio from './pages/Consultorios/FormularioConsultorio';
-import DetalleConsultorio from './pages/Consultorios/DetalleConsultorio';
-import Notificaciones from './pages/Notificaciones/Notificaciones';
-import DatabaseBackup from './pages/Backup/DatabaseBackup';
-
-// --- MÓDULO TRIAJE ---
-import Triaje from './pages/Triaje/Triaje';
-import FormularioTriaje from './pages/Triaje/FormularioTriaje';
-import DetalleTriaje from './pages/Triaje/DetalleTriaje';
-
-// --- MÓDULO VACUNAS ---
-import Vacunas from './pages/Vacunas/Vacunas';
-import FormularioVacuna from './pages/Vacunas/FormularioVacuna';
-import DetalleVacuna from './pages/Vacunas/DetalleVacuna';
-import TiposVacuna from './pages/Vacunas/TiposVacuna';
-
-// --- MÓDULO ALERTAS MÉDICAS ---
-import AlertasMedicas from './pages/Alertas/AlertasMedicas';
-import DetalleAlerta from './pages/Alertas/DetalleAlerta';
-import ConfiguracionAlertas from './pages/Alertas/ConfiguracionAlertas';
-import SistemaAlertas from './pages/Alertas/SistemaAlertas';
-
-// --- MÓDULO NOTAS DE EVOLUCIÓN ---
-import NotasEvolucion from './pages/NotasEvolucion/NotasEvolucion';
-import FormularioNotaEvolucion from './pages/NotasEvolucion/FormularioNotaEvolucion';
-import DetalleNotaEvolucion from './pages/NotasEvolucion/DetalleNotaEvolucion';
-
-// --- MÓDULO PARTOS EXTENDIDO ---
-import Partograma from './pages/Partos/Partograma';
-import ApgarScore from './pages/Partos/ApgarScore';
-import ComplicacionesParto from './pages/Partos/ComplicacionesParto';
-import RecienNacidos from './pages/Partos/RecienNacidos';
-
-// --- MÓDULO LABORATORIO EXTENDIDO ---
-import TiposExamen from './pages/Laboratorio/TiposExamen';
-import ResultadosLaboratorio from './pages/Laboratorio/ResultadosLaboratorio';
-import ValoresReferencia from './pages/Laboratorio/ValoresReferencia';
-
-// --- MÓDULO ANTECEDENTES DETALLADO ---
-import AntecedentesGinecoObstetricos from './pages/Antecedentes/AntecedentesGinecoObstetricos';
-import AntecedentesPatologicos from './pages/Antecedentes/AntecedentesPatologicos';
-import FormularioAntecedenteGineco from './pages/Antecedentes/FormularioAntecedenteGineco';
-import FormularioAntecedentePatologico from './pages/Antecedentes/FormularioAntecedentePatologico';
-
-// --- MÓDULO ECOGRAFÍAS EXTENDIDO ---
-import ArchivosEcografia from './pages/Ecografias/ArchivosEcografia';
-
-// --- MÓDULO REPORTES EXTENDIDO ---
-import KPIs from './pages/Reportes/KPIs';
-import Indicadores from './pages/Reportes/Indicadores';
-import AuditoriaReportes from './pages/Reportes/AuditoriaReportes';
-
-// --- MÓDULO ROLES Y PERMISOS ---
-import Roles from './pages/Roles/Roles';
-import FormularioRol from './pages/Roles/FormularioRol';
-import DetalleRol from './pages/Roles/DetalleRol';
+import { logger } from './utils/logger';
 
 // =============================================================================
-// CSS IMPORTS
-// =============================================================================
-import './styles/global-theme.css';
-import './styles/antd-overrides.css';
-import './styles/theme-dark.css';
-import './index.css';
-import './pages/HistoriaClinica/HistoriaClinica.css';
-import './pages/Pacientes/Pacientes.css';
-import './pages/Embarazos/Embarazos.css';
-import './pages/Controles/Controles.css';
-import './pages/Ecografias/Ecografias.css';
-import './pages/Laboratorio/Laboratorio.css';
-import './pages/Partos/Partos.css';
-import './pages/Reportes/Reportes.css';
-import './pages/Calculadoras/Calculadoras.css';
-import './pages/Citas/Citas.css';
-import './pages/Usuarios/Usuarios.css';
-import './components/ThemeToggle.css';
-import './components/DataTable.css';
-import './components/FormBuilder.css';
-import './components/Charts.css';
-import './App.css';
-
-// =============================================================================
-// LAZY LOADED MODULES
+// ALL MODULE PAGES ARE LAZY-LOADED
 // =============================================================================
 const DashboardHome = lazy(() => import('./pages/Dashboard/DashboardHome'));
 const DashboardGraficasReales = lazy(() => import('./pages/Dashboard/DashboardGraficasReales'));
-const HistoriaClinica = lazy(() => import('./pages/HistoriaClinica/HistoriaClinica'));
-const ListaHistoriasClinicas = lazy(() => import('./pages/HistoriaClinica/ListaHistoriasClinicas'));
-const Usuarios = lazy(() => import('./pages/Usuarios/Usuarios'));
 const Pacientes = lazy(() => import('./pages/Pacientes/Pacientes'));
 const DetallePaciente = lazy(() => import('./pages/Pacientes/DetallePaciente'));
 const FormularioPaciente = lazy(() => import('./pages/Pacientes/FormularioPaciente'));
 const BusquedaAvanzada = lazy(() => import('./pages/Busqueda/BusquedaAvanzada'));
 const GlobalSearch = lazy(() => import('./pages/Busqueda/GlobalSearch'));
-const Calculadoras = lazy(() => import('./pages/Calculadoras/Calculadoras'));
-const CalculadorasAvanzadas = lazy(() => import('./pages/CalculadorasAvanzadas/CalculadorasAvanzadas'));
+const HistoriaClinica = lazy(() => import('./pages/HistoriaClinica/HistoriaClinica'));
+const ListaHistoriasClinicas = lazy(() => import('./pages/HistoriaClinica/ListaHistoriasClinicas'));
+const Embarazos = lazy(() => import('./pages/Embarazos/Embarazos'));
+const DetalleEmbarazo = lazy(() => import('./pages/Embarazos/DetalleEmbarazo'));
+const FormularioEmbarazo = lazy(() => import('./pages/Embarazos/FormularioEmbarazo'));
+const Controles = lazy(() => import('./pages/Controles/Controles'));
+const DetalleControl = lazy(() => import('./pages/Controles/DetalleControl'));
+const FormularioControl = lazy(() => import('./pages/Controles/FormularioControl'));
+const Ecografias = lazy(() => import('./pages/Ecografias/Ecografias'));
+const DetalleEcografia = lazy(() => import('./pages/Ecografias/DetalleEcografia'));
+const FormularioEcografia = lazy(() => import('./pages/Ecografias/FormularioEcografia'));
+const VisorDICOM = lazy(() => import('./pages/Ecografias/VisorDICOM'));
+const ArchivosEcografia = lazy(() => import('./pages/Ecografias/ArchivosEcografia'));
+const Laboratorio = lazy(() => import('./pages/Laboratorio/Laboratorio'));
+const DetalleLaboratorio = lazy(() => import('./pages/Laboratorio/DetalleLaboratorio'));
+const FormularioLaboratorio = lazy(() => import('./pages/Laboratorio/FormularioLaboratorio'));
+const TiposExamen = lazy(() => import('./pages/Laboratorio/TiposExamen'));
+const ResultadosLaboratorio = lazy(() => import('./pages/Laboratorio/ResultadosLaboratorio'));
+const ValoresReferencia = lazy(() => import('./pages/Laboratorio/ValoresReferencia'));
+const Citas = lazy(() => import('./pages/Citas/Citas'));
+const FormularioCita = lazy(() => import('./pages/Citas/FormularioCita'));
+const DetalleCita = lazy(() => import('./pages/Citas/DetalleCita'));
+const CalendarioCitas = lazy(() => import('./pages/CalendarioCitas/CalendarioCitas'));
+const IAAsistenteMedico = lazy(() => import('./components/IAAsistenteMedico/IAAsistenteMedico'));
+const IaMedica = lazy(() => import('./pages/IaMedica/IaMedica'));
 const Partos = lazy(() => import('./pages/Partos/Partos'));
 const DetalleParto = lazy(() => import('./pages/Partos/DetalleParto'));
 const FormularioParto = lazy(() => import('./pages/Partos/FormularioParto'));
+const Partograma = lazy(() => import('./pages/Partos/Partograma'));
+const ApgarScore = lazy(() => import('./pages/Partos/ApgarScore'));
+const ComplicacionesParto = lazy(() => import('./pages/Partos/ComplicacionesParto'));
+const RecienNacidos = lazy(() => import('./pages/Partos/RecienNacidos'));
+const Reportes = lazy(() => import('./pages/Reportes/Reportes'));
+const GenerarReporte = lazy(() => import('./pages/Reportes/GenerarReporte'));
+const DetalleReporte = lazy(() => import('./pages/Reportes/DetalleReporte'));
+const KPIs = lazy(() => import('./pages/Reportes/KPIs'));
+const Indicadores = lazy(() => import('./pages/Reportes/Indicadores'));
+const AuditoriaReportes = lazy(() => import('./pages/Reportes/AuditoriaReportes'));
+const Calculadoras = lazy(() => import('./pages/Calculadoras/Calculadoras'));
+const CalculadorasAvanzadas = lazy(() => import('./pages/CalculadorasAvanzadas/CalculadorasAvanzadas'));
+const IndiceCalculadoras = lazy(() => import('./pages/CalculadorasAvanzadas/IndiceCalculadoras'));
 const ScoreBishop = lazy(() => import('./pages/CalculadorasAvanzadas/ScoreBishop'));
 const IMCGananciaPonderal = lazy(() => import('./pages/CalculadorasAvanzadas/IMCGananciaPonderal'));
 const RiesgoPreeclampsia = lazy(() => import('./pages/CalculadorasAvanzadas/RiesgoPreeclampsia'));
@@ -187,17 +78,87 @@ const RiesgoCromosomico = lazy(() => import('./pages/CalculadorasAvanzadas/Riesg
 const DosisMedicamentos = lazy(() => import('./pages/CalculadorasAvanzadas/DosisMedicamentos'));
 const HemorragiaObstetrica = lazy(() => import('./pages/CalculadorasAvanzadas/HemorragiaObstetrica'));
 const SufrimientoFetal = lazy(() => import('./pages/CalculadorasAvanzadas/SufrimientoFetal'));
-const IndiceCalculadoras = lazy(() => import('./pages/CalculadorasAvanzadas/IndiceCalculadoras'));
+const Usuarios = lazy(() => import('./pages/Usuarios/Usuarios'));
+const Roles = lazy(() => import('./pages/Roles/Roles'));
+const FormularioRol = lazy(() => import('./pages/Roles/FormularioRol'));
+const DetalleRol = lazy(() => import('./pages/Roles/DetalleRol'));
+const Auditoria = lazy(() => import('./pages/Auditoria/Auditoria'));
+const AccessLogs = lazy(() => import('./pages/AccessLogs'));
+const Statistics = lazy(() => import('./pages/Statistics'));
+const Perfil = lazy(() => import('./pages/Perfil'));
+const Configuracion = lazy(() => import('./pages/Configuracion'));
+const Ayuda = lazy(() => import('./pages/Ayuda/Ayuda'));
+const Evoluciones = lazy(() => import('./pages/Evoluciones/Evoluciones'));
+const DetalleEvolucion = lazy(() => import('./pages/Evoluciones/DetalleEvolucion'));
+const FormularioEvolucion = lazy(() => import('./pages/Evoluciones/FormularioEvolucion'));
+const Antecedentes = lazy(() => import('./pages/Antecedentes/Antecedentes'));
+const AntecedentesGinecoObstetricos = lazy(() => import('./pages/Antecedentes/AntecedentesGinecoObstetricos'));
+const AntecedentesPatologicos = lazy(() => import('./pages/Antecedentes/AntecedentesPatologicos'));
+const FormularioAntecedenteGineco = lazy(() => import('./pages/Antecedentes/FormularioAntecedenteGineco'));
+const FormularioAntecedentePatologico = lazy(() => import('./pages/Antecedentes/FormularioAntecedentePatologico'));
+const Consultorios = lazy(() => import('./pages/Consultorios/Consultorios'));
+const FormularioConsultorio = lazy(() => import('./pages/Consultorios/FormularioConsultorio'));
+const DetalleConsultorio = lazy(() => import('./pages/Consultorios/DetalleConsultorio'));
+const Triaje = lazy(() => import('./pages/Triaje/Triaje'));
+const FormularioTriaje = lazy(() => import('./pages/Triaje/FormularioTriaje'));
+const DetalleTriaje = lazy(() => import('./pages/Triaje/DetalleTriaje'));
+const Vacunas = lazy(() => import('./pages/Vacunas/Vacunas'));
+const FormularioVacuna = lazy(() => import('./pages/Vacunas/FormularioVacuna'));
+const DetalleVacuna = lazy(() => import('./pages/Vacunas/DetalleVacuna'));
+const TiposVacuna = lazy(() => import('./pages/Vacunas/TiposVacuna'));
+const AlertasMedicas = lazy(() => import('./pages/Alertas/AlertasMedicas'));
+const DetalleAlerta = lazy(() => import('./pages/Alertas/DetalleAlerta'));
+const ConfiguracionAlertas = lazy(() => import('./pages/Alertas/ConfiguracionAlertas'));
+const SistemaAlertas = lazy(() => import('./pages/Alertas/SistemaAlertas'));
+const NotasEvolucion = lazy(() => import('./pages/NotasEvolucion/NotasEvolucion'));
+const FormularioNotaEvolucion = lazy(() => import('./pages/NotasEvolucion/FormularioNotaEvolucion'));
+const DetalleNotaEvolucion = lazy(() => import('./pages/NotasEvolucion/DetalleNotaEvolucion'));
+const Notificaciones = lazy(() => import('./pages/Notificaciones/Notificaciones'));
+const DatabaseBackup = lazy(() => import('./pages/Backup/DatabaseBackup'));
+
+// =============================================================================
+// CSS IMPORTS
+// =============================================================================
+import './styles/global-theme.css';
+import './styles/antd-overrides.css';
+import './styles/theme-dark.css';
+import './index.css';
+import './App.css';
 
 /**
  * Componente interno que aplica los tokens de Ant Design segÃƒÂºn el tema
  * Debe estar dentro de ThemeProvider para acceder al contexto de tema
  */
+/**
+ * Estado vacío consistente para TODAS las tablas, listas y selects del sistema.
+ * Un solo lugar → toda la app distingue «no hay datos» de «cargando» o «se rompió».
+ * Mensaje según el componente para que sea claro bajo presión clínica.
+ */
+const renderEmpty = (componentName?: string): React.ReactNode => {
+  const descripciones: Record<string, string> = {
+    Table: 'No hay registros para mostrar',
+    List: 'No hay elementos en esta lista',
+    Select: 'Sin opciones disponibles',
+    TreeSelect: 'Sin opciones disponibles',
+    Cascader: 'Sin opciones disponibles',
+    Transfer: 'Sin datos',
+  };
+  const descripcion = descripciones[componentName ?? ''] ?? 'No hay datos disponibles';
+  const compacto = componentName === 'Select' || componentName === 'TreeSelect' || componentName === 'Cascader';
+  return (
+    <Empty
+      image={Empty.PRESENTED_IMAGE_SIMPLE}
+      description={descripcion}
+      style={compacto ? { margin: '8px 0' } : { padding: '20px 0' }}
+    />
+  );
+};
+
 const ThemedConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const themeConfig = useAntdTheme();
 
   return (
-    <ConfigProvider locale={esES} theme={themeConfig}>
+    <ConfigProvider locale={esES} theme={themeConfig} renderEmpty={renderEmpty}>
       {children}
     </ConfigProvider>
   );
@@ -217,7 +178,7 @@ const ProtectedRoute = ({ children, requiredPermission, requireAdmin }: Protecte
   const { isAuthenticated, user: currentUser, hasPermission } = useAuth();
 
   if (!isAuthenticated) {
-    console.log('Ã°Å¸â€â€™ Acceso denegado - Redirigiendo a login');
+    logger.log('Ã°Å¸â€â€™ Acceso denegado - Redirigiendo a login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -236,16 +197,16 @@ const ProtectedRoute = ({ children, requiredPermission, requireAdmin }: Protecte
   return children;
 };
 
+const handleLoginSuccess = () => {
+  logger.log('✅ Login exitoso');
+};
+
 function App() {
   const { isAuthenticated, logout } = useAuth();
 
-  const handleLoginSuccess = () => {
-    console.log('✅ Login exitoso');
-  };
-
   const handleLogout = () => {
     logout();
-    console.log('👋 Sesión cerrada');
+    logger.log('👋 Sesión cerrada');
   };
 
   return (
@@ -411,8 +372,8 @@ function App() {
                   {/* ================================================================= */}
                   <Route path="reportes" element={<ProtectedRoute requiredPermission="view_reportegenerado"><Reportes /></ProtectedRoute>} />
                   <Route path="reportes/generar" element={<ProtectedRoute requiredPermission="add_reportegenerado"><GenerarReporte /></ProtectedRoute>} />
-                  <Route path="reportes/pdf" element={<GeneradorPDFAutomatico />} />
-                  <Route path="reportes/pdf-automatico" element={<GeneradorPDFAutomatico />} />
+                  <Route path="reportes/pdf" element={<Navigate to="/dashboard/reportes/generar" replace />} />
+                  <Route path="reportes/pdf-automatico" element={<Navigate to="/dashboard/reportes/generar" replace />} />
                   <Route path="reportes/:id" element={<ProtectedRoute requiredPermission="view_reportegenerado"><DetalleReporte /></ProtectedRoute>} />
                   <Route path="reportes/historial" element={<ProtectedRoute requiredPermission="view_reportegenerado"><Reportes /></ProtectedRoute>} />
 
@@ -575,7 +536,8 @@ function App() {
                 {/* ==================================================================== */}
                 {/* RUTAS ADICIONALES FUERA DEL DASHBOARD                                */}
                 {/* ==================================================================== */}
-                <Route path="/ayuda" element={<ProtectedRoute><div style={{ padding: 24, textAlign: 'center' }}><h2>PÃ¡gina de Ayuda</h2><p>DocumentaciÃ³n en desarrollo</p></div></ProtectedRoute>} />
+                {/* /ayuda redirige al módulo de Ayuda real del dashboard */}
+                <Route path="/ayuda" element={<Navigate to="/dashboard/ayuda" replace />} />
 
                 {/* Catch-all global */}
                 <Route path="*" element={<NotFound />} />

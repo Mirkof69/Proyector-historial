@@ -41,7 +41,6 @@ import dayjs from 'dayjs';
 import './VisorDICOM.css';
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
 
 // Hoisted tab label (static JSX)
 const tabResumen = (
@@ -288,35 +287,33 @@ const VisorDICOM: React.FC = () => {
     try {
       const data = await ecografiasService.obtener(parseInt(id));
 
-      // Simular metadatos DICOM
-      const mockMetadata: DicomMetadata = {
+      // Construir metadatos DICOM desde los datos de la ecografía
+      const metadata: DicomMetadata = {
         patientName: data.paciente_nombre || 'N/A',
         patientID: data.paciente?.toString() || 'N/A',
         studyDate: data.fecha || dayjs().format('YYYY-MM-DD'),
-        modality: 'US', // Ultrasonido
+        modality: 'US',
         studyDescription: data.tipo_ecografia || 'Ecografía',
         seriesDescription: data.observaciones || 'N/A',
-        institutionName: 'Hospital Materno Infantil',
-        rows: 512,
-        columns: 512,
-        pixelSpacing: [0.1, 0.1],
-        sliceThickness: 1.0,
-        manufacturer: 'Simulado',
-        model: 'Visor Web DICOM'
+        institutionName: data.institucion || '',
+        rows: data.rows || 512,
+        columns: data.columns || 512,
+        pixelSpacing: data.pixel_spacing || [0.1, 0.1],
+        sliceThickness: data.slice_thickness || 1.0,
+        manufacturer: data.manufacturer || '',
+        model: data.model || ''
       };
 
-      // Simular serie de imágenes DICOM
-      const numImagenesEnSerie = data.series_imagenes || Math.floor(Math.random() * 15) + 5;
+      const numImagenesEnSerie = data.series_imagenes || 1;
       
-      // Generar valores aleatorios estables para la sesión (Evita Hydration Mismatch)
-      const nitidez = Math.floor(Math.random() * 30) + 70; // 70-100%
-      const calidad = Math.floor(Math.random() * 20) + 80; // 80-100%
+      const nitidez = data.nitidez || 85;
+      const calidad = data.calidad || 92;
 
       dispatch({
         type: 'SET_ECOGRAFIA',
         payload: {
           ecografia: data,
-          metadata: mockMetadata,
+          metadata,
           totalImages: numImagenesEnSerie,
           nitidez,
           calidad
@@ -863,12 +860,11 @@ const VisorDICOM: React.FC = () => {
         }
         style={{ marginTop: 16 }}
       >
-        <Tabs defaultActiveKey="measurements" type="card">
-          <TabPane
-            tab={tabMedicionesLabel}
-            key="measurements"
-          >
-            {measurements.length === 0 ? (
+        <Tabs defaultActiveKey="measurements" type="card" items={[
+          {
+            key: "measurements",
+            label: tabMedicionesLabel,
+            children: measurements.length === 0 ? (
               <Empty description="No hay mediciones. Haz click en la imagen con la herramienta de medición activa para agregar." />
             ) : (
               <List
@@ -896,13 +892,12 @@ const VisorDICOM: React.FC = () => {
                   </List.Item>
                 )}
               />
-            )}
-          </TabPane>
-          <TabPane
-            tab={tabAnotacionesLabel}
-            key="annotations"
-          >
-            {annotations.length === 0 ? (
+            )
+          },
+          {
+            key: "annotations",
+            label: tabAnotacionesLabel,
+            children: annotations.length === 0 ? (
               <Empty description="No hay anotaciones. Haz click en la imagen con la herramienta de anotación activa para agregar." />
             ) : (
               <List
@@ -930,40 +925,41 @@ const VisorDICOM: React.FC = () => {
                   </List.Item>
                 )}
               />
-            )}
-          </TabPane>
-          <TabPane
-            tab={tabResumen}
-            key="summary"
-          >
-            <Row gutter={16}>
-              <Col span={12}>
-                <Statistic
-                  title="Total Mediciones"
-                  value={measurements.length}
-                  prefix={<LineChartOutlined />}
-                  valueStyle={{ color: '#1890ff' }}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Total Anotaciones"
-                  value={annotations.length}
-                  prefix={<EditOutlined />}
-                  valueStyle={{ color: '#52c41a' }}
-                />
-              </Col>
-              <Col span={24} style={{ marginTop: 16 }}>
-                <Alert
-                  message="Herramientas de Análisis"
-                  description={`Utiliza las herramientas de medición y anotación para marcar áreas de interés en la imagen DICOM. Las mediciones se calculan en tiempo real basándose en el pixel spacing (${metadata.pixelSpacing?.[0]} mm/px).`}
-                  type="info"
-                  showIcon
-                />
-              </Col>
-            </Row>
-          </TabPane>
-        </Tabs>
+            )
+          },
+          {
+            key: "summary",
+            label: tabResumen,
+            children: (
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Statistic
+                    title="Total Mediciones"
+                    value={measurements.length}
+                    prefix={<LineChartOutlined />}
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Statistic
+                    title="Total Anotaciones"
+                    value={annotations.length}
+                    prefix={<EditOutlined />}
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Col>
+                <Col span={24} style={{ marginTop: 16 }}>
+                  <Alert
+                    message="Herramientas de Análisis"
+                    description={`Utiliza las herramientas de medición y anotación para marcar áreas de interés en la imagen DICOM. Las mediciones se calculan en tiempo real basándose en el pixel spacing (${metadata.pixelSpacing?.[0]} mm/px).`}
+                    type="info"
+                    showIcon
+                  />
+                </Col>
+              </Row>
+            )
+          }
+        ]} />
       </Card>
 
       {/* Settings Drawer */}

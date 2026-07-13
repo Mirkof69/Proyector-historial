@@ -38,21 +38,22 @@ const NotFound: React.FC = () => {
 
   const notFoundSubTitle = useMemo(() => getNotFoundSubTitle(location.pathname), [location]);
 
-  // Lógica de cuenta regresiva
+  // Cuenta regresiva: el updater se mantiene puro (sin efectos secundarios,
+  // React puede llamarlo más de una vez). La navegación al llegar a 0 se hace
+  // en un efecto aparte que observa el contador.
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          navigate('/'); // Volver al inicio automáticamente
-          return 0;
-        }
-        return prev - 1;
-      });
+      setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, []);
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      navigate('/'); // Volver al inicio automáticamente
+    }
+  }, [countdown, navigate]);
 
   return (
     <div className="not-found-container animate-fade-in" style={{
@@ -109,12 +110,12 @@ const NotFound: React.FC = () => {
               {/* Enlaces rápidos de ayuda */}
               <Row gutter={[16, 16]} justify="center">
                 <Col xs={24} sm={8}>
-                  <Button block type="link" icon={<SearchOutlined />} onClick={() => navigate('/pacientes')}>
+                  <Button block type="link" icon={<SearchOutlined />} onClick={() => navigate('/dashboard/pacientes')}>
                     Buscar Paciente
                   </Button>
                 </Col>
                 <Col xs={24} sm={8}>
-                  <Button block type="link" icon={<BugOutlined />} onClick={() => navigate('/ayuda')}>
+                  <Button block type="link" icon={<BugOutlined />} onClick={() => navigate('/dashboard/ayuda')}>
                     Reportar Error
                   </Button>
                 </Col>

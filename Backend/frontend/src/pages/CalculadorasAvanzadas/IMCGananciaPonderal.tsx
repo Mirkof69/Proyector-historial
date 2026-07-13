@@ -1,12 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Card, Form, InputNumber, Button, Row, Col, Statistic, Alert, Table, Divider, Typography, Space, Tag } from 'antd';
 import { CalculatorOutlined, HeartOutlined, LineChartOutlined, RiseOutlined } from '@ant-design/icons';
-import './IMCGananciaPonderal.css';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
-  ResponsiveContainer, LineChart, Line, BarChart, Bar,
-  PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  AreaChart, Area
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, AreaChart, Area
 } from 'recharts';
+import './IMCGananciaPonderal.css';
 
 const { Title, Text } = Typography;
 
@@ -45,112 +46,60 @@ interface RegistroIMC {
 const renderIMCLabel = ({ name, percent }: { name: string; percent: number }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`;
 const formatPesoTooltip = (value: any) => value ? `${Number(value).toFixed(2)} kg` : '0 kg';
 
-const IMCGananciaPonderal: React.FC = () => {
-  const [form] = Form.useForm();
 
-  const datosEjemplo: DatosPaciente = {
-    peso_pregestacional: 60,
-    talla: 165,
-    peso_actual: 68,
-    semanas_gestacion: 24
-  };
 
-  const historialEjemplo: RegistroIMC[] = [
-    {
-      id: 1,
-      fecha: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-      semanas: 24,
-      peso: 68.0,
-      ganancia: 8.0,
-      imc: 22.04,
-      estado: '✅ GANANCIA ADECUADA'
-    },
-    {
-      id: 2,
-      fecha: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-      semanas: 20,
-      peso: 66.5,
-      ganancia: 6.5,
-      imc: 22.04,
-      estado: '✅ GANANCIA ADECUADA'
-    },
-    {
-      id: 3,
-      fecha: new Date(Date.now() - 56 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-      semanas: 16,
-      peso: 64.8,
-      ganancia: 4.8,
-      imc: 22.04,
-      estado: '✅ GANANCIA ADECUADA'
-    },
-    {
-      id: 4,
-      fecha: new Date(Date.now() - 84 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-      semanas: 12,
-      peso: 62.5,
-      ganancia: 2.5,
-      imc: 22.04,
-      estado: '✅ GANANCIA ADECUADA'
-    }
-  ];
+// Función para clasificar IMC según OMS
+const clasificarIMC = (imc: number): { clasificacion: string; color: string } => {
+  if (imc < 18.5) return { clasificacion: 'BAJO PESO', color: '#faad14' };
+  if (imc < 25) return { clasificacion: 'NORMAL', color: '#52c41a' };
+  if (imc < 30) return { clasificacion: 'SOBREPESO', color: '#fa8c16' };
+  if (imc < 35) return { clasificacion: 'OBESIDAD I', color: '#f5222d' };
+  if (imc < 40) return { clasificacion: 'OBESIDAD II', color: '#cf1322' };
+  return { clasificacion: 'OBESIDAD III', color: '#a8071a' };
+};
 
-  const [values, setValues] = useState<DatosPaciente>(datosEjemplo);
-  const [resultado, setResultado] = useState<ResultadoIMC | null>(null);
-  const [historial, setHistorial] = useState<RegistroIMC[]>(historialEjemplo);
-  const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(true);
+// Función para obtener ganancia recomendada según IOM (Institute of Medicine)
+const getGananciaRecomendada = (imc: number): { min: number; max: number; semanal: number } => {
+  if (imc < 18.5) return { min: 12.5, max: 18, semanal: 0.5 };
+  if (imc < 25) return { min: 11.5, max: 16, semanal: 0.4 };
+  if (imc < 30) return { min: 7, max: 11.5, semanal: 0.3 };
+  return { min: 5, max: 9, semanal: 0.2 };
+};
 
-  // Función para clasificar IMC según OMS
-  const clasificarIMC = (imc: number): { clasificacion: string; color: string } => {
-    if (imc < 18.5) return { clasificacion: 'BAJO PESO', color: '#faad14' };
-    if (imc < 25) return { clasificacion: 'NORMAL', color: '#52c41a' };
-    if (imc < 30) return { clasificacion: 'SOBREPESO', color: '#fa8c16' };
-    if (imc < 35) return { clasificacion: 'OBESIDAD I', color: '#f5222d' };
-    if (imc < 40) return { clasificacion: 'OBESIDAD II', color: '#cf1322' };
-    return { clasificacion: 'OBESIDAD III', color: '#a8071a' };
-  };
+// Función para calcular percentil de ganancia
+const calcularPercentil = (imc: number, semanas: number, ganancia: number): number => {
+  const gananciaRecomendada = getGananciaRecomendada(imc);
+  const gananciaEsperada = gananciaRecomendada.semanal * semanas;
+  const desviacion = (ganancia - gananciaEsperada) / gananciaEsperada;
+  if (desviacion < -0.3) return 10;
+  if (desviacion < -0.1) return 25;
+  if (desviacion < 0.1) return 50;
+  if (desviacion < 0.3) return 75;
+  return 90;
+};
 
-  // Función para obtener ganancia recomendada según IOM (Institute of Medicine)
-  const getGananciaRecomendada = (imc: number): { min: number; max: number; semanal: number } => {
-    if (imc < 18.5) return { min: 12.5, max: 18, semanal: 0.5 };
-    if (imc < 25) return { min: 11.5, max: 16, semanal: 0.4 };
-    if (imc < 30) return { min: 7, max: 11.5, semanal: 0.3 };
-    return { min: 5, max: 9, semanal: 0.2 };
-  };
+const calcularIMC = (values: DatosPaciente): ResultadoIMC => {
+  const imc_pregestacional = values.peso_pregestacional / Math.pow(values.talla / 100, 2);
+  const { clasificacion, color } = clasificarIMC(imc_pregestacional);
+  const gananciaRecomendada = getGananciaRecomendada(imc_pregestacional);
+  const ganancia_actual = values.peso_actual - values.peso_pregestacional;
+  const ganancia_esperada_semana = gananciaRecomendada.semanal * values.semanas_gestacion;
+  const percentil = calcularPercentil(imc_pregestacional, values.semanas_gestacion, ganancia_actual);
 
-  // Función para calcular percentil de ganancia
-  const calcularPercentil = (imc: number, semanas: number, ganancia: number): number => {
-    const gananciaRecomendada = getGananciaRecomendada(imc);
-    const gananciaEsperada = gananciaRecomendada.semanal * semanas;
-    const desviacion = (ganancia - gananciaEsperada) / gananciaEsperada;
-    if (desviacion < -0.3) return 10;
-    if (desviacion < -0.1) return 25;
-    if (desviacion < 0.1) return 50;
-    if (desviacion < 0.3) return 75;
-    return 90;
-  };
+  let estado_nutricional = '';
+  let alertas: string[] = [];
+  let recomendaciones: string[] = [];
 
-  const calcularIMC = (values: DatosPaciente): ResultadoIMC => {
-    const imc_pregestacional = values.peso_pregestacional / Math.pow(values.talla / 100, 2);
-    const { clasificacion, color } = clasificarIMC(imc_pregestacional);
-    const gananciaRecomendada = getGananciaRecomendada(imc_pregestacional);
-    const ganancia_actual = values.peso_actual - values.peso_pregestacional;
-    const ganancia_esperada_semana = gananciaRecomendada.semanal * values.semanas_gestacion;
-    const percentil = calcularPercentil(imc_pregestacional, values.semanas_gestacion, ganancia_actual);
-
-    let estado_nutricional = '';
-    let alertas: string[] = [];
-    let recomendaciones: string[] = [];
-
-    if (ganancia_actual < gananciaRecomendada.min) {
-      estado_nutricional = '⚠️ GANANCIA INSUFICIENTE';
-      alertas.push('Ganancia de peso por debajo del rango recomendado');
-      recomendaciones.push('Aumentar ingesta calórica en 300-500 kcal/día');
-      recomendaciones.push('Consulta nutricional especializada');
-      recomendaciones.push('Monitoreo de crecimiento fetal con ecografía');
-    } else if (ganancia_actual > gananciaRecomendada.max) {
-      estado_nutricional = '⚠️ GANANCIA EXCESIVA';
-      alertas.push('Ganancia de peso por encima del rango recomendado');
-      recomendaciones.push('Control dietético y actividad física moderada');
+  if (ganancia_actual < gananciaRecomendada.min) {
+    estado_nutricional = '⚠️ GANANCIA INSUFICIENTE';
+    alertas.push('Ganancia de peso por debajo del rango recomendado');
+    recomendaciones.push('Aumentar ingesta calórica en 300-500 kcal/día');
+    recomendaciones.push('Consulta nutricional especializada');
+    recomendaciones.push('Monitoreo de crecimiento fetal con ecografía');
+  } else if (ganancia_actual > gananciaRecomendada.max) {
+    estado_nutricional = '⚠️ GANANCIA EXCESIVA';
+    alertas.push('Ganancia de peso por encima del rango recomendado');
+    recomendaciones.push('Control dietético y actividad física moderada');
       recomendaciones.push('Evaluar retención de líquidos y descartar preeclampsia');
       recomendaciones.push('Screening de diabetes gestacional');
     } else {
@@ -185,17 +134,18 @@ const IMCGananciaPonderal: React.FC = () => {
     };
   };
 
-  // Initialize resultado with example data
-  const initializedRef = useRef(false);
-  if (!initializedRef.current) {
-    initializedRef.current = true;
-    setResultado(calcularIMC(datosEjemplo));
-  }
+  const IMCGananciaPonderal: React.FC = () => {
+    const [form] = Form.useForm();
+    const [values, setValues] = useState<DatosPaciente>({
+      peso_pregestacional: 60,
+      talla: 165,
+      peso_actual: 68,
+      semanas_gestacion: 24
+    });
+    const [resultado, setResultado] = useState<ResultadoIMC | null>(null);
+    const [historial, setHistorial] = useState<RegistroIMC[]>([]);
 
   const onFinish = (formValues: DatosPaciente) => {
-    // Cambiar a modo de datos reales
-    setUsandoDatosEjemplo(false);
-
     setValues(formValues);
     const result = calcularIMC(formValues);
     setResultado(result);
@@ -551,7 +501,6 @@ const IMCGananciaPonderal: React.FC = () => {
       {resultado && (
         <>
           <Divider>Análisis Gráfico</Divider>
-
           <Row gutter={[16, 16]}>
             {/* Curvas de ganancia ponderal */}
             <Col xs={24} lg={12}>
@@ -612,8 +561,8 @@ const IMCGananciaPonderal: React.FC = () => {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {getComponentesPeso().map((entry) => (
-                        <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                      {getComponentesPeso().map((entry, index) => (
+                        <Cell key={`cell-${entry.name || index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip formatter={formatPesoTooltip} />
@@ -652,7 +601,6 @@ const IMCGananciaPonderal: React.FC = () => {
               <Card title={
                 <>
                   Tendencia Acumulada de Ganancia Ponderal
-                  {usandoDatosEjemplo && <Tag color="blue" style={{ marginLeft: 8 }}>Datos de Ejemplo</Tag>}
                 </>
               } bordered={false}>
                 <ResponsiveContainer width="100%" height={300}>

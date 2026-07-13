@@ -21,6 +21,7 @@ import { triajeService } from './triajeService';
 import { notasEvolucionService } from './notasEvolucionService';
 import { pacientesService } from './pacientesService';
 import { embarazosService } from './embarazosService';
+import { logger } from '../utils/logger';
 
 // =====================================================================================
 // INTERFACES
@@ -195,23 +196,23 @@ class DatosClinicosService {
 
     const signos: SignosVitalesConsolidados = {};
 
-    console.log('🔍 CONSOLIDANDO SIGNOS VITALES:');
-    console.log('   - ultimoTriaje:', ultimoTriaje);
-    console.log('   - ultimaNota:', ultimaNota);
-    console.log('   - embarazos:', embarazos);
+    logger.log('🔍 CONSOLIDANDO SIGNOS VITALES:');
+    logger.log('   - ultimoTriaje:', ultimoTriaje);
+    logger.log('   - ultimaNota:', ultimaNota);
+    logger.log('   - embarazos:', embarazos);
 
     // Determinar qué fuente tiene los datos más recientes
     const fechas: Array<{ fecha: Date | null; fuente: string; datos: any }> = [];
 
     if (ultimoTriaje?.fecha_registro) {
-      console.log('✅ Triaje tiene fecha_registro:', ultimoTriaje.fecha_registro);
+      logger.log('✅ Triaje tiene fecha_registro:', ultimoTriaje.fecha_registro);
       fechas.push({
         fecha: new Date(ultimoTriaje.fecha_registro),
         fuente: 'triaje',
         datos: ultimoTriaje,
       });
     } else {
-      console.log('❌ Triaje NO tiene fecha_registro o es null/undefined');
+      logger.log('❌ Triaje NO tiene fecha_registro o es null/undefined');
     }
 
     if (ultimaNota?.fecha_consulta) {
@@ -243,13 +244,13 @@ class DatosClinicosService {
     }
 
     // Ordenar por fecha más reciente primero
-    console.log('📅 Fechas ANTES de ordenar:', fechas);
+    logger.log('📅 Fechas ANTES de ordenar:', fechas);
     fechas.sort((a, b) => {
       if (!a.fecha) return 1;
       if (!b.fecha) return -1;
       return b.fecha.getTime() - a.fecha.getTime();
     });
-    console.log('📅 Fechas DESPUÉS de ordenar (más reciente primero):', fechas);
+    logger.log('📅 Fechas DESPUÉS de ordenar (más reciente primero):', fechas);
 
     // ========================================================================
     // CONSOLIDAR DATOS PRIORIZANDO LOS MÁS RECIENTES
@@ -269,7 +270,7 @@ class DatosClinicosService {
 
       if (fuente === 'triaje') {
         // Datos de triaje
-        console.log('📊 Datos de triaje recibidos:', datos);
+        logger.log('📊 Datos de triaje recibidos:', datos);
         if (datos.peso_kg) signos.peso_kg = datos.peso_kg;
         if (datos.talla_cm) signos.talla_cm = datos.talla_cm;
         if (datos.imc) signos.imc = datos.imc;
@@ -280,7 +281,7 @@ class DatosClinicosService {
         if (datos.frecuencia_cardiaca) signos.frecuencia_cardiaca = datos.frecuencia_cardiaca;
         if (datos.frecuencia_respiratoria) signos.frecuencia_respiratoria = datos.frecuencia_respiratoria;
         if (datos.saturacion_oxigeno) signos.saturacion_oxigeno = datos.saturacion_oxigeno;
-        console.log('📊 Signos vitales consolidados después de triaje:', signos);
+        logger.log('📊 Signos vitales consolidados después de triaje:', signos);
         if (datos.dolor_escala) signos.dolor_escala = datos.dolor_escala;
 
         fuentes.add('triaje');
@@ -324,7 +325,7 @@ class DatosClinicosService {
       signos.fecha_dato = fechas[fechas.length - 1].fecha?.toISOString();
     }
 
-    console.log('🎯 SIGNOS VITALES FINALES CONSOLIDADOS:', signos);
+    logger.log('🎯 SIGNOS VITALES FINALES CONSOLIDADOS:', signos);
     return signos;
   }
 

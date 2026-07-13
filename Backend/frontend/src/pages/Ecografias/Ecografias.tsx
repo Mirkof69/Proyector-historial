@@ -10,11 +10,11 @@
  */
 
 import React, { useState, useReducer, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { exportarExcel } from '../../utils/excelExport';
-import {
-  Card,
+import {Card,
   Table,
   Button,
   Space,
@@ -23,7 +23,6 @@ import {
   DatePicker,
   Tag,
   Tooltip,
-  message,
   Modal,
   Row,
   Col,
@@ -32,8 +31,8 @@ import {
   Typography,
   Drawer,
   Descriptions,
-  Divider,
-} from 'antd';
+  Alert,
+  Divider} from "antd";
 import {
   EyeOutlined,
   EditOutlined,
@@ -47,6 +46,7 @@ import {
   CalendarOutlined,
   UserOutlined,
   FileExcelOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { ecografiasService, Ecografia } from '../../services/ecografiasService';
@@ -54,6 +54,7 @@ import { FRONTEND_ROUTES } from '../../config/routes';
 import DICOMViewer from '../../components/DICOMViewer';
 import PDFGenerator from '../../components/PDFGenerator';
 import { useAuth } from '../../hooks/useAuth';
+import apiClient from '../../services/api';
 import './Ecografias.css';
 
 const { Text } = Typography;
@@ -82,12 +83,22 @@ const filtrosEcografiaReducer = (state: FiltrosEcografiaState, action: FiltrosEc
   }
 };
 
+const calcularEstadisticas = (ecografias: any[]) => ({
+  total: ecografias.length,
+  primerTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) < 14).length,
+  segundoTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) >= 14 && (e.edad_gestacional_semanas || 0) < 28).length,
+  tercerTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) >= 28).length,
+  conAlertas: ecografias.filter((e: any) => e.alertas && e.alertas.length > 0).length,
+});
+
 const Ecografias: React.FC = () => {
+  const { message, modal } = useAntdApp();
   const navigate = useNavigate();
   const { canAdd, canChange, canDelete } = usePermissions();
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
-  const ecografiasRef = useRef<Ecografia[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [ecografias, setEcografias] = useState<Ecografia[]>([]);
   const [filtros, dispatchFiltros] = useReducer(filtrosEcografiaReducer, {
     busqueda: '',
     filtroTipo: '',
@@ -98,46 +109,26 @@ const Ecografias: React.FC = () => {
   const [dicomViewerVisible, setDicomViewerVisible] = useState(false);
   const [pdfGeneratorVisible, setPdfGeneratorVisible] = useState(false);
 
-  const calcularEstadisticas = (ecografias: any[]) => ({
-    total: ecografias.length,
-    primerTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) < 14).length,
-    segundoTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) >= 14 && (e.edad_gestacional_semanas || 0) < 28).length,
-    tercerTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) >= 28).length,
-    conAlertas: ecografias.filter((e: any) => e.alertas && e.alertas.length > 0).length,
-  });
 
-  const estadisticas = useMemo(() => calcularEstadisticas(ecografiasRef.current), []);
+  const estadisticas = useMemo(() => calcularEstadisticas(ecografias), [ecografias]);
 
   // ==========================================================================
   // CARGAR DATOS
   // ==========================================================================
   const cargarEcografias = useCallback(async () => {
     setLoading(true);
-    const startTime = performance.now();
-
     try {
 
       // 🚀 PASO 1: Obtener primera página para saber cuántas páginas hay
-      const firstPageResponse = await fetch(`${process.env.REACT_APP_API_URL}/ecografias/?page=1&limit=200`, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-        },
-      });
-
-      if (!firstPageResponse.ok) throw new Error('Error cargando ecografías');
-
-      const firstPageData = await firstPageResponse.json();
+      const firstPageResponse = await apiClient.get('/ecografias/', { params: { page: 1, limit: 200 } });
+      const firstPageData = firstPageResponse.data;
       const totalEcografias = firstPageData.count || 0;
       const totalPages = Math.ceil(totalEcografias / 200);
 
 
       // 🚀 PASO 2: Crear array de promesas para TODAS las páginas
       const ecografiasPromises = Array.from({ length: totalPages }, (_, i) =>
-        fetch(`${process.env.REACT_APP_API_URL}/ecografias/?page=${i + 1}&limit=200`, {
-          headers: {
-            'Authorization': `Bearer ${getToken()}`,
-          },
-        }).then(res => res.json())
+        apiClient.get('/ecografias/', { params: { page: i + 1, limit: 200 } }).then(res => res.data)
       );
 
       // 🚀 PASO 3: Ejecutar TODAS las requests en PARALELO
@@ -154,20 +145,11 @@ const Ecografias: React.FC = () => {
         }
       }
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-
-      if (allEcografias && Array.isArray(allEcografias)) {
-        ecografiasRef.current = allEcografias;
-        message.success(`${allEcografias.length} ecografías cargadas en ${loadTime}s`);
-      } else {
-        ecografiasRef.current = [];
-        message.warning('No se encontraron ecografías');
-      }
+      setEcografias(allEcografias);
+      setLoadError(null);
     } catch (error) {
-      message.error('Error al cargar las ecografías');
-      ecografiasRef.current = [];
+      setLoadError('No se pudieron cargar las ecografías. Verifique su conexión e intente nuevamente.');
+      setEcografias([]);
     } finally {
       setLoading(false);
     }
@@ -178,7 +160,7 @@ const Ecografias: React.FC = () => {
   }, [cargarEcografias]);
 
   const ecografiasFiltradas = useMemo(() => {
-    let resultado = [...ecografiasRef.current];
+    let resultado = [...ecografias];
 
     if (filtros.busqueda) {
       resultado = resultado.filter(
@@ -202,7 +184,7 @@ const Ecografias: React.FC = () => {
     }
 
     return resultado;
-  }, [filtros]);
+  }, [filtros, ecografias]);
 
   const limpiarFiltros = () => {
     dispatchFiltros({ type: 'LIMPIAR' });
@@ -230,7 +212,7 @@ const Ecografias: React.FC = () => {
   };
 
   const handleEliminar = (ecografia: any) => {
-    Modal.confirm({
+    modal.confirm({
       title: '⚠️ ¿Confirmar eliminación permanente?',
       icon: <ExclamationCircleOutlined />,
       content: (
@@ -285,7 +267,7 @@ const Ecografias: React.FC = () => {
       };
 
       exportarExcel(
-        ecografiasRef.current,
+        ecografias,
         columnas,
         {
           filename: `ecografias_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
@@ -383,6 +365,22 @@ const Ecografias: React.FC = () => {
           return <Badge status="error" text="Con alertas" />;
         }
         return <Badge status="success" text="Normal" />;
+      },
+    },
+    {
+      title: 'IA',
+      key: 'tiene_analisis_ia',
+      width: 60,
+      align: 'center' as const,
+      render: (_: any, record: Ecografia) => {
+        if ((record as any).tiene_analisis_ia) {
+          return (
+            <Tooltip title="Tiene análisis IA">
+              <RobotOutlined style={{ color: '#722ed1', fontSize: 18 }} />
+            </Tooltip>
+          );
+        }
+        return null;
       },
     },
     {
@@ -555,6 +553,21 @@ const Ecografias: React.FC = () => {
             </Col>
           </Row>
         </Space>
+
+        {loadError && (
+          <Alert
+            type="error"
+            showIcon
+            message="Error al cargar las ecografías"
+            description={loadError}
+            action={
+              <Button size="small" icon={<ReloadOutlined />} onClick={cargarEcografias}>
+                Reintentar
+              </Button>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
         <Table
           columns={columns}

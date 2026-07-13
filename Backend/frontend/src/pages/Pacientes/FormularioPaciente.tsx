@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Form,
   Input,
@@ -15,6 +15,7 @@ import {
   Divider,
   Alert,
   Modal,
+  Checkbox,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
@@ -36,12 +37,12 @@ const { Option } = Select;
 const { Title, Text } = Typography;
 
 const FormularioPaciente: React.FC = () => {
-  const { message } = useAntdApp();
+  const {modal,  message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const loadingDataRef = useRef(false);
+  const [loadingData, setLoadingData] = useState(false);
   const [edadCalculada, setEdadCalculada] = useState<string>('');
   const [imcCalculado, setImcCalculado] = useState<string>('');
 
@@ -88,14 +89,29 @@ const FormularioPaciente: React.FC = () => {
   }, [form]);
 
   const loadPaciente = React.useCallback(async (pacienteId: number) => {
-    loadingDataRef.current = true;
+    setLoadingData(true);
     try {
       const data = await pacientesService.getById(pacienteId) as any;
       form.setFieldsValue({
-        ...data,
-        fecha_nacimiento: data.fecha_nacimiento ? dayjs(data.fecha_nacimiento) : null,
+        nombre: data.nombre || '',
+        apellido_paterno: data.apellido_paterno || '',
+        apellido_materno: data.apellido_materno || '',
+        genero: data.genero || '',
         estado_civil: data.estado_civil || '',
+        fecha_nacimiento: data.fecha_nacimiento ? dayjs(data.fecha_nacimiento) : null,
+        fecha_baja: data.fecha_baja ? dayjs(data.fecha_baja) : null,
+        telefono: data.telefono || '',
+        email: data.email || '',
+        ci: data.ci || '',
+        direccion: data.direccion || '',
+        ciudad: data.ciudad || '',
+        pais: data.pais || 'Bolivia',
         tipo_sangre: data.tipo_sangre || '',
+        factor_rh: data.factor_rh || '',
+        numero_seguro_social: data.numero_seguro_social || '',
+        peso_kg: data.peso_kg || null,
+        altura_cm: data.altura_cm || null,
+        estado_paciente: data.estado_paciente || 'activo',
         contacto_emergencia_nombre: data.contacto_emergencia_nombre || '',
         contacto_emergencia_telefono: data.contacto_emergencia_telefono || '',
         contacto_emergencia_relacion: data.contacto_emergencia_relacion || '',
@@ -113,15 +129,15 @@ const FormularioPaciente: React.FC = () => {
       message.error('Error al cargar datos del paciente');
       handleCancel();
     } finally {
-      loadingDataRef.current = false;
+      setLoadingData(false);
     }
-  }, [calcularEdad, calcularIMC, form, handleCancel]);
+  }, [calcularEdad, calcularIMC, form, handleCancel, message]);
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (isEditing && id && loadedIdRef.current !== parseInt(id)) {
-    loadedIdRef.current = parseInt(id);
-    loadPaciente(parseInt(id));
-  }
+  useEffect(() => {
+    if (isEditing && id) {
+      loadPaciente(parseInt(id));
+    }
+  }, [id, isEditing, loadPaciente]);
 
   const handleSave = async (values: any, shouldExit: boolean = true) => {
     setLoading(true);
@@ -142,7 +158,7 @@ const FormularioPaciente: React.FC = () => {
         direccion: values.direccion || '',
         ciudad: values.ciudad || '',
         pais: values.pais || 'Bolivia',
-        activo: true,
+        activo: values.activo !== undefined ? values.activo : true,
         tipo_sangre: values.tipo_sangre || '',
         factor_rh: values.factor_rh || '',
         numero_seguro_social: values.numero_seguro_social || '',
@@ -154,6 +170,12 @@ const FormularioPaciente: React.FC = () => {
         contacto_emergencia_telefono: values.contacto_emergencia_telefono || '',
         contacto_emergencia_relacion: values.contacto_emergencia_relacion || '',
       };
+
+      // Consentimiento de tratamiento de datos (Ley 164 Bolivia) — solo
+      // aplica a la creación; en edición no se reenvía (ya quedó registrado).
+      if (!isEditing) {
+        dataToSend.consentimiento_datos_aceptado = values.consentimiento_datos_aceptado || false;
+      }
 
       if (isEditing) {
         await pacientesService.update(parseInt(id!), dataToSend);
@@ -175,7 +197,7 @@ const FormularioPaciente: React.FC = () => {
     } catch (error: any) {
 
       if (error.response?.data) {
-        const errorData = error.response.data;
+        const errorData = error.response?.data;
 
         if (typeof errorData === 'object' && !errorData.message && !errorData.detail && !errorData.errores && !errorData.error) {
           const errorList = Object.entries(errorData).map(([field, msgs]: [string, any]) => {
@@ -183,7 +205,7 @@ const FormularioPaciente: React.FC = () => {
             return `${field}: ${msgArray.join(', ')}`;
           });
 
-          Modal.error({
+          modal.error({
             title: 'Error al Guardar Paciente',
             content: (
               <div>
@@ -207,7 +229,7 @@ const FormularioPaciente: React.FC = () => {
           message.error('Por favor corrija los errores en el formulario');
         } else {
           const msg = errorData.detail || errorData.message || errorData.error || 'Error desconocido';
-          Modal.error({
+          modal.error({
             title: 'Error',
             content: msg,
           });
@@ -232,7 +254,7 @@ const FormularioPaciente: React.FC = () => {
     });
   };
 
-  if (loadingDataRef.current) {
+  if (loadingData) {
     return (
       <div style={{ textAlign: 'center', padding: '100px' }}>
         <Spin size="large" tip="Cargando datos del paciente…"><div /></Spin>
@@ -668,6 +690,30 @@ const FormularioPaciente: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+
+          {!isEditing && (
+            <>
+              <Divider orientation="left">Consentimiento de Tratamiento de Datos</Divider>
+              <Form.Item
+                name="consentimiento_datos_aceptado"
+                valuePropName="checked"
+                rules={[
+                  {
+                    validator: (_, value) =>
+                      value
+                        ? Promise.resolve()
+                        : Promise.reject(new Error('Se requiere el consentimiento del paciente para registrar sus datos (Ley 164)')),
+                  },
+                ]}
+              >
+                <Checkbox>
+                  El paciente (o su representante) ha sido informado y otorga su consentimiento
+                  expreso para la recolección y tratamiento de sus datos personales con fines
+                  de atención médica, conforme a la Ley 164 de Bolivia.
+                </Checkbox>
+              </Form.Item>
+            </>
+          )}
 
           <Form.Item style={{ marginBottom: 0 }}>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>

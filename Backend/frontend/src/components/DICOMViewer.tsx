@@ -8,10 +8,9 @@
  */
 
 import React, { useReducer, useRef, useEffect, useCallback } from 'react';
-import {
-    Card, Button, Space, Slider, Row, Col, Tooltip, Divider,
-    Typography, Badge, Tag, Modal, Input, message, Alert
-} from 'antd';
+import { useAntdApp } from "../hooks/useMessage";
+import {Card, Button, Space, Slider, Row, Col, Tooltip, Divider,
+    Typography, Badge, Tag, Modal, Input, Alert} from "antd";
 import {
     ZoomInOutlined, ZoomOutOutlined, RotateLeftOutlined, RotateRightOutlined,
     FullscreenOutlined, DownloadOutlined, PrinterOutlined, SaveOutlined,
@@ -132,6 +131,7 @@ const DICOMViewer: React.FC<DICOMViewerProps> = ({
     modality = 'US',
     onSave
 }) => {
+  const { message } = useAntdApp();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [state, dispatch] = useReducer(dicomReducer, initialDICOMState);
     const { zoom, brightness, contrast, rotation, tool, annotations, isDrawing, modalInfoVisible, measurements, stableSeriesId, stableStudyId } = state;

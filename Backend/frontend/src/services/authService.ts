@@ -10,6 +10,7 @@
  */
 
 import { post, api } from './api';
+import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INTERFACES Y TIPOS
@@ -153,7 +154,7 @@ class AuthService {
   private normalizeListResponse<T>(raw: any, label: string): T[] {
     try {
       if (raw && Array.isArray(raw.results)) {
-        console.log(`✅ ${label} obtenidos (paginado):`, raw.results.length);
+        logger.log(`✅ ${label} obtenidos (paginado):`, raw.results.length);
         return raw.results as T[];
       }
       if (raw && Array.isArray(raw.data)) {
@@ -173,7 +174,7 @@ class AuthService {
   private handleApiError(error: any, context: string): never {
     console.error(`❌ Error en ${context}:`, error);
     if (error.response?.data) {
-      const errorData = error.response.data as ApiError;
+      const errorData = error.response?.data as ApiError;
       if (errorData.errores) {
         const msgs = Object.entries(errorData.errores)
           .map(([f, m]) => `${f}: ${Array.isArray(m) ? m.join(', ') : m}`)

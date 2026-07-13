@@ -1,26 +1,29 @@
 import React, { useReducer, useEffect } from 'react';
-import {
-  Upload, Button, Tag, Modal, Spin, Typography, message,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Upload, Button, Tag, Modal, Spin, Typography,
   Row, Col, Empty, Tooltip, Alert, Progress, Table, Descriptions,
-  Divider, Badge
-} from 'antd';
+  Divider, Badge, Select, Space} from "antd";
 import {
   InboxOutlined, RobotOutlined, FundProjectionScreenOutlined,
   CheckCircleOutlined, WarningOutlined, CloseCircleOutlined,
   DownloadOutlined, ReloadOutlined, FileImageOutlined,
   DashboardOutlined, EyeOutlined, DeleteOutlined, ExperimentOutlined,
-  HeartOutlined, AlertOutlined
+  HeartOutlined, AlertOutlined, LinkOutlined, NodeIndexOutlined,
+  InfoCircleOutlined, FileTextOutlined, ExclamationCircleOutlined
 } from '@ant-design/icons';
 import {
   iaMedicaService,
   ImagenEcografica,
   AnalisisCNN,
   AnalisisCNNCompleto,
+  ReporteNarrativoIA,
   EstadisticasIA,
   Pathology,
   ShapRiskScores,
   BiometryResult
 } from '../../services/iaMedicaService';
+import pacientesService from '../../services/pacientesService';
+import { API_URL } from '../../services/api';
 import './IaMedica.css';
 
 const { Title } = Typography;
@@ -36,11 +39,12 @@ const BIOMETRY_REFERENCE: Record<keyof BiometryResult, { label: string; unit: st
 };
 
 const SHAP_RISK_LABELS: Record<string, string> = {
-  riesgo_preeclampsia:   'Riesgo de Preeclampsia',
-  riesgo_parto_prematuro:'Riesgo de Parto Prematuro',
-  riesgo_rciu:           'Riesgo de RCIU',
-  riesgo_placenta_previa:'Riesgo de Placenta Previa',
-  riesgo_global:         'Score de Riesgo Global',
+  riesgo_preeclampsia:        'Riesgo de Preeclampsia',
+  riesgo_parto_prematuro:     'Riesgo de Parto Prematuro',
+  riesgo_hemorragia:          'Riesgo de Hemorragia',
+  riesgo_diabetes_gestacional:'Riesgo de Diabetes Gestacional',
+  riesgo_mortalidad_perinatal:'Riesgo de Mortalidad Perinatal',
+  riesgo_global:              'Score de Riesgo Global',
 };
 
 interface GradCamOverlayProps {
@@ -49,6 +53,7 @@ interface GradCamOverlayProps {
 }
 
 const GradCamOverlay: React.FC<GradCamOverlayProps> = ({ ai, originalUrl }) => {
+  const { message } = useAntdApp();
   if (!ai.gradcam_base64) return null;
   return (
     <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
@@ -70,84 +75,171 @@ const GradCamOverlay: React.FC<GradCamOverlayProps> = ({ ai, originalUrl }) => {
         }}
       />
       <div className="gradcam-badge">
-        Grad-CAM: {ai.model_version || 'EfficientNet-B4'}
+        Grad-CAM: {ai.modelo_version || 'EfficientNet-B4'}
       </div>
     </div>
   );
 };
 
+interface IaMedicaState {
+  imagenes: ImagenEcografica[];
+  estadisticas: EstadisticasIA | null;
+  loading: boolean;
+  uploading: boolean;
+  analyzingId: number | null;
+  isModalVisible: boolean;
+  selectedAnalysis: {imagen?: ImagenEcografica, analisis: AnalisisCNN} | null;
+  isCnnModalVisible: boolean;
+  cnnAnalysis: AnalisisCNNCompleto | null;
+  cnnImageUrl: string;
+  cnnImageId: number | null;
+  analyzingCnnId: number | null;
+  narrativeReport: ReporteNarrativoIA | null;
+  loadingNarrative: boolean;
+}
+
+type IaMedicaAction =
+  | { type: 'SET_IMAGENES'; payload: ImagenEcografica[] }
+  | { type: 'SET_ESTADISTICAS'; payload: EstadisticasIA | null }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_UPLOADING'; payload: boolean }
+  | { type: 'SET_ANALYZING_ID'; payload: number | null }
+  | { type: 'SET_IS_MODAL_VISIBLE'; payload: boolean }
+  | { type: 'SET_SELECTED_ANALYSIS'; payload: {imagen?: ImagenEcografica, analisis: AnalisisCNN} | null }
+  | { type: 'SET_IS_CNN_MODAL_VISIBLE'; payload: boolean }
+  | { type: 'SET_CNN_ANALYSIS'; payload: AnalisisCNNCompleto | null }
+  | { type: 'SET_CNN_IMAGE_URL'; payload: string }
+  | { type: 'SET_CNN_IMAGE_ID'; payload: number | null }
+  | { type: 'SET_ANALYZING_CNN_ID'; payload: number | null }
+  | { type: 'SET_NARRATIVE_REPORT'; payload: ReporteNarrativoIA | null }
+  | { type: 'SET_LOADING_NARRATIVE'; payload: boolean };
+
+const initialState: IaMedicaState = {
+  imagenes: [],
+  estadisticas: null,
+  loading: true,
+  uploading: false,
+  analyzingId: null,
+  isModalVisible: false,
+  selectedAnalysis: null,
+  isCnnModalVisible: false,
+  cnnAnalysis: null,
+  cnnImageUrl: '',
+  cnnImageId: null,
+  analyzingCnnId: null,
+  narrativeReport: null,
+  loadingNarrative: false,
+};
+
+function reducer(state: IaMedicaState, action: IaMedicaAction): IaMedicaState {
+  switch (action.type) {
+    case 'SET_IMAGENES':
+      return { ...state, imagenes: action.payload };
+    case 'SET_ESTADISTICAS':
+      return { ...state, estadisticas: action.payload };
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_UPLOADING':
+      return { ...state, uploading: action.payload };
+    case 'SET_ANALYZING_ID':
+      return { ...state, analyzingId: action.payload };
+    case 'SET_IS_MODAL_VISIBLE':
+      return { ...state, isModalVisible: action.payload };
+    case 'SET_SELECTED_ANALYSIS':
+      return { ...state, selectedAnalysis: action.payload };
+    case 'SET_IS_CNN_MODAL_VISIBLE':
+      return { ...state, isCnnModalVisible: action.payload };
+    case 'SET_CNN_ANALYSIS':
+      return { ...state, cnnAnalysis: action.payload };
+    case 'SET_CNN_IMAGE_URL':
+      return { ...state, cnnImageUrl: action.payload };
+    case 'SET_CNN_IMAGE_ID':
+      return { ...state, cnnImageId: action.payload };
+    case 'SET_ANALYZING_CNN_ID':
+      return { ...state, analyzingCnnId: action.payload };
+    case 'SET_NARRATIVE_REPORT':
+      return { ...state, narrativeReport: action.payload };
+    case 'SET_LOADING_NARRATIVE':
+      return { ...state, loadingNarrative: action.payload };
+    default:
+      return state;
+  }
+}
+
+// ── Helpers puros de presentación (nivel de módulo: identidad estable) ───────
+const safeProb = (p: number | undefined | null) => Math.max(0, Math.min(1, p ?? 0));
+
+const renderShapRiskBars = (shap: ShapRiskScores) => {
+  const entries = Object.entries(shap).filter(([k]) => k in SHAP_RISK_LABELS);
+  return (
+    <div>
+      <Divider orientation="left" style={{ fontSize: 13 }}>
+        <ExperimentOutlined /> SHAP: Scores de Riesgo Materno
+      </Divider>
+      {entries.map(([key, value]) => {
+        const pct = Math.min(Math.round(value * 100), 100);
+        const status = pct >= 70 ? 'exception' : pct >= 40 ? 'normal' : 'success';
+        const color = pct >= 70 ? '#ff4d4f' : pct >= 40 ? '#faad14' : '#52c41a';
+        return (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+              <span>{SHAP_RISK_LABELS[key] || key}</span>
+              <Badge
+                color={color}
+                text={<span style={{ color, fontWeight: 600 }}>{pct}%</span>}
+              />
+            </div>
+            <Progress
+              percent={pct}
+              status={status as any}
+              strokeColor={color}
+              size="small"
+              showInfo={false}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const renderResultBadge = (resultado: string) => {
+  switch (resultado) {
+    case 'normal':
+      return <Tag color="success" icon={<CheckCircleOutlined />}>Normal</Tag>;
+    case 'anomalia_leve':
+    case 'anomalia_moderada':
+      return <Tag color="warning" icon={<WarningOutlined />}>Anomalía</Tag>;
+    case 'anomalia_grave':
+    case 'requiere_revision':
+      return <Tag color="error" icon={<CloseCircleOutlined />}>Crítico</Tag>;
+    default:
+      return <Tag color="default">Indeterminado</Tag>;
+  }
+};
+
+const getResultIcon = (resultado: string) => {
+  if (resultado === 'normal') return <CheckCircleOutlined className="result-icon" />;
+  if (['anomalia_grave', 'requiere_revision'].includes(resultado)) return <CloseCircleOutlined className="result-icon" />;
+  return <WarningOutlined className="result-icon" />;
+};
+
+const getResultClass = (resultado: string) => {
+  if (resultado === 'normal') return 'normal';
+  if (['anomalia_grave', 'requiere_revision'].includes(resultado)) return 'danger';
+  return 'warning';
+};
+
 const IaMedica: React.FC = () => {
-  interface IaMedicaState {
-    imagenes: ImagenEcografica[];
-    estadisticas: EstadisticasIA | null;
-    loading: boolean;
-    uploading: boolean;
-    analyzingId: number | null;
-    isModalVisible: boolean;
-    selectedAnalysis: {imagen: ImagenEcografica, analisis: AnalisisCNN} | null;
-    isCnnModalVisible: boolean;
-    cnnAnalysis: AnalisisCNNCompleto | null;
-    cnnImageUrl: string;
-    analyzingCnnId: number | null;
-  }
-
-  type IaMedicaAction =
-    | { type: 'SET_IMAGENES'; payload: ImagenEcografica[] }
-    | { type: 'SET_ESTADISTICAS'; payload: EstadisticasIA | null }
-    | { type: 'SET_LOADING'; payload: boolean }
-    | { type: 'SET_UPLOADING'; payload: boolean }
-    | { type: 'SET_ANALYZING_ID'; payload: number | null }
-    | { type: 'SET_IS_MODAL_VISIBLE'; payload: boolean }
-    | { type: 'SET_SELECTED_ANALYSIS'; payload: {imagen: ImagenEcografica, analisis: AnalisisCNN} | null }
-    | { type: 'SET_IS_CNN_MODAL_VISIBLE'; payload: boolean }
-    | { type: 'SET_CNN_ANALYSIS'; payload: AnalisisCNNCompleto | null }
-    | { type: 'SET_CNN_IMAGE_URL'; payload: string }
-    | { type: 'SET_ANALYZING_CNN_ID'; payload: number | null };
-
-  const initialState: IaMedicaState = {
-    imagenes: [],
-    estadisticas: null,
-    loading: true,
-    uploading: false,
-    analyzingId: null,
-    isModalVisible: false,
-    selectedAnalysis: null,
-    isCnnModalVisible: false,
-    cnnAnalysis: null,
-    cnnImageUrl: '',
-    analyzingCnnId: null,
-  };
-
-  function reducer(state: IaMedicaState, action: IaMedicaAction): IaMedicaState {
-    switch (action.type) {
-      case 'SET_IMAGENES':
-        return { ...state, imagenes: action.payload };
-      case 'SET_ESTADISTICAS':
-        return { ...state, estadisticas: action.payload };
-      case 'SET_LOADING':
-        return { ...state, loading: action.payload };
-      case 'SET_UPLOADING':
-        return { ...state, uploading: action.payload };
-      case 'SET_ANALYZING_ID':
-        return { ...state, analyzingId: action.payload };
-      case 'SET_IS_MODAL_VISIBLE':
-        return { ...state, isModalVisible: action.payload };
-      case 'SET_SELECTED_ANALYSIS':
-        return { ...state, selectedAnalysis: action.payload };
-      case 'SET_IS_CNN_MODAL_VISIBLE':
-        return { ...state, isCnnModalVisible: action.payload };
-      case 'SET_CNN_ANALYSIS':
-        return { ...state, cnnAnalysis: action.payload };
-      case 'SET_CNN_IMAGE_URL':
-        return { ...state, cnnImageUrl: action.payload };
-      case 'SET_ANALYZING_CNN_ID':
-        return { ...state, analyzingCnnId: action.payload };
-      default:
-        return state;
-    }
-  }
-
+  const { message } = useAntdApp();
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [selectedPacienteId, setSelectedPacienteId] = React.useState<number | null>(null);
+  const [pacientesSearch, setPacientesSearch] = React.useState<{id: number; nombre: string}[]>([]);
+  const [searchingPaciente, setSearchingPaciente] = React.useState(false);
+  const [vincularModalVisible, setVincularModalVisible] = React.useState(false);
+  const [imagenAVincular, setImagenAVincular] = React.useState<ImagenEcografica | null>(null);
+  const [vinculando, setVinculando] = React.useState(false);
+  const [ecografiasVinculadas, setEcografiasVinculadas] = React.useState<Record<number, number>>({});
 
   const fetchData = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -169,20 +261,40 @@ const IaMedica: React.FC = () => {
     fetchData();
   }, []);
 
+  const handlePatientSearch = async (query: string) => {
+    if (!query || query.length < 2) return;
+    setSearchingPaciente(true);
+    try {
+      const results = await pacientesService.listar();
+      const q = query.toLowerCase();
+      const filtered = results.filter((p: any) =>
+        `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''}`.toLowerCase().includes(q)
+      );
+      setPacientesSearch(filtered.map((p: any) => ({
+        id: p.id,
+        nombre: p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`.trim()
+      })));
+    } catch { /* silent */ }
+    finally { setSearchingPaciente(false); }
+  };
+
   const handleUpload = async (file: File) => {
+    if (!selectedPacienteId) {
+      message.warning('Seleccione un paciente antes de subir la imagen');
+      return false;
+    }
     dispatch({ type: 'SET_UPLOADING', payload: true });
     try {
       const formData = new FormData();
       formData.append('imagen', file);
-      // Simular paciente ID (en produccion vendría de un selector)
-      formData.append('paciente', '1'); 
+      formData.append('paciente', String(selectedPacienteId));
       formData.append('tipo_imagen', 'eco_2d');
 
       await iaMedicaService.uploadImagen(formData);
       message.success('Imagen subida correctamente');
       fetchData();
-    } catch (error) {
-      message.error('Error al subir la imagen');
+    } catch (error: any) {
+      message.error(`Error al subir la imagen: ${error?.response?.data ? JSON.stringify(error.response.data) : error.message}`);
     } finally {
       dispatch({ type: 'SET_UPLOADING', payload: false });
     }
@@ -192,8 +304,11 @@ const IaMedica: React.FC = () => {
   const handleAnalyze = async (id: number) => {
     dispatch({ type: 'SET_ANALYZING_ID', payload: id });
     try {
-      const result = await iaMedicaService.analizarImagen(id, 'efficientnet_b4');
-      message.success(`Análisis completado: ${result.analisis.resultado}`);
+      const result = await iaMedicaService.analizarImagen(id, 'efficientnet');
+      const imagenDetalle = await iaMedicaService.getImagenDetalle(id);
+      message.success('Análisis completado');
+      dispatch({ type: 'SET_SELECTED_ANALYSIS', payload: { analisis: result, imagen: imagenDetalle } });
+      dispatch({ type: 'SET_IS_MODAL_VISIBLE', payload: true });
       fetchData();
     } catch (error) {
       message.error('Error durante el análisis CNN');
@@ -205,7 +320,8 @@ const IaMedica: React.FC = () => {
   const showAnalysis = async (id: number) => {
     try {
       const result = await iaMedicaService.getResultadoAnalisis(id);
-      dispatch({ type: 'SET_SELECTED_ANALYSIS', payload: result });
+      const imagenDetalle = await iaMedicaService.getImagenDetalle(id);
+      dispatch({ type: 'SET_SELECTED_ANALYSIS', payload: { ...result, imagen: imagenDetalle } });
       dispatch({ type: 'SET_IS_MODAL_VISIBLE', payload: true });
     } catch (error) {
       message.error('No se pudo cargar el análisis');
@@ -231,28 +347,65 @@ const IaMedica: React.FC = () => {
     }
   };
 
+  const handleVincularClick = (img: ImagenEcografica) => {
+    setImagenAVincular(img);
+    setVincularModalVisible(true);
+  };
+
+  const handleVincularConfirm = async () => {
+    if (!imagenAVincular) return;
+    setVinculando(true);
+    try {
+      const result = await iaMedicaService.vincularAEcografia(
+        imagenAVincular.id,
+        imagenAVincular.paciente,
+      );
+      if (result.ecografia_id) {
+        setEcografiasVinculadas(prev => ({
+          ...prev,
+          [imagenAVincular.id]: result.ecografia_id,
+        }));
+        message.success(`Ecografía #${result.ecografia_id} creada con análisis IA`);
+      } else {
+        message.success('Vinculado correctamente');
+      }
+      setVincularModalVisible(false);
+      setImagenAVincular(null);
+    } catch (error: any) {
+      message.error(`Error al vincular: ${error?.response?.data?.error || error.message}`);
+    } finally {
+      setVinculando(false);
+    }
+  };
+
+  const handleVincularPacienteSearch = async (query: string) => {
+    if (!query || query.length < 2) return;
+    try {
+      const results = await pacientesService.listar();
+      const q = query.toLowerCase();
+      const filtered = results.filter((p: any) =>
+        `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''}`.toLowerCase().includes(q)
+      );
+      setPacientesSearch(filtered.map((p: any) => ({
+        id: p.id,
+        nombre: p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`.trim()
+      })));
+    } catch { /* silent */ }
+  };
+
   // Análisis completo EfficientNet-B4 con Grad-CAM + SHAP + biometría
   const handleAnalyzeCNN = async (img: ImagenEcografica) => {
     dispatch({ type: 'SET_ANALYZING_CNN_ID', payload: img.id });
     try {
-      // Descargar el archivo de imagen desde Django para enviarlo al microservicio
-      const imageUrl = `http://localhost:8000${img.url_imagen}`;
-      const imageResp = await fetch(imageUrl, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
-      });
-      if (!imageResp.ok) {
-        throw new Error(`No se pudo obtener la imagen (HTTP ${imageResp.status})`);
-      }
-      const imageBlob = await imageResp.blob();
-      const file = new File([imageBlob], img.nombre_original || 'ecografia.jpg', {
-        type: imageBlob.type,
-      });
-
-      const response = await iaMedicaService.analyzeWithAI(file, String(img.id));
+      const imageUrl = `${API_URL.replace('/api', '')}${img.url_imagen}`;
+      const response = await iaMedicaService.analyzeWithAI(undefined, String(img.id));
       dispatch({ type: 'SET_CNN_ANALYSIS', payload: response.ai_analysis });
       dispatch({ type: 'SET_CNN_IMAGE_URL', payload: imageUrl });
+      dispatch({ type: 'SET_CNN_IMAGE_ID', payload: img.id });
+      dispatch({ type: 'SET_NARRATIVE_REPORT', payload: null });
       dispatch({ type: 'SET_IS_CNN_MODAL_VISIBLE', payload: true });
       message.success('Análisis EfficientNet-B4 completado');
+      fetchData();
     } catch (error: any) {
       message.error(`Error en análisis CNN: ${error?.message || 'Error desconocido'}`);
     } finally {
@@ -260,48 +413,194 @@ const IaMedica: React.FC = () => {
     }
   };
 
-  const renderShapRiskBars = (shap: ShapRiskScores) => {
-    const entries = Object.entries(shap).filter(([k]) => k in SHAP_RISK_LABELS);
+  // Reporte narrativo de IA local (LLM con visión, Ollama) — siempre
+  // grounded en el resultado real del CNN que ya se muestra arriba; nunca
+  // se llama sin haber corrido antes el analisis CNN sobre esta imagen.
+  const handleGenerarReporteNarrativo = async () => {
+    if (!state.cnnImageId) {
+      message.error('Primero debe completarse el análisis CNN de esta imagen.');
+      return;
+    }
+    dispatch({ type: 'SET_LOADING_NARRATIVE', payload: true });
+    try {
+      const reporte = await iaMedicaService.generarReporteNarrativo(state.cnnImageId);
+      dispatch({ type: 'SET_NARRATIVE_REPORT', payload: reporte });
+      if (reporte._error_llm) {
+        message.warning('El reporte narrativo se generó parcialmente: ' + reporte._error_llm);
+      } else {
+        message.success('Reporte narrativo generado');
+      }
+    } catch (error: any) {
+      message.error(`Error generando el reporte narrativo: ${error?.message || 'Error desconocido'}`);
+    } finally {
+      dispatch({ type: 'SET_LOADING_NARRATIVE', payload: false });
+    }
+  };
+
+  // Reporte narrativo de IA local (LLM con visión, Ollama). Los campos
+  // diagnosticos (clasificacion_clinica, tipo_embarazo, patologias_detectadas,
+  // biometria) vienen siempre del backend ya groundeados en el CNN — esta
+  // funcion solo los muestra, nunca los recalcula. La seccion
+  // "hallazgos_visuales_complementarios" se muestra aparte, con badge "no
+  // validado", para no confundirla con el diagnostico confirmado.
+  const renderNarrativeReport = (reporte: ReporteNarrativoIA) => {
+    const colorClasificacion = (v: string) => {
+      const l = v.toLowerCase();
+      if (l.includes('normal')) return 'success';
+      if (l.includes('patolog')) return 'error';
+      if (l.includes('seguim') || l.includes('no concluy')) return 'warning';
+      return 'default';
+    };
+    const colorRiesgo = (v: string) => {
+      const l = v.toLowerCase();
+      if (l.includes('bajo')) return 'success';
+      if (l.includes('alto')) return 'error';
+      if (l.includes('moderado')) return 'warning';
+      return 'default';
+    };
     return (
-      <div>
-        <Divider orientation="left" style={{ fontSize: 13 }}>
-          <ExperimentOutlined /> SHAP: Scores de Riesgo Materno
+      <div style={{ marginTop: 24, borderTop: '1px solid var(--ia-border)', paddingTop: 20 }}>
+        <Divider orientation="left">
+          <FileTextOutlined style={{ color: '#722ed1', marginRight: 8 }} />
+          Reporte narrativo
         </Divider>
-        {entries.map(([key, value]) => {
-          const pct = Math.min(Math.round(value * 100), 100);
-          const status = pct >= 70 ? 'exception' : pct >= 40 ? 'normal' : 'success';
-          const color = pct >= 70 ? '#ff4d4f' : pct >= 40 ? '#faad14' : '#52c41a';
-          return (
-            <div key={key} style={{ marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-                <span>{SHAP_RISK_LABELS[key] || key}</span>
-                <Badge
-                  color={color}
-                  text={<span style={{ color, fontWeight: 600 }}>{pct}%</span>}
-                />
+
+        {reporte._error_llm && (
+          <Alert
+            type="warning"
+            icon={<ExclamationCircleOutlined />}
+            showIcon
+            message="El componente narrativo tuvo un problema; el diagnóstico mostrado abajo sigue siendo el del CNN, ya verificado"
+            description={reporte._error_llm}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
+        <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+          <Col span={6}>
+            <Tag color={colorClasificacion(reporte.clasificacion_clinica)} style={{ fontSize: 13, padding: '4px 10px' }}>{reporte.clasificacion_clinica}</Tag>
+          </Col>
+          <Col span={6}><Typography.Text type="secondary">Tipo de embarazo:</Typography.Text> <strong>{reporte.tipo_embarazo}</strong></Col>
+          <Col span={6}><Typography.Text type="secondary">Trimestre:</Typography.Text> <strong>{reporte.trimestre}</strong></Col>
+          <Col span={6}><Tag color={colorRiesgo(reporte.clasificacion_riesgo)}>{reporte.clasificacion_riesgo}</Tag></Col>
+        </Row>
+
+        <Descriptions size="small" column={2} bordered style={{ marginBottom: 16 }}>
+          <Descriptions.Item label="Edad gestacional">{reporte.edad_gestacional}</Descriptions.Item>
+          <Descriptions.Item label="Tipo de imagen">{reporte.tipo_imagen}</Descriptions.Item>
+          <Descriptions.Item label="Diagnóstico presuntivo" span={2}>{reporte.diagnostico_presuntivo}</Descriptions.Item>
+        </Descriptions>
+
+        <Typography.Paragraph style={{ fontSize: 13 }}>
+          <strong>Descripción ecográfica: </strong>{reporte.descripcion_ecografia}
+        </Typography.Paragraph>
+
+        {reporte.patologias_detectadas.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <Typography.Text strong>Patologías detectadas (confirmadas por el CNN):</Typography.Text>
+            {reporte.patologias_detectadas.map((p) => (
+              <div key={p}><Tag color="error">{p}</Tag></div>
+            ))}
+          </div>
+        )}
+
+        {reporte.hallazgos.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <Typography.Text strong>Hallazgos:</Typography.Text>
+            <ul style={{ marginTop: 4 }}>{reporte.hallazgos.map((h) => <li key={h} style={{ fontSize: 13 }}>{h}</li>)}</ul>
+          </div>
+        )}
+
+        <Row gutter={16} style={{ marginBottom: 14 }}>
+          {reporte.signos_normales.length > 0 && (
+            <Col span={12}>
+              <Typography.Text strong style={{ color: 'var(--ia-success)' }}>Signos normales:</Typography.Text>
+              <ul style={{ marginTop: 4 }}>{reporte.signos_normales.map((s) => <li key={s} style={{ fontSize: 13 }}>{s}</li>)}</ul>
+            </Col>
+          )}
+          {reporte.signos_alarma.length > 0 && (
+            <Col span={12}>
+              <Typography.Text strong style={{ color: 'var(--ia-warning)' }}>Signos de alarma:</Typography.Text>
+              <ul style={{ marginTop: 4 }}>{reporte.signos_alarma.map((s) => <li key={s} style={{ fontSize: 13 }}>{s}</li>)}</ul>
+            </Col>
+          )}
+        </Row>
+
+        {reporte.hallazgos_visuales_complementarios.length > 0 && (
+          <Alert
+            type="info"
+            icon={<InfoCircleOutlined />}
+            showIcon
+            message={<span>Impresión visual complementaria <Tag color="purple">no validada clínicamente</Tag></span>}
+            description={
+              <div>
+                <p style={{ fontSize: 12, marginBottom: 6 }}>
+                  El LLM local observó algo adicional fuera de las patologías que el CNN confirma. No es un diagnóstico, requiere confirmación.
+                </p>
+                <ul style={{ margin: 0 }}>{reporte.hallazgos_visuales_complementarios.map((h) => <li key={h} style={{ fontSize: 12 }}>{h}</li>)}</ul>
               </div>
-              <Progress
-                percent={pct}
-                status={status as any}
-                strokeColor={color}
-                size="small"
-                showInfo={false}
-              />
-            </div>
-          );
-        })}
+            }
+            style={{ marginBottom: 14 }}
+          />
+        )}
+
+        <Descriptions title="Biometría (según CNN)" size="small" column={2} bordered style={{ marginBottom: 14 }}>
+          <Descriptions.Item label="DBP">{reporte.biometria.DBP || 'No disponible'}</Descriptions.Item>
+          <Descriptions.Item label="CC">{reporte.biometria.CC || 'No disponible'}</Descriptions.Item>
+          <Descriptions.Item label="CA">{reporte.biometria.CA || 'No disponible'}</Descriptions.Item>
+          <Descriptions.Item label="LF">{reporte.biometria.LF || 'No disponible'}</Descriptions.Item>
+          <Descriptions.Item label="Líquido amniótico">{reporte.biometria.LA}</Descriptions.Item>
+          <Descriptions.Item label="Peso estimado">{reporte.biometria.peso_estimado || 'No disponible'}</Descriptions.Item>
+        </Descriptions>
+
+        <Descriptions size="small" column={2} bordered style={{ marginBottom: 14 }}>
+          <Descriptions.Item label="Pronóstico" span={2}>{reporte.pronostico}</Descriptions.Item>
+          <Descriptions.Item label="Tipo de seguimiento" span={2}>{reporte.tipo_seguimiento}</Descriptions.Item>
+        </Descriptions>
+
+        {reporte.recomendaciones.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <Typography.Text strong style={{ color: 'var(--ia-success)' }}>Recomendaciones:</Typography.Text>
+            <ol style={{ marginTop: 4 }}>{reporte.recomendaciones.map((r) => <li key={r} style={{ fontSize: 13 }}>{r}</li>)}</ol>
+          </div>
+        )}
+
+        {reporte.nota_tecnica && (
+          <Alert type="info" message="Nota técnica" description={reporte.nota_tecnica} style={{ marginBottom: 14 }} />
+        )}
+
+        <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 8 }}>
+          Aviso médico-legal: este reporte narrativo es generado por IA (CNN verificado + LLM local de apoyo redaccional) con fines de apoyo diagnóstico.
+          No reemplaza el criterio clínico del médico especialista. El diagnóstico definitivo y las decisiones terapéuticas son responsabilidad exclusiva del profesional tratante.
+        </Typography.Paragraph>
       </div>
     );
   };
 
   const renderBiometryTable = (biometry: AnalisisCNNCompleto['biometry']) => {
-    if (!biometry?.measurements) return null;
-    const measurements = biometry.measurements;
+    if (!biometry) return null;
+
+    if (biometry.disponible === false) {
+      return (
+        <>
+          <Divider orientation="left" style={{ fontSize: 13 }}>
+            <DashboardOutlined /> Biometría Fetal
+          </Divider>
+          <Alert
+            type="info"
+            showIcon
+            message="Biometría no disponible"
+            description={biometry.motivo || 'El módulo de biometría fetal aún no está entrenado con datos reales.'}
+          />
+        </>
+      );
+    }
+
     const dataSource = (Object.keys(BIOMETRY_REFERENCE) as Array<keyof BiometryResult>)
-      .filter(k => measurements[k] !== undefined && measurements[k] !== null)
+      .filter(k => biometry[k] !== undefined && biometry[k] !== null)
       .map(k => {
         const ref = BIOMETRY_REFERENCE[k];
-        const val = measurements[k] as number;
+        const val = biometry[k] as number;
         const inRange = val >= ref.min && val <= ref.max;
         return {
           key: k,
@@ -328,6 +627,12 @@ const IaMedica: React.FC = () => {
         <Divider orientation="left" style={{ fontSize: 13 }}>
           <DashboardOutlined /> Biometría Fetal
         </Divider>
+        {biometry.metodo === 'estimacion_sintetica_no_validada' && (
+          <div style={{ fontSize: 11, color: 'var(--ia-text-tertiary)', marginBottom: 6 }}>
+            <InfoCircleOutlined style={{ marginRight: 4 }} />
+            Estimación orientativa, no reemplaza una medición real.
+          </div>
+        )}
         <Table
           dataSource={dataSource}
           columns={columns}
@@ -342,7 +647,7 @@ const IaMedica: React.FC = () => {
             message="Alertas de biometría"
             description={
               <ul style={{ margin: 0, paddingLeft: 16 }}>
-                {biometry.alerts.map((a) => <li key={`alert-${a}`}>{a}</li>)}
+                {biometry.alerts.map((a: string) => <li key={`alert-${a}`}>{a}</li>)}
               </ul>
             }
           />
@@ -351,11 +656,11 @@ const IaMedica: React.FC = () => {
     );
   };
 
-  const renderPathologyAlert = (pathologies: Pathology[]) => {
-    const detected = pathologies.filter(p => p.probability >= 0.50 && p.name !== 'normal');
+const renderPathologyAlert = (pathologies: Pathology[]) => {
+    const detected = pathologies.filter(p => safeProb(p.confidence) >= 0.50 && p.pathology !== 'normal' && p.pathology !== 'baja_confianza');
     if (detected.length === 0) return null;
 
-    const hasCritical = detected.some(p => p.probability >= 0.80);
+    const hasCritical = detected.some(p => safeProb(p.confidence) >= 0.80);
     return (
       <Alert
         type={hasCritical ? 'error' : 'warning'}
@@ -370,12 +675,12 @@ const IaMedica: React.FC = () => {
         description={
           <div>
             {detected.map(p => (
-              <div key={p.name} style={{ marginBottom: 4 }}>
-                <Tag color={p.probability >= 0.80 ? 'red' : 'orange'}>
-                  {p.name.replace(/_/g, ' ').toUpperCase()}
+              <div key={p.pathology} style={{ marginBottom: 4 }}>
+                <Tag color={safeProb(p.confidence) >= 0.80 ? 'red' : 'orange'}>
+                  {p.pathology.replace(/_/g, ' ').toUpperCase()}
                 </Tag>
                 <span style={{ fontSize: 12 }}>
-                  Probabilidad: {(p.probability * 100).toFixed(1)}%
+                  Probabilidad: {(safeProb(p.confidence) * 100).toFixed(1)}%
                   {p.icd10 && <> &nbsp;|&nbsp; ICD-10: <strong>{p.icd10}</strong></>}
                 </span>
               </div>
@@ -387,33 +692,6 @@ const IaMedica: React.FC = () => {
         }
       />
     );
-  };
-
-  const renderResultBadge = (resultado: string) => {
-    switch (resultado) {
-      case 'normal':
-        return <Tag color="success" icon={<CheckCircleOutlined />}>Normal</Tag>;
-      case 'anomalia_leve':
-      case 'anomalia_moderada':
-        return <Tag color="warning" icon={<WarningOutlined />}>Anomalía</Tag>;
-      case 'anomalia_grave':
-      case 'requiere_revision':
-        return <Tag color="error" icon={<CloseCircleOutlined />}>Crítico</Tag>;
-      default:
-        return <Tag color="default">Indeterminado</Tag>;
-    }
-  };
-
-  const getResultIcon = (resultado: string) => {
-    if (resultado === 'normal') return <CheckCircleOutlined className="result-icon" />;
-    if (['anomalia_grave', 'requiere_revision'].includes(resultado)) return <CloseCircleOutlined className="result-icon" />;
-    return <WarningOutlined className="result-icon" />;
-  };
-
-  const getResultClass = (resultado: string) => {
-    if (resultado === 'normal') return 'normal';
-    if (['anomalia_grave', 'requiere_revision'].includes(resultado)) return 'danger';
-    return 'warning';
   };
 
   return (
@@ -477,21 +755,40 @@ const IaMedica: React.FC = () => {
 
         <Row gutter={[24, 24]}>
           <Col xs={24} md={8} lg={6}>
-            <Dragger
-              customRequest={({ file }) => handleUpload(file as File)}
-              showUploadList={false}
-              style={{ height: '100%', minHeight: '300px' }}
-            >
-              {state.uploading ? (
-                <div><Spin size="large" /><p style={{ marginTop: 16 }}>Subiendo…</p></div>
-              ) : (
-                <div>
-                  <p className="ant-upload-drag-icon"><InboxOutlined /></p>
-                  <p className="ant-upload-text">Clic o arrastrar imagen aquí</p>
-                  <p className="ant-upload-hint">Soporta JPG, PNG, DICOM (Max: 10MB)</p>
-                </div>
-              )}
-            </Dragger>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Select
+                showSearch
+                placeholder="Buscar y seleccionar paciente..."
+                value={selectedPacienteId}
+                onChange={setSelectedPacienteId}
+                onSearch={handlePatientSearch}
+                loading={searchingPaciente}
+                filterOption={false}
+                notFoundContent={searchingPaciente ? <Spin size="small" /> : 'Escriba al menos 2 caracteres'}
+                style={{ width: '100%' }}
+                allowClear
+              >
+                {pacientesSearch.map(p => (
+                  <Select.Option key={p.id} value={p.id}>{p.nombre}</Select.Option>
+                ))}
+              </Select>
+              <Dragger
+                customRequest={({ file }) => handleUpload(file as File)}
+                showUploadList={false}
+                style={{ height: '100%', minHeight: '250px' }}
+                disabled={!selectedPacienteId}
+              >
+                {state.uploading ? (
+                  <div><Spin size="large" /><p style={{ marginTop: 16 }}>Subiendo…</p></div>
+                ) : (
+                  <div>
+                    <p className="ant-upload-drag-icon"><InboxOutlined /></p>
+                    <p className="ant-upload-text">{selectedPacienteId ? 'Clic o arrastrar imagen aquí' : 'Seleccione un paciente primero'}</p>
+                    <p className="ant-upload-hint">Soporta JPG, PNG, DICOM (Max: 10MB)</p>
+                  </div>
+                )}
+              </Dragger>
+            </Space>
           </Col>
 
           {state.loading ? (
@@ -507,7 +804,7 @@ const IaMedica: React.FC = () => {
               <Col xs={24} sm={12} md={8} lg={6} key={img.id}>
                 <div className="image-card">
                   <div className="image-card-header">
-                    <img src={`http://localhost:8000${img.url_imagen}`} alt="Ecografía" />
+                    <img src={`${API_URL.replace('/api', '')}${img.url_imagen}`} alt="Ecografía" />
                     <div className="image-status-badge">
                       {img.tiene_analisis ? renderResultBadge(img.analisis_resultado!.resultado) : <Tag color="processing">Pendiente</Tag>}
                     </div>
@@ -562,6 +859,30 @@ const IaMedica: React.FC = () => {
                         EffNetB4 + Grad-CAM
                       </Button>
                     </Tooltip>
+                    {ecografiasVinculadas[img.id] ? (
+                      <Tooltip title={`Ver Ecografía #${ecografiasVinculadas[img.id]}`}>
+                        <Button
+                          type="link"
+                          block
+                          icon={<NodeIndexOutlined />}
+                          style={{ color: '#52c41a', marginBottom: 4 }}
+                          onClick={() => {
+                            window.open(`/ecografias/${ecografiasVinculadas[img.id]}`, '_blank');
+                          }}
+                        >
+                          Eco #{ecografiasVinculadas[img.id]}
+                        </Button>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        block
+                        icon={<LinkOutlined />}
+                        onClick={() => handleVincularClick(img)}
+                        style={{ marginBottom: 4 }}
+                      >
+                        Vincular a Ecografía
+                      </Button>
+                    )}
                     <Tooltip title="Eliminar">
                       <Button danger icon={<DeleteOutlined />} onClick={() => handleDelete(img.id)} />
                     </Tooltip>
@@ -582,10 +903,19 @@ const IaMedica: React.FC = () => {
           </span>
         }
         open={state.isCnnModalVisible}
-        onCancel={() => { dispatch({ type: 'SET_IS_CNN_MODAL_VISIBLE', payload: false }); dispatch({ type: 'SET_CNN_ANALYSIS', payload: null }); }}
+        onCancel={() => { dispatch({ type: 'SET_IS_CNN_MODAL_VISIBLE', payload: false }); dispatch({ type: 'SET_CNN_ANALYSIS', payload: null }); dispatch({ type: 'SET_NARRATIVE_REPORT', payload: null }); dispatch({ type: 'SET_CNN_IMAGE_ID', payload: null }); }}
         width={1100}
         footer={[
-          <Button key="close" onClick={() => { dispatch({ type: 'SET_IS_CNN_MODAL_VISIBLE', payload: false }); dispatch({ type: 'SET_CNN_ANALYSIS', payload: null }); }}>
+          <Button
+            key="narrative"
+            icon={<FileTextOutlined />}
+            loading={state.loadingNarrative}
+            disabled={state.cnnAnalysis?.ultrasound_validation?.es_ecografia_obstetrica_valida === undefined}
+            onClick={handleGenerarReporteNarrativo}
+          >
+            {state.narrativeReport ? 'Regenerar reporte narrativo (IA local)' : 'Generar reporte narrativo (IA local)'}
+          </Button>,
+          <Button key="close" onClick={() => { dispatch({ type: 'SET_IS_CNN_MODAL_VISIBLE', payload: false }); dispatch({ type: 'SET_CNN_ANALYSIS', payload: null }); dispatch({ type: 'SET_NARRATIVE_REPORT', payload: null }); dispatch({ type: 'SET_CNN_IMAGE_ID', payload: null }); }}>
             Cerrar
           </Button>,
         ]}
@@ -605,12 +935,7 @@ const IaMedica: React.FC = () => {
               )}
               <Descriptions size="small" column={1} style={{ marginTop: 8 }} bordered>
                 <Descriptions.Item label="Modelo">
-                  {state.cnnAnalysis.model_version || 'EfficientNet-B4'}
-                </Descriptions.Item>
-                <Descriptions.Item label="Tiempo inferencia">
-                  {state.cnnAnalysis.inference_time_ms
-                    ? `${state.cnnAnalysis.inference_time_ms} ms`
-                    : 'N/A'}
+                  {state.cnnAnalysis.modelo_version || 'EfficientNet-B4'}
                 </Descriptions.Item>
                 <Descriptions.Item label="Score global">
                   <Progress
@@ -626,45 +951,236 @@ const IaMedica: React.FC = () => {
 
             {/* Columna derecha: alertas, patologías, SHAP, biometría */}
             <Col xs={24} md={14}>
-              {/* Alert médico de patologías detectadas */}
-              {state.cnnAnalysis.pathology_detection?.pathologies &&
-                renderPathologyAlert(state.cnnAnalysis.pathology_detection.pathologies)}
-
-              {/* Lista de todas las patologías con sus probabilidades */}
-              {state.cnnAnalysis.pathology_detection?.pathologies &&
-                state.cnnAnalysis.pathology_detection.pathologies.length > 0 && (
-                  <>
-                    <Divider orientation="left" style={{ fontSize: 13 }}>
-                      <HeartOutlined /> Deteccion de Patologias (umbral &ge;50%)
-                    </Divider>
-                    {state.cnnAnalysis.pathology_detection.pathologies.map(p => (
-                      <div key={p.name} style={{ marginBottom: 6 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 2 }}>
-                          <span>{p.name.replace(/_/g, ' ')}</span>
-                          <span style={{ fontWeight: 600 }}>
-                            {(p.probability * 100).toFixed(1)}%
-                            {p.icd10 && <Tag color="blue" style={{ marginLeft: 6, fontSize: 12 }}>{p.icd10}</Tag>}
-                          </span>
-                        </div>
-                        <Progress
-                          percent={Math.round(p.probability * 100)}
-                          size="small"
-                          status={p.probability >= 0.50 && p.name !== 'normal' ? 'exception' : 'success'}
-                          showInfo={false}
-                        />
+              {/* Validación de ecografía */}
+              {state.cnnAnalysis.ultrasound_validation?.es_ecografia_obstetrica_valida === false ? (
+                <>
+                  <Alert
+                    type="warning"
+                    icon={<WarningOutlined />}
+                    showIcon
+                    message="La imagen NO es una ecografía obstétrica válida"
+                    description={
+                      <div>
+                        <p>{state.cnnAnalysis.ultrasound_validation.motivo || 'La imagen subida no corresponde a una ecografía médica.'}</p>
+                        {state.cnnAnalysis.ultrasound_validation.sharpness !== undefined && (
+                          <p style={{ fontSize: 12, color: '#8c8c8c' }}>
+                            Sharpness: {state.cnnAnalysis.ultrasound_validation.sharpness} |
+                            Contraste: {state.cnnAnalysis.ultrasound_validation.contrast}
+                          </p>
+                        )}
+                        {(state.cnnAnalysis.ultrasound_validation.motivo_validez || state.cnnAnalysis.ultrasound_validation.motivo) && (
+                          <p style={{ fontSize: 12, color: '#8c8c8c' }}>
+                            Motivo: {state.cnnAnalysis.ultrasound_validation.motivo_validez || state.cnnAnalysis.ultrasound_validation.motivo}
+                          </p>
+                        )}
                       </div>
-                    ))}
-                  </>
-                )}
+                    }
+                    style={{ marginBottom: 12 }}
+                  />
+                  {state.cnnAnalysis.pathology_detection?.mensaje && (
+                    <Alert
+                      type="info"
+                      icon={<InfoCircleOutlined />}
+                      showIcon
+                      message="Sin análisis de patologías"
+                      description={state.cnnAnalysis.pathology_detection.mensaje}
+                      style={{ marginBottom: 12 }}
+                    />
+                  )}
+                  {state.cnnAnalysis.clinical_recommendations?.estudios_adicionales && (
+                    <div style={{ marginTop: 12, padding: 12, background: 'var(--ia-bg-alt)', borderRadius: 6, border: '1px solid var(--ia-warning)' }}>
+                      <Typography.Text strong style={{ color: 'var(--ia-warning)' }}>Recomendaciones:</Typography.Text>
+                      {state.cnnAnalysis.clinical_recommendations.estudios_adicionales.map((rec: string) => (
+                        <div key={rec} style={{ fontSize: 13, marginTop: 4, color: 'var(--ia-text-secondary)' }}>
+                          <InfoCircleOutlined style={{ marginRight: 6, color: 'var(--ia-warning)' }} />
+                          {rec}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Calidad insuficiente (ej. resolucion baja) pero la imagen SI es una ecografia
+                      valida: el analisis se muestra igual, esto es solo informativo. */}
+                  {state.cnnAnalysis.ultrasound_validation?.calidad_suficiente === false && (
+                    <Alert
+                      type="warning"
+                      icon={<WarningOutlined />}
+                      showIcon
+                      message="Calidad de imagen reducida"
+                      description={
+                        <div>
+                          <p>
+                            {state.cnnAnalysis.ultrasound_validation.motivo_calidad ||
+                              'La calidad de la imagen es menor a la recomendada. El análisis se realizó igualmente, pero la confiabilidad puede ser menor.'}
+                          </p>
+                          <p style={{ fontSize: 12, color: 'var(--ia-text-secondary)' }}>
+                            Se recomienda repetir la captura con mejor resolución cuando sea posible.
+                          </p>
+                        </div>
+                      }
+                      style={{ marginBottom: 12 }}
+                    />
+                  )}
+                  {/* Senal real detectada por debajo del umbral clinico de confirmacion:
+                      no se fuerza un diagnostico, pero se muestra de forma transparente en
+                      vez de quedar oculta detras de "baja confianza". */}
+                  {(() => {
+                    const top = state.cnnAnalysis.pathology_detection?.pathologies?.[0];
+                    const allProbs = state.cnnAnalysis.pathology_detection?.all_probabilities;
+                    if (top?.pathology !== 'baja_confianza' || !allProbs) return null;
+                    // Umbrales calibrados reales (Microservicio_IA/app/config.py) — el corte de
+                    // "vale la pena mostrar" debe ser proporcional al umbral real de cada clase,
+                    // no un valor fijo. Un 43% de embarazo_multiple (umbral 0.95) esta muy lejos
+                    // de confirmarse y genera confusion si se muestra igual que un 43% de
+                    // polihidramnios (umbral 0.25, que ya estaria CONFIRMADO a ese nivel).
+                    // Regla: solo mostrar si la señal alcanzo al menos el 70% del camino hacia
+                    // su propio umbral de confirmacion.
+                    const UMBRALES_REALES: Record<string, number> = {
+                      hidrocefalia: 0.65, anencefalia: 0.65, espina_bifida: 0.65, labio_leporino: 0.55,
+                      atresia_duodenal: 0.65, cardiopatia_congenita: 0.65, oligohidramnios: 0.35,
+                      polihidramnios: 0.25, restriccion_crecimiento: 0.40, macrosomia_fetal: 0.40,
+                      placenta_previa: 0.85, preeclampsia_signos: 0.65, muerte_fetal: 0.60,
+                      embarazo_multiple: 0.95,
+                    };
+                    const señales = Object.entries(allProbs)
+                      .filter(([k, v]) => {
+                        if (k === 'normal' || k === 'no_ecografia') return false;
+                        const umbral = UMBRALES_REALES[k] ?? 0.5;
+                        return (v ?? 0) >= umbral * 0.7;
+                      })
+                      .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
+                    if (señales.length === 0) return null;
+                    return (
+                      <Alert
+                        type="info"
+                        icon={<InfoCircleOutlined />}
+                        showIcon
+                        message="Señal detectada por debajo del umbral de confirmación clínica"
+                        description={
+                          <div>
+                            <p>
+                              El modelo no confirma un diagnóstico (no alcanza el umbral clínico calibrado para esa patología),
+                              pero detectó señal real en:
+                            </p>
+                            {señales.map(([k, v]) => (
+                              <p key={k} style={{ margin: '2px 0' }}>
+                                <strong style={{ textTransform: 'capitalize' }}>{k.replace(/_/g, ' ')}</strong>: {((v ?? 0) * 100).toFixed(1)}%
+                              </p>
+                            ))}
+                            <p style={{ fontSize: 12, color: 'var(--ia-text-secondary)' }}>Requiere evaluación especializada para confirmar o descartar.</p>
+                          </div>
+                        }
+                        style={{ marginBottom: 12 }}
+                      />
+                    );
+                  })()}
+                  {/* Alert médico de patologías detectadas */}
+                  {state.cnnAnalysis.pathology_detection?.pathologies &&
+                    renderPathologyAlert(state.cnnAnalysis.pathology_detection.pathologies)}
 
-              {/* SHAP Risk Scores */}
-              {state.cnnAnalysis.shap_risk_scores &&
-                renderShapRiskBars(state.cnnAnalysis.shap_risk_scores)}
+                  {/* Lista de todas las patologías con sus probabilidades */}
+                  {state.cnnAnalysis.pathology_detection?.pathologies &&
+                    state.cnnAnalysis.pathology_detection.pathologies.length > 0 && (
+                      <>
+                        <Divider orientation="left" style={{ fontSize: 13 }}>
+                          <HeartOutlined /> Deteccion de Patologias (umbral calibrado por patologia)
+                        </Divider>
+                        {state.cnnAnalysis.pathology_detection.pathologies.map((p, idx) => (
+                          <div key={p?.pathology || `patologia-${idx}`} style={{ marginBottom: 10, padding: 8, background: 'var(--ia-bg-alt)', borderRadius: 4, border: '1px solid var(--ia-border)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 2 }}>
+                              <span style={{ fontWeight: 600, textTransform: 'capitalize', color: 'var(--ia-text)' }}>{p?.pathology?.replace(/_/g, ' ') || ''}</span>
+                              <span style={{ fontWeight: 600, color: 'var(--ia-text)' }}>
+                                {(safeProb(p.confidence) * 100).toFixed(1)}%
+                                {p.icd10 && <Tag color="blue" style={{ marginLeft: 6, fontSize: 12 }}>{p.icd10}</Tag>}
+                              </span>
+                            </div>
+                            <Progress
+                              percent={Math.round(safeProb(p.confidence) * 100)}
+                              size="small"
+                              status={
+                                p.pathology === 'normal' ? 'success'
+                                  : p.pathology === 'baja_confianza' ? 'normal'
+                                  : 'exception'
+                              }
+                              showInfo={false}
+                            />
+                            {p.ultrasound_type && (
+                              <div style={{ fontSize: 11, color: 'var(--ia-text-secondary)', marginTop: 2 }}>
+                                <strong style={{ color: 'var(--ia-text)' }}>Tipo ecografía:</strong> {p.ultrasound_type}
+                                {p.gestational_weeks && <span> | <strong style={{ color: 'var(--ia-text)' }}>Semanas:</strong> {p.gestational_weeks}</span>}
+                              </div>
+                            )}
+                            {p.ultrasound_markers && (
+                              <div style={{ fontSize: 11, color: 'var(--ia-text-tertiary)', marginTop: 1 }}>
+                                <strong style={{ color: 'var(--ia-text)' }}>Marcadores:</strong> {p.ultrasound_markers}
+                              </div>
+                            )}
+                            {p.recommendation && (
+                              <div style={{ fontSize: 11, color: 'var(--ia-info)', marginTop: 1 }}>
+                                {p.recommendation}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    )}
 
-              {/* Tabla de biometría fetal */}
-              {state.cnnAnalysis.biometry && renderBiometryTable(state.cnnAnalysis.biometry)}
+                  {/* SHAP Risk Scores */}
+                  {state.cnnAnalysis.shap_risk_scores &&
+                    renderShapRiskBars(state.cnnAnalysis.shap_risk_scores)}
+
+                  {/* Tabla de biometría fetal */}
+                  {state.cnnAnalysis.biometry && renderBiometryTable(state.cnnAnalysis.biometry)}
+                </>
+              )}
             </Col>
           </Row>
+        )}
+
+        {state.narrativeReport && renderNarrativeReport(state.narrativeReport)}
+      </Modal>
+
+      {/* Modal Vincular a Ecografía */}
+      <Modal
+        title={<span><LinkOutlined /> Vincular Imagen a Ecografía</span>}
+        open={vincularModalVisible}
+        onCancel={() => { setVincularModalVisible(false); setImagenAVincular(null); }}
+        width={500}
+        onOk={handleVincularConfirm}
+        confirmLoading={vinculando}
+        okText="Crear Ecografía"
+        okButtonProps={{ icon: <LinkOutlined /> }}
+      >
+        {imagenAVincular && (
+          <div>
+            <Descriptions size="small" column={1} bordered style={{ marginBottom: 16 }}>
+              <Descriptions.Item label="Imagen IA ID">{imagenAVincular.id}</Descriptions.Item>
+              <Descriptions.Item label="Paciente">
+                <Tag color="blue">{imagenAVincular.paciente_nombre}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Tipo">{imagenAVincular.tipo_imagen}</Descriptions.Item>
+              <Descriptions.Item label="Fecha">
+                {imagenAVincular.fecha_captura || imagenAVincular.fecha_subida.slice(0, 10)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tiene análisis CNN">
+                {imagenAVincular.tiene_analisis ? (
+                  <Tag color="success">Sí</Tag>
+                ) : (
+                  <Tag color="warning">No</Tag>
+                )}
+              </Descriptions.Item>
+            </Descriptions>
+            <Alert
+              type="info"
+              showIcon
+              description={
+                `Se creará una Ecografía en el módulo de ecografías para ${imagenAVincular.paciente_nombre}.
+                ${imagenAVincular.tiene_analisis ? ' El análisis CNN se copiará a la nueva ecografía.' : ''}`
+              }
+            />
+          </div>
         )}
       </Modal>
 
@@ -682,12 +1198,34 @@ const IaMedica: React.FC = () => {
       >
         {state.selectedAnalysis && (
           <div className="analysis-container">
-            <div className="image-preview-section">
-              <img src={`http://localhost:8000${state.selectedAnalysis.imagen.url_imagen}`} alt="Ecografía" />
-              {/* Aquí se podrían renderizar los bounding boxes sobre la imagen */}
-            </div>
+            {state.selectedAnalysis.imagen && (
+              <div className="image-preview-section">
+                <img src={`${API_URL.replace('/api', '')}${state.selectedAnalysis.imagen.url_imagen}`} alt="Ecografía" />
+              </div>
+            )}
             
             <div className="results-section">
+              {state.selectedAnalysis.analisis.sugerencia_diagnostica_data && (
+                <div className="diagnosis-suggestion" style={{ background: 'var(--ia-info-bg)', padding: 12, borderRadius: 8, marginBottom: 12, border: '1px solid var(--ia-info)' }}>
+                  <h4 style={{ margin: 0, color: 'var(--ia-info)' }}><RobotOutlined /> Diagnóstico Sugerido</h4>
+                  <p style={{ margin: '4px 0', fontSize: 16, fontWeight: 600, color: 'var(--ia-text)' }}>
+                    {state.selectedAnalysis.analisis.sugerencia_diagnostica_data.patologia.replace(/_/g, ' ').toUpperCase()}
+                    <Tag color="blue" style={{ marginLeft: 8 }}>
+                      {Math.round(state.selectedAnalysis.analisis.sugerencia_diagnostica_data.confianza * 100)}%
+                    </Tag>
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--ia-text-secondary)' }}>
+                    ICD-10: {state.selectedAnalysis.analisis.sugerencia_diagnostica_data.icd10}
+                    {state.selectedAnalysis.analisis.sugerencia_diagnostica_data.descripcion && ` — ${state.selectedAnalysis.analisis.sugerencia_diagnostica_data.descripcion}`}
+                  </p>
+                  {state.selectedAnalysis.analisis.sugerencia_diagnostica_data.recomendacion && (
+                    <div style={{ marginTop: 8, fontSize: 12, padding: '8px 12px', background: 'var(--ia-bg-alt)', color: 'var(--ia-text)', borderRadius: 6 }}>
+                      <InfoCircleOutlined style={{ marginRight: 6 }} />
+                      {state.selectedAnalysis.analisis.sugerencia_diagnostica_data.recomendacion}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className={`result-header ${getResultClass(state.selectedAnalysis.analisis.resultado)}`}>
                 {getResultIcon(state.selectedAnalysis.analisis.resultado)}
                 <div className="result-info">
@@ -701,7 +1239,7 @@ const IaMedica: React.FC = () => {
                 {Object.entries(state.selectedAnalysis.analisis.estructuras_detectadas).map(([key, val]: any) => (
                   <div className="finding-item" key={key}>
                     <span className="finding-name">{key.replace('_', ' ')}</span>
-                    <span className="finding-conf">{(val.confianza * 100).toFixed(1)}% {val.normal ? '✅ Normal' : '⚠️ Anómalo'}</span>
+                    <span className="finding-conf">{(val.confianza * 100).toFixed(1)}% {val.normal ? 'Normal' : 'Anomalo'}</span>
                   </div>
                 ))}
               </div>
@@ -737,3 +1275,4 @@ const IaMedica: React.FC = () => {
 };
 
 export default IaMedica;
+

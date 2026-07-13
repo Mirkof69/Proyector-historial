@@ -67,6 +67,10 @@ const CHECK_CIRCLE_ICON_6 = <CheckCircleOutlined style={{ color: '#52c41a' }} />
 const HOME_ICON_3 = <HomeOutlined />;
 const FILE_SEARCH_ICON_2 = <FileSearchOutlined />;
 
+const handleImprimir = () => {
+  window.print();
+};
+
 const DetalleVacuna: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -103,10 +107,6 @@ const DetalleVacuna: React.FC = () => {
         if (dias <= 7) return { color: 'warning', text: `PRÓXIMA DOSIS (${dias}d)`, icon: <ClockCircleOutlined /> };
         return { color: 'processing', text: 'PROGRAMADA', icon: <CalendarOutlined /> };
     }, [vacuna]);
-
-    const handleImprimir = () => {
-        window.print();
-    };
 
     if (loading) {
         return (

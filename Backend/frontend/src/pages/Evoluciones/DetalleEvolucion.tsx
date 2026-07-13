@@ -44,6 +44,10 @@ dayjs.locale('es');
 
 const { Title, Text, Paragraph } = Typography;
 
+const handlePrint = () => {
+  window.print();
+};
+
 const DetalleEvolucion: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -88,10 +92,6 @@ const DetalleEvolucion: React.FC = () => {
       },
     });
   }, [id, modal, message, navigate]);
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   const colorTipo = useMemo(() => {
     if (!evolucion) return 'blue';

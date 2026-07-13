@@ -7,10 +7,9 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card, Form, Input, Select, InputNumber, Button, Switch,
-  Row, Col, message, Divider, Space
-} from 'antd';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card, Form, Input, Select, InputNumber, Button, Switch,
+  Row, Col, Divider, Space} from "antd";
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { consultoriosService } from '../../services/consultoriosService';
@@ -19,6 +18,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const FormularioConsultorio: React.FC = () => {
+  const { message } = useAntdApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [cargando, setCargando] = useState(false);

@@ -15,6 +15,12 @@ import {
   Checkbox,
   Space
 } from 'antd';
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
+import {
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, ComposedChart, Area
+} from 'recharts';
 import {
   HeartOutlined,
   WarningOutlined,
@@ -23,11 +29,6 @@ import {
   LineChartOutlined
 } from '@ant-design/icons';
 import './HemorragiaObstetrica.css';
-import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ComposedChart, Area
-} from 'recharts';
 
 const { Option } = Select;
 
@@ -327,45 +328,6 @@ const getCausaTexto = (causa: string): string => {
 // COMPONENTE PRINCIPAL
 // ============================================
 
-const _datosEjemploHemorragia: DatosHemorragia = {
-  frecuencia_cardiaca: 92,
-  presion_sistolica: 115,
-  presion_diastolica: 75,
-  frecuencia_respiratoria: 18,
-  temperatura: 36.8,
-  saturacion_o2: 98,
-  perdida_estimada_ml: 650,
-  tiempo_minutos: 30,
-  causa_principal: 'tono',
-  tono_uterino: 'blando',
-  placenta_completa: true,
-  laceraciones: false,
-  coagulopatia: false,
-  hemoglobina_inicial: 12.5,
-  hemoglobina_actual: 11.2,
-  plaquetas: 220000,
-  fibrinogeno: 350
-};
-
-const _resultadoEjemploHemorragia = calcularHemorragia(_datosEjemploHemorragia);
-
-const _historialEjemploHemorragia: RegistroHemorragia[] = [
-  {
-    fecha: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-    shock_index: _resultadoEjemploHemorragia.shock_index,
-    perdida_ml: 650,
-    gravedad: 'Moderada',
-    causa: getCausaTexto('tono')
-  },
-  {
-    fecha: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-    shock_index: 0.65,
-    perdida_ml: 450,
-    gravedad: 'Leve',
-    causa: getCausaTexto('trauma')
-  }
-];
-
 const renderVolemiaLabel = (props: any) => {
   const { name, value } = props;
   return `${name}: ${value.toFixed(1)}%`;
@@ -374,17 +336,20 @@ const HISTORIAL_TICK = { fontSize: 12 };
 const SHOCK_INDEX_LABEL = { value: 'Shock Index', angle: -90, position: 'insideLeft' };
 const PERDIDA_LABEL = { value: 'Pérdida (ml)', angle: 90, position: 'insideRight' };
 
+const getDataCausas4T = () => [
+  { causa: 'TONO\nAtonía', porcentaje: 70, color: '#ff4d4f' },
+  { causa: 'TRAUMA\nLaceraciones', porcentaje: 20, color: '#fa8c16' },
+  { causa: 'TEJIDO\nRetención', porcentaje: 8, color: '#faad14' },
+  { causa: 'TROMBINA\nCoagulopatía', porcentaje: 2, color: '#722ed1' },
+];
+
 const HemorragiaObstetrica: React.FC = () => {
   const [form] = Form.useForm();
-  const [resultado, setResultado] = useState<ResultadoHemorragia | null>(_resultadoEjemploHemorragia);
-  const [historial, setHistorial] = useState<RegistroHemorragia[]>(_historialEjemploHemorragia);
+  const [resultado, setResultado] = useState<ResultadoHemorragia | null>(null);
+  const [historial, setHistorial] = useState<RegistroHemorragia[]>([]);
   const [loading, setLoading] = useState(false);
-  const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(true);
 
   const onFinish = (valores: any) => {
-    // Cambiar a modo de datos reales
-    setUsandoDatosEjemplo(false);
-
     setLoading(true);
 
     const datos: DatosHemorragia = {
@@ -427,14 +392,6 @@ const HemorragiaObstetrica: React.FC = () => {
   // DATOS PARA GRÁFICAS
   // ============================================
 
-  const getDataCausas4T = () => {
-    return [
-      { causa: 'TONO\nAtonía', porcentaje: 70, color: '#ff4d4f' },
-      { causa: 'TRAUMA\nLaceraciones', porcentaje: 20, color: '#fa8c16' },
-      { causa: 'TEJIDO\nRetención', porcentaje: 8, color: '#faad14' },
-      { causa: 'TROMBINA\nCoagulopatía', porcentaje: 2, color: '#722ed1' }
-    ];
-  };
 
   const getDataDistribucion = () => {
     if (!resultado) return [];
@@ -526,6 +483,8 @@ const HemorragiaObstetrica: React.FC = () => {
     }
   ];
 
+
+
   return (
     <div className="hemorragia-obstetrica-page">
       <Card
@@ -533,7 +492,6 @@ const HemorragiaObstetrica: React.FC = () => {
           <span>
             <HeartOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
             Evaluación de Hemorragia Obstétrica
-            {usandoDatosEjemplo && <Tag color="blue" style={{ marginLeft: 8 }}>Datos de Ejemplo</Tag>}
           </span>
         }
       >
@@ -907,7 +865,6 @@ const HemorragiaObstetrica: React.FC = () => {
           <Divider>
             <LineChartOutlined /> Análisis Gráfico
           </Divider>
-
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={12}>
               <Card title="Distribución de Causas HPP (4 T's)">
@@ -919,7 +876,7 @@ const HemorragiaObstetrica: React.FC = () => {
                     <Tooltip />
                     <Legend />
                     <Bar dataKey="porcentaje" name="Frecuencia (%)">
-                      {getDataCausas4T().map((entry) => (
+                      {getDataCausas4T().map((entry: any) => (
                         <Cell key={`cell-${entry.causa}`} fill={entry.color} />
                       ))}
                     </Bar>
@@ -938,7 +895,7 @@ const HemorragiaObstetrica: React.FC = () => {
                       outerRadius={100}
                       dataKey="value"
                     >
-                      {getDataDistribucion().map((entry) => (
+                      {getDataDistribucion().map((entry: any) => (
                         <Cell key={`cell-${entry.name}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -965,7 +922,7 @@ const HemorragiaObstetrica: React.FC = () => {
               </Card>
             </Col>
 
-            {resultado.requiere_ptm && (
+            {resultado && resultado.requiere_ptm && (
               <Col xs={24} lg={12}>
                 <Card title="Protocolo PTM - Componentes">
                   <ResponsiveContainer width="100%" height={300}>
@@ -976,7 +933,7 @@ const HemorragiaObstetrica: React.FC = () => {
                       <Tooltip />
                       <Legend />
                       <Bar dataKey="unidades" name="Unidades">
-                        {getDataPTM().map((entry) => (
+                        {getDataPTM().map((entry: any) => (
                           <Cell key={`cell-${entry.componente}`} fill={entry.color} />
                         ))}
                       </Bar>

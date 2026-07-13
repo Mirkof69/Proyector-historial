@@ -24,32 +24,19 @@ const loadingIcon = <LoadingOutlined style={{ fontSize: 48 }} spin />;
 
 const Dashboard: React.FC<DashboardProps> = ({ children, onLogout }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [loading, setLoading] = useState(true);
-
-  const checkAuthentication = useCallback(async () => {
-    try {
-      const authenticated = authService.isAuthenticated();
-
-      if (!authenticated) {
-        navigate(FRONTEND_ROUTES.LOGIN, {
-          replace: true,
-          state: { from: location.pathname }
-        });
-        return;
-      }
-    } catch (error) {
-      navigate(FRONTEND_ROUTES.LOGIN, { replace: true });
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate, location]);
+  const loc = useLocation();
+  const authenticated = authService.isAuthenticated();
 
   useEffect(() => {
-    checkAuthentication();
-  }, [checkAuthentication]);
+    if (!authenticated) {
+      navigate(FRONTEND_ROUTES.LOGIN, {
+        replace: true,
+        state: { from: loc.pathname }
+      });
+    }
+  }, [authenticated, navigate, loc.pathname]);
 
-  if (loading) {
+  if (!authenticated) {
     return (
       <div
         style={{

@@ -11,6 +11,15 @@ const { Option } = Select;
 const { TextArea } = Input;
 const { Title, Text } = Typography;
 
+const getClasificacionIMC = (imcValue: number): string => {
+  if (imcValue < 18.5) return 'Bajo peso';
+  if (imcValue < 25) return 'Normal';
+  if (imcValue < 30) return 'Sobrepeso';
+  if (imcValue < 35) return 'Obesidad I';
+  if (imcValue < 40) return 'Obesidad II';
+  return 'Obesidad III';
+};
+
 const FormularioTriaje: React.FC = () => {
     const [form] = Form.useForm();
     const navigate = useNavigate();
@@ -186,14 +195,6 @@ const FormularioTriaje: React.FC = () => {
         }
     };
 
-    const getClasificacionIMC = (imcValue: number): string => {
-        if (imcValue < 18.5) return 'Bajo peso';
-        if (imcValue < 25) return 'Normal';
-        if (imcValue < 30) return 'Sobrepeso';
-        if (imcValue < 35) return 'Obesidad I';
-        if (imcValue < 40) return 'Obesidad II';
-        return 'Obesidad III';
-    };
 
     return (
         <div className="animate-fade-in" style={{ padding: 24 }}>

@@ -7,7 +7,7 @@
  * =============================================================================
  */
 
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import {
   Card,
   Descriptions,
@@ -52,7 +52,6 @@ import FormularioResultados from './FormularioResultados';
 import GraficoTendenciaLaboratorio from '../../components/GraficoTendenciaLaboratorio';
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
 
 const tabResultadosDetallados = (
   <span>
@@ -68,8 +67,50 @@ const TabEstadisticasLabel = React.memo(({ count }: { count: number }) => (
   </span>
 ));
 
+// Función para interpretar resultados médicamente
+const interpretarResultado = (record: any): string => {
+  if (!record.valor_numerico || !record.rango_referencia) return '';
+
+  // Extraer min y max del rango (ej: "70 -125 mg/dL")
+  const match = record.rango_referencia.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
+  if (!match) return '';
+
+  const min = parseFloat(match[1]);
+  const max = parseFloat(match[2]);
+  const valor = record.valor_numerico;
+
+  if (valor < min) {
+    const diff = ((min - valor) / min * 100).toFixed(1);
+    return `${diff}% por debajo del mínimo`;
+  }
+  if (valor > max) {
+    const diff = ((valor - max) / max * 100).toFixed(1);
+    return `${diff}% por encima del máximo`;
+  }
+  return 'Dentro del rango esperado';
+};
+
+// Función para calcular porcentaje en rango
+const calcularPorcentajeEnRango = (record: any): number => {
+  if (!record.valor_numerico || !record.rango_referencia) return 0;
+
+  const match = record.rango_referencia.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
+  if (!match) return 50;
+
+  const min = parseFloat(match[1]);
+  const max = parseFloat(match[2]);
+  const valor = record.valor_numerico;
+
+  if (valor < min) return 25;
+  if (valor > max) return 75;
+
+  // Dentro del rango: calcular posición
+  const posicion = ((valor - min) / (max - min)) * 100;
+  return Math.min(100, Math.max(0, posicion));
+};
+
 const DetalleLaboratorio: React.FC = () => {
-  const { message } = useAntdApp();
+  const {modal,  message } = useAntdApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const loadingRef = useRef(true);
@@ -77,10 +118,6 @@ const DetalleLaboratorio: React.FC = () => {
   const [estadisticas, setEstadisticas] = useState<any | null>(null);
   const [loadingEstadisticas, setLoadingEstadisticas] = useState(false);
 
-  const tabEstadisticas = useMemo(
-    () => <TabEstadisticasLabel count={estadisticas?.total_historicos ?? 0} />,
-    [estadisticas?.total_historicos]
-  );
 
   // ==========================================================================
   // CARGAR DATOS
@@ -96,7 +133,7 @@ const DetalleLaboratorio: React.FC = () => {
     } finally {
       loadingRef.current = false;
     }
-  }, [id]);
+  }, [id, message]);
 
   // Cargar estadísticas del paciente
   const cargarEstadisticas = async () => {
@@ -112,14 +149,16 @@ const DetalleLaboratorio: React.FC = () => {
     }
   };
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (id && loadedIdRef.current !== Number(id)) {
-    loadedIdRef.current = Number(id);
-    cargarDatos();
-    if (examen?.estado === 'completado') {
-      cargarEstadisticas();
-    }
-  }
+  useEffect(() => {
+    if (id) cargarDatos();
+  }, [id, cargarDatos]);
+
+  // Estadísticas: cargar recién cuando el examen ya está completado. Antes se
+  // evaluaba examen?.estado en el render de carga (aún null) → nunca cargaba.
+  useEffect(() => {
+    if (examen?.estado === 'completado') cargarEstadisticas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [examen?.estado]);
 
   // ==========================================================================
   // HANDLERS
@@ -133,7 +172,7 @@ const DetalleLaboratorio: React.FC = () => {
   };
 
   const handleEliminar = () => {
-    Modal.confirm({
+    modal.confirm({
       title: '¿Eliminar este examen?',
       icon: <ExclamationCircleOutlined />,
       content: 'Esta acción no se puede deshacer.',
@@ -150,10 +189,6 @@ const DetalleLaboratorio: React.FC = () => {
         }
       },
     });
-  };
-
-  const handleImprimir = () => {
-    window.print();
   };
 
   // ==========================================================================
@@ -183,48 +218,6 @@ const DetalleLaboratorio: React.FC = () => {
       </Card>
     );
   }
-
-  // Función para interpretar resultados médicamente
-  const interpretarResultado = (record: any): string => {
-    if (!record.valor_numerico || !record.rango_referencia) return '';
-
-    // Extraer min y max del rango (ej: "70 -125 mg/dL")
-    const match = record.rango_referencia.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
-    if (!match) return '';
-
-    const min = parseFloat(match[1]);
-    const max = parseFloat(match[2]);
-    const valor = record.valor_numerico;
-
-    if (valor < min) {
-      const diff = ((min - valor) / min * 100).toFixed(1);
-      return `${diff}% por debajo del mínimo`;
-    }
-    if (valor > max) {
-      const diff = ((valor - max) / max * 100).toFixed(1);
-      return `${diff}% por encima del máximo`;
-    }
-    return 'Dentro del rango esperado';
-  };
-
-  // Función para calcular porcentaje en rango
-  const calcularPorcentajeEnRango = (record: any): number => {
-    if (!record.valor_numerico || !record.rango_referencia) return 0;
-
-    const match = record.rango_referencia.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
-    if (!match) return 50;
-
-    const min = parseFloat(match[1]);
-    const max = parseFloat(match[2]);
-    const valor = record.valor_numerico;
-
-    if (valor < min) return 25;
-    if (valor > max) return 75;
-
-    // Dentro del rango: calcular posición
-    const posicion = ((valor - min) / (max - min)) * 100;
-    return Math.min(100, Math.max(0, posicion));
-  };
 
   const columnsResultados = [
     {
@@ -305,6 +298,7 @@ const DetalleLaboratorio: React.FC = () => {
     },
   ];
 
+
   return (
     <div className="detalle-laboratorio-container">
       {/* HEADER */}
@@ -330,7 +324,7 @@ const DetalleLaboratorio: React.FC = () => {
           <Col>
             <Space>
               <Tooltip title="Imprimir el reporte del examen de laboratorio">
-                <Button icon={<PrinterOutlined />} onClick={handleImprimir}>
+                <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
                   Imprimir
                 </Button>
               </Tooltip>
@@ -511,72 +505,68 @@ const DetalleLaboratorio: React.FC = () => {
           {/* RESULTADOS DETALLADOS O FORMULARIO DE INGRESO */}
           {examen.resultados && examen.resultados.length > 0 ? (
             <Card style={{ marginBottom: 16 }}>
-              <Tabs defaultActiveKey="resultados">
-                <TabPane
-                  tab={tabResultadosDetallados}
-                  key="resultados"
-                >
-                  <Table
-                    columns={columnsResultados}
-                    dataSource={examen.resultados}
-                    rowKey="id"
-                    pagination={false}
-                    bordered
-                  />
-                </TabPane>
-
-                {/* TAB DE GRÁFICOS ESTADÍSTICOS */}
-                {estadisticas && estadisticas.examenes_historicos && estadisticas.examenes_historicos.length > 0 && (
-                  <TabPane
-                    tab={tabEstadisticas}
-                    key="estadisticas"
-                  >
-                    {loadingEstadisticas ? (
-                      <div style={{ textAlign: 'center', padding: '50px 0' }}>
-                        <Spin tip="Cargando estadísticas…"><div /></Spin>
-                      </div>
-                    ) : (
-                      <Tabs tabPosition="left">
-                        {examen.resultados.map((resultado, idx) => {
-                          // Obtener histórico para este parámetro
-                          const historicoParametro = estadisticas.examenes_historicos.reduce((acc: any[], exHist: any) => {
-                            const resultadoHist = exHist.resultados.find(
-                              (r: any) => r.parametro === resultado.parametro_nombre
-                            );
-                            if (resultadoHist && resultadoHist.valor_numerico !== null) {
-                              acc.push({
-                                fecha: exHist.fecha_resultado,
-                                valor: resultadoHist.valor_numerico,
-                              });
-                            }
-                            return acc;
-                          }, []);
-
-                          // Solo mostrar si hay datos históricos
-                          if (historicoParametro.length === 0) return null;
-
-                          // Extraer valores de referencia
-                          const match = resultado.rango_referencia?.match(/(\\d+\\.?\\d*)\\s*-\\s*(\\d+\\.?\\d*)/);
-                          const valorMin = match ? parseFloat(match[1]) : undefined;
-                          const valorMax = match ? parseFloat(match[2]) : undefined;
-
-                          return (
-                            <TabPane tab={resultado.parametro_nombre} key={resultado.parametro_nombre}>
-                              <GraficoTendenciaLaboratorio
-                                parametro={resultado.parametro_nombre || ''}
-                                historico={historicoParametro}
-                                valorMinimo={valorMin}
-                                valorMaximo={valorMax}
-                                unidad={resultado.unidad}
-                              />
-                            </TabPane>
+              <Tabs defaultActiveKey="resultados" items={[
+                {
+                  key: "resultados",
+                  label: tabResultadosDetallados,
+                  children: (
+                    <Table
+                      columns={columnsResultados}
+                      dataSource={examen.resultados}
+                      rowKey="id"
+                      pagination={false}
+                      bordered
+                    />
+                  )
+                },
+                ...(estadisticas && estadisticas.examenes_historicos && estadisticas.examenes_historicos.length > 0 ? [{
+                  key: "estadisticas",
+                  label: <TabEstadisticasLabel count={estadisticas?.total_historicos ?? 0} />,
+                  children: loadingEstadisticas ? (
+                    <div style={{ textAlign: 'center', padding: '50px 0' }}>
+                      <Spin tip="Cargando estadísticas…"><div /></Spin>
+                    </div>
+                  ) : (
+                    <Tabs tabPosition="left" items={
+                      examen.resultados.reduce((items: any[], resultado) => {
+                        const historicoParametro = estadisticas.examenes_historicos.reduce((acc: any[], exHist: any) => {
+                          const resultadoHist = exHist.resultados.find(
+                            (r: any) => r.parametro === resultado.parametro_nombre
                           );
-                        })}
-                      </Tabs>
-                    )}
-                  </TabPane>
-                )}
-              </Tabs>
+                          if (resultadoHist && resultadoHist.valor_numerico !== null) {
+                            acc.push({
+                              fecha: exHist.fecha_resultado,
+                              valor: resultadoHist.valor_numerico,
+                            });
+                          }
+                          return acc;
+                        }, []);
+
+                        if (historicoParametro.length === 0) return items;
+
+                        const match = resultado.rango_referencia?.match(/(\\d+\\.?\\d*)\\s*-\\s*(\\d+\\.?\\d*)/);
+                        const valorMin = match ? parseFloat(match[1]) : undefined;
+                        const valorMax = match ? parseFloat(match[2]) : undefined;
+
+                        items.push({
+                          key: resultado.parametro_nombre,
+                          label: resultado.parametro_nombre,
+                          children: (
+                            <GraficoTendenciaLaboratorio
+                              parametro={resultado.parametro_nombre || ''}
+                              historico={historicoParametro}
+                              valorMinimo={valorMin}
+                              valorMaximo={valorMax}
+                              unidad={resultado.unidad}
+                            />
+                          )
+                        });
+                        return items;
+                      }, [])
+                    } />
+                  )
+                }] : [])
+              ]} />
             </Card>
           ) : examen.estado !== 'completado' ? (
             /* FORMULARIO PARA INGRESAR RESULTADOS */

@@ -20,6 +20,7 @@ import {
   Tooltip,
   Dropdown,
   Divider,
+  Alert,
   MenuProps,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -96,35 +97,157 @@ const plusIcon3 = <PlusOutlined />;
 const reloadIcon = <ReloadOutlined />;
 const exclamationIcon = <ExclamationCircleOutlined />;
 
+const getEstadoTag = (estado: EstadoCita) => {
+  const configs: Record<EstadoCita, EstadoCitaConfig> = {
+    agendada: {
+      color: 'blue',
+      icon: calendarIcon4,
+      text: 'Agendada',
+    },
+    confirmada: {
+      color: 'processing',
+      icon: checkCircleIcon5,
+      text: 'Confirmada',
+    },
+    en_espera: {
+      color: 'warning',
+      icon: clockCircleIcon4,
+      text: 'En Espera',
+    },
+    en_consulta: {
+      color: 'purple',
+      icon: medicineBoxIcon2,
+      text: 'En Consulta',
+    },
+    completada: {
+      color: 'success',
+      icon: checkCircleIcon5,
+      text: 'Completada',
+    },
+    cancelada: {
+      color: 'error',
+      icon: closeCircleIcon2,
+      text: 'Cancelada',
+    },
+    no_asistio: {
+      color: 'default',
+      icon: closeCircleIcon2,
+      text: 'No Asistió',
+    },
+  };
+
+  const config = configs[estado] || configs.agendada;
+  return (
+    <Tag icon={config.icon} color={config.color}>
+      {config.text}
+    </Tag>
+  );
+};
+
+const getTipoColor = (tipo: TipoCita): string => {
+  const colores: Record<TipoCita, string> = {
+    primera_vez: 'cyan',
+    control: 'blue',
+    urgencia: 'red',
+    seguimiento: 'green',
+  };
+  return colores[tipo] || 'default';
+};
+
+const getTipoTexto = (tipo: TipoCita): string => {
+  const textos: Record<TipoCita, string> = {
+    primera_vez: 'Primera Vez',
+    control: 'Control',
+    urgencia: 'Urgencia',
+    seguimiento: 'Seguimiento',
+  };
+  return textos[tipo] || tipo;
+};
+
+const esAtrasada = (fechaCita: string, estado: EstadoCita): boolean => {
+  return (
+    dayjs(fechaCita).isBefore(dayjs(), 'day') &&
+    ['agendada', 'confirmada'].includes(estado)
+  );
+};
+
+const esHoy = (fechaCita: string): boolean => {
+  return dayjs(fechaCita).isSame(dayjs(), 'day');
+};
+
 const CitasPage: React.FC = () => {
   const navigate = useNavigate();
   const { message, modal } = useAntdApp();
   const { canAdd, canChange, canDelete } = usePermissions();
   const { user: currentUser } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [citas, setCitas] = useState<Cita[]>([]);
-  const [busqueda, setBusqueda] = useState('');
-  const [filtroEstado, setFiltroEstado] = useState<EstadoCita | ''>('');
-  const [filtroTipo, setFiltroTipo] = useState<TipoCita | ''>('');
-  const [filtroFecha, setFiltroFecha] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
-  const [estadisticas, setEstadisticas] = useState<EstadisticasCitas>({
-    total: 0,
-    agendadas: 0,
-    confirmadas: 0,
-    en_espera: 0,
-    en_consulta: 0,
-    completadas: 0,
-    canceladas: 0,
-    no_asistio: 0,
-    hoy: 0,
-    atrasadas: 0,
-    pendientes_confirmacion: 0,
+  interface CitasState {
+    loading: boolean;
+    citas: Cita[];
+    busqueda: string;
+    filtroEstado: EstadoCita | '';
+    filtroTipo: TipoCita | '';
+    filtroFecha: [dayjs.Dayjs, dayjs.Dayjs] | null;
+    estadisticas: EstadisticasCitas;
+    modalHorariosVisible: boolean;
+    drawerVistaRapidaVisible: boolean;
+    citaSeleccionada: Cita | null;
+  }
+
+  const [state, setState] = useState<CitasState>({
+    loading: false,
+    citas: [],
+    busqueda: '',
+    filtroEstado: '',
+    filtroTipo: '',
+    filtroFecha: null,
+    estadisticas: {
+      total: 0,
+      agendadas: 0,
+      confirmadas: 0,
+      en_espera: 0,
+      en_consulta: 0,
+      completadas: 0,
+      canceladas: 0,
+      no_asistio: 0,
+      hoy: 0,
+      atrasadas: 0,
+      pendientes_confirmacion: 0,
+    },
+    modalHorariosVisible: false,
+    drawerVistaRapidaVisible: false,
+    citaSeleccionada: null,
   });
 
-  const [modalHorariosVisible, setModalHorariosVisible] = useState(false);
-  // ✨ NUEVOS ESTADOS PARA DRAWER DE VISTA RÁPIDA
-  const [drawerVistaRapidaVisible, setDrawerVistaRapidaVisible] = useState(false);
-  const [citaSeleccionada, setCitaSeleccionada] = useState<Cita | null>(null);
+  const loading = state.loading;
+  const setLoading = (val: boolean) => setState((prev) => ({ ...prev, loading: val }));
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const citas = state.citas;
+  const setCitas = (val: Cita[]) => setState((prev) => ({ ...prev, citas: val }));
+
+  const busqueda = state.busqueda;
+  const setBusqueda = (val: string) => setState((prev) => ({ ...prev, busqueda: val }));
+
+  const filtroEstado = state.filtroEstado;
+  const setFiltroEstado = (val: EstadoCita | '') => setState((prev) => ({ ...prev, filtroEstado: val }));
+
+  const filtroTipo = state.filtroTipo;
+  const setFiltroTipo = (val: TipoCita | '') => setState((prev) => ({ ...prev, filtroTipo: val }));
+
+  const filtroFecha = state.filtroFecha;
+  const setFiltroFecha = (val: [dayjs.Dayjs, dayjs.Dayjs] | null) => setState((prev) => ({ ...prev, filtroFecha: val }));
+
+  const estadisticas = state.estadisticas;
+  const setEstadisticas = (val: EstadisticasCitas) => setState((prev) => ({ ...prev, estadisticas: val }));
+
+  const modalHorariosVisible = state.modalHorariosVisible;
+  const setModalHorariosVisible = (val: boolean) => setState((prev) => ({ ...prev, modalHorariosVisible: val }));
+
+  const drawerVistaRapidaVisible = state.drawerVistaRapidaVisible;
+  const setDrawerVistaRapidaVisible = (val: boolean) => setState((prev) => ({ ...prev, drawerVistaRapidaVisible: val }));
+
+  const citaSeleccionada = state.citaSeleccionada;
+  const setCitaSeleccionada = (val: Cita | null) => setState((prev) => ({ ...prev, citaSeleccionada: val }));
 
   const citasFiltradas = useMemo(() => {
     let resultado = [...citas];
@@ -188,8 +311,6 @@ const CitasPage: React.FC = () => {
 
   const cargarCitas = useCallback(async () => {
     setLoading(true);
-    const startTime = performance.now();
-
     try {
 
       // 🚀 PASO 1: Obtener primera página de cada endpoint para saber cuántas páginas hay
@@ -245,19 +366,15 @@ const CitasPage: React.FC = () => {
         return { ...cita, _uniqueRowKey: `cita-${cita.id}-${index}-${Date.now()}` };
       });
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-
       setCitas(citasEnriquecidas);
       calcularEstadisticas(citasEnriquecidas);
-      message.success(`${citasEnriquecidas.length} citas cargadas en ${loadTime}s`);
+      setLoadError(null);
     } catch (error) {
-      message.error('Error al cargar las citas');
+      setLoadError('No se pudieron cargar las citas. Verifique su conexión e intente nuevamente.');
     } finally {
       setLoading(false);
     }
-  }, [message, calcularEstadisticas]);
+  }, [calcularEstadisticas]);
 
   useEffect(() => {
     cargarCitas();
@@ -431,84 +548,6 @@ const CitasPage: React.FC = () => {
     }
   }, [citasFiltradas, message]);
 
-  const getEstadoTag = (estado: EstadoCita) => {
-    const configs: Record<EstadoCita, EstadoCitaConfig> = {
-      agendada: {
-        color: 'blue',
-        icon: calendarIcon4,
-        text: 'Agendada',
-      },
-      confirmada: {
-        color: 'processing',
-        icon: checkCircleIcon5,
-        text: 'Confirmada',
-      },
-      en_espera: {
-        color: 'warning',
-        icon: clockCircleIcon4,
-        text: 'En Espera',
-      },
-      en_consulta: {
-        color: 'purple',
-        icon: medicineBoxIcon2,
-        text: 'En Consulta',
-      },
-      completada: {
-        color: 'success',
-        icon: checkCircleIcon5,
-        text: 'Completada',
-      },
-      cancelada: {
-        color: 'error',
-        icon: closeCircleIcon2,
-        text: 'Cancelada',
-      },
-      no_asistio: {
-        color: 'default',
-        icon: closeCircleIcon2,
-        text: 'No Asistió',
-      },
-    };
-
-    const config = configs[estado] || configs.agendada;
-    return (
-      <Tag icon={config.icon} color={config.color}>
-        {config.text}
-      </Tag>
-    );
-  };
-
-  const getTipoColor = (tipo: TipoCita): string => {
-    const colores: Record<TipoCita, string> = {
-      primera_vez: 'cyan',
-      control: 'blue',
-      urgencia: 'red',
-      seguimiento: 'green',
-    };
-    return colores[tipo] || 'default';
-  };
-
-  const getTipoTexto = (tipo: TipoCita): string => {
-    const textos: Record<TipoCita, string> = {
-      primera_vez: 'Primera Vez',
-      control: 'Control',
-      urgencia: 'Urgencia',
-      seguimiento: 'Seguimiento',
-    };
-    return textos[tipo] || tipo;
-  };
-
-  const esAtrasada = (fechaCita: string, estado: EstadoCita): boolean => {
-    return (
-      dayjs(fechaCita).isBefore(dayjs(), 'day') &&
-      ['agendada', 'confirmada'].includes(estado)
-    );
-  };
-
-  const esHoy = (fechaCita: string): boolean => {
-    return dayjs(fechaCita).isSame(dayjs(), 'day');
-  };
-
   const getMenuAcciones = useCallback((record: Cita) => ({
     items: [
       ...(record.estado === 'agendada' ? [
@@ -610,12 +649,12 @@ const CitasPage: React.FC = () => {
             <strong>{record.paciente_info?.nombre_completo || 'No especificado'}</strong>
           </Space>
           {record.paciente_info?.id_clinico && (
-            <small style={{ color: '#8c8c8c' }}>ID: {record.paciente_info.id_clinico}</small>
+            <small style={{ color: '#8c8c8c' }}>ID: {record.paciente_info?.id_clinico}</small>
           )}
           {record.paciente_info?.telefono && (
             <Space size="small">
               <PhoneOutlined />
-              <small>{record.paciente_info.telefono}</small>
+              <small>{record.paciente_info?.telefono}</small>
             </Space>
           )}
         </Space>
@@ -744,6 +783,21 @@ const CitasPage: React.FC = () => {
           onLimpiar={limpiarFiltros}
         />
 
+        {loadError && (
+          <Alert
+            type="error"
+            showIcon
+            message="Error al cargar las citas"
+            description={loadError}
+            action={
+              <Button size="small" icon={reloadIcon} onClick={cargarCitas}>
+                Reintentar
+              </Button>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
         {/* Tabla */}
         <Table
           columns={columns}
@@ -769,11 +823,13 @@ const CitasPage: React.FC = () => {
         />
       </Card>
 
-      <GestionHorariosModal
-        open={modalHorariosVisible}
-        onCancel={() => setModalHorariosVisible(false)}
-        currentUser={(currentUser as any) ?? undefined}
-      />
+      {modalHorariosVisible && (
+        <GestionHorariosModal
+          open={modalHorariosVisible}
+          onCancel={() => setModalHorariosVisible(false)}
+          currentUser={(currentUser as any) ?? undefined}
+        />
+      )}
 
       <CitasDrawer
         visible={drawerVistaRapidaVisible}

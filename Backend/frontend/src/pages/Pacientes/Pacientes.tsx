@@ -52,7 +52,8 @@ import {
     Radio,
     Upload,
     List,
-    Calendar
+    Calendar,
+    theme
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -214,9 +215,24 @@ const CLOUD_UPLOAD_ICON = <CloudUploadOutlined />;
 const CLOUD_DOWNLOAD_ICON = <CloudDownloadOutlined />;
 const DATABASE_ICON_2 = <DatabaseOutlined />;
 
+const getEstadoCivilConGenero = (estadoCivil: string | undefined, genero: string | undefined): string => {
+  if (!estadoCivil) return 'N/A';
+  const esFemenino = genero === 'femenino';
+  switch (estadoCivil) {
+    case 'soltero': return esFemenino ? 'Soltera' : 'Soltero';
+    case 'casado': return esFemenino ? 'Casada' : 'Casado';
+    case 'divorciado': return esFemenino ? 'Divorciada' : 'Divorciado';
+    case 'viudo': return esFemenino ? 'Viuda' : 'Viudo';
+    case 'union_libre': return 'Unión Libre';
+    default: return estadoCivil;
+  }
+};
+
 const Pacientes: React.FC = () => {
     const navigate = useNavigate();
     const { message, modal } = useAntdApp();
+    // Tokens del tema activo — mantienen consistencia en modo claro/oscuro
+    const { token } = theme.useToken();
     const { canAdd, canChange, canDelete } = usePermissions();
 
     // --- ESTADOS GLOBALES ---
@@ -253,26 +269,6 @@ const Pacientes: React.FC = () => {
     const [form] = Form.useForm();
 
     // ✅ Función para mostrar estado civil según género
-    const getEstadoCivilConGenero = (estadoCivil: string | undefined, genero: string | undefined): string => {
-        if (!estadoCivil) return 'N/A';
-
-        const esFemenino = genero === 'femenino';
-
-        switch (estadoCivil) {
-            case 'soltero':
-                return esFemenino ? 'Soltera' : 'Soltero';
-            case 'casado':
-                return esFemenino ? 'Casada' : 'Casado';
-            case 'divorciado':
-                return esFemenino ? 'Divorciada' : 'Divorciado';
-            case 'viudo':
-                return esFemenino ? 'Viuda' : 'Viudo';
-            case 'union_libre':
-                return 'Unión Libre';
-            default:
-                return estadoCivil;
-        }
-    };
 
     // =============================================================================
     // 3. LÓGICA DE CARGA Y DATOS
@@ -339,7 +335,6 @@ const Pacientes: React.FC = () => {
      */
     const loadPacientes = useCallback(async () => {
         setLoading(true);
-        const startTime = performance.now();
 
         try {
 
@@ -372,10 +367,6 @@ const Pacientes: React.FC = () => {
             setPacientes(allPacientes);
             setTotalPacientes(allPacientes.length);
             calcularEstadisticas(allPacientes);
-
-            const endTime = performance.now();
-            const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-            message.success(`${allPacientes.length} pacientes cargados en ${loadTime}s`, 3);
 
             // Limpiar selecciones
             setSelectedRowKeys([]);
@@ -497,10 +488,10 @@ const Pacientes: React.FC = () => {
 
             if (editingPaciente) {
                 await api.put(`/pacientes/${editingPaciente.id}/`, payload);
-                message.success({ content: 'Paciente actualizado correctamente', icon: <CheckCircleOutlined style={{ color: '#52c41a' }} /> });
+                message.success({ content: 'Paciente actualizado correctamente', icon: <CheckCircleOutlined style={{ color: token.colorSuccess }} /> });
             } else {
                 await api.post('/pacientes/', payload);
-                message.success({ content: 'Paciente registrado exitosamente', icon: <CheckCircleOutlined style={{ color: '#52c41a' }} /> });
+                message.success({ content: 'Paciente registrado exitosamente', icon: <CheckCircleOutlined style={{ color: token.colorSuccess }} /> });
             }
 
             setModalVisible(false);
@@ -514,7 +505,7 @@ const Pacientes: React.FC = () => {
         } finally {
             setFormLoading(false);
         }
-    }, [form, editingPaciente, message, loadPacientes]);
+    }, [form, editingPaciente, message, loadPacientes, token]);
 
     const handleDelete = useCallback(async (id: number) => {
         try {
@@ -653,7 +644,7 @@ const Pacientes: React.FC = () => {
             render: (text: string, record: Paciente) => (
                 <div>
                     <Tag color="blue" style={{ marginRight: 0 }}>{text}</Tag>
-                    <div style={{ fontSize: '12px', color: '#999', marginTop: 4 }}>
+                    <div style={{ fontSize: '12px', color: token.colorTextTertiary, marginTop: 4 }}>
                         {dayjs(record.fecha_registro).format('DD/MM/YYYY')}
                     </div>
                 </div>
@@ -672,13 +663,13 @@ const Pacientes: React.FC = () => {
                         icon={USER_ICON}
                         src={record.foto_perfil}
                         style={{
-                            backgroundColor: record.genero === 'femenino' ? '#ffadd2' : '#1890ff',
+                            backgroundColor: record.genero === 'femenino' ? '#ffadd2' : token.colorPrimary,
                             marginRight: 12
                         }}
                     />
                     <div>
                         <Text strong style={{ fontSize: 15 }}>{record.nombre_completo}</Text>
-                        <div style={{ fontSize: 12, color: '#666' }}>
+                        <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
                             {record.edad} años • {record.genero === 'femenino' ? 'Mujer' : 'Hombre'}
                         </div>
                     </div>
@@ -691,7 +682,7 @@ const Pacientes: React.FC = () => {
             width: 130,
             render: (ci: string) => (
                 <Space>
-                    <IdcardOutlined style={{ color: '#1890ff' }} />
+                    <IdcardOutlined style={{ color: token.colorPrimary }} />
                     <Text copyable>{ci}</Text>
                 </Space>
             )
@@ -731,11 +722,11 @@ const Pacientes: React.FC = () => {
                                     🤰 GESTANDO
                                 </Tag>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#52c41a' }}>
+                            <div style={{ fontSize: '12px', color: token.colorSuccess }}>
                                 ✓ En Control Prenatal
                             </div>
                             {numeroGesta > 0 && (
-                                <Text style={{ fontSize: '12px', color: '#666' }}>
+                                <Text style={{ fontSize: '12px', color: token.colorTextSecondary }}>
                                     Gesta: {numeroGesta}
                                 </Text>
                             )}
@@ -832,7 +823,7 @@ const Pacientes: React.FC = () => {
                     <Space direction="vertical" size={4} style={{ width: '100%' }}>
                         {/* Tipo de Sangre */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <HeartFilled style={{ color: '#ff4d4f', fontSize: 12 }} />
+                            <HeartFilled style={{ color: token.colorError, fontSize: 12 }} />
                             {record.tipo_sangre ? (
                                 <Tag color="red" style={{ fontWeight: 'bold', margin: 0, fontSize: '12px' }}>
                                     {record.tipo_sangre}
@@ -845,7 +836,7 @@ const Pacientes: React.FC = () => {
 
                         {/* Peso y Altura */}
                         {(record.peso_kg || record.altura_cm) && (
-                            <div style={{ fontSize: '12px', color: '#666' }}>
+                            <div style={{ fontSize: '12px', color: token.colorTextSecondary }}>
                                 {record.peso_kg && <span>{record.peso_kg}kg</span>}
                                 {record.peso_kg && record.altura_cm && <span> • </span>}
                                 {record.altura_cm && <span>{record.altura_cm}cm</span>}
@@ -855,7 +846,7 @@ const Pacientes: React.FC = () => {
                         {/* IMC */}
                         {imc && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <Text strong style={{ fontSize: '12px', color: '#666' }}>IMC:</Text>
+                                <Text strong style={{ fontSize: '12px', color: token.colorTextSecondary }}>IMC:</Text>
                                 <Tag
                                     color={
                                         imc < 18.5 ? 'orange' :
@@ -958,7 +949,7 @@ const Pacientes: React.FC = () => {
                                 icon: <DeleteOutlined />,
                                 label: 'Eliminar Paciente',
                                 onClick: () => {
-                                    Modal.confirm({
+                                    modal.confirm({
                                         title: '⚠️ ¿Confirmar eliminación permanente del paciente?',
                                         content: (
                                             <div>
@@ -968,10 +959,10 @@ const Pacientes: React.FC = () => {
                                                     <li>ID Clínico: {record.id_clinico}</li>
                                                     <li>CI: {record.ci}</li>
                                                 </ul>
-                                                <p style={{ color: '#ff4d4f', fontWeight: 'bold', marginTop: 16 }}>
+                                                <p style={{ color: token.colorError, fontWeight: 'bold', marginTop: 16 }}>
                                                     ⚠️ ADVERTENCIA: Esta acción eliminará PERMANENTEMENTE:
                                                 </p>
-                                                <ul style={{ marginLeft: 20, color: '#ff4d4f' }}>
+                                                <ul style={{ marginLeft: 20, color: token.colorError }}>
                                                     <li>Toda la historia clínica del paciente</li>
                                                     <li>Todos los embarazos registrados</li>
                                                     <li>Todos los controles prenatales</li>
@@ -998,7 +989,7 @@ const Pacientes: React.FC = () => {
                 </Space>
             ),
         },
-    ], [canChange, canDelete, handleOpenEdit, navigate, handleExportPacientePDF, handleDelete]);
+    ], [canChange, canDelete, handleOpenEdit, navigate, handleExportPacientePDF, handleDelete, modal, token]);
 
     // =============================================================================
     // 7. RENDERIZADO DE INTERFAZ (JSX)
@@ -1017,24 +1008,24 @@ const Pacientes: React.FC = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
                             <Statistic title="Total Pacientes" value={stats.total} prefix={<TeamOutlined />} />
-                            <Progress percent={100} showInfo={false} strokeColor="#1890ff" size="small" />
+                            <Progress percent={100} showInfo={false} strokeColor={token.colorPrimary} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic title="Embarazos Activos" value={stats.embarazadas} prefix={<HeartOutlined style={{ color: '#ff4d4f' }} />} valueStyle={{ color: '#ff4d4f' }} />
-                            <Progress percent={(stats.embarazadas / stats.total) * 100} showInfo={false} strokeColor="#ff4d4f" size="small" />
+                            <Statistic title="Embarazos Activos" value={stats.embarazadas} prefix={<HeartOutlined style={{ color: token.colorError }} />} valueStyle={{ color: token.colorError }} />
+                            <Progress percent={(stats.embarazadas / stats.total) * 100} showInfo={false} strokeColor={token.colorError} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic title="Nuevos este Mes" value={stats.nuevosMes} prefix={<PlusOutlined style={{ color: '#52c41a' }} />} valueStyle={{ color: '#52c41a' }} />
-                            <Progress percent={stats.nuevosMes > 0 ? 100 : 0} showInfo={false} strokeColor="#52c41a" size="small" />
+                            <Statistic title="Nuevos este Mes" value={stats.nuevosMes} prefix={<PlusOutlined style={{ color: token.colorSuccess }} />} valueStyle={{ color: token.colorSuccess }} />
+                            <Progress percent={stats.nuevosMes > 0 ? 100 : 0} showInfo={false} strokeColor={token.colorSuccess} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic title="Promedio Edad" value={stats.promedioEdad} suffix="años" prefix={<InfoCircleOutlined style={{ color: '#faad14' }} />} />
+                            <Statistic title="Promedio Edad" value={stats.promedioEdad} suffix="años" prefix={<InfoCircleOutlined style={{ color: token.colorWarning }} />} />
                         </Card>
                     </Col>
                 </Row>
@@ -1047,7 +1038,7 @@ const Pacientes: React.FC = () => {
                     <Space size="middle" wrap>
                         <Input
                             placeholder="Buscar por nombre, CI o ID..."
-                            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                            prefix={<SearchOutlined style={{ color: token.colorTextQuaternary }} />}
                             onChange={e => setSearchText(e.target.value)}
                             style={{ width: 300 }}
                             size="large"
@@ -1082,10 +1073,10 @@ const Pacientes: React.FC = () => {
                             Agenda
                         </Button>
                         <Button icon={EXPORT_ICON_3} onClick={handleExport}>Exportar CSV</Button>
-                        <Button icon={FILE_EXCEL_ICON_2} onClick={handleExportExcel} style={{ backgroundColor: '#52c41a', color: 'white', borderColor: '#52c41a' }}>
+                        <Button icon={FILE_EXCEL_ICON_2} onClick={handleExportExcel} style={{ backgroundColor: token.colorSuccess, color: 'white', borderColor: token.colorSuccess }}>
                             Exportar Excel
                         </Button>
-                        <Button icon={FILE_PDF_ICON_4} onClick={handleExportPDF} style={{ backgroundColor: '#ff4d4f', color: 'white', borderColor: '#ff4d4f' }}>
+                        <Button icon={FILE_PDF_ICON_4} onClick={handleExportPDF} style={{ backgroundColor: token.colorError, color: 'white', borderColor: token.colorError }}>
                             Exportar PDF
                         </Button>
                         <Button icon={RELOAD_ICON_2} onClick={loadPacientes} loading={loading}>Recargar</Button>
@@ -1099,7 +1090,7 @@ const Pacientes: React.FC = () => {
 
                 {/* Panel de Filtros Avanzados (Colapsable) */}
                 {showFilters && (
-                    <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f0f0f0' }} className="animate-slide-down">
+                    <div style={{ marginTop: 20, paddingTop: 20, borderTop: `1px solid ${token.colorBorderSecondary}` }} className="animate-slide-down">
                         <Row gutter={[16, 16]}>
                             <Col span={6}>
                                 <Select
@@ -1399,7 +1390,7 @@ const Pacientes: React.FC = () => {
                                 <Avatar
                                     size={80}
                                     icon={selectedPaciente.genero === 'femenino' ? <WomanOutlined /> : <ManOutlined />}
-                                    style={{ backgroundColor: selectedPaciente.genero === 'femenino' ? '#ffadd2' : '#1890ff', marginBottom: 10 }}
+                                    style={{ backgroundColor: selectedPaciente.genero === 'femenino' ? '#ffadd2' : token.colorPrimary, marginBottom: 10 }}
                                 />
                                 <Title level={3} style={{ margin: 0 }}>{selectedPaciente.nombre_completo}</Title>
                                 <Text type="secondary">{selectedPaciente.id_clinico}</Text>
@@ -1665,7 +1656,7 @@ const Pacientes: React.FC = () => {
                                                     <Col><Text strong>{ciudad}</Text></Col>
                                                     <Col><Text>{count} pacientes ({percent.toFixed(1)}%)</Text></Col>
                                                 </Row>
-                                                <Progress percent={percent} strokeColor="#1890ff" showInfo={false} />
+                                                <Progress percent={percent} strokeColor={token.colorPrimary} showInfo={false} />
                                             </div>
                                         );
                                     })}
@@ -1699,7 +1690,7 @@ const Pacientes: React.FC = () => {
                                                 value={pacientes.filter(p => (p.edad || 0) >= 35 && p.embarazos_activos).length}
                                                 suffix="casos"
                                                 prefix={<WarningOutlined />}
-                                                valueStyle={{ color: '#cf1322' }}
+                                                valueStyle={{ color: token.colorError }}
                                             />
                                             <Text type="secondary">Mayor riesgo obstétrico</Text>
                                         </Card>
@@ -1775,7 +1766,7 @@ const Pacientes: React.FC = () => {
                                         beforeUpload={() => false}
                                     >
                                         <p className="ant-upload-drag-icon">
-                                            <InboxOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+                                            <InboxOutlined style={{ fontSize: 48, color: token.colorPrimary }} />
                                         </p>
                                         <p className="ant-upload-text">Click o arrastre el archivo aquí</p>
                                         <p className="ant-upload-hint">

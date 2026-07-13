@@ -26,13 +26,12 @@
  */
 
 import React, { useState, useReducer, useEffect, useCallback, useMemo } from 'react';
-import {
-  Card, Row, Col, Button, Space, Form, DatePicker, Select,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card, Row, Col, Button, Space, Form, DatePicker, Select,
   InputNumber, Divider, Statistic, Typography, Alert, Tabs,
-  Table, Tag, Progress, Tooltip, Badge, Modal, message, Empty,
+  Table, Tag, Progress, Tooltip, Badge, Modal, Empty,
   Timeline, Descriptions, Collapse, List, Radio, Checkbox, Switch,
-  Result, Steps, Popconfirm, Drawer, Input, Spin
-} from 'antd';
+  Result, Steps, Popconfirm, Drawer, Input, Spin} from "antd";
 import {
   CalculatorOutlined, CalendarOutlined, LineChartOutlined,
   HeartOutlined, SafetyOutlined, ExperimentOutlined,
@@ -50,8 +49,24 @@ import {
   TeamOutlined, UsergroupAddOutlined, FileOutlined, HistoryOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import calculoHistorialService, { TipoCalculadora } from '../../services/calculoHistorialService';
 
 const { Title, Text, Paragraph } = Typography;
+
+// Mapea las etiquetas usadas en esta pantalla al slug que espera el backend
+const TIPO_CALCULADORA_SLUG: Record<string, TipoCalculadora | undefined> = {
+  'Edad Gestacional': 'edad_gestacional',
+  'IMC y Peso': 'imc',
+  'Score de Bishop': 'bishop',
+  'Riesgo Preeclampsia': 'riesgo_preeclampsia',
+  'ILA': 'ila',
+  'Peso Fetal': 'peso_fetal',
+  'Score de Apgar': 'apgar',
+  'Capurro': 'capurro',
+  'ICC': 'icc',
+  'PA Media': 'pa_media',
+  'FC Máxima': 'fc_maxima',
+};
 
 interface ResultadoCalculo {
   id: string;
@@ -120,6 +135,7 @@ function resultadosReducer(state: ResultadosState, action: ResultadosAction): Re
 
 const CalculadorasPage: React.FC = () => {
   const [resultados, dispatchResultado] = useReducer(resultadosReducer, initialResultados);
+  const { message, modal } = useAntdApp();
   const {
     resultadoEG, resultadoIMC, resultadoBishop, resultadoPreeclampsia,
     resultadoILA, resultadoPesoFetal, resultadoApgar, resultadoCapurro,
@@ -148,7 +164,9 @@ const CalculadorasPage: React.FC = () => {
   const [formPesoFetal] = Form.useForm();
   const [formApgar] = Form.useForm();
 
-  // Guardar en historial
+  // Guardar en historial: localStorage como cache instantáneo/offline, y
+  // backend como fuente de verdad (antes solo se guardaba en localStorage y
+  // se perdía al cerrar sesión o cambiar de dispositivo).
   const guardarEnHistorial = (tipo: string, datos: any, resultado: any) => {
     const nuevoCalculo: ResultadoCalculo = {
       id: Date.now().toString(),
@@ -160,6 +178,16 @@ const CalculadorasPage: React.FC = () => {
     const nuevoHistorial = [nuevoCalculo, ...historial].slice(0, 50); // Máximo 50 registros
     setHistorial(nuevoHistorial);
     localStorage.setItem('calculadoras_historial:v1', JSON.stringify(nuevoHistorial));
+
+    const tipoCalculadora = TIPO_CALCULADORA_SLUG[tipo];
+    if (tipoCalculadora) {
+      calculoHistorialService.crear({
+        tipo_calculadora: tipoCalculadora,
+        inputs_json: datos,
+        resultado_json: resultado,
+        resultado_resumen: typeof resultado === 'string' ? resultado : JSON.stringify(resultado).slice(0, 250),
+      });
+    }
   };
 
   // CALCULADORA 1: EDAD GESTACIONAL Y FPP
@@ -1191,7 +1219,7 @@ const CalculadorasPage: React.FC = () => {
             Evaluación de dificultad respiratoria neonatal. Puntaje 0-10 (0: sin dificultad, 10: dificultad severa)
           </Paragraph>
           <Form layout="vertical" onFinish={(values) => {
-            const total = Object.values(values).reduce((acc: number, val) => acc + (val as number || 0), 0);
+            const total = Object.values(values).reduce((acc: number, val) => acc + (val as number || 0), 0) as number;
             const resultado = {
               puntos: total,
               gravedad: total === 0 ? 'Sin dificultad' : total <= 3 ? 'Leve' : total <= 6 ? 'Moderada' : 'Severa'
@@ -1245,7 +1273,7 @@ const CalculadorasPage: React.FC = () => {
             Evaluación de madurez neuromuscular y física del recién nacido
           </Paragraph>
           <Form layout="vertical" onFinish={(values) => {
-            const total = Object.values(values).reduce((acc: number, val) => acc + (val as number || 0), 0);
+            const total = Object.values(values).reduce((acc: number, val) => acc + (val as number || 0), 0) as number;
             const edadGestacional = 20 + (total * 2);
             const resultado = {
               puntos: total,
@@ -1397,7 +1425,7 @@ const CalculadorasPage: React.FC = () => {
                       size="small"
                       type="link"
                       onClick={() => {
-                        Modal.info({
+                        modal.info({
                           title: record.tipo,
                           content: (
                             <div>

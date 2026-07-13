@@ -9,8 +9,8 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Card,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card,
   Form,
   Input,
   Button,
@@ -21,7 +21,6 @@ import {
   Row,
   Col,
   Divider,
-  message,
   Alert,
   Radio,
   Collapse,
@@ -30,8 +29,7 @@ import {
   Typography,
   Table,
   Tag,
-  Tooltip,
-} from 'antd';
+  Tooltip} from "antd";
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -59,6 +57,7 @@ const SAVE_ICON_2 = <SaveOutlined />;
 
 const FormularioLaboratorio: React.FC = () => {
   const navigate = useNavigate();
+  const { message, modal } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const [form] = Form.useForm();
   const isEditing = !!id;
@@ -238,7 +237,7 @@ const FormularioLaboratorio: React.FC = () => {
         navigate(FRONTEND_ROUTES.DASHBOARD.LABORATORIO_DETALLE((response as any).id!));
       }, 1000);
     } catch (error: any) {
-      Modal.error({
+      modal.error({
         title: 'Error al guardar',
         content: error.response?.data?.detail || error.message || 'Error desconocido',
       });

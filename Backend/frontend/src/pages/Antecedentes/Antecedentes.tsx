@@ -18,12 +18,20 @@ import AntecedentesFormFields from './components/AntecedentesFormFields';
 dayjs.locale(es);
 
 const Antecedentes: React.FC = () => {
-  const [antecedentes, setAntecedentes] = useState<any[]>([]);
-  const [pacientes, setPacientes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [state, setState] = useState({
+    antecedentes: [] as any[],
+    pacientes: [] as any[],
+    loading: false,
+    searchText: '',
+    isModalVisible: false,
+    editingId: null as number | null,
+  });
+
+  const updateState = useCallback((update: Partial<typeof state>) => {
+    setState(prev => ({ ...prev, ...update }));
+  }, []);
+
+  const { antecedentes, pacientes, loading, searchText, isModalVisible, editingId } = state;
   const { message, modal } = useAntdApp();
   const [form] = Form.useForm();
 
@@ -36,24 +44,27 @@ const Antecedentes: React.FC = () => {
   };
 
   const loadAntecedentes = useCallback(async () => {
-    setLoading(true);
+    updateState({ loading: true });
     try {
       const data = await antecedentesService.listar();
-      setAntecedentes(Array.isArray(data) ? data : []);
+      updateState({ antecedentes: Array.isArray(data) ? data : [] });
     } catch (error) {
       message.error('Error al cargar antecedentes');
-      setAntecedentes([]);
+      updateState({ antecedentes: [] });
     } finally {
-      setLoading(false);
+      updateState({ loading: false });
     }
-  }, [message]);
+  }, [message, updateState]);
 
   const loadPacientes = useCallback(async () => {
     try {
       const data = await pacientesService.listar();
-      setPacientes(data);
-    } catch (error) { /* silencioso */ }
-  }, []);
+      updateState({ pacientes: data });
+    } catch (error) {
+      console.error('Error al cargar pacientes:', error);
+      message.error('No se pudo cargar la lista de pacientes');
+    }
+  }, [updateState, message]);
 
   useEffect(() => {
     loadAntecedentes();
@@ -80,8 +91,7 @@ const Antecedentes: React.FC = () => {
         await antecedentesService.crear(payload);
         message.success('Antecedente creado');
       }
-      setIsModalVisible(false);
-      setEditingId(null);
+      updateState({ isModalVisible: false, editingId: null });
       form.resetFields();
       loadAntecedentes();
     } catch (error) {
@@ -90,7 +100,6 @@ const Antecedentes: React.FC = () => {
   };
 
   const handleEdit = (record: any) => {
-    setEditingId(record.id);
     form.setFieldsValue({
       paciente: record.paciente_id || record.paciente,
       menarquia_edad: record.menarquia_edad,
@@ -106,7 +115,7 @@ const Antecedentes: React.FC = () => {
       inicio_vida_sexual_edad: record.inicio_vida_sexual_edad,
       numero_parejas_sexuales: record.numero_parejas_sexuales,
     });
-    setIsModalVisible(true);
+    updateState({ editingId: record.id, isModalVisible: true });
   };
 
   const getNombrePaciente = (record: any) => {
@@ -184,8 +193,8 @@ const Antecedentes: React.FC = () => {
       <StatsCards stats={stats} />
       <SearchBar
         searchText={searchText}
-        onSearchChange={setSearchText}
-        onNew={() => { setEditingId(null); form.resetFields(); setIsModalVisible(true); }}
+        onSearchChange={(val) => updateState({ searchText: val })}
+        onNew={() => { updateState({ editingId: null, isModalVisible: true }); form.resetFields(); }}
       />
       <Spin spinning={loading}>
         <Table
@@ -199,9 +208,9 @@ const Antecedentes: React.FC = () => {
       <Modal
         title={editingId ? 'Editar Antecedente Gineco-Obstétrico' : 'Nuevo Antecedente Gineco-Obstétrico'}
         open={isModalVisible}
-        onCancel={() => { setIsModalVisible(false); setEditingId(null); form.resetFields(); }}
+        onCancel={() => { updateState({ isModalVisible: false, editingId: null }); form.resetFields(); }}
         footer={[
-          <Button key="cancel" onClick={() => { setIsModalVisible(false); setEditingId(null); form.resetFields(); }}>Cancelar</Button>,
+          <Button key="cancel" onClick={() => { updateState({ isModalVisible: false, editingId: null }); form.resetFields(); }}>Cancelar</Button>,
           <Button key="submit" type="primary" onClick={() => form.submit()}>
             {editingId ? 'Actualizar' : 'Crear'}
           </Button>,

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card,
+import {Card,
   Row,
   Col,
   Button,
@@ -17,8 +16,7 @@ import {
   Alert,
   Space,
   Empty,
-  Progress,
-} from 'antd';
+  Progress} from "antd";
 import {
   UserOutlined,
   UploadOutlined,
@@ -30,7 +28,6 @@ import {
   IdcardOutlined,
   EditOutlined,
   KeyOutlined,
-  CameraOutlined,
   LogoutOutlined,
   CheckOutlined,
 } from '@ant-design/icons';
@@ -38,6 +35,7 @@ import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { useMessage } from '../hooks/useMessage';
 import { authService } from '../services/authService';
 import { usuariosService } from '../services/usuariosService';
+import dayjs from 'dayjs';
 
 // ═════════════════════════════════════════════════════════════════════════
 // TIPOS E INTERFACES
@@ -54,13 +52,12 @@ interface Usuario {
   rol: 'medico' | 'enfermero' | 'enfermera' | 'administrador' | 'paciente' | 'recepcion' | 'laboratorista';
   especialidad?: string;
   activo?: boolean;
-  foto_perfil?: string;
-  ultimo_acceso?: string;
-  fecha_registro?: string;
+  foto_url?: string | null;
+  last_login?: string | null;
+  fecha_creacion?: string;
 }
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 const tabDatosPersonales = <span><UserOutlined /> Datos Personales</span>;
 const tabSeguridad = <span><LockOutlined /> Seguridad</span>;
@@ -95,21 +92,27 @@ const Perfil: React.FC = () => {
   const fetchUserData = useCallback(async () => {
     setLoading(true);
     try {
-      const currentUser = await authService.getCurrentUser?.();
+      // usuariosService.getMe() pide /usuarios/me/ al backend: datos reales y
+      // actualizados (activo, last_login, foto_url). authService.getCurrentUser()
+      // solo lee el objeto cacheado en localStorage desde el login, por lo que
+      // mostraba "SUSPENDIDO"/"Nunca"/"N/A" aunque la base de datos tuviera
+      // los valores correctos.
+      const currentUser = await usuariosService.getMe();
       if (currentUser) {
-        setUser(currentUser);
+        setUser(currentUser as unknown as Usuario);
         formPerfil.setFieldsValue(currentUser);
 
-        // Si tiene foto, configurar el fileList para mostrarla
-        if (currentUser.foto_perfil) {
+        if (currentUser.foto_url) {
           setFileList([
             {
               uid: '-1',
               name: 'avatar.png',
               status: 'done',
-              url: currentUser.foto_perfil,
+              url: currentUser.foto_url,
             },
           ]);
+        } else {
+          setFileList([]);
         }
       }
     } catch (error: any) {
@@ -135,16 +138,28 @@ const Perfil: React.FC = () => {
         ...user,
         ...values,
         id: user.id,
-        username: user.username,
         email: user.email,
         rol: user.rol,
         activo: user.activo,
       };
 
-      await usuariosService.update(updatedUser.id, updatedUser);
+      // El archivo seleccionado en el Upload nunca se enviaba: solo se
+      // guardaba en el estado local del componente "fileList", asi que
+      // "Subir Foto" parecia funcionar pero nunca se persistia nada.
+      // beforeUpload guarda el RcFile crudo (es un File real) en fileList,
+      // no un originFileObj — solo aplica si es un archivo nuevo, no la
+      // foto remota ya existente (que llega como {url: foto_url}).
+      const candidato = fileList[0] as unknown as File | undefined;
+      const nuevaFoto = candidato instanceof File ? candidato : undefined;
+      const payload: any = { ...updatedUser };
+      if (nuevaFoto) {
+        payload.foto = nuevaFoto;
+      }
+
+      const guardado = await usuariosService.update(updatedUser.id, payload);
 
       message.success('Perfil actualizado correctamente');
-      setUser(updatedUser);
+      setUser({ ...updatedUser, foto_url: (guardado as any)?.foto_url ?? updatedUser.foto_url });
     } catch (error: any) {
       message.error(error.message || 'No se pudo actualizar el perfil');
     } finally {
@@ -261,18 +276,18 @@ const Perfil: React.FC = () => {
         className="shadow-md"
         style={{
           marginBottom: 24,
-          background: 'linear-gradient(to right, #fff, #f0f5ff)',
+          background: 'var(--bg-card)',
         }}
       >
         <Row align="middle" gutter={24}>
           <Col xs={24} sm={6} style={{ textAlign: 'center' }}>
             <Avatar
               size={100}
-              src={user.foto_perfil}
+              src={user.foto_url || undefined}
               icon={<UserOutlined />}
               style={{
-                border: '4px solid #fff',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                border: '4px solid var(--border-color)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
               }}
             />
           </Col>
@@ -281,7 +296,7 @@ const Perfil: React.FC = () => {
               {user.nombre} {user.apellido_paterno}
             </Title>
             <Text type="secondary" style={{ fontSize: 16 }}>
-              @{user.username}
+              {user.email}
             </Text>
             <div style={{ marginTop: 12 }}>
               <Tag color="blue" icon={<SafetyCertificateOutlined />}>
@@ -331,18 +346,10 @@ const Perfil: React.FC = () => {
                 {user.telefono || 'No registrado'}
               </Descriptions.Item>
               <Descriptions.Item label="Último Acceso">
-                <span suppressHydrationWarning>
-                  {user.ultimo_acceso
-                    ? new Date(user.ultimo_acceso).toISOString().slice(0, 16).replace('T', ' ')
-                    : 'Nunca'}
-                </span>
+                {user.last_login ? dayjs(user.last_login).format('DD/MM/YYYY HH:mm') : 'Nunca'}
               </Descriptions.Item>
               <Descriptions.Item label="Fecha Registro">
-                <span suppressHydrationWarning>
-                  {user.fecha_registro
-                    ? new Date(user.fecha_registro).toISOString().slice(0, 10)
-                    : 'N/A'}
-                </span>
+                {user.fecha_creacion ? dayjs(user.fecha_creacion).format('DD/MM/YYYY') : 'N/A'}
               </Descriptions.Item>
             </Descriptions>
 
@@ -359,236 +366,230 @@ const Perfil: React.FC = () => {
         {/* COLUMNA DERECHA: FORMULARIOS DE EDICIÓN */}
         <Col xs={24} lg={16}>
           <Card className="shadow-sm">
-            <Tabs defaultActiveKey="1">
-
-              {/* TAB 1: DATOS PERSONALES */}
-              <TabPane
-                tab={tabDatosPersonales}
-                key="1"
-              >
-                <Form
-                  form={formPerfil}
-                  layout="vertical"
-                  onFinish={handleUpdateProfile}
-                  initialValues={user}
-                >
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item
-                        name="nombre"
-                        label="Nombres"
-                        rules={[
-                          {
-                            required: true,
-                            message: 'Los nombres son obligatorios',
-                          },
-                        ]}
-                      >
-                        <Input prefix={<UserOutlined />} />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        name="apellido_paterno"
-                        label="Apellido Paterno"
-                        rules={[
-                          {
-                            required: true,
-                            message: 'El apellido paterno es obligatorio',
-                          },
-                        ]}
-                      >
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item
-                        name="apellido_materno"
-                        label="Apellido Materno"
-                      >
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item name="telefono" label="Teléfono">
-                        <Input prefix={<PhoneOutlined />} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item
-                    name="email"
-                    label="Correo Electrónico"
-                    rules={[
-                      {
-                        required: true,
-                        type: 'email',
-                        message: 'Ingrese un email válido',
-                      },
-                    ]}
+            <Tabs defaultActiveKey="1" items={[
+              {
+                key: "1",
+                label: tabDatosPersonales,
+                children: (
+                  <Form
+                    form={formPerfil}
+                    layout="vertical"
+                    onFinish={handleUpdateProfile}
+                    initialValues={user}
                   >
-                    <Input
-                      prefix={<MailOutlined />}
-                      disabled
-                      title="El email no puede ser modificado"
-                    />
-                  </Form.Item>
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          name="nombre"
+                          label="Nombres"
+                          rules={[
+                            {
+                              required: true,
+                              message: 'Los nombres son obligatorios',
+                            },
+                          ]}
+                        >
+                          <Input prefix={<UserOutlined />} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          name="apellido_paterno"
+                          label="Apellido Paterno"
+                          rules={[
+                            {
+                              required: true,
+                              message: 'El apellido paterno es obligatorio',
+                            },
+                          ]}
+                        >
+                          <Input />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          name="apellido_materno"
+                          label="Apellido Materno"
+                        >
+                          <Input />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item name="telefono" label="Teléfono">
+                          <Input prefix={<PhoneOutlined />} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
 
-                  <Form.Item label="Foto de Perfil">
-                    {uploadProgress > 0 && uploadProgress < 100 && (
-                      <Progress
-                        percent={uploadProgress}
-                        style={{ marginBottom: 12 }}
-                      />
-                    )}
-                    <Upload
-                      {...uploadProps}
-                      listType="picture-card"
-                      maxCount={1}
-                    >
-                      <div>
-                        <UploadOutlined style={{ fontSize: 24 }} />
-                        <div style={{ marginTop: 8 }}>Subir Foto</div>
-                      </div>
-                    </Upload>
-                    <Space style={{ marginTop: 8 }}>
-                      <Button size="small" icon={<CameraOutlined />}>
-                        Tomar Foto
-                      </Button>
-                      <Button size="small" icon={<UploadOutlined />}>
-                        Desde Archivo
-                      </Button>
-                    </Space>
-                  </Form.Item>
-
-                  <Form.Item>
-                    <Space>
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        icon={<SaveOutlined />}
-                        loading={updating}
-                      >
-                        Guardar Cambios
-                      </Button>
-                      <Button
-                        onClick={() => fetchUserData()}
-                        icon={<EditOutlined />}
-                      >
-                        Descartar
-                      </Button>
-                      <Button
-                        danger
-                        icon={<LogoutOutlined />}
-                        onClick={() => {
-                          authService.logout();
-                          window.location.href = '/login';
-                        }}
-                      >
-                        Cerrar Sesión
-                      </Button>
-                    </Space>
-                  </Form.Item>
-                </Form>
-              </TabPane>
-
-              {/* TAB 2: CAMBIAR CONTRASEÑA */}
-              <TabPane
-                tab={tabSeguridad}
-                key="2"
-              >
-                <Alert
-                  message="Zona de Seguridad"
-                  description="Asegúrese de usar una contraseña robusta con al menos 8 caracteres, letras, números y caracteres especiales."
-                  type="warning"
-                  showIcon
-                  style={{ marginBottom: 20 }}
-                />
-
-                <Form
-                  form={formPassword}
-                  layout="vertical"
-                  onFinish={handleChangePassword}
-                  style={{ maxWidth: 500 }}
-                >
-                  <Form.Item
-                    name="currentPassword"
-                    label="Contraseña Actual"
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Requerida para confirmar su identidad',
-                      },
-                    ]}
-                  >
-                    <Input.Password prefix={<LockOutlined />} />
-                  </Form.Item>
-
-                  <Divider />
-
-                  <Form.Item
-                    name="newPassword"
-                    label="Nueva Contraseña"
-                    rules={[
-                      {
-                        required: true,
-                        min: 8,
-                        message: 'Mínimo 8 caracteres',
-                      },
-                    ]}
-                  >
-                    <Input.Password prefix={<KeyOutlined />} />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="confirmPassword"
-                    label="Confirmar Nueva Contraseña"
-                    dependencies={['newPassword']}
-                    rules={[
-                      { required: true, message: 'Confirme la contraseña' },
-                      ({ getFieldValue }) => ({
-                        validator(_, value) {
-                          if (
-                            !value ||
-                            getFieldValue('newPassword') === value
-                          ) {
-                            return Promise.resolve();
-                          }
-                          return Promise.reject(
-                            new Error('Las contraseñas no coinciden')
-                          );
+                    <Form.Item
+                      name="email"
+                      label="Correo Electrónico"
+                      rules={[
+                        {
+                          required: true,
+                          type: 'email',
+                          message: 'Ingrese un email válido',
                         },
-                      }),
-                    ]}
-                  >
-                    <Input.Password prefix={<KeyOutlined />} />
-                  </Form.Item>
+                      ]}
+                    >
+                      <Input
+                        prefix={<MailOutlined />}
+                        disabled
+                        title="El email no puede ser modificado"
+                      />
+                    </Form.Item>
 
-                  <Form.Item>
-                    <Space>
-                      <Button
-                        type="primary"
-                        danger
-                        htmlType="submit"
-                        icon={<CheckOutlined />}
-                        loading={updating}
+                    <Form.Item label="Foto de Perfil">
+                      {uploadProgress > 0 && uploadProgress < 100 && (
+                        <Progress
+                          percent={uploadProgress}
+                          style={{ marginBottom: 12 }}
+                        />
+                      )}
+                      <Upload
+                        {...uploadProps}
+                        listType="picture-card"
+                        maxCount={1}
                       >
-                        Actualizar Contraseña
-                      </Button>
-                      <Button
-                        onClick={() => formPassword.resetFields()}
-                        icon={<EditOutlined />}
-                      >
-                        Limpiar
-                      </Button>
-                    </Space>
-                  </Form.Item>
-                </Form>
-              </TabPane>
+                        <div>
+                          <UploadOutlined style={{ fontSize: 24 }} />
+                          <div style={{ marginTop: 8 }}>Subir Foto</div>
+                        </div>
+                      </Upload>
+                      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
+                        JPG o PNG, máximo 2MB. Se guarda al hacer clic en "Guardar Cambios".
+                      </Text>
+                    </Form.Item>
 
-            </Tabs>
+                    <Form.Item>
+                      <Space>
+                        <Button
+                          type="primary"
+                          htmlType="submit"
+                          icon={<SaveOutlined />}
+                          loading={updating}
+                        >
+                          Guardar Cambios
+                        </Button>
+                        <Button
+                          onClick={() => fetchUserData()}
+                          icon={<EditOutlined />}
+                        >
+                          Descartar
+                        </Button>
+                        <Button
+                          danger
+                          icon={<LogoutOutlined />}
+                          onClick={() => {
+                            authService.logout();
+                            window.location.href = '/login';
+                          }}
+                        >
+                          Cerrar Sesión
+                        </Button>
+                      </Space>
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: "2",
+                label: tabSeguridad,
+                children: (
+                  <>
+                    <Alert
+                      message="Zona de Seguridad"
+                      description="Asegúrese de usar una contraseña robusta con al menos 8 caracteres, letras, números y caracteres especiales."
+                      type="warning"
+                      showIcon
+                      style={{ marginBottom: 20 }}
+                    />
+
+                    <Form
+                      form={formPassword}
+                      layout="vertical"
+                      onFinish={handleChangePassword}
+                      style={{ maxWidth: 500 }}
+                    >
+                      <Form.Item
+                        name="currentPassword"
+                        label="Contraseña Actual"
+                        rules={[
+                          {
+                            required: true,
+                            message: 'Requerida para confirmar su identidad',
+                          },
+                        ]}
+                      >
+                        <Input.Password prefix={<LockOutlined />} />
+                      </Form.Item>
+
+                      <Divider />
+
+                      <Form.Item
+                        name="newPassword"
+                        label="Nueva Contraseña"
+                        rules={[
+                          {
+                            required: true,
+                            min: 8,
+                            message: 'Mínimo 8 caracteres',
+                          },
+                        ]}
+                      >
+                        <Input.Password prefix={<KeyOutlined />} />
+                      </Form.Item>
+
+                      <Form.Item
+                        name="confirmPassword"
+                        label="Confirmar Nueva Contraseña"
+                        dependencies={['newPassword']}
+                        rules={[
+                          { required: true, message: 'Confirme la contraseña' },
+                          ({ getFieldValue }) => ({
+                            validator(_, value) {
+                              if (
+                                !value ||
+                                getFieldValue('newPassword') === value
+                              ) {
+                                return Promise.resolve();
+                              }
+                              return Promise.reject(
+                                new Error('Las contraseñas no coinciden')
+                              );
+                            },
+                          }),
+                        ]}
+                      >
+                        <Input.Password prefix={<KeyOutlined />} />
+                      </Form.Item>
+
+                      <Form.Item>
+                        <Space>
+                          <Button
+                            type="primary"
+                            danger
+                            htmlType="submit"
+                            icon={<CheckOutlined />}
+                            loading={updating}
+                          >
+                            Actualizar Contraseña
+                          </Button>
+                          <Button
+                            onClick={() => formPassword.resetFields()}
+                            icon={<EditOutlined />}
+                          >
+                            Limpiar
+                          </Button>
+                        </Space>
+                      </Form.Item>
+                    </Form>
+                  </>
+                )
+              }
+            ]} />
           </Card>
         </Col>
       </Row>

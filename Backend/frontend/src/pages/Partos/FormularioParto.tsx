@@ -135,7 +135,7 @@ const FormularioParto: React.FC = () => {
       });
     }
     setRecomendaciones(recs);
-  }, [tipoEvento, tipoEventoManual]);
+  }, [tipoEvento, tipoEventoManual, message]);
 
   const cargarEmbarazo = useCallback(async (embarazoId: number) => {
     loadingDataRef.current = true;
@@ -163,7 +163,7 @@ const FormularioParto: React.FC = () => {
     } finally {
       loadingDataRef.current = false;
     }
-  }, [form, calcularAlertasYRecomendaciones]);
+  }, [form, calcularAlertasYRecomendaciones, message]);
 
   const cargarParto = useCallback(async (partoId: number) => {
     loadingDataRef.current = true;
@@ -225,7 +225,7 @@ const FormularioParto: React.FC = () => {
     } finally {
       loadingDataRef.current = false;
     }
-  }, [form, calcularAlertasYRecomendaciones]);
+  }, [form, calcularAlertasYRecomendaciones, message]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -238,7 +238,7 @@ const FormularioParto: React.FC = () => {
     } catch (error) {
       message.error('Error al cargar datos iniciales');
     }
-  }, []);
+  }, [message]);
 
   const initializeData = useCallback(async () => {
     await fetchData();
