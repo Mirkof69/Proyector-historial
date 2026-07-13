@@ -10,26 +10,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
-import {Card,
-  Form,
-  Input,
-  Button,
-  Select,
-  DatePicker,
-  InputNumber,
-  Space,
-  Row,
-  Col,
-  Divider,
-  Alert,
-  Radio,
-  Collapse,
-  Spin,
-  Modal,
-  Typography,
-  Table,
-  Tag,
-  Tooltip} from "antd";
+import { Card, Form, Input, Button, Space, Row, Col, Divider, Alert, Spin, Typography, Table, Tooltip } from "antd";
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -44,10 +25,11 @@ import dayjs from 'dayjs';
 import { laboratorioService, TipoExamen, ValorReferencia, ResultadoLaboratorio } from '../../services/laboratorioService';
 import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
+import { buildColumnasResultados } from './components/columnasResultadosLab';
+import DatosGeneralesLab from './components/DatosGeneralesLab';
 
 const { TextArea } = Input;
-const { Title, Paragraph, Text } = Typography;
-const { Option } = Select;
+const { Title, Paragraph } = Typography;
 
 const ARROW_LEFT_ICON_2 = <ArrowLeftOutlined />;
 const WARNING_ICON_4 = <WarningOutlined />;
@@ -258,87 +240,7 @@ const FormularioLaboratorio: React.FC = () => {
     );
   }
 
-  const columnsResultados = [
-    {
-      title: 'Parámetro',
-      key: 'parametro',
-      render: (_: any, __: any, index: number) => {
-        const vr = valoresReferencia.find(
-          (v) => v.id === resultados[index]?.valor_referencia
-        );
-        return vr?.parametro || '-';
-      },
-    },
-    {
-      title: 'Valor',
-      key: 'valor',
-      render: (_: any, __: any, index: number) => {
-        const vr = valoresReferencia.find(
-          (v) => v.id === resultados[index]?.valor_referencia
-        );
-        return (
-          <Space>
-            {vr?.unidad === 'cualitativo' ? (
-              <Input
-                placeholder="Ej: Negativo"
-                value={resultados[index]?.valor_texto}
-                onChange={(e) =>
-                  handleResultadoChange(index, 'valor_texto', e.target.value)
-                }
-              />
-            ) : (
-              <InputNumber
-                style={{ width: 120 }}
-                placeholder="Valor"
-                value={resultados[index]?.valor_numerico}
-                onChange={(value) =>
-                  handleResultadoChange(index, 'valor_numerico', value)
-                }
-              />
-            )}
-            {vr?.unidad !== 'cualitativo' && <Text type="secondary">{vr?.unidad}</Text>}
-          </Space>
-        );
-      },
-    },
-    {
-      title: 'Rango Normal',
-      key: 'rango',
-      render: (_: any, __: any, index: number) => {
-        const vr = valoresReferencia.find(
-          (v) => v.id === resultados[index]?.valor_referencia
-        );
-        return vr?.rango_normal || '-';
-      },
-    },
-    {
-      title: 'Estado',
-      key: 'estado',
-      render: (_: any, __: any, index: number) => {
-        const resultado = resultados[index];
-        if (resultado?.es_critico) {
-          return <Tag color="red">CRÍTICO</Tag>;
-        }
-        if (!resultado?.es_normal) {
-          return <Tag color="orange">ANORMAL</Tag>;
-        }
-        return <Tag color="green">NORMAL</Tag>;
-      },
-    },
-    {
-      title: 'Observaciones',
-      key: 'observaciones',
-      render: (_: any, __: any, index: number) => (
-        <Input
-          placeholder="Observaciones"
-          value={resultados[index]?.observaciones}
-          onChange={(e) =>
-            handleResultadoChange(index, 'observaciones', e.target.value)
-          }
-        />
-      ),
-    },
-  ];
+  const columnsResultados = buildColumnasResultados(valoresReferencia, resultados, handleResultadoChange);
 
   return (
     <div className="formulario-laboratorio-container">
@@ -397,116 +299,10 @@ const FormularioLaboratorio: React.FC = () => {
           </Paragraph>
 
           {/* DATOS GENERALES */}
-          <Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}
-            items={[{
-              key: '1',
-              label: 'Datos Generales',
-              children: (
-                <>
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="paciente"
-                        label="Paciente"
-                        rules={[{ required: true, message: 'Seleccione un paciente' }]}
-                      >
-                        <Select
-                          placeholder="Seleccione un paciente"
-                          showSearch
-                          optionFilterProp="children"
-                          filterOption={(input, option) =>
-                            (option?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
-                          }
-                          options={pacientes.map((p) => ({
-                            label: `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''} - ${p.id_clinico}`,
-                            value: p.id,
-                          }))}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="tipo_examen"
-                        label="Tipo de Examen"
-                        rules={[{ required: true, message: 'Seleccione un tipo' }]}
-                      >
-                        <Select
-                          placeholder="Seleccione un tipo de examen"
-                          onChange={handleTipoExamenChange}
-                          options={tiposExamen.map((t) => ({
-                            label: `${t.nombre} (${t.codigo})`,
-                            value: t.id,
-                          }))}
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        name="fecha_solicitud"
-                        label="Fecha de Solicitud"
-                        rules={[{ required: true }]}
-                      >
-                        <DatePicker
-                          style={{ width: '100%' }}
-                          format="DD/MM/YYYY"
-                          showTime
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        name="prioridad"
-                        label={
-                          <Space>
-                            Prioridad
-                            <Tooltip title="Seleccione la urgencia con la que se requiere el resultado">
-                              <InfoCircleOutlined style={{ color: '#1890ff' }} />
-                            </Tooltip>
-                          </Space>
-                        }
-                        rules={[{ required: true }]}
-                      >
-                        <Radio.Group>
-                          <Radio value="normal">Normal</Radio>
-                          <Radio value="urgente">Urgente</Radio>
-                          <Radio value="stat">STAT</Radio>
-                        </Radio.Group>
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Form.Item name="estado" label="Estado">
-                        <Select>
-                          <Option value="solicitado">Solicitado</Option>
-                          <Option value="en_proceso">En Proceso</Option>
-                          <Option value="completado">Completado</Option>
-                          <Option value="cancelado">Cancelado</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="fecha_muestra" label="Fecha de Toma de Muestra">
-                        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" showTime />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="fecha_resultado" label="Fecha de Resultado">
-                        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" showTime />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item name="indicaciones" label="Indicaciones Clínicas">
-                    <TextArea rows={2} placeholder="Motivo de la solicitud..." />
-                  </Form.Item>
-                </>
-              )
-            }]}
+          <DatosGeneralesLab
+            pacientes={pacientes}
+            tiposExamen={tiposExamen}
+            onTipoExamenChange={handleTipoExamenChange}
           />
 
           <Divider />
@@ -574,4 +370,3 @@ const FormularioLaboratorio: React.FC = () => {
 };
 
 export default FormularioLaboratorio;
-
