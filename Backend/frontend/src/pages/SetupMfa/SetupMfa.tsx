@@ -15,40 +15,26 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
-import {Layout,
-  Card,
-  Button,
-  Typography,
-  Steps,
-  Alert,
-  Input,
-  Form,
-  Spin,
-  Space,
-  Divider,
-  Tag} from "antd";
+import { Layout, Card, Typography, Steps, Alert, Form, Divider, Tag } from "antd";
 import {
   QrcodeOutlined,
   KeyOutlined,
   CheckCircleOutlined,
-  MobileOutlined,
   SafetyOutlined,
   HeartOutlined,
-  CopyOutlined,
-  ReloadOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import type { MfaSetupResponse } from '../../services/authService';
 import { FRONTEND_ROUTES } from '../../config/routes';
+import PasoInicioMfa from './components/PasoInicioMfa';
+import PasoQrMfa from './components/PasoQrMfa';
+import PasoVerificacionMfa, { TotpConfirmForm } from './components/PasoVerificacionMfa';
+import PasoExitoMfa from './components/PasoExitoMfa';
 import './SetupMfa.css';
 
 const { Content, Header } = Layout;
 const { Title, Paragraph, Text } = Typography;
-
-interface TotpConfirmForm {
-  code: string;
-}
 
 const SetupMfa: React.FC = () => {
   const { message } = useAntdApp();
@@ -187,191 +173,31 @@ const SetupMfa: React.FC = () => {
             />
           )}
 
-          {/* ── PASO 0: Inicio ── */}
           {currentStep === 0 && (
-            <div style={{ textAlign: 'center' }}>
-              <Alert
-                message="¿Por qué necesito MFA?"
-                description="Como médico o administrador, accede a datos clínicos sensibles. MFA añade una segunda capa de seguridad que protege a sus pacientes."
-                type="info"
-                showIcon
-                style={{ marginBottom: 24, textAlign: 'left' }}
-              />
-              <Paragraph>
-                Necesitará instalar <strong>Google Authenticator</strong> o <strong>Authy</strong> en su teléfono.
-              </Paragraph>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Button
-                  type="primary"
-                  size="large"
-                  block
-                  icon={<QrcodeOutlined />}
-                  loading={loading}
-                  onClick={requestSetup}
-                  style={{ borderRadius: 8 }}
-                >
-                  Comenzar configuración
-                </Button>
-              </Space>
-            </div>
+            <PasoInicioMfa loading={loading} onComenzar={requestSetup} />
           )}
 
-          {/* ── PASO 1: QR Code ── */}
           {currentStep === 1 && (
-            <>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: 40 }}>
-                  <Spin size="large" />
-                  <Paragraph style={{ marginTop: 16 }}>Generando código QR seguro…</Paragraph>
-                </div>
-              ) : setupData && (
-                <div style={{ textAlign: 'center' }}>
-                  <Alert
-                    message="Paso 1: Escanee el código QR"
-                    description="Abra Google Authenticator → toque + → Escanear código QR."
-                    type="success"
-                    showIcon
-                    style={{ marginBottom: 20, textAlign: 'left' }}
-                  />
-
-                  {/* QR Image */}
-                  <div style={{
-                    display: 'inline-block',
-                    padding: 12,
-                    background: '#fff',
-                    borderRadius: 12,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    marginBottom: 20,
-                  }}>
-                    <img
-                      src={setupData.qr_code}
-                      alt="QR Code MFA"
-                      style={{ width: 200, height: 200, display: 'block' }}
-                    />
-                  </div>
-
-                  {/* Clave manual */}
-                  <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                    <MobileOutlined /> ¿No puede escanear? Use el código manual:
-                  </Paragraph>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: 8, marginBottom: 24
-                  }}>
-                    <Text
-                      code
-                      style={{ fontSize: 13, letterSpacing: '0.05em', userSelect: 'all' }}
-                    >
-                      {setupData.secret}
-                    </Text>
-                    <Button
-                      size="small"
-                      icon={<CopyOutlined />}
-                      onClick={copySecret}
-                      type="text"
-                    />
-                  </div>
-
-                  <Space>
-                    <Button icon={<ReloadOutlined />} onClick={requestSetup}>
-                      Regenerar QR
-                    </Button>
-                    <Button
-                      type="primary"
-                      icon={<KeyOutlined />}
-                      onClick={() => setCurrentStep(2)}
-                      style={{ borderRadius: 8 }}
-                    >
-                      Ya escaneé el QR →
-                    </Button>
-                  </Space>
-                </div>
-              )}
-            </>
+            <PasoQrMfa
+              loading={loading}
+              setupData={setupData}
+              onRegenerar={requestSetup}
+              onContinuar={() => setCurrentStep(2)}
+              onCopySecret={copySecret}
+            />
           )}
 
-          {/* ── PASO 2: Verificación ── */}
           {currentStep === 2 && (
-            <>
-              <Alert
-                message="Paso 2: Ingrese el código de verificación"
-                description="Abra Google Authenticator y escriba el código de 6 dígitos que aparece para 'Fetal Medical Bolivia'."
-                type="info"
-                showIcon
-                style={{ marginBottom: 24 }}
-              />
-
-              <Form
-                form={confirmForm}
-                layout="vertical"
-                onFinish={onConfirmCode}
-              >
-                <Form.Item
-                  name="code"
-                  label="Código de verificación"
-                  rules={[
-                    { required: true, message: 'Ingrese el código TOTP.' },
-                    { pattern: /^\d{6}$/, message: 'El código debe ser de 6 dígitos numéricos.' },
-                  ]}
-                >
-                  <Input
-                    prefix={<KeyOutlined />}
-                    placeholder="000000"
-                    maxLength={6}
-                    size="large"
-                    inputMode="numeric"
-                    autoFocus={false}
-                    disabled={confirming}
-                    style={{
-                      letterSpacing: '0.05em',
-                      fontSize: '1.4rem',
-                      fontWeight: 700,
-                      textAlign: 'center',
-                    }}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      if (val.length === 6) {
-                        confirmForm.setFieldValue('code', val);
-                        setTimeout(() => confirmForm.submit(), 100);
-                      }
-                    }}
-                  />
-                </Form.Item>
-
-                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                  <Button onClick={() => setCurrentStep(1)}>← Volver al QR</Button>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    icon={<CheckCircleOutlined />}
-                    loading={confirming}
-                    size="large"
-                  >
-                    {confirming ? 'Verificando...' : 'Activar MFA'}
-                  </Button>
-                </Space>
-              </Form>
-            </>
+            <PasoVerificacionMfa
+              form={confirmForm}
+              confirming={confirming}
+              onConfirmCode={onConfirmCode}
+              onVolver={() => setCurrentStep(1)}
+            />
           )}
 
-          {/* ── PASO 3: Éxito ── */}
           {done && currentStep === 3 && (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 16 }} />
-              <Title level={3} style={{ color: '#52c41a' }}>¡MFA Activado!</Title>
-              <Paragraph>
-                Su cuenta ahora está protegida con autenticación de dos factores.
-                Será redirigido al sistema en unos segundos…
-              </Paragraph>
-              <Button
-                type="primary"
-                size="large"
-                onClick={() => navigate(FRONTEND_ROUTES.DASHBOARD.HOME, { replace: true })}
-                style={{ marginTop: 16 }}
-              >
-                Ir al Dashboard
-              </Button>
-            </div>
+            <PasoExitoMfa onIrDashboard={() => navigate(FRONTEND_ROUTES.DASHBOARD.HOME, { replace: true })} />
           )}
 
           <Divider />
