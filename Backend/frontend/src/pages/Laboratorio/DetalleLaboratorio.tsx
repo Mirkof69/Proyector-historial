@@ -7,7 +7,7 @@
  * =============================================================================
  */
 
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Card,
   Descriptions,
@@ -20,13 +20,7 @@ import {
   Divider,
   Spin,
   Typography,
-  Badge,
-  Modal,
-  Table,
-  Progress,
   Tooltip,
-  Statistic,
-  Tabs,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
@@ -36,12 +30,10 @@ import {
   DeleteOutlined,
   ExperimentOutlined,
   ExclamationCircleOutlined,
-  CheckCircleOutlined,
   InfoCircleOutlined,
   WarningOutlined,
   UserOutlined,
   CalendarOutlined,
-  LineChartOutlined,
   FormOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -49,65 +41,11 @@ import dayjs from 'dayjs';
 import { laboratorioService, ExamenLaboratorio } from '../../services/laboratorioService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import FormularioResultados from './FormularioResultados';
-import GraficoTendenciaLaboratorio from '../../components/GraficoTendenciaLaboratorio';
+import ResumenResultadosLab from './components/ResumenResultadosLab';
+import ResultadosLabTabs from './components/ResultadosLabTabs';
+import InfoAdicionalLab from './components/InfoAdicionalLab';
 
 const { Title, Text, Paragraph } = Typography;
-
-const tabResultadosDetallados = (
-  <span>
-    <ExperimentOutlined />
-    Resultados Detallados
-  </span>
-);
-
-const TabEstadisticasLabel = React.memo(({ count }: { count: number }) => (
-  <span>
-    <LineChartOutlined />
-    Análisis Estadístico ({count} exámenes previos)
-  </span>
-));
-
-// Función para interpretar resultados médicamente
-const interpretarResultado = (record: any): string => {
-  if (!record.valor_numerico || !record.rango_referencia) return '';
-
-  // Extraer min y max del rango (ej: "70 -125 mg/dL")
-  const match = record.rango_referencia.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
-  if (!match) return '';
-
-  const min = parseFloat(match[1]);
-  const max = parseFloat(match[2]);
-  const valor = record.valor_numerico;
-
-  if (valor < min) {
-    const diff = ((min - valor) / min * 100).toFixed(1);
-    return `${diff}% por debajo del mínimo`;
-  }
-  if (valor > max) {
-    const diff = ((valor - max) / max * 100).toFixed(1);
-    return `${diff}% por encima del máximo`;
-  }
-  return 'Dentro del rango esperado';
-};
-
-// Función para calcular porcentaje en rango
-const calcularPorcentajeEnRango = (record: any): number => {
-  if (!record.valor_numerico || !record.rango_referencia) return 0;
-
-  const match = record.rango_referencia.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
-  if (!match) return 50;
-
-  const min = parseFloat(match[1]);
-  const max = parseFloat(match[2]);
-  const valor = record.valor_numerico;
-
-  if (valor < min) return 25;
-  if (valor > max) return 75;
-
-  // Dentro del rango: calcular posición
-  const posicion = ((valor - min) / (max - min)) * 100;
-  return Math.min(100, Math.max(0, posicion));
-};
 
 const DetalleLaboratorio: React.FC = () => {
   const {modal,  message } = useAntdApp();
@@ -218,86 +156,6 @@ const DetalleLaboratorio: React.FC = () => {
       </Card>
     );
   }
-
-  const columnsResultados = [
-    {
-      title: 'Parámetro',
-      dataIndex: 'parametro_nombre',
-      key: 'parametro',
-      width: 180,
-    },
-    {
-      title: 'Valor Obtenido',
-      key: 'valor',
-      width: 150,
-      render: (record: any) => (
-        <Space direction="vertical" size={0}>
-          <Text strong style={{ fontSize: 16 }}>
-            {record.valor_numerico || record.valor_texto}{' '}
-            {record.unidad && record.unidad !== 'cualitativo' && `${record.unidad}`}
-          </Text>
-        </Space>
-      ),
-    },
-    {
-      title: 'Rango de Referencia',
-      key: 'rango',
-      width: 200,
-      render: (record: any) => (
-        <Space direction="vertical" size={4} style={{ width: '100%' }}>
-          <Text type="secondary">{record.rango_referencia || 'N/A'}</Text>
-          {record.valor_numerico && record.rango_referencia && (
-            <Progress
-              percent={calcularPorcentajeEnRango(record)}
-              size="small"
-              status={record.es_normal ? 'success' : record.es_critico ? 'exception' : 'normal'}
-              showInfo={false}
-            />
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: 'Interpretación',
-      key: 'interpretacion',
-      width: 250,
-      render: (record: any) => (
-        <Space direction="vertical" size={0}>
-          {record.es_critico && (
-            <>
-              <Tag color="red" icon={<WarningOutlined />}>CRÍTICO</Tag>
-              <Text type="danger" style={{ fontSize: 12 }}>
-                Requiere atención inmediata
-              </Text>
-            </>
-          )}
-          {!record.es_critico && !record.es_normal && (
-            <>
-              <Tag color="orange" icon={<ExclamationCircleOutlined />}>ANORMAL</Tag>
-              <Text type="warning" style={{ fontSize: 12 }}>
-                {interpretarResultado(record)}
-              </Text>
-            </>
-          )}
-          {record.es_normal && (
-            <>
-              <Tag color="green" icon={<CheckCircleOutlined />}>NORMAL</Tag>
-              <Text style={{ fontSize: 12, color: '#52c41a' }}>
-                Dentro del rango esperado
-              </Text>
-            </>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: 'Observaciones',
-      dataIndex: 'observaciones',
-      key: 'observaciones',
-      render: (text: string) => text || '-',
-    },
-  ];
-
 
   return (
     <div className="detalle-laboratorio-container">
@@ -442,132 +300,15 @@ const DetalleLaboratorio: React.FC = () => {
           </Card>
 
           {/* RESUMEN DE RESULTADOS */}
-          {examen.resumen && (
-            <Card
-              title={
-                <Space>
-                  <InfoCircleOutlined />
-                  Resumen de Resultados
-                </Space>
-              }
-              style={{ marginBottom: 16 }}
-            >
-              <Row gutter={[16, 16]}>
-                <Col xs={24} sm={12} md={6}>
-                  <Card>
-                    <Statistic
-                      title="Total Parámetros"
-                      value={examen.resumen.total_parametros}
-                      prefix={<ExperimentOutlined />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6}>
-                  <Card>
-                    <Statistic
-                      title="Normales"
-                      value={examen.resumen.normales}
-                      valueStyle={{ color: '#52c41a' }}
-                      prefix={<CheckCircleOutlined />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6}>
-                  <Card>
-                    <Statistic
-                      title="Anormales"
-                      value={examen.resumen.anormales}
-                      valueStyle={{ color: '#faad14' }}
-                      prefix={<ExclamationCircleOutlined />}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6}>
-                  <Card>
-                    <Statistic
-                      title="Críticos"
-                      value={examen.resumen.criticos}
-                      valueStyle={{ color: '#ff4d4f' }}
-                      prefix={<WarningOutlined />}
-                    />
-                  </Card>
-                </Col>
-              </Row>
-              <Divider />
-              <Progress
-                percent={examen.resumen.porcentaje_normalidad}
-                status={examen.resumen.porcentaje_normalidad >= 80 ? 'success' : examen.resumen.porcentaje_normalidad >= 50 ? 'normal' : 'exception'}
-                format={(percent) => `${percent}% de normalidad`}
-              />
-            </Card>
-          )}
+          {examen.resumen && <ResumenResultadosLab resumen={examen.resumen} />}
 
           {/* RESULTADOS DETALLADOS O FORMULARIO DE INGRESO */}
           {examen.resultados && examen.resultados.length > 0 ? (
-            <Card style={{ marginBottom: 16 }}>
-              <Tabs defaultActiveKey="resultados" items={[
-                {
-                  key: "resultados",
-                  label: tabResultadosDetallados,
-                  children: (
-                    <Table
-                      columns={columnsResultados}
-                      dataSource={examen.resultados}
-                      rowKey="id"
-                      pagination={false}
-                      bordered
-                    />
-                  )
-                },
-                ...(estadisticas && estadisticas.examenes_historicos && estadisticas.examenes_historicos.length > 0 ? [{
-                  key: "estadisticas",
-                  label: <TabEstadisticasLabel count={estadisticas?.total_historicos ?? 0} />,
-                  children: loadingEstadisticas ? (
-                    <div style={{ textAlign: 'center', padding: '50px 0' }}>
-                      <Spin tip="Cargando estadísticas…"><div /></Spin>
-                    </div>
-                  ) : (
-                    <Tabs tabPosition="left" items={
-                      examen.resultados.reduce((items: any[], resultado) => {
-                        const historicoParametro = estadisticas.examenes_historicos.reduce((acc: any[], exHist: any) => {
-                          const resultadoHist = exHist.resultados.find(
-                            (r: any) => r.parametro === resultado.parametro_nombre
-                          );
-                          if (resultadoHist && resultadoHist.valor_numerico !== null) {
-                            acc.push({
-                              fecha: exHist.fecha_resultado,
-                              valor: resultadoHist.valor_numerico,
-                            });
-                          }
-                          return acc;
-                        }, []);
-
-                        if (historicoParametro.length === 0) return items;
-
-                        const match = resultado.rango_referencia?.match(/(\\d+\\.?\\d*)\\s*-\\s*(\\d+\\.?\\d*)/);
-                        const valorMin = match ? parseFloat(match[1]) : undefined;
-                        const valorMax = match ? parseFloat(match[2]) : undefined;
-
-                        items.push({
-                          key: resultado.parametro_nombre,
-                          label: resultado.parametro_nombre,
-                          children: (
-                            <GraficoTendenciaLaboratorio
-                              parametro={resultado.parametro_nombre || ''}
-                              historico={historicoParametro}
-                              valorMinimo={valorMin}
-                              valorMaximo={valorMax}
-                              unidad={resultado.unidad}
-                            />
-                          )
-                        });
-                        return items;
-                      }, [])
-                    } />
-                  )
-                }] : [])
-              ]} />
-            </Card>
+            <ResultadosLabTabs
+              examen={examen}
+              estadisticas={estadisticas}
+              loadingEstadisticas={loadingEstadisticas}
+            />
           ) : examen.estado !== 'completado' ? (
             /* FORMULARIO PARA INGRESAR RESULTADOS */
             <Card
@@ -623,41 +364,7 @@ const DetalleLaboratorio: React.FC = () => {
         {/* COLUMNA DERECHA */}
         <Col xs={24} lg={8}>
           {/* INFORMACIÓN ADICIONAL */}
-          <Card
-            title={
-              <Space>
-                <InfoCircleOutlined />
-                Información Adicional
-              </Space>
-            }
-          >
-            <Descriptions column={1} bordered size="small">
-              {examen.dias_desde_solicitud !== undefined && (
-                <Descriptions.Item label="Días desde solicitud">
-                  <Badge count={examen.dias_desde_solicitud} showZero color={examen.dias_desde_solicitud > 3 ? 'red' : 'blue'} />
-                </Descriptions.Item>
-              )}
-              {examen.esta_vencido !== undefined && (
-                <Descriptions.Item label="Estado de tiempo">
-                  {examen.esta_vencido ? (
-                    <Tag color="red">Vencido</Tag>
-                  ) : (
-                    <Tag color="green">A tiempo</Tag>
-                  )}
-                </Descriptions.Item>
-              )}
-              <Descriptions.Item label="Fecha de Registro">
-                {examen.fecha_creacion
-                  ? dayjs(examen.fecha_creacion).format('DD/MM/YYYY HH:mm')
-                  : '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Última Modificación">
-                {examen.fecha_actualizacion
-                  ? dayjs(examen.fecha_actualizacion).format('DD/MM/YYYY HH:mm')
-                  : '-'}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
+          <InfoAdicionalLab examen={examen} />
         </Col>
       </Row>
     </div>
