@@ -11,213 +11,29 @@
 import React, { useReducer, useEffect, useCallback } from 'react';
 import {
   Form,
-  Input,
-  Select,
-  DatePicker,
-  TimePicker,
   Button,
   Card,
   Space,
-  Row,
-  Col,
   Alert,
   Spin,
   Steps,
-  Divider,
-  Tag,
-  Tooltip,
   Modal,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
-  SaveOutlined,
-  CloseOutlined,
   CalendarOutlined,
-  UserOutlined,
-  MedicineBoxOutlined,
-  HomeOutlined,
-  ClockCircleOutlined,
-  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { pacientesService } from '../../services/pacientesService';
 import { usuariosService } from '../../services/usuariosService';
 import { consultoriosService } from '../../services/consultoriosService';
-import { citasService, Cita, HorarioDisponible, EstadoCita } from '../../services/citasService';
+import { citasService, Cita, EstadoCita } from '../../services/citasService';
 import { FichaCita } from './FichaCita';
-
-const { Option } = Select;
-const { TextArea } = Input;
-// Step component disponible para API legacy, actualmente usando items API moderna
-const { Step } = Steps; // eslint-disable-line @typescript-eslint/no-unused-vars
-
-interface FormularioCitaState {
-  loading: boolean;
-  loadingHorarios: boolean;
-  pacientes: any[];
-  medicos: any[];
-  consultorios: any[];
-  horariosDisponibles: HorarioDisponible[];
-  medicoSeleccionado: number | null;
-  fechaSeleccionada: dayjs.Dayjs | null;
-  horaSeleccionada: dayjs.Dayjs | null;
-  modalFichaVisible: boolean;
-  citaCreada: Cita | null;
-  currentStep: number;
-}
-
-type FormularioCitaAction =
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_LOADING_HORARIOS'; payload: boolean }
-  | { type: 'SET_PACIENTES'; payload: any[] }
-  | { type: 'SET_MEDICOS'; payload: any[] }
-  | { type: 'SET_CONSULTORIOS'; payload: any[] }
-  | { type: 'SET_HORARIOS_DISPONIBLES'; payload: HorarioDisponible[] }
-  | { type: 'SET_MEDICO_SELECCIONADO'; payload: number | null }
-  | { type: 'SET_FECHA_SELECCIONADA'; payload: dayjs.Dayjs | null }
-  | { type: 'SET_HORA_SELECCIONADA'; payload: dayjs.Dayjs | null }
-  | { type: 'SET_MODAL_FICHA_VISIBLE'; payload: boolean }
-  | { type: 'SET_CITA_CREADA'; payload: Cita | null }
-  | { type: 'SET_CURRENT_STEP'; payload: number }
-  | { type: 'SET_INITIAL_DATA'; payload: { pacientes: any[]; medicos: any[]; consultorios: any[] } };
-
-const initialState: FormularioCitaState = {
-  loading: false,
-  loadingHorarios: false,
-  pacientes: [],
-  medicos: [],
-  consultorios: [],
-  horariosDisponibles: [],
-  medicoSeleccionado: null,
-  fechaSeleccionada: null,
-  horaSeleccionada: null,
-  modalFichaVisible: false,
-  citaCreada: null,
-  currentStep: 0,
-};
-
-function reducer(state: FormularioCitaState, action: FormularioCitaAction): FormularioCitaState {
-  switch (action.type) {
-    case 'SET_LOADING':
-      return { ...state, loading: action.payload };
-    case 'SET_LOADING_HORARIOS':
-      return { ...state, loadingHorarios: action.payload };
-    case 'SET_PACIENTES':
-      return { ...state, pacientes: action.payload };
-    case 'SET_MEDICOS':
-      return { ...state, medicos: action.payload };
-    case 'SET_CONSULTORIOS':
-      return { ...state, consultorios: action.payload };
-    case 'SET_HORARIOS_DISPONIBLES':
-      return { ...state, horariosDisponibles: action.payload };
-    case 'SET_MEDICO_SELECCIONADO':
-      return { ...state, medicoSeleccionado: action.payload };
-    case 'SET_FECHA_SELECCIONADA':
-      return { ...state, fechaSeleccionada: action.payload };
-    case 'SET_HORA_SELECCIONADA':
-      return { ...state, horaSeleccionada: action.payload };
-    case 'SET_MODAL_FICHA_VISIBLE':
-      return { ...state, modalFichaVisible: action.payload };
-    case 'SET_CITA_CREADA':
-      return { ...state, citaCreada: action.payload };
-    case 'SET_CURRENT_STEP':
-      return { ...state, currentStep: action.payload };
-    case 'SET_INITIAL_DATA':
-      return {
-        ...state,
-        pacientes: action.payload.pacientes,
-        medicos: action.payload.medicos,
-        consultorios: action.payload.consultorios,
-      };
-    default:
-      return state;
-  }
-}
-
-interface HorariosDisponiblesProps {
-  medicoSeleccionado: number | null;
-  fechaSeleccionada: dayjs.Dayjs | null;
-  loadingHorarios: boolean;
-  horariosDisponibles: HorarioDisponible[];
-  onHoraSelect: (hora: string) => void;
-}
-
-const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
-  medicoSeleccionado,
-  fechaSeleccionada,
-  loadingHorarios,
-  horariosDisponibles,
-  onHoraSelect,
-}) => {
-  if (!medicoSeleccionado || !fechaSeleccionada) {
-    return null;
-  }
-
-  if (loadingHorarios) {
-    return (
-      <Card size="small" title="Horarios Disponibles" style={{ marginTop: 16 }}>
-        <Spin />
-      </Card>
-    );
-  }
-
-  if (horariosDisponibles.length === 0) {
-    return null;
-  }
-
-  const disponibles = horariosDisponibles.filter(h => h.disponible);
-  const ocupados = horariosDisponibles.filter(h => !h.disponible);
-
-  return (
-    <Card size="small" title="Horarios Disponibles" style={{ marginTop: 16 }}>
-      {disponibles.length > 0 && (
-        <div style={{ marginBottom: 8 }}>
-          <strong>Disponibles:</strong>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-            {disponibles.map((h) => (
-              <Tag
-                key={h.hora}
-                color="green"
-                style={{ cursor: 'pointer' }}
-                onClick={() => onHoraSelect(h.hora)}
-              >
-                {h.hora}
-              </Tag>
-            ))}
-          </div>
-        </div>
-      )}
-      {ocupados.length > 0 && (
-        <div>
-          <strong>Ocupados:</strong>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-            {ocupados.map((h) => (
-              <Tooltip key={h.hora} title={h.motivo || 'No disponible'}>
-                <Tag color="red">{h.hora}</Tag>
-              </Tooltip>
-            ))}
-          </div>
-        </div>
-      )}
-    </Card>
-  );
-};
-
-const steps = [
-  {
-    title: 'Paciente y Médico',
-    description: 'Seleccione el paciente y el médico',
-  },
-  {
-    title: 'Fecha y Hora',
-    description: 'Programe la cita',
-  },
-  {
-    title: 'Detalles',
-    description: 'Complete la información',
-  },
-];
+import { reducer, initialState, steps } from './formularioCitaUtils';
+import StepPacienteMedico from './components/StepPacienteMedico';
+import StepFechaHora from './components/StepFechaHora';
+import StepDetalles from './components/StepDetalles';
 
 const FormularioCita: React.FC = () => {
   const [form] = Form.useForm();
@@ -400,8 +216,6 @@ const FormularioCita: React.FC = () => {
     return horario?.disponible !== false;
   };
 
-
-
   return (
     <div style={{ padding: 24 }}>
       <Card
@@ -442,299 +256,40 @@ const FormularioCita: React.FC = () => {
             >
               {/* Step 0: Paciente y Médico */}
               {state.currentStep === 0 && (
-                <>
-                  <Row gutter={16}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={
-                          <Space>
-                            <UserOutlined />
-                            <span>Paciente</span>
-                          </Space>
-                        }
-                        name="paciente"
-                        rules={[{ required: true, message: 'Seleccione el paciente' }]}
-                      >
-                        <Select
-                          placeholder="Buscar y seleccionar paciente"
-                          showSearch
-                          optionFilterProp="children"
-                          filterOption={(input, option) =>
-                            (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())
-                          }
-                        >
-                          {state.pacientes.map((p) => (
-                            <Option key={p.id} value={p.id}>
-                              {p.nombre} {p.apellido_paterno} {p.apellido_materno} - ID: {p.id_clinico || p.numero_documento}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={
-                          <Space>
-                            <MedicineBoxOutlined />
-                            <span>Médico</span>
-                          </Space>
-                        }
-                        name="medico"
-                        rules={[{ required: true, message: 'Seleccione el médico' }]}
-                      >
-                        <Select
-                          placeholder="Seleccionar médico"
-                          onChange={handleMedicoChange}
-                        >
-                          {state.medicos.map((m) => (
-                            <Option key={m.id} value={m.id}>
-                              Dr(a). {m.nombre} {m.apellido_paterno}
-                              {m.especialidad && ` - ${m.especialidad}`}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={16}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label="Tipo de Cita"
-                        name="tipo_cita"
-                        rules={[{ required: true, message: 'Seleccione el tipo de cita' }]}
-                      >
-                        <Select placeholder="Seleccionar tipo">
-                          <Option value="primera_vez">Primera Vez</Option>
-                          <Option value="control">Control</Option>
-                          <Option value="urgencia">Urgencia</Option>
-                          <Option value="seguimiento">Seguimiento</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={
-                          <Space>
-                            <HomeOutlined />
-                            <span>Consultorio (Opcional)</span>
-                          </Space>
-                        }
-                        name="consultorio"
-                      >
-                        <Select placeholder="Seleccionar consultorio" allowClear>
-                          {state.consultorios.map((c) => (
-                            <Option key={c.id} value={c.id}>
-                              {c.nombre} - {c.ubicacion}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Divider />
-                  <Row justify="end">
-                    <Col>
-                      <Button type="primary" onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 1 })}>
-                        Siguiente
-                      </Button>
-                    </Col>
-                  </Row>
-                </>
+                <StepPacienteMedico
+                  pacientes={state.pacientes}
+                  medicos={state.medicos}
+                  consultorios={state.consultorios}
+                  handleMedicoChange={handleMedicoChange}
+                  dispatch={dispatch}
+                />
               )}
 
               {/* Step 1: Fecha y Hora */}
               {state.currentStep === 1 && (
-                <>
-                  <Alert
-                    message="Programación de Cita"
-                    description="Seleccione la fecha y hora de la cita. Los horarios disponibles se mostrarán automáticamente."
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: 16 }}
-                  />
-
-                  <Row gutter={16}>
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label={
-                          <Space>
-                            <CalendarOutlined />
-                            <span>Fecha de la Cita</span>
-                          </Space>
-                        }
-                        name="fecha_cita"
-                        rules={[{ required: true, message: 'Seleccione la fecha' }]}
-                      >
-                        <DatePicker
-                          style={{ width: '100%' }}
-                          format="DD/MM/YYYY"
-                          disabledDate={(current) => current && current < dayjs().startOf('day')}
-                          onChange={handleFechaChange}
-                        />
-                      </Form.Item>
-                    </Col>
-
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label={
-                          <Space>
-                            <ClockCircleOutlined />
-                            <span>Hora de la Cita</span>
-                          </Space>
-                        }
-                        name="hora_cita"
-                        rules={[
-                          { required: true, message: 'Seleccione la hora' },
-                          {
-                            validator: (_, value) => {
-                              if (!value) return Promise.resolve();
-                              if (isHorarioDisponible(value)) {
-                                return Promise.resolve();
-                              }
-                              return Promise.reject(new Error('Este horario no está disponible'));
-                            },
-                          },
-                        ]}
-                      >
-                        <TimePicker
-                          style={{ width: '100%' }}
-                          format="HH:mm"
-                          minuteStep={15}
-                          disabled={!state.medicoSeleccionado || !state.fechaSeleccionada}
-                          onChange={handleHoraChange}
-                        />
-                      </Form.Item>
-                    </Col>
-
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label="Duración (minutos)"
-                        name="duracion"
-                        tooltip="Duración estimada de la consulta"
-                      >
-                        <Select>
-                          <Option value={15}>15 minutos</Option>
-                          <Option value={30}>30 minutos</Option>
-                          <Option value={45}>45 minutos</Option>
-                          <Option value={60}>1 hora</Option>
-                          <Option value={90}>1.5 horas</Option>
-                          <Option value={120}>2 horas</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <HorariosDisponibles
-                    medicoSeleccionado={state.medicoSeleccionado}
-                    fechaSeleccionada={state.fechaSeleccionada}
-                    loadingHorarios={state.loadingHorarios}
-                    horariosDisponibles={state.horariosDisponibles}
-                    onHoraSelect={handleHoraSelect}
-                  />
-
-                  <Divider />
-                  <Row justify="space-between">
-                    <Col>
-                      <Button onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 0 })}>
-                        Anterior
-                      </Button>
-                    </Col>
-                    <Col>
-                      <Button type="primary" onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 2 })}>
-                        Siguiente
-                      </Button>
-                    </Col>
-                  </Row>
-                </>
+                <StepFechaHora
+                  medicoSeleccionado={state.medicoSeleccionado}
+                  fechaSeleccionada={state.fechaSeleccionada}
+                  loadingHorarios={state.loadingHorarios}
+                  horariosDisponibles={state.horariosDisponibles}
+                  handleFechaChange={handleFechaChange}
+                  handleHoraChange={handleHoraChange}
+                  handleHoraSelect={handleHoraSelect}
+                  isHorarioDisponible={isHorarioDisponible}
+                  dispatch={dispatch}
+                />
               )}
 
               {/* Step 2: Detalles */}
               {state.currentStep === 2 && (
-                <>
-                  {/* Resumen de Selección */}
-                  {state.horaSeleccionada && state.fechaSeleccionada && (
-                    <Alert
-                      message="Resumen de Cita"
-                      description={
-                        <>
-                          <strong>Fecha:</strong> {state.fechaSeleccionada.format('DD/MM/YYYY')} |
-                          <strong> Hora:</strong> {state.horaSeleccionada.format('HH:mm')}
-                        </>
-                      }
-                      type="info"
-                      showIcon
-                      style={{ marginBottom: 16 }}
-                    />
-                  )}
-                  <Row gutter={16}>
-                    <Col xs={24}>
-                      <Form.Item
-                        label={
-                          <Space>
-                            <InfoCircleOutlined />
-                            <span>Motivo de la Cita</span>
-                          </Space>
-                        }
-                        name="motivo"
-                        rules={[
-                          { required: true, message: 'Ingrese el motivo de la cita' },
-                          { min: 10, message: 'El motivo debe tener al menos 10 caracteres' },
-                        ]}
-                      >
-                        <TextArea
-                          rows={4}
-                          placeholder="Describa el motivo de la cita según lo referido por el paciente"
-                          maxLength={500}
-                          showCount
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={16}>
-                    <Col xs={24}>
-                      <Form.Item
-                        label="Observaciones Adicionales (Opcional)"
-                        name="observaciones"
-                      >
-                        <TextArea
-                          rows={3}
-                          placeholder="Observaciones adicionales sobre la cita"
-                          maxLength={500}
-                          showCount
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Divider />
-                  <Row justify="space-between">
-                    <Col>
-                      <Button onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 1 })}>
-                        Anterior
-                      </Button>
-                    </Col>
-                    <Col>
-                      <Space>
-                        <Button icon={<CloseOutlined />} onClick={handleCancel}>
-                          Cancelar
-                        </Button>
-                        <Button
-                          type="primary"
-                          htmlType="submit"
-                          loading={state.loading}
-                          icon={<SaveOutlined />}
-                        >
-                          {id ? 'Actualizar' : 'Crear'} Cita
-                        </Button>
-                      </Space>
-                    </Col>
-                  </Row>
-                </>
+                <StepDetalles
+                  horaSeleccionada={state.horaSeleccionada}
+                  fechaSeleccionada={state.fechaSeleccionada}
+                  loading={state.loading}
+                  id={id}
+                  handleCancel={handleCancel}
+                  dispatch={dispatch}
+                />
               )}
             </Form>
           </>
@@ -761,4 +316,3 @@ const FormularioCita: React.FC = () => {
 };
 
 export default FormularioCita;
-
