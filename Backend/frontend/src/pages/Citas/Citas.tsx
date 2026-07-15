@@ -16,32 +16,11 @@ import {
   Table,
   Button,
   Space,
-  Tag,
-  Tooltip,
-  Dropdown,
-  Divider,
   Alert,
   MenuProps,
 } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
 import {
-  EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  ReloadOutlined,
   CalendarOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  ExclamationCircleOutlined,
-  UserOutlined,
-  MedicineBoxOutlined,
-  WarningOutlined,
-  MoreOutlined,
-  PhoneOutlined,
-  BellOutlined,
-  FileExcelOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -58,122 +37,13 @@ import CitasAlerts from './components/CitasAlerts';
 import CitasFilters from './components/CitasFilters';
 import CitasQuickActions from './components/CitasQuickActions';
 import CitasDrawer from './components/CitasDrawer';
-
-interface EstadoCitaConfig {
-  color: string;
-  icon: React.ReactNode;
-  text: string;
-}
-
-interface EstadisticasCitas {
-  total: number;
-  agendadas: number;
-  confirmadas: number;
-  en_espera: number;
-  en_consulta: number;
-  completadas: number;
-  canceladas: number;
-  no_asistio: number;
-  hoy: number;
-  atrasadas: number;
-  pendientes_confirmacion: number;
-}
-
-const calendarIcon4 = <CalendarOutlined />;
-const clockCircleIcon4 = <ClockCircleOutlined />;
-const checkCircleIcon5 = <CheckCircleOutlined />;
-const closeCircleIcon2 = <CloseCircleOutlined />;
-const warningIcon3 = <WarningOutlined />;
-const userIcon2 = <UserOutlined />;
-const medicineBoxIcon2 = <MedicineBoxOutlined />;
-const moreIcon = <MoreOutlined />;
-const phoneIcon = <PhoneOutlined />;
-const bellIcon = <BellOutlined />;
-const fileExcelIcon2 = <FileExcelOutlined />;
-const eyeIcon3 = <EyeOutlined />;
-const editIcon3 = <EditOutlined />;
-const deleteIcon2 = <DeleteOutlined />;
-const plusIcon3 = <PlusOutlined />;
-const reloadIcon = <ReloadOutlined />;
-const exclamationIcon = <ExclamationCircleOutlined />;
-
-const getEstadoTag = (estado: EstadoCita) => {
-  const configs: Record<EstadoCita, EstadoCitaConfig> = {
-    agendada: {
-      color: 'blue',
-      icon: calendarIcon4,
-      text: 'Agendada',
-    },
-    confirmada: {
-      color: 'processing',
-      icon: checkCircleIcon5,
-      text: 'Confirmada',
-    },
-    en_espera: {
-      color: 'warning',
-      icon: clockCircleIcon4,
-      text: 'En Espera',
-    },
-    en_consulta: {
-      color: 'purple',
-      icon: medicineBoxIcon2,
-      text: 'En Consulta',
-    },
-    completada: {
-      color: 'success',
-      icon: checkCircleIcon5,
-      text: 'Completada',
-    },
-    cancelada: {
-      color: 'error',
-      icon: closeCircleIcon2,
-      text: 'Cancelada',
-    },
-    no_asistio: {
-      color: 'default',
-      icon: closeCircleIcon2,
-      text: 'No Asistió',
-    },
-  };
-
-  const config = configs[estado] || configs.agendada;
-  return (
-    <Tag icon={config.icon} color={config.color}>
-      {config.text}
-    </Tag>
-  );
-};
-
-const getTipoColor = (tipo: TipoCita): string => {
-  const colores: Record<TipoCita, string> = {
-    primera_vez: 'cyan',
-    control: 'blue',
-    urgencia: 'red',
-    seguimiento: 'green',
-  };
-  return colores[tipo] || 'default';
-};
-
-const getTipoTexto = (tipo: TipoCita): string => {
-  const textos: Record<TipoCita, string> = {
-    primera_vez: 'Primera Vez',
-    control: 'Control',
-    urgencia: 'Urgencia',
-    seguimiento: 'Seguimiento',
-  };
-  return textos[tipo] || tipo;
-};
-
-const esAtrasada = (fechaCita: string, estado: EstadoCita): boolean => {
-  return (
-    dayjs(fechaCita).isBefore(dayjs(), 'day') &&
-    ['agendada', 'confirmada'].includes(estado)
-  );
-};
-
-const esHoy = (fechaCita: string): boolean => {
-  return dayjs(fechaCita).isSame(dayjs(), 'day');
-};
+import {
+  EstadisticasCitas,
+  getEstadoTag, getTipoTexto, esAtrasada, esHoy,
+  checkCircleIcon5, closeCircleIcon2, userIcon2, medicineBoxIcon2, bellIcon,
+  reloadIcon, exclamationIcon,
+} from './citasUtils';
+import { buildCitasColumns } from './citasColumns';
 
 const CitasPage: React.FC = () => {
   const navigate = useNavigate();
@@ -600,147 +470,10 @@ const CitasPage: React.FC = () => {
     ]
   }) as MenuProps, [handleConfirmar, handleMarcarPresente, handleEnviarRecordatorio, handlePasarConsulta, handleCompletar, handleCancelar]);
 
-  const columns: ColumnsType<Cita> = useMemo(() => [
-    {
-      title: 'Fecha y Hora',
-      key: 'fecha_hora',
-      width: 180,
-      sorter: (a, b) => dayjs(`${a.fecha_cita} ${a.hora_cita}`).unix() - dayjs(`${b.fecha_cita} ${b.hora_cita}`).unix(),
-      defaultSortOrder: 'ascend',
-      render: (_, record: Cita) => {
-        const atrasada = esAtrasada(record.fecha_cita, record.estado);
-        const hoy = esHoy(record.fecha_cita);
-        return (
-          <Space direction="vertical" size="small">
-            <Space>
-              <CalendarOutlined style={{ color: atrasada ? '#ff4d4f' : hoy ? '#1890ff' : '#52c41a' }} />
-              <span style={{ color: atrasada ? '#ff4d4f' : 'inherit', fontWeight: hoy ? 600 : 500 }}>
-                {dayjs(record.fecha_cita).format('DD/MM/YYYY')}
-              </span>
-            </Space>
-            <Space>
-              <ClockCircleOutlined style={{ color: atrasada ? '#ff4d4f' : '#52c41a' }} />
-              <span style={{ color: atrasada ? '#ff4d4f' : 'inherit' }}>
-                {record.hora_cita.substring(0, 5)}
-              </span>
-            </Space>
-            {atrasada && (
-              <Tag icon={<WarningOutlined />} color="error" style={{ margin: 0 }}>
-                Atrasada
-              </Tag>
-            )}
-            {hoy && !atrasada && (
-              <Tag icon={<CalendarOutlined />} color="processing" style={{ margin: 0 }}>
-                Hoy
-              </Tag>
-            )}
-          </Space>
-        );
-      },
-    },
-    {
-      title: 'Paciente',
-      key: 'paciente',
-      width: 220,
-      render: (_, record: Cita) => (
-        <Space direction="vertical" size="small">
-          <Space>
-            <UserOutlined />
-            <strong>{record.paciente_info?.nombre_completo || 'No especificado'}</strong>
-          </Space>
-          {record.paciente_info?.id_clinico && (
-            <small style={{ color: '#8c8c8c' }}>ID: {record.paciente_info?.id_clinico}</small>
-          )}
-          {record.paciente_info?.telefono && (
-            <Space size="small">
-              <PhoneOutlined />
-              <small>{record.paciente_info?.telefono}</small>
-            </Space>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: 'Médico',
-      dataIndex: ['medico_info', 'nombre'],
-      key: 'medico',
-      width: 180,
-      render: (nombre: string) => (
-        <Space>
-          <MedicineBoxOutlined />
-          {nombre || 'No asignado'}
-        </Space>
-      ),
-    },
-    {
-      title: 'Tipo',
-      dataIndex: 'tipo_cita',
-      key: 'tipo_cita',
-      width: 120,
-      render: (tipo: TipoCita) => (
-        <Tag color={getTipoColor(tipo)}>{getTipoTexto(tipo)}</Tag>
-      ),
-    },
-    {
-      title: 'Motivo',
-      dataIndex: 'motivo',
-      key: 'motivo',
-      width: 200,
-      ellipsis: true,
-      render: (motivo: string) => (
-        <Tooltip title={motivo}>
-          <span>{motivo || '-'}</span>
-        </Tooltip>
-      ),
-    },
-    {
-      title: 'Estado',
-      dataIndex: 'estado',
-      key: 'estado',
-      width: 140,
-      render: (estado: EstadoCita) => getEstadoTag(estado),
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      fixed: 'right',
-      width: 180,
-      render: (_, record: Cita) => (
-        <Space size="small">
-          <Tooltip title="Ver detalle">
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              onClick={() => handleVerVistaRapida(record)}
-            />
-          </Tooltip>
-          {canChange('cita') && (
-            <Tooltip title="Editar">
-              <Button
-                type="link"
-                icon={<EditOutlined />}
-                onClick={() => handleEditar(record.id!)}
-                disabled={['completada', 'cancelada', 'no_asistio'].includes(record.estado)}
-              />
-            </Tooltip>
-          )}
-          <Dropdown menu={getMenuAcciones(record)} trigger={['click']}>
-            <Button type="link" icon={<MoreOutlined />} />
-          </Dropdown>
-          {canDelete('cita') && (
-            <Tooltip title="Eliminar">
-              <Button
-                type="link"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleEliminar(record)}
-              />
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-  ], [canChange, canDelete, handleVerVistaRapida, handleEditar, handleEliminar, getMenuAcciones]);
+  const columns = useMemo(
+    () => buildCitasColumns({ canChange, canDelete, handleVerVistaRapida, handleEditar, handleEliminar, getMenuAcciones }),
+    [canChange, canDelete, handleVerVistaRapida, handleEditar, handleEliminar, getMenuAcciones]
+  );
 
   if (loading && citas.length === 0) {
     return <GlobalLoader tip="Cargando agenda de citas…" />;
