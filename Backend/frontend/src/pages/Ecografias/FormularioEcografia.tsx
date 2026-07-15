@@ -17,38 +17,25 @@ import React, { useState, useEffect } from 'react';
 import {
   Card,
   Form,
-  Input,
   Button,
-  Select,
-  DatePicker,
-  InputNumber,
-  Row,
-  Col,
-  Space,
   Upload,
   message,
   Spin,
-  Divider,
   Typography,
   Tabs,
-  Checkbox,
-  Alert,
-  Radio,
-  Tooltip,
+  Row,
+  Col,
+  Space,
   Modal,
 } from 'antd';
 import {
   SaveOutlined,
   ArrowLeftOutlined,
-  UploadOutlined,
   FileImageOutlined,
   MedicineBoxOutlined,
   ExperimentOutlined,
   ScanOutlined,
-  FileTextOutlined,
   InfoCircleOutlined,
-  CalendarOutlined,
-  EyeOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -59,10 +46,14 @@ import { citasService } from '../../services/citasService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import { useAuth } from '../../hooks/useAuth';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
+import { calcularEdadGestacional, getBase64 } from './ecografiaFormUtils';
+import TabDatosGeneralesEco from './components/TabDatosGeneralesEco';
+import TabBiometriaEco from './components/TabBiometriaEco';
+import TabAnatomiaEco from './components/TabAnatomiaEco';
+import TabAnexosEco from './components/TabAnexosEco';
+import TabImagenesConclusionesEco from './components/TabImagenesConclusionesEco';
 
-const { Option } = Select;
-const { TextArea } = Input;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const tabDatosGenerales = <span><ScanOutlined />Datos Generales</span>;
 const tabBiometriaFetal = <span><MedicineBoxOutlined />Biometría Fetal</span>;
@@ -82,35 +73,6 @@ const tabImagenesConclusiones = (
 
 const ARROW_LEFT_ICON_5 = <ArrowLeftOutlined />;
 const SAVE_ICON_4 = <SaveOutlined />;
-const EYE_ICON_3 = <EyeOutlined />;
-const CALENDAR_ICON_6 = <CalendarOutlined />;
-
-// ── Helpers puros (nivel de módulo: identidad estable) ───────────────────────
-const calcularEdadGestacional = (fumStr: string, fechaEcoStr: string) => {
-  try {
-    const fum = dayjs(fumStr);
-    const fechaEco = dayjs(fechaEcoStr);
-
-    if (!fum.isValid() || !fechaEco.isValid()) return { semanas: 0, dias: 0 };
-
-    const diasTotales = fechaEco.diff(fum, 'days');
-    if (diasTotales < 0) return { semanas: 0, dias: 0 };
-
-    const semanas = Math.floor(diasTotales / 7);
-    const dias = diasTotales % 7;
-    return { semanas, dias };
-  } catch (error) {
-    return { semanas: 0, dias: 0 };
-  }
-};
-
-const getBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
 
 const FormularioEcografia: React.FC = () => {
   const navigate = useNavigate();
@@ -502,152 +464,43 @@ const FormularioEcografia: React.FC = () => {
               {
                 key: '1',
                 label: tabDatosGenerales,
-                children: <Card className="shadow-sm">
-                  <Row gutter={24}>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="paciente" label="Paciente" rules={[{ required: true, message: 'Seleccione un paciente' }]}>
-                        <Select placeholder="Buscar paciente..." showSearch filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())} onChange={handlePacienteChange} options={pacientes.map((p) => ({ label: `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''} - ${p.id_clinico}`, value: p.id }))} disabled={isEditing} />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="embarazo" label="Embarazo Asociado" rules={[{ required: true, message: 'Seleccione un embarazo' }]}>
-                        <Select placeholder={selectedPaciente ? 'Seleccione embarazo...' : 'Primero seleccione paciente'} disabled={!selectedPaciente || embarazos.length === 0 || isEditing} onChange={actualizarEdadGestacional} options={embarazos.map((e) => ({ label: `FUM: ${dayjs(e.fecha_ultima_menstruacion).format('DD/MM/YYYY')} - ${(e.estado || 'activo').toUpperCase()}`, value: e.id }))} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                  <Row gutter={24}>
-                    <Col xs={24} md={8}>
-                      <Form.Item name="fecha_ecografia" label="Fecha del Estudio" rules={[{ required: true, message: 'Requerido' }]}>
-                        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" onChange={actualizarEdadGestacional} />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Form.Item name="tipo_ecografia" label="Tipo de Ecografía" rules={[{ required: true, message: 'Requerido' }]}>
-                        <Select>{['primer_trimestre|Primer Trimestre (6-14 sem)','segundo_trimestre|Segundo Trimestre (14-28 sem)','tercer_trimestre|Tercer Trimestre (28-42 sem)','doppler|Doppler','morfologica|Morfológica','genetica|Genética','4d|Ecografía 4D'].map(o => { const [v,l]=o.split('|'); return <Option key={v} value={v}>{l}</Option>; })}</Select>
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Form.Item name="indicacion" label="Indicación Médica">
-                        <Select>{['control_rutina|Control de Rutina','sospecha_malformacion|Sospecha de Malformación','control_crecimiento|Control de Crecimiento','evaluacion_bienestar|Evaluación Bienestar Fetal','sangrado|Sangrado','screening_genetico|Screening Genético','doppler_fetal|Doppler Fetal','otro|Otro'].map(o => { const [v,l]=o.split('|'); return <Option key={v} value={v}>{l}</Option>; })}</Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                  <Divider orientation="left">Datos Básicos del Feto</Divider>
-                  {selectedEmbarazo && (
-                    <Alert message="Información del Embarazo" description={<Space direction="vertical" size="small" style={{ width: '100%' }}><Row gutter={16}><Col span={8}><Text strong>FUM:</Text> {dayjs(selectedEmbarazo.fecha_ultima_menstruacion).format('DD/MM/YYYY')}</Col><Col span={8}><Text strong>FPP:</Text> {selectedEmbarazo.fecha_probable_parto ? dayjs(selectedEmbarazo.fecha_probable_parto).format('DD/MM/YYYY') : 'No calculada'}</Col><Col span={8}><Text strong>Estado:</Text> {(selectedEmbarazo.estado || 'activo').toUpperCase()}</Col></Row><Row gutter={16}><Col span={12}><Text strong>Semanas actuales:</Text> {selectedEmbarazo.semanas_gestacion || 'N/A'}</Col><Col span={12}><Text strong>Tipo:</Text> {selectedEmbarazo.tipo_embarazo || 'único'}</Col></Row></Space>} type="info" showIcon style={{ marginBottom: 16 }} />
-                  )}
-                  <Row gutter={24}>
-                    <Col xs={24} md={6}><Form.Item name="edad_gestacional_semanas" label="Semanas (por Eco)" rules={[{ required: true, message: 'Requerido' }]} tooltip="Se autocompleta desde el embarazo, pero puede modificarse"><InputNumber min={4} max={43} style={{ width: '100%' }} placeholder="Autocompleta desde embarazo" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name="edad_gestacional_dias" label="Días" initialValue={0} tooltip="Se autocompleta desde el embarazo, pero puede modificarse"><InputNumber min={0} max={6} style={{ width: '100%' }} placeholder="Días adicionales" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name="numero_fetos" label="Número de Fetos"><InputNumber min={1} max={5} style={{ width: '100%' }} /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name="vitalidad_fetal" label="Vitalidad Fetal" valuePropName="checked"><Checkbox>Presente</Checkbox></Form.Item></Col>
-                  </Row>
-                  <Row gutter={24}>
-                    <Col xs={24} md={8}><Form.Item name="frecuencia_cardiaca_fetal" label="FCF (latidos/min)" rules={[{ type: 'number', min: 0, max: 250 }]}><InputNumber style={{ width: '100%' }} suffix="lpm" /></Form.Item></Col>
-                  </Row>
-                </Card>,
+                children: (
+                  <TabDatosGeneralesEco
+                    pacientes={pacientes}
+                    embarazos={embarazos}
+                    selectedPaciente={selectedPaciente}
+                    selectedEmbarazo={selectedEmbarazo}
+                    isEditing={isEditing}
+                    handlePacienteChange={handlePacienteChange}
+                    actualizarEdadGestacional={actualizarEdadGestacional}
+                  />
+                ),
               },
               {
                 key: '2',
                 label: tabBiometriaFetal,
-                children: <Card className="shadow-sm">
-                  <Alert message="Mediciones Biométricas" description="Ingrese las medidas en milímetros (mm). El peso fetal se calculará automáticamente si no se especifica." type="info" showIcon style={{ marginBottom: 24 }} />
-                  <Row gutter={24}>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'diametro_biparietal']} label="DBP (mm)"><InputNumber style={{ width: '100%' }} placeholder="Diámetro Biparietal" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'circunferencia_cefalica']} label="CC (mm)"><InputNumber style={{ width: '100%' }} placeholder="Circunferencia Cefálica" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'circunferencia_abdominal']} label="CA (mm)"><InputNumber style={{ width: '100%' }} placeholder="Circunferencia Abdominal" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'longitud_femur']} label="LF (mm)"><InputNumber style={{ width: '100%' }} placeholder="Longitud Fémur" /></Form.Item></Col>
-                  </Row>
-                  <Row gutter={24}>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'diametro_occipito_frontal']} label="DOF (mm)"><InputNumber style={{ width: '100%' }} placeholder="Diámetro Occípito-Frontal" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'longitud_humero']} label="LH (mm)"><InputNumber style={{ width: '100%' }} placeholder="Longitud Húmero" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'diametro_transverso_cerebelo']} label="DTC (mm)"><InputNumber style={{ width: '100%' }} placeholder="Diámetro Cerebelo" /></Form.Item></Col>
-                    <Col xs={24} md={6}><Form.Item name={['biometria', 'cisterna_magna']} label="Cisterna Magna (mm)"><InputNumber style={{ width: '100%' }} /></Form.Item></Col>
-                  </Row>
-                  <Divider />
-                  <Row gutter={24}>
-                    <Col xs={24} md={8}><Form.Item name={['biometria', 'peso_fetal_estimado']} label="Peso Fetal Estimado (g)"><InputNumber style={{ width: '100%' }} suffix="g" /></Form.Item></Col>
-                    <Col xs={24} md={8}><Form.Item name={['biometria', 'percentil_peso']} label="Percentil de Peso"><InputNumber min={1} max={100} style={{ width: '100%' }} /></Form.Item></Col>
-                  </Row>
-                </Card>,
+                children: <TabBiometriaEco />,
               },
               {
                 key: '3',
                 label: tabAnatomiaFetal,
-                children: <Card className="shadow-sm">
-                  <Row gutter={24}>
-                    <Col xs={24} md={8}>
-                      <Title level={5}>Cabeza y Cuello</Title>
-                      <Form.Item name={['anatomia', 'craneo_normal']} valuePropName="checked"><Checkbox>Cráneo Normal</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'cerebro_normal']} valuePropName="checked"><Checkbox>Cerebro Normal</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'cerebelo_normal']} valuePropName="checked"><Checkbox>Cerebelo Normal</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'perfil_facial_normal']} valuePropName="checked"><Checkbox>Perfil Facial Normal</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'labios_normales']} valuePropName="checked"><Checkbox>Labios Normales</Checkbox></Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Title level={5}>Tórax y Abdomen</Title>
-                      <Form.Item name={['anatomia', 'corazon_normal']} valuePropName="checked"><Checkbox>Corazón Normal</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'pulmones_normales']} valuePropName="checked"><Checkbox>Pulmones Normales</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'estomago_normal']} valuePropName="checked"><Checkbox>Estómago Normal</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'rinones_normales']} valuePropName="checked"><Checkbox>Riñones Normales</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'vejiga_normal']} valuePropName="checked"><Checkbox>Vejiga Normal</Checkbox></Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Title level={5}>Esqueleto y Otros</Title>
-                      <Form.Item name={['anatomia', 'columna_normal']} valuePropName="checked"><Checkbox>Columna Vertebral Normal</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'extremidades_superiores_normales']} valuePropName="checked"><Checkbox>Extremidades Superiores</Checkbox></Form.Item>
-                      <Form.Item name={['anatomia', 'extremidades_inferiores_normales']} valuePropName="checked"><Checkbox>Extremidades Inferiores</Checkbox></Form.Item>
-                      <Divider />
-                      <Form.Item name={['anatomia', 'sexo_fetal']} label="Sexo Fetal"><Radio.Group><Radio value="masculino">Masculino</Radio><Radio value="femenino">Femenino</Radio><Radio value="indeterminado">Indeterminado</Radio></Radio.Group></Form.Item>
-                    </Col>
-                  </Row>
-                  <Divider />
-                  <Row gutter={24}>
-                    <Col xs={24} md={12}><Form.Item name={['anatomia', 'translucencia_nucal']} label="Translucencia Nucal (mm)"><InputNumber step={0.1} style={{ width: '100%' }} /></Form.Item></Col>
-                    <Col xs={24} md={12}><Form.Item name={['anatomia', 'hueso_nasal_presente']} valuePropName="checked"><Checkbox>Hueso Nasal Presente</Checkbox></Form.Item></Col>
-                  </Row>
-                  <Form.Item name={['anatomia', 'hallazgos_anormales']} label="Hallazgos Anormales / Observaciones Anatómicas"><TextArea rows={3} /></Form.Item>
-                </Card>,
+                children: <TabAnatomiaEco />,
               },
               {
                 key: '4',
                 label: tabAnexosFetales,
-                children: <Card className="shadow-sm">
-                  <Row gutter={24}>
-                    <Col xs={24} md={12}>
-                      <Title level={5}>Placenta</Title>
-                      <Form.Item name={['anexos', 'placenta_localizacion']} label="Localización"><Select><Option value="anterior">Anterior</Option><Option value="posterior">Posterior</Option><Option value="fundica">Fúndica</Option><Option value="lateral_derecha">Lateral Derecha</Option><Option value="lateral_izquierda">Lateral Izquierda</Option><Option value="previa_marginal">Previa Marginal</Option><Option value="previa_oclusiva">Previa Oclusiva Total</Option></Select></Form.Item>
-                      <Form.Item name={['anexos', 'grado_madurez_placenta']} label="Grado de Madurez (Grannum)"><Select><Option value={0}>Grado 0</Option><Option value={1}>Grado I</Option><Option value={2}>Grado II</Option><Option value={3}>Grado III</Option></Select></Form.Item>
-                      <Form.Item name={['anexos', 'placenta_previa']} valuePropName="checked"><Checkbox>Placenta Previa</Checkbox></Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Title level={5}>Líquido Amniótico y Cordón</Title>
-                      <Form.Item name={['anexos', 'liquido_amniotico_normal']} valuePropName="checked"><Checkbox>Líquido Amniótico Normal</Checkbox></Form.Item>
-                      <Row gutter={16}><Col span={12}><Form.Item name="indice_liquido_amniotico" label="ILA (cm)"><InputNumber step={0.1} style={{ width: '100%' }} /></Form.Item></Col><Col span={12}><Form.Item name="bolsillo_maximo" label="Bolsillo Máx (cm)"><InputNumber step={0.1} style={{ width: '100%' }} /></Form.Item></Col></Row>
-                      <Form.Item name={['anexos', 'numero_vasos_cordon']} label="Vasos del Cordón"><Radio.Group><Radio value={3}>3 Vasos</Radio><Radio value={2}>2 Vasos (AUU)</Radio></Radio.Group></Form.Item>
-                      <Form.Item name={['anexos', 'circular_cordon']} valuePropName="checked"><Checkbox>Circular de Cordón</Checkbox></Form.Item>
-                    </Col>
-                  </Row>
-                  <Divider />
-                  <Row gutter={24}><Col xs={24} md={12}><Form.Item name={['anexos', 'longitud_cervical']} label="Longitud Cervical (mm)"><InputNumber style={{ width: '100%' }} /></Form.Item></Col></Row>
-                </Card>,
+                children: <TabAnexosEco />,
               },
               {
                 key: '5',
                 label: tabImagenesConclusiones,
-                children: <div>
-                  <Card className="shadow-sm" title="Imágenes de la Ecografía" style={{ marginBottom: 24 }}>
-                    <Upload {...uploadProps}><div><UploadOutlined style={{ fontSize: 24 }} /><div style={{ marginTop: 8 }}>Click o arrastrar para subir</div></div></Upload>
-                  </Card>
-                  <Card className="shadow-sm" title={<Space><FileTextOutlined /> Conclusiones del Estudio</Space>} extra={<Tooltip title="Vista previa del diagnóstico"><Button type="text" icon={EYE_ICON_3} onClick={() => { const diagnostico = form.getFieldValue('diagnostico'); const observaciones = form.getFieldValue('observaciones'); Modal.info({ title: 'Vista Previa de Conclusiones', width: 600, content: (<div><div style={{ marginBottom: 16 }}><Text strong>Diagnóstico Ecográfico:</Text><div style={{ marginTop: 8, padding: '12px', backgroundColor: '#f5f5f5', borderRadius: 4 }}><Text>{diagnostico || 'No se ha registrado diagnóstico aún...'}</Text></div></div><div><Text strong>Observaciones y Recomendaciones:</Text><div style={{ marginTop: 8, padding: '12px', backgroundColor: '#f5f5f5', borderRadius: 4 }}><Text>{observaciones || 'No se han registrado observaciones...'}</Text></div></div></div>), }); }}>Vista Previa</Button></Tooltip>}>
-                    <Form.Item name="diagnostico" label="Diagnóstico Ecográfico" rules={[{ required: true, message: 'Requerido' }]}><TextArea rows={4} placeholder="Ej: Embarazo de 20 semanas con biometría acorde..." /></Form.Item>
-                    <Form.Item name="observaciones" label="Observaciones y Recomendaciones"><TextArea rows={3} /></Form.Item>
-                    <Row gutter={24}>
-                      <Col xs={24} md={8}><Form.Item name="requiere_seguimiento" valuePropName="checked"><Checkbox>Requiere Seguimiento Especial</Checkbox></Form.Item></Col>
-                      <Col xs={24} md={8}><Form.Item name="proxima_ecografia_recomendada" label="Próxima Ecografía Sugerida" tooltip="Seleccione una fecha y use el botón para agendar automáticamente"><Space.Compact style={{ width: '100%' }}><DatePicker style={{ width: '70%' }} format="DD/MM/YYYY" /><Tooltip title="Agendar cita en el calendario"><Button icon={CALENDAR_ICON_6} onClick={handleCrearCita} style={{ width: '30%' }}>Agendar</Button></Tooltip></Space.Compact></Form.Item></Col>
-                    </Row>
-                  </Card>
-                </div>,
+                children: (
+                  <TabImagenesConclusionesEco
+                    uploadProps={uploadProps}
+                    form={form}
+                    handleCrearCita={handleCrearCita}
+                  />
+                ),
               },
             ]}
           />
@@ -687,4 +540,3 @@ const FormularioEcografia: React.FC = () => {
 };
 
 export default FormularioEcografia;
-
