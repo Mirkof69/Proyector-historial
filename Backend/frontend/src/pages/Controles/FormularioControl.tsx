@@ -36,28 +36,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import {Form,
   Input,
-  InputNumber,
-  DatePicker,
   Button,
   Card,
-  Row,
-  Col,
-  Select,
-  Divider,
-  Alert,
   Space,
-  Typography,
-  Tag,
-  Modal} from "antd";
+  Typography} from "antd";
 import {
   SaveOutlined,
   CloseOutlined,
-  WarningOutlined,
   ArrowLeftOutlined,
   MedicineBoxOutlined,
-  InfoCircleOutlined,
-  CalendarOutlined,
-  HeartOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { controlesService } from '../../services/controlesService';
@@ -65,9 +52,16 @@ import { embarazosService, Embarazo } from '../../services/embarazosService';
 import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import dayjs from 'dayjs';
+import { getNombrePaciente } from './formularioControlUtils';
+import FormControlAlertasHeader from './components/FormControlAlertasHeader';
+import SeccionDatosControl from './components/SeccionDatosControl';
+import AlertaEdadGestacional from './components/AlertaEdadGestacional';
+import SeccionEdadGestacional from './components/SeccionEdadGestacional';
+import SeccionSignosVitales from './components/SeccionSignosVitales';
+import SeccionExamenObstetrico from './components/SeccionExamenObstetrico';
+import ModalConfirmacionSalida from './components/ModalConfirmacionSalida';
 
-const { Option } = Select;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { TextArea } = Input;
 
 const FormularioControl: React.FC = () => {
@@ -144,7 +138,7 @@ const FormularioControl: React.FC = () => {
         const embarazosData = await embarazosService.getAll();
         const embarazosActivos = embarazosData.filter((e: Embarazo) => e.estado === 'activo');
         setEmbarazos(embarazosActivos);
-        
+
         if (isEditing && id) {
           await loadControl(parseInt(id), embarazosActivos);
         } else {
@@ -156,65 +150,6 @@ const FormularioControl: React.FC = () => {
     };
     cargarTodo();
   }, [id, isEditing, loadControl]);
-
-  const getNombrePaciente = (embarazoId: number): string => {
-    const embarazo = embarazos.find((e) => e.id === embarazoId);
-
-    if (!embarazo) {
-      return 'Embarazo no encontrado';
-    }
-
-    // PRIORIDAD 1: Usar paciente_info del backend (nuevo formato)
-    if ((embarazo as any).paciente_info) {
-      const pacienteInfo = (embarazo as any).paciente_info;
-      const nombre = pacienteInfo.nombre || '';
-      const apellidoPaterno = pacienteInfo.apellido_paterno || '';
-      const apellidoMaterno = pacienteInfo.apellido_materno || '';
-      const idClinico = pacienteInfo.id_clinico || '';
-
-      const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-
-      if (nombreCompleto) {
-        return `${idClinico} - ${nombreCompleto}`;
-      }
-    }
-
-    // PRIORIDAD 2: Usar paciente_nombre del backend (formato: "ID - Nombre")
-    if ((embarazo as any).paciente_nombre) {
-      const nombreCompleto = (embarazo as any).paciente_nombre;
-      return nombreCompleto;
-    }
-
-    // PRIORIDAD 3: paciente es un objeto completo
-    if (typeof embarazo.paciente === 'object' && embarazo.paciente !== null) {
-      const paciente = embarazo.paciente as Paciente;
-      const nombre = paciente.nombre || '';
-      const apellidoPaterno = paciente.apellido_paterno || '';
-      const apellidoMaterno = paciente.apellido_materno || '';
-      const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-
-      if (nombreCompleto && paciente.id_clinico) {
-        return `${paciente.id_clinico} - ${nombreCompleto}`;
-      }
-    }
-
-    // PRIORIDAD 4: paciente es un ID numérico
-    if (typeof embarazo.paciente === 'number') {
-      const paciente = pacientes.find((p) => p.id === embarazo.paciente);
-      if (paciente) {
-        const nombre = paciente.nombre || '';
-        const apellidoPaterno = paciente.apellido_paterno || '';
-        const apellidoMaterno = paciente.apellido_materno || '';
-        const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-
-        if (nombreCompleto && paciente.id_clinico) {
-          return `${paciente.id_clinico} - ${nombreCompleto}`;
-        }
-      }
-    }
-
-    return 'Información no disponible';
-  };
 
   // ========== CALCULAR EDAD GESTACIONAL ==========
   const calcularSemanasGestacion = (embarazoId: number) => {
@@ -526,6 +461,10 @@ const FormularioControl: React.FC = () => {
     handleCancelRef.current = handleCancel;
   }, [handleCancel]);
 
+  const nombrePacienteSel = selectedEmbarazo
+    ? getNombrePaciente(selectedEmbarazo.id!, embarazos, pacientes)
+    : '';
+
   return (
     <div style={{ padding: '0 24px 24px' }}>
       <Button icon={<ArrowLeftOutlined />} onClick={handleCancelWithConfirmation} style={{ marginBottom: 16 }}>
@@ -551,55 +490,12 @@ const FormularioControl: React.FC = () => {
           />
         }
       >
-        {/* ========== INFORMACIÓN DEL EMBARAZO ========== */}
-        {selectedEmbarazo && (
-          <Alert
-            message="Información del Embarazo Seleccionado"
-            description={
-              <Space direction="vertical" size={0}>
-                <Text>
-                  <strong>Paciente:</strong> {getNombrePaciente(selectedEmbarazo.id!)}
-                </Text>
-                <Text>
-                  <strong>Gesta:</strong> G{selectedEmbarazo.numero_gesta}
-                </Text>
-                <Text>
-                  <strong>FPP:</strong>{' '}
-                  {dayjs(selectedEmbarazo.fecha_probable_parto).format('DD/MM/YYYY')}
-                </Text>
-                {edadGestacionalInfo && (
-                  <Text>
-                    <strong>Edad Gestacional:</strong> {edadGestacionalInfo}
-                  </Text>
-                )}
-              </Space>
-            }
-            type="info"
-            showIcon
-            icon={<InfoCircleOutlined />}
-            style={{ marginBottom: 16 }}
-          />
-        )}
-
-        {/* ========== ALERTAS ========== */}
-        {alertasPreliminares.length > 0 && (
-          <Alert
-            message={`⚠️ ${alertasPreliminares.length} Alerta(s) Clínica(s) Detectada(s)`}
-            description={
-              <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
-                {alertasPreliminares.map((alerta) => (
-                  <li key={alerta} style={{ marginBottom: 4 }}>
-                    {alerta}
-                  </li>
-                ))}
-              </ul>
-            }
-            type="error"
-            showIcon
-            icon={<WarningOutlined />}
-            style={{ marginBottom: 16 }}
-          />
-        )}
+        <FormControlAlertasHeader
+          selectedEmbarazo={selectedEmbarazo}
+          nombrePacienteSel={nombrePacienteSel}
+          edadGestacionalInfo={edadGestacionalInfo}
+          alertasPreliminares={alertasPreliminares}
+        />
 
         <Form
           form={form}
@@ -615,431 +511,26 @@ const FormularioControl: React.FC = () => {
           }}
           onValuesChange={handleValuesChange}
         >
-          {/* ========== DATOS DEL CONTROL ========== */}
-          <Divider orientation="left">
-            <Space>
-              <MedicineBoxOutlined />
-              Datos del Control
-            </Space>
-          </Divider>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="embarazo"
-                label="Embarazo"
-                rules={[{ required: true, message: 'Seleccione un embarazo' }]}
-              >
-                <Select
-                  placeholder="Seleccionar embarazo activo"
-                  showSearch
-                  filterOption={(input, option) => {
-                    const title = option?.title;
-                    if (typeof title === 'string') {
-                      return title.toLowerCase().includes(input.toLowerCase());
-                    }
-                    return false;
-                  }}
-                  onChange={calcularSemanasGestacion}
-                  disabled={isEditing}
-                  size="large"
-                >
-                  {embarazos.map((e) => {
-                    const nombrePaciente = getNombrePaciente(e.id!);
-                    return (
-                      <Option key={e.id} value={e.id} title={nombrePaciente}>
-                        <Space>
-                          <Tag color="blue">G{e.numero_gesta}</Tag>
-                          {nombrePaciente}
-                        </Space>
-                      </Option>
-                    );
-                  })}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item
-                name="numero_control"
-                label="N° Control"
-                rules={[{ required: true, message: 'Requerido' }]}
-              >
-                <InputNumber style={{ width: '100%' }} min={1} max={20} size="large" />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item
-                name="fecha_control"
-                label="Fecha del Control"
-                rules={[{ required: true, message: 'Requerido' }]}
-              >
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" size="large" />
-              </Form.Item>
-            </Col>
-          </Row>
+          <SeccionDatosControl
+            embarazos={embarazos}
+            pacientes={pacientes}
+            isEditing={isEditing}
+            calcularSemanasGestacion={calcularSemanasGestacion}
+          />
 
           {/* ========== 🆕 ALERTA INFORMATIVA SEGÚN EDAD GESTACIONAL ========== */}
-          {semanasGestacion > 0 && (
-            <Alert
-              message={
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <Text strong>
-                    📋 Campos Obligatorios según Edad Gestacional: {semanasGestacion} semanas
-                  </Text>
-                  {semanasGestacion < 12 && (
-                    <Text type="secondary">
-                      • Antes de 12 semanas: Altura Uterina NO es medible todavía. Los demás campos obstétricos son opcionales.
-                    </Text>
-                  )}
-                  {semanasGestacion >= 12 && semanasGestacion < 20 && (
-                    <Text type="warning">
-                      • 12-19 semanas: <strong>Altura Uterina</strong> comienza a ser medible. FCF y movimientos fetales aún NO detectables.
-                    </Text>
-                  )}
-                  {semanasGestacion >= 20 && (
-                    <Text type="success">
-                      • 20+ semanas: <strong>TODOS los campos obstétricos son obligatorios</strong> (Altura Uterina, FCF, Presentación, Movimientos Fetales, Edema, Proteinuria).
-                    </Text>
-                  )}
-                </Space>
-              }
-              type={semanasGestacion < 12 ? 'info' : semanasGestacion < 20 ? 'warning' : 'success'}
-              showIcon
-              icon={<InfoCircleOutlined />}
-              style={{ marginBottom: 16, marginTop: 16 }}
-            />
-          )}
+          <AlertaEdadGestacional semanasGestacion={semanasGestacion} />
 
-          {/* ========== EDAD GESTACIONAL ========== */}
-          <Divider orientation="left">
-            <Space>
-              <CalendarOutlined />
-              Edad Gestacional
-            </Space>
-          </Divider>
+          <SeccionEdadGestacional />
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="edad_gestacional_semanas"
-                label="Semanas de Gestación"
-                rules={[{ required: true, message: 'Requerido' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={42}
-                  suffix="semanas"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="edad_gestacional_dias" label="Días adicionales">
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={6}
-                  suffix="días"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+          <SeccionSignosVitales
+            gananciaCalculada={gananciaCalculada}
+            imcCalculado={imcCalculado}
+            pamCalculada={pamCalculada}
+            modal={modal}
+          />
 
-          {/* ========== SIGNOS VITALES MATERNOS ========== */}
-          <Divider orientation="left">
-            <Space>
-              <HeartOutlined />
-              Signos Vitales Maternos
-            </Space>
-          </Divider>
-
-          <Card size="small" style={{ marginBottom: 16, backgroundColor: '#f0f5ff' }}>
-            <Row gutter={16}>
-              <Col span={6}>
-                <Form.Item
-                  name="peso_actual"
-                  label="Peso Actual (kg)"
-                  rules={[{ required: true, message: 'Requerido' }]}
-                >
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={30}
-                    max={200}
-                    step={0.1}
-                    placeholder="65.5"
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={6}>
-                <Form.Item name="peso_pregestacional" label="Peso Pregestacional (kg)">
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={30}
-                    max={200}
-                    step={0.1}
-                    placeholder="60.0"
-                    size="large"
-                  />
-                </Form.Item>
-                {gananciaCalculada && (
-                  <Text type="success" style={{ fontSize: 12 }}>
-                    ✓ Ganancia: {gananciaCalculada}
-                  </Text>
-                )}
-              </Col>
-              <Col span={6}>
-                <Form.Item
-                  name="talla"
-                  label="Talla (cm)"
-                  tooltip="Talla materna. Se auto-completa del registro del embarazo si está disponible."
-                >
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={100}
-                    max={220}
-                    placeholder="160"
-                    size="large"
-                    onChange={(value) => {
-                      if (value && (value < 100 || value > 220)) {
-                        modal.warning({
-                          title: '⚠️ Advertencia: Talla Fuera de Rango',
-                          content: 'La talla debe estar entre 120 y 220 cm.',
-                        });
-                      }
-                    }}
-                  />
-                </Form.Item>
-                {imcCalculado && (
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    IMC: {imcCalculado}
-                  </Text>
-                )}
-              </Col>
-              <Col span={6}>
-                <Form.Item name="temperatura" label="Temperatura (°C)">
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={35}
-                    max={42}
-                    step={0.1}
-                    placeholder="36.5"
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={6}>
-                <Form.Item
-                  name="presion_arterial_sistolica"
-                  label="PA Sistólica (mmHg)"
-                  rules={[
-                    { required: true, message: 'Requerido' },
-                    {
-                      type: 'number',
-                      min: 70,
-                      max: 200,
-                      message: 'Rango válido: 70-200 mmHg',
-                    },
-                  ]}
-                >
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={70}
-                    max={200}
-                    placeholder="120"
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={6}>
-                <Form.Item
-                  name="presion_arterial_diastolica"
-                  label="PA Diastólica (mmHg)"
-                  rules={[
-                    { required: true, message: 'Requerido' },
-                    {
-                      type: 'number',
-                      min: 40,
-                      max: 140,
-                      message: 'Rango válido: 40-140 mmHg',
-                    },
-                  ]}
-                >
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={40}
-                    max={140}
-                    placeholder="80"
-                    size="large"
-                  />
-                </Form.Item>
-                {pamCalculada && (
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {pamCalculada}
-                  </Text>
-                )}
-              </Col>
-              <Col span={6}>
-                <Form.Item name="frecuencia_cardiaca" label="Frecuencia Cardíaca (lpm)">
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={40}
-                    max={200}
-                    placeholder="80"
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
-
-          {/* ========== EXAMEN OBSTÉTRICO ========== */}
-          <Divider orientation="left">
-            <Space>
-              <MedicineBoxOutlined />
-              Examen Obstétrico
-            </Space>
-          </Divider>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="altura_uterina"
-                label="Altura Uterina (cm)"
-                tooltip="Medida desde la sínfisis púbica al fondo uterino. Medible desde ~12 semanas, aunque más útil desde las 20 semanas."
-                rules={[
-                  {
-                    required: semanasGestacion >= 12,
-                    message: 'Requerido (a partir de 12 semanas)',
-                  },
-                  {
-                    type: 'number',
-                    min: 10,
-                    max: 50,
-                    message: 'Rango válido: 10-50 cm',
-                  },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={10}
-                  max={50}
-                  step={0.1}
-                  placeholder="Ej: 13.0"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="frecuencia_cardiaca_fetal"
-                label="FCF (lpm)"
-                tooltip="Frecuencia Cardíaca Fetal. Detectable desde 10-12 semanas con Doppler, audible desde 18-20 semanas."
-                rules={[
-                  {
-                    required: semanasGestacion >= 20,
-                    message: 'Requerido (a partir de 20 semanas)',
-                  },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={90}
-                  max={180}
-                  placeholder="120-160"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="presentacion_fetal"
-                label="Presentación"
-                rules={[
-                  {
-                    required: semanasGestacion >= 20,
-                    message: 'Requerido (a partir de 20 semanas)',
-                  },
-                ]}
-              >
-                <Select placeholder="Seleccionar" size="large">
-                  <Option value="cefalica">Cefálica</Option>
-                  <Option value="podalica">Podálica</Option>
-                  <Option value="transversa">Transversa</Option>
-                  <Option value="oblicua">Oblicua</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="movimientos_fetales"
-                label="Movimientos Fetales"
-                tooltip="Documentar desde ~18-20 semanas cuando la madre comienza a percibir movimientos. Antes de esta edad, dejar en 'Presentes' por defecto."
-                rules={[
-                  {
-                    required: semanasGestacion >= 20,
-                    message: 'Requerido (a partir de 20 semanas)',
-                  },
-                ]}
-              >
-                <Select size="large" placeholder="Seleccionar">
-                  <Option value="presentes">Presentes</Option>
-                  <Option value="ausentes">Ausentes</Option>
-                  <Option value="disminuidos">Disminuidos</Option>
-                  <Option value="aumentados">Aumentados</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="edema"
-                label="Edema"
-                rules={[
-                  {
-                    required: semanasGestacion >= 20,
-                    message: 'Requerido (a partir de 20 semanas)',
-                  },
-                ]}
-              >
-                <Select size="large">
-                  <Option value="no">No</Option>
-                  <Option value="leve">Leve (+)</Option>
-                  <Option value="moderado">Moderado (++)</Option>
-                  <Option value="severo">Severo (+++)</Option>
-                  <Option value="generalizado">Generalizado</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="proteinuria"
-                label="Proteinuria"
-                rules={[
-                  {
-                    required: semanasGestacion >= 20,
-                    message: 'Requerido (a partir de 20 semanas)',
-                  },
-                ]}
-              >
-                <Select size="large">
-                  <Option value="negativa">Negativa</Option>
-                  <Option value="trazas">Trazas</Option>
-                  <Option value="positiva_1">+ (30 mg/dL)</Option>
-                  <Option value="positiva_2">++ (100 mg/dL)</Option>
-                  <Option value="positiva_3">+++ (300 mg/dL)</Option>
-                  <Option value="positiva_4">++++ (1000 mg/dL)</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+          <SeccionExamenObstetrico semanasGestacion={semanasGestacion} />
 
           <Form.Item name="observaciones" label="Observaciones">
             <TextArea rows={4} placeholder="Notas adicionales..." />
@@ -1065,27 +556,13 @@ const FormularioControl: React.FC = () => {
       </Card>
 
       {/* ========== MODAL DE CONFIRMACIÓN DE SALIDA ========== */}
-      <Modal
-        title={
-          <Space>
-            <WarningOutlined style={{ color: '#faad14' }} />
-            <span>¿Salir sin guardar?</span>
-          </Space>
-        }
+      <ModalConfirmacionSalida
         open={showExitModal}
         onOk={confirmExit}
         onCancel={cancelExit}
-        okText="Sí, salir"
-        cancelText="Continuar editando"
-        okButtonProps={{ danger: true }}
-        centered
-      >
-        <p>Ha realizado cambios en el formulario que no se han guardado.</p>
-        <p>¿Está seguro que desea salir? Los cambios se perderán.</p>
-      </Modal>
+      />
     </div>
   );
 };
 
 export default FormularioControl;
-
