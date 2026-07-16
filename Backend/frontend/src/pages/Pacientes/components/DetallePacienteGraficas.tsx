@@ -35,7 +35,7 @@ const DetallePacienteGraficas: React.FC<DetallePacienteGraficasProps> = ({ triaj
     {/* Gráficas de Análisis */}
     <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
       <Col xs={24} lg={12}>
-        <Card title={<span><LineChartOutlined /> Evolución de Signos Vitales (Últimos Triajes)</span>} bordered={false}>
+        <Card title={<span><LineChartOutlined /> Evolución de Signos Vitales (Últimos Triajes)</span>} variant="borderless">
           {triajes.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={getTriajesTimeline(triajes)}>
@@ -56,7 +56,7 @@ const DetallePacienteGraficas: React.FC<DetallePacienteGraficasProps> = ({ triaj
       </Col>
 
       <Col xs={24} lg={12}>
-        <Card title={<span><BarChartOutlined /> Distribución de Vacunas</span>} bordered={false}>
+        <Card title={<span><BarChartOutlined /> Distribución de Vacunas</span>} variant="borderless">
           {vacunas.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -87,7 +87,7 @@ const DetallePacienteGraficas: React.FC<DetallePacienteGraficasProps> = ({ triaj
     {/* Nuevas Gráficas Avanzadas */}
     <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
       <Col xs={24} lg={12}>
-        <Card title={<span><BarChartOutlined /> Distribución de Notas por Tipo</span>} bordered={false}>
+        <Card title={<span><BarChartOutlined /> Distribución de Notas por Tipo</span>} variant="borderless">
           {notasEvolucion.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getNotasPorTipo(notasEvolucion, 'tipo')}>
@@ -106,7 +106,7 @@ const DetallePacienteGraficas: React.FC<DetallePacienteGraficasProps> = ({ triaj
       </Col>
 
       <Col xs={24} lg={12}>
-        <Card title={<span><DashboardOutlined /> Tendencia de Signos Vitales (Área)</span>} bordered={false}>
+        <Card title={<span><DashboardOutlined /> Tendencia de Signos Vitales (Área)</span>} variant="borderless">
           {triajes.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={getTriajesTimeline(triajes)}>
@@ -129,7 +129,7 @@ const DetallePacienteGraficas: React.FC<DetallePacienteGraficasProps> = ({ triaj
     {/* Gráfico Compuesto */}
     <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
       <Col span={24}>
-        <Card title={<span><LineChartOutlined /> Análisis Combinado de Signos Vitales y Tendencias</span>} bordered={false}>
+        <Card title={<span><LineChartOutlined /> Análisis Combinado de Signos Vitales y Tendencias</span>} variant="borderless">
           {triajes.length > 0 ? (
             <ResponsiveContainer width="100%" height={350}>
               <ComposedChart data={getTriajesTimeline(triajes)}>

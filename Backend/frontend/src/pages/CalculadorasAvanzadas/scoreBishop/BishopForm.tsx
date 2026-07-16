@@ -24,7 +24,7 @@ interface BishopFormProps {
 
 const BishopForm: React.FC<BishopFormProps> = ({ form, loading, resultado, radarData, onFinish, onReset }) => (
   <>
-    <Card title="Evaluación de Parámetros Cervicales" bordered={false}>
+    <Card title="Evaluación de Parámetros Cervicales" variant="borderless">
       <Form
         form={form}
         layout="vertical"

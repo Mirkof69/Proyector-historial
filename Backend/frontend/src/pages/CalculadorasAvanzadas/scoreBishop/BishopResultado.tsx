@@ -70,7 +70,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
             <span>Resultado del Score de Bishop</span>
           </Space>
         }
-        bordered={false}
+        variant="borderless"
       >
         <Row gutter={[16, 16]}>
           <Col span={12}>
@@ -119,7 +119,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
       {/* Gráficas Estadísticas */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} md={12}>
-          <Card title="Distribución Poblacional (n=5)" bordered={false}>
+          <Card title="Distribución Poblacional (n=5)" variant="borderless">
             <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
@@ -146,7 +146,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
         </Col>
 
         <Col xs={24} md={12}>
-          <Card title="Histograma de Puntajes" bordered={false}>
+          <Card title="Histograma de Puntajes" variant="borderless">
             <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={histograma}>
@@ -167,7 +167,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
         </Col>
 
         <Col span={24}>
-          <Card title="Tendencia de Evaluaciones" bordered={false}>
+          <Card title="Tendencia de Evaluaciones" variant="borderless">
             <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={tendencia}>

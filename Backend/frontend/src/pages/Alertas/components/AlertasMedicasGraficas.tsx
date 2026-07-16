@@ -27,7 +27,7 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
   <>
     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
       <Col xs={24} md={12}>
-        <Card title="Alertas por Severidad" bordered={false}>
+        <Card title="Alertas por Severidad" variant="borderless">
           <Suspense fallback={<div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>}>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -53,7 +53,7 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
         </Card>
       </Col>
       <Col xs={24} md={12}>
-        <Card title="Alertas por Módulo" bordered={false}>
+        <Card title="Alertas por Módulo" variant="borderless">
           <Suspense fallback={<div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>}>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={getModuloData(alertas)}>
@@ -73,7 +73,7 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
     {getTiempoResolucionData(alertas).length > 0 && (
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col span={24}>
-          <Card title="Tiempo de Resolución (horas)" bordered={false}>
+          <Card title="Tiempo de Resolución (horas)" variant="borderless">
             <Suspense fallback={<div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>}>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={getTiempoResolucionData(alertas)}>

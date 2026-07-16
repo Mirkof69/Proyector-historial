@@ -143,6 +143,13 @@ const CalendarioCitas: React.FC = () => {
     );
   };
 
+  // antd v5 deprecó dateCellRender/monthCellRender en favor de cellRender
+  const cellRender: React.ComponentProps<typeof Calendar>['cellRender'] = (fecha, info) => {
+    if (info.type === 'date') return dateCellRender(fecha as Dayjs);
+    if (info.type === 'month') return monthCellRender(fecha as Dayjs);
+    return info.originNode;
+  };
+
   // ==========================================================================
   // ESTADÍSTICAS DEL MES
   // ==========================================================================
@@ -209,8 +216,7 @@ const CalendarioCitas: React.FC = () => {
         ) : (
           <Calendar
             locale={locale}
-            dateCellRender={dateCellRender}
-            monthCellRender={monthCellRender}
+            cellRender={cellRender}
             onSelect={handleDiaClick}
             onPanelChange={handlePanelChange}
             className="calendar-citas"
