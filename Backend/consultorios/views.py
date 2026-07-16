@@ -257,7 +257,15 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
     # RESERVAS
     # ─────────────────────────────────────────────────────────────────────
 
-    @action(detail=False, methods=["get"], url_path="reservas")
+    # NOTA: GET y POST comparten url_path="reservas" en UNA sola action.
+    # Con dos actions separadas el router genera rutas duplicadas y la que
+    # gana solo admite un método (GET daba 405 en vivo).
+    @action(detail=False, methods=["get", "post"], url_path="reservas")
+    def reservas(self, request):
+        if request.method == "POST":
+            return self.crear_reserva(request)
+        return self.listar_reservas(request)
+
     def listar_reservas(self, request):
         """Lista reservas de consultorios"""
         qs = ReservaConsultorio.objects.all()
@@ -279,7 +287,6 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
         serializer = ReservaConsultorioSerializer(qs, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=["post"], url_path="reservas")
     def crear_reserva(self, request):
         """Crea una nueva reserva"""
         serializer = ReservaConsultorioSerializer(
@@ -384,7 +391,12 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
     # MANTENIMIENTOS
     # ─────────────────────────────────────────────────────────────────────
 
-    @action(detail=False, methods=["get"], url_path="mantenimientos")
+    @action(detail=False, methods=["get", "post"], url_path="mantenimientos")
+    def mantenimientos(self, request):
+        if request.method == "POST":
+            return self.programar_mantenimiento(request)
+        return self.listar_mantenimientos(request)
+
     def listar_mantenimientos(self, request):
         """Lista mantenimientos de consultorios"""
         qs = MantenimientoConsultorio.objects.all()
@@ -403,7 +415,6 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
         serializer = MantenimientoConsultorioSerializer(qs, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=["post"], url_path="mantenimientos")
     def programar_mantenimiento(self, request):
         """Programa un nuevo mantenimiento"""
         serializer = MantenimientoConsultorioSerializer(
