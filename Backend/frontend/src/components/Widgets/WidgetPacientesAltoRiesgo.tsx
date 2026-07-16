@@ -46,12 +46,21 @@ interface PacienteAltoRiesgo {
   ultima_actualizacion: string;
 }
 
+const getRiesgoColor = (riesgo: 'alto' | 'critico') => {
+  return riesgo === 'critico' ? '#cf1322' : '#fa8c16';
+};
+
+const getRiesgoIcon = (riesgo: 'alto' | 'critico') => {
+  return riesgo === 'critico' ? <AlertOutlined /> : <WarningOutlined />;
+};
+
 const WidgetPacientesAltoRiesgo: React.FC = () => {
   const navigate = useNavigate();
-  const [pacientes, setPacientes] = useState<PacienteAltoRiesgo[]>([]);
+  const [pacientes, setPacientes] = useState<PacienteAltoRiesgo[] | undefined>(undefined);
   const loadingRef = useRef(true);
-  const [totalAltoRiesgo, setTotalAltoRiesgo] = useState(0);
+  const [totalAltoRiesgo, setTotalAltoRiesgo] = useState<number | undefined>(undefined);
 
+  // eslint-disable-next-line react-doctor/no-initialize-state
   useEffect(() => {
     cargarPacientesAltoRiesgo();
   }, []);
@@ -78,10 +87,10 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
         const factores = [];
 
         if (embarazo.gestas_previas && embarazo.gestas_previas >= 5) {
-          factores.push('Gran multÃƒÂ­para');
+          factores.push('Gran multípara');
         }
         if (embarazo.cesareas_previas && embarazo.cesareas_previas >= 2) {
-          factores.push('Ã¢â€°Â¥2 CesÃƒÂ¡reas');
+          factores.push('≥2 Cesáreas');
         }
         if (embarazo.abortos_previos && embarazo.abortos_previos >= 2) {
           factores.push('Abortos recurrentes');
@@ -106,7 +115,7 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
           embarazo_id: embarazo.id,
           riesgo: score >= 70 ? 'critico' as const : 'alto' as const,
           edad_gestacional: edadGestacional,
-          factores_riesgo: factores.length > 0 ? factores : ['Alto riesgo obstÃƒÂ©trico'],
+          factores_riesgo: factores.length > 0 ? factores : ['Alto riesgo obstétrico'],
           score_riesgo: Math.min(score, 100),
           ultima_actualizacion: embarazo.fecha_actualizacion || embarazo.fecha_registro
         };
@@ -125,15 +134,7 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
     navigate(`/dashboard/historia-clinica/${pacienteId}`);
   };
 
-  const getRiesgoColor = (riesgo: 'alto' | 'critico') => {
-    return riesgo === 'critico' ? '#cf1322' : '#fa8c16';
-  };
-
-  const getRiesgoIcon = (riesgo: 'alto' | 'critico') => {
-    return riesgo === 'critico' ? <AlertOutlined /> : <WarningOutlined />;
-  };
-
-  if (loadingRef.current && pacientes.length === 0) {
+  if (loadingRef.current && (!pacientes || pacientes.length === 0)) {
     return (
       <Card title="Pacientes de Alto Riesgo" className="shadow-card">
         <div style={{ textAlign: 'center', padding: 40 }}>
@@ -170,14 +171,14 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
         </Button>
       ]}
     >
-      {pacientes.length === 0 ? (
+      {(!pacientes || pacientes.length === 0) ? (
         <Empty
           description="No hay pacientes de alto riesgo actualmente"
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       ) : (
         <List
-          dataSource={pacientes}
+          dataSource={pacientes || []}
           renderItem={(paciente) => (
             <List.Item
               key={`paciente-riesgo-${paciente.embarazo_id}`}

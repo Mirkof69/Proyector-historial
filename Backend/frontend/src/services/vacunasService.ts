@@ -7,6 +7,7 @@
  */
 
 import api, { PaginatedResponse } from './api';
+import { logger } from '../utils/logger';
 
 // ═════════════════════════════════════════════════════════════════════════
 // TIPOS E INTERFACES
@@ -145,7 +146,7 @@ class VacunasService {
 
             const url = `${this.tiposUrl}/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<TipoVacuna>>(url);
-            return response.data || response;
+            return response.data;
         } catch (error: any) {
             // Manejar 404 gracefully - endpoint no disponible
             if (error.response?.status === 404) {
@@ -168,8 +169,8 @@ class VacunasService {
     async getTipoVacunaById(id: number): Promise<TipoVacuna | null> {
         try {
             const response = await api.get<TipoVacuna>(`${this.tiposUrl}/${id}/`);
-            console.log('✅ Tipo de vacuna obtenido:', id);
-            return response.data || response;
+            logger.log('✅ Tipo de vacuna obtenido:', id);
+            return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
                 console.warn(`⚠️ Tipo de vacuna ${id} no encontrado (404)`);
@@ -186,8 +187,8 @@ class VacunasService {
     async crearTipoVacuna(data: TipoVacunaCreate): Promise<TipoVacuna> {
         try {
             const response = await api.post<TipoVacuna>(`${this.tiposUrl}/`, data);
-            console.log('✅ Tipo de vacuna creado');
-            return response.data || response;
+            logger.log('✅ Tipo de vacuna creado');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error creando tipo de vacuna:', error);
             throw error;
@@ -200,8 +201,8 @@ class VacunasService {
     async actualizarTipoVacuna(id: number, data: Partial<TipoVacunaCreate>): Promise<TipoVacuna> {
         try {
             const response = await api.patch<TipoVacuna>(`${this.tiposUrl}/${id}/`, data);
-            console.log('✅ Tipo de vacuna actualizado:', id);
-            return response.data || response;
+            logger.log('✅ Tipo de vacuna actualizado:', id);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error actualizando tipo de vacuna ${id}:`, error);
             throw error;
@@ -214,7 +215,7 @@ class VacunasService {
     async eliminarTipoVacuna(id: number): Promise<void> {
         try {
             await api.delete(`${this.tiposUrl}/${id}/`);
-            console.log('✅ Tipo de vacuna eliminado:', id);
+            logger.log('✅ Tipo de vacuna eliminado:', id);
         } catch (error: any) {
             console.error(`❌ Error eliminando tipo de vacuna ${id}:`, error);
             throw error;
@@ -227,8 +228,8 @@ class VacunasService {
     async getVacunasActivas(): Promise<TipoVacuna[]> {
         try {
             const response = await api.get<TipoVacuna[]>(`${this.tiposUrl}/activas/`);
-            console.log('✅ Vacunas activas obtenidas');
-            return response.data || response;
+            logger.log('✅ Vacunas activas obtenidas');
+            return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
                 console.warn('⚠️ Endpoint de vacunas activas no disponible (404)');
@@ -245,8 +246,8 @@ class VacunasService {
     async getVacunasObligatoriasEmbarazo(): Promise<TipoVacuna[]> {
         try {
             const response = await api.get<TipoVacuna[]>(`${this.tiposUrl}/obligatorias_embarazo/`);
-            console.log('✅ Vacunas obligatorias en embarazo obtenidas');
-            return response.data || response;
+            logger.log('✅ Vacunas obligatorias en embarazo obtenidas');
+            return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
                 console.warn('⚠️ Endpoint de vacunas obligatorias no disponible (404)');
@@ -263,8 +264,8 @@ class VacunasService {
     async getEstadisticasTipos(): Promise<any> {
         try {
             const response = await api.get<any>(`${this.tiposUrl}/estadisticas/`);
-            console.log('✅ Estadísticas de tipos de vacunas obtenidas');
-            return response.data || response;
+            logger.log('✅ Estadísticas de tipos de vacunas obtenidas');
+            return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
                 console.warn('⚠️ Endpoint de estadísticas de vacunas no disponible (404)');
@@ -307,7 +308,7 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<RegistroVacuna>>(url);
-            return response.data || response;
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error obteniendo registros de vacunas:', error);
             throw error;
@@ -320,8 +321,8 @@ class VacunasService {
     async getRegistroById(id: number): Promise<RegistroVacuna> {
         try {
             const response = await api.get<RegistroVacuna>(`${this.registrosUrl}/${id}/`);
-            console.log('✅ Registro de vacuna obtenido:', id);
-            return response.data || response;
+            logger.log('✅ Registro de vacuna obtenido:', id);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error obteniendo registro ${id}:`, error);
             throw error;
@@ -334,8 +335,8 @@ class VacunasService {
     async crearRegistro(data: RegistroVacunaCreate): Promise<RegistroVacuna> {
         try {
             const response = await api.post<RegistroVacuna>(`${this.registrosUrl}/`, data);
-            console.log('✅ Registro de vacuna creado');
-            return response.data || response;
+            logger.log('✅ Registro de vacuna creado');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error creando registro de vacuna:', error);
             throw error;
@@ -348,8 +349,8 @@ class VacunasService {
     async actualizarRegistro(id: number, data: Partial<RegistroVacunaCreate>): Promise<RegistroVacuna> {
         try {
             const response = await api.patch<RegistroVacuna>(`${this.registrosUrl}/${id}/`, data);
-            console.log('✅ Registro de vacuna actualizado:', id);
-            return response.data || response;
+            logger.log('✅ Registro de vacuna actualizado:', id);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error actualizando registro ${id}:`, error);
             throw error;
@@ -362,7 +363,7 @@ class VacunasService {
     async eliminarRegistro(id: number): Promise<void> {
         try {
             await api.delete(`${this.registrosUrl}/${id}/`);
-            console.log('✅ Registro de vacuna eliminado:', id);
+            logger.log('✅ Registro de vacuna eliminado:', id);
         } catch (error: any) {
             console.error(`❌ Error eliminando registro ${id}:`, error);
             throw error;
@@ -388,8 +389,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/por_paciente/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<RegistroVacuna>>(url);
-            console.log(`✅ Registros del paciente ${pacienteId} obtenidos`);
-            return response.data || response;
+            logger.log(`✅ Registros del paciente ${pacienteId} obtenidos`);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error obteniendo registros del paciente ${pacienteId}:`, error);
             throw error;
@@ -411,8 +412,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/por_embarazo/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<RegistroVacuna>>(url);
-            console.log(`✅ Registros del embarazo ${embarazoId} obtenidos`);
-            return response.data || response;
+            logger.log(`✅ Registros del embarazo ${embarazoId} obtenidos`);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error obteniendo registros del embarazo ${embarazoId}:`, error);
             throw error;
@@ -433,8 +434,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/proximas_dosis/?${queryParams.toString()}`;
             const response = await api.get<ProximaDosis[]>(url);
-            console.log('✅ Próximas dosis obtenidas');
-            return response.data || response;
+            logger.log('✅ Próximas dosis obtenidas');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error obteniendo próximas dosis:', error);
             throw error;
@@ -452,8 +453,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/esquema_vacunacion/?${queryParams.toString()}`;
             const response = await api.get<EsquemaVacunacion>(url);
-            console.log(`✅ Esquema de vacunación del paciente ${pacienteId} obtenido`);
-            return response.data || response;
+            logger.log(`✅ Esquema de vacunación del paciente ${pacienteId} obtenido`);
+            return response.data;
         } catch (error: any) {
             console.error(`❌ Error obteniendo esquema del paciente ${pacienteId}:`, error);
             throw error;
@@ -474,8 +475,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/esquemas_incompletos/?${queryParams.toString()}`;
             const response = await api.get<any>(url);
-            console.log('✅ Esquemas incompletos obtenidos');
-            return response.data || response;
+            logger.log('✅ Esquemas incompletos obtenidos');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error obteniendo esquemas incompletos:', error);
             throw error;
@@ -503,8 +504,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/esquema-completo/?${queryParams.toString()}`;
             const response = await api.get<any>(url);
-            console.log('✅ Esquema completo de vacunación obtenido');
-            return response.data || response;
+            logger.log('✅ Esquema completo de vacunación obtenido');
+            return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
                 console.warn('⚠️ Endpoint esquema-completo no disponible (404) - retornando datos mock');
@@ -541,8 +542,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/estadisticas/?${queryParams.toString()}`;
             const response = await api.get<EstadisticasVacunas>(url);
-            console.log('✅ Estadísticas de vacunación obtenidas');
-            return response.data || response;
+            logger.log('✅ Estadísticas de vacunación obtenidas');
+            return response.data;
         } catch (error: any) {
             console.error('❌ Error obteniendo estadísticas:', error);
             throw error;
@@ -568,8 +569,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/pendientes/?${queryParams.toString()}`;
             const response = await api.get<any>(url);
-            console.log('✅ Vacunas pendientes obtenidas');
-            return response.data || response;
+            logger.log('✅ Vacunas pendientes obtenidas');
+            return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
                 console.warn('⚠️ Endpoint pendientes no disponible (404) - retornando datos vacíos');
@@ -605,8 +606,8 @@ class VacunasService {
 
             const url = `${this.registrosUrl}/proximas/?${queryParams.toString()}`;
             const response = await api.get<any>(url);
-            console.log('✅ Próximas vacunas obtenidas');
-            return response.data || response;
+            logger.log('✅ Próximas vacunas obtenidas');
+            return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
                 console.warn('⚠️ Endpoint proximas no disponible (404) - retornando datos vacíos');

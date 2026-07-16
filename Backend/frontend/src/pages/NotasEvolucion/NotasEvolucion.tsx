@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Input, Select, Row, Col, Statistic } from 'antd';
+import { Empty, Card, Table, Button, Space, Tag, Input, Select, Row, Col, Statistic } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
-import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SearchOutlined, ExportOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { notasEvolucionService, NotaEvolucion } from '../../services/notasEvolucionService';
+import { exportarExcel } from '../../utils/excelExport';
 
 const NotasEvolucionPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,9 +38,6 @@ const NotasEvolucionPage: React.FC = () => {
 
       // Setear las notas (data ya es array garantizado)
       setNotas(data);
-      if (data.length > 0) {
-        message.success(`${data.length} Notas de evolución cargadas correctamente`);
-      }
     } catch (error) {
       message.error('Error al cargar notas de evolución');
       setNotas([]); // Asegurar que notas sea array aunque haya error
@@ -70,6 +68,43 @@ const NotasEvolucionPage: React.FC = () => {
     const matchTipo = !filterTipo || nota.tipo_consulta === filterTipo;
     return matchSearch && matchTipo;
   });
+
+  const handleExportExcel = () => {
+    try {
+      const datos = filteredNotas.map(n => ({
+        fecha: dayjs(n.fecha_consulta).format('DD/MM/YYYY HH:mm'),
+        paciente: n.paciente_nombre || '-',
+        medico: n.medico_nombre || '-',
+        tipo_consulta: n.tipo_consulta,
+        motivo_consulta: n.motivo_consulta || '-',
+        presion_arterial: n.presion_arterial || (n.presion_arterial_sistolica && n.presion_arterial_diastolica ? `${n.presion_arterial_sistolica}/${n.presion_arterial_diastolica}` : '-'),
+        frecuencia_cardiaca: n.frecuencia_cardiaca ?? '-',
+        temperatura: n.temperatura ?? '-',
+      }));
+      const columnas = {
+        fecha: 'Fecha',
+        paciente: 'Paciente',
+        medico: 'Médico',
+        tipo_consulta: 'Tipo de Consulta',
+        motivo_consulta: 'Motivo de Consulta',
+        presion_arterial: 'Presión Arterial',
+        frecuencia_cardiaca: 'FC',
+        temperatura: 'Temperatura',
+      };
+      exportarExcel(
+        datos,
+        columnas,
+        {
+          filename: `notas_evolucion_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
+          sheetName: 'Notas de Evolución',
+          title: `Notas de Evolución - ${dayjs().format('DD/MM/YYYY')}`,
+        },
+      );
+      message.success('Archivo Excel generado exitosamente');
+    } catch (error) {
+      message.error('Error al generar el archivo Excel');
+    }
+  };
 
   const columns = [
     {
@@ -217,6 +252,15 @@ const NotasEvolucionPage: React.FC = () => {
           </Col>
           <Col>
             <Button
+              icon={<ExportOutlined />}
+              onClick={handleExportExcel}
+              size="large"
+            >
+              Exportar
+            </Button>
+          </Col>
+          <Col>
+            <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => navigate('/dashboard/notas-evolucion/nuevo')}
@@ -233,6 +277,7 @@ const NotasEvolucionPage: React.FC = () => {
         <Table
           columns={columns}
           dataSource={filteredNotas}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay notas de evolución registradas" /> }}
           loading={loading}
           rowKey="id"
           pagination={{ pageSize: 20 }}

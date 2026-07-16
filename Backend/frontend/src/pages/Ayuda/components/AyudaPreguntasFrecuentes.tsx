@@ -8,6 +8,13 @@ interface AyudaPreguntasFrecuentesProps {
   searchQuery: string;
 }
 
+const handleContactarSoporte = () => {
+  const soporteTab = document.querySelector<HTMLElement>('[data-tab-key="4"]');
+  if (soporteTab) {
+    soporteTab.click();
+  }
+};
+
 const AyudaPreguntasFrecuentes: React.FC<AyudaPreguntasFrecuentesProps> = ({ searchQuery }) => {
   const filteredFaqs = searchQuery
     ? FAQS.reduce((acc, cat) => {
@@ -22,12 +29,6 @@ const AyudaPreguntasFrecuentes: React.FC<AyudaPreguntasFrecuentesProps> = ({ sea
       }, [] as typeof FAQS)
     : FAQS;
 
-  const handleContactarSoporte = () => {
-    const soporteTab = document.querySelector<HTMLElement>('[data-tab-key="4"]');
-    if (soporteTab) {
-      (soporteTab as HTMLElement).click();
-    }
-  };
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 20 }}>

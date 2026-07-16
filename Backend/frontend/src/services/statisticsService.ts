@@ -163,6 +163,20 @@ class StatisticsService {
     );
     return response.data;
   }
+
+  async downloadExcel(filters?: StatisticsFilters): Promise<Blob> {
+    const params = new URLSearchParams();
+    if (filters?.start_date) params.append('start_date', filters.start_date);
+    if (filters?.end_date) params.append('end_date', filters.end_date);
+
+    const response = await apiClient.get(
+      `${this.baseURL}download-excel/?${params.toString()}`,
+      {
+        responseType: 'blob',
+      }
+    );
+    return response.data;
+  }
 }
 
 const statisticsService = new StatisticsService();

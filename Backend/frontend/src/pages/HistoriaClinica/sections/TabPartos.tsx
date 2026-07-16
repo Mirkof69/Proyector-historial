@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col, Statistic, Button, Table, Tag, Descriptions, Space, Tooltip, Typography, Alert } from 'antd';
+import { Empty, Card, Row, Col, Statistic, Button, Table, Tag, Descriptions, Space, Tooltip, Typography, Alert } from 'antd';
 import { PlusOutlined, WomanOutlined, WarningOutlined, CheckCircleOutlined, EyeOutlined, DownloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -70,6 +70,7 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
         {/* TABLA DE PARTOS CON DETALLES */}
         <Table
           dataSource={[...partos].reverse()}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin partos registrados" /> }}
           rowKey="id"
           size="middle"
           bordered

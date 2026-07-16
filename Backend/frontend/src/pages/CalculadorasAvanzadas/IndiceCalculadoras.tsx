@@ -27,10 +27,7 @@ interface CalculadoraCard {
   graficas: number;
 }
 
-const IndiceCalculadoras: React.FC = () => {
-  const navigate = useNavigate();
-
-  const calculadoras: CalculadoraCard[] = [
+const calculadoras: CalculadoraCard[] = [
     {
       id: 'bishop',
       titulo: 'Score de Bishop',
@@ -120,6 +117,9 @@ const IndiceCalculadoras: React.FC = () => {
       graficas: 5
     }
   ];
+
+const IndiceCalculadoras: React.FC = () => {
+  const navigate = useNavigate();
 
   const handleCardClick = (ruta: string) => {
     navigate(ruta);

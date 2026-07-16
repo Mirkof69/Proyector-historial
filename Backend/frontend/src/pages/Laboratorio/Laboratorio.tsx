@@ -10,36 +10,10 @@
 import React, { useRef, useState, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
+import { Empty, Card, Table, Button, Space } from 'antd';
 import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Input,
-  Select,
-  DatePicker,
-  Tag,
-  Tooltip,
-  Row,
-  Col,
-  Statistic,
-  Badge,
-  Typography,
-} from 'antd';
-import {
-  EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  FilterOutlined,
-  ReloadOutlined,
-  ExperimentOutlined,
-  ExclamationCircleOutlined,
-  CalendarOutlined,
-  UserOutlined,
-  WarningOutlined,
-  FileExcelOutlined,
+  PlusOutlined, ReloadOutlined, ExperimentOutlined,
+  ExclamationCircleOutlined, FileExcelOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { laboratorioService, ExamenLaboratorio } from '../../services/laboratorioService';
@@ -47,35 +21,10 @@ import { FRONTEND_ROUTES } from '../../config/routes';
 import { exportarExcel } from '../../utils/excelExport';
 import { useAntdApp } from '../../hooks/useMessage';
 import { GlobalLoader } from '../../components/common/GlobalLoader';
-
-const { Text } = Typography;
-const { RangePicker } = DatePicker;
-const { Option } = Select;
-
-interface FiltrosState {
-  busqueda: string;
-  filtroCategoria: string | undefined;
-  filtroEstado: string | undefined;
-  filtroFecha: [dayjs.Dayjs, dayjs.Dayjs] | null;
-}
-
-type FiltrosAction =
-  | { type: 'SET_BUSQUEDA'; payload: string }
-  | { type: 'SET_CATEGORIA'; payload: string | undefined }
-  | { type: 'SET_ESTADO'; payload: string | undefined }
-  | { type: 'SET_FECHA'; payload: [dayjs.Dayjs, dayjs.Dayjs] | null }
-  | { type: 'LIMPIAR' };
-
-const filtrosReducer = (state: FiltrosState, action: FiltrosAction): FiltrosState => {
-  switch (action.type) {
-    case 'SET_BUSQUEDA': return { ...state, busqueda: action.payload };
-    case 'SET_CATEGORIA': return { ...state, filtroCategoria: action.payload };
-    case 'SET_ESTADO': return { ...state, filtroEstado: action.payload };
-    case 'SET_FECHA': return { ...state, filtroFecha: action.payload };
-    case 'LIMPIAR': return { busqueda: '', filtroCategoria: undefined, filtroEstado: undefined, filtroFecha: null };
-    default: return state;
-  }
-};
+import { filtrosReducer } from './components/laboratorioFiltrosReducer';
+import LaboratorioStats from './components/LaboratorioStats';
+import LaboratorioFiltros from './components/LaboratorioFiltros';
+import { buildLaboratorioColumns } from './components/laboratorioColumns';
 
 const Laboratorio: React.FC = () => {
   const navigate = useNavigate();
@@ -109,7 +58,6 @@ const Laboratorio: React.FC = () => {
 
   const cargarExamenes = useCallback(async () => {
     setLoading(true);
-    const startTime = performance.now();
 
     try {
 
@@ -142,12 +90,7 @@ const Laboratorio: React.FC = () => {
         }
       }
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-
       examenesRef.current = allExamenes;
-      message.success(`${allExamenes.length} exámenes cargados en ${loadTime}s`);
     } catch (error) {
       message.error('Error al cargar los exámenes de laboratorio');
       examenesRef.current = [];
@@ -280,137 +223,10 @@ const Laboratorio: React.FC = () => {
     }
   }, [examenesFiltrados, message]);
 
-  // ==========================================================================
-  // COLUMNAS DE LA TABLA
-  // ==========================================================================
-  const columns = useMemo(() => [
-    {
-      title: 'Paciente',
-      key: 'paciente',
-      width: 200,
-      render: (_: any, record: ExamenLaboratorio) => (
-        <Space direction="vertical" size={0}>
-          <Space>
-            <UserOutlined style={{ color: '#1890ff' }} />
-            <span style={{ fontWeight: 500 }}>{record.paciente_nombre || 'No especificado'}</span>
-          </Space>
-        </Space>
-      ),
-    },
-    {
-      title: 'Tipo de Examen',
-      dataIndex: 'tipo_examen_nombre',
-      key: 'tipo_examen',
-      render: (text: string, record: ExamenLaboratorio) => (
-        <Space direction="vertical" size={0}>
-          <Text>{text || '-'}</Text>
-          {record.categoria && (
-            <Tag color="purple">
-              {record.categoria}
-            </Tag>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: 'Fecha Solicitud',
-      dataIndex: 'fecha_solicitud',
-      key: 'fecha_solicitud',
-      width: 140,
-      sorter: (a: ExamenLaboratorio, b: ExamenLaboratorio) =>
-        dayjs(a.fecha_solicitud).unix() - dayjs(b.fecha_solicitud).unix(),
-      render: (fecha: string) => (
-        <Space>
-          <CalendarOutlined />
-          {dayjs(fecha).format('DD/MM/YYYY')}
-        </Space>
-      ),
-    },
-    {
-      title: 'Estado',
-      dataIndex: 'estado',
-      key: 'estado',
-      width: 120,
-      render: (estado: string) => {
-        const colors = {
-          solicitado: 'orange',
-          en_proceso: 'blue',
-          completado: 'green',
-          cancelado: 'red',
-        };
-        return <Tag color={colors[estado as keyof typeof colors] || 'default'}>{estado?.toUpperCase()}</Tag>;
-      },
-    },
-    {
-      title: 'Prioridad',
-      dataIndex: 'prioridad',
-      key: 'prioridad',
-      width: 100,
-      render: (prioridad: string) => {
-        const colors = {
-          normal: 'default',
-          urgente: 'orange',
-          stat: 'red',
-        };
-        return <Tag color={colors[prioridad as keyof typeof colors] || 'default'}>{prioridad?.toUpperCase()}</Tag>;
-      },
-    },
-    {
-      title: 'Resultados',
-      key: 'resultados',
-      width: 120,
-      render: (_: any, record: ExamenLaboratorio) => {
-        if (record.resumen) {
-          const { criticos, anormales } = record.resumen;
-          if (criticos > 0) {
-            return (
-              <Tooltip title={`${criticos} crítico(s)`}>
-                <Badge count={criticos} showZero>
-                  <Tag color="red" icon={<WarningOutlined />}>
-                    CRÍTICOS
-                  </Tag>
-                </Badge>
-              </Tooltip>
-            );
-          }
-          if (anormales > 0) {
-            return (
-              <Tooltip title={`${anormales} anormal(es)`}>
-                <Badge count={anormales}>
-                  <Tag color="orange">ANORMALES</Tag>
-                </Badge>
-              </Tooltip>
-            );
-          }
-          return <Tag color="green">NORMALES</Tag>;
-        }
-        return <Text type="secondary">Sin resultados</Text>;
-      },
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      fixed: 'right' as const,
-      width: 150,
-      render: (_: any, record: ExamenLaboratorio) => (
-        <Space size="small">
-          <Tooltip title="Ver detalle">
-            <Button type="link" icon={<EyeOutlined />} onClick={() => handleVer(record.id!)} />
-          </Tooltip>
-          {canChange('examen') && (
-            <Tooltip title="Editar">
-              <Button type="link" icon={<EditOutlined />} onClick={() => handleEditar(record.id!)} />
-            </Tooltip>
-          )}
-          {canDelete('examen') && (
-            <Tooltip title="Eliminar">
-              <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleEliminar(record)} />
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-  ], [canChange, canDelete, handleVer, handleEditar, handleEliminar]);
+  const columns = useMemo(
+    () => buildLaboratorioColumns(canChange, canDelete, handleVer, handleEditar, handleEliminar),
+    [canChange, canDelete, handleVer, handleEditar, handleEliminar]
+  );
 
   // ==========================================================================
   // RENDER
@@ -422,65 +238,14 @@ const Laboratorio: React.FC = () => {
   return (
     <div className="laboratorio-container animate-fade-in">
       {/* ESTADÍSTICAS */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={6} lg={4}>
-          <Card>
-            <Statistic
-              title="Total Exámenes"
-              value={estadisticas.total}
-              prefix={<ExperimentOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6} lg={4}>
-          <Card>
-            <Statistic
-              title="Solicitados"
-              value={estadisticas.solicitados}
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6} lg={4}>
-          <Card>
-            <Statistic
-              title="En Proceso"
-              value={estadisticas.en_proceso}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6} lg={4}>
-          <Card>
-            <Statistic
-              title="Completados"
-              value={estadisticas.completados}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6} lg={4}>
-          <Card>
-            <Statistic
-              title="Con Anormales"
-              value={estadisticas.con_anormales}
-              valueStyle={{ color: '#faad14' }}
-              prefix={<ExclamationCircleOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6} lg={4}>
-          <Card>
-            <Statistic
-              title="Con Críticos"
-              value={estadisticas.con_criticos}
-              valueStyle={{ color: '#ff4d4f' }}
-              prefix={<WarningOutlined />}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <LaboratorioStats
+        total={estadisticas.total}
+        solicitados={estadisticas.solicitados}
+        en_proceso={estadisticas.en_proceso}
+        completados={estadisticas.completados}
+        con_anormales={estadisticas.con_anormales}
+        con_criticos={estadisticas.con_criticos}
+      />
 
       {/* TABLA */}
       <Card
@@ -507,67 +272,16 @@ const Laboratorio: React.FC = () => {
         }
       >
         {/* FILTROS */}
-        <Space direction="vertical" size="middle" style={{ width: '100%', marginBottom: 16 }}>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={8}>
-              <Input
-                placeholder="Buscar paciente o examen..."
-                prefix={<SearchOutlined />}
-                value={filtros.busqueda}
-                onChange={(e) => dispatchFiltros({ type: 'SET_BUSQUEDA', payload: e.target.value })}
-                allowClear
-              />
-            </Col>
-            <Col xs={24} sm={12} md={5}>
-              <Select
-                placeholder="Categoría"
-                style={{ width: '100%' }}
-                value={filtros.filtroCategoria}
-                onChange={(val) => dispatchFiltros({ type: 'SET_CATEGORIA', payload: val })}
-                allowClear
-              >
-                <Option value="hematologia">Hematología</Option>
-                <Option value="bioquimica">Bioquímica</Option>
-                <Option value="inmunologia">Inmunología</Option>
-                <Option value="microbiologia">Microbiología</Option>
-                <Option value="urinalisis">Urianálisis</Option>
-                <Option value="serologia">Serología</Option>
-                <Option value="hormonal">Hormonal</Option>
-              </Select>
-            </Col>
-            <Col xs={24} sm={12} md={5}>
-              <Select
-                placeholder="Estado"
-                style={{ width: '100%' }}
-                value={filtros.filtroEstado}
-                onChange={(val) => dispatchFiltros({ type: 'SET_ESTADO', payload: val })}
-                allowClear
-              >
-                <Option value="solicitado">Solicitado</Option>
-                <Option value="en_proceso">En Proceso</Option>
-                <Option value="completado">Completado</Option>
-                <Option value="cancelado">Cancelado</Option>
-              </Select>
-            </Col>
-            <Col xs={24} sm={12} md={5}>
-              <RangePicker
-                style={{ width: '100%' }}
-                format="DD/MM/YYYY"
-                value={filtros.filtroFecha}
-                onChange={(dates) => dispatchFiltros({ type: 'SET_FECHA', payload: dates as [dayjs.Dayjs, dayjs.Dayjs] })}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={1}>
-              <Button icon={<FilterOutlined />} onClick={limpiarFiltros} block>
-                Limpiar
-              </Button>
-            </Col>
-          </Row>
-        </Space>
+        <LaboratorioFiltros
+          filtros={filtros}
+          dispatchFiltros={dispatchFiltros}
+          onLimpiar={limpiarFiltros}
+        />
 
         <Table
           columns={columns}
           dataSource={examenesFiltrados}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay exámenes de laboratorio registrados" /> }}
           rowKey={(record: any) => record._uniqueRowKey || `laboratorio-fallback-${record.id}`}
           loading={loading}
           pagination={{

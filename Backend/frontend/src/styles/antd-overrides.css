@@ -131,23 +131,38 @@ body {
    TABLA (TABLE)
    ============================================================================ */
 
-/* Contenedor de tabla */
+/* Contenedor de tabla.
+   !important en toda la sección: AntD v5 inyecta sus propios estilos via
+   CSS-in-JS en tiempo de ejecución, con mayor prioridad de cascada que esta
+   hoja estática aunque la especificidad sea igual o menor. Sin !important,
+   las filas con datos reales (no solo el estado vacío) vuelven a blanco. */
 .ant-table-wrapper {
-  background-color: var(--bg-card);
+  background-color: var(--bg-card) !important;
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 /* Tabla principal */
 .ant-table {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
 }
 
-/* Header de tabla */
-.ant-table-thead > tr > th {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+.ant-table-container,
+.ant-table-content {
+  background-color: var(--bg-card) !important;
+}
+
+/* Header de tabla.
+   Se repite el selector con .ant-table-cell incluido: AntD le agrega esa
+   clase a cada celda y eso le da MAS especificidad que ".ant-table-thead >
+   tr > th" solo. Con igual !important, gana la regla mas especifica, no la
+   ultima declarada — por eso el body (que sufre esto mas seguido) quedaba
+   blanco aunque el header (que coincide mas facil) se viera bien. */
+.ant-table-thead > tr > th,
+.ant-table-thead > tr > th.ant-table-cell {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
   border-bottom: 1px solid var(--border-color);
   font-weight: var(--font-weight-semibold);
 }
@@ -157,30 +172,46 @@ body {
 }
 
 /* Cuerpo de tabla */
-.ant-table-tbody > tr > td {
-  background-color: var(--bg-card);
-  color: var(--text-secondary);
+.ant-table-tbody > tr > td,
+.ant-table-tbody > tr > td.ant-table-cell,
+.ant-table-tbody > tr.ant-table-row > td.ant-table-cell {
+  background-color: var(--bg-card) !important;
+  color: var(--text-secondary) !important;
   border-bottom: 1px solid var(--border-color);
 }
 
 /* Hover de fila */
-.ant-table-tbody > tr:hover > td {
-  background-color: var(--bg-hover);
+.ant-table-tbody > tr:hover > td,
+.ant-table-tbody > tr:hover > td.ant-table-cell {
+  background-color: var(--bg-hover) !important;
 }
 
 /* Fila seleccionada */
-.ant-table-tbody > tr.ant-table-row-selected > td {
-  background-color: rgba(37, 99, 235, 0.08);
+.ant-table-tbody > tr.ant-table-row-selected > td,
+.ant-table-tbody > tr.ant-table-row-selected > td.ant-table-cell {
+  background-color: rgba(37, 99, 235, 0.08) !important;
 }
 
-.dark .ant-table-tbody > tr.ant-table-row-selected > td {
-  background-color: rgba(59, 130, 246, 0.12);
+.dark .ant-table-tbody > tr.ant-table-row-selected > td,
+.dark .ant-table-tbody > tr.ant-table-row-selected > td.ant-table-cell {
+  background-color: rgba(59, 130, 246, 0.12) !important;
 }
 
 /* Footer de tabla */
 .ant-table-footer {
-  background-color: var(--bg-secondary);
-  color: var(--text-secondary);
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Columnas fijas (sticky left/right, ej. columna de Acciones) */
+.ant-table-cell-fix-left,
+.ant-table-cell-fix-right {
+  background-color: var(--bg-card) !important;
+}
+
+.ant-table-tbody > tr:hover > td.ant-table-cell-fix-left,
+.ant-table-tbody > tr:hover > td.ant-table-cell-fix-right {
+  background-color: var(--bg-hover) !important;
 }
 
 /* Paginación en tabla */
@@ -189,13 +220,27 @@ body {
 }
 
 /* Vacío */
-.ant-table-placeholder {
-  background-color: var(--bg-card);
+.ant-table-placeholder,
+.ant-table-tbody > tr.ant-table-placeholder > td,
+.ant-table-tbody > tr.ant-table-placeholder:hover > td {
+  background-color: var(--bg-card) !important;
   color: var(--text-secondary);
 }
 
 .ant-table-placeholder .ant-empty-description {
-  color: var(--text-tertiary);
+  color: var(--text-tertiary) !important;
+}
+
+.ant-empty .ant-empty-img-simple-ellipse {
+  fill: var(--bg-tertiary, #2a2a2a) !important;
+}
+
+.ant-empty .ant-empty-img-simple-g {
+  stroke: var(--border-color) !important;
+}
+
+.ant-empty .ant-empty-img-simple-path {
+  fill: var(--bg-secondary) !important;
 }
 
 /* ============================================================================

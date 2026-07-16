@@ -9,21 +9,80 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import {
-    Modal, Button, Form, Select, DatePicker, Input, Space, Card,
+import { useAntdApp } from "../hooks/useMessage";
+import {Modal, Button, Form, Select, DatePicker, Input, Space, Card,
     Radio, Checkbox, Alert, Divider, Typography, Row, Col,
-    Steps, message, Upload, Tag, Badge
-} from 'antd';
+    Steps, Upload, Tag, Badge} from "antd";
 import {
     FilePdfOutlined, DownloadOutlined, PrinterOutlined, MailOutlined,
     FileTextOutlined, MedicineBoxOutlined, ExperimentOutlined,
     HeartOutlined, CalendarOutlined, SafetyOutlined, CheckCircleOutlined
 } from '@ant-design/icons';
+import { logger } from '../utils/logger';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Step } = Steps;
 const { Option } = Select;
+
+const tiposPDF = [
+    {
+        key: 'historia_clinica',
+        label: 'Historia Clínica Completa',
+        icon: <FileTextOutlined />,
+        color: 'blue',
+        descripcion: 'Documento oficial con historial médico completo del paciente'
+    },
+    {
+        key: 'orden_medica',
+        label: 'Orden Médica',
+        icon: <MedicineBoxOutlined />,
+        color: 'green',
+        descripcion: 'Orden para exámenes, procedimientos o tratamientos'
+    },
+    {
+        key: 'resultado_laboratorio',
+        label: 'Resultado de Laboratorio',
+        icon: <ExperimentOutlined />,
+        color: 'purple',
+        descripcion: 'Reporte oficial de resultados de análisis de laboratorio'
+    },
+    {
+        key: 'reporte_ecografia',
+        label: 'Reporte de Ecografía',
+        icon: <HeartOutlined />,
+        color: 'pink',
+        descripcion: 'Informe técnico de estudio ecográfico obstétrico'
+    },
+    {
+        key: 'certificado_medico',
+        label: 'Certificado Médico',
+        icon: <SafetyOutlined />,
+        color: 'cyan',
+        descripcion: 'Certificado médico para reposo, trabajo o trámites'
+    },
+    {
+        key: 'receta_medica',
+        label: 'Receta Médica',
+        icon: <MedicineBoxOutlined />,
+        color: 'orange',
+        descripcion: 'Prescripción médica con medicamentos y dosis'
+    },
+    {
+        key: 'informe_parto',
+        label: 'Informe de Parto',
+        icon: <HeartOutlined />,
+        color: 'red',
+        descripcion: 'Reporte oficial del nacimiento y condiciones del parto'
+    },
+    {
+        key: 'carnet_prenatal',
+        label: 'Carnet de Control Prenatal',
+        icon: <CalendarOutlined />,
+        color: 'green',
+        descripcion: 'Carnet con todos los controles prenatales registrados'
+    }
+];
 
 interface PDFGeneratorProps {
     open: boolean;
@@ -50,6 +109,7 @@ const StepContent: React.FC<StepContentProps> = ({
   currentDateISO,
   pacienteData,
 }) => {
+  const { message } = useAntdApp();
   switch (currentStep) {
     case 0:
       return (
@@ -282,69 +342,11 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     embarazoData,
     moduloOrigen
 }) => {
+    const { message } = useAntdApp();
     const [form] = Form.useForm();
     const [currentStep, setCurrentStep] = useState(0);
     const [tipoPDF] = useState<string>('historia_clinica');
     const [generandoPDF, setGenerandoPDF] = useState(false);
-
-    const tiposPDF = [
-        {
-            key: 'historia_clinica',
-            label: 'Historia Clínica Completa',
-            icon: <FileTextOutlined />,
-            color: 'blue',
-            descripcion: 'Documento oficial con historial médico completo del paciente'
-        },
-        {
-            key: 'orden_medica',
-            label: 'Orden Médica',
-            icon: <MedicineBoxOutlined />,
-            color: 'green',
-            descripcion: 'Orden para exámenes, procedimientos o tratamientos'
-        },
-        {
-            key: 'resultado_laboratorio',
-            label: 'Resultado de Laboratorio',
-            icon: <ExperimentOutlined />,
-            color: 'purple',
-            descripcion: 'Reporte oficial de resultados de análisis de laboratorio'
-        },
-        {
-            key: 'reporte_ecografia',
-            label: 'Reporte de Ecografía',
-            icon: <HeartOutlined />,
-            color: 'pink',
-            descripcion: 'Informe técnico de estudio ecográfico obstétrico'
-        },
-        {
-            key: 'certificado_medico',
-            label: 'Certificado Médico',
-            icon: <SafetyOutlined />,
-            color: 'cyan',
-            descripcion: 'Certificado médico para reposo, trabajo o trámites'
-        },
-        {
-            key: 'receta_medica',
-            label: 'Receta Médica',
-            icon: <MedicineBoxOutlined />,
-            color: 'orange',
-            descripcion: 'Prescripción médica con medicamentos y dosis'
-        },
-        {
-            key: 'informe_parto',
-            label: 'Informe de Parto',
-            icon: <HeartOutlined />,
-            color: 'red',
-            descripcion: 'Reporte oficial del nacimiento y condiciones del parto'
-        },
-        {
-            key: 'carnet_prenatal',
-            label: 'Carnet de Control Prenatal',
-            icon: <CalendarOutlined />,
-            color: 'green',
-            descripcion: 'Carnet con todos los controles prenatales registrados'
-        }
-    ];
 
     const handleGenerarPDF = async (values: any) => {
         setGenerandoPDF(true);
@@ -364,7 +366,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                 logo: '/logo-hospital.png'
             };
 
-            console.log('Generando PDF:', pdfData);
+            logger.log('Generando PDF:', pdfData);
 
             // Descargar PDF simulado
             message.success({

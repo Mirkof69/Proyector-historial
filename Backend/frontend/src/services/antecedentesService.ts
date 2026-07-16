@@ -7,6 +7,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 export interface AntecedenteGinecoObstetrico {
     id: number;
@@ -215,7 +216,7 @@ class AntecedentesService {
     async createGinecoObstetrico(data: Partial<AntecedenteGinecoObstetrico>): Promise<AntecedenteGinecoObstetrico> {
         try {
             const response = await api.post<AntecedenteGinecoObstetrico>(`${this.baseUrl}/gineco-obstetricos/`, data);
-            console.log('✅ Antecedente gineco-obstétrico creado');
+            logger.log('✅ Antecedente gineco-obstétrico creado');
             return response.data;
         } catch (error: any) {
             console.error('❌ Error creando antecedente gineco-obstétrico:', error);
@@ -229,7 +230,7 @@ class AntecedentesService {
     ): Promise<AntecedenteGinecoObstetrico> {
         try {
             const response = await api.put<AntecedenteGinecoObstetrico>(`${this.baseUrl}/gineco-obstetricos/${id}/`, data);
-            console.log('✅ Antecedente gineco-obstétrico actualizado');
+            logger.log('✅ Antecedente gineco-obstétrico actualizado');
             return response.data;
         } catch (error: any) {
             console.error(`❌ Error actualizando antecedente gineco-obstétrico ${id}:`, error);
@@ -253,7 +254,7 @@ class AntecedentesService {
     async deleteGinecoObstetrico(id: number): Promise<void> {
         try {
             await api.delete(`${this.baseUrl}/gineco-obstetricos/${id}/`);
-            console.log('🗑️ Antecedente gineco-obstétrico eliminado:', id);
+            logger.log('🗑️ Antecedente gineco-obstétrico eliminado:', id);
         } catch (error: any) {
             console.error(`❌ Error eliminando antecedente gineco-obstétrico ${id}:`, error);
             throw error;
@@ -300,7 +301,7 @@ class AntecedentesService {
     async createPatologico(data: Partial<AntecedentePatologico>): Promise<AntecedentePatologico> {
         try {
             const response = await api.post<AntecedentePatologico>(`${this.baseUrl}/patologicos/`, data);
-            console.log('✅ Antecedente patológico creado');
+            logger.log('✅ Antecedente patológico creado');
             return response.data;
         } catch (error: any) {
             console.error('❌ Error creando antecedente patológico:', error);
@@ -311,7 +312,7 @@ class AntecedentesService {
     async updatePatologico(id: number, data: Partial<AntecedentePatologico>): Promise<AntecedentePatologico> {
         try {
             const response = await api.put<AntecedentePatologico>(`${this.baseUrl}/patologicos/${id}/`, data);
-            console.log('✅ Antecedente patológico actualizado');
+            logger.log('✅ Antecedente patológico actualizado');
             return response.data;
         } catch (error: any) {
             console.error(`❌ Error actualizando antecedente patológico ${id}:`, error);
@@ -332,7 +333,7 @@ class AntecedentesService {
     async deletePatologico(id: number): Promise<void> {
         try {
             await api.delete(`${this.baseUrl}/patologicos/${id}/`);
-            console.log('🗑️ Antecedente patológico eliminado:', id);
+            logger.log('🗑️ Antecedente patológico eliminado:', id);
         } catch (error: any) {
             console.error(`❌ Error eliminando antecedente patológico ${id}:`, error);
             throw error;

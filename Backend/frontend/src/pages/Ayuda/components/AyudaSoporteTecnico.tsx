@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Row, Col, Card, Typography, Form, Input, Select, Button, Statistic } from 'antd';
+import { Row, Col, Card, Typography, Form, Input, Select, Button } from 'antd';
 import { useAntdApp } from '../../../hooks/useMessage';
 import { PhoneOutlined, MailOutlined, CheckCircleOutlined, SendOutlined } from '@ant-design/icons';
+import { soporteService } from '../../../services/soporteService';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -14,17 +15,26 @@ const AyudaSoporteTecnico: React.FC<AyudaSoporteTecnicoProps> = ({ form }) => {
   const { message } = useAntdApp();
   const [sendingTicket, setSendingTicket] = useState(false);
 
-  const onFinishTicket = (values: any) => {
+  const onFinishTicket = async (values: any) => {
     setSendingTicket(true);
-    setTimeout(() => {
+    try {
+      await soporteService.crearTicket({
+        asunto: values.asunto,
+        modulo: values.modulo,
+        prioridad: values.prioridad,
+        descripcion: values.descripcion,
+      });
       message.success({
         content: '¡Ticket enviado con éxito! Un técnico lo contactará pronto.',
         icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
         duration: 5,
       });
       form.resetFields();
+    } catch (error) {
+      message.error('Error al enviar el ticket de soporte. Intente nuevamente.');
+    } finally {
       setSendingTicket(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -54,15 +64,6 @@ const AyudaSoporteTecnico: React.FC<AyudaSoporteTecnicoProps> = ({ form }) => {
             </div>
           </div>
         </div>
-
-        <Card style={{ marginTop: 40, background: '#f6ffed', borderColor: '#b7eb8f' }}>
-          <Statistic
-            title="Tiempo Promedio de Respuesta"
-            value="45 min"
-            prefix={<CheckCircleOutlined />}
-            valueStyle={{ color: '#3f8600' }}
-          />
-        </Card>
       </Col>
 
       <Col xs={24} md={12}>

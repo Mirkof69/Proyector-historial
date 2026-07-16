@@ -77,7 +77,7 @@ export const exportarExcel = (
  * Obtiene valor de propiedad anidada usando notación de punto
  * Ejemplo: 'paciente_info.nombre' => row.paciente_info.nombre
  */
-const obtenerValorAnidado = (obj: any, path: string): any => {
+export const obtenerValorAnidado = (obj: any, path: string): any => {
   const keys = path.split('.');
   let valor = obj;
 
@@ -94,7 +94,7 @@ const obtenerValorAnidado = (obj: any, path: string): any => {
 /**
  * Formatea valores para Excel
  */
-const formatearValor = (valor: any): any => {
+export const formatearValor = (valor: any): any => {
   if (valor === null || valor === undefined) {
     return '';
   }

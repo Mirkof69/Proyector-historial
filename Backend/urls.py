@@ -11,10 +11,22 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+# JWT endpoints (SimpleJWT)
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+# JWT via cookies httpOnly + CSRF (migración de seguridad)
+from usuarios.auth_cookie_views import CookieTokenRefreshView, csrf_bootstrap_view
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     # Health check endpoint
     path("api/", include("monitoring.urls")),
+    # JWT Authentication (SimpleJWT)
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    # Refresh vía cookie httpOnly (acepta también body para clientes API)
+    path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
+    # Bootstrap de la cookie csrftoken para el frontend
+    path("api/token/csrf/", csrf_bootstrap_view, name="csrf_bootstrap"),
     # =====================================================
     # API DOCUMENTATION (drf-spectacular)
     # =====================================================
@@ -55,6 +67,7 @@ urlpatterns = [
         "api/auditoria/", include("auditoria.urls"),
     ),  # ✅ Sistema de auditoría en tiempo real
     path("api/ia/", include("ia_medica.urls")),  #  Sistema de IA Médico con ML y NLP
+    path("api/soporte/", include("soporte.urls")),  # Tickets de soporte tecnico
     # ✨ Dashboard Avanzado
     path("api/", include("notificaciones.urls")),  # ✅ Sistema de notificaciones
 ]

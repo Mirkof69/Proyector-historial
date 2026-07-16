@@ -674,6 +674,21 @@ table {
   transform: translateY(-2px);
 }
 
+/* ========== STATS CARDS PREMIUM (dashboards y KPIs) ========== */
+.stats-card {
+  transition: transform 0.2s cubic-bezier(0.645, 0.045, 0.355, 1),
+    box-shadow 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.stats-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
+}
+
+.stats-card .ant-statistic-content-value {
+  font-variant-numeric: tabular-nums;
+}
+
 .ant-tabs-tab {
   transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
@@ -716,6 +731,7 @@ table {
     transition: none !important;
   }
 
+  .stats-card:hover,
   .ant-btn:hover,
   .ant-card-hoverable:hover,
   .ant-card:hover,

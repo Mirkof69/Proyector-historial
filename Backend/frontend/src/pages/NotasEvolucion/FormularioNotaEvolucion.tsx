@@ -8,42 +8,34 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Form,
-  Input,
-  InputNumber,
-  Select,
+import { useAntdApp } from "../../hooks/useMessage";
+import { useAuth } from "../../hooks/useAuth";
+import {Form,
   Button,
   Card,
-  message,
   Space,
   Row,
   Col,
-  Alert,
-  Divider,
-  DatePicker,
-  Radio,
-  Tooltip
-} from 'antd';
+  Alert} from "antd";
 import {
   SaveOutlined,
   CloseOutlined,
-  HeartOutlined,
-  UserOutlined,
   WarningOutlined,
   FileTextOutlined,
-  MedicineBoxOutlined
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { notasEvolucionService, NotaEvolucionCreate } from '../../services/notasEvolucionService';
 import { pacientesService } from '../../services/pacientesService';
 import { datosClinicosService } from '../../services/datosClinicosService';
-
-const { Option } = Select;
-const { TextArea } = Input;
+import SeccionInfoConsultaNota from './components/SeccionInfoConsultaNota';
+import SeccionSignosVitalesNota from './components/SeccionSignosVitalesNota';
+import SeccionObstetricosNota from './components/SeccionObstetricosNota';
+import SeccionExamenDiagnosticoNota from './components/SeccionExamenDiagnosticoNota';
 
 const FormularioNotaEvolucion: React.FC = () => {
+  const { message } = useAntdApp();
+  const { user } = useAuth();
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -299,7 +291,7 @@ const FormularioNotaEvolucion: React.FC = () => {
       const notaData: NotaEvolucionCreate = {
         ...values,
         fecha_consulta: values.fecha_consulta ? values.fecha_consulta.toISOString() : new Date().toISOString(),
-        medico: 1, // TODO: Obtener del usuario logueado
+        medico: user?.id,
       };
 
       if (id) {
@@ -364,424 +356,20 @@ const FormularioNotaEvolucion: React.FC = () => {
             tipo_consulta: 'control_prenatal',
           }}
         >
-          {/* INFORMACIÓN BÁSICA */}
-          <Divider orientation="left">Información de la Consulta</Divider>
+          <SeccionInfoConsultaNota
+            pacientes={pacientes}
+            handlePacienteChange={handlePacienteChange}
+            loading={loading}
+            tiposConsulta={tiposConsulta}
+            notaAnterior={notaAnterior}
+            setNotaAnterior={setNotaAnterior}
+          />
 
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                label="Paciente"
-                name="paciente"
-                rules={[{ required: true, message: 'Seleccione la paciente' }]}
-              >
-                <Select
-                  placeholder="Seleccionar paciente"
-                  showSearch
-                  optionFilterProp="children"
-                  suffixIcon={<UserOutlined />}
-                  onChange={handlePacienteChange}
-                  loading={loading}
-                  filterOption={(input, option) =>
-                    (option?.children as unknown as string)
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                >
-                  {pacientes.map((p) => (
-                    <Option key={p.id} value={p.id}>
-                      {p.nombre} {p.apellido_paterno} {p.apellido_materno} - {p.ci}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
+          <SeccionSignosVitalesNota presionArterial={presionArterial} />
 
-            <Col xs={24} md={6}>
-              <Form.Item
-                label="Fecha y Hora de Consulta"
-                name="fecha_consulta"
-                rules={[{ required: true, message: 'Seleccione la fecha' }]}
-              >
-                <DatePicker
-                  showTime
-                  format="DD/MM/YYYY HH:mm"
-                  style={{ width: '100%' }}
-                  placeholder="Seleccionar fecha"
-                />
-              </Form.Item>
-            </Col>
+          <SeccionObstetricosNota edadGestacional={edadGestacional} />
 
-            <Col xs={24} md={12}>
-              <Form.Item
-                label={
-                  <Space>
-                    <HeartOutlined style={{ color: '#eb2f96' }} />
-                    Tipo de Consulta
-                  </Space>
-                }
-                name="tipo_consulta"
-                rules={[{ required: true, message: 'Seleccione el tipo' }]}
-              >
-                <Radio.Group size="large">
-                  {tiposConsulta.map((tipo) => (
-                    <Radio.Button key={tipo.value} value={tipo.value}>
-                      {tipo.value === 'control_prenatal' && <HeartOutlined style={{ marginRight: 4 }} />}
-                      {tipo.value !== 'control_prenatal' && <MedicineBoxOutlined style={{ marginRight: 4 }} />}
-                      {tipo.label}
-                    </Radio.Button>
-                  ))}
-                </Radio.Group>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Motivo de Consulta"
-                name="motivo_consulta"
-                rules={[{ required: true, message: 'Ingrese el motivo de consulta' }]}
-              >
-                <TextArea
-                  rows={3}
-                  placeholder="Describa el motivo de la consulta según lo referido por la paciente"
-                  maxLength={500}
-                  showCount
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {notaAnterior && (
-            <Alert
-              message={notaAnterior.mensaje}
-              type={notaAnterior.tipo}
-              showIcon
-              closable
-              onClose={() => setNotaAnterior(null)}
-              style={{ marginBottom: 16 }}
-            />
-          )}
-
-          {/* SIGNOS VITALES */}
-          <Divider orientation="left">Signos Vitales</Divider>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="Presión Sistólica (mmHg)"
-                name="presion_arterial_sistolica"
-                rules={[
-                  { required: true, message: 'Requerido' },
-                  { type: 'number', min: 50, max: 250, message: '50-250 mmHg' },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={50}
-                  max={250}
-                  placeholder="Ej: 120"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="Presión Diastólica (mmHg)"
-                name="presion_arterial_diastolica"
-                rules={[
-                  { required: true, message: 'Requerido' },
-                  { type: 'number', min: 30, max: 150, message: '30-150 mmHg' },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={30}
-                  max={150}
-                  placeholder="Ej: 80"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="Frecuencia Cardíaca (lpm)"
-                name="frecuencia_cardiaca"
-                rules={[
-                  { required: true, message: 'Requerido' },
-                  { type: 'number', min: 40, max: 200, message: '40-200 lpm' },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={40}
-                  max={200}
-                  placeholder="Ej: 75"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="Temperatura (°C)"
-                name="temperatura"
-                rules={[
-                  { required: true, message: 'Requerido' },
-                  { type: 'number', min: 34, max: 42, message: '34-42°C' },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={34}
-                  max={42}
-                  step={0.1}
-                  precision={1}
-                  placeholder="Ej: 36.5"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label="Frecuencia Respiratoria (rpm)"
-                name="frecuencia_respiratoria"
-                rules={[{ type: 'number', min: 8, max: 40, message: '8-40 rpm' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={8}
-                  max={40}
-                  placeholder="Ej: 18"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label="Saturación de O₂ (%)"
-                name="saturacion_oxigeno"
-                rules={[{ type: 'number', min: 70, max: 100, message: '70-100%' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={70}
-                  max={100}
-                  placeholder="Ej: 98"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={8}>
-              <Tooltip title="Presión arterial calculada automáticamente">
-                <Form.Item label="PA (mmHg)">
-                  <Input value={presionArterial} disabled placeholder="120/80" />
-                </Form.Item>
-              </Tooltip>
-            </Col>
-          </Row>
-
-          {/* DATOS OBSTÉTRICOS */}
-          <Divider orientation="left">Datos Obstétricos (si aplica)</Divider>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="Edad Gestacional (semanas)"
-                name="edad_gestacional_semanas"
-                rules={[{ type: 'number', min: 0, max: 42, message: '0-42 semanas' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={42}
-                  placeholder="Ej: 28"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="Días adicionales"
-                name="edad_gestacional_dias"
-                rules={[{ type: 'number', min: 0, max: 6, message: '0-6 días' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={6}
-                  placeholder="Ej: 4"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="Altura Uterina (cm)"
-                name="altura_uterina"
-                rules={[{ type: 'number', min: 0, max: 50, message: '0-50 cm' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={50}
-                  step={0.1}
-                  precision={1}
-                  placeholder="Ej: 28.5"
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={6}>
-              <Form.Item
-                label="FCF (lpm)"
-                name="frecuencia_cardiaca_fetal"
-                rules={[{ type: 'number', min: 100, max: 180, message: '100-180 lpm' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={100}
-                  max={180}
-                  placeholder="Ej: 140"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={8}>
-              <Form.Item label="Presentación Fetal" name="presentacion_fetal">
-                <Select placeholder="Seleccionar presentación">
-                  <Option value="cefalica">Cefálica</Option>
-                  <Option value="podalica">Podálica</Option>
-                  <Option value="transversa">Transversa</Option>
-                  <Option value="oblicua">Oblicua</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={8}>
-              <Form.Item label="Movimientos Fetales" name="movimientos_fetales">
-                <Select placeholder="Seleccionar estado">
-                  <Option value="presentes">Presentes</Option>
-                  <Option value="ausentes">Ausentes</Option>
-                  <Option value="disminuidos">Disminuidos</Option>
-                  <Option value="aumentados">Aumentados</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={8}>
-              <Tooltip title="Edad gestacional calculada automáticamente">
-                <Form.Item label="EG (semanas)">
-                  <Input value={edadGestacional} disabled placeholder="28s 4d" />
-                </Form.Item>
-              </Tooltip>
-            </Col>
-          </Row>
-
-          {/* EXAMEN FÍSICO */}
-          <Divider orientation="left">Examen Físico</Divider>
-
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Examen Físico General"
-                name="examen_fisico"
-                rules={[{ required: true, message: 'Ingrese los hallazgos del examen físico' }]}
-              >
-                <TextArea
-                  rows={4}
-                  placeholder="Describa los hallazgos del examen físico general (estado general, piel, cabeza, cuello, tórax, abdomen, extremidades...)"
-                  maxLength={2000}
-                  showCount
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Examen Obstétrico (si aplica)"
-                name="examen_obstetrico"
-              >
-                <TextArea
-                  rows={4}
-                  placeholder="Describa los hallazgos del examen obstétrico (maniobras de Leopold, altura uterina, FCF, actividad uterina, estado de membranas, dilatación...)"
-                  maxLength={2000}
-                  showCount
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {/* DIAGNÓSTICOS Y PLAN */}
-          <Divider orientation="left">Impresión Diagnóstica y Plan</Divider>
-
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Diagnósticos / Impresión Diagnóstica"
-                name="diagnosticos"
-                rules={[{ required: true, message: 'Ingrese los diagnósticos' }]}
-              >
-                <TextArea
-                  rows={4}
-                  placeholder="Liste los diagnósticos en orden de importancia (ej: 1. Embarazo de 28 semanas, 2. Diabetes gestacional controlada...)"
-                  maxLength={1000}
-                  showCount
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Plan de Tratamiento"
-                name="plan_tratamiento"
-                rules={[{ required: true, message: 'Ingrese el plan de tratamiento' }]}
-              >
-                <TextArea
-                  rows={4}
-                  placeholder="Describa el plan de tratamiento (medicamentos, procedimientos, controles, interconsultas...)"
-                  maxLength={1000}
-                  showCount
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Indicaciones al Paciente"
-                name="indicaciones"
-              >
-                <TextArea
-                  rows={3}
-                  placeholder="Indicaciones específicas para la paciente (dieta, reposo, signos de alarma, próxima cita...)"
-                  maxLength={1000}
-                  showCount
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item label="Observaciones Adicionales" name="observaciones">
-                <TextArea
-                  rows={3}
-                  placeholder="Observaciones adicionales o notas relevantes (opcional)"
-                  maxLength={500}
-                  showCount
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+          <SeccionExamenDiagnosticoNota />
 
           {/* BOTONES DE ACCIÓN */}
           <Row justify="end" gutter={8} style={{ marginTop: 24 }}>
