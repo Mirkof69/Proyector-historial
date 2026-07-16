@@ -6,6 +6,7 @@ Utiliza ReportLab para PDF y Matplotlib para gráficos
 =============================================================================
 """
 
+import logging
 from datetime import datetime
 from io import BytesIO
 
@@ -26,6 +27,8 @@ from reportlab.platypus import (
 
 matplotlib.use("Agg")  # Backend sin GUI
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 import matplotlib.pyplot as plt
 
@@ -265,7 +268,7 @@ class PDFGeneratorEnhanced:
             return Image(img_buffer, width=5.5 * inch, height=3 * inch)
 
         except Exception as e:
-            print(f"Error creando gráfico de pacientes: {e}")
+            logger.warning("Error creando gráfico de pacientes: %s", e)
             return None
 
     def _create_pregnancy_section(self, pregnancy_data: dict[str, Any]) -> list:

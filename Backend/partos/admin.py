@@ -280,6 +280,7 @@ class PartoAdmin(admin.ModelAdmin):
         "duplicar_partograma",
     ]
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         paciente_nombre = "No asignado"
@@ -294,8 +295,8 @@ class PartoAdmin(admin.ModelAdmin):
             "<strong>{}</strong><br/><small>{}</small>", paciente_nombre, embarazo_info,
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Tipo de Parto")
     def tipo_parto_badge(self, obj):
         """Tipo parto badge"""
         colors = {
@@ -309,25 +310,25 @@ class PartoAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px;">{}</span>',
             color,
-            obj.get_tipo_parto_display().upper(),
+            getattr(obj, 'get_tipo_parto_display')().upper(),
         )
 
-    tipo_parto_badge.short_description = "Tipo de Parto"
 
+    @admin.display(description="Edad Gestacional")
     def get_edad_gestacional(self, obj):
         """Get edad gestacional"""
         return obj.edad_gestacional_parto
 
-    get_edad_gestacional.short_description = "Edad Gestacional"
 
+    @admin.display(description="Duración")
     def get_duracion_trabajo(self, obj):
         """Get duracion trabajo"""
         if obj.duracion_trabajo_parto_horas:
             return f"{obj.duracion_trabajo_parto_horas}h"
         return "No registrada"
 
-    get_duracion_trabajo.short_description = "Duración"
 
+    @admin.display(description="Pérdida Sanguínea")
     def get_perdida_sanguinea_badge(self, obj):
         """Get perdida sanguinea badge"""
         evaluacion = obj.get_evaluacion_perdida_sanguinea()
@@ -344,8 +345,8 @@ class PartoAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{}</span>', color, evaluacion,
         )
 
-    get_perdida_sanguinea_badge.short_description = "Pérdida Sanguínea"
 
+    @admin.display(description="Recién Nacidos")
     def get_num_recien_nacidos(self, obj):
         """Get num recien nacidos"""
         count = obj.recien_nacidos.count()
@@ -355,8 +356,8 @@ class PartoAdmin(admin.ModelAdmin):
             return format_html('<span style="color: #27ae60;">1 RN</span>')
         return format_html('<span style="color: #2ecc71;">{} RNs</span>', count)
 
-    get_num_recien_nacidos.short_description = "Recién Nacidos"
 
+    @admin.display(description="Acciones")
     def acciones_rapidas(self, obj):
         """Acciones rapidas"""
         url_editar = reverse("admin:partos_parto_change", args=[obj.id])
@@ -366,28 +367,27 @@ class PartoAdmin(admin.ModelAdmin):
             url_editar,
         )
 
-    acciones_rapidas.short_description = "Acciones"
 
+    @admin.action(description="Marcar parto como finalizado")
     def marcar_parto_finalizado(self, request, queryset):
         """Marcar parto finalizado"""
         updated = queryset.update(parto_finalizado=True)
         self.message_user(request, f"{updated} partos marcados como finalizados.")
 
-    marcar_parto_finalizado.short_description = "Marcar parto como finalizado"
 
+    @admin.action(description="Generar reporte de parto")
     def generar_reporte_parto(self, request, queryset):
         """Generar reporte parto"""
         count = queryset.count()
         self.message_user(request, f"Reportes generados para {count} partos.")
 
-    generar_reporte_parto.short_description = "Generar reporte de parto"
 
+    @admin.action(description="Duplicar partograma")
     def duplicar_partograma(self, request, queryset):
         """Duplicar partograma"""
         count = queryset.count()
         self.message_user(request, f"Partogramas duplicados para {count} partos.")
 
-    duplicar_partograma.short_description = "Duplicar partograma"
 
 
 @admin.register(RecienNacido)
@@ -504,13 +504,14 @@ class RecienNacidoAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Parto")
     def get_parto_numero(self, obj):
         """Get parto numero"""
         url = reverse("admin:partos_parto_change", args=[obj.parto.id])
         return format_html('<a href="{}">{}</a>', url, obj.parto.numero_parto)
 
-    get_parto_numero.short_description = "Parto"
 
+    @admin.display(description="Peso y Clasificación")
     def peso_clasificacion_badge(self, obj):
         """Peso clasificacion badge"""
         clasificacion = obj.get_clasificacion_peso()
@@ -528,8 +529,8 @@ class RecienNacidoAdmin(admin.ModelAdmin):
             clasificacion,
         )
 
-    peso_clasificacion_badge.short_description = "Peso y Clasificación"
 
+    @admin.display(description="Apgar 1/5")
     def get_apgar_badge(self, obj):
         """Get apgar badge"""
         evaluacion = obj.get_evaluacion_apgar()
@@ -548,8 +549,8 @@ class RecienNacidoAdmin(admin.ModelAdmin):
             evaluacion,
         )
 
-    get_apgar_badge.short_description = "Apgar 1/5"
 
+    @admin.display(description="Estado General")
     def get_evaluacion_estado(self, obj):
         """Get evaluacion estado"""
         evaluacion = obj.get_evaluacion_estado_general()
@@ -557,7 +558,6 @@ class RecienNacidoAdmin(admin.ModelAdmin):
             return format_html('<span style="color: #27ae60;">✅ Normal</span>')
         return format_html('<span style="color: #e74c3c;"> Con problemas</span>')
 
-    get_evaluacion_estado.short_description = "Estado General"
 
 
 @admin.register(PartogramaRegistro)
@@ -673,13 +673,14 @@ class PartogramaRegistroAdmin(admin.ModelAdmin):
         ("Metadata", {"fields": (("fecha_registro",),), "classes": ("collapse",)}),
     )
 
+    @admin.display(description="Parto")
     def get_parto_numero(self, obj):
         """Get parto numero"""
         url = reverse("admin:partos_parto_change", args=[obj.parto.id])
         return format_html('<a href="{}">{}</a>', url, obj.parto.numero_parto)
 
-    get_parto_numero.short_description = "Parto"
 
+    @admin.display(description="Dilatación")
     def dilatacion_progreso_badge(self, obj):
         """Dilatacion progreso badge"""
         dilatacion = obj.dilatacion_cervical
@@ -697,8 +698,8 @@ class PartogramaRegistroAdmin(admin.ModelAdmin):
             obj.estacion_fetal,
         )
 
-    dilatacion_progreso_badge.short_description = "Dilatación"
 
+    @admin.display(description="Contracciones")
     def get_contracciones_badge(self, obj):
         """Get contracciones badge"""
         evaluacion = obj.get_evaluacion_contracciones()
@@ -716,15 +717,12 @@ class PartogramaRegistroAdmin(admin.ModelAdmin):
             obj.intensidad_contracciones or "No registrada",
         )
 
-    get_contracciones_badge.short_description = "Contracciones"
 
+    @admin.display(description="FCF")
     def get_fcf_badge(self, obj):
         """Get fcf badge"""
-        evaluacion = obj.get_evaluacion_fcff()
-        if "Normal" in evaluacion:
-            color = "#27ae60"
-        else:
-            color = "#e74c3c"
+        evaluacion = obj.get_evaluacion_fcf()
+        color = "#27ae60" if "Normal" in evaluacion else "#e74c3c"
 
         fcf_text = f"{obj.fcf_baseline} lpm" if obj.fcf_baseline else "No registrada"
 
@@ -735,8 +733,8 @@ class PartogramaRegistroAdmin(admin.ModelAdmin):
             obj.variabilidad_fcff or "No registrada",
         )
 
-    get_fcf_badge.short_description = "FCF"
 
+    @admin.display(description="Alertas")
     def get_alertas_badge(self, obj):
         """Get alertas badge"""
         alertas = obj.get_alertas_activas()
@@ -746,7 +744,6 @@ class PartogramaRegistroAdmin(admin.ModelAdmin):
             '<span style="color: #e74c3c;"> {} alertas</span>', len(alertas),
         )
 
-    get_alertas_badge.short_description = "Alertas"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -846,13 +843,14 @@ class ComplicacionPartoAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Parto")
     def get_parto_numero(self, obj):
         """Get parto numero"""
         url = reverse("admin:partos_parto_change", args=[obj.parto.id])
         return format_html('<a href="{}">{}</a>', url, obj.parto.numero_parto)
 
-    get_parto_numero.short_description = "Parto"
 
+    @admin.display(description="Tipo")
     def tipo_complicacion_badge(self, obj):
         """Tipo complicacion badge"""
         colors = {
@@ -871,11 +869,11 @@ class ComplicacionPartoAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">{}</span>',
             color,
-            obj.get_tipo_complicacion_display().upper(),
+            getattr(obj, 'get_tipo_complicacion_display')().upper(),
         )
 
-    tipo_complicacion_badge.short_description = "Tipo"
 
+    @admin.display(description="Severidad")
     def severidad_badge(self, obj):
         """Severidad badge"""
         icons = {"leve": "", "moderada": "", "severa": "", "critica": ""}
@@ -891,18 +889,17 @@ class ComplicacionPartoAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold; font-size: 16px;">{} {}</span>',
             color,
             icon,
-            obj.get_severidad_display(),
+            getattr(obj, 'get_severidad_display')(),
         )
 
-    severidad_badge.short_description = "Severidad"
 
+    @admin.display(description="Médico Responsable")
     def get_medico_responsable(self, obj):
         """Get medico responsable"""
         if obj.medico_responsable:
             return obj.medico_responsable.nombre
         return "No asignado"
 
-    get_medico_responsable.short_description = "Médico Responsable"
 
 
 @admin.register(ApgarScoreDetallado)
@@ -980,6 +977,7 @@ class ApgarScoreDetalladoAdmin(admin.ModelAdmin):
         ("Metadata", {"fields": (("fecha_registro",),), "classes": ("collapse",)}),
     )
 
+    @admin.display(description="Recién Nacido")
     def get_recien_nacido(self, obj):
         """Get recien nacido"""
         url = reverse("admin:partos_reciennacido_change", args=[obj.recien_nacido.id])
@@ -990,8 +988,8 @@ class ApgarScoreDetalladoAdmin(admin.ModelAdmin):
             obj.recien_nacido.peso_nacimiento,
         )
 
-    get_recien_nacido.short_description = "Recién Nacido"
 
+    @admin.display(description="Score Total")
     def score_total_badge(self, obj):
         """Score total badge"""
         score = obj.score_total
@@ -1016,15 +1014,14 @@ class ApgarScoreDetalladoAdmin(admin.ModelAdmin):
             obj.get_clasificacion(),
         )
 
-    score_total_badge.short_description = "Score Total"
 
+    @admin.display(description="Evaluador")
     def get_evaluador(self, obj):
         """Get evaluador"""
         if obj.evaluador:
             return obj.evaluador.nombre
         return "No registrado"
 
-    get_evaluador.short_description = "Evaluador"
 
 
 # Personalizar títulos del admin

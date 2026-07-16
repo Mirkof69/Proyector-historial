@@ -10,6 +10,7 @@ Modelos para gestión de vacunas en sistema de atención prenatal
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 from pacientes.models import Paciente
 
@@ -131,12 +132,12 @@ class TipoVacuna(models.Model):
         return f"{self.nombre} ({self.dosis_requeridas} dosis)"
 
     @property
-    def es_multidosis(self):
+    def es_multidosis(self) -> bool:
         """Verifica si requiere múltiples dosis"""
         return self.dosis_requeridas > 1
 
     @property
-    def tiene_contraindicaciones(self):
+    def tiene_contraindicaciones(self) -> bool:
         """Verifica si tiene contraindicaciones registradas"""
         return bool(self.contraindicaciones)
 
@@ -342,25 +343,24 @@ class RegistroVacuna(models.Model):
 
         # Validar que la fecha de próxima dosis sea futura
         if self.proxima_dosis_fecha:
-            from datetime import date
 
-            if self.proxima_dosis_fecha <= date.today():
+            if self.proxima_dosis_fecha <= timezone.localdate():
                 raise ValidationError(
                     {"proxima_dosis_fecha": "La fecha de próxima dosis debe ser futura"},
                 )
 
     @property
-    def esquema_completo(self):
+    def esquema_completo(self) -> bool:
         """Verifica si se completó el esquema de vacunación"""
         return self.numero_dosis >= self.tipo_vacuna.dosis_requeridas
 
     @property
-    def tiene_reacciones_adversas(self):
+    def tiene_reacciones_adversas(self) -> bool:
         """Verifica si se reportaron reacciones adversas"""
         return bool(self.reacciones_adversas)
 
     @property
-    def requiere_siguiente_dosis(self):
+    def requiere_siguiente_dosis(self) -> bool:
         """Verifica si requiere siguiente dosis"""
         return (
             not self.esquema_completo
@@ -396,7 +396,7 @@ class RegistroVacuna(models.Model):
         return {
             "id": self.aplicado_por.id,
             "nombre": self.aplicado_por.nombre_completo,
-            "rol": self.aplicado_por.get_rol_display(),
+            "rol": getattr(self.aplicado_por, 'get_rol_display', lambda: '')(),
         }
 
     def get_progreso_esquema(self):

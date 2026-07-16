@@ -61,30 +61,30 @@ class Command(BaseCommand):
         count += self.crear_valores_beta_hcg()
         count += self.crear_valores_perfil_tiroideo()
         count += self.crear_valores_hormonas_reproductivas()
-        count += self.crear_valores_prolactina()
-        count += self.crear_valores_amh()
+        count += getattr(self, 'crear_valores_prolactina')()
+        count += getattr(self, 'crear_valores_amh')()
 
         # MARCADORES TUMORALES
         count += self.crear_valores_ca125()
         count += self.crear_valores_afp()
-        count += self.crear_valores_he4()
-        count += self.crear_valores_cea()
+        count += getattr(self, 'crear_valores_he4')()
+        count += getattr(self, 'crear_valores_cea')()
 
         # FUNCIÓN HEPÁTICA
-        count += self.crear_valores_funcion_hepatica()
+        count += getattr(self, 'crear_valores_funcion_hepatica')()
 
         # INFECCIOSAS
         count += self.crear_valores_vih()
         count += self.crear_valores_vdrl()
         count += self.crear_valores_hepatitis_b()
-        count += self.crear_valores_hepatitis_c()
-        count += self.crear_valores_torch()
-        count += self.crear_valores_cultivo_gbs()
-        count += self.crear_valores_chlamydia_gonorrea()
+        count += getattr(self, 'crear_valores_hepatitis_c')()
+        count += getattr(self, 'crear_valores_torch')()
+        count += getattr(self, 'crear_valores_cultivo_gbs')()
+        count += getattr(self, 'crear_valores_chlamydia_gonorrea')()
 
         # COAGULACIÓN
-        count += self.crear_valores_coagulacion()
-        count += self.crear_valores_dimero_d()
+        count += getattr(self, 'crear_valores_coagulacion')()
+        count += getattr(self, 'crear_valores_dimero_d')()
 
         # ORINA
         count += self.crear_valores_orina()

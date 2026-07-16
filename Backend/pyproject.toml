@@ -1,0 +1,162 @@
+[tool.ruff]
+# Target Python version
+target-version = "py312"
+
+# Exclude directories
+exclude = [
+    ".venv",
+    "frontend",
+    "node_modules",
+    "build",
+    "dist",
+    "investigacion_operaciones",
+    "seeders",
+    "tests",
+    "**/migrations/*.py",
+    "fix_warnings*.py"
+]
+
+# Set of rules to enable or ignore
+[tool.ruff.lint]
+select = ["E", "F", "W", "DJ"]
+ignore = [
+    "E402",  # Allow module level imports not at top
+    "DJ012", # Allow order of Model inner classes
+    "F541",  # Allow f-strings without placeholders
+    "E501",  # Ignore line too long
+    "DJ001", # Allow null=True on string-based fields
+    "DJ007", # Allow __all__ in ModelForm
+    "F841",  # Ignore unused local variables
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_configs = true
+show_error_codes = true
+no_implicit_optional = false
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "settings"
+
+# Exclude directories from typing check
+exclude = [
+    "\\.venv",
+    "frontend",
+    "node_modules",
+    "build",
+    "dist",
+    "investigacion_operaciones",
+    "seeders",
+    "tests",
+    ".*/migrations/.*",
+    "fix_warnings.*\\.py",
+    "fix_meta\\.py"
+]
+
+[tool.bandit]
+exclude_dirs = [
+    ".venv",
+    "frontend",
+    "tests",
+    "seeders",
+    "**/migrations"
+]
+skips = [
+    "B311", # Standard pseudo-random generators (used only for fake/mock data generation in seeders)
+    "B110", # Try-except-pass (often used for cleanups/optional imports checks)
+    "B112", # Try-except-continue (often used in loops over mock data)
+    "B105", # Hardcoded passwords checks (triggers on localized strings containing word 'contraseña')
+    "B106", # Hardcoded passwords checks (triggers on mock user data definitions in seeders)
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "cv2.*",
+    "channels.*",
+    "celery.*",
+    "rest_framework.*",
+    "PIL.*",
+    "corsheaders.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "calculadoras_avanzadas.admin",
+    "calculadoras.admin",
+    "laboratorio.admin",
+    "pacientes.admin",
+    "embarazos.admin",
+    "controles.admin",
+]
+# Django admin short_description attribute is a runtime convention not in django-stubs
+ignore_errors = false
+disable_error_code = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+module = [
+    "Microservicio_IA.train_pytorch_cnn",
+    "Microservicio_IA.scripts.*",
+]
+# ML training scripts have many dynamic types (PyTorch, numpy arrays)
+ignore_errors = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+pythonpath = ["."]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--no-header",
+    "-p", "no:warnings",
+    "-p", "pytest_cov",
+    "--cov=.",
+    "--cov-report=term-missing",
+    "--ds=settings",
+]
+
+[tool.pyright]
+typeCheckingMode = "standard"
+reportMissingTypeStubs = false
+reportMissingParameterType = false
+reportIncompatibleVariableOverride = false
+
+[tool.pyrefly]
+preset = "basic"
+project-excludes = [
+    "**/.venv/**",
+    "**/node_modules/**",
+    "**/__pycache__/**",
+    "**/tests/**",
+    "**/migrations/**",
+    "**/Microservicio_IA/**",
+    "**/admin.py",
+    "**/pdf_*.py",
+    "**/excel_*.py",
+    "**/fix_warnings*.py",
+    "**/seeders/**",
+    "**/investigacion_operaciones/**",
+]
+
+[tool.coverage.run]
+omit = [
+    ".venv/*",
+    "frontend/*",
+    "*/migrations/*",
+    "seeders/*",
+    "fix_warnings*.py",
+    "*/tests/*",
+    "manage.py",
+    "listar_urls.py",
+    "conftest.py",
+    "check_*.py",
+    "parse_bandit.py",
+    "diagnostico*",
+]

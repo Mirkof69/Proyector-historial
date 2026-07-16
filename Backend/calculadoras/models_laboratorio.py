@@ -183,7 +183,7 @@ class Hemograma(models.Model):
 
         # Hallazgos
         if self.clasificacion != "NORMAL":
-            interpretacion.append(f"Hallazgo: {self.get_clasificacion_display()}.")
+            interpretacion.append(f"Hallazgo: {getattr(self, 'get_clasificacion_display')()}.")
 
         # Eritrograma
         if self.hemoglobina < 10.5 and self.embarazo:
@@ -444,9 +444,16 @@ class MarcadorEmbarazo(models.Model):
         ordering = ["-fecha_toma"]
 
     def calcular_mom(self):
-        """Cálculo MoM para todos los marcadores"""
-        # Aquí iría la lógica completa de cálculo MoM
-        # Por ahora placeholder - se implementa en el servicio
+        """El cálculo MoM real vive en calculadoras.services.mom_converter.MOMConverter
+        (requiere edad gestacional, peso, etnia, etc., que no están en este modelo).
+
+        Este método se dejaba vacío y devolvía None en silencio, lo que invitaba
+        a error: quien lo llamara creería que obtuvo un MoM. Ahora falla explícito.
+        """
+        raise NotImplementedError(
+            "Use calculadoras.services.mom_converter.MOMConverter.calcular_mom(); "
+            "MarcadorEmbarazo no tiene los datos necesarios (EG, peso, etnia).",
+        )
 
     def clasificar(self):
         """Clasificación según valores MoM"""

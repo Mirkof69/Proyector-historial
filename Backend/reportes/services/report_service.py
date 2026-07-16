@@ -10,6 +10,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any
 
+from django.utils import timezone
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,6 +36,7 @@ class ReportService:
 
         """
         from django.utils import timezone
+
         from citas.models import Cita
         from controles.models import ControlPrenatal
         from embarazos.models import Embarazo
@@ -129,6 +132,7 @@ class ReportService:
         """
         from django.db.models import Count
         from django.utils import timezone
+
         from controles.models import ControlPrenatal
         from pacientes.models import Paciente
 
@@ -191,13 +195,14 @@ class ReportService:
         """Obtiene estadísticas para el dashboard principal
         """
         from django.utils import timezone
+
         from citas.models import Cita
         from controles.models import ControlPrenatal
         from embarazos.models import Embarazo
         from pacientes.models import Paciente
         from partos.models import Parto
 
-        date_filter = {}
+        date_filter: dict[str, Any] = {}
         if start_date and end_date:
             date_filter["fecha_registro__range"] = (start_date, end_date)
 
@@ -212,7 +217,7 @@ class ReportService:
         ).count()
 
         # Controles (del mes actual o rango)
-        controles_filter = {}
+        controles_filter: dict[str, Any] = {}
         if start_date and end_date:
             controles_filter["fecha_control__range"] = (start_date, end_date)
         else:
@@ -228,7 +233,7 @@ class ReportService:
         citas_hoy = Cita.objects.filter(fecha_cita=now_date).count()
 
         # Partos (del mes actual o rango)
-        partos_filter = {}
+        partos_filter: dict[str, Any] = {}
         if start_date and end_date:
             partos_filter["fecha_parto__range"] = (start_date, end_date)
         else:
@@ -254,8 +259,8 @@ class ReportService:
     ) -> dict[str, Any]:
         """Obtiene estadísticas detalladas de embarazos
         """
-        from datetime import date
         from django.db.models import Count
+
         from embarazos.models import Embarazo
         from pacientes.models import Paciente
 
@@ -290,7 +295,7 @@ class ReportService:
         embarazos_activos = Embarazo.objects.filter(**filter_kwargs, estado="activo")
         for emb in embarazos_activos:
             if emb.fecha_ultima_menstruacion:
-                hoy = date.today()
+                hoy = timezone.localdate()
                 dias = (hoy - emb.fecha_ultima_menstruacion).days
                 semanas = dias // 7
                 if semanas <= 13:
@@ -341,6 +346,7 @@ class ReportService:
         """Obtiene estadísticas de controles prenatales
         """
         from django.db.models import Avg, Count
+
         from controles.models import ControlPrenatal
 
         filter_kwargs = {}
@@ -386,6 +392,7 @@ class ReportService:
         """Obtiene estadísticas de citas
         """
         from django.db.models import Count
+
         from citas.models import Cita
 
         filter_kwargs = {}
@@ -435,6 +442,7 @@ class ReportService:
         """Obtiene estadísticas de partos
         """
         from django.db.models import Count
+
         from partos.models import Parto
 
         filter_kwargs = {}
@@ -455,7 +463,7 @@ class ReportService:
             .annotate(total=Count("id")),
         )
 
-        por_atencion = []
+        por_atencion: list[Any] = []
 
         con_complicaciones = 0
         sin_complicaciones = total_partos
@@ -503,7 +511,7 @@ class ReportService:
                 start_date, end_date,
             )
         except Exception as e:
-            print(f"❌ Error en dashboard_stats: {e!s}")
+            logger.exception("Error en dashboard_stats: %s", e)
             traceback.print_exc()
             result["dashboard"] = {"error": str(e)}
 
@@ -513,7 +521,7 @@ class ReportService:
                 start_date, end_date,
             )
         except Exception as e:
-            print(f"❌ Error en embarazos_stats: {e!s}")
+            logger.exception("Error en embarazos_stats: %s", e)
             traceback.print_exc()
             result["embarazos"] = {"error": str(e)}
 
@@ -523,7 +531,7 @@ class ReportService:
                 start_date, end_date,
             )
         except Exception as e:
-            print(f"❌ Error en controles_stats: {e!s}")
+            logger.exception("Error en controles_stats: %s", e)
             traceback.print_exc()
             result["controles"] = {"error": str(e)}
 
@@ -531,7 +539,7 @@ class ReportService:
         try:
             result["citas"] = ReportService.get_citas_stats(start_date, end_date)
         except Exception as e:
-            print(f"❌ Error en citas_stats: {e!s}")
+            logger.exception("Error en citas_stats: %s", e)
             traceback.print_exc()
             result["citas"] = {"error": str(e)}
 
@@ -539,7 +547,7 @@ class ReportService:
         try:
             result["partos"] = ReportService.get_partos_stats(start_date, end_date)
         except Exception as e:
-            print(f"❌ Error en partos_stats: {e!s}")
+            logger.exception("Error en partos_stats: %s", e)
             traceback.print_exc()
             result["partos"] = {"error": str(e)}
 
@@ -586,13 +594,14 @@ class ReportService:
                 },
             ]
         except Exception as e:
-            print(f"Error en get_composition_chart_data: {e!s}")
+            logger.exception("Error en get_composition_chart_data: %s", e)
             return []
 
     @staticmethod
     def get_stacked_bar_chart_data(months=12):
         """Gráfico de barras apiladas - Comparativa mensual"""
         from django.utils import timezone
+
         from citas.models import Cita
         from controles.models import ControlPrenatal
         from embarazos.models import Embarazo
@@ -628,7 +637,7 @@ class ReportService:
 
             return data
         except Exception as e:
-            print(f"Error en get_stacked_bar_chart_data: {e!s}")
+            logger.exception("Error en get_stacked_bar_chart_data: %s", e)
             return []
 
     @staticmethod
@@ -669,5 +678,5 @@ class ReportService:
                 },
             }
         except Exception as e:
-            print(f"Error en get_distribution_chart_data: {e!s}")
+            logger.exception("Error en get_distribution_chart_data: %s", e)
             return {"data": [], "stats": {}}

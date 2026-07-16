@@ -8,4 +8,6 @@ class CitasConfig(AppConfig):
     name = "citas"
 
     def ready(self):
-        """Ready"""
+        """Conecta las señales del módulo (avisos de cita al médico)."""
+        from citas import signals as _signals
+        _ = _signals

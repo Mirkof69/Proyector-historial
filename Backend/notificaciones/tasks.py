@@ -18,6 +18,9 @@ from datetime import timedelta
 from celery import shared_task
 from django.utils import timezone
 
+from controles.models import ControlPrenatal
+from embarazos.models import Embarazo
+
 from .models import Notificacion, PrioridadNotificacion, TipoNotificacion
 
 logger = logging.getLogger(__name__)
@@ -50,7 +53,7 @@ def enviar_recordatorios_citas():
         # Verificar si ya existe notificación para esta cita
         ya_notificado = Notificacion.objects.filter(
             entidad_tipo="cita",
-            entidad_id=cita.id,
+            entidad_id=getattr(cita, 'id', None),
             tipo=TipoNotificacion.CITA_PROXIMA,
             fecha_creacion__gte=ahora - timedelta(hours=12),  # No duplicar en 12h
         ).exists()
@@ -59,7 +62,7 @@ def enviar_recordatorios_citas():
             continue
 
         # Calcular tiempo hasta la cita
-        tiempo_hasta = cita.fecha_hora - ahora
+        tiempo_hasta = getattr(cita, 'fecha_hora', ahora) - ahora
         horas_hasta = int(tiempo_hasta.total_seconds() / 3600)
 
         # Determinar prioridad
@@ -71,7 +74,7 @@ def enviar_recordatorios_citas():
             mensaje_tiempo = f"en {horas_hasta} horas"
         else:
             prioridad = PrioridadNotificacion.NORMAL
-            mensaje_tiempo = f"mañana a las {cita.fecha_hora.strftime('%H:%M')}"
+            mensaje_tiempo = f"mañana a las {getattr(cita, 'fecha_hora', ahora).strftime('%H:%M')}"
 
         # Crear notificación
         try:
@@ -82,21 +85,21 @@ def enviar_recordatorios_citas():
                     prioridad=prioridad,
                     titulo=" Recordatorio de Cita",
                     mensaje=f"Tiene una cita {mensaje_tiempo} con el Dr./Dra. {cita.medico.nombre_completo if cita.medico else 'Por confirmar'}. "
-                    f"Tipo: {cita.get_tipo_cita_display()}",
-                    url=f"/dashboard/citas/{cita.id}",
+                    f"Tipo: {getattr(cita, 'get_tipo_cita_display')()}",
+                    url=f"/dashboard/citas/{getattr(cita, 'id', None)}",
                     url_texto="Ver Detalle",
                     entidad_tipo="cita",
-                    entidad_id=cita.id,
+                    entidad_id=getattr(cita, 'id', None),
                     metadata={
-                        "cita_id": cita.id,
-                        "fecha_cita": cita.fecha_hora.isoformat(),
-                        "tipo": cita.tipo_cita,
+                        "cita_id": getattr(cita, 'id', None),
+                        "fecha_cita": getattr(cita, 'fecha_hora', ahora).isoformat(),
+                        "tipo": getattr(cita, 'tipo_cita', ''),
                         "horas_hasta": horas_hasta,
                     },
                 )
                 notificaciones_enviadas += 1
         except Exception as e:
-            logger.error("Error creando notificación para cita %s: %s", cita.id, e)
+            logger.error("Error creando notificación para cita %s: %s", getattr(cita, 'id', None), e)
 
     logger.info("Recordatorios de citas enviados: %s", notificaciones_enviadas)
     return {"enviadas": notificaciones_enviadas}
@@ -125,7 +128,7 @@ def alertar_examenes_pendientes():
         # Verificar si ya se notificó recientemente
         ya_notificado = Notificacion.objects.filter(
             entidad_tipo="examen",
-            entidad_id=examen.id,
+            entidad_id=getattr(examen, 'id', None),
             tipo=TipoNotificacion.RECORDATORIO,
             fecha_creacion__gte=timezone.now() - timedelta(days=7),
         ).exists()
@@ -145,19 +148,19 @@ def alertar_examenes_pendientes():
                     mensaje=f"Tiene un examen pendiente desde hace {dias_pendiente} días. "
                     f"Tipo: {examen.tipo_examen.nombre if hasattr(examen, 'tipo_examen') else 'Examen de laboratorio'}. "
                     "Por favor, acérquese al laboratorio para realizarse el examen.",
-                    url=f"/dashboard/laboratorio/{examen.id}",
+                    url=f"/dashboard/laboratorio/{getattr(examen, 'id', None)}",
                     url_texto="Ver Examen",
                     entidad_tipo="examen",
-                    entidad_id=examen.id,
+                    entidad_id=getattr(examen, 'id', None),
                     metadata={
-                        "examen_id": examen.id,
+                        "examen_id": getattr(examen, 'id', None),
                         "dias_pendiente": dias_pendiente,
                         "fecha_solicitud": examen.fecha_solicitud.isoformat(),
                     },
                 )
                 notificaciones_enviadas += 1
         except Exception as e:
-            logger.error("Error creando alerta para examen %s: %s", examen.id, e)
+            logger.error("Error creando alerta para examen %s: %s", getattr(examen, 'id', None), e)
 
     logger.info(
         "✅ Alertas de exámenes pendientes enviadas: %s",
@@ -258,9 +261,6 @@ def archivar_notificaciones_expiradas():
 def recordatorios_controles_prenatales():
     """Enviar recordatorios para controles prenatales próximos o atrasados
     """
-    from controles.models import ControlPrenatal
-    from embarazos.models import Embarazo
-
     logger.info(" Enviando recordatorios de controles prenatales")
 
     ahora = timezone.now()
@@ -299,12 +299,12 @@ def recordatorios_controles_prenatales():
                             titulo=" Recordatorio: Control Prenatal",
                             mensaje=f"Han pasado {dias_desde_ultimo} días desde su último control prenatal. "
                             "Es importante agendar su próximo control.",
-                            url=f"/dashboard/controlesembarazo={embarazo.id}",
+                            url=f"/dashboard/controlesembarazo={getattr(embarazo, 'id', None)}",
                             url_texto="Agendar Control",
                             entidad_tipo="embarazo",
-                            entidad_id=embarazo.id,
+                            entidad_id=getattr(embarazo, 'id', None),
                             metadata={
-                                "embarazo_id": embarazo.id,
+                                "embarazo_id": getattr(embarazo, 'id', None),
                                 "dias_desde_ultimo_control": dias_desde_ultimo,
                             },
                         )
@@ -312,16 +312,12 @@ def recordatorios_controles_prenatales():
                 except Exception as e:
                     logger.error(
                         "Error creando recordatorio para embarazo %s: %s",
-                        embarazo.id,
+                        getattr(embarazo, 'id', None),
                         e,
                     )
         else:
             # Primer control
-            semanas_embarazo = (
-                embarazo.edad_gestacional_semanas
-                if hasattr(embarazo, "edad_gestacional_semanas")
-                else 0
-            )
+            semanas_embarazo = getattr(embarazo, 'edad_gestacional_semanas', 0) or 0
             if semanas_embarazo > 4:  # Después de 4 semanas sin controles
                 try:
                     if hasattr(embarazo.paciente, "usuario"):
@@ -332,12 +328,12 @@ def recordatorios_controles_prenatales():
                             titulo=" Importante: Primer Control Prenatal",
                             mensaje="Es importante realizar su primer control prenatal. "
                             "Por favor, agende una cita con su médico.",
-                            url=f"/dashboard/controlesembarazo={embarazo.id}",
+                            url=f"/dashboard/controlesembarazo={getattr(embarazo, 'id', None)}",
                             url_texto="Agendar Control",
                             entidad_tipo="embarazo",
-                            entidad_id=embarazo.id,
+                            entidad_id=getattr(embarazo, 'id', None),
                             metadata={
-                                "embarazo_id": embarazo.id,
+                                "embarazo_id": getattr(embarazo, 'id', None),
                                 "primer_control": True,
                             },
                         )
@@ -345,9 +341,22 @@ def recordatorios_controles_prenatales():
                 except Exception as e:
                     logger.error(
                         "Error creando recordatorio para embarazo %s: %s",
-                        embarazo.id,
+                        getattr(embarazo, 'id', None),
                         e,
                     )
 
     logger.info("Recordatorios de controles enviados: %s", notificaciones_enviadas)
     return {"enviadas": notificaciones_enviadas}
+
+
+@shared_task(name="notificaciones.tasks.escalar_notificaciones_criticas")
+def escalar_notificaciones_criticas():
+    """Escala las alertas CRÍTICAS que siguen sin leerse según los umbrales de
+    settings (nivel 2 → jefe de guardia; nivel 3 → coordinación médica). Corre
+    periódicamente vía Celery beat (ver CELERY_BEAT_SCHEDULE). Cada escalamiento
+    deja su registro de auditoría con motivo timeout."""
+    from .services import escalar_notificaciones_criticas as _escalar
+
+    escaladas = _escalar()
+    logger.info("Escalamiento crítico: %s alerta(s) escaladas.", escaladas)
+    return {"escaladas": escaladas}

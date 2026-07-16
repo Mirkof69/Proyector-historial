@@ -1,19 +1,27 @@
 """Views module."""
 import hashlib
 import hmac as _hmac
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 
 from django.conf import settings as _settings
 from django.core.cache import cache
 from django.db.models import Count, Q
 from django.http import HttpResponse
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
+
+from antecedentes.serializers import (
+    AntecedenteGinecoObstetricoSerializer,
+    AntecedentePatologicoSerializer,
+)
+from core.permissions import FetalMedicalPermission
+from laboratorio.models import ExamenLaboratorio
+from partos.models import Parto
 
 from .models import Paciente
 from .pdf_service import PDFService
@@ -109,8 +117,19 @@ class PacienteViewSet(viewsets.ModelViewSet):
         serializer.save(updated_by=self.request.user)
 
     def get_queryset(self):
-        """Filtra el queryset según parámetros"""
+        """Filtra el queryset según parámetros y optimiza la carga en detalle."""
         queryset = super().get_queryset()
+
+        # Optimización: en el detalle precargar relaciones para evitar N+1
+        if self.action == "retrieve":
+            queryset = queryset.prefetch_related(
+                "embarazos",
+                "controles_prenatales",
+                "ecografias",
+                "citas",
+                "examenes_laboratorio",
+                "antecedentes_patologicos",
+            ).select_related("created_by", "updated_by")
 
         # Filtrar solo activos si se especifica
         solo_activos = self.request.query_params.get("solo_activos", None)
@@ -122,7 +141,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         edad_max = self.request.query_params.get("edad_max", None)
 
         if edad_min or edad_max:
-            today = date.today()
+            today = timezone.localdate()
 
             if edad_max:
                 fecha_min = today - timedelta(days=int(edad_max) * 365.25)
@@ -136,7 +155,8 @@ class PacienteViewSet(viewsets.ModelViewSet):
 
     def _generar_id_clinico(self) -> str:
         """Genera ID clinico unico formato PAC-YYYY-NNNN."""
-        anio_actual = datetime.now().year
+        from django.utils import timezone as tz
+        anio_actual = tz.localdate().year
         ultimo = (
             Paciente.objects.filter(id_clinico__startswith=f"PAC-{anio_actual}")
             .order_by("-id_clinico")
@@ -162,6 +182,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
 
         # Retornar con serializer completo
+        assert serializer.instance is not None
         paciente = Paciente.objects.get(id=serializer.instance.id)
         return_serializer = PacienteSerializer(paciente)
 
@@ -173,8 +194,16 @@ class PacienteViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """Baja lógica del paciente (soft delete). Nunca elimina físicamente el registro médico.
         Cumple DS 1793/2013 y RM 1328 — retención obligatoria 10 años.
+        Solo administradores pueden desactivar pacientes.
         """
         from django.utils import timezone as tz
+
+        # Solo administradores pueden desactivar pacientes
+        if not getattr(request.user, 'is_superuser', False) and getattr(request.user, "rol", "") != "administrador":
+            return Response(
+                {"error": "Solo administradores pueden desactivar pacientes del sistema."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         instance = self.get_object()
         nombre_paciente = getattr(instance, "nombre_completo", str(instance))
@@ -228,15 +257,34 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Búsqueda en campos no cifrados únicamente.
-        # ci y email son EncryptedCharField — no admiten LIKE en BD.
-        # Para buscar por CI exacto usar buscar-por-cedula (ci_hash).
+        # id_clinico es CharField plano: el filtro SQL real funciona.
+        # nombre/apellido_paterno/apellido_materno son EncryptedCharField
+        # (cada cifrado usa un IV/nonce aleatorio) — un LIKE contra esas
+        # columnas nunca puede coincidir con el texto plano de la búsqueda.
+        # Para mantener búsqueda PARCIAL real (no solo coincidencia exacta
+        # vía hash), se descifra y filtra en Python sobre pacientes activos.
+        # from_db_value() en EncryptedFieldMixin ya descifra automáticamente
+        # al acceder a paciente.nombre, no hace falta llamar a decrypt_value.
+        ids_por_id_clinico = set(
+            Paciente.objects.filter(id_clinico__icontains=query).values_list(
+                "id", flat=True,
+            ),
+        )
+
+        query_lower = query.lower()
+        ids_por_nombre = {
+            p.id
+            for p in Paciente.objects.filter(activo=True).only(
+                "id", "nombre", "apellido_paterno", "apellido_materno",
+            )
+            if query_lower in (p.nombre or "").lower()
+            or query_lower in (p.apellido_paterno or "").lower()
+            or query_lower in (p.apellido_materno or "").lower()
+        }
+
         pacientes = Paciente.objects.filter(
-            Q(nombre__icontains=query)
-            | Q(apellido_paterno__icontains=query)
-            | Q(apellido_materno__icontains=query)
-            | Q(id_clinico__icontains=query),
-        ).distinct()  # Sin límite de resultados
+            id__in=ids_por_id_clinico | ids_por_nombre,
+        )
 
         serializer = PacienteListSerializer(pacientes, many=True)
         return Response({"count": pacientes.count(), "results": serializer.data})
@@ -256,7 +304,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
             )
         try:
 
-            key = getattr(_settings, "SEARCH_HMAC_KEY", _settings.SECRET_KEY).encode()
+            key = str(getattr(_settings, "SEARCH_HMAC_KEY", _settings.SECRET_KEY)).encode()
             ci_hash = _hmac.new(key, ci.upper().encode(), hashlib.sha256).hexdigest()
             paciente = Paciente.objects.get(ci_hash=ci_hash, activo=True)
             return Response(self.get_serializer(paciente).data)
@@ -393,16 +441,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
         # Iniciar queryset
         queryset = Paciente.objects.filter(activo=True)
 
-        # Fuzzy search en nombre (contiene)
-        if nombre:
-            nombre_parts = nombre.split()
-            for part in nombre_parts:
-                queryset = queryset.filter(
-                    Q(nombre__icontains=part)
-                    | Q(apellido_paterno__icontains=part)
-                    | Q(apellido_materno__icontains=part),
-                )
-
         # ID Clínico
         if id_clinico:
             queryset = queryset.filter(id_clinico__icontains=id_clinico)
@@ -410,7 +448,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         # CI — campo cifrado, buscar por hash exacto (HMAC-SHA256)
         if ci:
 
-            key = getattr(_settings, "SEARCH_HMAC_KEY", _settings.SECRET_KEY).encode()
+            key = str(getattr(_settings, "SEARCH_HMAC_KEY", _settings.SECRET_KEY)).encode()
             ci_hash = _hmac.new(key, ci.upper().encode(), hashlib.sha256).hexdigest()
             queryset = queryset.filter(ci_hash=ci_hash)
 
@@ -422,7 +460,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
 
         # Edad
         if edad_min or edad_max:
-            today = date.today()
+            today = timezone.localdate()
             if edad_max:
                 fecha_min = today - timedelta(days=int(edad_max) * 365.25)
                 queryset = queryset.filter(fecha_nacimiento__gte=fecha_min)
@@ -446,18 +484,38 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 queryset = queryset.exclude(embarazos__estado="activo").distinct()
 
         # Riesgo alto
-        if riesgo_alto is not None:
-            if riesgo_alto:
-                queryset = queryset.filter(
-                    embarazos__riesgo_embarazo="alto", embarazos__estado="activo",
-                ).distinct()
+        if riesgo_alto is not None and riesgo_alto:
+            queryset = queryset.filter(
+                embarazos__riesgo_embarazo="alto", embarazos__estado="activo",
+            ).distinct()
 
         # Ordenar por fecha registro descendente
         queryset = queryset.order_by("-fecha_registro")  # Sin límite de resultados
 
+        # Fuzzy search en nombre (contiene). nombre/apellidos son
+        # EncryptedCharField — un icontains en SQL nunca coincide (mismo
+        # motivo que en buscar()). Se filtra en Python sobre el queryset
+        # YA acotado por los demás criterios (fecha, edad, género, etc.)
+        # para no descifrar más registros de los necesarios.
+        if nombre:
+            nombre_parts = [p.lower() for p in nombre.split()]
+            queryset = [
+                p
+                for p in queryset
+                if all(
+                    part in (p.nombre or "").lower()
+                    or part in (p.apellido_paterno or "").lower()
+                    or part in (p.apellido_materno or "").lower()
+                    for part in nombre_parts
+                )
+            ]
+            total = len(queryset)
+        else:
+            total = queryset.count()
+
         serializer = PacienteListSerializer(queryset, many=True)
 
-        return Response({"count": queryset.count(), "results": serializer.data})
+        return Response({"count": total, "results": serializer.data})
 
     @action(detail=True, methods=["post"])
     @extend_schema(
@@ -542,8 +600,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 timeline.append(eco_data)
 
             # Laboratorios del embarazo
-            from laboratorio.models import ExamenLaboratorio
-
             laboratorios = (
                 ExamenLaboratorio.objects.filter(
                     Q(control_prenatal__embarazo=embarazo) | Q(paciente=paciente),
@@ -559,8 +615,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 timeline.append(lab_data)
 
             # Partos del embarazo
-            from partos.models import Parto
-
             partos = Parto.objects.filter(embarazo=embarazo).order_by("fecha_parto")
             for parto in partos:
                 parto_data = PartoSerializer(parto).data
@@ -611,3 +665,274 @@ class PacienteViewSet(viewsets.ModelViewSet):
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         return response
+
+    @extend_schema(
+        summary="Obtener o actualizar antecedentes personales",
+        description="Obtiene o actualiza los antecedentes patológicos de tipo personal del paciente. Crea uno en blanco si no existe.",
+        responses={200: AntecedentePatologicoSerializer},
+    )
+    @action(detail=True, methods=["get", "post"], url_path="antecedentes-personales")
+    def antecedentes_personales(self, request, pk=None):
+        paciente = self.get_object()
+        from antecedentes.models import AntecedentePatologico
+
+        antecedente, created = AntecedentePatologico.objects.get_or_create(
+            paciente=paciente,
+            tipo="personal",
+            defaults={"registrado_por": request.user}
+        )
+
+        if request.method == "POST":
+            serializer = AntecedentePatologicoSerializer(antecedente, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(registrado_por=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = AntecedentePatologicoSerializer(antecedente)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Obtener o actualizar antecedentes familiares",
+        description="Obtiene o actualiza los antecedentes patológicos de tipo heredofamiliar del paciente. Crea uno en blanco si no existe.",
+        responses={200: AntecedentePatologicoSerializer},
+    )
+    @action(detail=True, methods=["get", "post"], url_path="antecedentes-familiares")
+    def antecedentes_familiares(self, request, pk=None):
+        paciente = self.get_object()
+        from antecedentes.models import AntecedentePatologico
+
+        antecedente, created = AntecedentePatologico.objects.get_or_create(
+            paciente=paciente,
+            tipo="heredofamiliar",
+            defaults={"registrado_por": request.user}
+        )
+
+        if request.method == "POST":
+            serializer = AntecedentePatologicoSerializer(antecedente, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(registrado_por=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = AntecedentePatologicoSerializer(antecedente)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Obtener o actualizar antecedentes obstétricos",
+        description="Obtiene o actualiza los antecedentes gineco-obstétricos de tipo obstétrico (GPAC) del paciente. Crea uno en blanco si no existe.",
+        responses={200: AntecedenteGinecoObstetricoSerializer},
+    )
+    @action(detail=True, methods=["get", "post"], url_path="antecedentes-obstetricos")
+    def antecedentes_obstetricos(self, request, pk=None):
+        paciente = self.get_object()
+        from antecedentes.models import AntecedenteGinecoObstetrico
+
+        antecedente, created = AntecedenteGinecoObstetrico.objects.get_or_create(
+            paciente=paciente,
+            defaults={"modificado_por": request.user}
+        )
+
+        if request.method == "POST":
+            serializer = AntecedenteGinecoObstetricoSerializer(antecedente, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(modificado_por=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = AntecedenteGinecoObstetricoSerializer(antecedente)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Obtener o actualizar antecedentes ginecológicos",
+        description="Obtiene o actualiza los antecedentes gineco-obstétricos de tipo ginecológico del paciente. Crea uno en blanco si no existe.",
+        responses={200: AntecedenteGinecoObstetricoSerializer},
+    )
+    @action(detail=True, methods=["get", "post"], url_path="antecedentes-ginecologicos")
+    def antecedentes_ginecologicos(self, request, pk=None):
+        paciente = self.get_object()
+        from antecedentes.models import AntecedenteGinecoObstetrico
+
+        antecedente, created = AntecedenteGinecoObstetrico.objects.get_or_create(
+            paciente=paciente,
+            defaults={"modificado_por": request.user}
+        )
+
+        if request.method == "POST":
+            serializer = AntecedenteGinecoObstetricoSerializer(antecedente, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(modificado_por=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = AntecedenteGinecoObstetricoSerializer(antecedente)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def controles(self, _request, _pk=None):
+        paciente = self.get_object()
+        from controles.models import ControlPrenatal
+        from controles.serializers import ControlPrenatalSerializer
+        controles_qs = ControlPrenatal.objects.filter(
+            paciente=paciente
+        ).select_related("embarazo").order_by("-fecha_control")
+        serializer = ControlPrenatalSerializer(controles_qs, many=True)
+        return Response({"total": controles_qs.count(), "controles": serializer.data})
+
+    @action(detail=True, methods=["get"])
+    def ecografias(self, _request, _pk=None):
+        paciente = self.get_object()
+        from ecografias.models import Ecografia
+        from ecografias.serializers import EcografiaListSerializer
+        ecografias_qs = Ecografia.objects.filter(paciente=paciente).order_by("-fecha_ecografia")
+        serializer = EcografiaListSerializer(ecografias_qs, many=True)
+        return Response({"total": ecografias_qs.count(), "ecografias": serializer.data})
+
+    @action(detail=True, methods=["get"], url_path="examenes-laboratorio")
+    def examenes_laboratorio(self, _request, _pk=None):
+        paciente = self.get_object()
+        from laboratorio.models import ExamenLaboratorio
+        from laboratorio.serializers import ExamenLaboratorioListSerializer
+        examenes = ExamenLaboratorio.objects.filter(paciente=paciente).order_by("-fecha_solicitud")
+        serializer = ExamenLaboratorioListSerializer(examenes, many=True)
+        return Response({"total": examenes.count(), "examenes": serializer.data})
+
+    @action(detail=True, methods=["get"])
+    def citas(self, _request, _pk=None):
+        paciente = self.get_object()
+        from citas.models import Cita
+        from citas.serializers import CitaListSerializer
+        citas_qs = Cita.objects.filter(paciente=paciente).order_by("-fecha_cita")
+        serializer = CitaListSerializer(citas_qs, many=True)
+        return Response({"total": citas_qs.count(), "citas": serializer.data})
+
+    @action(detail=True, methods=["get"])
+    def partos(self, _request, _pk=None):
+        paciente = self.get_object()
+        from partos.models import Parto
+        from partos.serializers import PartoSerializer
+        partos_qs = Parto.objects.filter(paciente=paciente).order_by("-fecha_parto")
+        serializer = PartoSerializer(partos_qs, many=True)
+        return Response({"total": partos_qs.count(), "partos": serializer.data})
+
+    @action(detail=True, methods=["get"], url_path="estadisticas")
+    def estadisticas_paciente(self, _request, _pk=None):
+        paciente = self.get_object()
+        from controles.models import ControlPrenatal
+        from ecografias.models import Ecografia
+        from embarazos.models import Embarazo
+        total_embarazos = Embarazo.objects.filter(paciente=paciente).count()
+        activos = Embarazo.objects.filter(paciente=paciente, estado="activo").count()
+        total_ecografias = Ecografia.objects.filter(paciente=paciente).count()
+        total_controles = ControlPrenatal.objects.filter(paciente=paciente).count()
+        return Response({
+            "total_embarazos": total_embarazos,
+            "embarazos_activos": activos,
+            "total_ecografias": total_ecografias,
+            "total_controles": total_controles,
+        })
+
+    @action(detail=True, methods=["get"], url_path="evaluar-riesgos")
+    def evaluar_riesgos(self, _request, _pk=None):
+        paciente = self.get_object()
+        factores = []
+        if paciente.edad and paciente.edad >= 35:
+            factores.append({"factor": "Edad materna avanzada", "valor": paciente.edad, "nivel": "medio"})
+        if paciente.peso_kg and paciente.altura_cm:
+            imc = paciente.peso_kg / ((paciente.altura_cm / 100) ** 2)
+            if imc >= 30:
+                factores.append({"factor": "Obesidad", "valor": round(imc, 1), "nivel": "alto"})
+            elif imc < 18.5:
+                factores.append({"factor": "Bajo peso", "valor": round(imc, 1), "nivel": "medio"})
+        if paciente.tipo_sangre and "Negativo" in paciente.tipo_sangre:
+            factores.append({"factor": "Rh negativo", "valor": paciente.tipo_sangre, "nivel": "medio"})
+        return Response({
+            "paciente_id": paciente.id,
+            "total_factores": len(factores),
+            "factores": factores,
+            "nivel_general": "alto" if any(f["nivel"] == "alto" for f in factores) else "bajo",
+        })
+
+    @action(detail=True, methods=["get"], url_path="historial-completo")
+    def historial_completo(self, _request, _pk=None):
+        paciente = self.get_object()
+        from embarazos.serializers import EmbarazoSerializer
+        embarazos = paciente.embarazos.all().order_by("-fecha_registro")
+        return Response({
+            "paciente": self.get_serializer(paciente).data,
+            "embarazos": EmbarazoSerializer(embarazos, many=True).data,
+        })
+
+    @action(detail=True, methods=["get"], url_path="reporte-pdf")
+    def reporte_pdf(self, _request, _pk=None):
+        return self.historia_clinica(_request, _pk)
+
+    @action(detail=True, methods=["get"], url_path="exportar-excel")
+    def exportar_excel_paciente(self, request, _pk=None):
+        paciente = self.get_object()
+        try:
+            from io import BytesIO
+
+            import openpyxl
+            from django.http import HttpResponse
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Paciente"
+            ws.append(["Campo", "Valor"])
+            ws.append(["ID Clínico", paciente.id_clinico])
+            ws.append(["Nombre", paciente.nombre_completo])
+            ws.append(["CI", paciente.ci])
+            ws.append(["Fecha Nacimiento", str(paciente.fecha_nacimiento or "")])
+            ws.append(["Teléfono", paciente.telefono or ""])
+            output = BytesIO()
+            wb.save(output)
+            output.seek(0)
+            response = HttpResponse(output.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = f"attachment; filename=paciente_{paciente.id}.xlsx"
+            return response
+        except ImportError:
+            return Response({"error": "openpyxl no instalado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=["get"], url_path="exportar-excel")
+    def exportar_lista_excel(self, request):
+        try:
+            from io import BytesIO
+
+            import openpyxl
+            from django.http import HttpResponse
+            queryset = self.filter_queryset(self.get_queryset())
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Pacientes"
+            ws.append(["ID", "ID Clínico", "Nombre", "CI", "Teléfono", "Email"])
+            for p in queryset:
+                ws.append([p.id, p.id_clinico, p.nombre_completo, p.ci, p.telefono, p.email])
+            output = BytesIO()
+            wb.save(output)
+            output.seek(0)
+            response = HttpResponse(output.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = "attachment; filename=pacientes.xlsx"
+            return response
+        except ImportError:
+            return Response({"error": "openpyxl no instalado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=["get"], url_path="exportar-pdf")
+    def exportar_pdf(self, request):
+        """Exporta listado de pacientes a PDF
+        GET /api/pacientes/exportar-pdf/
+        """
+        try:
+            import pdfkit
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+            queryset = self.filter_queryset(self.get_queryset())
+            html = render_to_string("pacientes/listado_pacientes_pdf.html", {
+                "pacientes": queryset,
+                "total": queryset.count(),
+            })
+            pdf = pdfkit.from_string(html, False)
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = 'attachment; filename="listado_pacientes.pdf"'
+            return response
+        except ImportError:
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({"mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit", "total": queryset.count(), "datos": serializer.data})
+        except Exception as e:
+            return Response({"error": f"Error generando PDF: {e}"}, status=500)

@@ -19,18 +19,16 @@ class CanEditParto(permissions.BasePermission):
             return True
 
         # Verificar si es administrador
-        if hasattr(request.user, "rol") and request.user.rol == "administrador":
+        if getattr(request.user, 'rol', None) == "administrador":
             return True
 
         # Verificar si es el creador
-        if obj.created_by and obj.created_by.id == request.user.id:
+        created_by = getattr(obj, 'created_by', None)
+        if created_by and getattr(created_by, 'id', None) == getattr(request.user, 'id', None):
             return True
 
         # Verificar si es el médico responsable
-        if obj.medico_responsable_id and obj.medico_responsable_id == request.user.id:
-            return True
-
-        return False
+        return bool(getattr(obj, 'medico_responsable_id', None) and getattr(obj, 'medico_responsable_id', None) == getattr(request.user, 'id', None))
 
 
 class CanFinalizarParto(permissions.BasePermission):
@@ -39,14 +37,11 @@ class CanFinalizarParto(permissions.BasePermission):
 
     def has_permission(self, request, view):
         """Has permission"""
-        if not request.user.is_authenticated:
+        if not getattr(request.user, 'is_authenticated', False):
             return False
 
         # Verificar si tiene rol de médico o administrador
-        if hasattr(request.user, "rol"):
-            return request.user.rol in ["medico", "administrador", "enfermera"]
-
-        return False
+        return getattr(request.user, 'rol', None) in ["medico", "administrador", "enfermera"]
 
 
 class CanViewAuditoria(permissions.BasePermission):
@@ -55,14 +50,11 @@ class CanViewAuditoria(permissions.BasePermission):
 
     def has_permission(self, request, view):
         """Has permission"""
-        if not request.user.is_authenticated:
+        if not getattr(request.user, 'is_authenticated', False):
             return False
 
         # Solo administradores
-        if hasattr(request.user, "rol"):
-            return request.user.rol == "administrador"
-
-        return False
+        return getattr(request.user, 'rol', None) == "administrador"
 
 
 class CanDeleteParto(permissions.BasePermission):
@@ -75,10 +67,7 @@ class CanDeleteParto(permissions.BasePermission):
             return True
 
         # Solo administradores pueden eliminar
-        if hasattr(request.user, "rol"):
-            return request.user.rol == "administrador"
-
-        return False
+        return getattr(request.user, 'rol', None) == "administrador"
 
 
 class CanExportData(permissions.BasePermission):
@@ -87,14 +76,11 @@ class CanExportData(permissions.BasePermission):
 
     def has_permission(self, request, view):
         """Has permission"""
-        if not request.user.is_authenticated:
+        if not getattr(request.user, 'is_authenticated', False):
             return False
 
         # Médicos y administradores pueden exportar
-        if hasattr(request.user, "rol"):
-            return request.user.rol in ["medico", "administrador"]
-
-        return False
+        return getattr(request.user, 'rol', None) in ["medico", "administrador"]
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -108,7 +94,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
 
         # Solo el creador puede editar
-        if hasattr(obj, "created_by") and obj.created_by:
-            return obj.created_by.id == request.user.id
+        created_by = getattr(obj, 'created_by', None)
+        if created_by:
+            return getattr(created_by, 'id', None) == getattr(request.user, 'id', None)
 
         return False

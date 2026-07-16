@@ -7,7 +7,7 @@ Proporciona métodos para crear, gestionar y consultar notificaciones
 """
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from django.utils import timezone
@@ -58,7 +58,7 @@ class NotificacionService:
         url_texto: str = "",
         entidad_tipo: str = "",
         entidad_id: int | None = None,
-        fecha_expiracion: timezone.datetime | None = None,
+        fecha_expiracion: datetime | None = None,
     ) -> Notificacion | None:
         """Crear una notificación
 
@@ -97,7 +97,7 @@ class NotificacionService:
 
             logger.info(
                 "Notificación creada: %s para usuario %s",
-                notificacion.id,
+                getattr(notificacion, 'id', None),
                 usuario_id,
             )
 
@@ -496,7 +496,7 @@ class NotificacionService:
         if solo_no_leidas:
             queryset = queryset.filter(leida=False)
 
-        agrupadas = {}
+        agrupadas: dict[str, list[Notificacion]] = {}
         for notif in queryset.order_by("-fecha_creacion"):
             tipo = notif.tipo
             if tipo not in agrupadas:
@@ -532,3 +532,240 @@ class NotificacionService:
         except Exception as e:
             logger.error("Error al eliminar notificación: %s", str(e))
             return False
+
+
+# =============================================================================
+# NOTIFICACIONES CLÍNICAS (para las señales de laboratorio/controles/citas)
+# =============================================================================
+# Un registro que nadie leyó no es una notificación, es un log. Estas funciones
+# garantizan: destinatario real con FALLBACK (médico null/inactivo → admins),
+# AUDITORÍA de la notificación misma (a quién se debía avisar y cuándo), y
+# difusión en tiempo real (ya persistida, así que se ve al reconectar).
+
+# Prioridades que disparan escalamiento/difusión inmediata.
+PRIORIDADES_CRITICAS = {
+    PrioridadNotificacion.ALTA,
+    PrioridadNotificacion.URGENTE,
+    PrioridadNotificacion.CRITICA,
+}
+
+
+def _usuario_activo(usuario) -> bool:
+    """True solo si el usuario existe y está activo (no en licencia/baja).
+    El modelo Usuario usa el campo `activo` (no el `is_active` estándar)."""
+    if usuario is None:
+        return False
+    return bool(getattr(usuario, "activo", True))
+
+
+def resolver_destinatarios(preferido) -> list:
+    """Destinatarios de una notificación clínica, con fallback definido.
+
+    - Médico solicitante/responsable si existe y está activo.
+    - Si es None o está inactivo (turno rotativo, licencia): todos los
+      administradores activos. Esto evita el crash silencioso y garantiza que un
+      valor crítico siempre tenga a quién avisar.
+    """
+    if _usuario_activo(preferido):
+        return [preferido]
+    from usuarios.models import Usuario
+    admins = list(Usuario.objects.filter(activo=True, rol="administrador"))
+    if not admins:
+        admins = list(Usuario.objects.filter(activo=True, is_superuser=True))
+    if not admins:
+        logger.warning(
+            "Notificación clínica sin destinatario resoluble (médico null/inactivo "
+            "y sin administradores). Revisar usuarios del sistema.",
+        )
+    return admins
+
+
+def _auditar_notificacion(destinatarios, *, tipo, prioridad, titulo,
+                          entidad_id, fue_fallback) -> None:
+    """Deja rastro inmutable de a quién se avisó y cuándo (exigible ante un valor
+    crítico no atendido a tiempo)."""
+    try:
+        from auditoria.models import RegistroAuditoria
+    except Exception:
+        return
+    destino = ", ".join(getattr(u, "email", str(u)) for u in destinatarios) or "SIN DESTINATARIO"
+    detalle = (
+        f"Notificación '{titulo}' (tipo={tipo}, prioridad={prioridad}) generada para: {destino}."
+        + (" [FALLBACK a administradores: médico destinatario null o inactivo]"
+           if fue_fallback else "")
+    )
+    try:
+        RegistroAuditoria.objects.create(
+            usuario=None, accion="CREAR", modulo="notificaciones",
+            registro_id=str(entidad_id) if entidad_id is not None else "", detalle=detalle,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("No se pudo auditar la notificación clínica: %s", exc)
+
+
+# Ventana anti-fatiga: no repetir la MISMA alerta al MISMO destinatario si ya
+# tiene una sin leer del mismo evento en este lapso (evita "alert fatigue", que
+# hace que el médico ignore alertas por saturación).
+VENTANA_DEDUP_MINUTOS = 30
+
+
+def _ya_notificado(usuario, tipo, entidad_tipo, entidad_id) -> bool:
+    """True si el usuario ya tiene una notificación SIN LEER del mismo evento
+    dentro de la ventana anti-fatiga."""
+    if entidad_id is None:
+        return False
+    from .models import Notificacion
+    corte = timezone.now() - timedelta(minutes=VENTANA_DEDUP_MINUTOS)
+    return Notificacion.objects.filter(
+        usuario=usuario, tipo=tipo, entidad_tipo=entidad_tipo,
+        entidad_id=entidad_id, leida=False, archivada=False,
+        fecha_creacion__gte=corte,
+    ).exists()
+
+
+def crear_notificacion_clinica(*, destinatario_preferido, tipo, titulo, mensaje,
+                               prioridad=PrioridadNotificacion.NORMAL,
+                               entidad_tipo="", entidad_id=None, url="",
+                               metadata=None) -> list:
+    """Crea la notificación clínica para el destinatario correcto (con fallback),
+    la audita y la difunde. Aplica anti-fatiga: no duplica una alerta sin leer del
+    mismo evento. Devuelve la lista de Notificacion creadas."""
+    destinatarios = resolver_destinatarios(destinatario_preferido)
+    fue_fallback = not _usuario_activo(destinatario_preferido)
+    creadas = []
+    for usuario in destinatarios:
+        if _ya_notificado(usuario, tipo, entidad_tipo, entidad_id):
+            logger.debug(
+                "Anti-fatiga: %s ya tiene notificación sin leer de %s#%s, se omite.",
+                getattr(usuario, "email", usuario), entidad_tipo, entidad_id,
+            )
+            continue
+        notif = NotificacionService.crear(
+            usuario_id=usuario.id, tipo=tipo, titulo=titulo, mensaje=mensaje,
+            prioridad=prioridad, entidad_tipo=entidad_tipo, entidad_id=entidad_id,
+            url=url, datos=metadata or {},
+        )
+        if notif is not None:
+            creadas.append(notif)
+    _auditar_notificacion(
+        destinatarios, tipo=tipo, prioridad=prioridad, titulo=titulo,
+        entidad_id=entidad_id, fue_fallback=fue_fallback,
+    )
+    if not destinatarios:
+        logger.error(
+            "Evento clínico '%s' (%s) sin destinatario: la notificación NO llegará "
+            "a nadie. Revisar médico asignado / administradores.", titulo, tipo,
+        )
+    return creadas
+
+
+# =============================================================================
+# ESCALAMIENTO MULTINIVEL DE ALERTAS CRÍTICAS
+# =============================================================================
+# Si una notificación CRÍTICA sigue sin leerse, se escala por la cadena de
+# derivación configurada en settings (nivel 2 = jefe de guardia a los 15 min;
+# nivel 3 = coordinación médica a los 30 min). Cada escalamiento deja su propio
+# registro de auditoría (a quién, cuándo, motivo: timeout). Solo escala prioridad
+# crítica. Pensado para correr periódicamente (Celery beat).
+
+def _destinatarios_por_rol(rol: str) -> list:
+    """Usuarios activos con el rol dado; si no hay (rol inexistente o vacante),
+    cae al fallback de administradores para no perder el escalamiento."""
+    from usuarios.models import Usuario
+    users = list(Usuario.objects.filter(activo=True, rol=rol))
+    if not users:
+        users = list(Usuario.objects.filter(activo=True, rol="administrador"))
+    if not users:
+        users = list(Usuario.objects.filter(activo=True, is_superuser=True))
+    return users
+
+
+def _auditar_escalamiento(original, nivel, rol, destinatarios, edad_min) -> None:
+    """Registro inmutable de cada escalamiento (motivo: timeout sin lectura)."""
+    try:
+        from auditoria.models import RegistroAuditoria
+    except Exception:
+        return
+    destino = ", ".join(getattr(u, "email", str(u)) for u in destinatarios) or "SIN DESTINATARIO"
+    try:
+        RegistroAuditoria.objects.create(
+            usuario=None, accion="EDITAR", modulo="notificaciones",
+            registro_id=str(getattr(original, "id", "")),
+            detalle=(
+                f"ESCALAMIENTO nivel {nivel} (rol destino: {rol}) de la alerta crítica "
+                f"'{original.titulo}' tras {edad_min} min sin leerse. "
+                f"Motivo: timeout. Notificado a: {destino}."
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("No se pudo auditar el escalamiento: %s", exc)
+
+
+def escalar_notificaciones_criticas() -> int:
+    """Revisa las notificaciones CRÍTICAS sin leer y las escala según los umbrales
+    de settings. Devuelve cuántas se escalaron en esta corrida. Idempotente: no
+    re-escala al mismo nivel (se marca `metadata['escalamiento_nivel']`)."""
+    from django.conf import settings
+
+    from .models import Notificacion
+
+    ahora = timezone.now()
+    n2 = timedelta(minutes=getattr(settings, "ESCALAMIENTO_NIVEL2_MINUTOS", 15))
+    n3 = timedelta(minutes=getattr(settings, "ESCALAMIENTO_NIVEL3_MINUTOS", 30))
+    rol2 = getattr(settings, "ESCALAMIENTO_ROL_NIVEL2", "jefe_guardia")
+    rol3 = getattr(settings, "ESCALAMIENTO_ROL_NIVEL3", "coordinacion_medica")
+
+    escaladas = 0
+    criticas = Notificacion.objects.filter(
+        prioridad=PrioridadNotificacion.CRITICA, leida=False, archivada=False,
+    )
+    for notif in criticas:
+        meta = notif.metadata or {}
+        if meta.get("es_escalamiento"):
+            continue  # los escalamientos no se re-escalan
+        edad = ahora - notif.fecha_creacion
+        nivel_actual = meta.get("escalamiento_nivel", 1)
+
+        if edad >= n3 and nivel_actual < 3:
+            objetivo = (3, rol3)
+        elif edad >= n2 and nivel_actual < 2:
+            objetivo = (2, rol2)
+        else:
+            continue
+
+        nivel, rol = objetivo
+        destinatarios = _destinatarios_por_rol(rol)
+        edad_min = int(edad.total_seconds() // 60)
+        for usuario in destinatarios:
+            escalada = Notificacion.objects.create(
+                usuario=usuario, tipo=notif.tipo,
+                prioridad=PrioridadNotificacion.CRITICA,
+                titulo=f"[ESCALAMIENTO N{nivel}] {notif.titulo}",
+                mensaje=(
+                    f"Alerta crítica SIN ATENDER hace {edad_min} min. {notif.mensaje}"
+                ),
+                entidad_tipo=notif.entidad_tipo, entidad_id=notif.entidad_id,
+                url=notif.url,
+                metadata={"es_escalamiento": True, "escala_de": notif.id, "nivel": nivel},
+            )
+            _broadcast_ws_safe(escalada)
+
+        meta["escalamiento_nivel"] = nivel
+        meta["escalado_en"] = ahora.isoformat()
+        notif.metadata = meta
+        notif.save(update_fields=["metadata"])
+        _auditar_escalamiento(notif, nivel, rol, destinatarios, edad_min)
+        escaladas += 1
+
+    if escaladas:
+        logger.warning("Escalamiento: %s alerta(s) crítica(s) escaladas por timeout.", escaladas)
+    return escaladas
+
+
+def _broadcast_ws_safe(notif) -> None:
+    """Difusión WebSocket best-effort del escalamiento (no rompe si el canal falla)."""
+    try:
+        from notifications_websocket.bridge import broadcast_notification
+        broadcast_notification(notif)
+    except Exception:  # noqa: BLE001
+        pass

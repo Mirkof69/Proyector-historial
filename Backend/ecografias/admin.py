@@ -3,7 +3,6 @@ from django import forms
 from django.contrib import admin, messages
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 
 from .models import (
     AnatomiaFetal,
@@ -527,6 +526,7 @@ class EcografiaAdmin(admin.ModelAdmin):
         "exportar_pdf_completo",
     ]
 
+    @admin.display(description="Paciente")
     def get_paciente_nombre(self, obj):
         """Get paciente nombre"""
         if obj.paciente:
@@ -539,22 +539,22 @@ class EcografiaAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    get_paciente_nombre.short_description = "Paciente"
 
+    @admin.display(description="Edad Gestacional")
     def get_edad_gestacional(self, obj):
         """Get edad gestacional"""
         return obj.get_edad_gestacional_texto()
 
-    get_edad_gestacional.short_description = "Edad Gestacional"
 
+    @admin.display(description="Médico Ecografista")
     def get_medico_nombre(self, obj):
         """Get medico nombre"""
         if obj.medico:
             return f"{obj.medico.nombre} {obj.medico.apellido_paterno}"
         return "Sin asignar"
 
-    get_medico_nombre.short_description = "Médico Ecografista"
 
+    @admin.display(description="Vitalidad Fetal")
     def vitalidad_fetal_badge(self, obj):
         """Vitalidad fetal badge"""
         if obj.vitalidad_fetal:
@@ -565,8 +565,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             '<span style="background-color: #e74c3c; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px;">SIN VITALIDAD</span>',
         )
 
-    vitalidad_fetal_badge.short_description = "Vitalidad Fetal"
 
+    @admin.display(description="Calidad")
     def calidad_estudio_badge(self, obj):
         """Calidad estudio badge"""
         colors = {
@@ -579,11 +579,11 @@ class EcografiaAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">{}</span>',
             color,
-            obj.get_calidad_estudio_display().upper(),
+            getattr(obj, 'get_calidad_estudio_display')().upper(),
         )
 
-    calidad_estudio_badge.short_description = "Calidad"
 
+    @admin.display(description="Líquido Amniótico")
     def get_estado_liquido(self, obj):
         """Get estado liquido"""
         estado = obj.get_estado_liquido_amniotico()
@@ -598,8 +598,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{}</span>', color, estado,
         )
 
-    get_estado_liquido.short_description = "Líquido Amniótico"
 
+    @admin.display(description="Estado")
     def requiere_seguimiento_badge(self, obj):
         """Requiere seguimiento badge"""
         if obj.requiere_seguimiento:
@@ -610,8 +610,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             '<span style="background-color: #27ae60; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px;">NORMAL</span>',
         )
 
-    requiere_seguimiento_badge.short_description = "Estado"
 
+    @admin.display(description="Alertas Médicas")
     def alertas_medicas_badge(self, obj):
         """Contador de alertas médicas automáticas"""
         alertas = 0
@@ -655,8 +655,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             '<span style="background-color: #27ae60; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px;">SIN ALERTAS</span>',
         )
 
-    alertas_medicas_badge.short_description = "Alertas Médicas"
 
+    @admin.display(description="Acciones")
     def acciones_rapidas(self, obj):
         """Botones de acciones rápidas para cada ecografía"""
         url_editar = reverse("admin:ecografias_ecografia_change", args=[obj.id])
@@ -671,32 +671,32 @@ class EcografiaAdmin(admin.ModelAdmin):
             url_paciente,
         )
 
-    acciones_rapidas.short_description = "Acciones"
 
+    @admin.display(description="Percentil ILA")
     def get_percentil_ila(self, obj):
         """Get percentil ila"""
         return obj.get_percentil_ila() or "No calculado"
 
-    get_percentil_ila.short_description = "Percentil ILA"
 
+    @admin.display(description="Estado del Líquido")
     def get_estado_liquido_amniotico(self, obj):
         """Get estado liquido amniotico"""
         return obj.get_estado_liquido_amniotico()
 
-    get_estado_liquido_amniotico.short_description = "Estado del Líquido"
 
-    def get_evaluacion_fcff(self, obj):
-        """Get evaluacion fcff"""
-        return obj.get_evaluacion_fcff()
+    @admin.display(description="Evaluación FCF")
+    def get_evaluacion_fcf(self, obj):
+        """Get evaluacion fcf"""
+        return obj.get_evaluacion_fcf()
 
-    get_evaluacion_fcff.short_description = "Evaluación FCF"
 
+    @admin.display(description="Resumen Médico Completo")
     def get_resumen_medico_completo(self, obj):
         """Genera un resumen médico automático completo"""
         resumen = []
 
         # Información básica
-        resumen.append(f"ECOGRAFÍA {obj.get_tipo_ecografia_display().upper()}")
+        resumen.append(f"ECOGRAFÍA {getattr(obj, 'get_tipo_ecografia_display')().upper()}")
         resumen.append(f"Fecha: {obj.fecha_ecografia}")
         resumen.append(f"Paciente: {obj.paciente.nombre_completo}")
         resumen.append(f"Edad Gestacional: {obj.get_edad_gestacional_texto()}")
@@ -711,7 +711,7 @@ class EcografiaAdmin(admin.ModelAdmin):
         resumen.append(f"• Número de fetos: {obj.numero_fetos}")
         if obj.frecuencia_cardiaca_fetal:
             resumen.append(
-                f"• FCF: {obj.frecuencia_cardiaca_fetal} lpm - {obj.get_evaluacion_fcff()}",
+                f"• FCF: {obj.frecuencia_cardiaca_fetal} lpm - {obj.get_evaluacion_fcf()}",
             )
         resumen.append("")
 
@@ -743,7 +743,7 @@ class EcografiaAdmin(admin.ModelAdmin):
                 resumen.append(f"• Translucencia nucal: {ana.translucencia_nucal} mm")
             resumen.append(f"• Riesgo cromosómico: {ana.get_riesgo_cromosomopatias()}")
             if ana.sexo_fetal:
-                resumen.append(f"• Sexo fetal: {ana.get_sexo_fetal_display()}")
+                resumen.append(f"• Sexo fetal: {getattr(ana, 'get_sexo_fetal_display')()}")
             resumen.append("")
 
         # Líquido amniótico
@@ -786,8 +786,8 @@ class EcografiaAdmin(admin.ModelAdmin):
 
         return "\n".join(resumen)
 
-    get_resumen_medico_completo.short_description = "Resumen Médico Completo"
 
+    @admin.display(description="Alertas Clínicas Automáticas")
     def get_alertas_clinicas(self, obj):
         """Genera alertas clínicas automáticas"""
         alertas = []
@@ -848,21 +848,20 @@ class EcografiaAdmin(admin.ModelAdmin):
             return "\n".join([f"• {alerta}" for alerta in alertas])
         return "No se detectaron alertas clínicas"
 
-    get_alertas_clinicas.short_description = "Alertas Clínicas Automáticas"
 
+    @admin.display(description="Recomendaciones de Seguimiento")
     def get_recomendaciones_seguimiento(self, obj):
         """Genera recomendaciones de seguimiento automáticas"""
         recomendaciones = []
 
         # Recomendaciones basadas en alertas
-        if hasattr(obj, "anatomia") and obj.anatomia:
-            if (
-                obj.anatomia.translucencia_nucal
-                and obj.anatomia.translucencia_nucal > 3.5
-            ):
-                recomendaciones.append("Interconsulta urgente con medicina fetal")
-                recomendaciones.append("Evaluación genética completa")
-                recomendaciones.append("Ecocardiografía fetal especializada")
+        if hasattr(obj, "anatomia") and obj.anatomia and (
+            obj.anatomia.translucencia_nucal
+            and obj.anatomia.translucencia_nucal > 3.5
+        ):
+            recomendaciones.append("Interconsulta urgente con medicina fetal")
+            recomendaciones.append("Evaluación genética completa")
+            recomendaciones.append("Ecocardiografía fetal especializada")
 
         if hasattr(obj, "biometria") and obj.biometria:
             if obj.biometria.percentil_peso and obj.biometria.percentil_peso < 10:
@@ -904,9 +903,9 @@ class EcografiaAdmin(admin.ModelAdmin):
             return "\n".join([f"• {rec}" for rec in recomendaciones])
         return "• Continuar controles prenatales rutinarios según protocolo"
 
-    get_recomendaciones_seguimiento.short_description = "Recomendaciones de Seguimiento"
 
     # ACCIONES ADMINISTRATIVAS
+    @admin.action(description="Marcar seguimiento requerido")
     def marcar_seguimiento_requerido(self, request, queryset):
         """Marcar seguimiento requerido"""
         updated = queryset.update(requiere_seguimiento=True)
@@ -915,8 +914,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             f"{updated} ecografías marcadas como que requieren seguimiento especial.",
         )
 
-    marcar_seguimiento_requerido.short_description = "Marcar seguimiento requerido"
 
+    @admin.action(description="Marcar seguimiento completado")
     def marcar_seguimiento_completado(self, request, queryset):
         """Marcar seguimiento completado"""
         updated = queryset.update(requiere_seguimiento=False)
@@ -924,8 +923,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             request, f"{updated} ecografías marcadas como seguimiento completado.",
         )
 
-    marcar_seguimiento_completado.short_description = "Marcar seguimiento completado"
 
+    @admin.action(description="Generar reporte médico PDF")
     def generar_reporte_medico(self, request, queryset):
         """Generar reporte medico"""
         count = queryset.count()
@@ -933,8 +932,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             request, f"Reportes médicos generados para {count} ecografías.",
         )
 
-    generar_reporte_medico.short_description = "Generar reporte médico PDF"
 
+    @admin.action(description="Programar ecografía de control")
     def duplicar_ecografia_control(self, request, queryset):
         """Duplicar ecografia control"""
         if queryset.count() > 1:
@@ -951,8 +950,8 @@ class EcografiaAdmin(admin.ModelAdmin):
             f"Ecografía de control programada para {ecografia.paciente.nombre_completo}.",
         )
 
-    duplicar_ecografia_control.short_description = "Programar ecografía de control"
 
+    @admin.action(description="Exportar PDF completo")
     def exportar_pdf_completo(self, request, queryset):
         """Exportar pdf completo"""
         count = queryset.count()
@@ -960,7 +959,6 @@ class EcografiaAdmin(admin.ModelAdmin):
             request, f"Exportación PDF completa iniciada para {count} ecografías.",
         )
 
-    exportar_pdf_completo.short_description = "Exportar PDF completo"
 
 
 # REGISTROS ADICIONALES CON MEJORAS
@@ -984,6 +982,7 @@ class BiometriaFetalAdmin(admin.ModelAdmin):
     search_fields = ("ecografia__paciente__nombre",)
     readonly_fields = ("relacion_cc_ca", "relacion_lf_ca")
 
+    @admin.display(description="Percentil")
     def percentil_peso_badge(self, obj):
         """Percentil peso badge"""
         if not obj.percentil_peso:
@@ -1001,13 +1000,12 @@ class BiometriaFetalAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">P{}</span>', color, percentil,
         )
 
-    percentil_peso_badge.short_description = "Percentil"
 
+    @admin.display(description="Evaluación")
     def evaluacion_crecimiento(self, obj):
         """Evaluacion crecimiento"""
         return obj.get_evaluacion_crecimiento()
 
-    evaluacion_crecimiento.short_description = "Evaluación"
 
 
 @admin.register(AnatomiaFetal)
@@ -1075,24 +1073,23 @@ class AnatomiaFetalAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Hallazgos Anormales", boolean=True)
     def tiene_hallazgos_anormales(self, obj):
         """Tiene hallazgos anormales"""
         return bool(obj.hallazgos_anormales)
 
-    tiene_hallazgos_anormales.boolean = True
-    tiene_hallazgos_anormales.short_description = "Hallazgos Anormales"
 
+    @admin.display(description="Evaluación General")
     def evaluacion_anatomica(self, obj):
         """Evaluacion anatomica"""
         return obj.get_evaluacion_anatomica()
 
-    evaluacion_anatomica.short_description = "Evaluación General"
 
+    @admin.display(description="Riesgo Cromosómico")
     def riesgo_cromosomopatias(self, obj):
         """Riesgo cromosomopatias"""
         return obj.get_riesgo_cromosomopatias()
 
-    riesgo_cromosomopatias.short_description = "Riesgo Cromosómico"
 
 
 @admin.register(AnexosFetales)
@@ -1152,6 +1149,7 @@ class AnexosFetalesAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Placenta")
     def placenta_previa_badge(self, obj):
         """Placenta previa badge"""
         if obj.placenta_previa:
@@ -1160,19 +1158,18 @@ class AnexosFetalesAdmin(admin.ModelAdmin):
             )
         return format_html('<span style="color: green;">Normal</span>')
 
-    placenta_previa_badge.short_description = "Placenta"
 
+    @admin.display(description="Cordón")
     def evaluacion_cordon(self, obj):
         """Evaluacion cordon"""
         return obj.get_evaluacion_cordon()
 
-    evaluacion_cordon.short_description = "Cordón"
 
+    @admin.display(description="Cérvix")
     def evaluacion_cervix(self, obj):
         """Evaluacion cervix"""
         return obj.get_evaluacion_cervix()
 
-    evaluacion_cervix.short_description = "Cérvix"
 
 
 @admin.register(ImagenEcografia)
@@ -1249,28 +1246,30 @@ class ImagenEcografiaAdmin(admin.ModelAdmin):
 
     actions = ["marcar_como_principal", "analizar_con_ia"]
 
+    @admin.display(description="Vista Previa")
     def preview_imagen(self, obj):
         """Preview imagen"""
         if obj.imagen:
-            return mark_safe(
-                f'<img src="{obj.imagen.url}" width="150" height="150" style="object-fit: cover;" />',
+            return format_html(
+                '<img src="{}" width="150" height="150" style="object-fit: cover;" />',
+                obj.imagen.url,
             )
         return "Sin imagen"
 
-    preview_imagen.short_description = "Vista Previa"
 
+    @admin.display(description="Tamaño")
     def tamano_archivo(self, obj):
         """Tamano archivo"""
         return obj.get_tamano_archivo()
 
-    tamano_archivo.short_description = "Tamaño"
 
+    @admin.display(description="Dimensiones")
     def dimensiones_imagen(self, obj):
         """Dimensiones imagen"""
         return obj.get_dimensiones()
 
-    dimensiones_imagen.short_description = "Dimensiones"
 
+    @admin.display(description="Calidad")
     def calidad_imagen_badge(self, obj):
         """Calidad imagen badge"""
         colors = {
@@ -1283,19 +1282,19 @@ class ImagenEcografiaAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>',
             color,
-            obj.get_calidad_imagen_display(),
+            getattr(obj, 'get_calidad_imagen_display')(),
         )
 
-    calidad_imagen_badge.short_description = "Calidad"
 
+    @admin.display(description="Análisis IA")
     def analisis_ia_resumen(self, obj):
         """Analisis ia resumen"""
         if obj.analisis_ia and obj.analisis_ia.get("procesado"):
             return f"Procesado: {obj.analisis_ia.get('fecha_analisis', 'Fecha no disponible')}"
         return "No procesado"
 
-    analisis_ia_resumen.short_description = "Análisis IA"
 
+    @admin.action(description="Marcar como imagen principal")
     def marcar_como_principal(self, request, queryset):
         """Marcar como principal"""
         if queryset.count() > 1:
@@ -1319,8 +1318,8 @@ class ImagenEcografiaAdmin(admin.ModelAdmin):
                 request, f'Imagen "{imagen.titulo}" marcada como principal.',
             )
 
-    marcar_como_principal.short_description = "Marcar como imagen principal"
 
+    @admin.action(description="Analizar con IA")
     def analizar_con_ia(self, request, queryset):
         """Analizar con ia"""
         procesadas = 0
@@ -1333,7 +1332,6 @@ class ImagenEcografiaAdmin(admin.ModelAdmin):
             request, f"{procesadas} imágenes enviadas para análisis de IA.",
         )
 
-    analizar_con_ia.short_description = "Analizar con IA"
 
 
 # Personalizar títulos del admin

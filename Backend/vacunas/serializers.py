@@ -7,6 +7,7 @@ Serializers para gestión de vacunas en sistema de atención prenatal
 =============================================================================
 """
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from .models import RegistroVacuna, TipoVacuna
@@ -339,9 +340,8 @@ class RegistroVacunaCreateUpdateSerializer(serializers.ModelSerializer):
 
         # Validar que la fecha de próxima dosis sea futura
         if attrs.get("proxima_dosis_fecha"):
-            from datetime import date
 
-            if attrs["proxima_dosis_fecha"] <= date.today():
+            if attrs["proxima_dosis_fecha"] <= timezone.localdate():
                 raise serializers.ValidationError(
                     {"proxima_dosis_fecha": "La fecha de próxima dosis debe ser futura"},
                 )

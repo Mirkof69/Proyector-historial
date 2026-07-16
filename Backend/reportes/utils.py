@@ -2,7 +2,11 @@
 """Utils module."""
 # from usuarios.models import Usuario  #  CIRCULAR IMPORT FIX
 # from embarazos.models import Embarazo  #  CIRCULAR IMPORT FIX
+import logging
+
 from django.db import connection
+
+logger = logging.getLogger(__name__)
 
 
 class OpcionesDinamicas:
@@ -25,8 +29,8 @@ class OpcionesDinamicas:
             pacientes = Paciente.objects.filter(activo=True)
             opciones = []
             for p in pacientes:
-                nombre_completo = f"{p.nombre} {p.apellido} (ID: {p.id})"
-                opciones.append((p.id, nombre_completo))
+                nombre_completo = f"{getattr(p, 'nombre', '')} {getattr(p, 'apellido', '')} (ID: {getattr(p, 'id', None)})"
+                opciones.append((getattr(p, 'id', None), nombre_completo))
             return opciones
         except Exception:
             return [(None, "Sin pacientes disponibles")]
@@ -57,8 +61,9 @@ class OpcionesDinamicas:
             embarazos = Embarazo.objects.filter(activo=True)
             opciones = []
             for e in embarazos:
-                descripcion = f"Embarazo ID: {e.id} - Paciente: {e.paciente_id} - {e.fecha_inicio}"
-                opciones.append((e.id, descripcion))
+                _id = getattr(e, 'id', None)
+                descripcion = f"Embarazo ID: {_id} - Paciente: {getattr(e, 'paciente_id', None)} - {getattr(e, 'fecha_inicio', '')}"
+                opciones.append((_id, descripcion))
             return opciones
         except Exception:
             return [(None, "Sin embarazos disponibles")]
@@ -66,7 +71,7 @@ class OpcionesDinamicas:
     @staticmethod
     def obtener_servicios_medicos():
         """Obtiene lista de servicios médicos disponibles"""
-        servicios = [
+        return [
             ("ginecologia", "Ginecología"),
             ("obstetricia", "Obstetricia"),
             ("ecografia", "Ecografía"),
@@ -75,7 +80,6 @@ class OpcionesDinamicas:
             ("emergencias", "Emergencias"),
             ("cirugia", "Cirugía"),
         ]
-        return servicios
 
     @staticmethod
     def ejecutar_consulta_kpi(consulta_sql):
@@ -89,13 +93,13 @@ class OpcionesDinamicas:
                 result = cursor.fetchone()
                 return result[0] if result else 0
         except Exception as e:
-            print(f"Error ejecutando consulta KPI: {e}")
+            logger.exception("Error ejecutando consulta KPI: %s", e)
             return 0
 
     @staticmethod
     def obtener_consultas_predefinidas():
         """Obtiene consultas SQL predefinidas para KPIs"""
-        consultas = [
+        return [
             (
                 "pacientes_total",
                 "Total de Pacientes",
@@ -127,7 +131,6 @@ class OpcionesDinamicas:
                 "SELECT COUNT(*) FROM citas_cita WHERE estado = 'programada'",
             ),
         ]
-        return consultas
 
 
 class ConsultasPredefinidas:

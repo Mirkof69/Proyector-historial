@@ -3,6 +3,7 @@
 
 import datetime
 from decimal import Decimal
+from typing import cast
 
 from django.test import TestCase
 from django.urls import reverse
@@ -10,6 +11,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from calculadoras.models import BiomarcadorMOM, CalculadoraRiesgo
+from calculadoras.models_historial import CalculoHistorial
 from embarazos.models import Embarazo
 from pacientes.models import Paciente
 from usuarios.models import Usuario
@@ -66,7 +68,7 @@ class CalculadoraRiesgoModelTest(TestCase):
         """Test that IMC is auto-calculated on save."""
         calc = CalculadoraRiesgo.objects.create(**self.calc_data)
         expected_imc = round(65.0 / (1.65**2), 2)
-        self.assertEqual(calc.imc, expected_imc)
+        self.assertEqual(float(calc.imc), expected_imc)
 
     def test_edad_gestacional_total_dias(self):
         """Test edad gestacional in total days."""
@@ -210,13 +212,13 @@ class CalculadoraRiesgoAPITest(APITestCase):
             apellido_paterno="User",
             password="adminpass123",
         )
-        self.paciente = Paciente.objects.create(
+        self.paciente = cast(Paciente, Paciente.objects.create(
             nombre="Maria",
             apellido_paterno="Lopez",
             fecha_nacimiento=datetime.date(1990, 5, 15),
             genero="femenino",
             ci="12345700",
-        )
+        ))
         self.embarazo = Embarazo.objects.create(
             paciente=self.paciente,
             numero_gesta=1,
@@ -382,7 +384,7 @@ class CalculadoraRiesgoAPITest(APITestCase):
             "etnia": "mestiza",
             "nt_mm": "1.5",
             "pappa_crudo": "1.5",
-            "bhcg_crudo": "25000",
+            "bhcg_crudo": "1.2",
         }
         response = self.client.post(url, trisomias_data, format="json")
         self.assertIn(
@@ -432,3 +434,68 @@ class CalculadoraRiesgoAPITest(APITestCase):
         )
         response = self.client.get(self.list_url, {"tipo": "preeclampsia"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class CalculoHistorialAPITest(APITestCase):
+    """Tests para el historial de las 8 calculadoras simples (Edad
+    Gestacional, Bishop, IMC, etc.) — antes solo se guardaban en
+    localStorage del navegador y se perdian al cerrar sesion."""
+
+    def setUp(self):
+        """Setup"""
+        self.user = Usuario.objects.create_superuser(
+            email="historial_admin@test.com",
+            nombre="Historial",
+            apellido_paterno="Admin",
+            password="adminpass123",
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.paciente = cast(Paciente, Paciente.objects.create(
+            nombre="Ana", apellido_paterno="Quispe",
+            fecha_nacimiento=datetime.date(1995, 3, 10),
+            genero="femenino", ci="12345701",
+        ))
+        self.list_url = reverse("calculo-historial-list")
+
+    def test_crear_y_listar_resultado_calculadora(self):
+        """POST de un resultado de calculadora -> debe poder leerse vía GET."""
+        payload = {
+            "paciente": self.paciente.id,
+            "tipo_calculadora": "imc",
+            "inputs_json": {"peso": 65, "talla": 1.65},
+            "resultado_json": {"valor": "23.9", "categoria": "normal"},
+            "resultado_resumen": "IMC 23.9 - Normal",
+        }
+        response = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data["tipo_calculadora"], "imc")
+        # calculado_por se asigna automaticamente en el servidor (perform_create)
+        self.assertEqual(response.data["calculado_por"], self.user.id)
+
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        resultados = list_response.data.get("results", list_response.data)
+        self.assertTrue(
+            any(r["resultado_resumen"] == "IMC 23.9 - Normal" for r in resultados),
+        )
+
+    def test_filtrar_por_tipo_calculadora(self):
+        """El filtro por tipo_calculadora debe devolver solo esos registros."""
+        CalculoHistorial.objects.create(
+            tipo_calculadora="bishop",
+            inputs_json={"dilatacion": 2},
+            resultado_json={"score": 5},
+            calculado_por=self.user,
+        )
+        CalculoHistorial.objects.create(
+            tipo_calculadora="apgar",
+            inputs_json={"fc": 2},
+            resultado_json={"score": 9},
+            calculado_por=self.user,
+        )
+        response = self.client.get(self.list_url, {"tipo_calculadora": "bishop"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        resultados = response.data.get("results", response.data)
+        self.assertTrue(all(r["tipo_calculadora"] == "bishop" for r in resultados))
+        self.assertTrue(len(resultados) >= 1)

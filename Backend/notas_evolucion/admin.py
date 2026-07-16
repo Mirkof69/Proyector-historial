@@ -178,13 +178,16 @@ class NotaEvolucionAdmin(admin.ModelAdmin):
     @admin.display(description="Médico", ordering="medico__apellido_paterno")
     def medico_display(self, obj):
         """Muestra el nombre del médico con su especialidad"""
+        medico = getattr(obj, 'medico', None)
+        if medico is None:
+            return format_html("<em>Sin médico asignado</em>")
         especialidad = (
-            f" - {obj.medico.especialidad}" if obj.medico.especialidad else ""
+            f" - {getattr(medico, 'especialidad', '')}" if getattr(medico, 'especialidad', None) else ""
         )
         return format_html(
             "<strong>{}</strong><br/><small>{}{}</small>",
-            obj.medico.nombre_completo,
-            obj.medico.get_rol_display(),
+            getattr(medico, 'nombre_completo', ''),
+            getattr(medico, 'get_rol_display', lambda: '')(),
             especialidad,
         )
 
@@ -209,7 +212,7 @@ class NotaEvolucionAdmin(admin.ModelAdmin):
             '<span style="background-color: {}; color: white; padding: 3px 8px; '
             'border-radius: 3px; font-size: 11px;">{}</span>',
             color,
-            obj.get_tipo_consulta_display(),
+            getattr(obj, 'get_tipo_consulta_display')(),
         )
 
     @admin.display(description="Presión Arterial")

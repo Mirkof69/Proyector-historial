@@ -1,0 +1,21 @@
+[tool.pyrefly]
+preset = "basic"
+project-excludes = [
+    "**/.venv/**",
+    "**/node_modules/**",
+    "**/__pycache__/**",
+    "**/tests/**",
+    "**/migrations/**",
+    "**/Microservicio_IA/**",
+    "**/admin.py",
+    "**/pdf_*.py",
+    "**/excel_*.py",
+    "**/fix_warnings*.py",
+    "**/zip/**",
+    "**/scripts/**",
+    "**/kong/**",
+    "**/.github/**",
+]
+
+
+

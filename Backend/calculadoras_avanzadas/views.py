@@ -4,11 +4,12 @@ from datetime import timedelta
 from django.db.models import Avg, Count, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets
-from core.permissions import FetalMedicalPermission
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
 
 from .models import (
     CrecimientoFetal,
@@ -134,7 +135,7 @@ class ScoreBishopViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], url_path="por-paciente")
     def por_paciente(self, request):
         """Scores por paciente específico"""
         paciente_id = request.query_params.get("paciente_id")
@@ -243,7 +244,7 @@ class RiesgoPreeclampsiaViewSet(viewsets.ModelViewSet):
             },
         )
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], url_path="alto-riesgo")
     def alto_riesgo(self, _request):
         """Pacientes con alto riesgo de preeclampsia"""
         alto_riesgo = self.get_queryset().filter(clasificacion_riesgo="Alto Riesgo")
@@ -450,7 +451,7 @@ class DosisMedicamentosViewSet(viewsets.ModelViewSet):
     ordering_fields = ["fecha_calculo", "peso_materno"]
     ordering = ["-fecha_calculo"]
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], url_path="por-medicamento")
     def por_medicamento(self, request):
         """Estadísticas por medicamento"""
         medicamento = request.query_params.get("medicamento")
@@ -497,8 +498,8 @@ class DosisMedicamentosViewSet(viewsets.ModelViewSet):
 
             return Response(
                 {
-                    "medicamento": dosis_temp.get_medicamento_display(),
-                    "indicacion": dosis_temp.get_indicacion_display(),
+                    "medicamento": getattr(dosis_temp, 'get_medicamento_display')(),
+                    "indicacion": getattr(dosis_temp, 'get_indicacion_display')(),
                     "protocolo": dosis_temp.get_protocolo_administracion(),
                 },
             )
@@ -589,7 +590,7 @@ class HemorragiaObstetricaViewSet(viewsets.ModelViewSet):
             },
         )
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], url_path="casos-severos")
     def casos_severos(self, _request):
         """Casos severos y masivos"""
         casos_severos = (

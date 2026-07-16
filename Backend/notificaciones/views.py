@@ -11,9 +11,9 @@ from django.db.models import Count
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
 
 from .models import ConfiguracionNotificaciones, HistorialNotificaciones, Notificacion
 from .serializers import (
@@ -50,12 +50,14 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     ordering = ["-fecha_creacion"]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Notificacion.objects.none()
         """Filtra las notificaciones del usuario autenticado
         """
         usuario = self.request.user
 
         # Administradores ven todas, usuarios normales solo las suyas
-        if usuario.is_staff or usuario.rol == "administrador":
+        if getattr(usuario, 'is_staff', False) or getattr(usuario, 'rol', '') == "administrador":
             queryset = Notificacion.objects.all()
         else:
             queryset = Notificacion.objects.filter(usuario=usuario)
@@ -110,7 +112,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         HistorialNotificaciones.objects.create(
             notificacion=notificacion,
             accion="leida",
-            detalles={"usuario": request.user.nombre_completo},
+            detalles={"usuario": getattr(request.user, 'nombre_completo', '')},
         )
 
         serializer = self.get_serializer(notificacion)
@@ -148,7 +150,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         HistorialNotificaciones.objects.create(
             notificacion=notificacion,
             accion="archivada",
-            detalles={"usuario": request.user.nombre_completo},
+            detalles={"usuario": getattr(request.user, 'nombre_completo', '')},
         )
 
         serializer = self.get_serializer(notificacion)
@@ -192,7 +194,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         por_tipo = {}
         tipos = queryset.values("tipo").annotate(count=Count("id"))
         for tipo in tipos:
-            tipo_nombre = dict(Notificacion._meta.get_field("tipo").choices).get(
+            tipo_nombre = dict(getattr(Notificacion._meta.get_field("tipo"), 'choices')).get(
                 tipo["tipo"],
             )
             por_tipo[tipo_nombre] = tipo["count"]
@@ -201,9 +203,9 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         por_prioridad = {}
         prioridades = queryset.values("prioridad").annotate(count=Count("id"))
         for prioridad in prioridades:
-            prioridad_nombre = dict(
-                Notificacion._meta.get_field("prioridad").choices,
-            ).get(prioridad["prioridad"])
+            prioridad_nombre = dict(getattr(Notificacion._meta.get_field("prioridad"), 'choices')).get(
+                prioridad["prioridad"],
+            )
             por_prioridad[prioridad_nombre] = prioridad["count"]
 
         # Contar recientes (últimas 24 horas)
@@ -255,7 +257,7 @@ class ConfiguracionNotificacionesViewSet(viewsets.ModelViewSet):
         """Filtra configuraciones según el usuario"""
         usuario = self.request.user
 
-        if usuario.is_staff or usuario.rol == "administrador":
+        if getattr(usuario, 'is_staff', False) or getattr(usuario, 'rol', '') == "administrador":
             return ConfiguracionNotificaciones.objects.all()
         return ConfiguracionNotificaciones.objects.filter(usuario=usuario)
 
@@ -307,6 +309,6 @@ class HistorialNotificacionesViewSet(viewsets.ReadOnlyModelViewSet):
         """Filtra historial según el usuario"""
         usuario = self.request.user
 
-        if usuario.is_staff or usuario.rol == "administrador":
+        if getattr(usuario, 'is_staff', False) or getattr(usuario, 'rol', '') == "administrador":
             return HistorialNotificaciones.objects.all()
         return HistorialNotificaciones.objects.filter(notificacion__usuario=usuario)

@@ -36,6 +36,7 @@ class ConsultorioAdmin(admin.ModelAdmin):
         ("Estado", {"fields": (("activo", "en_mantenimiento"), "observaciones")}),
     )
 
+    @admin.display(description="Disponibilidad")
     def get_disponibilidad_badge(self, obj):
         """Get disponibilidad badge"""
         if obj.esta_disponible():
@@ -50,8 +51,8 @@ class ConsultorioAdmin(admin.ModelAdmin):
             '<span style="background-color:#e74c3c;color:white;padding:3px 8px;border-radius:3px;">❌ INACTIVO</span>',
         )
 
-    get_disponibilidad_badge.short_description = "Disponibilidad"
 
+    @admin.display(description="Equipamiento")
     def get_equipamiento_icons(self, obj):
         """Get equipamiento icons"""
         icons = []
@@ -63,4 +64,3 @@ class ConsultorioAdmin(admin.ModelAdmin):
             icons.append("")
         return " ".join(icons) if icons else "-"
 
-    get_equipamiento_icons.short_description = "Equipamiento"

@@ -2,6 +2,7 @@
 """
 
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -15,7 +16,15 @@ from rest_framework.response import Response
 # from partos.models import Parto
 
 
+@extend_schema(
+    request=inline_serializer(
+        "dashboard_stats_view_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
+@extend_schema(request=None, responses={200: dict})
 @permission_classes([IsAuthenticated])
 def dashboard_stats_view(_request):
     """Endpoint para obtener estadísticas del dashboard
@@ -77,6 +86,13 @@ def dashboard_stats_view(_request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "general_stats_view_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def general_stats_view(_request):

@@ -15,6 +15,10 @@ try:
     from .models_doppler import DopplerMaterno
 except ImportError:
     DopplerMaterno = None  # type: ignore
+try:
+    from .models_historial import CalculoHistorial
+except ImportError:
+    CalculoHistorial = None  # type: ignore
 from pacientes.serializers import PacienteSerializer
 
 
@@ -81,6 +85,36 @@ class MedicionEcograficaSerializer(serializers.ModelSerializer):
             "fecha_medicion",
         ]
 
+    def validate_valor(self, value):
+        if value is not None and (value < 0 or value > 100000):
+            raise serializers.ValidationError(
+                "El valor está fuera del rango médico permitido",
+            )
+        return value
+
+    def validate(self, data):
+        ranges = {
+            "crl_mm": (0, 120),
+            "nt_mm": (0, 15),
+            "fcf_lpm": (60, 220),
+            "bpd_mm": (0, 120),
+            "hc_mm": (0, 400),
+            "ac_mm": (0, 400),
+            "fl_mm": (0, 100),
+            "efw_gramos": (0, 6000),
+            "nt_percentil": (0, 100),
+            "efw_percentil": (0, 100),
+            "crl_percentil": (0, 100),
+            "longitud_cervical_mm": (0, 60),
+        }
+        for field, (min_val, max_val) in ranges.items():
+            val = data.get(field)
+            if val is not None and (val < min_val or val > max_val):
+                raise serializers.ValidationError(
+                    {field: f"El valor debe estar entre {min_val} y {max_val}"},
+                )
+        return data
+
 
 # Doppler Materno
 if DopplerMaterno is not None:
@@ -127,24 +161,6 @@ if DopplerMaterno is not None:
             return obj.paciente.nombre_completo if obj.paciente else None
 
 
-# TODO: Uncomment when ResultadoGrafico model is created
-# class ResultadoGraficoSerializer(serializers.ModelSerializer):
-#     """Serializer para resultados gráficos"""
-#
-#     tipo_display = serializers.CharField(source='get_tipo_grafico_display', read_only=True)
-#
-#     class Meta:
-#         model = ResultadoGrafico
-#         fields = [
-#             'id', 'tipo_grafico', 'tipo_display', 'titulo',
-#             'datos_json', 'valor_paciente_x', 'valor_paciente_y',
-#             'percentil_paciente', 'zscore_paciente',
-#             'color_principal', 'mostrar_leyenda',
-#             'etiqueta_eje_x', 'etiqueta_eje_y',
-#             'fecha_generacion',
-#         ]
-
-
 class CalculadoraRiesgoSerializer(serializers.ModelSerializer):
     """Serializer principal para calculadora de riesgo"""
 
@@ -165,8 +181,6 @@ class CalculadoraRiesgoSerializer(serializers.ModelSerializer):
     # Nested
     biomarcadores = BiomarcadorMOMSerializer(many=True, read_only=True)
     mediciones_eco = MedicionEcograficaSerializer(many=True, read_only=True)
-    # doppler_materno = DopplerMaternoSerializer(many=True, read_only=True)  # TODO: Uncomment when model is created
-    # graficos = ResultadoGraficoSerializer(many=True, read_only=True)  # TODO: Uncomment when model is created
 
     class Meta:
         """Meta"""
@@ -214,7 +228,7 @@ class CalculadoraRiesgoSerializer(serializers.ModelSerializer):
             "calculado_por",
             "notas_adicionales",
             "biomarcadores",
-            "mediciones_eco",  # 'doppler_materno', 'graficos',  # TODO: Uncomment when models are created
+            "mediciones_eco",
         ]
         read_only_fields = [
             "imc",
@@ -316,29 +330,44 @@ class CalculadoraRiesgoCreateSerializer(serializers.Serializer):
     notas_adicionales = serializers.CharField(required=False, allow_blank=True)
 
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
 
 
-# TODO: Uncomment when ReporteCalculadora model is created
-# class ReporteCalculadoraSerializer(serializers.ModelSerializer):
-#     """Serializer para reportes PDF"""
-#
-#     calculadora = CalculadoraRiesgoSerializer(read_only=True)
-#
-#     class Meta:
-#         model = ReporteCalculadora
-#         fields = [
-#             'id', 'calculadora', 'archivo_pd',
-#             'fecha_generacion', 'generado_por',
-#             'resumen_clinico', 'recomendaciones',
-#             'graficos_incluidos', 'version_algoritmo', 'hash_datos',
-#         ]
-#         read_only_fields = ['fecha_generacion', 'hash_datos']
+class CorreccionMOMParametrosSerializer(serializers.Serializer):
+    """Serializer para parámetros de corrección MoM"""
+
+    peso = serializers.DecimalField(max_digits=5, decimal_places=2)
+    etnia = serializers.ChoiceField(
+        choices=["caucasico", "afroamericano", "asiatico", "mestizo", "otro"],
+    )
+    fumadora = serializers.BooleanField()
+    diabetes = serializers.BooleanField()
+
+    def create(self, validated_data):
+        return validated_data
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+    def validate_parametros(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Los parámetros deben ser un diccionario")
+        return value
+
+    def validate(self, data):
+        peso = data.get("peso")
+        if peso is not None and (peso < 30 or peso > 200):
+            raise serializers.ValidationError(
+                {"peso": "El peso debe estar entre 30 y 200 kg"},
+            )
+        return data
 
 
 # =============================================================================
@@ -643,9 +672,55 @@ class MarcadorEmbarazoCreateSerializer(serializers.Serializer):
     altitud_bolivia = serializers.BooleanField(default=True)
 
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+
+# =============================================================================
+# HISTORIAL DE CALCULADORAS SIMPLES
+# =============================================================================
+
+
+class CalculoHistorialSerializer(serializers.ModelSerializer):
+    """Serializer para el historial de las 8 calculadoras simples del frontend"""
+
+    paciente_nombre = serializers.SerializerMethodField()
+    tipo_calculadora_display = serializers.CharField(
+        source="get_tipo_calculadora_display", read_only=True,
+    )
+    calculado_por_nombre = serializers.SerializerMethodField()
+
+    class Meta:
+        """Meta"""
+        model = CalculoHistorial
+        fields = [
+            "id",
+            "paciente",
+            "paciente_nombre",
+            "embarazo",
+            "tipo_calculadora",
+            "tipo_calculadora_display",
+            "inputs_json",
+            "resultado_json",
+            "resultado_resumen",
+            "fecha_calculo",
+            "calculado_por",
+            "calculado_por_nombre",
+        ]
+        read_only_fields = ["id", "fecha_calculo", "calculado_por"]
+
+    def get_paciente_nombre(self, obj):
+        """Nombre completo del paciente, si hay uno asociado"""
+        if not obj.paciente:
+            return None
+        return getattr(obj.paciente, "nombre_completo", None) or str(obj.paciente)
+
+    def get_calculado_por_nombre(self, obj):
+        """Nombre de quien hizo el cálculo"""
+        if not obj.calculado_por:
+            return None
+        return getattr(obj.calculado_por, "get_full_name", lambda: None)() or obj.calculado_por.email

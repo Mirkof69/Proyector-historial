@@ -8,4 +8,6 @@ class LaboratorioConfig(AppConfig):
     name = "laboratorio"
 
     def ready(self):
-        """Ready"""
+        """Conecta las señales del módulo (notificar examen/resultado al médico)."""
+        from laboratorio import signals as _signals
+        _ = _signals

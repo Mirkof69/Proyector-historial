@@ -1,4 +1,4 @@
-﻿"""=============================================================================
+"""=============================================================================
 VIEWS — IA Médica CNN: Imágenes Ecográficas y Análisis por Red Neuronal
 =============================================================================
 """
@@ -6,19 +6,19 @@ VIEWS — IA Médica CNN: Imágenes Ecográficas y Análisis por Red Neuronal
 import logging
 import os
 import time
-from datetime import date, datetime
 
 import requests
-from django.conf import settings
 from django.db.models import Count
 from django.http import HttpResponse
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
 
 from .models import (
     AnalisisCNN,
@@ -28,6 +28,7 @@ from .models import (
 )
 from .serializers import (
     AnalisisCNNSerializer,
+    ConsultaIASerializer,
     ImagenEcograficaDetailSerializer,
     ImagenEcograficaListSerializer,
     ImagenEcograficaUploadSerializer,
@@ -38,8 +39,8 @@ from .services.cnn_service import cnn_service
 
 logger = logging.getLogger("ia_medica")
 
-# URL del microservicio IA — leer de settings para permitir override via .env
-MICROSERVICE_URL = getattr(settings, "AI_SERVICE_URL", "http://localhost:8001")
+# URL del microservicio IA — configurable vía variable de entorno
+MICROSERVICE_URL = os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
 
 
 # =============================================================================
@@ -107,7 +108,7 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
         responses={201: ImagenEcograficaDetailSerializer},
     )
     def create(self, request, *args, **kwargs):
-        """Subir nueva imagen ecográfica."""
+        """Subir nueva imagen ecográfica y encolar análisis automático."""
         serializer = ImagenEcograficaUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -135,17 +136,34 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
         try:
             from PIL import Image
 
-            img = Image.open(instancia.imagen.path)
-            instancia.resolucion_ancho, instancia.resolucion_alto = img.size
-            instancia.save(update_fields=["resolucion_ancho", "resolucion_alto"])
+            if instancia.imagen and instancia.imagen.path:
+                img = Image.open(instancia.imagen.path)
+                instancia.resolucion_ancho, instancia.resolucion_alto = img.size
+                instancia.save(update_fields=["resolucion_ancho", "resolucion_alto"])
         except Exception as e:
             logger.warning("No se pudieron extraer dimensiones: %s", e)
 
+        # Auto-encolar análisis CNN inmediatamente después de subir
+        try:
+            from typing import Any, cast
+
+            from .tasks import analizar_imagen_task as _analizar_imagen_task
+            analizar_imagen_task = cast(Any, _analizar_imagen_task)
+            modelo = request.data.get("modelo", "resnet50")
+            analizar_imagen_task.delay(
+                imagen_id=instancia.id,
+                modelo=modelo,
+                user_id=request.user.id if request.user else None,
+            )
+            logger.info("Análisis CNN auto-encolado para imagen %s", instancia.id)
+        except Exception as e:
+            logger.warning("No se pudo auto-encolar análisis: %s", e)
+
         logger.info(
             "Imagen subida: %s - %s por %s",
-            instancia.id,
+            getattr(instancia, 'id', None),
             instancia.nombre_original,
-            request.user.email,
+            getattr(request.user, 'email', ''),
         )
 
         detail_serializer = ImagenEcograficaDetailSerializer(
@@ -156,7 +174,7 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """Eliminar imagen y su archivo físico. Solo admin o quien subió la imagen."""
         instancia = self.get_object()
-        if request.user.rol != "administrador" and instancia.subida_por != request.user:
+        if getattr(request.user, 'rol', '') != "administrador" and instancia.subida_por != request.user:
             return Response(
                 {"error": "No tienes permiso para eliminar esta imagen."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -191,7 +209,11 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
     )
     @action(detail=True, methods=["post"], url_path="analizar")
     def analizar(self, request, pk=None):
-        """Ejecutar análisis CNN sobre una imagen."""
+        """Ejecutar análisis CNN sobre una imagen — llama al microservicio directamente."""
+        import mimetypes
+
+        import requests as http_requests
+
         instancia = self.get_object()
 
         if not instancia.imagen:
@@ -214,34 +236,113 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Marcar como procesando
         instancia.estado = "procesando"
         instancia.save(update_fields=["estado"])
 
         try:
-            # Importar la tarea asíncrona de Celery
-            from .tasks import analizar_imagen_task
+            ruta = instancia.imagen.path
+            nombre = os.path.basename(ruta)
+            mime = mimetypes.guess_type(ruta)[0] or "application/octet-stream"
+            with open(ruta, "rb") as f:
+                file_bytes = f.read()
 
-            # Encolar el análisis en Celery/RabbitMQ
-            analizar_imagen_task.delay(
-                imagen_id=instancia.id,
-                modelo=modelo,
-                user_id=request.user.id if request.user else None,
+            ai_service_url = os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
+            resp = http_requests.post(
+                f"{ai_service_url}/api/analyze",
+                files={"file": (nombre, file_bytes, mime)},
+                data={"modelo": modelo},
+                timeout=60,
             )
+            resp.raise_for_status()
+            ai_result = resp.json()
 
-            logger.info(
-                "Análisis CNN asíncrono encolado para imagen=%s con modelo=%s",
-                instancia.id,
-                modelo,
-            )
+            from .models import AnalisisCNN
+            from .services.result_mapping import mapear_resultado_microservicio
 
-            return Response(
-                {
-                    "mensaje": f"Análisis encolado asíncronamente con {modelo.upper()}.",
-                    "estado": "procesando",
+            score_global = ai_result.get("score_global", 0)
+            biometry_raw = ai_result.get("biometry", {})
+            measurements = biometry_raw if isinstance(biometry_raw, dict) else {}
+            shap_scores = ai_result.get("shap_risk_scores", {})
+            gradcam_b64 = ai_result.get("gradcam_base64", "")
+            sugerencia = ai_result.get("sugerencia_diagnostica", {})
+            inference_ms = ai_result.get("inference_time_ms", 0)
+
+            mapeo = mapear_resultado_microservicio(ai_result)
+            pathologies = mapeo["pathologies"]
+            resultado_txt = mapeo["resultado"]
+            confianza = mapeo["confianza"]
+
+            # "detected" = patologias reales distintas de normal/baja_confianza,
+            # ya filtradas por el microservicio con los umbrales calibrados por
+            # clase (no se vuelve a aplicar un umbral plano aqui).
+            detected = [
+                p for p in pathologies
+                if p.get("name") not in ("normal", "baja_confianza")
+            ]
+
+            predicciones = [
+                {"clase": p.get("name", ""), "confianza": p.get("probability", 0)}
+                for p in pathologies
+            ]
+            anomalias = [
+                {"tipo": p.get("name", ""), "confianza": p.get("probability", 0),
+                 "severidad": "alta" if p.get("probability", 0) >= 0.8 else "media"}
+                for p in detected
+            ]
+            clases_detectadas = [p.get("name", "") for p in pathologies]
+            alertas_data = biometry_raw.get("alerts", []) if isinstance(biometry_raw, dict) else []
+            recomendaciones = []
+            if isinstance(sugerencia, dict):
+                recom = sugerencia.get("recomendacion", "")
+                if recom:
+                    recomendaciones.append(recom)
+
+            for p in detected:
+                name = p.get("name", "").replace("_", " ")
+                prob = p.get("probability", 0) * 100
+                recomendaciones.append(
+                    f"Se detectó {name} con {prob:.1f}% de probabilidad. "
+                    "Se recomienda evaluación especializada."
+                )
+
+            analisis, created = AnalisisCNN.objects.update_or_create(
+                imagen=instancia,
+                defaults={
+                    "realizado_por": request.user if request.user.is_authenticated else None,
+                        "modelo_usado": modelo,
+                    "version_modelo": ai_result.get("modelo_version", "1.0.0"),
+                    "resultado": resultado_txt,
+                    "confianza": round(float(confianza), 4),
+                    "score_general": round(float(score_global) * 100, 1),
+                    "predicciones": predicciones,
+                    "clases_detectadas": clases_detectadas,
+                    "anomalias_detectadas": anomalias,
+                    "alertas": alertas_data,
+                    "recomendaciones": recomendaciones,
+                    "estructuras_detectadas": {"analizadas": clases_detectadas},
+                    "medidas_estimadas": measurements,
+                    "bpd_mm": measurements.get("BPD_mm"),
+                    "hc_mm": measurements.get("HC_mm"),
+                    "ac_mm": measurements.get("AC_mm"),
+                    "fl_mm": measurements.get("FL_mm"),
+                    "mapa_calor": gradcam_b64,
+                    "riesgo_preeclampsia": shap_scores.get("riesgo_preeclampsia"),
+                    "riesgo_parto_prematuro": shap_scores.get("riesgo_parto_prematuro"),
+                    "nivel_riesgo": "ALTO" if score_global >= 0.7 else "MODERADO" if score_global >= 0.4 else "BAJO",
+                    "shap_valores": shap_scores,
+                    "patologias": [p["name"] for p in pathologies if p.get("name") and p["name"] != "normal"],
+                    "sugerencia_diagnostica": sugerencia if isinstance(sugerencia, dict) else None,
+                    "tiempo_inferencia_ms": inference_ms,
+                    "tiempo_procesamiento_ms": inference_ms,
                 },
-                status=status.HTTP_202_ACCEPTED,
             )
+
+            instancia.estado = "analizada"
+            instancia.save(update_fields=["estado"])
+
+            from .serializers import AnalisisCNNSerializer
+            serializer = AnalisisCNNSerializer(analisis, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Exception as e:
             instancia.estado = "error"
@@ -249,6 +350,68 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
             logger.error("Error en análisis CNN: %s", e)
             return Response(
                 {"error": f"Error durante el análisis: {e!s}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="reporte-narrativo")
+    def reporte_narrativo(self, request, pk=None):
+        """Genera el reporte narrativo de IA local (LLM con visión, Ollama),
+        siempre grounded en el resultado real del CNN EfficientNet-B4 — ver
+        ia_medica/services/llm_narrative_service.py para el diseño completo
+        (el LLM nunca tiene autoridad sobre el diagnóstico, solo lo narra y
+        puede agregar hallazgos visuales complementarios marcados aparte)."""
+        import mimetypes
+
+        import requests as http_requests
+
+        instancia = self.get_object()
+        if not instancia.imagen:
+            return Response(
+                {"error": "La imagen no tiene archivo asociado."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            ruta = instancia.imagen.path
+            nombre = os.path.basename(ruta)
+            mime = mimetypes.guess_type(ruta)[0] or "application/octet-stream"
+            with open(ruta, "rb") as f:
+                file_bytes = f.read()
+
+            ai_service_url = os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
+            resp = http_requests.post(
+                f"{ai_service_url}/api/analyze",
+                files={"file": (nombre, file_bytes, mime)},
+                data={"modelo": "efficientnet"},
+                timeout=60,
+            )
+            resp.raise_for_status()
+            ai_result = resp.json()
+
+            from django.utils import timezone
+
+            from .services.llm_narrative_service import generar_reporte_narrativo
+
+            reporte = generar_reporte_narrativo(instancia, ai_result)
+
+            if hasattr(instancia, "analisis_cnn"):
+                instancia.analisis_cnn.reporte_narrativo_ia = reporte
+                instancia.analisis_cnn.reporte_narrativo_fecha = timezone.now()
+                instancia.analisis_cnn.save(
+                    update_fields=["reporte_narrativo_ia", "reporte_narrativo_fecha"],
+                )
+
+            return Response(reporte, status=status.HTTP_200_OK)
+
+        except http_requests.RequestException as e:
+            return Response(
+                {"error": f"No se pudo conectar con el microservicio de IA: {e!s}"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except Exception as e:
+            logger.exception("Error generando reporte narrativo")
+            return Response(
+                {"error": f"Error generando el reporte narrativo: {e!s}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -340,15 +503,15 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
         dataset = []
         for img in qs:
             entry = {
-                "id": img.id,
-                "paciente_id": img.paciente_id,
+                "id": getattr(img, 'id', None),
+                "paciente_id": getattr(img, 'paciente_id', None),
                 "tipo_imagen": img.tipo_imagen,
                 "fecha_subida": img.fecha_subida.isoformat(),
                 "semana_gestacional": img.semana_gestacional,
                 "resolucion": f"{img.resolucion_ancho}x{img.resolucion_alto}",
             }
-            if hasattr(img, "analisis_cnn"):
-                a = img.analisis_cnn
+            a = getattr(img, 'analisis_cnn', None)
+            if a is not None:
                 entry["analisis"] = {
                     "resultado": a.resultado,
                     "confianza": a.confianza,
@@ -360,7 +523,7 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
 
         contenido = json.dumps(
             {
-                "exportado_en": datetime.now().isoformat(),
+                "exportado_en": timezone.localtime().isoformat(),
                 "total_imagenes": len(dataset),
                 "dataset": dataset,
             },
@@ -372,7 +535,7 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
             contenido, content_type="application/json; charset=utf-8",
         )
         respuesta["Content-Disposition"] = (
-            f'attachment; filename="dataset_cnn_{date.today()}.json"'
+            f'attachment; filename="dataset_cnn_{timezone.localdate()}.json"'
         )
         return respuesta
 
@@ -402,7 +565,12 @@ class ModeloCNNConfigViewSet(viewsets.ModelViewSet):
 # =============================================================================
 
 
+@extend_schema(
+    request=ConsultaIASerializer,
+    responses={200: ConsultaIASerializer}
+)
 @api_view(["POST"])
+@extend_schema(request=None, responses={200: dict})
 @permission_classes([IsAuthenticated])
 def consultar_ia(request):
     """Gateway: Proxy al microservicio IA con inyección de contexto del sistema
@@ -439,7 +607,7 @@ def consultar_ia(request):
                 nombre_completo = f"{paciente.nombre} {paciente.apellido_paterno}"
                 if paciente.apellido_materno:
                     nombre_completo += f" {paciente.apellido_materno}"
-                today = date.today()
+                today = timezone.localdate()
                 edad = (
                     today.year
                     - paciente.fecha_nacimiento.year
@@ -457,7 +625,7 @@ def consultar_ia(request):
                     "grupo_sanguineo": f"{paciente.tipo_sangre}{paciente.factor_rh}"
                     if paciente.tipo_sangre
                     else "No registrado",
-                    "embarazo_activo": paciente.embarazos.filter(
+                    "embarazo_activo": getattr(paciente, 'embarazos', Paciente.objects.none()).filter(
                         estado="activo",
                     ).exists(),
                 }
@@ -505,8 +673,8 @@ def consultar_ia(request):
                 return Response(
                     {
                         "consulta": {
-                            "id": consulta_obj.id,
-                            "usuario": request.user.id,
+                            "id": getattr(consulta_obj, 'id', None),
+                            "usuario": getattr(request.user, 'id', None),
                             "paciente": paciente_id,
                             "consulta_original": consulta,
                             "consulta_procesada": consulta,
@@ -601,6 +769,7 @@ class ConsultaIAViewSet(viewsets.ModelViewSet):
     - POST   /api/ia/consultas/{id}/calificar/ — Registrar feedback médico
     """
 
+    queryset = ConsultaIA.objects.none()
     permission_classes = [FetalMedicalPermission]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["consulta_original", "categoria", "respuesta_ia"]
@@ -615,8 +784,10 @@ class ConsultaIAViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Solo muestra el historial del usuario autenticado (médicos/admin ven todo)."""
+        if getattr(self, "swagger_fake_view", False):
+            return ConsultaIA.objects.none()
         qs = ConsultaIA.objects.select_related("usuario", "paciente")
-        if self.request.user.rol in ("administrador",):
+        if getattr(self.request.user, 'rol', '') in ("administrador",):
             return qs
         return qs.filter(usuario=self.request.user)
 

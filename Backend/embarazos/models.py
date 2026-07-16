@@ -1,12 +1,21 @@
 """Models module."""
 import uuid
+from datetime import timedelta
+from typing import TYPE_CHECKING, ClassVar
 
 from django.db import models
+from django.db.models import QuerySet
+from django.utils import timezone
 
 from pacientes.models import Paciente
 
+if TYPE_CHECKING:
+    from controles.models import ControlPrenatal
+
 
 class Embarazo(models.Model):
+    if TYPE_CHECKING:
+        controles: ClassVar[QuerySet[ControlPrenatal]]
     """Embarazo"""
     TIPOS = (
         ("simple", "Simple"),
@@ -117,7 +126,7 @@ class Embarazo(models.Model):
 
     def clean(self):
         """✅ VALIDACIONES CRÍTICAS DEL EMBARAZO"""
-        from datetime import date, timedelta
+        from datetime import timedelta
 
         from django.core.exceptions import ValidationError
 
@@ -125,13 +134,13 @@ class Embarazo(models.Model):
 
         # ✅ 1. VALIDAR FUM - NO PUEDE ESTAR EN EL FUTURO
         if self.fecha_ultima_menstruacion:
-            if self.fecha_ultima_menstruacion > date.today():
+            if self.fecha_ultima_menstruacion > timezone.localdate():
                 errors["fecha_ultima_menstruacion"] = (
                     "La Fecha de Última Menstruación no puede estar en el futuro."
                 )
 
             # Validar que la FUM no sea muy antigua (más de 1 año atrás)
-            hace_un_anio = date.today() - timedelta(days=365)
+            hace_un_anio = timezone.localdate() - timedelta(days=365)
             if self.fecha_ultima_menstruacion < hace_un_anio:
                 errors["fecha_ultima_menstruacion"] = (
                     "La Fecha de Última Menstruación no puede ser mayor a 1 año atrás."
@@ -200,6 +209,11 @@ class Embarazo(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if self.fecha_ultima_menstruacion and not self.fecha_probable_parto:
+            self.fecha_probable_parto = self.fecha_ultima_menstruacion + timedelta(days=280)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """Str"""

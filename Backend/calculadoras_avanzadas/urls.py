@@ -44,21 +44,11 @@ urlpatterns = [
         views.ScoreBishopViewSet.as_view({"post": "calcular_score"}),
         name="score-bishop-calcular",
     ),
-    path(
-        "score-bishop/por-paciente/",
-        views.ScoreBishopViewSet.as_view({"get": "por_paciente"}),
-        name="score-bishop-por-paciente",
-    ),
     # URLs adicionales para Riesgo de Preeclampsia
     path(
         "riesgo-preeclampsia/estadisticas/",
         views.RiesgoPreeclampsiaViewSet.as_view({"get": "estadisticas"}),
         name="riesgo-preeclampsia-estadisticas",
-    ),
-    path(
-        "riesgo-preeclampsia/alto-riesgo/",
-        views.RiesgoPreeclampsiaViewSet.as_view({"get": "alto_riesgo"}),
-        name="riesgo-preeclampsia-alto-riesgo",
     ),
     # URLs adicionales para Crecimiento Fetal
     path(
@@ -79,11 +69,6 @@ urlpatterns = [
     ),
     # URLs adicionales para Dosis de Medicamentos
     path(
-        "dosis-medicamentos/por-medicamento/",
-        views.DosisMedicamentosViewSet.as_view({"get": "por_medicamento"}),
-        name="dosis-medicamentos-por-medicamento",
-    ),
-    path(
         "dosis-medicamentos/calcular/",
         views.DosisMedicamentosViewSet.as_view({"post": "calcular_dosis"}),
         name="dosis-medicamentos-calcular",
@@ -93,11 +78,6 @@ urlpatterns = [
         "hemorragia-obstetrica/estadisticas/",
         views.HemorragiaObstetricaViewSet.as_view({"get": "estadisticas"}),
         name="hemorragia-obstetrica-estadisticas",
-    ),
-    path(
-        "hemorragia-obstetrica/casos-severos/",
-        views.HemorragiaObstetricaViewSet.as_view({"get": "casos_severos"}),
-        name="hemorragia-obstetrica-casos-severos",
     ),
     # URLs adicionales para Sufrimiento Fetal
     path(
@@ -144,5 +124,4 @@ urlpatterns = [
     ),
 ]
 
-# Configuración del app_name para namespacing
-# app_name = 'calculadoras_avanzadas'  # Comentado temporalmente para diagnosticar
+app_name = 'calculadoras_avanzadas'

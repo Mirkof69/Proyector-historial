@@ -1,7 +1,8 @@
-from django_tenants.middleware.main import TenantMainMiddleware
+import logging
+
 from django.apps import apps
 from django.conf import settings
-import logging
+from django_tenants.middleware.main import TenantMainMiddleware
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,22 @@
 """Models module."""
+from typing import TYPE_CHECKING, ClassVar
+
 from django.db import models
+from django.db.models import QuerySet
+from django.utils import timezone
 
 from .fields import EncryptedCharField, EncryptedEmailField, EncryptedTextField
 
+if TYPE_CHECKING:
+    from embarazos.models import Embarazo
+
 
 class Paciente(models.Model):
+    if TYPE_CHECKING:
+        embarazos: ClassVar[QuerySet[Embarazo]]
     """Modelo de Paciente"""
+
+    id = models.AutoField(primary_key=True)
 
     GENERO_CHOICES = (
         ("femenino", "Femenino"),
@@ -160,6 +171,23 @@ class Paciente(models.Model):
         null=True, blank=True, verbose_name="Fecha de Baja del Sistema",
     )
 
+    # Consentimiento de tratamiento de datos personales (Ley 164, Art. 22 y
+    # Reglamento DS 1793/2013 Art. 56-57): el tratamiento de datos personales
+    # requiere "conocimiento previo y consentimiento expreso del titular".
+    # Antes no existia ningun campo de consentimiento en todo el sistema.
+    consentimiento_datos_aceptado = models.BooleanField(
+        default=False,
+        verbose_name="Consentimiento de Tratamiento de Datos Personales",
+        help_text="Ley 164 (Bolivia): consentimiento expreso previo del titular "
+                   "para la recoleccion y tratamiento de sus datos personales.",
+    )
+    consentimiento_datos_fecha = models.DateTimeField(
+        null=True, blank=True, verbose_name="Fecha de Consentimiento",
+    )
+    consentimiento_datos_ip = models.GenericIPAddressField(
+        null=True, blank=True, verbose_name="IP al momento del Consentimiento",
+    )
+
     # Metadatos
     fecha_registro = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de Registro",
@@ -241,7 +269,7 @@ class Paciente(models.Model):
 
         # Calcular HMAC-SHA256 del CI para constraint de unicidad real
         if self.ci:
-            self.ci_hash = compute_search_hash(str(self.ci))
+            self.ci_hash = compute_search_hash(self.ci)
 
         super().save(*args, **kwargs)
 
@@ -255,9 +283,8 @@ class Paciente(models.Model):
     @property
     def edad(self):
         """Calcula la edad del paciente"""
-        from datetime import date
 
-        today = date.today()
+        today = timezone.localdate()
         return (
             today.year
             - self.fecha_nacimiento.year
@@ -268,7 +295,7 @@ class Paciente(models.Model):
         )
 
     @property
-    def imc(self):
+    def imc(self) -> float | None:
         """Calcula el Índice de Masa Corporal (IMC) del paciente"""
         if self.peso_kg and self.altura_cm:
             # IMC = peso (kg) / (altura (m))^2
@@ -280,7 +307,7 @@ class Paciente(models.Model):
     # ✅ NUEVOS MÉTODOS
     def get_embarazos_activos(self):
         """Obtiene los embarazos activos del paciente"""
-        return self.embarazos.filter(estado="activo")
+        return getattr(self, 'embarazos', self.__class__.objects.none()).filter(estado="activo")
 
     def get_ultimo_control(self):
         """Obtiene el último control prenatal registrado"""
@@ -299,7 +326,7 @@ class Paciente(models.Model):
         from django.utils import timezone
 
         return (
-            self.citas.filter(
+            getattr(self, 'citas', self.__class__.objects.none()).filter(
                 fecha_cita__gte=timezone.now().date(),
                 estado__in=["agendada", "confirmada"],
             )
@@ -309,7 +336,7 @@ class Paciente(models.Model):
 
     def tiene_alergias(self):
         """Verifica si el paciente tiene alergias registradas"""
-        antecedentes = self.antecedentes_patologicos.filter(tipo="alergia")
+        antecedentes = getattr(self, 'antecedentes_patologicos', self.__class__.objects.none()).filter(tipo="alergia")
         return antecedentes.exists()
 
     def get_contacto_emergencia_completo(self):

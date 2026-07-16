@@ -1,4 +1,5 @@
 """Models module."""
+import logging
 import os
 from decimal import Decimal
 
@@ -10,6 +11,8 @@ from pacientes.models import Paciente
 
 # from controles.models import ControlPrenatal  # REMOVED to fix circular import
 from usuarios.models import Usuario
+
+logger = logging.getLogger(__name__)
 
 
 class TipoExamen(models.Model):
@@ -111,13 +114,13 @@ class TipoExamen(models.Model):
         """Obtiene la cantidad de exámenes realizados este mes"""
         ahora = timezone.now()
         inicio_mes = ahora.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        return self.examenes.filter(
+        return getattr(self, 'examenes', self.__class__.objects.none()).filter(
             fecha_solicitud__gte=inicio_mes, estado="completado",
         ).count()
 
     def get_tiempo_promedio_resultado(self):
         """Calcula el tiempo promedio de resultados en días"""
-        examenes_completados = self.examenes.filter(
+        examenes_completados = getattr(self, 'examenes', self.__class__.objects.none()).filter(
             estado="completado", fecha_resultado__isnull=False,
         )
 
@@ -128,8 +131,10 @@ class TipoExamen(models.Model):
         count = 0
 
         for examen in examenes_completados:
-            if examen.fecha_solicitud and examen.fecha_resultado:
-                tiempo_dias = (examen.fecha_resultado - examen.fecha_solicitud).days
+            fecha_solicitud = getattr(examen, 'fecha_solicitud', None)
+            fecha_resultado = getattr(examen, 'fecha_resultado', None)
+            if fecha_solicitud and fecha_resultado:
+                tiempo_dias = (fecha_resultado - fecha_solicitud).days
                 total_tiempo += tiempo_dias
                 count += 1
 
@@ -137,10 +142,11 @@ class TipoExamen(models.Model):
 
     def get_porcentaje_urgentes(self):
         """Obtiene el porcentaje de exámenes urgentes"""
-        total = self.examenes.count()
+        _examenes = getattr(self, 'examenes', self.__class__.objects.none())
+        total = _examenes.count()
         if total == 0:
             return 0
-        urgentes = self.examenes.filter(prioridad__in=["urgente", "stat"]).count()
+        urgentes = _examenes.filter(prioridad__in=["urgente", "stat"]).count()
         return round((urgentes / total) * 100, 1)
 
     def __str__(self):
@@ -150,6 +156,8 @@ class TipoExamen(models.Model):
 
 class ExamenLaboratorio(models.Model):
     """Solicitud de examen de laboratorio"""
+
+    id = models.AutoField(primary_key=True)
 
     ESTADO_CHOICES = [
         ("solicitado", "Solicitado"),
@@ -270,7 +278,7 @@ class ExamenLaboratorio(models.Model):
         ]
 
     @property
-    def dias_desde_solicitud(self):
+    def dias_desde_solicitud(self) -> int | None:
         """Días transcurridos desde la solicitud"""
         if self.fecha_solicitud:
             ahora = timezone.now()
@@ -279,12 +287,12 @@ class ExamenLaboratorio(models.Model):
         return None
 
     @property
-    def esta_pendiente(self):
+    def esta_pendiente(self) -> bool:
         """Verifica si el examen está pendiente"""
         return self.estado in ["solicitado", "en_proceso"]
 
     @property
-    def esta_vencido(self):
+    def esta_vencido(self) -> bool:
         """Verifica si el examen excedió el tiempo esperado"""
         if self.estado == "completado":
             return False
@@ -292,9 +300,7 @@ class ExamenLaboratorio(models.Model):
         dias = self.dias_desde_solicitud
         tiempo_esperado_dias = self.tipo_examen.tiempo_resultado / 24
 
-        if dias and dias > tiempo_esperado_dias:
-            return True
-        return False
+        return bool(dias and dias > tiempo_esperado_dias)
 
     def get_tiempo_total_proceso(self):
         """Obtiene el tiempo total del proceso en horas"""
@@ -305,11 +311,11 @@ class ExamenLaboratorio(models.Model):
 
     def get_resultados_criticos_count(self):
         """Cuenta los resultados críticos del examen"""
-        return self.resultados.filter(es_critico=True).count()
+        return getattr(self, 'resultados', self.__class__.objects.none()).filter(es_critico=True).count()
 
     def get_resultados_anormales_count(self):
         """Cuenta los resultados anormales del examen"""
-        return self.resultados.filter(es_normal=False, es_critico=False).count()
+        return getattr(self, 'resultados', self.__class__.objects.none()).filter(es_normal=False, es_critico=False).count()
 
     def tiene_resultados_criticos(self):
         """Verifica si tiene resultados críticos"""
@@ -322,6 +328,8 @@ class ExamenLaboratorio(models.Model):
 
     def get_costo_total_estimado(self):
         """Calcula el costo total estimado incluyendo procesamiento"""
+        if self.tipo_examen is None:
+            return Decimal("0.00")
         costo_base = self.tipo_examen.precio
 
         # Factores adicionales según prioridad
@@ -343,7 +351,7 @@ class ExamenLaboratorio(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"{self.tipo_examen.nombre} - {self.paciente.nombre_completo} ({self.get_estado_display()})"
+        return f"{self.tipo_examen.nombre} - {self.paciente.nombre_completo} ({getattr(self, 'get_estado_display')()})"
 
 
 class ValorReferencia(models.Model):
@@ -604,8 +612,8 @@ class ResultadoLaboratorio(models.Model):
             return False
 
         evaluacion = self.valor_referencia.evaluar_valor(self.valor_numerico)
-        self.es_critico = evaluacion["es_critico"]
-        self.es_normal = evaluacion["es_normal"]
+        self.es_critico = bool(evaluacion.get("es_critico", False))
+        self.es_normal = bool(evaluacion.get("es_normal", False))
         return True
 
     def get_interpretacion_medica(self):
@@ -631,6 +639,8 @@ class ResultadoLaboratorio(models.Model):
 
         for key, interpretation in interpretaciones.items():
             if key in parametro:
+                if self.es_critico:
+                    return f"⚠️ CRÍTICO: {interpretation}"
                 return interpretation
 
         # Interpretación genérica
@@ -739,7 +749,7 @@ class ResultadoLaboratorio(models.Model):
 
     def _protocolo_glucosa_critica(self):
         """Protocolo para glucosa crítica"""
-        valor = float(self.valor_numerico)
+        valor = float(self.valor_numerico) if self.valor_numerico is not None else 0.0
         if valor < 70:
             return """HIPOGLUCEMIA SEVERA:
                 pass
@@ -1095,7 +1105,7 @@ class ImagenLaboratorio(models.Model):
     def get_extension(self):
         """Obtiene la extensión del archivo"""
         if self.archivo:
-            return os.path.splitext(self.archivo.name)[1].lower()
+            return os.path.splitext(str(self.archivo.name))[1].lower()
         return ""
 
     def es_imagen(self):
@@ -1115,7 +1125,7 @@ class ImagenLaboratorio(models.Model):
         try:
             from PIL import Image
 
-            thumb_name = f"thumb_{os.path.basename(self.archivo.name)}"
+            thumb_name = f"thumb_{os.path.basename(str(self.archivo.name))}"
             thumb_path = os.path.join(
                 os.path.dirname(self.archivo.path), "thumbnails", thumb_name,
             )
@@ -1128,37 +1138,141 @@ class ImagenLaboratorio(models.Model):
 
             return thumb_path
         except Exception as e:
-            print(f"Error generando thumbnail: {e}")
+            logger.warning("Error generando thumbnail: %s", e)
             return None
 
     def extraer_texto_ocr(self):
-        """Placeholder para OCR futuro con Tesseract o servicio IA"""
-        # Aquí se integraría Tesseract OCR o Google Vision API
+        """Extrae texto del archivo mediante Tesseract OCR (pytesseract).
+
+        Soporta imágenes directamente. Si Tesseract no está instalado, devuelve
+        un resultado con ``procesado=False`` y ``motivo`` explícito — NO simula
+        un procesamiento exitoso.
+        """
         ocr_result = {
-            "procesado": True,
+            "procesado": False,
             "fecha_ocr": str(timezone.now()),
             "confianza_promedio": 0.0,
             "texto_completo": "",
             "parametros_detectados": [],
             "valores_detectados": {},
+            "motivo": None,
         }
 
-        self.texto_extraido_ocr = "Texto pendiente de extracción..."
-        self.datos_extraidos_ia = ocr_result
-        return ocr_result
+        if not self.es_imagen():
+            ocr_result["motivo"] = "OCR directo solo disponible para imágenes (los PDF requieren rasterización previa)."
+            self.datos_extraidos_ia = ocr_result
+            return ocr_result
+
+        try:
+            import pytesseract
+            from PIL import Image
+        except ImportError:
+            ocr_result["motivo"] = "pytesseract/Pillow no instalado: OCR no disponible en este entorno."
+            self.texto_extraido_ocr = ""
+            self.datos_extraidos_ia = ocr_result
+            return ocr_result
+
+        try:
+            with Image.open(self.archivo.path) as img:
+                # image_to_data da texto + confianza por token
+                data = pytesseract.image_to_data(
+                    img, lang="spa", output_type=pytesseract.Output.DICT,
+                )
+
+            palabras = []
+            confianzas = []
+            for texto, conf in zip(data.get("text", []), data.get("conf", []), strict=False):
+                if texto and texto.strip():
+                    palabras.append(texto)
+                    try:
+                        c = float(conf)
+                    except (TypeError, ValueError):
+                        c = -1.0
+                    if c >= 0:
+                        confianzas.append(c)
+
+            texto_completo = " ".join(palabras).strip()
+            confianza_promedio = (sum(confianzas) / len(confianzas) / 100.0) if confianzas else 0.0
+
+            ocr_result.update({
+                "procesado": True,
+                "confianza_promedio": round(confianza_promedio, 3),
+                "texto_completo": texto_completo,
+            })
+            self.texto_extraido_ocr = texto_completo
+            self.datos_extraidos_ia = ocr_result
+            return ocr_result
+
+        except Exception as e:
+            # pytesseract.TesseractNotFoundError entra aquí: binario ausente.
+            ocr_result["motivo"] = f"Error ejecutando Tesseract OCR: {e}"
+            self.texto_extraido_ocr = ""
+            self.datos_extraidos_ia = ocr_result
+            return ocr_result
 
     def validar_firma_digital(self):
-        """Placeholder para validación de firma digital en PDFs"""
-        if not self.es_pdf():
-            return {"firmado": False, "mensaje": "No es archivo PDF"}
+        """Verifica si un PDF contiene una firma digital embebida.
 
-        # Aquí se integraría PyPDF2 o similar para verificar firmas
-        return {
-            "firmado": False,
-            "valido": False,
-            "firmante": None,
-            "fecha_firma": None,
-        }
+        Usa pikepdf/PyPDF2 si están disponibles. Cuando no hay librería, devuelve
+        ``verificable=False`` en lugar de afirmar falsamente que no está firmado.
+        """
+        if not self.es_pdf():
+            return {"firmado": False, "verificable": True, "mensaje": "No es archivo PDF"}
+
+        try:
+            from pypdf import PdfReader
+        except ImportError:
+            try:
+                from PyPDF2 import PdfReader
+            except ImportError:
+                return {
+                    "firmado": None,
+                    "verificable": False,
+                    "mensaje": "pypdf/PyPDF2 no instalado: no se puede verificar la firma.",
+                }
+
+        try:
+            reader = PdfReader(self.archivo.path)
+            fields = reader.get_fields() or {}
+            firma = None
+            for campo in fields.values():
+                # Los campos de firma tienen /FT == /Sig
+                if getattr(campo, "field_type", None) == "/Sig" or campo.get("/FT") == "/Sig":
+                    firma = campo
+                    break
+
+            if firma is None:
+                return {
+                    "firmado": False,
+                    "verificable": True,
+                    "firmante": None,
+                    "fecha_firma": None,
+                    "mensaje": "El PDF no contiene campos de firma digital.",
+                }
+
+            valor = firma.get("/V") if hasattr(firma, "get") else None
+            firmante = None
+            fecha_firma = None
+            if valor is not None:
+                firmante = str(valor.get("/Name")) if valor.get("/Name") else None
+                fecha_firma = str(valor.get("/M")) if valor.get("/M") else None
+
+            return {
+                "firmado": True,
+                "verificable": True,
+                # Presencia de firma confirmada; la validez criptográfica de la
+                # cadena de confianza requiere un verificador CMS dedicado.
+                "valido": None,
+                "firmante": firmante,
+                "fecha_firma": fecha_firma,
+                "mensaje": "Firma digital presente. Validez criptográfica no verificada por este método.",
+            }
+        except Exception as e:
+            return {
+                "firmado": None,
+                "verificable": False,
+                "mensaje": f"Error leyendo el PDF: {e}",
+            }
 
     def save(self, *args, **kwargs):
         """Save"""

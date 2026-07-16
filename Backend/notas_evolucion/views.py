@@ -5,11 +5,12 @@ ViewSet completo para el sistema de notas médicas de evolución
 """
 
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
 
 from .models import NotaEvolucion
 from .serializers import (
@@ -125,16 +126,26 @@ class NotaEvolucionViewSet(viewsets.ModelViewSet):
         """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
-    @action(
-        detail=False, methods=["get"], url_path="por-paciente/(P<paciente_id>[^/.]+)",
+    @extend_schema(
+        summary="Obtener notas por paciente",
+        description="Obtiene todas las notas de evolución de un paciente específico por query parameter 'paciente_id'.",
+        responses={200: NotaEvolucionListSerializer(many=True)},
     )
-    def notas_por_paciente(self, _request, paciente_id=None):
+    @action(
+        detail=False, methods=["get"], url_path="por-paciente",
+    )
+    def notas_por_paciente(self, request):
         """Endpoint personalizado para obtener todas las notas de un paciente
 
-        GET /api/notas-evolucion/por-paciente/{paciente_id}/
-
-        Retorna todas las notas de evolución ordenadas por fecha descendente
+        GET /api/notas-evolucion/por-paciente/?paciente_id={paciente_id}
         """
+        paciente_id = request.query_params.get("paciente_id")
+        if not paciente_id:
+            return Response(
+                {"error": "Se requiere paciente_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         notas = self.get_queryset().filter(paciente_id=paciente_id)
 
         # Aplicar paginación
@@ -146,16 +157,26 @@ class NotaEvolucionViewSet(viewsets.ModelViewSet):
         serializer = NotaEvolucionListSerializer(notas, many=True)
         return Response(serializer.data)
 
-    @action(
-        detail=False, methods=["get"], url_path="por-embarazo/(P<embarazo_id>[^/.]+)",
+    @extend_schema(
+        summary="Obtener notas por embarazo",
+        description="Obtiene todas las notas de evolución de un embarazo específico por query parameter 'embarazo_id'.",
+        responses={200: NotaEvolucionListSerializer(many=True)},
     )
-    def notas_por_embarazo(self, _request, embarazo_id=None):
+    @action(
+        detail=False, methods=["get"], url_path="por_embarazo",
+    )
+    def notas_por_embarazo(self, request):
         """Endpoint personalizado para obtener todas las notas de un embarazo
 
-        GET /api/notas-evolucion/por-embarazo/{embarazo_id}/
-
-        Retorna todas las notas de evolución de un embarazo específico
+        GET /api/notas-evolucion/por_embarazo/?embarazo_id={embarazo_id}
         """
+        embarazo_id = request.query_params.get("embarazo_id")
+        if not embarazo_id:
+            return Response(
+                {"error": "Se requiere embarazo_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         notas = self.get_queryset().filter(embarazo_id=embarazo_id)
 
         # Aplicar paginación

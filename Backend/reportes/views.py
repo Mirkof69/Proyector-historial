@@ -1,14 +1,23 @@
 """Views module."""
+import logging
+import os
 from datetime import timedelta
 
 from django.core.cache import cache
 from django.db.models import Count
+from django.http import FileResponse, Http404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, status, viewsets
-from core.permissions import FetalMedicalPermission
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
+
+logger = logging.getLogger(__name__)
+
+from embarazos.models import Embarazo
+from pacientes.models import Paciente
 
 from .models import (
     AlertaMedica,
@@ -151,7 +160,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """✅ TRAZABILIDAD: Asignar usuario solicitante y created_by al crear"""
         usuario_id = (
-            self.request.user.id if self.request.user.is_authenticated else None
+            getattr(self.request.user, 'id', None) if getattr(self.request.user, 'is_authenticated', False) else None
         )
         serializer.save(usuario_solicitante=usuario_id, created_by=self.request.user)
 
@@ -179,25 +188,57 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def preview(self, request):
-        """Endpoint para generar una vista previa del reporte sin guardarlo.
+        """Vista previa real de un reporte antes de generarlo.
+
+        No genera el archivo final: cuenta cuántos registros reales
+        existen para el tipo de reporte y rango de fechas solicitados,
+        usando el modelo más representativo de la categoría del
+        TipoReporte (Paciente para reportes de pacientes, Embarazo
+        para reportes clínicos/estadísticos, etc.).
         """
-        serializer = ReporteGeneradoCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        tipo_reporte_id = request.data.get("tipo_reporte")
+        if not tipo_reporte_id:
+            return Response(
+                {"tipo_reporte": "Debe indicar el tipo de reporte."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            tipo_reporte = TipoReporte.objects.get(pk=tipo_reporte_id)
+        except (TipoReporte.DoesNotExist, ValueError, TypeError):
+            return Response(
+                {"tipo_reporte": "Tipo de reporte no encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        # Aquí iría la lógica real de generación de vista previa
-        # Por ahora devolvemos datos simulados basados en el tipo de reporte
+        fecha_inicio = request.data.get("fecha_inicio")
+        fecha_fin = request.data.get("fecha_fin")
+        formato = request.data.get("formato", "pdf")
 
-        _tipo_reporte_id = request.data.get("tipo_reporte")
-        filtros = request.data.get("filtros", {})
+        # Modelo más representativo según la categoría del reporte,
+        # usado solo para estimar cuántos registros reales entrarían.
+        modelo_por_categoria = {
+            "paciente": (Paciente, "fecha_registro"),
+            "clinico": (Embarazo, "fecha_registro"),
+            "estadistico": (Embarazo, "fecha_registro"),
+        }
+        modelo, campo_fecha = modelo_por_categoria.get(
+            tipo_reporte.categoria, (Paciente, "fecha_registro"),
+        )
+
+        qs = modelo.objects.all()
+        if fecha_inicio:
+            qs = qs.filter(**{f"{campo_fecha}__date__gte": fecha_inicio})
+        if fecha_fin:
+            qs = qs.filter(**{f"{campo_fecha}__date__lte": fecha_fin})
+        total_registros = qs.count()
 
         preview_data = {
-            "headers": ["Columna 1", "Columna 2", "Columna 3"],
-            "rows": [
-                ["Dato 1.1", "Dato 1.2", "Dato 1.3"],
-                ["Dato 2.1", "Dato 2.2", "Dato 2.3"],
-                ["Dato 3.1", "Dato 3.2", "Dato 3.3"],
-            ],
-            "meta": {"total_registros": 3, "filtros_aplicados": filtros},
+            "tipo_nombre": tipo_reporte.nombre,
+            "formato": formato,
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "total_registros": total_registros,
+            "tamanio_estimado_kb": max(total_registros * (50 if formato == "pdf" else 10), 10),
         }
 
         return Response(preview_data)
@@ -210,7 +251,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         if reporte.estado not in ["pendiente", "error"]:
             return Response(
                 {
-                    "error": f"No se puede marcar como procesando un reporte en estado {reporte.get_estado_display()}",
+                    "error": f"No se puede marcar como procesando un reporte en estado {getattr(reporte, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -227,7 +268,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         if reporte.estado not in ["pendiente", "procesando", "error"]:
             return Response(
                 {
-                    "error": f"No se puede completar un reporte en estado {reporte.get_estado_display()}",
+                    "error": f"No se puede completar un reporte en estado {getattr(reporte, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -247,6 +288,31 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         reporte.save()
 
         return Response(ReporteGeneradoSerializer(reporte).data)
+
+    @action(detail=True, methods=["get"])
+    def descargar(self, _request, _pk=None):
+        """Descarga el archivo real de un reporte ya completado.
+        """
+        reporte = self.get_object()
+        if reporte.estado != "completado":
+            return Response(
+                {
+                    "error": f"El reporte está en estado '{getattr(reporte, 'get_estado_display')()}', "
+                    "todavía no tiene un archivo disponible para descargar.",
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        if not reporte.ruta_archivo or not os.path.exists(reporte.ruta_archivo):
+            raise Http404("El archivo del reporte no se encuentra en el servidor.")
+
+        reporte.accesos_descarga = (reporte.accesos_descarga or 0) + 1
+        reporte.save(update_fields=["accesos_descarga"])
+
+        return FileResponse(
+            open(reporte.ruta_archivo, "rb"),
+            as_attachment=True,
+            filename=os.path.basename(reporte.ruta_archivo),
+        )
 
     @action(detail=True, methods=["post"])
     def marcar_error(self, request, _pk=None):
@@ -485,7 +551,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         if alerta.estado not in ["activa"]:
             return Response(
                 {
-                    "error": f"No se puede marcar como revisada una alerta en estado {alerta.get_estado_display()}",
+                    "error": f"No se puede marcar como revisada una alerta en estado {getattr(alerta, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -506,7 +572,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         if alerta.estado not in ["activa", "revisada", "escalada"]:
             return Response(
                 {
-                    "error": f"No se puede marcar como resuelta una alerta en estado {alerta.get_estado_display()}",
+                    "error": f"No se puede marcar como resuelta una alerta en estado {getattr(alerta, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -541,7 +607,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         if alerta.estado not in ["activa", "revisada"]:
             return Response(
                 {
-                    "error": f"No se puede escalar una alerta en estado {alerta.get_estado_display()}",
+                    "error": f"No se puede escalar una alerta en estado {getattr(alerta, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -589,6 +655,8 @@ class AuditoriaReporteViewSet(viewsets.ReadOnlyModelViewSet):
 # ============================================================================
 # API VIEWS SIMPLES PARA ESTADÍSTICAS
 # ============================================================================
+
+import contextlib
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -648,12 +716,10 @@ def dashboard_stats_view(request):
         }
 
         # Calcular alertas si existe el modelo
-        try:
+        with contextlib.suppress(Exception):
             stats["alertas_pendientes"] = AlertaMedica.objects.filter(
                 estado="activa",
             ).count()
-        except Exception:
-            pass
 
         # Calcular porcentaje de cesareas
         total_partos_mes = stats["partos_mes"]
@@ -669,9 +735,7 @@ def dashboard_stats_view(request):
         cache.set(cache_key, stats, timeout=60)
         return Response(stats)
     except Exception as e:
-        import traceback
-
-        print(traceback.format_exc())
+        logger.exception("Error en dashboard stats")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

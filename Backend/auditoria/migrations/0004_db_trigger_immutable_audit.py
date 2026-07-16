@@ -47,6 +47,20 @@ DROP FUNCTION IF EXISTS auditoria_enforce_immutable();
 """
 
 
+def apply_trigger(apps, schema_editor):
+    if schema_editor.connection.vendor != "postgresql":
+        return
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(TRIGGER_SQL)
+
+
+def rollback_trigger(apps, schema_editor):
+    if schema_editor.connection.vendor != "postgresql":
+        return
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(ROLLBACK_SQL)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -54,8 +68,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql=TRIGGER_SQL,
-            reverse_sql=ROLLBACK_SQL,
+        migrations.RunPython(
+            apply_trigger,
+            reverse_code=rollback_trigger,
         ),
     ]
+

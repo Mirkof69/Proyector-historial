@@ -48,7 +48,7 @@ class TipoReporteSerializer(serializers.ModelSerializer):
             "permitir_administrador",
             "permitir_director",
             # Formatos
-            "formato_pd",
+            "formato_pdf",
             "formato_excel",
             "formato_csv",
             "formato_json",
@@ -102,7 +102,7 @@ class TipoReporteSerializer(serializers.ModelSerializer):
 
         # Formatos
         formato_pdf = attrs.get(
-            "formato_pd", getattr(self.instance, "formato_pd", False),
+            "formato_pdf", getattr(self.instance, "formato_pdf", False),
         )
         formato_excel = attrs.get(
             "formato_excel", getattr(self.instance, "formato_excel", False),
@@ -117,7 +117,7 @@ class TipoReporteSerializer(serializers.ModelSerializer):
         if not any([formato_pdf, formato_excel, formato_csv, formato_json]):
             raise serializers.ValidationError(
                 {
-                    "formato_pd": "Debe habilitar al menos un formato de salida para el reporte.",
+                    "formato_pdf": "Debe habilitar al menos un formato de salida para el reporte.",
                 },
             )
 
@@ -547,6 +547,7 @@ class AlertaMedicaSerializer(serializers.ModelSerializer):
     color_prioridad = serializers.SerializerMethodField()
     es_vencida = serializers.SerializerMethodField()
     tiempo_transcurrido = serializers.SerializerMethodField()
+    paciente_nombre = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -562,6 +563,7 @@ class AlertaMedicaSerializer(serializers.ModelSerializer):
             "estado",
             "estado_display",
             "paciente_id",
+            "paciente_nombre",
             "embarazo_id",
             "medico_responsable_id",
             "modulo_origen",
@@ -605,8 +607,13 @@ class AlertaMedicaSerializer(serializers.ModelSerializer):
         """Get tiempo transcurrido"""
         delta = obj.tiempo_transcurrido()
         # Representación simple en horas
-        horas = int(delta.total_seconds() // 3600)
-        return horas
+        return int(delta.total_seconds() // 3600)
+
+    def get_paciente_nombre(self, obj):
+        """Get paciente nombre"""
+        if obj.paciente_id and obj.paciente:
+            return obj.paciente.nombre_completo
+        return None
 
 
 class AlertaMedicaResumenSerializer(serializers.ModelSerializer):
@@ -622,6 +629,7 @@ class AlertaMedicaResumenSerializer(serializers.ModelSerializer):
     )
     color_prioridad = serializers.SerializerMethodField()
     es_vencida = serializers.SerializerMethodField()
+    paciente_nombre = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -635,6 +643,7 @@ class AlertaMedicaResumenSerializer(serializers.ModelSerializer):
             "estado",
             "estado_display",
             "paciente_id",
+            "paciente_nombre",
             "modulo_origen",
             "modulo_origen_display",
             "fecha_creacion",
@@ -650,6 +659,12 @@ class AlertaMedicaResumenSerializer(serializers.ModelSerializer):
     def get_es_vencida(self, obj):
         """Get es vencida"""
         return obj.is_vencida()
+
+    def get_paciente_nombre(self, obj):
+        """Get paciente nombre"""
+        if obj.paciente_id and obj.paciente:
+            return obj.paciente.nombre_completo
+        return None
 
 
 # ============================================================================

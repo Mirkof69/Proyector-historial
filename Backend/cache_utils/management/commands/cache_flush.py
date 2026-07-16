@@ -78,6 +78,7 @@ class Command(BaseCommand):
 
     def show_stats(self):
         """Display cache statistics."""
+        assert self.cache_backend is not None
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write(self.style.SUCCESS("Cache Statistics"))
         self.stdout.write(self.style.SUCCESS("=" * 60))
@@ -104,6 +105,7 @@ class Command(BaseCommand):
 
     def health_check(self):
         """Run cache health check."""
+        assert self.cache_backend is not None
         self.stdout.write("Running cache health check...")
 
         try:
@@ -130,6 +132,7 @@ class Command(BaseCommand):
 
     def flush_all(self):
         """Flush all caches."""
+        assert self.cache_backend is not None
         self.stdout.write(self.style.WARNING("WARNING: This will flush ALL caches!"))
         self.stdout.write("Are you sure you want to continue")
 
@@ -143,12 +146,14 @@ class Command(BaseCommand):
 
     def flush_pattern(self, pattern):
         """Flush keys matching a pattern."""
+        assert self.cache_backend is not None
         self.stdout.write(f"Flushing keys matching: {pattern}")
 
         try:
             # Use delete_pattern if available (Redis cache supports this)
-            if hasattr(self.cache_backend, "delete_pattern"):
-                self.cache_backend.delete_pattern(pattern)
+            delete_pattern = getattr(self.cache_backend, "delete_pattern", None)
+            if delete_pattern is not None:
+                delete_pattern(pattern)
                 self.stdout.write(
                     self.style.SUCCESS(f"Pattern '{pattern}' flushed successfully"),
                 )

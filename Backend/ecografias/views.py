@@ -4,16 +4,21 @@ import logging
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
 
+from core.permissions import FetalMedicalPermission
+
 logger = logging.getLogger("ecografias")
-from datetime import date, timedelta
+import contextlib
+from datetime import timedelta
 
 from django.core.cache import cache
 from django.db.models import Count
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+
+from embarazos.models import Embarazo
+from ia_medica.services.orthanc_service import orthanc_service
 
 from .models import Ecografia, ImagenEcografia
 from .serializers import (
@@ -22,8 +27,6 @@ from .serializers import (
     EcografiaSerializer,
     ImagenEcografiaSerializer,
 )
-
-# from embarazos.models import Embarazo  # REMOVED to fix circular import
 
 
 class EcografiaViewSet(viewsets.ModelViewSet):
@@ -98,36 +101,28 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         fecha_hasta = self.request.query_params.get("fecha_hasta", None)
 
         if fecha_desde:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_ecografia__gte=fecha_desde)
-            except Exception:
-                pass
 
         if fecha_hasta:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_ecografia__lte=fecha_hasta)
-            except Exception:
-                pass
 
         # Filtrar por edad gestacional
         semanas_min = self.request.query_params.get("semanas_min", None)
         semanas_max = self.request.query_params.get("semanas_max", None)
 
         if semanas_min:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 queryset = queryset.filter(
                     edad_gestacional_semanas__gte=int(semanas_min),
                 )
-            except (ValueError, TypeError):
-                pass
 
         if semanas_max:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 queryset = queryset.filter(
                     edad_gestacional_semanas__lte=int(semanas_max),
                 )
-            except (ValueError, TypeError):
-                pass
 
         # Filtrar solo embarazos activos
         solo_activos = self.request.query_params.get("solo_activos", None)
@@ -142,7 +137,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         También asignar created_by para trazabilidad
         """
         # ✅ Asignar médico si el usuario es médico
-        if self.request.user.rol == "medico":
+        if getattr(self.request.user, 'rol', '') == "medico":
             serializer.save(
                 medico=self.request.user,
                 created_by=self.request.user,
@@ -158,6 +153,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
 
         # Retornar con serializer completo
+        assert serializer.instance is not None
         ecografia = (
             Ecografia.objects.select_related(
                 "embarazo", "embarazo__paciente", "paciente", "medico",
@@ -167,7 +163,6 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         )
 
         return_serializer = EcografiaSerializer(ecografia)
-
         headers = self.get_success_headers(return_serializer.data)
         return Response(
             return_serializer.data, status=status.HTTP_201_CREATED, headers=headers,
@@ -266,13 +261,35 @@ class EcografiaViewSet(viewsets.ModelViewSet):
             updated_by=request.user,
         )
 
+        # Subir a Orthanc (PACS) solo para archivos DICOM. Best-effort: si
+        # Orthanc no esta disponible, la imagen ya quedo guardada localmente
+        # arriba y el usuario no debe ver un error por esto — se degrada
+        # igual que el analisis de IA automatico (ver bloque siguiente).
+        if file_extension == "dcm":
+            try:
+                resultado_orthanc = orthanc_service.subir_dicom(imagen.imagen.path)
+                if resultado_orthanc.get("status") == "success":
+                    imagen.orthanc_instance_id = resultado_orthanc.get("orthanc_id")
+                    imagen.orthanc_study_id = resultado_orthanc.get("parent_study")
+                    imagen.save(update_fields=["orthanc_instance_id", "orthanc_study_id"])
+                else:
+                    logger.warning(
+                        "No se pudo subir imagen %s a Orthanc: %s",
+                        imagen.id, resultado_orthanc.get("message"),
+                    )
+            except Exception as _e:
+                logger.warning(
+                    "Error subiendo imagen %s a Orthanc (PACS no disponible?): %s",
+                    imagen.id, _e,
+                )
+
         # Disparar análisis IA automáticamente al subir imagen
         try:
             imagen.analizar_con_ia()
         except Exception as _e:
             logger.warning(
                 "Análisis IA automático falló para imagen %s: %s",
-                imagen.id,
+                getattr(imagen, 'id', None),
                 _e,
             )
 
@@ -330,13 +347,13 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         total = Ecografia.objects.count()
 
         # Estadisticas de la ultima semana
-        hace_una_semana = date.today() - timedelta(days=7)
+        hace_una_semana = timezone.localdate() - timedelta(days=7)
         ecografias_semana = Ecografia.objects.filter(
             fecha_ecografia__gte=hace_una_semana,
         ).count()
 
         # Estadisticas del ultimo mes
-        hace_un_mes = date.today() - timedelta(days=30)
+        hace_un_mes = timezone.localdate() - timedelta(days=30)
         ecografias_mes = Ecografia.objects.filter(
             fecha_ecografia__gte=hace_un_mes,
         ).count()
@@ -400,19 +417,20 @@ class EcografiaViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            from embarazos.models import Embarazo  # Deferred import
-
             embarazo = Embarazo.objects.select_related("paciente").get(id=embarazo_id)
         except Embarazo.DoesNotExist:
             return Response(
                 {"error": "Embarazo no encontrado"}, status=status.HTTP_404_NOT_FOUND,
             )
 
+        assert self.queryset is not None
         ecografias = self.queryset.filter(embarazo=embarazo).order_by("fecha_ecografia")
         serializer = EcografiaSerializer(
             ecografias, many=True, context={"request": request},
         )
 
+        primera = ecografias.first()
+        ultima = ecografias.last()
         return Response(
             {
                 "embarazo": {
@@ -422,11 +440,11 @@ class EcografiaViewSet(viewsets.ModelViewSet):
                     "estado": embarazo.estado,
                 },
                 "total_ecografias": ecografias.count(),
-                "primera_ecografia": ecografias.first().fecha_ecografia
-                if ecografias.exists()
+                "primera_ecografia": primera.fecha_ecografia
+                if primera is not None
                 else None,
-                "ultima_ecografia": ecografias.last().fecha_ecografia
-                if ecografias.exists()
+                "ultima_ecografia": ultima.fecha_ecografia
+                if ultima is not None
                 else None,
                 "ecografias": serializer.data,
             },
@@ -441,8 +459,8 @@ class EcografiaViewSet(viewsets.ModelViewSet):
             "ecografia": {
                 "id": ecografia.id,
                 "fecha": ecografia.fecha_ecografia.strftime("%d/%m/%Y"),
-                "tipo": ecografia.get_tipo_ecografia_display(),
-                "indicacion": ecografia.get_indicacion_display(),
+                "tipo": getattr(ecografia, 'get_tipo_ecografia_display')(),
+                "indicacion": getattr(ecografia, 'get_indicacion_display')(),
                 "edad_gestacional": ecografia.get_edad_gestacional_texto(),
             },
             "paciente": {
@@ -518,3 +536,128 @@ class EcografiaViewSet(viewsets.ModelViewSet):
             }
 
         return Response(reporte)
+
+    @action(detail=True, methods=["get"])
+    def mediciones(self, _request, _pk=None):
+        """Obtener todas las mediciones (biometría) de una ecografía"""
+        ecografia = self.get_object()
+        if hasattr(ecografia, "biometria") and ecografia.biometria:
+            from .serializers import BiometriaFetalSerializer
+            serializer = BiometriaFetalSerializer(ecografia.biometria)
+            return Response(serializer.data)
+        return Response(
+            {"error": "No hay mediciones de biometría para esta ecografía"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    @action(detail=False, methods=["post"])
+    def evaluar_icc(self, request):
+        """Evaluar Índice Cardiocefálico (ICC)"""
+        dbp = request.data.get("dbp")
+        cc = request.data.get("cc")
+        if not dbp or not cc:
+            return Response(
+                {"error": "Se requieren dbp (diámetro biparietal) y cc (circunferencia cefálica)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            dbp = float(dbp)
+            cc = float(cc)
+            icc = dbp / cc if cc else 0
+            return Response({
+                "icc": round(icc, 4),
+                "evaluacion": "normal" if 0.28 <= icc <= 0.34 else "anormal",
+                "interpretacion": (
+                    "ICC dentro de rango normal (0.28-0.34)"
+                    if 0.28 <= icc <= 0.34
+                    else "ICC fuera de rango normal — evaluar dolicocefalia o braquicefalia"
+                ),
+            })
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "dbp y cc deben ser valores numéricos"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(detail=False, methods=["post"])
+    def evaluar_capurro(self, request):
+        """Evaluar edad gestacional por método de Capurro"""
+        datos = request.data
+        try:
+            from .capurro import evaluar_capurro as capurro_func
+            resultado = capurro_func(datos)
+        except ImportError:
+            resultado = {
+                "semanas": None,
+                "error": "Módulo Capurro no disponible",
+                "metodo": "no_disponible",
+            }
+        except Exception as e:
+            resultado = {
+                "semanas": None,
+                "error": str(e),
+                "metodo": "error",
+            }
+        return Response(resultado)
+
+    @action(detail=True, methods=["get"], url_path="exportar-pdf")
+    def exportar_pdf(self, request, pk=None):
+        """Exporta ecografía a PDF
+        GET /api/ecografias/{id}/exportar-pdf/
+        """
+        ecografia = self.get_object()
+        try:
+            import pdfkit
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+            html = render_to_string("ecografias/reporte_ecografia_pdf.html", {
+                "ecografia": ecografia,
+                "paciente": ecografia.paciente,
+            })
+            pdf = pdfkit.from_string(html, False)
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="ecografia_{ecografia.id}.pdf"'
+            return response
+        except ImportError:
+            serializer = self.get_serializer(ecografia)
+            return Response({
+                "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
+                "ecografia": serializer.data,
+            })
+        except Exception as e:
+            return Response({"error": f"Error generando PDF: {e}"}, status=500)
+
+    @action(detail=False, methods=["get"], url_path="exportar-excel")
+    def exportar_excel(self, request):
+        """Exporta lista de ecografías a Excel
+        GET /api/ecografias/exportar-excel/
+        """
+        try:
+            import openpyxl
+            from django.http import HttpResponse
+            from openpyxl.styles import Font
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Ecografias"
+            headers = ["ID", "Paciente", "Fecha", "Tipo", "Edad Gestacional", "Diagnóstico"]
+            for col, h in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=h)
+                cell.font = Font(bold=True)
+            queryset = self.filter_queryset(self.get_queryset())
+            for row, eco in enumerate(queryset, 2):
+                ws.cell(row=row, column=1, value=eco.id)
+                ws.cell(row=row, column=2, value=str(eco.paciente))
+                ws.cell(row=row, column=3, value=str(eco.fecha_ecografia))
+                ws.cell(row=row, column=4, value=eco.tipo_ecografia or "")
+                ws.cell(row=row, column=5, value=eco.edad_gestacional_semanas or "")
+                ws.cell(row=row, column=6, value=eco.diagnostico or "")
+            response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = 'attachment; filename="ecografias.xlsx"'
+            wb.save(response)
+            return response
+        except ImportError:
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({"mensaje": "Excel no disponible. Instale openpyxl", "total": queryset.count(), "datos": serializer.data})
+        except Exception as e:
+            return Response({"error": f"Error generando Excel: {e}"}, status=500)

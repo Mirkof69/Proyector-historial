@@ -77,6 +77,7 @@ class ConsultaIAAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Confianza")
     def confianza_badge(self, obj):
         """Confianza badge"""
         color = (
@@ -90,8 +91,8 @@ class ConsultaIAAdmin(admin.ModelAdmin):
             '<span style="color: {};">{:.1f}%</span>', color, obj.confianza,
         )
 
-    confianza_badge.short_description = "Confianza"
 
+    @admin.display(description="Útil")
     def util_badge(self, obj):
         """Util badge"""
         if obj.util is None:
@@ -102,7 +103,6 @@ class ConsultaIAAdmin(admin.ModelAdmin):
             "✓ Útil" if obj.util else "✗ No útil",
         )
 
-    util_badge.short_description = "Útil"
 
 
 @admin.register(AnalisisLaboratorioML)
@@ -182,6 +182,7 @@ class AnalisisLaboratorioMLAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Riesgo")
     def riesgo_badge(self, obj):
         """Riesgo badge"""
         colors = {
@@ -193,11 +194,11 @@ class AnalisisLaboratorioMLAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>',
             colors.get(obj.riesgo_detectado, "gray"),
-            obj.get_riesgo_detectado_display(),
+            getattr(obj, 'get_riesgo_detectado_display')(),
         )
 
-    riesgo_badge.short_description = "Riesgo"
 
+    @admin.display(description="Confianza")
     def confianza_badge(self, obj):
         """Confianza badge"""
         color = (
@@ -211,15 +212,14 @@ class AnalisisLaboratorioMLAdmin(admin.ModelAdmin):
             '<span style="color: {};">{:.1f}%</span>', color, obj.confianza_modelo,
         )
 
-    confianza_badge.short_description = "Confianza"
 
+    @admin.display(description="Validado")
     def validado_badge(self, obj):
         """Validado badge"""
         if obj.validado_por_medico:
             return format_html('<span style="color: green;">✓ Validado</span>')
         return format_html('<span style="color: orange;">⚠ Pendiente</span>')
 
-    validado_badge.short_description = "Estado"
 
 
 @admin.register(DatasetEntrenamientoIA)
@@ -282,6 +282,7 @@ class DatasetEntrenamientoIAAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Validado")
     def validado_badge(self, obj):
         """Validado badge"""
         return format_html(
@@ -290,8 +291,8 @@ class DatasetEntrenamientoIAAdmin(admin.ModelAdmin):
             "✓ Validado" if obj.validado else "⚠ Pendiente",
         )
 
-    validado_badge.short_description = "Validado"
 
+    @admin.display(description="Usado")
     def usado_badge(self, obj):
         """Usado badge"""
         return format_html(
@@ -300,7 +301,6 @@ class DatasetEntrenamientoIAAdmin(admin.ModelAdmin):
             "✓ Usado" if obj.usado_entrenamiento else "- No usado",
         )
 
-    usado_badge.short_description = "Usado"
 
 
 @admin.register(ConfiguracionModeloIA)
@@ -376,6 +376,7 @@ class ConfiguracionModeloIAAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Estado")
     def estado_badge(self, obj):
         """Estado badge"""
         colors = {
@@ -388,11 +389,11 @@ class ConfiguracionModeloIAAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>',
             colors.get(obj.estado, "gray"),
-            obj.get_estado_display(),
+            getattr(obj, 'get_estado_display')(),
         )
 
-    estado_badge.short_description = "Estado"
 
+    @admin.display(description="Activo")
     def activo_badge(self, obj):
         """Activo badge"""
         return format_html(
@@ -401,8 +402,8 @@ class ConfiguracionModeloIAAdmin(admin.ModelAdmin):
             "✓ Activo" if obj.activo else "✗ Inactivo",
         )
 
-    activo_badge.short_description = "Activo"
 
+    @admin.display(description="Precisión")
     def precision_badge(self, obj):
         """Precision badge"""
         color = (
@@ -416,7 +417,6 @@ class ConfiguracionModeloIAAdmin(admin.ModelAdmin):
             '<span style="color: {};">{:.1f}%</span>', color, obj.precision,
         )
 
-    precision_badge.short_description = "Precisión"
 
 
 @admin.register(EstadisticasIA)
@@ -464,6 +464,7 @@ class EstadisticasIAAdmin(admin.ModelAdmin):
         ("Metadatos", {"fields": ("actualizado_en",)}),
     )
 
+    @admin.display(description="Precisión")
     def precision_badge(self, obj):
         """Precision badge"""
         color = (
@@ -477,14 +478,13 @@ class EstadisticasIAAdmin(admin.ModelAdmin):
             '<span style="color: {};">{:.1f}%</span>', color, obj.precision_promedio,
         )
 
-    precision_badge.short_description = "Precisión"
 
+    @admin.display(description="Rating")
     def rating_badge(self, obj):
         """Rating badge"""
         stars = "⭐" * int(obj.rating_promedio)
         return format_html("<span>{} ({:.1f})</span>", stars, obj.rating_promedio)
 
-    rating_badge.short_description = "Rating"
 
 
 # =============================================================================

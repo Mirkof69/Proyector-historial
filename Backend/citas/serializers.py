@@ -1,5 +1,6 @@
 """Serializers module."""
 from datetime import datetime
+from typing import Any, cast
 
 from django.utils import timezone
 from rest_framework import serializers
@@ -51,11 +52,10 @@ class DisponibilidadSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """Validaciones"""
         # Validar que el usuario sea médico
-        if attrs.get("medico"):
-            if attrs["medico"].rol != "medico":
-                raise serializers.ValidationError(
-                    {"medico": "El usuario debe tener rol de médico"},
-                )
+        if attrs.get("medico") and attrs["medico"].rol != "medico":
+            raise serializers.ValidationError(
+                {"medico": "El usuario debe tener rol de médico"},
+            )
 
         # Validar horarios
         if attrs.get("hora_inicio") and attrs.get("hora_fin"):
@@ -324,11 +324,10 @@ class CitaCreateUpdateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """Validaciones completas"""
         # Validar que el médico sea médico
-        if attrs.get("medico"):
-            if attrs["medico"].rol != "medico":
-                raise serializers.ValidationError(
-                    {"medico": "El usuario debe tener rol de médico"},
-                )
+        if attrs.get("medico") and attrs["medico"].rol != "medico":
+            raise serializers.ValidationError(
+                {"medico": "El usuario debe tener rol de médico"},
+            )
 
         # No permitir citas en el pasado
         if attrs.get("fecha_cita") and attrs.get("hora_cita"):
@@ -375,6 +374,7 @@ class CitaCreateUpdateSerializer(serializers.ModelSerializer):
             # Verificar vigencia si existe
             if disponibilidad.exists():
                 disp = disponibilidad.first()
+                assert disp is not None
                 if (
                     disp.fecha_inicio_vigencia
                     and attrs["fecha_cita"] < disp.fecha_inicio_vigencia
@@ -431,9 +431,7 @@ class CitaCreateUpdateSerializer(serializers.ModelSerializer):
                 estado_anterior=estado_anterior,
                 estado_nuevo=estado_nuevo,
                 motivo_cambio="Cambio de estado",
-                usuario=self.context.get("request").user
-                if self.context.get("request")
-                else None,
+                usuario=cast(Any, self.context.get("request")).user if self.context.get("request") else None,
             )
 
         return cita
@@ -448,12 +446,23 @@ class HorarioDisponibleSerializer(serializers.Serializer):
     paciente_nombre = serializers.CharField(required=False, allow_null=True)
 
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+    def validate(self, data):
+        hora = data.get("hora")
+        if hora is not None and (hora.hour < 0 or hora.hour > 23):
+            raise serializers.ValidationError(
+                {"hora": "La hora debe estar entre 00:00 y 23:59"},
+            )
+        return data
+
+    def validate_fecha(self, value):
+        return value
 
 
 class AgendaMedicoSerializer(serializers.Serializer):
@@ -467,9 +476,28 @@ class AgendaMedicoSerializer(serializers.Serializer):
     total_disponibles = serializers.IntegerField()
 
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+    def validate(self, data):
+        fecha = data.get("fecha")
+        if fecha and fecha < timezone.localdate():
+            raise serializers.ValidationError(
+                {"fecha": "La fecha no puede estar en el pasado"},
+            )
+        horarios = data.get("horarios", [])
+        horas = [
+            h.get("hora") for h in horarios if isinstance(h, dict) and h.get("hora")
+        ]
+        if len(horas) != len(set(horas)):
+            raise serializers.ValidationError(
+                "Los horarios no pueden tener horas duplicadas",
+            )
+        return data
+
+    def validate_medico(self, value):
+        return value

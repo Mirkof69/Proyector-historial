@@ -54,6 +54,11 @@ urlpatterns = [
     ),
     # URLs para búsquedas avanzadas
     path(
+        "analizar-paciente/<int:paciente_id>/",
+        views.PartoViewSet.as_view({"get": "analizar_paciente"}),
+        name="parto-analizar-paciente-path",
+    ),
+    path(
         "buscar/partos-por-fecha/",
         views.PartoViewSet.as_view({"get": "list"}),
         name="buscar-partos-fecha",

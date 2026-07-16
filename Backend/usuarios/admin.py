@@ -94,12 +94,13 @@ class UsuarioAdmin(BaseUserAdmin):
     actions = ["activar_usuarios", "desactivar_usuarios", "hacer_staf"]
 
     # Métodos personalizados para mejorar la visualización
+    @admin.display(description="Nombre Completo")
     def nombre_completo(self, obj):
         """Nombre completo"""
         return obj.get_full_name()
 
-    nombre_completo.short_description = "Nombre Completo"
 
+    @admin.display(description="Rol")
     def rol_badge(self, obj):
         """Rol badge"""
         colors = {
@@ -111,11 +112,11 @@ class UsuarioAdmin(BaseUserAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
             color,
-            obj.get_rol_display(),
+            getattr(obj, 'get_rol_display')(),
         )
 
-    rol_badge.short_description = "Rol"
 
+    @admin.display(description="Estado", ordering="activo")
     def activo_badge(self, obj):
         """Activo badge"""
         if obj.activo:
@@ -126,18 +127,16 @@ class UsuarioAdmin(BaseUserAdmin):
             '<span style="color: red; font-weight: bold;">✗ Inactivo</span>',
         )
 
-    activo_badge.short_description = "Estado"
-    activo_badge.admin_order_field = "activo"
 
+    @admin.display(description="Staf", ordering="is_stafff")
     def is_stafff_badge(self, obj):
         """Is stafff badge"""
         if obj.is_stafff:
             return format_html('<span style="color: green;">✓</span>')
         return format_html('<span style="color: red;">✗</span>')
 
-    is_stafff_badge.short_description = "Staf"
-    is_stafff_badge.admin_order_field = "is_stafff"
 
+    @admin.display(description="Superusuario", ordering="is_superuser")
     def is_superuser_badge(self, obj):
         """Is superuser badge"""
         if obj.is_superuser:
@@ -146,30 +145,28 @@ class UsuarioAdmin(BaseUserAdmin):
             )
         return format_html('<span style="color: gray;">-</span>')
 
-    is_superuser_badge.short_description = "Superusuario"
-    is_superuser_badge.admin_order_field = "is_superuser"
 
     # Acciones personalizadas
+    @admin.action(description="Activar usuarios seleccionados")
     def activar_usuarios(self, request, queryset):
         """Activar usuarios"""
         updated = queryset.update(activo=True)
         self.message_user(request, f"{updated} usuarios activados correctamente.")
 
-    activar_usuarios.short_description = "Activar usuarios seleccionados"
 
+    @admin.action(description="Desactivar usuarios seleccionados")
     def desactivar_usuarios(self, request, queryset):
         """Desactivar usuarios"""
         updated = queryset.update(activo=False)
         self.message_user(request, f"{updated} usuarios desactivados correctamente.")
 
-    desactivar_usuarios.short_description = "Desactivar usuarios seleccionados"
 
+    @admin.action(description="Dar acceso al admin (Staff)")
     def hacer_staff(self, request, queryset):
         """Hacer staff"""
         updated = queryset.update(is_stafff=True)
         self.message_user(request, f"{updated} usuarios ahora tienen acceso al admin.")
 
-    hacer_staff.short_description = "Dar acceso al admin (Staff)"
 
 
 @admin.register(HorarioAtencion)
@@ -208,6 +205,7 @@ class HorarioAtencionAdmin(admin.ModelAdmin):
     )
 
     # Métodos personalizados
+    @admin.display(description="Día")
     def dia_semana_badge(self, obj):
         """Dia semana badge"""
         colors = {
@@ -223,11 +221,11 @@ class HorarioAtencionAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
             color,
-            obj.get_dia_semana_display(),
+            getattr(obj, 'get_dia_semana_display')(),
         )
 
-    dia_semana_badge.short_description = "Día"
 
+    @admin.display(description="Estado", ordering="activo")
     def activo_badge(self, obj):
         """Activo badge"""
         if obj.activo:
@@ -238,20 +236,19 @@ class HorarioAtencionAdmin(admin.ModelAdmin):
             '<span style="color: red; font-weight: bold;">✗ Inactivo</span>',
         )
 
-    activo_badge.short_description = "Estado"
 
     actions = ["activar_horarios", "desactivar_horarios"]
 
+    @admin.action(description="Activar horarios seleccionados")
     def activar_horarios(self, request, queryset):
         """Activar horarios"""
         updated = queryset.update(activo=True)
         self.message_user(request, f"{updated} horarios activados correctamente.")
 
-    activar_horarios.short_description = "Activar horarios seleccionados"
 
+    @admin.action(description="Desactivar horarios seleccionados")
     def desactivar_horarios(self, request, queryset):
         """Desactivar horarios"""
         updated = queryset.update(activo=False)
         self.message_user(request, f"{updated} horarios desactivados correctamente.")
 
-    desactivar_horarios.short_description = "Desactivar horarios seleccionados"

@@ -99,6 +99,72 @@ class SistemaConfiguracion(models.Model):
         return config
 
 
+class ConfiguracionAlertas(models.Model):
+    """Configuración global de umbrales y canales de notificación
+    para el sistema de alertas médicas.
+    """
+
+    # SIGNOS VITALES
+    alertar_presion_alta = models.BooleanField(
+        default=True, verbose_name="Alertar sobre presión arterial alta",
+    )
+    limite_presion_sistolica = models.IntegerField(
+        default=140,
+        validators=[MinValueValidator(100), MaxValueValidator(250)],
+        verbose_name="Límite superior presión sistólica (mmHg)",
+    )
+    alertar_glucosa_alta = models.BooleanField(
+        default=True, verbose_name="Alertar sobre glucosa elevada",
+    )
+    limite_glucosa_ayunas = models.IntegerField(
+        default=105,
+        validators=[MinValueValidator(70), MaxValueValidator(300)],
+        verbose_name="Límite glucosa en ayunas (mg/dL)",
+    )
+
+    # LABORATORIO
+    alertar_resultados_criticos = models.BooleanField(
+        default=True, verbose_name="Alertar sobre resultados críticos",
+    )
+    alertar_resultados_anormales = models.BooleanField(
+        default=True, verbose_name="Alertar sobre resultados anormales",
+    )
+
+    # NOTIFICACIONES
+    notificar_por_email = models.BooleanField(
+        default=False, verbose_name="Enviar notificaciones por email",
+    )
+    notificar_por_sistema = models.BooleanField(
+        default=True, verbose_name="Mostrar notificaciones en el sistema",
+    )
+
+    # METADATOS
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    actualizado_por = models.ForeignKey(
+        "usuarios.Usuario",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Última Actualización Por",
+    )
+
+    class Meta:
+        """Meta"""
+        db_table = "configuracion_alertas"
+        verbose_name = "Configuración de Alertas"
+        verbose_name_plural = "Configuración de Alertas"
+
+    def __str__(self):
+        """Str"""
+        return "Configuración de Alertas Médicas"
+
+    @classmethod
+    def get_configuracion(cls):
+        """Obtener o crear la configuración única de alertas"""
+        config, _created = cls.objects.get_or_create(pk=1)
+        return config
+
+
 class HorarioAtencion(models.Model):
     """Horarios de atención por día de la semana
     """
@@ -146,8 +212,8 @@ class HorarioAtencion(models.Model):
         """Str"""
         estado = "Abierto" if self.activo else "Cerrado"
         if self.activo:
-            return f"{self.get_dia_display()}: {self.hora_inicio.strftime('%H:%M')} - {self.hora_fin.strftime('%H:%M')}"
-        return f"{self.get_dia_display()}: {estado}"
+            return f"{getattr(self, 'get_dia_display')()}: {self.hora_inicio.strftime('%H:%M')} - {self.hora_fin.strftime('%H:%M')}"
+        return f"{getattr(self, 'get_dia_display')()}: {estado}"
 
     def clean(self):
         """Validar que hora_fin sea después de hora_inicio"""

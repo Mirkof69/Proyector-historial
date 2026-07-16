@@ -1,0 +1,27 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.11",
+  "exclude": [
+    ".venv",
+    "**/migrations/**"
+  ],
+  "djangoSettings": "historial.settings",
+  "typeCheckingMode": "basic",
+  "reportPrivateImportUsage": "none",
+  "reportMissingModuleSource": "none",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportReturnType": "none",
+  "reportArgumentType": "none",
+  "reportAssignmentType": "none",
+  "reportOperatorIssue": "none",
+  "reportIndexIssue": "none",
+  "reportCallIssue": "none",
+  "reportAbstractUsage": "none",
+  "reportIncompatibleMethodOverride": "none",
+  "reportIncompatibleVariableOverride": "none",
+  "reportUninitializedInstanceVariable": "none",
+  "useLibraryCodeForTypes": true
+}

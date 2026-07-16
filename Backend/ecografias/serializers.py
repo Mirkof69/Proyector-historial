@@ -514,6 +514,7 @@ class EcografiaListSerializer(serializers.ModelSerializer):
     medico_nombre = serializers.SerializerMethodField()
     edad_gestacional = serializers.SerializerMethodField()
     tiene_imagenes = serializers.SerializerMethodField()
+    tiene_analisis_ia = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -525,12 +526,13 @@ class EcografiaListSerializer(serializers.ModelSerializer):
             "fecha_ecografia",
             "tipo_ecografia",
             "edad_gestacional",
-            "edad_gestacional_semanas",  # ✅ AGREGADO para compatibilidad con frontend
-            "edad_gestacional_dias",  # ✅ AGREGADO para compatibilidad con frontend
+            "edad_gestacional_semanas",
+            "edad_gestacional_dias",
             "numero_fetos",
             "vitalidad_fetal",
-            "diagnostico",  # ✅ AGREGADO - Faltaba para mostrar en lista
+            "diagnostico",
             "tiene_imagenes",
+            "tiene_analisis_ia",
         ]
 
     def get_paciente_nombre(self, obj):
@@ -552,6 +554,13 @@ class EcografiaListSerializer(serializers.ModelSerializer):
     def get_tiene_imagenes(self, obj):
         """Verificar si tiene imágenes"""
         return obj.imagenes.exists()
+
+    def get_tiene_analisis_ia(self, obj):
+        """Verificar si alguna imagen tiene análisis IA"""
+        for img in obj.imagenes.all():
+            if img.analisis_ia and isinstance(img.analisis_ia, dict) and img.analisis_ia.get("procesado"):
+                return True
+        return False
 
 
 class EcografiaCreateUpdateSerializer(serializers.ModelSerializer):
@@ -676,13 +685,12 @@ class EcografiaCreateUpdateSerializer(serializers.ModelSerializer):
                 )
 
         # Validar edad gestacional
-        if "edad_gestacional_semanas" in attrs:
-            if (
-                attrs["edad_gestacional_semanas"] < 4
-                or attrs["edad_gestacional_semanas"] > 42
-            ):
-                raise serializers.ValidationError(
-                    {"edad_gestacional_semanas": "Debe estar entre 4 y 42 semanas"},
-                )
+        if "edad_gestacional_semanas" in attrs and (
+            attrs["edad_gestacional_semanas"] < 4
+            or attrs["edad_gestacional_semanas"] > 42
+        ):
+            raise serializers.ValidationError(
+                {"edad_gestacional_semanas": "Debe estar entre 4 y 42 semanas"},
+            )
 
         return attrs

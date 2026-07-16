@@ -197,8 +197,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             code,
         )
 
-    async def receive(self, text_data: str = "", bytes_data: bytes = b""):
+    async def receive(self, text_data: str | None = "", bytes_data: bytes | None = b""):
         """Handle incoming messages from the client."""
+        assert self.user is not None
+        assert text_data is not None
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:
@@ -375,6 +377,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def _db_mark_as_read(self, notification_id: int) -> bool:
         """Mark a notification as read in the database."""
+        assert self.user is not None
         try:
             notification = Notificacion.objects.get(
                 id=notification_id, usuario=self.user,
@@ -399,6 +402,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def _db_mark_all_read(self) -> int:
         """Mark all notifications as read for the user."""
+        assert self.user is not None
         try:
             return NotificacionService.marcar_todas_leidas(self.user.id)
         except Exception as e:
@@ -412,6 +416,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def _db_archive(self, notification_id: int) -> bool:
         """Archive a notification."""
+        assert self.user is not None
         try:
             notification = Notificacion.objects.get(
                 id=notification_id, usuario=self.user,
@@ -432,13 +437,14 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def _db_get_pending(self) -> list:
         """Get unread notifications for the user."""
+        assert self.user is not None
         try:
             notifications = NotificacionService.obtener_no_leidas(
                 self.user.id, limite=50,
             )
             return [
                 {
-                    "id": n.id,
+                    "id": getattr(n, 'id', None),
                     "tipo": n.tipo,
                     "titulo": n.titulo,
                     "mensaje": n.mensaje,
@@ -449,7 +455,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     "url_texto": n.url_texto,
                     "fecha_creacion": n.fecha_creacion.isoformat(),
                     "tiempo": n.get_tiempo_transcurrido(),
-                    "metadata": n.metadata,
+                    "metadata": getattr(n, 'metadata', {}),
                 }
                 for n in notifications
             ]
@@ -547,8 +553,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             self.user.id if self.user else 'unknown',
         )
 
-    async def receive(self, text_data: str = "", bytes_data: bytes = b""):
+    async def receive(self, text_data: str | None = "", bytes_data: bytes | None = b""):
         """Handle client messages (mostly pings for dashboard)."""
+        assert text_data is not None
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:
@@ -589,6 +596,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             Group name string (e.g., 'dashboard_medicos', 'dashboard_admin')
 
         """
+        assert self.user is not None
         try:
             if hasattr(self.user, "rol"):
                 rol = self.user.rol

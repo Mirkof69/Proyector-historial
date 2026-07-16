@@ -91,18 +91,19 @@ class PacienteAdmin(admin.ModelAdmin):
     date_hierarchy = "fecha_registro"
     list_per_page = 25
 
+    @admin.display(description="Nombre Completo")
     def nombre_completo_display(self, obj):
         """Muestra el nombre completo"""
         return obj.nombre_completo
 
-    nombre_completo_display.short_description = "Nombre Completo"
 
+    @admin.display(description="Edad")
     def edad_display(self, obj):
         """Muestra la edad"""
         return f"{obj.edad} años"
 
-    edad_display.short_description = "Edad"
 
+    @admin.display(description="Estado")
     def activo_badge(self, obj):
         """Badge visual para el estado activo"""
         if obj.activo:
@@ -113,12 +114,10 @@ class PacienteAdmin(admin.ModelAdmin):
             '<span style="background-color: #dc3545; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">✗ Inactivo</span>',
         )
 
-    activo_badge.short_description = "Estado"
 
     def get_queryset(self, request):
         """Muestra todos los pacientes (activos e inactivos)"""
-        qs = super().get_queryset(request)
-        return qs
+        return super().get_queryset(request)
 
     actions = ["activar_pacientes", "desactivar_pacientes"]
 

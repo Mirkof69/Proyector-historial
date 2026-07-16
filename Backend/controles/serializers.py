@@ -1,12 +1,17 @@
 """Serializers module."""
 from datetime import datetime
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from .models import ControlPrenatal
 
-# from embarazos.models import Embarazo  # REMOVED
-# from pacientes.models import Paciente  # REMOVED
+try:
+    from embarazos.models import (
+        Embarazo,  # Imported at module level to satisfy type checker
+    )
+except ImportError:  # pragma: no cover
+    Embarazo = None  # type: ignore[assignment,misc]
 
 
 class ControlPrenatalListSerializer(serializers.ModelSerializer):
@@ -234,7 +239,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
     def get_edad_gestacional(self, obj):
         """✅ Calcular edad gestacional en TIEMPO REAL desde FUM del embarazo"""
         if obj.embarazo and obj.embarazo.fecha_ultima_menstruacion:
-            hoy = datetime.now().date()
+            hoy = timezone.localdate()
             fum = obj.embarazo.fecha_ultima_menstruacion
             dias_diferencia = (hoy - fum).days
             semanas = dias_diferencia // 7
@@ -504,7 +509,7 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
     def get_edad_gestacional(self, obj):
         """✅ Calcular edad gestacional en TIEMPO REAL desde FUM del embarazo"""
         if obj.embarazo and obj.embarazo.fecha_ultima_menstruacion:
-            hoy = datetime.now().date()
+            hoy = timezone.localdate()
             fum = obj.embarazo.fecha_ultima_menstruacion
             dias_diferencia = (hoy - fum).days
             semanas = dias_diferencia // 7
@@ -559,6 +564,13 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Validaciones adicionales y completas"""
+        # Validar que la fecha del control no esté en el futuro
+        fecha_control = attrs.get("fecha_control")
+        if fecha_control and fecha_control > timezone.localdate():
+            raise serializers.ValidationError(
+                {"fecha_control": "La fecha del control no puede estar en el futuro"},
+            )
+
         # Validar que la PA sistólica sea mayor que la diastólica
         sistolica = attrs.get("presion_arterial_sistolica")
         diastolica = attrs.get("presion_arterial_diastolica")
@@ -605,11 +617,10 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
                 )
 
         # Validar semanas de gestación
-        if "semanas_gestacion" in attrs:
-            if semanas < 0 or semanas > 42:
-                raise serializers.ValidationError(
-                    {"semanas_gestacion": "Las semanas deben estar entre 0 y 42"},
-                )
+        if "semanas_gestacion" in attrs and (semanas < 0 or semanas > 42):
+            raise serializers.ValidationError(
+                {"semanas_gestacion": "Las semanas deben estar entre 0 y 42"},
+            )
 
         # Validar días de gestación
         if "dias_gestacion" in attrs and attrs["dias_gestacion"] is not None:
@@ -620,10 +631,8 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
                 )
 
         # Validar embarazo activo
-        if "embarazo" in attrs:
+        if "embarazo" in attrs and Embarazo is not None:
             try:
-                from embarazos.models import Embarazo  # Deferred import
-
                 if isinstance(attrs["embarazo"], Embarazo):
                     embarazo = attrs["embarazo"]
                 else:

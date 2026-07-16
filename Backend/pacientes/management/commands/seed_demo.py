@@ -9,11 +9,10 @@ Crea datos de prueba realistas para la clínica demo:
 - Alertas médicas de ejemplo
 """
 import random
-from datetime import date, timedelta, datetime
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django_tenants.utils import schema_context
+from datetime import date, datetime, timedelta
 
+from django.core.management.base import BaseCommand
+from django_tenants.utils import schema_context
 
 SCHEMA = "clinica_demo"
 
@@ -50,12 +49,12 @@ class Command(BaseCommand):
             self._crear_mediciones_ecograficas_5nf()
             self._crear_notas_evolucion()
             self._crear_evoluciones_embarazo()
+            self._crear_ecografias()
             self._crear_notificaciones()
         self.stdout.write(self.style.SUCCESS("[OK] Seed data creado exitosamente"))
 
     def _crear_usuarios(self):
         from usuarios.models import Usuario
-        from django.contrib.auth.hashers import make_password
 
         usuarios = [
             {
@@ -109,9 +108,9 @@ class Command(BaseCommand):
                 self.stdout.write(f"  [=] Ya existe: {u['email']}")
 
     def _crear_pacientes(self):
-        from pacientes.models import Paciente
-        from embarazos.models import Embarazo
         from controles.models import ControlPrenatal
+        from embarazos.models import Embarazo
+        from pacientes.models import Paciente
         from usuarios.models import Usuario
 
         medico = Usuario.objects.filter(rol="medico").first()
@@ -187,7 +186,8 @@ class Command(BaseCommand):
                     diastolica = random.randint(60, 80)
 
                 from decimal import Decimal
-                d = lambda v, p=1: Decimal(str(round(v, p)))
+                def d(v, p=1):
+                    return Decimal(str(round(v, p)))
                 au = semana_control - 2 if semana_control > 12 else None
                 ControlPrenatal.objects.create(
                     embarazo=embarazo,
@@ -219,10 +219,11 @@ class Command(BaseCommand):
 
     def _crear_citas_pendientes(self):
         try:
+            import datetime as dt
+
             from citas.models import Cita
             from pacientes.models import Paciente
             from usuarios.models import Usuario
-            import datetime as dt
             medico = Usuario.objects.filter(rol="medico").first()
             today = date.today()
             for paciente in Paciente.objects.all():
@@ -245,9 +246,10 @@ class Command(BaseCommand):
 
     def _crear_cita(self, paciente, embarazo, today, semanas):
         try:
+            import datetime as dt
+
             from citas.models import Cita
             from usuarios.models import Usuario
-            import datetime as dt
             medico = Usuario.objects.filter(rol="medico").first()
             dias_prox = random.randint(3, 25)
             fecha = today + timedelta(days=dias_prox)
@@ -266,8 +268,8 @@ class Command(BaseCommand):
 
     def _crear_triaje(self):
         try:
-            from triaje.models import TriajeEnfermeria
             from pacientes.models import Paciente
+            from triaje.models import TriajeEnfermeria
             from usuarios.models import Usuario
 
             enfermera = Usuario.objects.filter(rol="enfermera").first()
@@ -298,7 +300,6 @@ class Command(BaseCommand):
 
     def _crear_alertas_medicas(self):
         try:
-            from pacientes.models import Paciente
             from embarazos.models import Embarazo
 
             # Marcar los embarazos de alto riesgo como verificados
@@ -310,10 +311,16 @@ class Command(BaseCommand):
     def _crear_analisis_cnn(self):
         """Crea imagenes ecograficas y analisis CNN 5NF (PatologiaDetectadaCNN, AlertaCNNAnalisis)."""
         try:
-            from ia_medica.models import ImagenEcografica, AnalisisCNN, PatologiaDetectadaCNN, AlertaCNNAnalisis
+            from django.contrib.auth import get_user_model
+
+            from ia_medica.models import (
+                AlertaCNNAnalisis,
+                AnalisisCNN,
+                ImagenEcografica,
+                PatologiaDetectadaCNN,
+            )
             from pacientes.models import Paciente
             from usuarios.models import Usuario
-            from django.contrib.auth import get_user_model
 
             medico = Usuario.objects.filter(rol="medico").first()
             User = get_user_model()
@@ -360,7 +367,7 @@ class Command(BaseCommand):
             pacientes = Paciente.objects.all()[:3]
             created = 0
 
-            for paciente, caso in zip(pacientes, casos_cnn):
+            for paciente, caso in zip(pacientes, casos_cnn, strict=False):
                 if ImagenEcografica.objects.filter(paciente=paciente).exists():
                     continue
 
@@ -446,13 +453,15 @@ class Command(BaseCommand):
     def _crear_laboratorio_5nf(self):
         """Crea hemogramas y bioquímicas con AlertaLaboratorio 5NF."""
         try:
+            from decimal import Decimal
+
             from django.apps import apps
             from django.contrib.contenttypes.models import ContentType
             from django.utils import timezone
-            from decimal import Decimal
+
+            from calculadoras.models import AlertaLaboratorio
             from pacientes.models import Paciente
             from usuarios.models import Usuario
-            from calculadoras.models import AlertaLaboratorio
 
             Hemograma = apps.get_model("calculadoras", "Hemograma")
             Bioquimica = apps.get_model("calculadoras", "Bioquimica")
@@ -491,7 +500,7 @@ class Command(BaseCommand):
                 hb, hcto, leuco, plaq, critico, alertas = hemo_data[i]
                 semanas = 0
                 if embarazo:
-                    from datetime import date, timedelta
+                    from datetime import date
                     delta = date.today() - embarazo.fecha_ultima_menstruacion
                     semanas = delta.days // 7
 
@@ -597,10 +606,10 @@ class Command(BaseCommand):
         """Crea CalculadoraRiesgo + MedicionEcografica (5NF) para pacientes de alto riesgo."""
         try:
             from decimal import Decimal
-            from django.utils import timezone
+
+            from calculadoras.models import CalculadoraRiesgo, MedicionEcografica
             from pacientes.models import Paciente
             from usuarios.models import Usuario
-            from calculadoras.models import CalculadoraRiesgo, MedicionEcografica
 
             medico = Usuario.objects.filter(rol="medico").first()
             pacientes_alto = list(Paciente.objects.filter(
@@ -618,7 +627,7 @@ class Command(BaseCommand):
 
             created = 0
             for paciente, (semanas, bpd, hc, ac, fl, efw, nt, crl, fcf, long_cerv) in zip(
-                pacientes_alto, mediciones_data
+                pacientes_alto, mediciones_data, strict=False,
             ):
                 embarazo = paciente.embarazos.filter(estado="activo").first()
                 if not embarazo:
@@ -688,9 +697,11 @@ class Command(BaseCommand):
     def _crear_notas_evolucion(self):
         """Crea notas de evolución clínica para los primeros 8 pacientes."""
         try:
+            from datetime import timedelta
+
             from django.apps import apps
             from django.utils import timezone
-            from datetime import timedelta
+
             from pacientes.models import Paciente
             from usuarios.models import Usuario
 
@@ -767,7 +778,7 @@ class Command(BaseCommand):
             created = 0
             pacientes = list(Paciente.objects.all()[:8])
 
-            for paciente, nota_d in zip(pacientes, notas_data):
+            for paciente, nota_d in zip(pacientes, notas_data, strict=False):
                 embarazo = paciente.embarazos.filter(estado="activo").first()
                 control = None
                 if embarazo:
@@ -803,8 +814,10 @@ class Command(BaseCommand):
     def _crear_evoluciones_embarazo(self):
         """Crea eventos de evolución del embarazo (EvolucionEmbarazo)."""
         try:
+            from datetime import date, timedelta
+
             from django.apps import apps
-            from datetime import timedelta, date
+
             from pacientes.models import Paciente
             from usuarios.models import Usuario
 
@@ -841,7 +854,7 @@ class Command(BaseCommand):
             created = 0
             pacientes = list(Paciente.objects.all()[:4])
 
-            for paciente, eventos in zip(pacientes, eventos_por_paciente):
+            for paciente, eventos in zip(pacientes, eventos_por_paciente, strict=False):
                 embarazo = paciente.embarazos.filter(estado="activo").first()
                 if not embarazo:
                     continue
@@ -871,6 +884,7 @@ class Command(BaseCommand):
         """AntecedenteGinecoObstetrico para los 15 pacientes (1:1)."""
         try:
             from django.apps import apps
+
             from pacientes.models import Paciente
 
             AntGO = apps.get_model("antecedentes", "AntecedenteGinecoObstetrico")
@@ -940,12 +954,14 @@ class Command(BaseCommand):
         historial más largo, tienen también un aborto documentado.
         """
         try:
+            from datetime import timedelta
+            from decimal import Decimal
+
             from django.apps import apps
             from django.utils import timezone
-            from datetime import date, timedelta
-            from decimal import Decimal
-            from pacientes.models import Paciente
+
             from embarazos.models import Embarazo
+            from pacientes.models import Paciente
             from usuarios.models import Usuario
 
             Parto = apps.get_model("partos", "Parto")
@@ -1039,7 +1055,7 @@ class Command(BaseCommand):
                     )
 
                     # Crear parto — número único: ID_paciente-posición/año
-                    numero_parto = f"{paciente.id}-{str(idx+1).zfill(2)}/{anio}"
+                    numero_parto = f"{getattr(paciente, 'id', '?')}-{str(idx+1).zfill(2)}/{anio}"
                     if Parto.objects.filter(numero_parto=numero_parto).exists():
                         partos_creados += 1
                         continue
@@ -1123,9 +1139,11 @@ class Command(BaseCommand):
     def _crear_notificaciones(self):
         """Crea notificaciones realistas para el médico: alertas lab, citas, tratamientos."""
         try:
+            from datetime import timedelta
+
             from django.apps import apps
             from django.utils import timezone
-            from datetime import timedelta
+
             from pacientes.models import Paciente
             from usuarios.models import Usuario
 
@@ -1135,7 +1153,7 @@ class Command(BaseCommand):
                 return
 
             if Notificacion.objects.filter(usuario=medico).count() > 5:
-                self.stdout.write(f"  [=] Notificaciones ya existen")
+                self.stdout.write("  [=] Notificaciones ya existen")
                 return
 
             pacientes = list(Paciente.objects.all())
@@ -1304,4 +1322,148 @@ class Command(BaseCommand):
         except Exception as e:
             import traceback
             self.stdout.write(f"  [!] Notificaciones: {e}")
+            self.stdout.write(traceback.format_exc())
+
+    def _crear_ecografias(self):
+        """Crea ecografías (incluyendo Biometria, Anatomia y Anexos) para pacientes con embarazos activos."""
+        try:
+            from decimal import Decimal
+
+            from ecografias.models import (
+                AnatomiaFetal,
+                AnexosFetales,
+                BiometriaFetal,
+                Ecografia,
+            )
+            from pacientes.models import Paciente
+            from usuarios.models import Usuario
+
+            medico = Usuario.objects.filter(rol="medico").first()
+            if not medico:
+                return
+
+            pacientes = Paciente.objects.filter(activo=True)
+            created_ecos = 0
+
+            for paciente in pacientes:
+                embarazo = paciente.embarazos.filter(estado="activo").first()
+                if not embarazo:
+                    continue
+
+                # Calcular semanas de gestación actual
+                today = date.today()
+                fum = embarazo.fecha_ultima_menstruacion
+                semanas_actuales = (today - fum).days // 7
+
+                if semanas_actuales < 6:
+                    continue
+
+                # Determinar ecografías a crear basadas en semanas actuales
+                ecos_a_crear = []
+                if semanas_actuales >= 12:
+                    ecos_a_crear.append((12, "primer_trimestre", "control_rutina", "Ecografía del primer trimestre normal."))
+                if semanas_actuales >= 20:
+                    ecos_a_crear.append((20, "morfologica", "control_rutina", "Estudio morfológico detallado sin anomalías detectadas."))
+                if semanas_actuales >= 28:
+                    ecos_a_crear.append((28, "tercer_trimestre", "control_crecimiento", "Crecimiento fetal adecuado para la edad gestacional."))
+
+                # Si no tiene ninguna histórica por semanas pero tiene al menos 6 semanas, creamos la actual
+                if not ecos_a_crear:
+                    ecos_a_crear.append((semanas_actuales, "primer_trimestre", "control_rutina", "Ecografía obstétrica de rutina."))
+
+                for sem, tipo, ind, diag in ecos_a_crear:
+                    fecha_eco = fum + timedelta(weeks=sem)
+                    # Evitar duplicar
+                    if Ecografia.objects.filter(embarazo=embarazo, edad_gestacional_semanas=sem).exists():
+                        continue
+
+                    # ILA e insertos de placenta realistas
+                    ila = Decimal(str(round(random.uniform(10.0, 16.0), 1)))
+                    fcf = random.randint(135, 155)
+
+                    eco = Ecografia.objects.create(
+                        embarazo=embarazo,
+                        paciente=paciente,
+                        medico=medico,
+                        fecha_ecografia=fecha_eco,
+                        tipo_ecografia=tipo,
+                        indicacion=ind,
+                        edad_gestacional_semanas=sem,
+                        edad_gestacional_dias=0,
+                        vitalidad_fetal=True,
+                        frecuencia_cardiaca_fetal=fcf,
+                        indice_liquido_amniotico=ila,
+                        localizacion_placenta=random.choice(["anterior", "posterior", "fúndica"]),
+                        grado_madurez_placenta=0 if sem < 20 else 1 if sem < 30 else 2,
+                        diagnostico=diag,
+                        observaciones="Paciente en buenas condiciones. Monitoreo habitual.",
+                        created_by=medico,
+                    )
+
+                    # Crear biometría fetal realista según semanas
+                    bpd = Decimal(str(round(sem * 2.8 + random.uniform(-2, 2), 1)))
+                    hc = Decimal(str(round(sem * 9.8 + random.uniform(-10, 10), 1)))
+                    ac = Decimal(str(round(sem * 9.5 + random.uniform(-10, 10), 1)))
+                    fl = Decimal(str(round(sem * 2.1 + random.uniform(-2, 2), 1)))
+
+                    # Calcular Hadlock manualmente para guardar un peso realista
+                    ac_val = float(ac)
+                    fl_val = float(fl)
+                    hc_val = float(hc)
+                    bpd_val = float(bpd)
+                    log_peso = 1.3596 - 0.00386 * ac_val * fl_val + 0.0064 * hc_val + 0.00061 * bpd_val * ac_val + 0.0425 * ac_val + 0.174 * fl_val
+                    peso_est = int(10**log_peso) if (ac_val and fl_val and hc_val and bpd_val) else None
+
+                    BiometriaFetal.objects.create(
+                        ecografia=eco,
+                        diametro_biparietal=bpd,
+                        circunferencia_cefalica=hc,
+                        circunferencia_abdominal=ac,
+                        longitud_femur=fl,
+                        peso_fetal_estimado=peso_est,
+                        percentil_peso=random.randint(25, 75),
+                        created_by=medico,
+                    )
+
+                    # Crear Anatomía Fetal
+                    AnatomiaFetal.objects.create(
+                        ecografia=eco,
+                        craneo_normal=True,
+                        cerebro_normal=True,
+                        cerebelo_normal=True,
+                        perfil_facial_normal=True,
+                        labios_normales=True,
+                        corazon_normal=True,
+                        pulmones_normales=True,
+                        estomago_normal=True,
+                        rinones_normales=True,
+                        vejiga_normal=True,
+                        columna_normal=True,
+                        extremidades_superiores_normales=True,
+                        extremidades_inferiores_normales=True,
+                        genitales_visibles=sem >= 16,
+                        sexo_fetal="femenino" if random.choice([True, False]) else "masculino",
+                        created_by=medico,
+                    )
+
+                    # Crear Anexos Fetales
+                    AnexosFetales.objects.create(
+                        ecografia=eco,
+                        placenta_localizacion=eco.localizacion_placenta,
+                        placenta_grosor=Decimal(str(round(sem * 0.8 + 10, 1))),
+                        placenta_insercion_cordon="central",
+                        numero_vasos_cordon=3,
+                        circular_cordon=False,
+                        liquido_amniotico_normal=True,
+                        longitud_cervical=Decimal(str(round(random.uniform(32, 45), 1))),
+                        created_by=medico,
+                    )
+
+                    created_ecos += 1
+
+            self.stdout.write(f"  [+] Ecografías creadas (con biometría, anatomía y anexos): {created_ecos}")
+
+        except Exception as e:
+            import traceback
+            self.stdout.write(f"  [!] Ecografías: {e}")
             self.stdout.write(traceback.format_exc())

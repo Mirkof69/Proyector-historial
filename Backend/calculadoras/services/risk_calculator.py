@@ -13,6 +13,7 @@ Calculadoras:
 """
 
 import math
+from typing import cast
 
 from scipy.stats import norm
 
@@ -185,9 +186,8 @@ class RiskCalculator:
         elif intervalo_meses and intervalo_meses > 120:  # >10 años
             mult *= 1.3
 
-        riesgo = min(riesgo_edad * mult, 0.50)  # Cap al 50%
+        return min(riesgo_edad * mult, 0.50)  # Cap al 50%
 
-        return riesgo
 
     def _lr_biomarcador_pe(self, mom: float, marcador: str) -> float:
         """Likelihood Ratio para biomarcadores de PE
@@ -238,7 +238,7 @@ class RiskCalculator:
 
         lr = prob_afectado / prob_no_afectado
 
-        return max(0.1, min(lr, 10.0))  # LR entre 0.1 y 10
+        return cast(float, max(0.1, min(lr, 10.0)))  # LR entre 0.1 y 10
 
     def _generar_recomendaciones_pe(
         self, _riesgo: float, categoria: str, _eg_semanas: int,
@@ -491,7 +491,7 @@ class RiskCalculator:
 
         lr = prob_af / prob_normal if prob_normal > 0 else 10.0
 
-        return max(0.1, min(lr, 20.0))
+        return cast(float, max(0.1, min(lr, 20.0)))
 
     def _lr_bioquimico_trisomia(
         self, mom: float, marcador: str, trisomia: str,
@@ -524,7 +524,7 @@ class RiskCalculator:
 
         lr = prob_af / prob_normal if prob_normal > 0 else 10.0
 
-        return max(0.1, min(lr, 15.0))
+        return cast(float, max(0.1, min(lr, 15.0)))
 
     def _lr_fcf(self, fcf: int, trisomia: str) -> float:
         """LR de frecuencia cardíaca fetal"""

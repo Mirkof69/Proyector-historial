@@ -10,6 +10,7 @@ Provides endpoint /api/health/ that returns:
 """
 
 import logging
+import os
 import time
 
 import requests
@@ -79,7 +80,7 @@ def _check_redis():
 
 def _check_ai_service():
     """Check AI microservice connectivity."""
-    ai_url = getattr(settings, "AI_SERVICE_URL", "http://localhost:8001")
+    ai_url = os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
     try:
         response = requests.get(f"{ai_url}/health", timeout=3)
         if response.status_code == 200:

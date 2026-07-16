@@ -99,6 +99,7 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
         """Retorna solo las vacunas activas
         GET /api/vacunas/tipos-vacunas/activas/
         """
+        assert self.queryset is not None
         vacunas = self.queryset.filter(activo=True)
         serializer = self.get_serializer(vacunas, many=True)
         return Response({"total": vacunas.count(), "vacunas": serializer.data})
@@ -108,6 +109,7 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
         """Retorna vacunas obligatorias durante el embarazo
         GET /api/vacunas/tipos-vacunas/obligatorias_embarazo/
         """
+        assert self.queryset is not None
         vacunas = self.queryset.filter(activo=True, obligatoria_embarazo=True)
         serializer = self.get_serializer(vacunas, many=True)
         return Response({"total": vacunas.count(), "vacunas": serializer.data})
@@ -117,6 +119,7 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
         """Estadísticas generales de tipos de vacunas
         GET /api/vacunas/tipos-vacunas/estadisticas/
         """
+        assert self.queryset is not None
         total_vacunas = self.queryset.count()
         activas = self.queryset.filter(activo=True).count()
         obligatorias = self.queryset.filter(obligatoria_embarazo=True).count()
@@ -130,7 +133,7 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
             {
                 "id": v.id,
                 "nombre": v.nombre,
-                "total_aplicaciones": v.total_aplicaciones,
+                "total_aplicaciones": getattr(v, "total_aplicaciones", 0),
             }
             for v in vacunas_con_registros
         ]
@@ -238,10 +241,9 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Optimiza queries con select_related y prefetch_related"""
         queryset = super().get_queryset()
-        queryset = queryset.select_related(
+        return queryset.select_related(
             "paciente", "embarazo", "tipo_vacuna", "aplicado_por",
         )
-        return queryset
 
     def get_serializer_class(self):
         """Usa serializer apropiado según la acción"""
@@ -274,13 +276,14 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         from pacientes.models import Paciente  # Deferred
 
         paciente = get_object_or_404(Paciente, pk=paciente_id)
+        assert self.queryset is not None
         registros = self.queryset.filter(paciente=paciente)
 
         serializer = RegistroVacunaSerializer(registros, many=True)
         return Response(
             {
                 "paciente": {
-                    "id": paciente.id,
+                    "id": getattr(paciente, 'id', None),
                     "nombre_completo": paciente.nombre_completo,
                     "id_clinico": paciente.id_clinico,
                 },
@@ -304,6 +307,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         from embarazos.models import Embarazo  # Deferred
 
         embarazo = get_object_or_404(Embarazo, pk=embarazo_id)
+        assert self.queryset is not None
         registros = self.queryset.filter(embarazo=embarazo)
 
         serializer = RegistroVacunaSerializer(registros, many=True)
@@ -327,6 +331,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         dias = int(request.query_params.get("dias", 30))
         fecha_limite = timezone.now().date() + timedelta(days=dias)
 
+        assert self.queryset is not None
         registros = self.queryset.filter(
             proxima_dosis_fecha__isnull=False,
             proxima_dosis_fecha__lte=fecha_limite,
@@ -349,6 +354,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         GET /api/vacunas/registros/esquemas_incompletos/
         """
         # Obtener todos los registros activos
+        assert self.queryset is not None
         registros = self.queryset.filter(activo=True)
 
         # Filtrar solo los que no han completado el esquema
@@ -367,6 +373,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         """Retorna registros con reacciones adversas reportadas
         GET /api/vacunas/registros/reacciones_adversas/
         """
+        assert self.queryset is not None
         registros = self.queryset.filter(reacciones_adversas__isnull=False).exclude(
             reacciones_adversas="",
         )
@@ -381,6 +388,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         """Estadísticas generales de vacunación
         GET /api/vacunas/registros/estadisticas/
         """
+        assert self.queryset is not None
         total_registros = self.queryset.count()
         activos = self.queryset.filter(activo=True).count()
 
@@ -494,3 +502,62 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
                 "registro": serializer.data,
             },
         )
+
+    @action(detail=False, methods=["get"], url_path="esquema_vacunacion")
+    def esquema_vacunacion(self, request):
+        from django.db.models import Count
+        paciente_id = request.query_params.get("paciente_id")
+        if not paciente_id:
+            return Response({"error": "Se requiere paciente_id"}, status=status.HTTP_400_BAD_REQUEST)
+        registros = self.get_queryset().filter(paciente_id=paciente_id, activo=True)
+        serializer = RegistroVacunaSerializer(registros, many=True)
+        total_dosis = registros.aggregate(total=Count("id"))["total"]
+        completas = sum(1 for r in registros if r.esquema_completo)
+        return Response({
+            "paciente_id": int(paciente_id),
+            "total_dosis_aplicadas": total_dosis,
+            "esquema_completo": completas > 0,
+            "registros": serializer.data,
+        })
+
+    @action(detail=False, methods=["get"], url_path="esquema-completo")
+    def esquema_completo(self, request):
+        paciente_id = request.query_params.get("paciente_id")
+        if not paciente_id:
+            return Response({"error": "Se requiere paciente_id"}, status=status.HTTP_400_BAD_REQUEST)
+        registros = self.get_queryset().filter(paciente_id=paciente_id, activo=True)
+        esquema_completo = all(r.esquema_completo if hasattr(r, "esquema_completo") else True for r in registros)
+        serializer = RegistroVacunaSerializer(registros, many=True)
+        return Response({
+            "paciente_id": int(paciente_id),
+            "esquema_completo": esquema_completo,
+            "total_vacunas": registros.count(),
+            "registros": serializer.data,
+        })
+
+    @action(detail=False, methods=["get"])
+    def pendientes(self, _request):
+        registros = self.get_queryset().filter(
+            activo=True,
+            proxima_dosis_fecha__isnull=False,
+            proxima_dosis_fecha__gte=timezone.localdate(),
+        ).order_by("proxima_dosis_fecha")
+        serializer = RegistroVacunaListSerializer(registros, many=True) if hasattr(self, 'RegistroVacunaListSerializer') else RegistroVacunaSerializer(registros, many=True)
+        return Response({"total": registros.count(), "registros": serializer.data})
+
+    @action(detail=False, methods=["get"])
+    def proximas(self, request):
+        from datetime import timedelta
+        dias = int(request.query_params.get("dias", 30))
+        fecha_limite = timezone.localdate() + timedelta(days=dias)
+        registros = self.get_queryset().filter(
+            activo=True,
+            proxima_dosis_fecha__isnull=False,
+            proxima_dosis_fecha__lte=fecha_limite,
+        ).order_by("proxima_dosis_fecha")
+        serializer = RegistroVacunaSerializer(registros, many=True)
+        return Response({
+            "total": registros.count(),
+            "dias": dias,
+            "registros": serializer.data,
+        })

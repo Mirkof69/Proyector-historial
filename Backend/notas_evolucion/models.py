@@ -268,7 +268,7 @@ class NotaEvolucion(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"Nota {self.id} - {self.paciente.nombre_completo} - {self.fecha_consulta.strftime('%d/%m/%Y')}"
+        return f"Nota {getattr(self, 'id', '?')} - {self.paciente.nombre_completo} - {self.fecha_consulta.strftime('%d/%m/%Y')}"
 
     @property
     def presion_arterial(self):

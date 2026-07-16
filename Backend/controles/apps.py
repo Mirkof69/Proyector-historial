@@ -8,4 +8,6 @@ class ControlesConfig(AppConfig):
     name = "controles"
 
     def ready(self):
-        """Ready"""
+        """Conecta las señales del módulo (alertas de control al médico)."""
+        from controles import signals as _signals
+        _ = _signals

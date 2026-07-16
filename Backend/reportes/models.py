@@ -486,29 +486,29 @@ class DashboardKPI(models.Model):
     """Indicadores clave de rendimiento - VERSION MEJORADA"""
 
     TIPO_KPI_CHOICES = [
-        ("numero", " Número simple"),
-        ("porcentaje", " Porcentaje"),
-        ("tendencia", " Tendencia"),
-        ("ratio", "⚖️ Proporción"),
-        ("tiempo", "⏱️ Tiempo promedio"),
+        ("numero", "Número simple"),
+        ("porcentaje", "Porcentaje"),
+        ("tendencia", "Tendencia"),
+        ("ratio", "Proporción"),
+        ("tiempo", "Tiempo promedio"),
     ]
 
     CATEGORIA_KPI_CHOICES = [
-        ("pacientes", " Pacientes"),
-        ("embarazos", " Embarazos"),
-        ("controles", " Controles Prenatales"),
-        ("partos", " Partos"),
-        ("calculadoras", " Calculadoras Médicas"),
-        ("calidad", "⭐ Calidad de Atención"),
-        ("seguridad", "️ Seguridad"),
-        ("productividad", " Productividad"),
+        ("pacientes", "Pacientes"),
+        ("embarazos", "Embarazos"),
+        ("controles", "Controles Prenatales"),
+        ("partos", "Partos"),
+        ("calculadoras", "Calculadoras Médicas"),
+        ("calidad", "Calidad de Atención"),
+        ("seguridad", "Seguridad"),
+        ("productividad", "Productividad"),
     ]
 
     FRECUENCIA_CHOICES = [
-        ("tiempo_real", "⚡ Tiempo real"),
-        ("cada_hora", " Cada hora"),
-        ("diario", " Diario"),
-        ("semanal", " Semanal"),
+        ("tiempo_real", "Tiempo real"),
+        ("cada_hora", "Cada hora"),
+        ("diario", "Diario"),
+        ("semanal", "Semanal"),
     ]
 
     # INFORMACIÓN BÁSICA
@@ -726,41 +726,41 @@ class AlertaMedica(models.Model):
     """Sistema de alertas médicas - VERSION MEJORADA"""
 
     TIPO_ALERTA_CHOICES = [
-        ("valor_critico", " Valor crítico detectado"),
-        ("seguimiento_vencido", "⏰ Seguimiento vencido"),
-        ("medicamento_contraindicado", " Medicamento contraindicado"),
-        ("riesgo_alto", "⚠️ Riesgo alto detectado"),
-        ("resultado_anormal", " Resultado anormal"),
-        ("cita_perdida", " Cita perdida"),
-        ("protocolo_incumplido", " Protocolo no seguido"),
-        ("auditoria", " Requiere auditoría"),
+        ("valor_critico", "Valor crítico detectado"),
+        ("seguimiento_vencido", "Seguimiento vencido"),
+        ("medicamento_contraindicado", "Medicamento contraindicado"),
+        ("riesgo_alto", "Riesgo alto detectado"),
+        ("resultado_anormal", "Resultado anormal"),
+        ("cita_perdida", "Cita perdida"),
+        ("protocolo_incumplido", "Protocolo no seguido"),
+        ("auditoria", "Requiere auditoría"),
     ]
 
     PRIORIDAD_CHOICES = [
-        ("baja", " Baja"),
-        ("media", " Media"),
-        ("alta", " Alta"),
-        ("critica", " Crítica"),
-        ("emergencia", " EMERGENCIA"),
+        ("baja", "Baja"),
+        ("media", "Media"),
+        ("alta", "Alta"),
+        ("critica", "Crítica"),
+        ("emergencia", "EMERGENCIA"),
     ]
 
     ESTADO_CHOICES = [
-        ("activa", " Activa"),
-        ("revisada", " Revisada"),
-        ("resuelta", " Resuelta"),
-        ("descartada", "⚫ Descartada"),
-        ("escalada", " Escalada"),
+        ("activa", "Activa"),
+        ("revisada", "Revisada"),
+        ("resuelta", "Resuelta"),
+        ("descartada", "Descartada"),
+        ("escalada", "Escalada"),
     ]
 
     MODULOS_CHOICES = [
-        ("pacientes", " Módulo de Pacientes"),
-        ("embarazos", " Módulo de Embarazos"),
-        ("controles", " Controles Prenatales"),
-        ("ecografias", " Ecografías"),
-        ("laboratorio", " Laboratorio"),
-        ("calculadoras", " Calculadoras Médicas"),
-        ("partos", " Partos"),
-        ("sistema", "⚙️ Sistema"),
+        ("pacientes", "Módulo de Pacientes"),
+        ("embarazos", "Módulo de Embarazos"),
+        ("controles", "Controles Prenatales"),
+        ("ecografias", "Ecografías"),
+        ("laboratorio", "Laboratorio"),
+        ("calculadoras", "Calculadoras Médicas"),
+        ("partos", "Partos"),
+        ("sistema", "Sistema"),
     ]
 
     # INFORMACIÓN BÁSICA
@@ -957,7 +957,7 @@ class AlertaMedica(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"{self.titulo} - {self.get_prioridad_display()}"
+        return f"{self.titulo} - {getattr(self, 'get_prioridad_display')()}"
 
 
 class AuditoriaReporte(models.Model):
@@ -1026,7 +1026,7 @@ class AuditoriaReporte(models.Model):
     def __str__(self):
         """Str"""
         return (
-            f"{self.get_accion_display()} - {self.reporte_generado.tipo_reporte.nombre}"
+            f"{getattr(self, 'get_accion_display')()} - {self.reporte_generado.tipo_reporte.nombre}"
         )
 
 

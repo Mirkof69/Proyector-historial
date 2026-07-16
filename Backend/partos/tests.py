@@ -2,18 +2,17 @@
 
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+from typing import cast
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from embarazos.models import Embarazo
 from pacientes.models import Paciente
+from usuarios.models import Usuario
 
 from .models import Parto, RecienNacido
-
-User = get_user_model()
 
 
 class PartoModelTestCase(TestCase):
@@ -21,20 +20,20 @@ class PartoModelTestCase(TestCase):
 
     def setUp(self):
         """Setup"""
-        self.user = User.objects.create_user(
+        self.user = Usuario.objects.create_user(
             email="testdoctor@clinica.com",
             nombre="Doctor",
             apellido_paterno="Prueba",
             password="testpass123",
         )
 
-        self.paciente = Paciente.objects.create(
+        self.paciente = cast(Paciente, Paciente.objects.create(
             nombre="María",
             apellido_paterno="García",
-            apellido_materno="López",
             fecha_nacimiento=date(1990, 1, 1),
             genero="F",
-        )
+            ci="TEST" + str(datetime.now().microsecond),
+        ))
 
         self.embarazo = Embarazo.objects.create(
             paciente=self.paciente,
@@ -45,7 +44,7 @@ class PartoModelTestCase(TestCase):
 
     def test_crear_parto(self):
         """Test crear parto"""
-        parto = Parto.objects.create(
+        parto = cast(Parto, Parto.objects.create(
             embarazo=self.embarazo,
             paciente=self.paciente,
             fecha_parto=datetime.now(),
@@ -53,7 +52,7 @@ class PartoModelTestCase(TestCase):
             presentacion="cefalica",
             edad_gestacional_parto=40,
             medico_responsable=self.user,
-        )
+        ))
 
         self.assertIsNotNone(parto.id)
         self.assertEqual(parto.paciente, self.paciente)
@@ -97,7 +96,7 @@ class RecienNacidoModelTestCase(TestCase):
 
     def setUp(self):
         """Setup"""
-        self.user = User.objects.create_user(
+        self.user = Usuario.objects.create_user(
             email="testdoctor@clinica.com",
             nombre="Doctor",
             apellido_paterno="Prueba",
@@ -128,7 +127,7 @@ class RecienNacidoModelTestCase(TestCase):
 
     def test_crear_recien_nacido(self):
         """Test crear recién nacido"""
-        rn = RecienNacido.objects.create(
+        rn = cast(RecienNacido, RecienNacido.objects.create(
             parto=self.parto,
             sexo="M",
             peso=Decimal("3.5"),
@@ -137,7 +136,7 @@ class RecienNacidoModelTestCase(TestCase):
             apgar_1min=9,
             apgar_5min=10,
             estado="vivo",
-        )
+        ))
 
         self.assertIsNotNone(rn.id)
         self.assertEqual(rn.sexo, "M")
@@ -145,13 +144,13 @@ class RecienNacidoModelTestCase(TestCase):
 
     def test_validacion_peso(self):
         """Test validación de peso"""
-        rn = RecienNacido(
+        rn = cast(RecienNacido, RecienNacido(
             parto=self.parto,
             sexo="F",
             peso=Decimal("6.0"),  # Peso muy alto
             apgar_1min=9,
             apgar_5min=10,
-        )
+        ))
 
         # Debería marcarse como macrosómico
         rn.save()
@@ -177,11 +176,12 @@ class PartoAPITestCase(APITestCase):
 
     def setUp(self):
         """Setup"""
-        self.user = User.objects.create_user(
+        self.user = Usuario.objects.create_user(
             email="testdoctor@clinica.com",
             nombre="Doctor",
             apellido_paterno="Prueba",
             password="testpass123",
+            rol="medico",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -236,13 +236,13 @@ class PartoAPITestCase(APITestCase):
 
     def test_obtener_parto_detalle(self):
         """Test obtener detalle de parto"""
-        parto = Parto.objects.create(
+        parto = cast(Parto, Parto.objects.create(
             embarazo=self.embarazo,
             paciente=self.paciente,
             fecha_parto=datetime.now(),
             tipo_parto="cesarea",
             medico_responsable=self.user,
-        )
+        ))
 
         response = self.client.get(f"/api/partos/{parto.id}/")
 

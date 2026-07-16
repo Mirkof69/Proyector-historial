@@ -1,5 +1,6 @@
 """Views module."""
-from datetime import date, timedelta
+import contextlib
+from datetime import timedelta
 
 from django.db.models import Avg, Count, Exists, OuterRef
 from django.utils import timezone
@@ -157,11 +158,11 @@ class TipoExamenViewSet(viewsets.ModelViewSet):
         for tipo in tipos_mas_solicitados:
             resultados.append(
                 {
-                    "id": tipo.id,
+                    "id": getattr(tipo, 'id', None),
                     "nombre": tipo.nombre,
                     "codigo": tipo.codigo,
-                    "categoria": tipo.get_categoria_display(),
-                    "total_examenes": tipo.total_examenes,
+                    "categoria": getattr(tipo, 'get_categoria_display')(),
+                    "total_examenes": getattr(tipo, 'total_examenes', 0),
                     "precio": str(tipo.precio),
                 },
             )
@@ -242,6 +243,7 @@ class ValorReferenciaViewSet(viewsets.ModelViewSet):
             )
 
         # Obtener valores de referencia
+        assert self.queryset is not None
         valores = self.queryset.filter(tipo_examen_id=tipo_examen_id).order_by(
             "parametro",
         )
@@ -250,10 +252,10 @@ class ValorReferenciaViewSet(viewsets.ModelViewSet):
         return Response(
             {
                 "tipo_examen": {
-                    "id": tipo_examen.id,
+                    "id": getattr(tipo_examen, 'id', None),
                     "nombre": tipo_examen.nombre,
                     "codigo": tipo_examen.codigo,
-                    "categoria": tipo_examen.get_categoria_display(),
+                    "categoria": getattr(tipo_examen, 'get_categoria_display')(),
                 },
                 "total_parametros": valores.count(),
                 "valores_referencia": serializer.data,
@@ -331,16 +333,12 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         fecha_hasta = self.request.query_params.get("fecha_hasta", None)
 
         if fecha_desde:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_solicitud__gte=fecha_desde)
-            except Exception:
-                pass
 
         if fecha_hasta:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_solicitud__lte=fecha_hasta)
-            except Exception:
-                pass
 
         # Filtrar por categoría de examen
         categoria = self.request.query_params.get("categoria", None)
@@ -364,6 +362,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
 
         # Retornar con serializer detallado
+        assert serializer.instance is not None
         examen = ExamenLaboratorio.objects.select_related(
             "paciente", "control_prenatal", "tipo_examen", "medico_solicitante",
         ).get(id=serializer.instance.id)
@@ -397,6 +396,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
             )
 
         # Filtrar exámenes del paciente
+        assert self.queryset is not None
         examenes = self.queryset.filter(paciente_id=paciente_id).order_by(
             "-fecha_solicitud",
         )
@@ -419,6 +419,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
 
         Retorna todos los exámenes que aún no han sido completados
         """
+        assert self.queryset is not None
         examenes = self.queryset.filter(
             estado__in=["solicitado", "en_proceso"],
         ).order_by("fecha_solicitud")
@@ -442,6 +443,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         Retorna exámenes pendientes cuyo tiempo desde la solicitud
         excede el tiempo_resultado definido en el tipo de examen
         """
+        assert self.queryset is not None
         examenes_pendientes = self.queryset.filter(
             estado__in=["solicitado", "en_proceso"],
         )
@@ -464,6 +466,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
             examen=OuterRef("pk"), es_critico=True,
         )
 
+        assert self.queryset is not None
         examenes_criticos = (
             self.queryset.annotate(tiene_resultado_critico=Exists(tiene_criticos))
             .filter(tiene_resultado_critico=True)
@@ -493,8 +496,9 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         Ejemplo: /api/laboratorio/examenes/recientes/dias=30
         """
         dias = int(request.query_params.get("dias", 7))
-        fecha_desde = date.today() - timedelta(days=dias)
+        fecha_desde = timezone.localdate() - timedelta(days=dias)
 
+        assert self.queryset is not None
         examenes = self.queryset.filter(fecha_solicitud__gte=fecha_desde).order_by(
             "-fecha_solicitud",
         )
@@ -543,13 +547,13 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
             por_prioridad[prioridad_nombre] = count
 
         # Última semana
-        hace_una_semana = date.today() - timedelta(days=7)
+        hace_una_semana = timezone.localdate() - timedelta(days=7)
         examenes_semana = ExamenLaboratorio.objects.filter(
             fecha_solicitud__gte=hace_una_semana,
         ).count()
 
         # Último mes
-        hace_un_mes = date.today() - timedelta(days=30)
+        hace_un_mes = timezone.localdate() - timedelta(days=30)
         examenes_mes = ExamenLaboratorio.objects.filter(
             fecha_solicitud__gte=hace_un_mes,
         ).count()
@@ -628,7 +632,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         serializer = ExamenLaboratorioDetailSerializer(examen)
         return Response(
             {
-                "mensaje": f"Estado cambiado a {examen.get_estado_display()}",
+                "mensaje": f"Estado cambiado a {getattr(examen, 'get_estado_display')()}",
                 "examen": serializer.data,
             },
         )
@@ -679,10 +683,10 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         return Response(
             {
                 "tipo_examen": {
-                    "id": tipo_examen.id,
+                    "id": getattr(tipo_examen, 'id', None),
                     "nombre": tipo_examen.nombre,
                     "codigo": tipo_examen.codigo,
-                    "categoria": tipo_examen.get_categoria_display(),
+                    "categoria": getattr(tipo_examen, 'get_categoria_display')(),
                 },
                 "total_parametros": valores.count(),
                 "valores_referencia": serializer.data,
@@ -725,8 +729,9 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         examenes_data = []
         for examen in examenes_historicos:
             # Obtener resultados del examen
+            _resultados_mgr = getattr(examen, 'resultados', ResultadoLaboratorio.objects.none())
             resultados_data = []
-            for resultado in examen.resultados.all():
+            for resultado in _resultados_mgr.all():
                 resultados_data.append(
                     {
                         "parametro": resultado.valor_referencia.parametro
@@ -744,17 +749,18 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
                     },
                 )
 
+            _resultados = getattr(examen, 'resultados', ResultadoLaboratorio.objects.none())
             examenes_data.append(
                 {
-                    "id": examen.id,
+                    "id": getattr(examen, 'id', None),
                     "fecha_resultado": examen.fecha_resultado,
                     "fecha_solicitud": examen.fecha_solicitud,
                     "resultados": resultados_data,
                     "resumen": {
-                        "total_parametros": examen.resultados.count(),
-                        "normales": examen.resultados.filter(es_normal=True).count(),
-                        "anormales": examen.resultados.filter(es_normal=False).count(),
-                        "criticos": examen.resultados.filter(es_critico=True).count(),
+                        "total_parametros": _resultados.count(),
+                        "normales": _resultados.filter(es_normal=True).count(),
+                        "anormales": _resultados.filter(es_normal=False).count(),
+                        "criticos": _resultados.filter(es_critico=True).count(),
                     },
                 },
             )
@@ -762,7 +768,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         return Response(
             {
                 "examen_actual": {
-                    "id": examen_actual.id,
+                    "id": getattr(examen_actual, 'id', None),
                     "paciente": {
                         "id": examen_actual.paciente.id,
                         "nombre_completo": examen_actual.paciente.nombre_completo,
@@ -904,7 +910,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
                 "examen_completado": completar_examen and len(errores) == 0,
                 "resultados": serializer.data,
                 "resumen": resumen,
-                "estado_examen": examen.get_estado_display(),
+                "estado_examen": getattr(examen, 'get_estado_display')(),
             },
             status=status.HTTP_201_CREATED,
         )
@@ -997,6 +1003,7 @@ class ResultadoLaboratorioViewSet(viewsets.ModelViewSet):
             )
 
         # Obtener resultados
+        assert self.queryset is not None
         resultados = self.queryset.filter(examen_id=examen_id).order_by(
             "valor_referencia__parametro",
         )
@@ -1010,12 +1017,12 @@ class ResultadoLaboratorioViewSet(viewsets.ModelViewSet):
 
         return Response(
             {
-                "examen": {
-                    "id": examen.id,
+            "examen": {
+                "id": getattr(examen, 'id', None),
                     "paciente": examen.paciente.nombre_completo,
                     "tipo_examen": examen.tipo_examen.nombre,
                     "fecha_solicitud": examen.fecha_solicitud,
-                    "estado": examen.get_estado_display(),
+                    "estado": getattr(examen, 'get_estado_display')(),
                 },
                 "resumen": {
                     "total_parametros": total,
@@ -1033,6 +1040,7 @@ class ResultadoLaboratorioViewSet(viewsets.ModelViewSet):
 
         Retorna todos los resultados que están fuera del rango normal
         """
+        assert self.queryset is not None
         resultados = self.queryset.filter(es_normal=False).order_by("-fecha_registro")
 
         # Paginación
@@ -1053,6 +1061,7 @@ class ResultadoLaboratorioViewSet(viewsets.ModelViewSet):
 
         Retorna todos los resultados que están en rango crítico
         """
+        assert self.queryset is not None
         resultados = self.queryset.filter(es_critico=True).order_by("-fecha_registro")
 
         # Paginación

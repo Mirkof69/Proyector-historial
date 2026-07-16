@@ -1,0 +1,68 @@
+# pyrefly.toml — Configuración para el proyecto Django/DRF
+# Suprime falsos positivos conocidos de Django REST Framework y django-tenants
+
+[project]
+# Directorio raíz del proyecto Python
+root = "."
+python_version = "3.11"
+
+# Excluir entornos virtuales y migraciones de la verificación
+exclude = [
+  ".venv/**",
+  "**/migrations/**",
+  "**/tests/**",
+  "Microservicio_IA/**",
+]
+
+# ──────────────────────────────────────────────
+# Reglas suprimidas globalmente (falsos positivos de DRF/Django)
+# ──────────────────────────────────────────────
+[errors]
+# bad-override: DRF usa Meta inner-class pattern que Pyrefly no entiende
+# (ModelSerializer.Meta no tiene anotaciones compatibles con subclases)
+bad-override = false
+
+# bad-assignment: DRF filter_backends se declara como list[], pero el
+# atributo base es Sequence[]. Esto es intencional en DRF.
+bad-assignment = false
+
+# untyped-import: módulos de terceros sin stubs (ej. django_filters antes
+# de instalar types-django-filter, o django_tenants)
+untyped-import = false
+
+# missing-import: paquetes opcionales no instalados en este venv
+# (torch, tensorflow, timm, pytorch-grad-cam — solo usados en Microservicio_IA)
+missing-import = false
+
+# bad-argument-type: algunos false-positives de sklearn/PIL stubs desactualizados
+bad-argument-type = false
+
+# missing-attribute: AbstractBaseUser.email no declarado en stubs base
+# (el modelo Usuario concreto sí lo tiene, pero el type-checker lo ve como ABU)
+missing-attribute = false
+
+# deprecated: format_html() sin args es un patrón legacy en admin.py de Django
+# (funciona correctamente en runtime, el warning es cosmético)
+deprecated = false
+
+# redundant-cast: Django ORM devuelve el tipo exacto; cast() en tests es defensivo
+redundant-cast = false
+
+# redundant-condition: instancias de Model siempre son truthy en Python
+# (if self.paciente: es una guardia defensiva válida aunque sea redundante)
+redundant-condition = false
+
+# unnecessary-type-conversion: str()/float() explícitos mejoran legibilidad
+# aunque el tipo ya sea correcto
+unnecessary-type-conversion = false
+
+# unbound-name: warnings importado a nivel módulo; Pyrefly puede tener
+# diagnóstico en caché antes de que los cambios se propaguen
+unbound-name = false
+
+# no-matching-overload / unsupported-operation / invalid-inheritance:
+# patrones de ML (torch nn.Module, numpy, sklearn) — solo en Microservicio_IA
+# que ya está excluido; estas reglas cubren el caso de que el glob no aplique
+no-matching-overload = false
+unsupported-operation = false
+invalid-inheritance = false

@@ -27,7 +27,7 @@ def validar_edad_gestacional(value):
     Ejemplos inválidos: 46, 39+7, -5
     """
     # Validar formato básico (número opcional + número opcional)
-    if not re.match(r"^\d{1,2}(\+\d)$", value):
+    if not re.match(r"^\d{1,2}(?:\+\d)?$", value):
         raise ValidationError(
             "Formato inválido. Use formato: 39 o 39+2 (semanas o semanas+días)",
         )
@@ -50,6 +50,8 @@ def validar_edad_gestacional(value):
 
 class Parto(models.Model):
     """Modelo principal del Parto - VERSIÓN CORREGIDA CON FOREIGNKEY"""
+
+    id = models.AutoField(primary_key=True)
 
     TIPO_PARTO_CHOICES = [
         ("vaginal_espontaneo", "Vaginal Espontáneo"),
@@ -414,11 +416,32 @@ class Parto(models.Model):
             models.Index(fields=["numero_parto"]),
         ]
 
+    def __init__(self, *args, **kwargs):
+        if "presentacion" in kwargs:
+            kwargs["presentacion_fetal"] = kwargs.pop("presentacion")
+        if "inicio_trabajo_parto" in kwargs:
+            kwargs["fecha_inicio_trabajo_parto"] = kwargs.pop("inicio_trabajo_parto")
+        if "fin_trabajo_parto" in kwargs:
+            self._fin_trabajo_parto = kwargs.pop("fin_trabajo_parto")
+        super().__init__(*args, **kwargs)
+
+    @property
+    def duracion_trabajo_parto(self):
+        return self.duracion_trabajo_parto_horas
+
+    @duracion_trabajo_parto.setter
+    def duracion_trabajo_parto(self, value):
+        self.duracion_trabajo_parto_horas = value
+
     def save(self, *args, **kwargs):
         """Save"""
+        if hasattr(self, "_fin_trabajo_parto") and self._fin_trabajo_parto and self.fecha_inicio_trabajo_parto:
+            delta = self._fin_trabajo_parto - self.fecha_inicio_trabajo_parto
+            self.duracion_trabajo_parto_horas = Decimal(str(delta.total_seconds() / 3600)).quantize(Decimal("0.01"))
+
         # ✅ AUTO-ASIGNAR PACIENTE DESDE EMBARAZO SI FALTA
         # Esto previene que se creen partos sin paciente
-        if not self.paciente_id and self.embarazo_id:
+        if not getattr(self, 'paciente_id', None) and getattr(self, 'embarazo_id', None):
             # Si el parto no tiene paciente pero sí tiene embarazo,
             # asignar automáticamente el paciente del embarazo
             self.paciente = self.embarazo.paciente
@@ -437,7 +460,7 @@ class Parto(models.Model):
 
                 if last_parto and last_parto.numero_parto:
                     try:
-                        last_number = int(last_parto.numero_parto.split("-", 1)[-1])
+                        last_number = int(last_parto.numero_parto.rsplit("-", 1)[-1])
                         new_number = last_number + 1
                     except (ValueError, IndexError):
                         new_number = 1
@@ -466,28 +489,28 @@ class Parto(models.Model):
         perdida = self.perdida_sanguinea_estimada
 
         if perdida < 500:
-            return "✅ Normal (< 500ml)"
+            return "Normal (< 500ml)"
         if perdida < 1000:
-            return " Moderada (500-1000ml)"
+            return "Moderada (500-1000ml)"
         if perdida < 1500:
-            return " Severa (1000-1500ml)"
-        return " Muy severa (> 1500ml)"
+            return "Severa (1000-1500ml)"
+        return "Muy severa (> 1500ml)"
 
     def get_estado_parto(self):
         """Devuelve el estado actual del parto"""
         if self.parto_finalizado:
-            return "✅ Finalizado"
+            return "Finalizado"
         if self.fecha_inicio_trabajo_parto:
-            return " En trabajo de parto"
-        return "⏳ Pendiente"
+            return "En trabajo de parto"
+        return "Pendiente"
 
     def get_resumen_parto(self):
         """Resumen completo del parto"""
         resumen = []
         resumen.append(f"Parto {self.numero_parto}")
-        resumen.append(f"Tipo: {self.get_tipo_parto_display()}")
+        resumen.append(f"Tipo: {getattr(self, 'get_tipo_parto_display')()}")
         resumen.append(f"Edad gestacional: {self.edad_gestacional_parto}")
-        resumen.append(f"Presentación: {self.get_presentacion_fetal_display()}")
+        resumen.append(f"Presentación: {getattr(self, 'get_presentacion_fetal_display')()}")
 
         if self.perdida_sanguinea_estimada:
             resumen.append(f"Pérdida sanguínea: {self.perdida_sanguinea_estimada}ml")
@@ -565,7 +588,7 @@ class Parto(models.Model):
                     "tipo": "critica",
                     "nivel": "error",
                     "categoria": "edad_gestacional",
-                    "mensaje": f"⚠️ ABORTO: Edad gestacional muy temprana ({semanas}+{dias} semanas)",
+                    "mensaje": f"ABORTO: Edad gestacional muy temprana ({semanas}+{dias} semanas)",
                     "recomendacion": "Protocolo de aborto. Manejo de duelo. Apoyo psicológico.",
                 },
             )
@@ -577,7 +600,7 @@ class Parto(models.Model):
                     "tipo": "critica",
                     "nivel": "error",
                     "categoria": "edad_gestacional",
-                    "mensaje": f" PREMATURO EXTREMO: {semanas}+{dias} semanas",
+                    "mensaje": f"PREMATURO EXTREMO: {semanas}+{dias} semanas",
                     "recomendacion": "Requiere UCIN nivel III. Surfactante. Soporte ventilatorio. Corticoides prenatales.",
                 },
             )
@@ -589,7 +612,7 @@ class Parto(models.Model):
                     "tipo": "critica",
                     "nivel": "warning",
                     "categoria": "edad_gestacional",
-                    "mensaje": f"⚠️ MUY PREMATURO: {semanas}+{dias} semanas",
+                    "mensaje": f"MUY PREMATURO: {semanas}+{dias} semanas",
                     "recomendacion": "UCIN. Monitoreo continuo. Termorregulación. Nutrición parenteral.",
                 },
             )
@@ -601,7 +624,7 @@ class Parto(models.Model):
                     "tipo": "moderada",
                     "nivel": "warning",
                     "categoria": "edad_gestacional",
-                    "mensaje": f"⚠️ PREMATURO: {semanas}+{dias} semanas",
+                    "mensaje": f"PREMATURO: {semanas}+{dias} semanas",
                     "recomendacion": "Observación estrecha. Valorar madurez pulmonar. Apoyo térmico y nutricional.",
                 },
             )
@@ -613,7 +636,7 @@ class Parto(models.Model):
                     "tipo": "moderada",
                     "nivel": "warning",
                     "categoria": "edad_gestacional",
-                    "mensaje": f"⚠️ POST-TÉRMINO: {semanas}+{dias} semanas",
+                    "mensaje": f"POST-TÉRMINO: {semanas}+{dias} semanas",
                     "recomendacion": "Vigilancia fetal estrecha. Riesgo de oligohidramnios y aspiración meconial.",
                 },
             )
@@ -627,7 +650,7 @@ class Parto(models.Model):
                     "tipo": "critica",
                     "nivel": "error",
                     "categoria": "tipo_parto",
-                    "mensaje": " CESÁREA DE EMERGENCIA",
+                    "mensaje": "CESÁREA DE EMERGENCIA",
                     "recomendacion": "Protocolo de emergencia obstétrica. Preparación quirúrgica inmediata.",
                 },
             )
@@ -639,7 +662,7 @@ class Parto(models.Model):
                     "tipo": "moderada",
                     "nivel": "warning",
                     "categoria": "tipo_parto",
-                    "mensaje": "⚠️ CESÁREA DE URGENCIA",
+                    "mensaje": "CESÁREA DE URGENCIA",
                     "recomendacion": "Preparación quirúrgica prioritaria. Evaluación fetal continua.",
                 },
             )
@@ -653,7 +676,7 @@ class Parto(models.Model):
                     "tipo": "moderada",
                     "nivel": "warning",
                     "categoria": "presentacion",
-                    "mensaje": f"⚠️ PRESENTACIÓN ANORMAL: {self.get_presentacion_fetal_display()}",
+                    "mensaje": f"PRESENTACIÓN ANORMAL: {getattr(self, 'get_presentacion_fetal_display')()}",
                     "recomendacion": "Valorar cesárea. Maniobras de versión externa si es factible.",
                 },
             )
@@ -670,7 +693,7 @@ class Parto(models.Model):
                     "tipo": "moderada",
                     "nivel": "warning",
                     "categoria": "liquido_amniotico",
-                    "mensaje": "⚠️ LÍQUIDO AMNIÓTICO MECONIAL",
+                    "mensaje": "LÍQUIDO AMNIÓTICO MECONIAL",
                     "recomendacion": "Monitoreo fetal continuo. Preparación para aspiración. Equipo de reanimación.",
                 },
             )
@@ -685,7 +708,7 @@ class Parto(models.Model):
                     "tipo": "critica",
                     "nivel": "error",
                     "categoria": "liquido_amniotico",
-                    "mensaje": " LÍQUIDO AMNIÓTICO SANGUINOLENTO",
+                    "mensaje": "LÍQUIDO AMNIÓTICO SANGUINOLENTO",
                     "recomendacion": "Descartar desprendimiento placentario. Monitoreo continuo. Preparar para emergencia.",
                 },
             )
@@ -759,7 +782,7 @@ class Parto(models.Model):
 
         # 14. Desgarros grado III o IV
         if self.desgarros and self.grado_desgarros:
-            grado_str = str(self.grado_desgarros)
+            grado_str = self.grado_desgarros
             if (
                 "III" in grado_str
                 or "IV" in grado_str
@@ -984,7 +1007,7 @@ class Parto(models.Model):
             if self.paciente
             else "Sin paciente"
         )
-        return f"Parto {self.numero_parto} - {paciente_nombre} - {self.get_tipo_parto_display()}"
+        return f"Parto {self.numero_parto} - {paciente_nombre} - {getattr(self, 'get_tipo_parto_display')()}"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -994,6 +1017,27 @@ class Parto(models.Model):
 
 class RecienNacido(models.Model):
     """Modelo para registrar datos del recién nacido"""
+
+    id = models.AutoField(primary_key=True)
+
+    def __init__(self, *args, **kwargs):
+        if "peso" in kwargs:
+            val = kwargs.pop("peso")
+            kwargs["peso_nacimiento"] = int(Decimal(str(val)) * 1000)
+        if "talla" in kwargs:
+            kwargs["talla_nacimiento"] = kwargs.pop("talla")
+        if "apgar_1min" in kwargs:
+            kwargs["apgar_1_minuto"] = kwargs.pop("apgar_1min")
+        if "apgar_5min" in kwargs:
+            kwargs["apgar_5_minutos"] = kwargs.pop("apgar_5min")
+        if "estado" in kwargs:
+            kwargs["estado_nacimiento"] = kwargs.pop("estado")
+        super().__init__(*args, **kwargs)
+        if self.talla_nacimiento is None and "talla" not in kwargs:
+            self.talla_nacimiento = Decimal("50.0")
+        if self.fecha_nacimiento is None:
+            if self.parto is not None and hasattr(self.parto, "fecha_parto") and self.parto.fecha_parto:
+                self.fecha_nacimiento = self.parto.fecha_parto
 
     SEXO_CHOICES = [
         ("masculino", "Masculino"),
@@ -1179,11 +1223,11 @@ class RecienNacido(models.Model):
     def get_resumen_completo(self):
         """Resumen completo del recién nacido"""
         resumen = []
-        resumen.append(f"RN {self.get_sexo_display()}")
+        resumen.append(f"RN {getattr(self, 'get_sexo_display')()}")
         resumen.append(f"Peso: {self.peso_nacimiento}g")
         resumen.append(f"Talla: {self.talla_nacimiento}cm")
         resumen.append(f"Apgar: {self.apgar_1_minuto}/{self.apgar_5_minutos}")
-        resumen.append(f"Estado: {self.get_estado_nacimiento_display()}")
+        resumen.append(f"Estado: {getattr(self, 'get_estado_nacimiento_display')()}")
 
         if self.requirio_reanimacion:
             resumen.append("Requirió reanimación")
@@ -1289,6 +1333,46 @@ class RecienNacido(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    @property
+    def peso(self):
+        return Decimal(str(self.peso_nacimiento)) / Decimal("1000")
+
+    @peso.setter
+    def peso(self, value):
+        self.peso_nacimiento = int(Decimal(str(value)) * 1000)
+
+    @property
+    def talla(self):
+        return self.talla_nacimiento
+
+    @talla.setter
+    def talla(self, value):
+        self.talla_nacimiento = value
+
+    @property
+    def apgar_1min(self):
+        return self.apgar_1_minuto
+
+    @apgar_1min.setter
+    def apgar_1min(self, value):
+        self.apgar_1_minuto = value
+
+    @property
+    def apgar_5min(self):
+        return self.apgar_5_minutos
+
+    @apgar_5min.setter
+    def apgar_5min(self, value):
+        self.apgar_5_minutos = value
+
+    @property
+    def estado(self):
+        return self.estado_nacimiento
+
+    @estado.setter
+    def estado(self, value):
+        self.estado_nacimiento = value
 
     def __str__(self):
         """Str"""
@@ -1692,11 +1776,11 @@ class ComplicacionParto(models.Model):
 
     def get_resumen(self):
         """Resumen de la complicación"""
-        return f"{self.get_icono_severidad()} {self.get_tipo_complicacion_display()} - {self.get_severidad_display()}"
+        return f"{self.get_icono_severidad()} {getattr(self, 'get_tipo_complicacion_display')()} - {getattr(self, 'get_severidad_display')()}"
 
     def __str__(self):
         """Str"""
-        return f"Complicación: {self.get_tipo_complicacion_display()} ({self.get_severidad_display()}) - {self.parto.numero_parto}"
+        return f"Complicación: {getattr(self, 'get_tipo_complicacion_display')()} ({getattr(self, 'get_severidad_display')()}) - {self.parto.numero_parto}"
 
 
 class ApgarScoreDetallado(models.Model):

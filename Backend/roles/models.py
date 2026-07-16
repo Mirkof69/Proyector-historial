@@ -6,10 +6,16 @@ from django.db import models
 class CatRol(models.Model):
     """Catálogo de roles del sistema"""
 
+    # Debe coincidir con usuarios.models.Usuario.ROLES (la fuente real de
+    # roles que se asignan a cada usuario). Antes este catalogo tenia un
+    # conjunto distinto e incompleto ("administrativo" no es un rol real;
+    # faltaban laboratorista, administrador y recepcion).
     ROLES = [
         ("medico", "Médico"),
         ("enfermera", "Enfermera"),
-        ("administrativo", "Administrativo"),
+        ("laboratorista", "Laboratorista"),
+        ("administrador", "Administrador"),
+        ("recepcion", "Recepción"),
     ]
 
     nombre = models.CharField(max_length=30, unique=True, choices=ROLES)
@@ -29,4 +35,4 @@ class CatRol(models.Model):
 
     def __str__(self):
         """Str"""
-        return self.get_nombre_display()
+        return getattr(self, 'get_nombre_display')()

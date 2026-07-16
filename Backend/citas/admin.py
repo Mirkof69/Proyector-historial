@@ -57,6 +57,7 @@ class DisponibilidadAdmin(admin.ModelAdmin):
 
     actions = ["activar_disponibilidades", "desactivar_disponibilidades"]
 
+    @admin.display(description="Médico")
     def medico_nombre(self, obj):
         """Medico nombre"""
         return format_html(
@@ -65,8 +66,8 @@ class DisponibilidadAdmin(admin.ModelAdmin):
             obj.medico.apellido_paterno,
         )
 
-    medico_nombre.short_description = "Médico"
 
+    @admin.display(description="Día")
     def dia_badge(self, obj):
         """Dia badge"""
         colors = {
@@ -82,17 +83,17 @@ class DisponibilidadAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
             color,
-            obj.get_dia_semana_display(),
+            getattr(obj, 'get_dia_semana_display')(),
         )
 
-    dia_badge.short_description = "Día"
 
+    @admin.display(description="Horario")
     def horario_formateado(self, obj):
         """Horario formateado"""
         return f"{obj.hora_inicio.strftime('%H:%M')} - {obj.hora_fin.strftime('%H:%M')}"
 
-    horario_formateado.short_description = "Horario"
 
+    @admin.display(description="Estado")
     def activo_badge(self, obj):
         """Activo badge"""
         if obj.activo:
@@ -103,8 +104,8 @@ class DisponibilidadAdmin(admin.ModelAdmin):
             '<span style="color: red; font-weight: bold;">✗ Inactivo</span>',
         )
 
-    activo_badge.short_description = "Estado"
 
+    @admin.display(description="Vigencia")
     def vigencia(self, obj):
         """Vigencia"""
         if obj.fecha_inicio_vigencia or obj.fecha_fin_vigencia:
@@ -121,8 +122,8 @@ class DisponibilidadAdmin(admin.ModelAdmin):
             return f"{inicio} - {fin}"
         return "Sin restricción"
 
-    vigencia.short_description = "Vigencia"
 
+    @admin.action(description="Activar disponibilidades seleccionadas")
     def activar_disponibilidades(self, request, queryset):
         """Activar disponibilidades"""
         updated = queryset.update(activo=True)
@@ -130,20 +131,13 @@ class DisponibilidadAdmin(admin.ModelAdmin):
             request, f"{updated} disponibilidades activadas correctamente.",
         )
 
-    activar_disponibilidades.short_description = (
-        "Activar disponibilidades seleccionadas"
-    )
-
+    @admin.action(description="Desactivar disponibilidades seleccionadas")
     def desactivar_disponibilidades(self, request, queryset):
         """Desactivar disponibilidades"""
         updated = queryset.update(activo=False)
         self.message_user(
             request, f"{updated} disponibilidades desactivadas correctamente.",
         )
-
-    desactivar_disponibilidades.short_description = (
-        "Desactivar disponibilidades seleccionadas"
-    )
 
 
 class HistorialCitaInline(admin.TabularInline):
@@ -249,6 +243,7 @@ class CitaAdmin(admin.ModelAdmin):
 
     actions = ["confirmar_citas", "cancelar_citas", "completar_citas"]
 
+    @admin.display(description="Fecha y Hora")
     def fecha_hora_badge(self, obj):
         """Fecha hora badge"""
         hoy = obj.fecha_cita.today()
@@ -266,8 +261,8 @@ class CitaAdmin(admin.ModelAdmin):
             obj.hora_cita.strftime("%H:%M"),
         )
 
-    fecha_hora_badge.short_description = "Fecha y Hora"
 
+    @admin.display(description="Paciente")
     def paciente_link(self, obj):
         """Paciente link"""
         return format_html(
@@ -277,14 +272,14 @@ class CitaAdmin(admin.ModelAdmin):
             obj.paciente.id_clinico,
         )
 
-    paciente_link.short_description = "Paciente"
 
+    @admin.display(description="Médico")
     def medico_nombre(self, obj):
         """Medico nombre"""
         return f"Dr(a). {obj.medico.nombre} {obj.medico.apellido_paterno}"
 
-    medico_nombre.short_description = "Médico"
 
+    @admin.display(description="Tipo")
     def tipo_badge(self, obj):
         """Tipo badge"""
         colors = {
@@ -297,11 +292,11 @@ class CitaAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px;">{}</span>',
             color,
-            obj.get_tipo_cita_display(),
+            getattr(obj, 'get_tipo_cita_display')(),
         )
 
-    tipo_badge.short_description = "Tipo"
 
+    @admin.display(description="Estado")
     def estado_badge(self, obj):
         """Estado badge"""
         colors = {
@@ -324,11 +319,11 @@ class CitaAdmin(admin.ModelAdmin):
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{} {}</span>',
             color,
             icon,
-            obj.get_estado_display(),
+            getattr(obj, 'get_estado_display')(),
         )
 
-    estado_badge.short_description = "Estado"
 
+    @admin.display(description="Días")
     def dias_hasta(self, obj):
         """Dias hasta"""
         dias = obj.dias_hasta_cita
@@ -348,16 +343,16 @@ class CitaAdmin(admin.ModelAdmin):
             '<span style="color: {};">En {} días</span>', color, dias,
         )
 
-    dias_hasta.short_description = "Días"
 
+    @admin.display(description="Confirmada")
     def confirmada(self, obj):
         """Confirmada"""
         if obj.fecha_confirmacion:
             return format_html('<span style="color: green;">✓</span>')
         return format_html('<span style="color: gray;">-</span>')
 
-    confirmada.short_description = "Confirmada"
 
+    @admin.action(description="Confirmar citas seleccionadas")
     def confirmar_citas(self, request, queryset):
         """Confirmar citas"""
         from django.utils import timezone
@@ -369,8 +364,8 @@ class CitaAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f"{updated} citas confirmadas correctamente.")
 
-    confirmar_citas.short_description = "Confirmar citas seleccionadas"
 
+    @admin.action(description="Cancelar citas seleccionadas")
     def cancelar_citas(self, request, queryset):
         """Cancelar citas"""
         updated = queryset.filter(estado__in=["agendada", "confirmada"]).update(
@@ -378,8 +373,8 @@ class CitaAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f"{updated} citas canceladas correctamente.")
 
-    cancelar_citas.short_description = "Cancelar citas seleccionadas"
 
+    @admin.action(description="Marcar como completadas")
     def completar_citas(self, request, queryset):
         """Completar citas"""
         updated = queryset.filter(estado__in=["agendada", "confirmada"]).update(
@@ -387,7 +382,6 @@ class CitaAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f"{updated} citas completadas correctamente.")
 
-    completar_citas.short_description = "Marcar como completadas"
 
 
 @admin.register(HistorialCita)
@@ -426,6 +420,7 @@ class HistorialCitaAdmin(admin.ModelAdmin):
         """Has change permission"""
         return False
 
+    @admin.display(description="Cita")
     def cita_info(self, obj):
         """Cita info"""
         return format_html(
@@ -435,31 +430,30 @@ class HistorialCitaAdmin(admin.ModelAdmin):
             obj.cita.fecha_cita.strftime("%d/%m/%Y %H:%M"),
         )
 
-    cita_info.short_description = "Cita"
 
+    @admin.display(description="Cambio de Estado")
     def cambio_estado(self, obj):
         """Cambio estado"""
         return format_html(
             '<span style="color: #e74c3c;">{}</span> → <span style="color: #27ae60;">{}</span>',
-            obj.get_estado_anterior_display() if obj.estado_anterior else "Creación",
-            obj.get_estado_nuevo_display(),
+            getattr(obj, 'get_estado_anterior_display')() if obj.estado_anterior else "Creación",
+            getattr(obj, 'get_estado_nuevo_display')(),
         )
 
-    cambio_estado.short_description = "Cambio de Estado"
 
+    @admin.display(description="Usuario")
     def usuario_nombre(self, obj):
         """Usuario nombre"""
         if obj.usuario:
             return f"{obj.usuario.nombre} {obj.usuario.apellido_paterno}"
         return "Sistema"
 
-    usuario_nombre.short_description = "Usuario"
 
+    @admin.display(description="Fecha")
     def fecha_cambio_formateada(self, obj):
         """Fecha cambio formateada"""
         return obj.fecha_cambio.strftime("%d/%m/%Y %H:%M:%S")
 
-    fecha_cambio_formateada.short_description = "Fecha"
 
 
 # Personalizar título del admin

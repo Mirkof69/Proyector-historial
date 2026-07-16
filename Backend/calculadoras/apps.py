@@ -17,3 +17,8 @@ class CalculadorasConfig(AppConfig):
             _ = _models_doppler_register
         except ImportError:
             pass
+        try:
+            from . import models_historial as _models_historial_register
+            _ = _models_historial_register
+        except ImportError:
+            pass

@@ -14,16 +14,20 @@ from .views import (
     TipoReporteViewSet,
 )
 from .views_config import (
+    configuracion_alertas,
     configuracion_general,
     crear_backup,
     descargar_backup,
     eliminar_backup,
     horarios_atencion,
     listar_backups,
+    restaurar_backup,
 )
 from .views_statistics import (
+    adherencia_controles_statistics_view,
     all_statistics,
     citas_statistics,
+    complicaciones_partos_statistics_view,
     composition_chart,
     controles_statistics,
     dashboard_statistics,
@@ -31,10 +35,21 @@ from .views_statistics import (
     download_statistics_excel,
     download_statistics_pdf,
     download_statistics_pdf_enhanced,
+    embarazos_alto_riesgo_statistics_view,
     embarazos_statistics,
+    embarazos_trimestre_statistics_view,
+    examenes_pendientes_statistics_view,
+    laboratorios_statistics_view,
+    nuevos_pacientes_statistics_view,
+    pacientes_embarazadas_statistics_view,
+    # Wrappers
+    pacientes_statistics_view,
     partos_statistics,
+    resultados_criticos_statistics_view,
+    resultados_neonatales_statistics_view,
     stacked_bar_chart,
     statistics_by_period,
+    tasa_cesareas_statistics_view,
 )
 
 router = DefaultRouter()
@@ -55,24 +70,24 @@ urlpatterns = [
     path("estadisticas-generales/", all_statistics, name="estadisticas-generales"),
     # Endpoints de reportes/estadísticas por módulo
     path(
-        "pacientes/", embarazos_statistics, name="reporte-pacientes",
+        "pacientes/", pacientes_statistics_view, name="reporte-pacientes",
     ),  # Reusing embarazos_stats for now or mapping specific ones
-    path("pacientes-embarazadas/", embarazos_statistics, name="pacientes-embarazadas"),
-    path("nuevos-pacientes/", dashboard_statistics, name="nuevos-pacientes"),
+    path("pacientes-embarazadas/", pacientes_embarazadas_statistics_view, name="pacientes-embarazadas"),
+    path("nuevos-pacientes/", nuevos_pacientes_statistics_view, name="nuevos-pacientes"),
     path("embarazos/", embarazos_statistics, name="reporte-embarazos"),
-    path("embarazos-alto-riesgo/", embarazos_statistics, name="embarazos-alto-riesgo"),
-    path("embarazos-trimestre/", embarazos_statistics, name="embarazos-trimestre"),
+    path("embarazos-alto-riesgo/", embarazos_alto_riesgo_statistics_view, name="embarazos-alto-riesgo"),
+    path("embarazos-trimestre/", embarazos_trimestre_statistics_view, name="embarazos-trimestre"),
     path("partos/", partos_statistics, name="reporte-partos"),
-    path("tasa-cesareas/", partos_statistics, name="tasa-cesareas"),
-    path("complicaciones-partos/", partos_statistics, name="complicaciones-partos"),
-    path("resultados-neonatales/", partos_statistics, name="resultados-neonatales"),
+    path("tasa-cesareas/", tasa_cesareas_statistics_view, name="tasa-cesareas"),
+    path("complicaciones-partos/", complicaciones_partos_statistics_view, name="complicaciones-partos"),
+    path("resultados-neonatales/", resultados_neonatales_statistics_view, name="resultados-neonatales"),
     path("controles/", controles_statistics, name="reporte-controles"),
-    path("adherencia-controles/", controles_statistics, name="adherencia-controles"),
+    path("adherencia-controles/", adherencia_controles_statistics_view, name="adherencia-controles"),
     path(
-        "laboratorios/", all_statistics, name="reporte-laboratorio",
+        "laboratorios/", laboratorios_statistics_view, name="reporte-laboratorio",
     ),  # Will need specific laboratory stats
-    path("examenes-pendientes/", all_statistics, name="examenes-pendientes"),
-    path("resultados-criticos/", all_statistics, name="resultados-criticos"),
+    path("examenes-pendientes/", examenes_pendientes_statistics_view, name="examenes-pendientes"),
+    path("resultados-criticos/", resultados_criticos_statistics_view, name="resultados-criticos"),
     # Estadísticas avanzadas (Legacy/Internal)
     path("statistics/dashboard/", dashboard_statistics, name="dashboard-statistics"),
     path("statistics/embarazos/", embarazos_statistics, name="embarazos-statistics"),
@@ -102,6 +117,7 @@ urlpatterns = [
     path("charts/distribution/", distribution_chart, name="distribution-chart"),
     # Configuración del Sistema
     path("configuracion/general/", configuracion_general, name="config-general"),
+    path("configuracion/alertas/", configuracion_alertas, name="config-alertas"),
     path("configuracion/horarios/", horarios_atencion, name="config-horarios"),
     path("configuracion/backups/", listar_backups, name="listar-backups"),
     path("configuracion/backups/create/", crear_backup, name="crear-backup"),
@@ -115,8 +131,13 @@ urlpatterns = [
         eliminar_backup,
         name="eliminar-backup",
     ),
+    path(
+        "configuracion/backups/<str:filename>/restore/",
+        restaurar_backup,
+        name="restaurar-backup",
+    ),
     # Router URLs
     path("", include(router.urls)),
 ]
 
-# app_name = 'reportes'  # Comentado temporalmente para diagnosticar
+app_name = 'reportes'

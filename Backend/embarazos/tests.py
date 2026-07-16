@@ -1,17 +1,16 @@
 """Tests para módulo de Embarazos"""
 
 from datetime import date, timedelta
+from typing import cast
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from pacientes.models import Paciente
+from usuarios.models import Usuario
 
 from .models import Embarazo
-
-User = get_user_model()
 
 
 class EmbarazoModelTestCase(TestCase):
@@ -19,13 +18,13 @@ class EmbarazoModelTestCase(TestCase):
 
     def setUp(self):
         """Setup"""
-        self.paciente = Paciente.objects.create(
+        self.paciente = cast(Paciente, Paciente.objects.create(
             nombre="María",
             apellido_paterno="García",
             fecha_nacimiento=date(1990, 1, 1),
             genero="F",
             ci="EMB123",
-        )
+        ))
 
     def test_crear_embarazo(self):
         """Test crear embarazo"""
@@ -59,9 +58,9 @@ class EmbarazoModelTestCase(TestCase):
         )
 
         # El modelo usa fecha_ultima_menstruacion para calcular semanas_gestacion
-        if hasattr(embarazo, "semanas_gestacion"):
-            self.assertIsNotNone(embarazo.semanas_gestacion)
-            self.assertGreaterEqual(embarazo.semanas_gestacion, 19)
+        semanas = getattr(embarazo, "semanas_gestacion", None)
+        if semanas is not None:
+            self.assertGreaterEqual(semanas, 19)
 
 
 class EmbarazoAPITestCase(APITestCase):
@@ -69,21 +68,22 @@ class EmbarazoAPITestCase(APITestCase):
 
     def setUp(self):
         """Setup"""
-        self.user = User.objects.create_user(
+        self.user = Usuario.objects.create_user(
             email="testdoctor@clinica.com",
             nombre="Doctor",
             apellido_paterno="Prueba",
             password="testpass123",
+            rol="medico",
         )
         self.client.force_authenticate(user=self.user)
 
-        self.paciente = Paciente.objects.create(
+        self.paciente = cast(Paciente, Paciente.objects.create(
             nombre="María",
             apellido_paterno="García",
             fecha_nacimiento=date(1990, 1, 1),
             genero="F",
             ci="EMB_API_123",
-        )
+        ))
 
     def test_listar_embarazos(self):
         """Test listar embarazos"""

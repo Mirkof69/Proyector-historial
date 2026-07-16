@@ -6,7 +6,9 @@ Especializado en ginecología y obstetricia
 =============================================================================
 """
 
-from datetime import datetime
+from typing import Any
+
+from django.utils import timezone
 
 
 class MLLaboratorioService:
@@ -121,10 +123,10 @@ class MLLaboratorioService:
             },
         }
 
-    def analizar_hemograma(self, datos: dict) -> dict:
+    def analizar_hemograma(self, datos: dict[str, Any]) -> dict[str, Any]:
         """Analiza hemograma completo
         """
-        resultados = {
+        resultados: dict[str, Any] = {
             "valores_anormales": [],
             "patologias_detectadas": [],
             "alertas": [],
@@ -201,10 +203,10 @@ class MLLaboratorioService:
 
         return resultados
 
-    def analizar_glucosa(self, datos: dict) -> dict:
+    def analizar_glucosa(self, datos: dict[str, Any]) -> dict[str, Any]:
         """Analiza perfil de glucosa para diabetes gestacional
         """
-        resultados = {
+        resultados: dict[str, Any] = {
             "valores_anormales": [],
             "patologias_detectadas": [],
             "alertas": [],
@@ -269,10 +271,10 @@ class MLLaboratorioService:
 
         return resultados
 
-    def analizar_funcion_hepatica(self, datos: dict) -> dict:
+    def analizar_funcion_hepatica(self, datos: dict[str, Any]) -> dict[str, Any]:
         """Analiza función hepática - Detecta HELLP syndrome
         """
-        resultados = {
+        resultados: dict[str, Any] = {
             "valores_anormales": [],
             "patologias_detectadas": [],
             "alertas": [],
@@ -321,10 +323,10 @@ class MLLaboratorioService:
 
         return resultados
 
-    def analizar_funcion_renal(self, datos: dict) -> dict:
+    def analizar_funcion_renal(self, datos: dict[str, Any]) -> dict[str, Any]:
         """Analiza función renal - Detecta preeclampsia
         """
-        resultados = {
+        resultados: dict[str, Any] = {
             "valores_anormales": [],
             "patologias_detectadas": [],
             "alertas": [],
@@ -370,18 +372,24 @@ class MLLaboratorioService:
 
         return resultados
 
-    def analizar_completo(self, datos: dict) -> dict:
+    def analizar_completo(self, datos: dict[str, Any]) -> dict[str, Any]:
         """Análisis completo de todos los parámetros de laboratorio
         """
-        resultado_final = {
+        resultado_final: dict[str, Any] = {
             "paciente_id": datos.get("paciente_id"),
-            "fecha_analisis": datetime.now().isoformat(),
+            "fecha_analisis": timezone.localtime().isoformat(),
             "datos_entrada": datos,
             "valores_anormales": [],
             "patologias_detectadas": [],
             "alertas_criticas": [],
             "recomendaciones": [],
             "riesgo_global": "bajo",
+            # HONESTIDAD CLÍNICA: este servicio NO es un modelo de ML entrenado.
+            # Es análisis por reglas sobre umbrales de laboratorio (hemograma,
+            # glucosa, hepática, renal). "confianza"/"probabilidad" son
+            # heurísticas derivadas de esas reglas, no salidas de un modelo.
+            "metodo": "reglas_clinicas_por_umbral",
+            "es_modelo_entrenado": False,
             "confianza_modelo": 0.0,
             "acciones_sugeridas": [],
         }
@@ -453,7 +461,8 @@ class MLLaboratorioService:
                 "Continuar control prenatal rutinario",
             ]
 
-        # Predicción (simulada - en producción usar modelo ML entrenado)
+        # Resumen heurístico basado en las reglas de arriba (NO es la salida de
+        # un modelo entrenado; ver "metodo"/"es_modelo_entrenado" en el resultado).
         if resultado_final["patologias_detectadas"]:
             resultado_final["prediccion"] = (
                 f"Detectadas {len(resultado_final['patologias_detectadas'])} patologías - Requiere atención médica"
