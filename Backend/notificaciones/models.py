@@ -1,4 +1,4 @@
-﻿"""=============================================================================
+"""=============================================================================
 MÓDULO: NOTIFICACIONES - MODELS
 =============================================================================
 Sistema completo de notificaciones para usuarios del sistema
@@ -209,7 +209,7 @@ class Notificacion(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.get_tipo_display()} - {self.usuario.nombre_completo} - {self.titulo}"
+        return f"{getattr(self, 'get_tipo_display')()} - {self.usuario.nombre_completo} - {self.titulo}"
 
     def marcar_como_leida(self):
         """Marca la notificación como leída"""
@@ -283,7 +283,7 @@ class Notificacion(models.Model):
             return "orange"
         if self.prioridad == PrioridadNotificacion.ALTA:
             return "yellow"
-        tipo_str = str(self.tipo) if self.tipo else ""
+        tipo_str = self.tipo if self.tipo else ""
         if "critico" in tipo_str or "alerta_critica" in tipo_str:
             return "red"
         if "examen_listo" in tipo_str or "documento_listo" in tipo_str:
@@ -329,7 +329,7 @@ class Notificacion(models.Model):
             else None,
             tipo=TipoNotificacion.CITA_PROXIMA,
             prioridad=prioridad,
-            titulo=f"Recordatorio: Cita {cita.get_tipo_cita_display()}",
+            titulo=f"Recordatorio: Cita {getattr(cita, 'get_tipo_cita_display')()}",
             mensaje=f"Tiene una cita agendada el {cita.fecha_hora_cita.strftime('%d/%m/%Y a las %H:%M')} con el Dr./Dra. {cita.medico.nombre_completo if cita.medico else 'pendiente'}",
             url=f"/citas/{cita.id}",
             url_texto="Ver Detalle de Cita",
@@ -458,10 +458,9 @@ class Notificacion(models.Model):
 
         """
         ahora = timezone.now()
-        actualizadas = cls.objects.filter(usuario=usuario, leida=False).update(
+        return cls.objects.filter(usuario=usuario, leida=False).update(
             leida=True, fecha_leida=ahora,
         )
-        return actualizadas
 
     @classmethod
     def obtener_recientes(cls, usuario, limite=10, solo_no_leidas=False):
@@ -650,4 +649,4 @@ class HistorialNotificaciones(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.get_accion_display()} - {self.notificacion.titulo} - {self.fecha.strftime('%d/%m/%Y %H:%M')}"
+        return f"{getattr(self, 'get_accion_display')()} - {self.notificacion.titulo} - {self.fecha.strftime('%d/%m/%Y %H:%M')}"

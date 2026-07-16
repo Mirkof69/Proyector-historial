@@ -50,10 +50,10 @@ def reencrypt_patients():
             # debido a InvalidToken en from_db_value, se debe usar SQL crudo aquí.
             paciente.save()
             exitos += 1
-            print(f"✅ Paciente {paciente.id} actualizado.")
+            print(f"✅ Paciente {getattr(paciente, 'id', None)} actualizado.")
         except Exception as e:
             errores += 1
-            print(f"❌ Error con paciente {paciente.id}: {e}")
+            print(f"❌ Error con paciente {getattr(paciente, 'id', None)}: {e}")
 
     print(f"\nResumen: {exitos} exitosos, {errores} errores.")
 

@@ -895,7 +895,7 @@ class RiesgoCromosomico(models.Model):
         return {
             "riesgo_basal": self.riesgo_down_basal or "No calculado",
             "riesgo_ajustado": self.riesgo_down_ajustado or "No calculado",
-            "clasificacion": self.get_clasificacion_down_display()
+            "clasificacion": getattr(self, 'get_clasificacion_down_display')()
             if self.clasificacion_down
             else "No clasificado",
             "translucencia_nucal": f"{self.translucencia_nucal} mm"
@@ -1178,8 +1178,8 @@ class DosisMedicamentos(models.Model):
     def get_protocolo_administracion(self):
         """Protocolo completo de administración"""
         return {
-            "medicamento": self.get_medicamento_display(),
-            "indicacion": self.get_indicacion_display(),
+            "medicamento": getattr(self, 'get_medicamento_display')(),
+            "indicacion": getattr(self, 'get_indicacion_display')(),
             "dosis_inicial": self.dosis_inicial or "No calculada",
             "mantenimiento": self.dosis_mantenimiento or "No calculada",
             "via": self.via_administracion or "No especificada",
@@ -1192,7 +1192,7 @@ class DosisMedicamentos(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"{self.get_medicamento_display()} - {self.get_indicacion_display()} - Paciente {self.paciente_id}"
+        return f"{getattr(self, 'get_medicamento_display')()} - {getattr(self, 'get_indicacion_display')()} - Paciente {self.paciente_id}"
 
 
 class HemorragiaObstetrica(models.Model):
@@ -1859,16 +1859,16 @@ class SufrimientoFetal(models.Model):
     def get_interpretacion_completa(self):
         """Interpretación completa del estudio"""
         return {
-            "tipo_evaluacion": self.get_tipo_evaluacion_display(),
-            "monitoreo": self.get_tipo_monitoreo_display(),
+            "tipo_evaluacion": getattr(self, 'get_tipo_evaluacion_display')(),
+            "monitoreo": getattr(self, 'get_tipo_monitoreo_display')(),
             "fcf_basal": f"{self.fcf_basal} lpm" if self.fcf_basal else "No registrada",
-            "variabilidad": self.get_variabilidad_fcf_display()
+            "variabilidad": getattr(self, 'get_variabilidad_fcf_display')()
             if self.variabilidad_fcf
             else "No evaluada",
-            "clasificacion_ctg": self.get_clasificacion_ctg_display()
+            "clasificacion_ctg": getattr(self, 'get_clasificacion_ctg_display')()
             if self.clasificacion_ctg
             else "No clasificado",
-            "riesgo": self.get_riesgo_sufrimiento_fetal_display()
+            "riesgo": getattr(self, 'get_riesgo_sufrimiento_fetal_display')()
             if self.riesgo_sufrimiento_fetal
             else "No evaluado",
             "score_fisher": self.score_fisher
@@ -1884,4 +1884,4 @@ class SufrimientoFetal(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"Bienestar Fetal - Paciente {self.paciente_id} - {self.get_riesgo_sufrimiento_fetal_display() if self.riesgo_sufrimiento_fetal else 'Evaluando'}"
+        return f"Bienestar Fetal - Paciente {self.paciente_id} - {getattr(self, 'get_riesgo_sufrimiento_fetal_display')() if self.riesgo_sufrimiento_fetal else 'Evaluando'}"

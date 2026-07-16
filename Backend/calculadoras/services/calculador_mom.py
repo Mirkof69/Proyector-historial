@@ -1,4 +1,4 @@
-﻿"""=============================================================================
+"""=============================================================================
 SERVICIO DE CÁLCULO MoM (MÚLTIPLOS DE LA MEDIANA)
 =============================================================================
 Implementación completa del estándar FMF para conversión a MoM
@@ -8,6 +8,7 @@ Incluye correcciones por peso, etnia, altura (Bolivia), tabaquismo, método
 
 import math
 from decimal import Decimal
+from typing import Any
 
 
 class CalculadorMoM:
@@ -83,6 +84,7 @@ class CalculadorMoM:
         tabla = tablas[marcador]
 
         # Interpolación lineal si no hay valor exacto
+        mediana = 0.0
         if semanas in tabla:
             mediana = tabla[semanas]
         else:
@@ -211,10 +213,10 @@ class CalculadorMoM:
         # Percentil (asumiendo media=0, sd=0.15 para log-MoM)
         percentil = stats.norm.cdf(log_mom, loc=0, scale=0.15) * 100
 
-        return int(round(percentil))
+        return int(round(float(percentil)))
 
     @staticmethod
-    def clasificar_mom(mom: float) -> dict[str, any]:
+    def clasificar_mom(mom: float) -> dict[str, Any]:
         """Clasificación automática según valor MoM
 
         Returns:

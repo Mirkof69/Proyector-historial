@@ -93,6 +93,7 @@ class AntecedenteGinecoObstetricoAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="GPAC")
     def get_formula_obstetrica_display(self, obj):
         """Muestra fórmula GPAC con badge"""
         formula = obj.get_formula_obstetrica()
@@ -101,15 +102,14 @@ class AntecedenteGinecoObstetricoAdmin(admin.ModelAdmin):
             formula,
         )
 
-    get_formula_obstetrica_display.short_description = "GPAC"
 
+    @admin.display(description="FUM")
     def get_fum(self, obj):
         """Muestra FUM formateada"""
         if obj.fecha_ultima_menstruacion:
             return obj.fecha_ultima_menstruacion.strftime("%d/%m/%Y")
         return "-"
 
-    get_fum.short_description = "FUM"
 
 
 @admin.register(AntecedentePatologico)
@@ -249,6 +249,7 @@ class AntecedentePatologicoAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Alergias")
     def get_alergias_badge(self, obj):
         """Badge de alergias"""
         if obj.tiene_alergias:
@@ -259,8 +260,8 @@ class AntecedentePatologicoAdmin(admin.ModelAdmin):
             '<span style="background-color: #27ae60; color: white; padding: 3px 8px; border-radius: 3px;">NO</span>',
         )
 
-    get_alergias_badge.short_description = "Alergias"
 
+    @admin.display(description="Enfermedades")
     def get_enfermedades_cronicas(self, obj):
         """Lista enfermedades crónicas"""
         enfermedades = []
@@ -277,8 +278,8 @@ class AntecedentePatologicoAdmin(admin.ModelAdmin):
             return ", ".join(enfermedades)
         return "-"
 
-    get_enfermedades_cronicas.short_description = "Enfermedades"
 
+    @admin.display(description="Riesgo")
     def get_riesgo_badge(self, obj):
         """Badge de riesgo"""
         if obj.tiene_factores_riesgo():
@@ -289,4 +290,3 @@ class AntecedentePatologicoAdmin(admin.ModelAdmin):
             '<span style="background-color: #95a5a6; color: white; padding: 3px 8px; border-radius: 3px;">Normal</span>',
         )
 
-    get_riesgo_badge.short_description = "Riesgo"

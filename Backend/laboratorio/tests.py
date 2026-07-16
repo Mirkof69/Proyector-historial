@@ -1,6 +1,8 @@
 """Tests para el módulo de Laboratorio"""
 
+from datetime import date
 from decimal import Decimal
+from typing import cast
 
 from django.test import TestCase
 
@@ -24,7 +26,7 @@ class LaboratorioTestCase(TestCase):
         self.paciente = Paciente.objects.create(
             nombre="Paciente",
             apellido_paterno="Lab",
-            fecha_nacimiento="1990-01-01",
+            fecha_nacimiento=date(1990, 1, 1),
             ci="998877",
         )
         self.tipo_examen = TipoExamen.objects.create(
@@ -44,12 +46,12 @@ class LaboratorioTestCase(TestCase):
 
     def test_crear_examen(self):
         """Test crear examen"""
-        examen = ExamenLaboratorio.objects.create(
+        examen = cast(ExamenLaboratorio, ExamenLaboratorio.objects.create(
             paciente=self.paciente,
             tipo_examen=self.tipo_examen,
             medico_solicitante=self.medico,
             prioridad="normal",
-        )
+        ))
         self.assertIsNotNone(examen.id)
         self.assertEqual(examen.estado, "solicitado")
         self.assertEqual(examen.get_costo_total_estimado(), Decimal("50.00"))

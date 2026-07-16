@@ -160,9 +160,8 @@ class NLPMedicoService:
         texto_limpio = re.sub(r"[^a-z0-9\s]", " ", texto_sin_acentos)
 
         # Eliminar espacios múltiples
-        texto_limpio = re.sub(r"\s+", " ", texto_limpio).strip()
+        return re.sub(r"\s+", " ", texto_limpio).strip()
 
-        return texto_limpio
 
     def corregir_errores_tipeo(self, texto: str) -> str:
         """Corrige errores comunes de tipeo usando diccionario y similitud
@@ -187,7 +186,7 @@ class NLPMedicoService:
         if len(palabra) < 4:  # No corregir palabras muy cortas
             return palabra
 
-        mejor_similitud = 0
+        mejor_similitud: float = 0.0
         mejor_palabra = palabra
 
         # Buscar en todos los términos médicos
@@ -243,7 +242,7 @@ class NLPMedicoService:
         if not puntuaciones or max(puntuaciones.values()) == 0:
             return ("general", 50.0)
 
-        categoria_detectada = max(puntuaciones, key=puntuaciones.get)
+        categoria_detectada = max(puntuaciones, key=lambda k: puntuaciones[k])
         puntuacion_max = puntuaciones[categoria_detectada]
 
         # Calcular confianza (0-100)

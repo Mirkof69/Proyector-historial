@@ -1,4 +1,4 @@
-﻿"""Models module."""
+"""Models module."""
 from django.db import models
 from django_tenants.models import DomainMixin, TenantMixin
 

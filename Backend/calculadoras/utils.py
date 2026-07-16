@@ -5,13 +5,16 @@ Fórmulas médicas validadas según estándares internacionales
 import math
 from datetime import date, timedelta
 from decimal import Decimal
+from typing import Optional, cast
+
+from django.utils import timezone
 
 
 class CalculadorasObstetricas:
     """Calculadoras para obstetricia"""
 
     @staticmethod
-    def calcular_edad_gestacional(fum: date, fecha_actual: date = None) -> dict:
+    def calcular_edad_gestacional(fum: date, fecha_actual: Optional[date] = None) -> dict:
         """Calcula edad gestacional basada en FUM (Fecha de Última Menstruación)
 
         Args:
@@ -23,7 +26,7 @@ class CalculadorasObstetricas:
 
         """
         if not fecha_actual:
-            fecha_actual = date.today()
+            fecha_actual = timezone.localdate()
 
         diferencia = fecha_actual - fum
         dias_totales = diferencia.days
@@ -319,9 +322,9 @@ class CalculadorasObstetricas:
     def calcular_diabetes_gestacional(
         tipo_test: str,
         glucosa_ayunas: Decimal,
-        glucosa_1h: Decimal = None,
-        glucosa_2h: Decimal = None,
-        glucosa_3h: Decimal = None,
+        glucosa_1h: Optional[Decimal] = None,
+        glucosa_2h: Optional[Decimal] = None,
+        glucosa_3h: Optional[Decimal] = None,
     ) -> dict:
         """Evalúa tamizaje de diabetes gestacional
 
@@ -674,7 +677,7 @@ class CalculadorasGinecologicas:
         tamoxifeno: bool,
         sindrome_ovario_poliquistico: bool,
         antecedente_familiar: bool,
-        grosor_endometrial: Decimal = None,
+        grosor_endometrial: Optional[Decimal] = None,
     ) -> dict:
         """Evalúa factores de riesgo de cáncer de endometrio
 
@@ -827,7 +830,7 @@ class CalculadorasGenerales:
 
 def calcular_edad_gestacional(fur=None, fecha_actual=None):
     """Wrapper para calcular edad gestacional"""
-    return CalculadorasObstetricas.calcular_edad_gestacional(fur, fecha_actual)
+    return CalculadorasObstetricas.calcular_edad_gestacional(cast(date, fur), fecha_actual)
 
 
 def calcular_fecha_probable_parto(fur):

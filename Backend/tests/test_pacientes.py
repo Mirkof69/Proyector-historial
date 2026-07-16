@@ -3,6 +3,7 @@
 
 import datetime
 from decimal import Decimal
+from typing import cast
 
 from django.test import TestCase
 from django.urls import reverse
@@ -251,13 +252,13 @@ class PacienteAPITest(APITestCase):
     def test_retrieve_paciente(self):
         """Test retrieving a single paciente."""
         self._authenticate()
-        paciente = Paciente.objects.create(
+        paciente = cast(Paciente, Paciente.objects.create(
             nombre="Retrieve",
             apellido_paterno="Test",
             fecha_nacimiento=datetime.date(1990, 1, 1),
             genero="femenino",
             ci="33333333",
-        )
+        ))
         url = reverse("paciente-detail", kwargs={"pk": paciente.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -266,13 +267,13 @@ class PacienteAPITest(APITestCase):
     def test_update_paciente(self):
         """Test updating a paciente via PUT."""
         self._authenticate()
-        paciente = Paciente.objects.create(
+        paciente = cast(Paciente, Paciente.objects.create(
             nombre="Update",
             apellido_paterno="Test",
             fecha_nacimiento=datetime.date(1990, 1, 1),
             genero="femenino",
             ci="44444444",
-        )
+        ))
         url = reverse("paciente-detail", kwargs={"pk": paciente.pk})
         update_data = {
             "nombre": "Updated",
@@ -289,14 +290,14 @@ class PacienteAPITest(APITestCase):
     def test_partial_update_paciente(self):
         """Test partial update via PATCH."""
         self._authenticate()
-        paciente = Paciente.objects.create(
+        paciente = cast(Paciente, Paciente.objects.create(
             nombre="Partial",
             apellido_paterno="Test",
             fecha_nacimiento=datetime.date(1990, 1, 1),
             genero="femenino",
             ci="55555555",
             telefono="70700000",
-        )
+        ))
         url = reverse("paciente-detail", kwargs={"pk": paciente.pk})
         response = self.client.patch(url, {"telefono": "70799999"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -306,13 +307,13 @@ class PacienteAPITest(APITestCase):
     def test_delete_paciente_non_admin_forbidden(self):
         """Test that non-admin cannot delete paciente."""
         self._authenticate(user=self.medico_user)
-        paciente = Paciente.objects.create(
+        paciente = cast(Paciente, Paciente.objects.create(
             nombre="Delete",
             apellido_paterno="Test",
             fecha_nacimiento=datetime.date(1990, 1, 1),
             genero="femenino",
             ci="66666666",
-        )
+        ))
         url = reverse("paciente-detail", kwargs={"pk": paciente.pk})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

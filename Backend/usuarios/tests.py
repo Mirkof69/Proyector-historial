@@ -1,14 +1,11 @@
 """Tests para módulo de Usuarios y Autenticación"""
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Usuario
-
-User = get_user_model()
 
 
 class UsuarioModelTestCase(TestCase):

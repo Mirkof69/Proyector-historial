@@ -1,10 +1,12 @@
 """ECOGRAFÍAS ARCHIVOS - Model Definition
 """
 
+import os
+
 from django.db import models
+from django.utils import timezone
 
 
-# MODEL
 class EcografiaArchivo(models.Model):
     """Gestión de archivos multimedia de ecografías"""
 
@@ -30,11 +32,21 @@ class EcografiaArchivo(models.Model):
     )
 
     class Meta:
-        """Meta"""
         db_table = "ecografias_archivos"
         ordering = ["-fecha_subida"]
         verbose_name = "Archivo de Ecografía"
         verbose_name_plural = "Archivos de Ecografías"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.archivo:
+            nombre_paciente = self.ecografia.paciente.nombre_completo.replace(
+                " ", "_"
+            )
+            ext = os.path.splitext(self.archivo.name)[1]
+            timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+            nuevo_nombre = f"{nombre_paciente}_{timestamp}{ext}"
+            self.archivo.name = nuevo_nombre
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """Str"""

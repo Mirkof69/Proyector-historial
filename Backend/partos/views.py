@@ -15,11 +15,12 @@ from datetime import timedelta
 from django.db.models import Avg, Count, Max, Min, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets
-from core.permissions import FetalMedicalPermission
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
 
 from .errors import (
     PartoAlreadyFinalizadoError,
@@ -113,7 +114,7 @@ class PartoViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
 
         # Optimización para evitar N+1 queries
-        queryset = queryset.select_related(
+        return queryset.select_related(
             "paciente", "embarazo", "medico_responsable", "created_by", "modified_by",
         ).prefetch_related(
             "recien_nacidos",
@@ -121,7 +122,6 @@ class PartoViewSet(viewsets.ModelViewSet):
             "complicaciones",
         )
 
-        return queryset
 
     def get_serializer_class(self):
         """Usa serializer completo para lista y detalle para asegurar datos en dashboard"""
@@ -140,7 +140,7 @@ class PartoViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """✅ Eliminar parto completamente de la base de datos (hard delete)"""
         # ✅ SEGURIDAD: Solo administradores pueden eliminar
-        if request.user.rol != "administrador":
+        if getattr(request.user, 'rol', '') != "administrador":
             return Response(
                 {
                     "error": "Sin permisos para eliminar",
@@ -538,6 +538,223 @@ class PartoViewSet(viewsets.ModelViewSet):
 
         return Response({"total": partos.count(), "partos": serializer.data})
 
+    @action(detail=False, methods=["post"], url_path="calcular-apgar")
+    def calcular_apgar(self, request):
+        """Calcula puntaje Apgar desde el frontend
+        POST /api/partos/calcular-apgar/
+        Body: {"frecuencia_cardiaca": 2, "esfuerzo_respiratorio": 2, ...}
+        """
+        try:
+            data = request.data
+            if isinstance(data, str):
+                import json
+                data = json.loads(data)
+            requeridos = [
+                "frecuencia_cardiaca", "esfuerzo_respiratorio",
+                "tono_muscular", "reflejos", "color_piel",
+            ]
+            for campo in requeridos:
+                if campo not in data:
+                    return Response(
+                        {"error": f"Campo requerido: {campo}"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            total = sum(int(data[c]) for c in requeridos)
+            if total >= 7:
+                clasificacion = "Normal"
+            elif total >= 4:
+                clasificacion = "Moderadamente deprimido"
+            else:
+                clasificacion = "Severamente deprimido"
+            return Response({
+                "score_total": total,
+                "clasificacion": clasificacion,
+                "componentes": {c: int(data[c]) for c in requeridos},
+            })
+        except (ValueError, TypeError) as e:
+            return Response(
+                {"error": f"Datos inválidos: {e}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(detail=False, methods=["get"], url_path="analizar-paciente")
+    def analizar_paciente(self, request):
+        """Analiza el historial de partos de una paciente
+        GET /api/partos/analizar-paciente/?paciente_id=123
+        """
+        paciente_id = request.query_params.get("paciente_id")
+        if not paciente_id:
+            return Response(
+                {"error": "Debe proporcionar paciente_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        partos = self.get_queryset().filter(paciente_id=paciente_id)
+        total = partos.count()
+        if total == 0:
+            return Response({
+                "paciente_id": int(paciente_id),
+                "total_partos": 0,
+                "mensaje": "Paciente sin partos registrados",
+            })
+        partos_data = self.get_serializer(partos, many=True).data
+        return Response({
+            "paciente_id": int(paciente_id),
+            "total_partos": total,
+            "partos": partos_data,
+        })
+
+    @action(detail=True, methods=["get"], url_path="calcular-riesgo")
+    def calcular_riesgo(self, _request, _pk=None):
+        """Calcula nivel de riesgo de un parto
+        GET /api/partos/{id}/calcular-riesgo/
+        """
+        parto = self.get_object()
+        factores = []
+        nivel_riesgo = "bajo"
+        if parto.tipo_parto and parto.tipo_parto.lower() in ("cesarea", "forceps", "distocico"):
+            factores.append("Tipo de parto de alto riesgo")
+            nivel_riesgo = "alto"
+        if parto.hemorragia_postparto:
+            factores.append("Hemorragia registrada")
+            nivel_riesgo = "alto" if nivel_riesgo != "alto" else "alto"
+        if parto.complicaciones.exists():
+            factores.append(f"{parto.complicaciones.count()} complicación(es) registrada(s)")
+            if nivel_riesgo == "bajo":
+                nivel_riesgo = "medio"
+        if parto.edad_gestacional_parto:
+            try:
+                semanas_parto = int(parto.edad_gestacional_parto.split("+")[0])
+                if semanas_parto < 37:
+                    factores.append("Parto prematuro")
+                    nivel_riesgo = "alto"
+            except (ValueError, IndexError):
+                pass
+        recien_nacidos = parto.recien_nacidos.all()
+        for rn in recien_nacidos:
+            if rn.peso and rn.peso < 2500:
+                factores.append(f"Bajo peso al nacer: {rn.peso}g")
+                nivel_riesgo = "alto" if nivel_riesgo != "alto" else "alto"
+                break
+        return Response({
+            "parto_id": parto.id,
+            "nivel_riesgo": nivel_riesgo,
+            "factores_riesgo": factores,
+            "total_factores": len(factores),
+        })
+
+    @action(detail=True, methods=["get"], url_path="generar-pdf")
+    def generar_pdf(self, _request, _pk=None):
+        """Genera PDF con resumen del parto
+        GET /api/partos/{id}/generar-pdf/
+        """
+        parto = self.get_object()
+        try:
+            import pdfkit
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+            html = render_to_string("partos/reporte_parto_pdf.html", {
+                "parto": parto,
+                "paciente": parto.paciente,
+                "recien_nacidos": parto.recien_nacidos.all(),
+                "complicaciones": parto.complicaciones.all(),
+            })
+            pdf = pdfkit.from_string(html, False)
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="parto_{parto.id}.pdf"'
+            return response
+        except ImportError:
+            return Response({
+                "parto_id": parto.id,
+                "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
+                "datos": self.get_serializer(parto).data,
+            })
+        except Exception as e:
+            return Response(
+                {"error": f"Error generando PDF: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["get"], url_path="partograma-pdf")
+    def partograma_pdf(self, _request, _pk=None):
+        """Genera PDF del partograma
+        GET /api/partos/{id}/partograma-pdf/
+        """
+        parto = self.get_object()
+        try:
+            import pdfkit
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+            registros = parto.partograma.all().order_by("hora_registro")
+            html = render_to_string("partos/partograma_pdf.html", {
+                "parto": parto,
+                "registros": registros,
+            })
+            pdf = pdfkit.from_string(html, False)
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="partograma_{parto.id}.pdf"'
+            return response
+        except ImportError:
+            from .serializers import PartogramaRegistroSerializer
+            registros = parto.partograma.all().order_by("hora_registro")
+            return Response({
+                "parto_id": parto.id,
+                "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
+                "registros": PartogramaRegistroSerializer(registros, many=True).data,
+            })
+        except Exception as e:
+            return Response(
+                {"error": f"Error generando PDF: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=False, methods=["get"], url_path="exportar-excel")
+    def exportar_excel(self, request):
+        """Exporta lista de partos a Excel
+        GET /api/partos/exportar-excel/
+        """
+        try:
+            import openpyxl
+            from django.http import HttpResponse
+            from openpyxl.styles import Font
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Partos"
+            headers = [
+                "ID", "Paciente", "Fechahora", "Tipo Parto",
+                "Edad Gestacional", "Estado", "Complicaciones",
+            ]
+            for col, h in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=h)
+                cell.font = Font(bold=True)
+            queryset = self.filter_queryset(self.get_queryset())
+            for row, parto in enumerate(queryset, 2):
+                ws.cell(row=row, column=1, value=parto.id)
+                ws.cell(row=row, column=2, value=str(parto.paciente))
+                ws.cell(row=row, column=3, value=str(parto.fecha_parto))
+                ws.cell(row=row, column=4, value=parto.tipo_parto or "")
+                ws.cell(row=row, column=5, value=parto.edad_gestacional_parto or "")
+                ws.cell(row=row, column=6, value=parto.get_estado_parto())
+                ws.cell(row=row, column=7, value=parto.complicaciones.count())
+            response = HttpResponse(
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+            response["Content-Disposition"] = 'attachment; filename="partos.xlsx"'
+            wb.save(response)
+            return response
+        except ImportError:
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({
+                "mensaje": "Excel no disponible. Instale openpyxl: pip install openpyxl",
+                "total": queryset.count(),
+                "datos": serializer.data,
+            })
+        except Exception as e:
+            return Response(
+                {"error": f"Error exportando Excel: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # RECIÉN NACIDO VIEWSET - COMPLETO
@@ -748,7 +965,7 @@ class RecienNacidoViewSet(viewsets.ModelViewSet):
                 else [],
                 "parto_info": {
                     "numero_parto": rn.parto.numero_parto if rn.parto else None,
-                    "tipo_parto": rn.parto.get_tipo_parto_display()
+                    "tipo_parto": getattr(rn.parto, 'get_tipo_parto_display')()
                     if rn.parto
                     else None,
                 },

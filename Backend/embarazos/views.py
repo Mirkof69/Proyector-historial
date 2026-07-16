@@ -6,18 +6,19 @@ MÓDULO: EMBARAZOS - VIEWSET V3.0 FINAL CORREGIDO
 =============================================================================
 """
 
-from datetime import date, timedelta
+import contextlib
+from datetime import timedelta
 
 from django.core.cache import cache
 from django.db.models import Count, Max
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
 
+from core.permissions import FetalMedicalPermission
 from pacientes.models import Paciente
 
 from .models import Embarazo
@@ -120,23 +121,19 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         fum_hasta = self.request.query_params.get("fum_hasta", None)
 
         if fum_desde:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_ultima_menstruacion__gte=fum_desde)
-            except Exception:
-                pass
 
         if fum_hasta:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_ultima_menstruacion__lte=fum_hasta)
-            except Exception:
-                pass
 
         # Filtro por semanas de gestación
         semanas_min = self.request.query_params.get("semanas_min", None)
         semanas_max = self.request.query_params.get("semanas_max", None)
 
         if semanas_min or semanas_max:
-            today = date.today()
+            today = timezone.localdate()
 
             if semanas_min:
                 try:
@@ -161,7 +158,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         if trimestre:
             try:
                 trimestre = int(trimestre)
-                today = date.today()
+                today = timezone.localdate()
 
                 if trimestre == 1:
                     fecha_max = today
@@ -207,6 +204,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
 
         # Recargar con relaciones
+        assert serializer.instance is not None
         embarazo = Embarazo.objects.select_related("paciente").get(
             id=serializer.instance.id,
         )
@@ -253,7 +251,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """Eliminar embarazo completamente de la base de datos"""
         # ✅ SEGURIDAD: Solo administradores pueden eliminar
-        if request.user.rol != "administrador":
+        if getattr(request.user, 'rol', '') != "administrador":
             return Response(
                 {
                     "error": "Sin permisos para eliminar",
@@ -307,6 +305,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def activos(self, _request):
         """✅ Embarazos activos"""
+        assert self.queryset is not None
         embarazos = self.queryset.filter(estado="activo")
 
         page = self.paginate_queryset(embarazos)
@@ -335,6 +334,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
                 {"error": "Paciente no encontrado"}, status=status.HTTP_404_NOT_FOUND,
             )
 
+        assert self.queryset is not None
         embarazos = self.queryset.filter(paciente=paciente).order_by("-fecha_registro")
         serializer = EmbarazoSerializer(embarazos, many=True)
 
@@ -389,7 +389,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
             estado="activo", riesgo_embarazo="alto",
         ).count()
 
-        today = date.today()
+        today = timezone.localdate()
 
         primer_trimestre = Embarazo.objects.filter(
             estado="activo", fecha_ultima_menstruacion__gte=today - timedelta(weeks=13),
@@ -490,6 +490,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def alto_riesgo(self, _request):
         """✅ Embarazos de alto riesgo"""
+        assert self.queryset is not None
         embarazos_alto_riesgo = self.queryset.filter(
             estado="activo", riesgo_embarazo="alto",
         ).order_by("-fecha_registro")
@@ -508,9 +509,10 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     def proximos_partos(self, request):
         """✅ Próximos partos"""
         dias = int(request.query_params.get("dias", 30))
-        hoy = date.today()
+        hoy = timezone.localdate()
         fecha_limite = hoy + timedelta(days=dias)
 
+        assert self.queryset is not None
         embarazos = self.queryset.filter(
             estado="activo",
             fecha_probable_parto__gte=hoy,
@@ -532,9 +534,10 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def primer_trimestre(self, _request):
         """✅ Embarazos en 1er trimestre"""
-        hoy = date.today()
+        hoy = timezone.localdate()
         fecha_min = hoy - timedelta(weeks=13)
 
+        assert self.queryset is not None
         embarazos = self.queryset.filter(
             estado="activo", fecha_ultima_menstruacion__gte=fecha_min,
         ).order_by("-fecha_ultima_menstruacion")
@@ -553,10 +556,11 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def segundo_trimestre(self, _request):
         """✅ Embarazos en 2do trimestre"""
-        hoy = date.today()
+        hoy = timezone.localdate()
         fecha_max = hoy - timedelta(weeks=14)
         fecha_min = hoy - timedelta(weeks=27)
 
+        assert self.queryset is not None
         embarazos = self.queryset.filter(
             estado="activo",
             fecha_ultima_menstruacion__gte=fecha_min,
@@ -577,9 +581,10 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def tercer_trimestre(self, _request):
         """✅ Embarazos en 3er trimestre"""
-        hoy = date.today()
+        hoy = timezone.localdate()
         fecha_max = hoy - timedelta(weeks=28)
 
+        assert self.queryset is not None
         embarazos = self.queryset.filter(
             estado="activo", fecha_ultima_menstruacion__lt=fecha_max,
         ).order_by("fecha_probable_parto")
@@ -603,7 +608,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
 
         # Calcular edad gestacional actual
         if embarazo.fecha_ultima_menstruacion:
-            dias_diferencia = (date.today() - embarazo.fecha_ultima_menstruacion).days
+            dias_diferencia = (timezone.localdate() - embarazo.fecha_ultima_menstruacion).days
             semanas = dias_diferencia // 7
             dias = dias_diferencia % 7
             edad_gestacional = {
@@ -624,6 +629,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def multiples(self, _request):
         """✅ Embarazos múltiples"""
+        assert self.queryset is not None
         embarazos_multiples = self.queryset.filter(
             estado="activo", tipo_embarazo__in=["gemelar", "multiple"],
         ).order_by("-fecha_registro")
@@ -637,3 +643,318 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         serializer = EmbarazoSerializer(embarazos_multiples, many=True)
 
         return Response({"estadisticas": estadisticas, "embarazos": serializer.data})
+
+    @action(detail=False, methods=["post"])
+    def calcular_fpp(self, request):
+        """Calcular Fecha Probable de Parto (FPP) usando regla de Naegele"""
+        fum = request.data.get("fecha_ultima_menstruacion")
+        if not fum:
+            return Response(
+                {"error": "Se requiere fecha_ultima_menstruacion"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            from datetime import datetime, timedelta
+            if isinstance(fum, str):
+                fum_date = datetime.strptime(fum, "%Y-%m-%d").date()
+            else:
+                fum_date = fum
+            fpp = fum_date + timedelta(days=280)
+            hoy = timezone.localdate()
+            dias_embarazo = (hoy - fum_date).days
+            semanas = dias_embarazo // 7
+            dias = dias_embarazo % 7
+            return Response({
+                "fecha_ultima_menstruacion": str(fum_date),
+                "fecha_probable_parto": str(fpp),
+                "edad_gestacional_actual": {
+                    "semanas": semanas,
+                    "dias": dias,
+                    "texto": f"{semanas} semanas + {dias} días",
+                },
+                "dias_restantes_fpp": (fpp - hoy).days if fpp > hoy else 0,
+                "metodo": "Naegele (FUM + 280 días)",
+            })
+        except (ValueError, TypeError) as e:
+            return Response(
+                {"error": f"Fecha inválida: {e}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(detail=True, methods=["get"], url_path="edad-gestacional")
+    def edad_gestacional(self, _request, _pk=None):
+        """Calcular edad gestacional actual desde FUM del embarazo"""
+        embarazo = self.get_object()
+        if not embarazo.fecha_ultima_menstruacion:
+            return Response(
+                {"error": "El embarazo no tiene fecha de última menstruación registrada"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        hoy = timezone.localdate()
+        dias_diferencia = (hoy - embarazo.fecha_ultima_menstruacion).days
+        semanas = dias_diferencia // 7
+        dias = dias_diferencia % 7
+        if semanas <= 13:
+            trimestre = 1
+        elif semanas <= 27:
+            trimestre = 2
+        else:
+            trimestre = 3
+        return Response({
+            "embarazo_id": embarazo.id,
+            "fecha_ultima_menstruacion": str(embarazo.fecha_ultima_menstruacion),
+            "edad_gestacional": {
+                "semanas": semanas,
+                "dias": dias,
+                "total_dias": dias_diferencia,
+                "texto": f"{semanas} semanas + {dias} días",
+                "trimestre": trimestre,
+            },
+            "fecha_probable_parto": str(embarazo.fecha_probable_parto) if embarazo.fecha_probable_parto else None,
+        })
+
+    @action(detail=True, methods=["get"], url_path="evaluar-riesgo")
+    def evaluar_riesgo(self, _request, _pk=None):
+        """Evaluar nivel de riesgo del embarazo"""
+        embarazo = self.get_object()
+        factores_riesgo = []
+        puntaje = 0
+
+        if embarazo.riesgo_embarazo == "alto":
+            factores_riesgo.append("Clasificado como alto riesgo en registro")
+            puntaje += 3
+        if embarazo.edad_materna_avanzada():
+            factores_riesgo.append("Edad materna avanzada (≥35 años)")
+            puntaje += 2
+        if embarazo.numero_cesareas and embarazo.numero_cesareas >= 2:
+            factores_riesgo.append(f"Múltiples cesáreas previas ({embarazo.numero_cesareas})")
+            puntaje += 2
+        if embarazo.tipo_embarazo in ("gemelar", "multiple"):
+            factores_riesgo.append(f"Embarazo {embarazo.tipo_embarazo}")
+            puntaje += 2
+
+        nivel = "bajo" if puntaje < 2 else "medio" if puntaje < 4 else "alto"
+        return Response({
+            "embarazo_id": embarazo.id,
+            "nivel_riesgo": nivel,
+            "puntaje": puntaje,
+            "factores_riesgo": factores_riesgo,
+            "clasificacion_actual": embarazo.riesgo_embarazo,
+            "recomendacion": "Seguimiento normal" if nivel == "bajo" else (
+                "Controles cada 2 semanas" if nivel == "medio" else "Seguimiento especializado semanal"
+            ),
+        })
+
+    @action(detail=True, methods=["get"], url_path="calcular-riesgo-detallado")
+    def calcular_riesgo_detallado(self, _request, _pk=None):
+        """Cálculo detallado de riesgo obstétrico"""
+        embarazo = self.get_object()
+        riesgos = {
+            "preeclampsia": {"presente": False, "factores": [], "puntaje": 0},
+            "diabetes_gestacional": {"presente": False, "factores": [], "puntaje": 0},
+            "parto_prematuro": {"presente": False, "factores": [], "puntaje": 0},
+            "rciu": {"presente": False, "factores": [], "puntaje": 0},
+        }
+        if embarazo.riesgo_embarazo == "alto":
+            for k in riesgos:
+                riesgos[k]["puntaje"] = 1
+                riesgos[k]["factores"].append("Riesgo general alto")
+        return Response({
+            "embarazo_id": embarazo.id,
+            "riesgos": riesgos,
+            "nivel_general": embarazo.riesgo_embarazo,
+        })
+
+    @action(detail=True, methods=["get"], url_path="timeline-completo")
+    def timeline_completo(self, _request, _pk=None):
+        """Línea de tiempo completa del embarazo con todos los eventos"""
+        embarazo = self.get_object()
+        try:
+            timeline = []
+            if embarazo.fecha_ultima_menstruacion:
+                timeline.append({
+                    "tipo": "fum",
+                    "fecha": str(embarazo.fecha_ultima_menstruacion),
+                    "titulo": "Fecha de Última Menstruación",
+                    "descripcion": f"Inicio del embarazo (semana 0)",
+                })
+            for control in embarazo.controles.all().order_by("fecha_control"):
+                timeline.append({
+                    "tipo": "control",
+                    "fecha": str(control.fecha_control),
+                    "titulo": f"Control #{control.numero_control}",
+                    "descripcion": f"Semana {control.semanas_gestacion} - PA: {control.presion_arterial_sistolica}/{control.presion_arterial_diastolica}",
+                })
+            for ecografia in embarazo.ecografias.all().order_by("fecha_ecografia"):
+                timeline.append({
+                    "tipo": "ecografia",
+                    "fecha": str(ecografia.fecha_ecografia),
+                    "titulo": f"Ecografía ({ecografia.get_tipo_ecografia_display()})",
+                    "descripcion": ecografia.diagnostico or "Sin diagnóstico",
+                })
+            from partos.models import Parto
+            for parto in Parto.objects.filter(embarazo=embarazo).order_by("fecha_parto"):
+                timeline.append({
+                    "tipo": "parto",
+                    "fecha": str(parto.fecha_parto),
+                    "titulo": f"Parto ({parto.get_tipo_parto_display()})",
+                    "descripcion": parto.observaciones or "",
+                })
+            timeline.sort(key=lambda x: x["fecha"])
+            return Response({
+                "embarazo_id": embarazo.id,
+                "eventos": timeline,
+                "total_eventos": len(timeline),
+            })
+        except Exception as e:
+            return Response({"embarazo_id": embarazo.id, "eventos": [], "total_eventos": 0})
+
+    @action(detail=True, methods=["get"])
+    def ecografias(self, _request, _pk=None):
+        """Obtener ecografías del embarazo"""
+        embarazo = self.get_object()
+        ecografias_qs = embarazo.ecografias.all().order_by("-fecha_ecografia")
+        from ecografias.serializers import EcografiaListSerializer
+        serializer = EcografiaListSerializer(ecografias_qs, many=True)
+        return Response({
+            "embarazo_id": embarazo.id,
+            "total": ecografias_qs.count(),
+            "ecografias": serializer.data,
+        })
+
+    @action(detail=True, methods=["get"])
+    def riesgos(self, _request, _pk=None):
+        """Obtener clasificaciones de riesgo del embarazo"""
+        embarazo = self.get_object()
+        try:
+            clasificaciones = embarazo.clasificaciones_riesgo.all().order_by("-fecha_evaluacion")
+            data = [{
+                "id": c.id,
+                "nivel_riesgo": c.nivel_riesgo,
+                "puntaje": c.puntaje,
+                "fecha_evaluacion": str(c.fecha_evaluacion),
+                "observaciones": c.observaciones,
+            } for c in clasificaciones]
+        except Exception:
+            data = []
+        return Response({
+            "embarazo_id": embarazo.id,
+            "clasificacion_actual": embarazo.riesgo_embarazo,
+            "historial": data,
+        })
+
+    @action(detail=True, methods=["get"])
+    def complicaciones(self, _request, _pk=None):
+        """Obtener complicaciones del embarazo"""
+        embarazo = self.get_object()
+        try:
+            from partos.models import ComplicacionParto
+            complicaciones = ComplicacionParto.objects.filter(
+                parto__embarazo=embarazo
+            ).order_by("-parto__fecha_parto")
+            data = [{
+                "id": c.id,
+                "tipo": c.tipo_complicacion,
+                "severidad": c.severidad,
+                "descripcion": c.descripcion,
+                "fecha": str(c.parto.fecha_parto) if c.parto else None,
+            } for c in complicaciones]
+        except Exception:
+            data = []
+        return Response({
+            "embarazo_id": embarazo.id,
+            "total": len(data),
+            "complicaciones": data,
+        })
+
+    @action(detail=True, methods=["get"])
+    def parto(self, _request, _pk=None):
+        """Obtener parto asociado al embarazo"""
+        embarazo = self.get_object()
+        try:
+            from partos.models import Parto
+            parto = Parto.objects.filter(embarazo=embarazo).first()
+            if parto:
+                from partos.serializers import PartoSerializer
+                return Response(PartoSerializer(parto).data)
+            return Response(
+                {"error": "No hay parto registrado para este embarazo"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Error al obtener parto: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["get"], url_path="generar-pdf")
+    def generar_pdf(self, _request, _pk=None):
+        """Generar PDF con resumen del embarazo"""
+        embarazo = self.get_object()
+        try:
+            import pdfkit
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+            html = render_to_string("embarazos/reporte_pdf.html", {
+                "embarazo": embarazo,
+                "paciente": embarazo.paciente,
+                "controles": embarazo.controles.all().order_by("fecha_control"),
+            })
+            pdf = pdfkit.from_string(html, False)
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="embarazo_{embarazo.id}.pdf"'
+            return response
+        except ImportError:
+            from rest_framework.response import Response as DRFResponse
+            return DRFResponse(
+                {
+                    "embarazo_id": embarazo.id,
+                    "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
+                    "datos": EmbarazoSerializer(embarazo).data,
+                }
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Error generando PDF: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=False, methods=["get"], url_path="exportar-excel")
+    def exportar_excel(self, request):
+        """Exportar lista de embarazos a Excel"""
+        try:
+            from io import BytesIO
+
+            import openpyxl
+            from django.http import HttpResponse
+            queryset = self.filter_queryset(self.get_queryset())
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Embarazos"
+            headers = ["ID", "Paciente", "Gesta", "FUM", "FPP", "Tipo", "Riesgo", "Estado"]
+            ws.append(headers)
+            for e in queryset:
+                ws.append([
+                    e.id,
+                    str(e.paciente),
+                    e.numero_gesta,
+                    str(e.fecha_ultima_menstruacion or ""),
+                    str(e.fecha_probable_parto or ""),
+                    e.tipo_embarazo,
+                    e.riesgo_embarazo,
+                    e.estado,
+                ])
+            output = BytesIO()
+            wb.save(output)
+            output.seek(0)
+            response = HttpResponse(
+                output.getvalue(),
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+            response["Content-Disposition"] = "attachment; filename=embarazos.xlsx"
+            return response
+        except ImportError:
+            return Response(
+                {"error": "openpyxl no instalado. pip install openpyxl"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

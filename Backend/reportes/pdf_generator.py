@@ -102,7 +102,7 @@ class PDFGenerator:
         # Fecha de generación
         canvas.setFont("Helvetica", 9)
         canvas.setFillColor(colors.HexColor("#666666"))
-        fecha_actual = timezone.now().strftime("%d/%m/%Y %HMS")
+        fecha_actual = timezone.now().strftime("%d/%m/%Y %H:%M:%S")
         canvas.drawRightString(A4[0] - 50, A4[1] - 35, f"Generado: {fecha_actual}")
 
         canvas.restoreState()

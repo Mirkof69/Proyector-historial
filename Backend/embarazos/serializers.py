@@ -6,8 +6,10 @@ MÓDULO: EMBARAZOS - SERIALIZERS V3.0 FINAL CORREGIDO
 =============================================================================
 """
 
-from datetime import date, timedelta
+from datetime import timedelta
+from typing import Any, cast
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from pacientes.models import Paciente
@@ -116,7 +118,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         # Calcular edad
         edad = None
         if paciente.fecha_nacimiento:
-            hoy = date.today()
+            hoy = timezone.localdate()
             edad = hoy.year - paciente.fecha_nacimiento.year
             if (hoy.month, hoy.day) < (
                 paciente.fecha_nacimiento.month,
@@ -154,7 +156,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         if not obj.fecha_ultima_menstruacion:
             return None
 
-        today = date.today()
+        today = timezone.localdate()
         diferencia = (today - obj.fecha_ultima_menstruacion).days
         semanas = diferencia // 7
         dias = diferencia % 7
@@ -186,7 +188,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
     def get_semanas_gestacion(self, obj):
         """✅ Formato corto semanas+días"""
         if obj.fecha_ultima_menstruacion:
-            hoy = date.today()
+            hoy = timezone.localdate()
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
             dias = diferencia % 7
@@ -198,20 +200,19 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         if not obj.fecha_probable_parto:
             return None
 
-        today = date.today()
+        today = timezone.localdate()
         if today >= obj.fecha_probable_parto:
             return 0
 
         diferencia = (obj.fecha_probable_parto - today).days
-        semanas = diferencia // 7
-        return semanas
+        return diferencia // 7
 
     def get_dias_restantes(self, obj):
         """✅ Días exactos hasta FPP"""
         if not obj.fecha_probable_parto:
             return None
 
-        today = date.today()
+        today = timezone.localdate()
         if today >= obj.fecha_probable_parto:
             return 0
 
@@ -222,7 +223,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         if not obj.fecha_ultima_menstruacion:
             return None
 
-        hoy = date.today()
+        hoy = timezone.localdate()
         diferencia = (hoy - obj.fecha_ultima_menstruacion).days
         semanas = diferencia // 7
 
@@ -309,11 +310,11 @@ class EmbarazoSerializer(serializers.ModelSerializer):
                 "La Fecha de Última Menstruación es obligatoria",
             )
 
-        if value > date.today():
+        if value > timezone.localdate():
             raise serializers.ValidationError("La FUM no puede ser una fecha futura")
 
         # Validar que no sea muy antigua (máximo 42 semanas)
-        diferencia_dias = (date.today() - value).days
+        diferencia_dias = (timezone.localdate() - value).days
         if diferencia_dias > 294:  # 42 semanas
             raise serializers.ValidationError(
                 f"La FUM es muy antigua ({diferencia_dias} días). "
@@ -348,7 +349,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             if query.exists():
                 raise serializers.ValidationError(
                     {
-                        "estado": f"❌ Esta paciente ya tiene un embarazo activo (ID: {query.first().id}). "
+                        "estado": f"❌ Esta paciente ya tiene un embarazo activo (ID: {cast(Any, query.first()).id}). "
                         "Solo puede haber UN embarazo activo por paciente. "
                         "Finalice el embarazo anterior antes de crear/activar otro.",
                     },
@@ -375,6 +376,29 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         # 5. Clasificación automática de riesgo si es embarazo múltiple
         if tipo in ["gemelar", "multiple"] and riesgo == "bajo":
             attrs["riesgo_embarazo"] = "alto"
+
+        # 6. Validar usando el método clean() del modelo
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        model_fields = [f.name for f in Embarazo._meta.fields]
+        temp_data = {}
+        if self.instance:
+            for field_name in model_fields:
+                if hasattr(self.instance, field_name):
+                    temp_data[field_name] = getattr(self.instance, field_name)
+
+        for k, v in attrs.items():
+            if k in model_fields:
+                temp_data[k] = v
+
+        temp_data.pop('id', None)
+        temp_data.pop('uuid', None)
+
+        temp_instance = Embarazo(**temp_data)
+        try:
+            temp_instance.clean()
+        except DjangoValidationError as e:
+            err_dict = e.message_dict if hasattr(e, 'message_dict') else {'non_field_errors': e.messages}
+            raise serializers.ValidationError(err_dict) from e
 
         return attrs
 
@@ -456,7 +480,7 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
         # Calcular edad
         edad = None
         if paciente.fecha_nacimiento:
-            hoy = date.today()
+            hoy = timezone.localdate()
             edad = hoy.year - paciente.fecha_nacimiento.year
             if (hoy.month, hoy.day) < (
                 paciente.fecha_nacimiento.month,
@@ -491,7 +515,7 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
     def get_semanas_gestacion(self, obj):
         """Get semanas gestacion"""
         if obj.fecha_ultima_menstruacion:
-            hoy = date.today()
+            hoy = timezone.localdate()
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
             dias = diferencia % 7
@@ -501,7 +525,7 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
     def get_trimestre(self, obj):
         """Get trimestre"""
         if obj.fecha_ultima_menstruacion:
-            hoy = date.today()
+            hoy = timezone.localdate()
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
 
@@ -515,7 +539,7 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
     def get_dias_hasta_fpp(self, obj):
         """Get dias hasta fpp"""
         if obj.fecha_probable_parto:
-            hoy = date.today()
+            hoy = timezone.localdate()
             if hoy < obj.fecha_probable_parto:
                 return (obj.fecha_probable_parto - hoy).days
             return 0
@@ -596,7 +620,7 @@ class EmbarazoResumenSerializer(serializers.ModelSerializer):
     def get_edad_gestacional_texto(self, obj):
         """Get edad gestacional texto"""
         if obj.fecha_ultima_menstruacion:
-            hoy = date.today()
+            hoy = timezone.localdate()
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
             dias = diferencia % 7

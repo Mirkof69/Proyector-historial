@@ -4,12 +4,15 @@ en los modelos del sistema y los registra en RegistroAuditoria.
 """
 
 import json
+import logging
 import threading
 
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from .models import RegistroAuditoria
+
+logger = logging.getLogger(__name__)
 
 _thread_locals = threading.local()
 
@@ -48,24 +51,41 @@ EXCLUIR_MODELOS = [
     "Permission",
 ]
 
-_tabla_cache = {"existe": None}
+PII_FIELDS = {
+    "nombre", "apellido_paterno", "apellido_materno",
+    "ci", "telefono", "email", "direccion",
+    "contacto_emergencia_nombre", "contacto_emergencia_telefono",
+    "contacto_emergencia_relacion",
+    "numero_seguro_social",
+    "password", "mfa_secret", "token",
+}
+
+
+def redactar_pii(data: dict) -> dict:
+    """Redacta campos PII en registros de auditoría."""
+    if not isinstance(data, dict):
+        return data
+    return {
+        k: "***REDACTADO***" if k.lower() in PII_FIELDS and v is not None else v
+        for k, v in data.items()
+    }
+
+_tabla_cache: dict[str, bool | None] = {"existe": None}
 
 
 def verificar_tabla_auditoria_existe():
-    """Verificar tabla auditoria existe"""
+    """¿Existe la tabla de auditoría? Usa la introspección de Django (portable a
+    PostgreSQL, SQLite y cualquier backend), en vez de un query a
+    information_schema que solo funciona en PostgreSQL (antes eso deshabilitaba
+    la auditoría en SQLite/tests)."""
     if _tabla_cache["existe"] is not None:
         return _tabla_cache["existe"]
     try:
         from django.db import connection
 
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables
-                    WHERE table_name = 'auditoria_registros'
-                );
-            """)
-            _tabla_existe = cursor.fetchone()[0]
+        _tabla_cache["existe"] = (
+            "auditoria_registros" in connection.introspection.table_names()
+        )
     except Exception:
         _tabla_cache["existe"] = False
     return _tabla_cache["existe"]
@@ -89,7 +109,7 @@ def serializar_instancia(instance):
                 data[field_name] = field_value.pk if field_value else None
                 if field_value:
                     data[f"{field_name}_display"] = str(field_value)
-            elif hasattr(field_value, "isoformat"):
+            elif field_value is not None and hasattr(field_value, "isoformat"):
                 data[field_name] = field_value.isoformat()
             else:
                 try:
@@ -101,7 +121,7 @@ def serializar_instancia(instance):
                     )
         return data
     except Exception as e:
-        print(f"Error al serializar instancia: {e}")
+        logger.error("Error al serializar instancia: %s", e)
         return {}
 
 
@@ -133,13 +153,13 @@ def auditar_creacion_actualizacion(sender, instance, created, **_kwargs):
                 accion="crear",
                 registro_id=str(instance.pk),
                 usuario=usuario,
-                datos_nuevos=serializar_instancia(instance),
+                datos_nuevos=redactar_pii(serializar_instancia(instance)),
             )
         else:
             cache = _get_instance_cache()
             cache_key = f"{sender.__name__}_{instance.pk}"
-            datos_anteriores = cache.get(cache_key)
-            datos_nuevos = serializar_instancia(instance)
+            datos_anteriores = redactar_pii(cache.get(cache_key) or {})
+            datos_nuevos = redactar_pii(serializar_instancia(instance))
             if datos_anteriores and datos_anteriores != datos_nuevos:
                 RegistroAuditoria.objects.create(
                     modulo=modulo,
@@ -151,7 +171,7 @@ def auditar_creacion_actualizacion(sender, instance, created, **_kwargs):
                 )
             cache.pop(cache_key, None)
     except Exception as e:
-        print(f"Error en auditoría (post_save): {e}")
+        logger.error("Error en auditoría (post_save): %s", e)
 
 
 @receiver(post_delete)
@@ -165,7 +185,7 @@ def auditar_eliminacion(sender, instance, **_kwargs):
             accion="eliminar",
             registro_id=str(instance.pk),
             usuario=get_current_user(),
-            datos_anteriores=serializar_instancia(instance),
+            datos_anteriores=redactar_pii(serializar_instancia(instance)),
         )
     except Exception as e:
-        print(f"Error en auditoría (post_delete): {e}")
+        logger.error("Error en auditoría (post_delete): %s", e)

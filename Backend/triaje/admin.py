@@ -75,12 +75,13 @@ class TriajeEnfermeriaAdmin(admin.ModelAdmin):
         ("Metadatos", {"fields": ("fecha_registro",), "classes": ("collapse",)}),
     )
 
+    @admin.display(description="PA")
     def get_presion(self, obj):
         """Get presion"""
         return obj.get_presion_arterial()
 
-    get_presion.short_description = "PA"
 
+    @admin.display(description="IMC")
     def get_imc_badge(self, obj):
         """Get imc badge"""
         if obj.imc:
@@ -93,8 +94,8 @@ class TriajeEnfermeriaAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    get_imc_badge.short_description = "IMC"
 
+    @admin.display(description="Alertas")
     def get_alertas(self, obj):
         """Get alertas"""
         alertas = []
@@ -106,4 +107,3 @@ class TriajeEnfermeriaAdmin(admin.ModelAdmin):
             alertas.append("⚠️ Taqui")
         return " ".join(alertas) if alertas else "✅"
 
-    get_alertas.short_description = "Alertas"

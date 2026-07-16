@@ -1,24 +1,23 @@
 """Tests para el módulo de Citas Médicas"""
 
 from datetime import date, time, timedelta
+from typing import cast
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
 
 from consultorios.models import Consultorio
 from pacientes.models import Paciente
+from usuarios.models import Usuario
 
 from .models import Cita, Disponibilidad
-
-User = get_user_model()
 
 
 class CitaModelTestCase(TestCase):
     """Citamodeltestcase"""
     def setUp(self):
         """Setup"""
-        self.medico = User.objects.create_user(
+        self.medico = Usuario.objects.create_user(
             email="medico_test@clinica.com",
             password="password123",
             rol="medico",
@@ -39,14 +38,14 @@ class CitaModelTestCase(TestCase):
     def test_crear_cita_valida(self):
         """Test crear una cita en el futuro"""
         fecha_futura = timezone.now().date() + timedelta(days=5)
-        cita = Cita.objects.create(
+        cita = cast(Cita, Cita.objects.create(
             paciente=self.paciente,
             medico=self.medico,
             consultorio=self.consultorio,
             fecha_cita=fecha_futura,
             hora_cita=time(10, 0),
             motivo="Consulta general",
-        )
+        ))
         self.assertIsNotNone(cita.id)
         self.assertEqual(cita.estado, "agendada")
 
@@ -111,7 +110,7 @@ class DisponibilidadTestCase(TestCase):
     """Disponibilidadtestcase"""
     def setUp(self):
         """Setup"""
-        self.medico = User.objects.create_user(
+        self.medico = Usuario.objects.create_user(
             email="medico_disp@clinica.com",
             nombre="Medico",
             apellido_paterno="Disp",

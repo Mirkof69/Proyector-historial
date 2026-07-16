@@ -135,12 +135,36 @@ class MarcarLeidaSerializer(serializers.Serializer):
     )
 
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+    def validate_notificacion_ids(self, value):
+        if value is not None:
+            for id_val in value:
+                if not isinstance(id_val, int) or id_val <= 0:
+                    raise serializers.ValidationError(
+                        "Todos los IDs deben ser enteros positivos",
+                    )
+        return value
+
+    def validate(self, data):
+        request = self.context.get("request")
+        if not data.get("marcar_todas") and data.get("notificacion_ids"):
+            from .models import Notificacion
+            if request and request.user.is_authenticated:
+                ids = data["notificacion_ids"]
+                count = Notificacion.objects.filter(
+                    id__in=ids, usuario=request.user,
+                ).count()
+                if count != len(ids):
+                    raise serializers.ValidationError(
+                        {"notificacion_ids": "Alguna(s) notificación(es) no pertenecen al usuario"},
+                    )
+        return data
 
 
 class ConfiguracionNotificacionesSerializer(serializers.ModelSerializer):
@@ -210,9 +234,15 @@ class EstadisticasNotificacionesSerializer(serializers.Serializer):
     recientes_24h = serializers.IntegerField()
 
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+    def validate_fecha_desde(self, value):
+        return value
+
+    def validate(self, data):
+        return data

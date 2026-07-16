@@ -1,8 +1,9 @@
 """Serializers module."""
 import re
-from datetime import date, datetime
+from datetime import datetime
 
 from django.core.validators import EmailValidator
+from django.utils import timezone
 from rest_framework import serializers
 
 from .models import Paciente
@@ -113,7 +114,7 @@ class PacienteSerializer(serializers.ModelSerializer):
     def get_edad(self, obj):
         """Calcula edad del paciente"""
 
-        today = date.today()
+        today = timezone.localdate()
         edad = today.year - obj.fecha_nacimiento.year
         if today.month < obj.fecha_nacimiento.month or (
             today.month == obj.fecha_nacimiento.month
@@ -265,13 +266,13 @@ class PacienteSerializer(serializers.ModelSerializer):
         """Validaciones generales"""
         # Validar fecha de nacimiento no sea futura
         if "fecha_nacimiento" in attrs:
-            if attrs["fecha_nacimiento"] > date.today():
+            if attrs["fecha_nacimiento"] > timezone.localdate():
                 raise serializers.ValidationError(
                     {"fecha_nacimiento": "La fecha de nacimiento no puede ser futura"},
                 )
 
             # Validar edad mínima (10 años) y máxima (100 años)
-            edad = date.today().year - attrs["fecha_nacimiento"].year
+            edad = timezone.localdate().year - attrs["fecha_nacimiento"].year
             if edad < 10:
                 raise serializers.ValidationError(
                     {"fecha_nacimiento": "El paciente debe tener al menos 10 años"},
@@ -357,7 +358,7 @@ class PacienteListSerializer(serializers.ModelSerializer):
     def get_edad(self, obj):
         """Get edad"""
 
-        today = date.today()
+        today = timezone.localdate()
         edad = today.year - obj.fecha_nacimiento.year
         if today.month < obj.fecha_nacimiento.month or (
             today.month == obj.fecha_nacimiento.month
@@ -398,174 +399,63 @@ class PacienteListSerializer(serializers.ModelSerializer):
         return ue.numero_cesareas if ue else 0
 
     def get_ultimo_estado_obstetrico(self, obj):
-        """Determina el ÚLTIMO ESTADO real del paciente mirando TODOS los eventos:
-            pass
-        - Embarazos (activo, finalizado, perdida)
-        - Controles Prenatales
-        - Partos
-        """
         try:
-            from partos.models import Parto
-
-            # Recopilar TODOS los eventos con sus fechas
             eventos = []
 
-            # 1. EMBARAZOS
-            for embarazo in obj.embarazos.all():
-                try:
-                    fecha = embarazo.fecha_registro
-                    if not fecha:
-                        continue
-
-                    if embarazo.estado == "activo":
-                        eventos.append(
-                            {
-                                "tipo": "embarazo_activo",
-                                "fecha": fecha,
-                                "descripcion": "GESTANDO",
-                                "embarazo": embarazo,
-                            },
-                        )
-                    elif embarazo.estado == "perdida":
-                        eventos.append(
-                            {
-                                "tipo": "aborto",
-                                "fecha": fecha,
-                                "descripcion": "Último: Aborto",
-                                "embarazo": embarazo,
-                            },
-                        )
-                except Exception:
-                    # Log pero continuar con otros embarazos
+            for e in obj.embarazos.all():
+                if not e.fecha_registro:
                     continue
+                if e.estado == "activo":
+                    eventos.append((e.fecha_registro, "GESTANDO"))
+                elif e.estado == "perdida":
+                    eventos.append((e.fecha_registro, "Último: Aborto"))
 
-            # 2. CONTROLES PRENATALES
-            try:
-                ultimo_control = obj.controles_prenatales.order_by(
-                    "-fecha_control",
-                ).first()
-                if ultimo_control and ultimo_control.fecha_control:
-                    eventos.append(
-                        {
-                            "tipo": "control",
-                            "fecha": datetime.combine(
-                                ultimo_control.fecha_control, datetime.min.time(),
-                            ),
-                            "descripcion": f"Último Control: {ultimo_control.fecha_control.strftime('%d/%m/%Y')}",
-                            "control": ultimo_control,
-                        },
-                    )
-            except Exception:
-                # Log pero continuar
-                pass
+            ultimo_control = obj.controles_prenatales.order_by("-fecha_control").first()
+            if ultimo_control and ultimo_control.fecha_control:
+                eventos.append((
+                    datetime.combine(ultimo_control.fecha_control, datetime.min.time()),
+                    f"Último Control: {ultimo_control.fecha_control.strftime('%d/%m/%Y')}",
+                ))
 
-            # 3. PARTOS
-            try:
-                for parto in Parto.objects.filter(paciente=obj).order_by(
-                    "-fecha_parto",
-                ):
-                    try:
-                        if not parto.fecha_parto:
-                            continue
+            for parto in obj.partos.all():
+                if not parto.fecha_parto:
+                    continue
+                tipo = "Cesárea" if parto.tipo_parto and "cesarea" in parto.tipo_parto.lower() else "Parto Normal"
+                eventos.append((
+                    datetime.combine(parto.fecha_parto, datetime.min.time()),
+                    f"Último: {tipo}",
+                ))
 
-                        # ✅ Validación: Verificar que tipo_parto no sea None
-                        if parto.tipo_parto:
-                            tipo_parto_str = (
-                                "Cesárea"
-                                if "cesarea" in parto.tipo_parto.lower()
-                                else "Parto Normal"
-                            )
-                        else:
-                            tipo_parto_str = "Parto"  # Fallback si no hay tipo_parto
-
-                        eventos.append(
-                            {
-                                "tipo": "parto",
-                                "fecha": datetime.combine(
-                                    parto.fecha_parto, datetime.min.time(),
-                                ),
-                                "descripcion": f"Último: {tipo_parto_str}",
-                                "parto": parto,
-                            },
-                        )
-                    except Exception:
-                        # Log pero continuar con otros partos
-                        continue
-            except Exception:
-                # Log pero continuar
-                pass
-
-            # Si no hay eventos, retornar None
             if not eventos:
                 return None
-
-            # Ordenar eventos por fecha (más reciente primero)
-            eventos_ordenados = sorted(eventos, key=lambda x: x["fecha"], reverse=True)
-            evento_mas_reciente = eventos_ordenados[0]
-
-            # Retornar descripción del evento más reciente
-            return evento_mas_reciente["descripcion"]
+            return max(eventos, key=lambda x: x[0])[1]
 
         except Exception:
-            # Si hay cualquier error, retornar None en vez de fallar
             return None
 
     def get_fecha_ultimo_evento(self, obj):
-        """Obtiene la fecha del ÚLTIMO EVENTO real (embarazo, control o parto)
-        """
         try:
+            fechas: list[datetime] = []
 
-            fechas = []
+            ultimo_embarazo = obj.embarazos.order_by("-fecha_registro").first()
+            if ultimo_embarazo and ultimo_embarazo.fecha_registro:
+                fechas.append(ultimo_embarazo.fecha_registro)
 
-            # Embarazos
-            try:
-                ultimo_embarazo = obj.embarazos.order_by("-fecha_registro").first()
-                if ultimo_embarazo and ultimo_embarazo.fecha_registro:
-                    fechas.append(ultimo_embarazo.fecha_registro)
-            except Exception:
-                pass
+            ultimo_control = obj.controles_prenatales.order_by("-fecha_control").first()
+            if ultimo_control and ultimo_control.fecha_control:
+                fechas.append(datetime.combine(ultimo_control.fecha_control, datetime.min.time()))
 
-            # Controles
-            try:
-                ultimo_control = obj.controles_prenatales.order_by(
-                    "-fecha_control",
-                ).first()
-                if ultimo_control and ultimo_control.fecha_control:
-                    fechas.append(
-                        datetime.combine(
-                            ultimo_control.fecha_control, datetime.min.time(),
-                        ),
-                    )
-            except Exception:
-                pass
-
-            # Partos
-            try:
-                from partos.models import Parto
-                ultimo_parto = (
-                    Parto.objects.filter(paciente=obj).order_by("-fecha_parto").first()
-                )
-                if ultimo_parto and ultimo_parto.fecha_parto:
-                    fechas.append(
-                        datetime.combine(ultimo_parto.fecha_parto, datetime.min.time()),
-                    )
-            except Exception:
-                pass
+            ultimo_parto = obj.partos.order_by("-fecha_parto").first()
+            if ultimo_parto and ultimo_parto.fecha_parto:
+                fechas.append(datetime.combine(ultimo_parto.fecha_parto, datetime.min.time()))
 
             if not fechas:
                 return None
 
-            # Retornar la fecha más reciente
-            fecha_mas_reciente = max(fechas)
-
-            if hasattr(fecha_mas_reciente, "date"):
-                return fecha_mas_reciente.date().isoformat()
-            if hasattr(fecha_mas_reciente, "isoformat"):
-                return fecha_mas_reciente.isoformat()
-            return str(fecha_mas_reciente)
+            fecha_max = max(fechas)
+            return fecha_max.date().isoformat() if hasattr(fecha_max, "date") else str(fecha_max)
 
         except Exception:
-            # Si hay cualquier error, retornar None
             return None
 
 
@@ -610,7 +500,35 @@ class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
             # ✅ NUEVOS CAMPOS - DATOS ANTROPOMÉTRICOS
             "peso_kg",
             "altura_cm",
+            # Consentimiento de tratamiento de datos (Ley 164 Bolivia)
+            "consentimiento_datos_aceptado",
+            "consentimiento_datos_fecha",
+            "consentimiento_datos_ip",
         ]
+        read_only_fields = ["consentimiento_datos_fecha", "consentimiento_datos_ip"]
+
+    def validate_consentimiento_datos_aceptado(self, value):
+        """Ley 164 (Bolivia), Art. 22 y Reglamento DS 1793/2013 Art. 56-57:
+        el tratamiento de datos personales requiere consentimiento expreso
+        previo del titular. No se puede crear un paciente sin esto."""
+        if not self.instance and not value:
+            raise serializers.ValidationError(
+                "Se requiere el consentimiento expreso del paciente (o su "
+                "representante) para el tratamiento de sus datos personales, "
+                "conforme a la Ley 164.",
+            )
+        return value
+
+    def create(self, validated_data):
+        """Registra fecha/IP del consentimiento server-side — nunca se
+        confia en un timestamp/IP que mande el cliente."""
+        if validated_data.get("consentimiento_datos_aceptado"):
+            from django.utils import timezone as tz
+            validated_data["consentimiento_datos_fecha"] = tz.now()
+            request = self.context.get("request")
+            if request:
+                validated_data["consentimiento_datos_ip"] = request.META.get("REMOTE_ADDR")
+        return super().create(validated_data)
 
     def validate_ci(self, value):
         """Valida formato de cédula boliviana"""
@@ -663,12 +581,12 @@ class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
                     {"fecha_nacimiento": "La fecha de nacimiento es obligatoria"},
                 )
 
-            if attrs["fecha_nacimiento"] > date.today():
+            if attrs["fecha_nacimiento"] > timezone.localdate():
                 raise serializers.ValidationError(
                     {"fecha_nacimiento": "La fecha de nacimiento no puede ser futura"},
                 )
 
-            edad = date.today().year - attrs["fecha_nacimiento"].year
+            edad = timezone.localdate().year - attrs["fecha_nacimiento"].year
             if edad < 10:
                 raise serializers.ValidationError(
                     {"fecha_nacimiento": "El paciente debe tener al menos 10 años"},

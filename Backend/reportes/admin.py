@@ -1,4 +1,5 @@
-﻿"""Admin module."""
+"""Admin module."""
+import contextlib
 from datetime import timedelta
 
 from django import forms
@@ -84,11 +85,12 @@ class OpcionesDinamicas:
                 opciones = []
                 for m in medicos:
                     # Construir nombre completo con apellidos correctos
-                    apellidos = m.apellido_paterno or ""
-                    if hasattr(m, "apellido_materno") and m.apellido_materno:
-                        apellidos += f" {m.apellido_materno}"
-                    nombre_completo = f"Dr. {m.nombre} {apellidos} (ID: {m.id})"
-                    opciones.append((m.id, nombre_completo))
+                    apellidos = getattr(m, 'apellido_paterno', '') or ''
+                    apellido_materno = getattr(m, 'apellido_materno', '') or ''
+                    if apellido_materno:
+                        apellidos += f" {apellido_materno}"
+                    nombre_completo = f"Dr. {getattr(m, 'nombre', '')} {apellidos} (ID: {getattr(m, 'id', None)})"
+                    opciones.append((getattr(m, 'id', None), nombre_completo))
                 cache.set(cache_key, opciones, 600)
             except Exception as e:
                 opciones = [(None, f"Error al cargar médicos: {str(e)[:50]}")]
@@ -325,7 +327,7 @@ class TipoReporteAdminForm(forms.ModelForm):
             label = f"{nombre}: {consulta[:60]}{'...' if len(consulta) > 60 else ''}"
             consulta_choices.append((consulta, label))
 
-        self.fields["consulta_predefinida"].choices = consulta_choices
+        setattr(self.fields["consulta_predefinida"], 'choices', consulta_choices)
 
         # Mejorar campos existentes
         for field_name in ["categoria", "frecuencia"]:
@@ -388,30 +390,16 @@ class ReporteGeneradoAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Cargar todas las opciones dinámicamente con manejo robusto de errores
-        try:
-            self.fields["tipo_reporte_selector"].choices = [
-                ("", "--- Seleccionar tipo de reporte ---"),
-            ] + list(OpcionesDinamicas.obtener_tipos_reporte())
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            setattr(self.fields["tipo_reporte_selector"], "choices", [("", "--- Seleccionar tipo de reporte ---"), *list(OpcionesDinamicas.obtener_tipos_reporte())])
 
-        try:
-            self.fields["paciente_selector"].choices = [
-                ("", "--- Todos los pacientes ---"),
-            ] + list(OpcionesDinamicas.obtener_pacientes_activos())
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            setattr(self.fields["paciente_selector"], "choices", [("", "--- Todos los pacientes ---"), *list(OpcionesDinamicas.obtener_pacientes_activos())])
 
-        try:
-            self.fields["medico_selector"].choices = [
-                ("", "--- Todos los médicos ---"),
-            ] + list(OpcionesDinamicas.obtener_usuarios_medicos())
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            setattr(self.fields["medico_selector"], "choices", [("", "--- Todos los médicos ---"), *list(OpcionesDinamicas.obtener_usuarios_medicos())])
 
-        self.fields["servicio_selector"].choices = [
-            ("", "--- Todos los servicios ---"),
-        ] + list(OpcionesDinamicas.obtener_servicios_medicos())
+        setattr(self.fields["servicio_selector"], "choices", [("", "--- Todos los servicios ---"), *list(OpcionesDinamicas.obtener_servicios_medicos())])
 
 
 class DashboardKPIAdminForm(forms.ModelForm):
@@ -466,7 +454,7 @@ class DashboardKPIAdminForm(forms.ModelForm):
 
         # Cargar consultas predefinidas para KPIs
         consultas = OpcionesDinamicas.obtener_consultas_predefinidas()
-        self.fields["consulta_predefinida"].choices = [
+        setattr(self.fields["consulta_predefinida"], "choices", [
             ("", "--- Usar consulta personalizada ---"),
         ] + [
             (
@@ -474,7 +462,7 @@ class DashboardKPIAdminForm(forms.ModelForm):
                 f"{nombre}: {consulta[:45]}{'...' if len(consulta) > 45 else ''}",
             )
             for codigo, nombre, consulta in consultas
-        ]
+        ])
 
 
 class AlertaMedicaAdminForm(forms.ModelForm):
@@ -538,26 +526,14 @@ class AlertaMedicaAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Cargar todas las opciones dinámicamente
-        try:
-            self.fields["paciente_selector"].choices = [
-                ("", "--- Sin paciente asociado ---"),
-            ] + list(OpcionesDinamicas.obtener_pacientes_activos())
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            setattr(self.fields["paciente_selector"], "choices", [("", "--- Sin paciente asociado ---"), *list(OpcionesDinamicas.obtener_pacientes_activos())])
 
-        try:
-            self.fields["embarazo_selector"].choices = [
-                ("", "--- Sin embarazo asociado ---"),
-            ] + list(OpcionesDinamicas.obtener_embarazos_activos())
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            setattr(self.fields["embarazo_selector"], "choices", [("", "--- Sin embarazo asociado ---"), *list(OpcionesDinamicas.obtener_embarazos_activos())])
 
-        try:
-            self.fields["medico_responsable_selector"].choices = [
-                ("", "--- Sin médico asignado ---"),
-            ] + list(OpcionesDinamicas.obtener_usuarios_medicos())
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            setattr(self.fields["medico_responsable_selector"], 'choices', [("", "--- Sin médico asignado ---"), *list(OpcionesDinamicas.obtener_usuarios_medicos())])
 
 
 # ADMINISTRADORES DEFINITIVOS CON TODAS LAS CARACTERÍSTICAS
@@ -700,20 +676,21 @@ class TipoReporteAdmin(admin.ModelAdmin):
             )
         )
 
+    @admin.display(description="Código")
     def get_codigo_display(self, obj):
         """Get codigo display"""
         return obj.codigo or " Auto-generado"
 
-    get_codigo_display.short_description = "Código"
 
+    @admin.display(description="Código Único")
     def get_codigo_auto_display(self, obj):
         """Get codigo auto display"""
         if obj.codigo:
             return f" {obj.codigo}"
         return " Se generará automáticamente al guardar"
 
-    get_codigo_auto_display.short_description = "Código Único"
 
+    @admin.display(description="Categoría")
     def categoria_badge(self, obj):
         """Categoria badge"""
         colors = {
@@ -729,11 +706,11 @@ class TipoReporteAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px; font-weight: bold;">{}</span>',
             color,
-            obj.get_categoria_display(),
+            getattr(obj, 'get_categoria_display')(),
         )
 
-    categoria_badge.short_description = "Categoría"
 
+    @admin.display(description="Frecuencia")
     def frecuencia_badge(self, obj):
         """Frecuencia badge"""
         icons = {
@@ -749,11 +726,11 @@ class TipoReporteAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="font-size: 12px; color: #495057;"><strong>{} {}</strong></span>',
             icon,
-            obj.get_frecuencia_display(),
+            getattr(obj, 'get_frecuencia_display')(),
         )
 
-    frecuencia_badge.short_description = "Frecuencia"
 
+    @admin.display(description="Generación")
     def automatico_badge(self, obj):
         """Automatico badge"""
         if obj.automatico:
@@ -764,8 +741,8 @@ class TipoReporteAdmin(admin.ModelAdmin):
             '<span style="color: #6c757d; font-size: 12px;"> Manual</span>',
         )
 
-    automatico_badge.short_description = "Generación"
 
+    @admin.display(description="Nivel")
     def confidencial_badge(self, obj):
         """Confidencial badge"""
         if obj.confidencial:
@@ -776,8 +753,8 @@ class TipoReporteAdmin(admin.ModelAdmin):
             '<span style="color: #28a745; font-size: 12px;"> Público</span>',
         )
 
-    confidencial_badge.short_description = "Nivel"
 
+    @admin.display(description="Estado")
     def activo_badge(self, obj):
         """Activo badge"""
         if obj.activo:
@@ -788,8 +765,8 @@ class TipoReporteAdmin(admin.ModelAdmin):
             '<span style="color: #dc3545; font-size: 12px;">❌ Inactivo</span>',
         )
 
-    activo_badge.short_description = "Estado"
 
+    @admin.display(description="Acceso")
     def get_roles_count(self, obj):
         """Get roles count"""
         count = sum(
@@ -805,8 +782,8 @@ class TipoReporteAdmin(admin.ModelAdmin):
             count,
         )
 
-    get_roles_count.short_description = "Acceso"
 
+    @admin.display(description="Formatos")
     def get_formatos_count(self, obj):
         """Get formatos count"""
         count = sum(
@@ -817,8 +794,8 @@ class TipoReporteAdmin(admin.ModelAdmin):
             count,
         )
 
-    get_formatos_count.short_description = "Formatos"
 
+    @admin.display(description="Vista Previa SQL")
     def get_sql_preview(self, obj):
         """Get sql preview"""
         if obj.plantilla_sql:
@@ -831,8 +808,8 @@ class TipoReporteAdmin(admin.ModelAdmin):
             )
         return "⚠️ Sin consulta SQL definida"
 
-    get_sql_preview.short_description = "Vista Previa SQL"
 
+    @admin.display(description="Resumen Completo")
     def get_resumen_configuracion(self, obj):
         """Get resumen configuracion"""
         resumen = []
@@ -897,7 +874,6 @@ class TipoReporteAdmin(admin.ModelAdmin):
             "\n".join(resumen) if resumen else "⚠️ Sin configuración específica definida"
         )
 
-    get_resumen_configuracion.short_description = "Resumen Completo"
 
 
 @admin.register(ReporteGenerado)
@@ -1024,6 +1000,7 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             )
         )
 
+    @admin.display(description="Reporte Auditado")
     def get_reporte_info(self, obj):
         """Get reporte info"""
         categoria_color = {
@@ -1038,11 +1015,11 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             '<small style="color: {}; font-weight: bold;"> {}</small></div>',
             obj.tipo_reporte.nombre,
             categoria_color,
-            obj.tipo_reporte.get_categoria_display(),
+            getattr(obj.tipo_reporte, 'get_categoria_display')(),
         )
 
-    get_reporte_info.short_description = "Información del Reporte"
 
+    @admin.display(description="Estado")
     def estado_badge(self, obj):
         """Estado badge"""
         colors = {
@@ -1067,11 +1044,11 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             '<span style="background-color: {}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">{} {}</span>',
             color,
             icon,
-            obj.get_estado_display(),
+            getattr(obj, 'get_estado_display')(),
         )
 
-    estado_badge.short_description = "Estado"
 
+    @admin.display(description="Formato")
     def formato_badge(self, obj):
         """Formato badge"""
         icons = {
@@ -1094,11 +1071,11 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-size: 13px; font-weight: bold;">{} {}</span>',
             color,
             icon,
-            obj.get_formato_display(),
+            getattr(obj, 'get_formato_display')(),
         )
 
-    formato_badge.short_description = "Formato"
 
+    @admin.display(description="Progreso")
     def get_progreso_display(self, obj):
         """Get progreso display"""
         if obj.estado == "completado":
@@ -1117,8 +1094,8 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             '<span style="color: #6c757d; font-weight: bold; font-size: 12px;">⏳ Pendiente</span>',
         )
 
-    get_progreso_display.short_description = "Progreso"
 
+    @admin.display(description="Tamaño")
     def get_tamano_display(self, obj):
         """Get tamaño display"""
         if obj.tamano_archivo:
@@ -1135,8 +1112,8 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
                 return str(obj.tamano_archivo)
         return "---"
 
-    get_tamano_display.short_description = "Tamaño"
 
+    @admin.display(description="Vigencia")
     def esta_expirado_badge(self, obj):
         """Esta expirado badge"""
         if obj.esta_expirado():
@@ -1147,8 +1124,8 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             '<span style="color: #28a745; font-size: 12px; font-weight: bold;">✅ Vigente</span>',
         )
 
-    esta_expirado_badge.short_description = "Vigencia"
 
+    @admin.display(description="Información Detallada")
     def get_progreso_detallado(self, obj):
         """Get progreso detallado"""
         info = []
@@ -1188,8 +1165,8 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
 
         return "\n".join(info) if info else "ℹ️ Sin información detallada disponible"
 
-    get_progreso_detallado.short_description = "Información Detallada"
 
+    @admin.display(description="Estadísticas de Uso")
     def get_estadisticas_uso(self, obj):
         """Get estadisticas uso"""
         estadisticas = []
@@ -1230,7 +1207,6 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             else " Sin estadísticas de uso disponibles"
         )
 
-    get_estadisticas_uso.short_description = "Estadísticas de Uso"
 
 
 @admin.register(DashboardKPI)
@@ -1350,6 +1326,7 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             )
         )
 
+    @admin.display(description="Categoría")
     def categoria_badge(self, obj):
         """Categoria badge"""
         colors = {
@@ -1367,11 +1344,11 @@ class DashboardKPIAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">{}</span>',
             color,
-            obj.get_categoria_display(),
+            getattr(obj, 'get_categoria_display')(),
         )
 
-    categoria_badge.short_description = "Categoría"
 
+    @admin.display(description="Tipo")
     def tipo_badge(self, obj):
         """Tipo badge"""
         icons = {
@@ -1382,10 +1359,10 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             "tiempo": "⏱️",
         }
         icon = icons.get(obj.tipo, "")
-        return f"{icon} {obj.get_tipo_display()}"
+        return f"{icon} {getattr(obj, 'get_tipo_display')()}"
 
-    tipo_badge.short_description = "Tipo"
 
+    @admin.display(description="Valor Actual")
     def valor_actual_display(self, obj):
         """CORREGIDO: Retorna solo texto, sin format_html"""
         if obj.valor_actual is not None:
@@ -1404,8 +1381,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
                 return str(obj.valor_actual)
         return "Sin datos"
 
-    valor_actual_display.short_description = "Valor Actual"
 
+    @admin.display(description="Tendencia")
     def tendencia_badge(self, obj):
         """Tendencia badge"""
         tendencia = obj.calcular_tendencia()
@@ -1426,8 +1403,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             '<span style="color: #6c757d; font-size: 14px;">❓ </span>',
         )
 
-    tendencia_badge.short_description = "Tendencia"
 
+    @admin.display(description="vs Meta")
     def estado_vs_meta_badge(self, obj):
         """Estado vs meta badge"""
         estado = obj.get_estado_vs_meta()
@@ -1448,8 +1425,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             '<span style="color: #6c757d; font-size: 12px;">❓ N/D</span>',
         )
 
-    estado_vs_meta_badge.short_description = "vs Meta"
 
+    @admin.display(description="Actualizado")
     def ultima_actualizacion_display(self, obj):
         """CORREGIDO: Retorna solo texto, sin format_html"""
         if obj.ultima_actualizacion:
@@ -1466,8 +1443,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             return f"Hace {minutos}m"
         return "Nunca actualizado"
 
-    ultima_actualizacion_display.short_description = "Actualizado"
 
+    @admin.display(description="Estado")
     def activo_badge(self, obj):
         """Activo badge"""
         if obj.activo:
@@ -1478,8 +1455,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">❌ Inactivo</span>',
         )
 
-    activo_badge.short_description = "Estado"
 
+    @admin.display(description="Vista Previa SQL")
     def get_sql_preview(self, obj):
         """Get sql preview"""
         if obj.consulta_sql:
@@ -1492,8 +1469,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             )
         return "⚠️ Sin consulta SQL definida"
 
-    get_sql_preview.short_description = "Vista Previa SQL"
 
+    @admin.display(description="Información de Rendimiento")
     def get_rendimiento_kpi(self, obj):
         """Get rendimiento kpi"""
         info = []
@@ -1555,8 +1532,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             "\n".join(info) if info else "ℹ️ Sin información de rendimiento disponible"
         )
 
-    get_rendimiento_kpi.short_description = "Información de Rendimiento"
 
+    @admin.display(description="Análisis de Tendencia")
     def get_analisis_tendencia(self, obj):
         """Get analisis tendencia"""
         analisis = []
@@ -1566,6 +1543,7 @@ class DashboardKPIAdmin(admin.ModelAdmin):
                 actual = float(obj.valor_actual)
                 anterior = float(obj.valor_anterior)
 
+                porcentaje = 0.0
                 if actual > anterior:
                     diferencia = actual - anterior
                     porcentaje = (diferencia / anterior) * 100
@@ -1617,7 +1595,6 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             else " Sin suficientes datos para análisis"
         )
 
-    get_analisis_tendencia.short_description = "Análisis de Tendencia"
 
 
 @admin.register(AlertaMedica)
@@ -1749,6 +1726,7 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
             )
         )
 
+    @admin.display(description="Tipo")
     def tipo_badge(self, obj):
         """Tipo badge"""
         colors = {
@@ -1766,11 +1744,11 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">{}</span>',
             color,
-            obj.get_tipo_display(),
+            getattr(obj, 'get_tipo_display')(),
         )
 
-    tipo_badge.short_description = "Tipo"
 
+    @admin.display(description="Prioridad")
     def prioridad_badge(self, obj):
         """Prioridad badge"""
         colors = {
@@ -1795,11 +1773,11 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold; font-size: 12px;">{} {}</span>',
             color,
             icon,
-            obj.get_prioridad_display(),
+            getattr(obj, 'get_prioridad_display')(),
         )
 
-    prioridad_badge.short_description = "Prioridad"
 
+    @admin.display(description="Estado")
     def estado_badge(self, obj):
         """Estado badge"""
         colors = {
@@ -1814,11 +1792,11 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">{}</span>',
             color,
-            obj.get_estado_display(),
+            getattr(obj, 'get_estado_display')(),
         )
 
-    estado_badge.short_description = "Estado"
 
+    @admin.display(description="Contexto Médico")
     def get_contexto_medico(self, obj):
         """Get contexto medico"""
         info = []
@@ -1832,8 +1810,8 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
             "<br/>".join(info) if info else "Sin contexto asociado",
         )
 
-    get_contexto_medico.short_description = "Contexto Médico"
 
+    @admin.display(description="Tiempo")
     def tiempo_transcurrido_display(self, obj):
         """CORREGIDO: Retorna solo texto, sin format_html"""
         if not obj.fecha_creacion:
@@ -1849,8 +1827,8 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
         minutos = tiempo.seconds // 60
         return f"{minutos} min"
 
-    tiempo_transcurrido_display.short_description = "Tiempo"
 
+    @admin.display(description="Escalamiento")
     def get_escalamiento_info(self, obj):
         """Get escalamiento info"""
         if obj.escalamiento_automatico and obj.tiempo_escalamiento_horas:
@@ -1862,8 +1840,8 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
             '<span style="color: #6c757d; font-size: 11px;">⏸️ Manual</span>',
         )
 
-    get_escalamiento_info.short_description = "Escalamiento"
 
+    @admin.display(description="Cronología Completa")
     def get_tiempo_vida_alerta(self, obj):
         """Get tiempo vida alerta"""
         if not obj.fecha_creacion:
@@ -1899,8 +1877,8 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
 
         return "\n".join(info)
 
-    get_tiempo_vida_alerta.short_description = "Cronología Completa"
 
+    @admin.display(description="Evaluación de Urgencia")
     def get_estado_urgencia(self, obj):
         """Get estado urgencia"""
         urgencia = []
@@ -1939,8 +1917,8 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
 
         return "\n".join(urgencia) if urgencia else " Estado normal"
 
-    get_estado_urgencia.short_description = "Evaluación de Urgencia"
 
+    @admin.display(description="Historial de Cambios")
     def get_historial_cambios(self, obj):
         """Get historial cambios"""
         historial = []
@@ -1981,7 +1959,6 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
 
         return "\n".join(historial) if historial else " Sin historial disponible"
 
-    get_historial_cambios.short_description = "Historial de Cambios"
 
 
 @admin.register(AuditoriaReporte)
@@ -2063,6 +2040,7 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
             )
         )
 
+    @admin.display(description="Reporte Auditado")
     def get_reporte_info(self, obj):
         """Get reporte info"""
         return format_html(
@@ -2072,8 +2050,8 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
             obj.reporte_generado.tipo_reporte.categoria,
         )
 
-    get_reporte_info.short_description = "Reporte Auditado"
 
+    @admin.display(description="Acción Realizada")
     def accion_badge(self, obj):
         """Accion badge"""
         colors = {
@@ -2100,11 +2078,11 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">{} {}</span>',
             color,
             icon,
-            obj.get_accion_display(),
+            getattr(obj, 'get_accion_display')(),
         )
 
-    accion_badge.short_description = "Acción Realizada"
 
+    @admin.display(description="Acceso")
     def get_ubicacion_acceso(self, obj):
         """Get ubicacion acceso"""
         return format_html(
@@ -2118,8 +2096,8 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
             else "Sin fecha",
         )
 
-    get_ubicacion_acceso.short_description = "Acceso"
 
+    @admin.display(description="Cumplimiento Legal")
     def cumple_ley_badge(self, obj):
         """Cumple ley badge"""
         if obj.cumple_ley_3871:
@@ -2130,8 +2108,8 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
             '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">⚠️ Incumplimiento</span>',
         )
 
-    cumple_ley_badge.short_description = "Cumplimiento Legal"
 
+    @admin.display(description="Análisis Detallado de Cumplimiento")
     def get_analisis_cumplimiento(self, obj):
         """Get analisis cumplimiento"""
         analisis = []
@@ -2193,4 +2171,3 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
 
         return "\n".join(analisis)
 
-    get_analisis_cumplimiento.short_description = "Análisis Detallado de Cumplimiento"

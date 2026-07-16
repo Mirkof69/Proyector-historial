@@ -2,6 +2,8 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from django.utils import timezone
+
 
 class CalculadoraObstetrica:
     """Calculadoraobstetrica"""
@@ -9,7 +11,7 @@ class CalculadoraObstetrica:
     def calcular_edad_gestacional(fum, fecha_actual=None):
         """Calcula edad gestacional basada en FUM"""
         if not fecha_actual:
-            fecha_actual = datetime.now().date()
+            fecha_actual = timezone.localdate()
         if isinstance(fum, datetime):
             fum = fum.date()
 
@@ -29,8 +31,7 @@ class CalculadoraObstetrica:
         """Calcula Fecha Probable de Parto (Regla de Naegele)"""
         if isinstance(fum, datetime):
             fum = fum.date()
-        fpp = fum + timedelta(days=280)
-        return fpp
+        return fum + timedelta(days=280)
 
     @staticmethod
     def calcular_imc(peso, altura):

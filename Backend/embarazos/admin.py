@@ -1,9 +1,9 @@
 """Admin module."""
-from datetime import date
 
 from django.contrib import admin
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils import timezone
+from django.utils.html import format_html, format_html_join
 
 from .models import Embarazo
 
@@ -169,6 +169,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     # MÉTODOS DISPLAY CON BADGES Y FORMATO HTML
     # ═══════════════════════════════════════════════════════════════════════
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Información del paciente con link"""
         if not obj.paciente:
@@ -184,8 +185,8 @@ class EmbarazoAdmin(admin.ModelAdmin):
             obj.paciente.id_clinico,
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="G-P-A-C")
     def numero_gesta_para_display(self, obj):
         """Muestra G-P-A-C de forma visual"""
         return format_html(
@@ -199,14 +200,14 @@ class EmbarazoAdmin(admin.ModelAdmin):
             obj.numero_cesareas or 0,
         )
 
-    numero_gesta_para_display.short_description = "G-P-A-C"
 
+    @admin.display(description="Edad Gestacional")
     def get_edad_gestacional(self, obj):
         """Muestra la edad gestacional actual"""
         if not obj.fecha_ultima_menstruacion:
             return format_html('<span style="color: #95a5a6;">No calculable</span>')
 
-        dias = (date.today() - obj.fecha_ultima_menstruacion).days
+        dias = (timezone.localdate() - obj.fecha_ultima_menstruacion).days
         semanas = dias // 7
         dias_extra = dias % 7
 
@@ -225,14 +226,14 @@ class EmbarazoAdmin(admin.ModelAdmin):
             dias_extra,
         )
 
-    get_edad_gestacional.short_description = "Edad Gestacional"
 
+    @admin.display(description="FPP")
     def get_fpp_badge(self, obj):
         """Badge de la Fecha Probable de Parto"""
         if not obj.fecha_probable_parto:
             return format_html('<span style="color: #95a5a6;">No calculada</span>')
 
-        dias_restantes = (obj.fecha_probable_parto - date.today()).days
+        dias_restantes = (obj.fecha_probable_parto - timezone.localdate()).days
 
         if dias_restantes < 0:
             return format_html(
@@ -265,8 +266,8 @@ class EmbarazoAdmin(admin.ModelAdmin):
             obj.fecha_probable_parto.strftime("%d/%m/%Y"),
         )
 
-    get_fpp_badge.short_description = "FPP"
 
+    @admin.display(description="Riesgo")
     def riesgo_badge(self, obj):
         """Badge visual para el nivel de riesgo"""
         colors = {
@@ -282,11 +283,11 @@ class EmbarazoAdmin(admin.ModelAdmin):
             'border-radius: 3px; font-weight: bold;">{} {}</span>',
             color,
             icon,
-            obj.get_riesgo_embarazo_display().upper(),
+            getattr(obj, 'get_riesgo_embarazo_display')().upper(),
         )
 
-    riesgo_badge.short_description = "Riesgo"
 
+    @admin.display(description="Estado")
     def estado_badge(self, obj):
         """Badge visual para el estado"""
         colors = {
@@ -307,27 +308,27 @@ class EmbarazoAdmin(admin.ModelAdmin):
             'border-radius: 3px; font-weight: bold;">{} {}</span>',
             color,
             icon,
-            obj.get_estado_display().upper(),
+            getattr(obj, 'get_estado_display')().upper(),
         )
 
-    estado_badge.short_description = "Estado"
 
+    @admin.display(description="Tipo")
     def tipo_embarazo_badge(self, obj):
         """Badge para el tipo de embarazo"""
         if obj.tipo_embarazo in ["gemelar", "multiple"]:
             return format_html(
                 '<span style="background-color: #9b59b6; color: white; padding: 2px 6px; '
                 'border-radius: 3px; font-size: 11px;"> {}</span>',
-                obj.get_tipo_embarazo_display().upper(),
+                getattr(obj, 'get_tipo_embarazo_display')().upper(),
             )
         return format_html(
             '<span style="background-color: #34495e; color: white; padding: 2px 6px; '
             'border-radius: 3px; font-size: 11px;">{}</span>',
-            obj.get_tipo_embarazo_display(),
+            getattr(obj, 'get_tipo_embarazo_display')(),
         )
 
-    tipo_embarazo_badge.short_description = "Tipo"
 
+    @admin.display(description="Controles")
     def get_controles_count(self, obj):
         """Cantidad de controles realizados"""
         count = obj.controles.count()
@@ -341,8 +342,8 @@ class EmbarazoAdmin(admin.ModelAdmin):
             '<span style="color: #27ae60;">✓ {} controles</span>', count,
         )
 
-    get_controles_count.short_description = "Controles"
 
+    @admin.display(description="Acciones")
     def acciones_rapidas(self, obj):
         """Botones de acción rápida"""
         url_editar = reverse("admin:embarazos_embarazo_change", args=[obj.id])
@@ -361,18 +362,18 @@ class EmbarazoAdmin(admin.ModelAdmin):
             url_controles,
         )
 
-    acciones_rapidas.short_description = "Acciones"
 
     # ═══════════════════════════════════════════════════════════════════════
     # READONLY FIELDS CON INFORMACIÓN CALCULADA
     # ═══════════════════════════════════════════════════════════════════════
 
+    @admin.display(description=" Edad Gestacional Detallada")
     def get_edad_gestacional_completa(self, obj):
         """Información completa de edad gestacional"""
         if not obj.fecha_ultima_menstruacion:
             return "❌ No se puede calcular (falta FUM)"
 
-        dias = (date.today() - obj.fecha_ultima_menstruacion).days
+        dias = (timezone.localdate() - obj.fecha_ultima_menstruacion).days
         semanas = dias // 7
         dias_extra = dias % 7
 
@@ -400,14 +401,14 @@ class EmbarazoAdmin(admin.ModelAdmin):
             trimestre,
         )
 
-    get_edad_gestacional_completa.short_description = " Edad Gestacional Detallada"
 
+    @admin.display(description=" Fecha Probable de Parto")
     def get_fpp_calculada(self, obj):
         """FPP calculada con detalles"""
         if not obj.fecha_probable_parto:
             return "❌ No calculada (falta FUM)"
 
-        dias_restantes = (obj.fecha_probable_parto - date.today()).days
+        dias_restantes = (obj.fecha_probable_parto - timezone.localdate()).days
         semanas_restantes = dias_restantes // 7
 
         return format_html(
@@ -419,17 +420,17 @@ class EmbarazoAdmin(admin.ModelAdmin):
             obj.fecha_probable_parto.strftime("%d de %B de %Y"),
             dias_restantes,
             semanas_restantes,
-            date.today().strftime("%d de %B de %Y"),
+            timezone.localdate().strftime("%d de %B de %Y"),
         )
 
-    get_fpp_calculada.short_description = " Fecha Probable de Parto"
 
+    @admin.display(description=" Trimestre Actual")
     def get_trimestre_actual(self, obj):
         """Muestra el trimestre actual"""
         if not obj.fecha_ultima_menstruacion:
             return "No calculable"
 
-        semanas = (date.today() - obj.fecha_ultima_menstruacion).days // 7
+        semanas = (timezone.localdate() - obj.fecha_ultima_menstruacion).days // 7
 
         if semanas <= 13:
             return format_html(
@@ -446,14 +447,14 @@ class EmbarazoAdmin(admin.ModelAdmin):
             'border-radius: 5px; font-weight: bold;">3er TRIMESTRE</span>',
         )
 
-    get_trimestre_actual.short_description = " Trimestre Actual"
 
+    @admin.display(description="⏰ Semanas Restantes")
     def get_semanas_restantes(self, obj):
         """Semanas restantes hasta FPP"""
         if not obj.fecha_probable_parto:
             return "No calculable"
 
-        dias_restantes = (obj.fecha_probable_parto - date.today()).days
+        dias_restantes = (obj.fecha_probable_parto - timezone.localdate()).days
         semanas_restantes = dias_restantes // 7
 
         return format_html(
@@ -461,8 +462,8 @@ class EmbarazoAdmin(admin.ModelAdmin):
             semanas_restantes,
         )
 
-    get_semanas_restantes.short_description = "⏰ Semanas Restantes"
 
+    @admin.display(description=" Resumen Completo")
     def get_resumen_embarazo(self, obj):
         """Resumen completo del embarazo"""
         controles_count = obj.controles.count()
@@ -485,15 +486,15 @@ class EmbarazoAdmin(admin.ModelAdmin):
             '<td style="padding: 5px;">{}</td></tr>'
             "</table>"
             "</div>",
-            obj.get_estado_display(),
-            obj.get_riesgo_embarazo_display(),
-            obj.get_tipo_embarazo_display(),
+            getattr(obj, 'get_estado_display')(),
+            getattr(obj, 'get_riesgo_embarazo_display')(),
+            getattr(obj, 'get_tipo_embarazo_display')(),
             controles_count,
             ecografias_count,
         )
 
-    get_resumen_embarazo.short_description = " Resumen Completo"
 
+    @admin.display(description=" Controles Realizados")
     def get_controles_realizados(self, obj):
         """Lista de controles realizados"""
         controles = obj.controles.all().order_by("numero_control")
@@ -505,17 +506,24 @@ class EmbarazoAdmin(admin.ModelAdmin):
                 "</div>",
             )
 
-        html = '<div style="padding: 10px; background-color: #d4edda; border-left: 4px solid #28a745;">'
-        html += "<strong>Controles Realizados:</strong><br/><br/>"
+        filas = format_html_join(
+            "",
+            "• Control #{} - {} ({} semanas)<br/>",
+            (
+                (
+                    control.numero_control,
+                    control.fecha_control.strftime("%d/%m/%Y"),
+                    control.semanas_gestacion,
+                )
+                for control in controles
+            ),
+        )
+        return format_html(
+            '<div style="padding: 10px; background-color: #d4edda; border-left: 4px solid #28a745;">'
+            "<strong>Controles Realizados:</strong><br/><br/>{}</div>",
+            filas,
+        )
 
-        for control in controles:
-            html += f"• Control #{control.numero_control} - {control.fecha_control.strftime('%d/%m/%Y')} "
-            html += f"({control.semanas_gestacion} semanas)<br/>"
-
-        html += "</div>"
-        return format_html(html)
-
-    get_controles_realizados.short_description = " Controles Realizados"
 
     # ═══════════════════════════════════════════════════════════════════════
     # ACCIONES PERSONALIZADAS
@@ -535,7 +543,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     def finalizar_embarazo(self, request, queryset):
         """Finalizar embarazo"""
         updated = queryset.filter(estado="activo").update(
-            estado="finalizado", fecha_finalizacion=date.today(),
+            estado="finalizado", fecha_finalizacion=timezone.localdate(),
         )
         self.message_user(request, f"{updated} embarazo(s) finalizado(s) exitosamente.")
 

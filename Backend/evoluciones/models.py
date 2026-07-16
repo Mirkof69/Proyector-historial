@@ -44,5 +44,5 @@ class EvolucionEmbarazo(models.Model):
     def __str__(self):
         """Str"""
         return (
-            f"{self.get_tipo_evento_display()} - {self.paciente} - {self.fecha_evento}"
+            f"{getattr(self, 'get_tipo_evento_display')()} - {self.paciente} - {self.fecha_evento}"
         )

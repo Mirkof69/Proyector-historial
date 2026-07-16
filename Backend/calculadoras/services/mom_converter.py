@@ -11,19 +11,52 @@ Basado en protocolos FMF adaptados para La Paz, Bolivia (altura)
 
 from django.core.exceptions import ObjectDoesNotExist
 
-# from ..models import ReferenciaMOM  # TODO: Uncomment when model is created
+# El modelo ReferenciaMOM (medianas y factores poblacionales validados) aún no
+# existe; mientras tanto se usa _PlaceholderReferencia y el resultado se marca
+# como no ajustado. Ver nota de honestidad clínica más abajo.
 
 
-# TODO: Remove this placeholder when ReferenciaMOM model is created
+# NOTA CLÍNICA IMPORTANTE
+# ------------------------
+# No existe todavía un dataset poblacional validado (modelo ReferenciaMOM) con
+# medianas por marcador/edad gestacional ni coeficientes de corrección (peso,
+# etnia, tabaquismo, diabetes, altitud de La Paz) derivados de una cohorte real.
+#
+# Mientras eso no exista, esta clase devuelve factores neutros (1.0). Eso NO es
+# un MoM ajustado clínicamente: es un cociente valor/mediana_base sin corrección
+# poblacional. Para evitar transmitir una precisión que no tenemos, MOMConverter
+# marca cada resultado con `ajustado_poblacionalmente = False` y una advertencia
+# explícita (ver calcular_mom). NO usar estos MoM para decisiones de cribado sin
+# cargar antes las referencias reales.
 class _PlaceholderReferencia:
-    """Placeholder for ReferenciaMOM model"""
+    """Referencia neutra (factores 1.0) usada hasta que exista ReferenciaMOM real.
+
+    Marca `es_placeholder = True` para que el convertidor pueda advertir que el
+    resultado no está ajustado poblacionalmente.
+    """
+
+    es_placeholder = True
 
     def __init__(self, marcador, eg_dias):
         """Init"""
         self.marcador = marcador
         self.edad_gestacional_dias = eg_dias
-        self.mediana = 1.0  # Placeholder value
+        self.mediana = 1.0          # Placeholder value
+        self.mediana_base = 1.0     # Used by calcular_mom
         self.unidad = "MoM"
+        # Correction factors — all 1.0 (no adjustment) until real data is loaded
+        self.factor_fumadora = 1.0
+        self.factor_diabetes_tipo1 = 1.0
+        self.factor_diabetes_tipo2 = 1.0
+        self.factor_altura_lapaz = 1.0
+
+    def get_factor_peso(self, peso_kg: float) -> float:
+        """Placeholder: no weight correction until ReferenciaMOM is implemented."""
+        return 1.0
+
+    def get_factor_etnia(self, etnia: str) -> float:
+        """Placeholder: no ethnic correction until ReferenciaMOM is implemented."""
+        return 1.0
 
 
 class MOMConverter:
@@ -104,6 +137,16 @@ class MOMConverter:
         # 5. Interpretar MoM
         interpretacion, semaforo = self._interpretar_mom(mom, marcador)
 
+        # 6. ¿El resultado está realmente ajustado a una población validada?
+        ajustado = not getattr(referencia, "es_placeholder", False)
+        advertencia = None
+        if not ajustado:
+            advertencia = (
+                "MoM SIN ajuste poblacional validado: aún no hay referencias "
+                "(medianas y factores por peso/etnia/tabaquismo/diabetes/altitud) "
+                "cargadas para esta población. No usar para decisiones de cribado."
+            )
+
         return {
             "mom": round(mom, 3),
             "mediana_base": round(mediana_base, 4),
@@ -118,6 +161,8 @@ class MOMConverter:
             "interpretacion": interpretacion,
             "semaforo": semaforo,
             "unidad": referencia.unidad,
+            "ajustado_poblacionalmente": ajustado,
+            "advertencia": advertencia,
         }
 
     def _get_referencia(self, marcador: str, eg_dias: int):
@@ -127,8 +172,8 @@ class MOMConverter:
         if cache_key in self.cache_referencias:
             return self.cache_referencias[cache_key]
 
-        # TODO: Replace with actual database query when ReferenciaMOM model is created
-        # For now, return placeholder
+        # Sin modelo ReferenciaMOM todavía: se devuelve la referencia neutra
+        # (factores 1.0). El resultado se marca como no ajustado en calcular_mom.
         referencia = _PlaceholderReferencia(marcador, eg_dias)
 
         # # Buscar referencia exacta o más cercana
@@ -221,7 +266,7 @@ class MOMConverter:
         from scipy.stats import norm
 
         percentil = norm.cdf(z_score) * 100
-        return round(percentil, 1)
+        return int(round(float(percentil), 1))
 
     def calcular_tendencia(
         self, valores_historicos: list, semanas_historicas: list,
@@ -249,10 +294,7 @@ class MOMConverter:
         delta_valor = valores_historicos[-1] - valores_historicos[0]
         delta_semanas = semanas_historicas[-1] - semanas_historicas[0]
 
-        if delta_semanas == 0:
-            pendiente = 0
-        else:
-            pendiente = delta_valor / delta_semanas
+        pendiente = 0 if delta_semanas == 0 else delta_valor / delta_semanas
 
         # Interpretar tendencia
         if abs(pendiente) < 0.01:  # Cambio < 0.01 MoM/semana

@@ -58,7 +58,7 @@ class ScoreBishopSerializer(serializers.ModelSerializer):
 
     def get_interpretacion_detallada(self, obj):
         """Get interpretacion detallada"""
-        detalles = {
+        return {
             "score_total": obj.score_total,
             "interpretacion": obj.interpretacion,
             "probabilidad": float(obj.probabilidad_parto_espontaneo)
@@ -72,7 +72,6 @@ class ScoreBishopSerializer(serializers.ModelSerializer):
                 "estacion": obj.estacion_fetal,
             },
         }
-        return detalles
 
     def validate_dilatacion_cervical(self, value):
         """Validate dilatacion cervical"""

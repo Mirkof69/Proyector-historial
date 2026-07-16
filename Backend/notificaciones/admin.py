@@ -84,26 +84,27 @@ class NotificacionAdmin(admin.ModelAdmin):
 
     actions = ["marcar_como_leidas", "archivar_seleccionadas"]
 
+    @admin.display(description="Título")
     def titulo_corto(self, obj):
         """Muestra título acortado"""
         if len(obj.titulo) > 50:
             return obj.titulo[:50] + "..."
         return obj.titulo
 
-    titulo_corto.short_description = "Título"
 
+    @admin.display(description="Icono/Color")
     def icono_color(self, obj):
         """Muestra icono y color"""
         return f"{obj.icono} ({obj.color})"
 
-    icono_color.short_description = "Icono/Color"
 
+    @admin.display(description="Tiempo transcurrido")
     def get_tiempo_transcurrido(self, obj):
         """Tiempo transcurrido"""
         return obj.get_tiempo_transcurrido()
 
-    get_tiempo_transcurrido.short_description = "Tiempo transcurrido"
 
+    @admin.action(description="Marcar seleccionadas como leídas")
     def marcar_como_leidas(self, request, queryset):
         """Acción: Marcar como leídas"""
         from django.utils import timezone
@@ -111,14 +112,13 @@ class NotificacionAdmin(admin.ModelAdmin):
         count = queryset.update(leida=True, fecha_leida=timezone.now())
         self.message_user(request, f"{count} notificaciones marcadas como leídas.")
 
-    marcar_como_leidas.short_description = "Marcar seleccionadas como leídas"
 
+    @admin.action(description="Archivar seleccionadas")
     def archivar_seleccionadas(self, request, queryset):
         """Acción: Archivar"""
         count = queryset.update(archivada=True)
         self.message_user(request, f"{count} notificaciones archivadas.")
 
-    archivar_seleccionadas.short_description = "Archivar seleccionadas"
 
 
 @admin.register(ConfiguracionNotificaciones)

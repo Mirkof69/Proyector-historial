@@ -10,6 +10,7 @@ from datetime import timedelta
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -112,11 +113,11 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
             },
         )
 
-    @action(detail=False, methods=["get"], url_path=r"(P<modulo>[^/.]+)")
+    @action(detail=False, methods=["get"], url_path=r"modulo/(?P<modulo>[^/.]+)")
     def por_modulo(self, _request, modulo=None):
         """Retorna registros de un módulo específico.
 
-        GET /api/auditoria/{modulo}/
+        GET /api/auditoria/modulo/{modulo}/
         """
         queryset = self.get_queryset().filter(modulo=modulo)
 
@@ -128,7 +129,7 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=["get"], url_path=r"usuario/(P<usuario_id>[^/.]+)")
+    @action(detail=False, methods=["get"], url_path=r"usuario/(?P<usuario_id>[^/.]+)")
     def por_usuario(self, _request, usuario_id=None):
         """Retorna registros de un usuario específico.
 
@@ -147,7 +148,7 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=False,
         methods=["get"],
-        url_path=r"(P<modulo>[^/.]+)/(P<registro_id>[^/.]+)/historial",
+        url_path=r"(?P<modulo>[^/.]+)/(?P<registro_id>[^/.]+)/historial",
     )
     def historial_registro(self, _request, modulo=None, registro_id=None):
         """Retorna el historial completo de cambios de un registro específico.
@@ -166,7 +167,7 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=False,
         methods=["get"],
-        url_path=r"(P<modulo>[^/.]+)/(P<registro_id>[^/.]+)/timeline",
+        url_path=r"(?P<modulo>[^/.]+)/(?P<registro_id>[^/.]+)/timeline",
     )
     def timeline_registro(self, _request, modulo=None, registro_id=None):
         """Retorna una línea de tiempo de cambios para un registro.
@@ -185,7 +186,7 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=False,
         methods=["get"],
-        url_path=r"(P<modulo>[^/.]+)/(P<registro_id>[^/.]+)/trazabilidad",
+        url_path=r"(?P<modulo>[^/.]+)/(?P<registro_id>[^/.]+)/trazabilidad",
     )
     def trazabilidad_display(self, _request, modulo=None, registro_id=None):
         """Retorna información de created_by y updated_by para un registro.
@@ -227,10 +228,22 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response({"created_by": created_by, "updated_by": updated_by})
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("audit_id1", type=int, location=OpenApiParameter.PATH),
+            OpenApiParameter("audit_id2", type=int, location=OpenApiParameter.PATH),
+        ]
+    )
     @action(
         detail=False,
         methods=["get"],
-        url_path=r"comparar/(P<audit_id1>[^/.]+)/(P<audit_id2>[^/.]+)",
+        url_path=r"comparar/(?P<audit_id1>[^/.]+)/(?P<audit_id2>[^/.]+)",
+    )
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("audit_id1", type=int, location=OpenApiParameter.PATH),
+            OpenApiParameter("audit_id2", type=int, location=OpenApiParameter.PATH),
+        ]
     )
     def comparar_versiones(self, _request, audit_id1=None, audit_id2=None):
         """Compara dos versiones de un registro (dos entradas de auditoría).

@@ -18,13 +18,17 @@ import hashlib
 import hmac
 import logging
 import os
+from typing import Any, cast
 
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from .dicom_consumer import procesar_estudio_dicom
+from .dicom_consumer import procesar_estudio_dicom as _procesar_estudio_dicom
+
+procesar_estudio_dicom = cast(Any, _procesar_estudio_dicom)
 
 logger = logging.getLogger("ia_medica.dicom")
 
@@ -44,7 +48,15 @@ def _verify_hmac(request) -> bool:
     return hmac.compare_digest(signature, expected)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "dicom_webhook_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["POST"])
+@extend_schema(request=None, responses={200: dict})
 @permission_classes([AllowAny])
 def dicom_webhook(request):
     """Recibe evento de nueva instancia DICOM desde Orthanc y encola análisis CNN."""

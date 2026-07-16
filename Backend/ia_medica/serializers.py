@@ -69,12 +69,59 @@ class AnalisisCNNSerializer(serializers.ModelSerializer):
     es_normal = serializers.ReadOnlyField()
     requiere_atencion = serializers.ReadOnlyField()
     url_mapa_calor = serializers.SerializerMethodField()
+    sugerencia_diagnostica_data = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
         model = AnalisisCNN
         fields = "__all__"
         read_only_fields = ("fecha_analisis",)
+
+    def get_sugerencia_diagnostica_data(self, obj):
+        """Get sugerencia diagnostica"""
+        if obj.sugerencia_diagnostica:
+            return obj.sugerencia_diagnostica
+        # Buscar la predicción con máxima confianza
+        mejores = sorted(
+            (p for p in (obj.predicciones or []) if p.get("confianza", 0) > 0),
+            key=lambda p: p["confianza"], reverse=True,
+        )
+        if mejores:
+            mejor = mejores[0]
+            clase = mejor.get("clase", "normal")
+            confianza = mejor["confianza"]
+        elif obj.patologias:
+            clase = obj.patologias[0]
+            confianza = obj.score_general / 100.0 if obj.score_general else 0
+        else:
+            clase = "normal"
+            confianza = max(obj.score_general / 100.0 if obj.score_general else 0, obj.confianza or 0)
+
+        icd10_map = {
+            "hidrocefalia": ("Q03", "Acumulacion de liquido en ventriculos cerebrales"),
+            "anencefalia": ("Q00", "Ausencia parcial o total de cerebro"),
+            "espina_bifida": ("Q05", "Defecto del tubo neural con exposicion medular"),
+            "cardiopatia_congenita": ("Q24", "Malformacion cardiaca congenita"),
+            "labio_leporino": ("Q36", "Fisura del labio superior"),
+            "atresia_duodenal": ("Q41", "Obstruccion duodenal congenita"),
+            "oligohidramnios": ("O41", "Disminucion del liquido amniotico"),
+            "polihidramnios": ("O40", "Aumento excesivo del liquido amniotico"),
+            "restriccion_crecimiento": ("O36.5", "Restriccion del crecimiento fetal"),
+            "macrosomia_fetal": ("O33.5", "Crecimiento fetal excesivo"),
+            "placenta_previa": ("O44", "Placenta que cubre el orificio cervical"),
+            "muerte_fetal": ("O36.4", "Muerte fetal intrauterina"),
+            "embarazo_multiple": ("O30", "Embarazo multiple"),
+            "preeclampsia_signos": ("O14", "Signos de preeclampsia"),
+            "normal": ("Z34", "Control prenatal de rutina"),
+        }
+        icd10, desc = icd10_map.get(clase, ("", ""))
+        return {
+            "patologia": clase,
+            "confianza": round(float(confianza), 4),
+            "descripcion": desc,
+            "icd10": icd10,
+            "recomendacion": "Evaluacion especializada recomendada." if clase != "normal" else "Control prenatal de rutina.",
+        }
 
     def get_url_mapa_calor(self, obj):
         """Get url mapa calor"""
@@ -252,24 +299,25 @@ class ImagenEcograficaUploadSerializer(serializers.ModelSerializer):
 
     def validate_imagen(self, value):
         """Validate imagen"""
-        # Validar extensión
+        from django.conf import settings
         nombre = value.name.lower()
         extensiones_permitidas = (
             ".jpg",
             ".jpeg",
             ".png",
             ".bmp",
-            ".tif",
-            ".ti",
-            ".webp",
+            ".tiff",
+            ".dicom",
         )
         if not any(nombre.endswith(ext) for ext in extensiones_permitidas):
             raise serializers.ValidationError(
                 f"Formato no soportado. Permitidos: {', '.join(extensiones_permitidas)}",
             )
-        # Validar tamaño (máx 10MB)
-        if value.size > 10 * 1024 * 1024:
-            raise serializers.ValidationError("La imagen no puede superar los 10MB.")
+        max_size = getattr(settings, "MAX_IMAGE_SIZE", 5 * 1024 * 1024)
+        if value.size > max_size:
+            raise serializers.ValidationError(
+                f"La imagen no puede superar los {max_size // (1024*1024)}MB.",
+            )
         return value
 
 

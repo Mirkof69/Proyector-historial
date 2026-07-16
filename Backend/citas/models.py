@@ -111,7 +111,7 @@ class Disponibilidad(models.Model):
             self.hora_inicio.strftime("%H:%M") if self.hora_inicio else "N/A"
         )
         hora_fin_str = self.hora_fin.strftime("%H:%M") if self.hora_fin else "N/A"
-        return f"{self.medico.nombre} - {self.get_dia_semana_display()} {hora_inicio_str}-{hora_fin_str}"
+        return f"{self.medico.nombre} - {getattr(self, 'get_dia_semana_display')()} {hora_inicio_str}-{hora_fin_str}"
 
     def clean(self):
         """Validaciones del modelo"""
@@ -143,8 +143,9 @@ class Disponibilidad(models.Model):
             return []
 
         horarios = []
-        hora_actual = datetime.combine(datetime.today(), self.hora_inicio)
-        hora_limite = datetime.combine(datetime.today(), self.hora_fin)
+        hoy = timezone.localdate()
+        hora_actual = datetime.combine(hoy, self.hora_inicio)
+        hora_limite = datetime.combine(hoy, self.hora_fin)
 
         while hora_actual < hora_limite:
             horarios.append(hora_actual.time())
@@ -160,6 +161,8 @@ class Disponibilidad(models.Model):
 
 class Cita(models.Model):
     """Citas médicas agendadas"""
+
+    id = models.AutoField(primary_key=True)
 
     ESTADO_CHOICES = [
         ("agendada", "Agendada"),
@@ -348,7 +351,7 @@ class Cita(models.Model):
     def dias_hasta_cita(self):
         """Calcula días hasta la cita"""
         if self.fecha_cita:
-            hoy = datetime.now().date()
+            hoy = timezone.localdate()
             diferencia = self.fecha_cita - hoy
             return diferencia.days
         return None

@@ -102,7 +102,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False, verbose_name="Es superusuario")
 
     # Relaciones de permisos (CORREGIDAS)
-    groups = models.ManyToManyField(
+    groups = models.ManyToManyField(  # type: ignore[assignment]
         "auth.Group",
         verbose_name="grupos",
         blank=True,
@@ -110,7 +110,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         related_name="usuario_set",  # ← CAMBIADO
         related_query_name="usuario",
     )
-    user_permissions = models.ManyToManyField(
+    user_permissions = models.ManyToManyField(  # type: ignore[assignment]
         "auth.Permission",
         verbose_name="permisos de usuario",
         blank=True,
@@ -205,7 +205,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     @property
     def is_active(self):
         """Django espera is_active; lo mapeamos al campo 'activo' del modelo."""
-        return self.activo
+        return getattr(self, "activo", True)
 
     def has_perm(self, perm, obj=None):
         """Has perm"""

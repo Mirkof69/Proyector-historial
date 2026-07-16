@@ -11,20 +11,77 @@ El sistema clínico funciona 100% aunque el módulo ML esté caído (req. CLAUDE
 import functools
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 import requests
 
 logger = logging.getLogger("ia_medica")
 
-@functools.lru_cache(maxsize=1)
-def _get_ml_service_url() -> str:
-    """Get ml service url"""
+ALLOWED_MEDIA_DIRS: list[Path] = []
+
+
+def _init_allowed_dirs():
+    global ALLOWED_MEDIA_DIRS
+    if ALLOWED_MEDIA_DIRS:
+        return
     try:
         from django.conf import settings
-        return getattr(settings, "AI_SERVICE_URL", "http://localhost:8001")
+        ALLOWED_MEDIA_DIRS = [
+            Path(settings.MEDIA_ROOT).resolve(),
+            Path(settings.BASE_DIR).resolve(),
+        ]
     except Exception:
-        return "http://localhost:8001"
+        ALLOWED_MEDIA_DIRS = []
+
+
+def _validar_path_seguro(imagen_path: str) -> Path:
+    """Valida que imagen_path esté dentro de directorios permitidos."""
+    _init_allowed_dirs()
+    resolved = Path(imagen_path).resolve()
+    if not any(
+        str(resolved).startswith(str(d))
+        for d in ALLOWED_MEDIA_DIRS
+    ):
+        raise PermissionError(
+            f"Acceso denegado: {imagen_path} no está en directorios permitidos",
+        )
+    return resolved
+
+@functools.lru_cache(maxsize=1)
+def _get_ml_service_url() -> str:
+    """Get ml service url — configurable vía variable de entorno"""
+    try:
+        from django.conf import settings
+        return getattr(settings, "AI_SERVICE_URL", os.environ.get("AI_SERVICE_URL", "http://localhost:8001"))
+    except Exception:
+        return os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
+
+
+@functools.lru_cache(maxsize=1)
+def _get_mtls_request_kwargs() -> dict:
+    """Kwargs de requests (cert/verify) para mTLS entre Django y el
+    microservicio IA. MTLS_ENABLED es un feature-flag: si esta en false (o
+    los certificados no estan montados), vuelve a HTTP plano sin romper
+    nada — un certificado mal desplegado no debe tumbar el analisis CNN,
+    solo perder el cifrado de transporte hasta que se corrija.
+    """
+    if os.environ.get("MTLS_ENABLED", "false").lower() != "true":
+        return {}
+
+    certs_dir = os.environ.get("MTLS_CERTS_DIR", "/app/scripts/certs")
+    cert = (os.path.join(certs_dir, "client.crt"), os.path.join(certs_dir, "client.key"))
+    ca = os.path.join(certs_dir, "ca.crt")
+
+    if not (os.path.exists(cert[0]) and os.path.exists(cert[1]) and os.path.exists(ca)):
+        logger.warning(
+            "MTLS_ENABLED=true pero no se encontraron los certificados en %s. "
+            "Usando HTTP plano (degradacion segura, no falla el analisis).",
+            certs_dir,
+        )
+        return {}
+
+    return {"cert": cert, "verify": ca}
 
 
 class CNNFetalService:
@@ -159,12 +216,14 @@ class CNNFetalService:
                 ".dcm": "application/dicom",
             }.get(ext, "image/jpeg")
 
-            with open(imagen_path, "rb") as f:
+            safe_path = _validar_path_seguro(imagen_path)
+            with open(safe_path, "rb") as f:
                 response = requests.post(
                     url,
                     files={"file": (os.path.basename(imagen_path), f, mime)},
                     data={"modelo": modelo},
                     timeout=30,
+                    **_get_mtls_request_kwargs(),
                 )
 
             if response.status_code != 200:
@@ -186,8 +245,11 @@ class CNNFetalService:
         except FileNotFoundError:
             logger.error("Imagen no encontrada: %s", imagen_path)
             return self._resultado_error("Imagen no encontrada")
-        except Exception as e:
-            logger.error("Error llamando microservicio ML: %s", e)
+        except PermissionError as e:
+            logger.error("Acceso denegado a imagen: %s", e)
+            return self._resultado_error("Acceso denegado a la imagen")
+        except Exception:
+            logger.exception("Error llamando microservicio ML")
             return None
 
     def _traducir_respuesta_microservicio(self, ms_data: dict) -> dict[str, Any]:
@@ -502,7 +564,10 @@ class CNNFetalService:
             try:
                 from ia_medica.models import AnalisisCNN, ImagenEcografica
             except ImportError:
-                from backend.ia_medica.models import AnalisisCNN, ImagenEcografica
+                from backend.ia_medica.models import (  # type: ignore[no-redef]
+                    AnalisisCNN,
+                    ImagenEcografica,
+                )
             from django.db.models import Avg, Case, Count, IntegerField, When
 
             # Optimizado: una sola query aggregate en lugar de 4 queries separadas

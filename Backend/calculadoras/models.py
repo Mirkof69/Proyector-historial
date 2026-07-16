@@ -284,8 +284,8 @@ class CalculadoraRiesgo(models.Model):
         """Save"""
         # Calcular IMC automáticamente
         if self.peso_kg and self.talla_cm:
-            talla_m = float(self.talla_cm) / 100
-            self.imc = round(float(self.peso_kg) / (talla_m**2), 2)
+            talla_m = Decimal(str(self.talla_cm)) / Decimal("100")
+            self.imc = round(self.peso_kg / (talla_m ** 2), 2)
         super().save(*args, **kwargs)
 
     @property
@@ -300,7 +300,7 @@ class CalculadoraRiesgo(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"{self.get_tipo_display()} - {self.paciente.nombre_completo} ({self.edad_gestacional_texto})"
+        return f"{getattr(self, 'get_tipo_display')()} - {self.paciente.nombre_completo} ({self.edad_gestacional_texto})"
 
 
 # =============================================================================
@@ -456,7 +456,7 @@ class BiomarcadorMOM(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"{self.get_marcador_display()}: {self.mom_calculado} MoM"
+        return f"{getattr(self, 'get_marcador_display')()}: {self.mom_calculado} MoM"
 
 
 # =============================================================================
@@ -671,6 +671,10 @@ class AlertaLaboratorio(models.Model):
     procesada_en = models.DateTimeField(
         null=True, blank=True, verbose_name="Fecha de procesamiento",
     )
+
+    def __str__(self):
+        """Str representation"""
+        return f"Alerta {self.pk}"
 
     class Meta:
         db_table = "calculadoras_alerta_laboratorio"

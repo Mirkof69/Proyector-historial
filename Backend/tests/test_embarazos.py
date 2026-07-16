@@ -3,13 +3,14 @@
 
 import datetime
 from decimal import Decimal
+from typing import cast
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from django.core.exceptions import ValidationError
 from embarazos.models import Embarazo
 from pacientes.models import Paciente
 from usuarios.models import Usuario
@@ -152,13 +153,13 @@ class EmbarazoAPITest(APITestCase):
             password="medicopass123",
             rol="medico",
         )
-        self.paciente = Paciente.objects.create(
+        self.paciente = cast(Paciente, Paciente.objects.create(
             nombre="Maria",
             apellido_paterno="Lopez",
             fecha_nacimiento=datetime.date(1990, 5, 15),
             genero="femenino",
             ci="12345678",
-        )
+        ))
         self.embarazo_data = {
             "paciente": self.paciente.id,
             "numero_gesta": 1,

@@ -1,4 +1,4 @@
-﻿"""Request Monitoring Middleware
+"""Request Monitoring Middleware
 
 Tracks request/response times, logs errors with context,
 and monitors API endpoint usage for production observability.
@@ -27,9 +27,7 @@ class RequestMonitoringMiddleware:
         # Track start time for uptime calculation
         import django
 
-        self.server_start_time = (
-            django.START_TIME if hasattr(django, "START_TIME") else time.time()
-        )
+        self.server_start_time = getattr(django, "START_TIME", time.time())
 
     def __call__(self, request):
         """Call"""

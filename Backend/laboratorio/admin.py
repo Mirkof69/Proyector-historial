@@ -66,6 +66,7 @@ class ResultadoLaboratorioInline(admin.TabularInline):
     )
     readonly_fields = ("estado_badge",)
 
+    @admin.display(description="Estado")
     def estado_badge(self, obj):
         """Badge visual del estado del resultado"""
         if obj.es_critico:
@@ -84,7 +85,6 @@ class ResultadoLaboratorioInline(admin.TabularInline):
             texto,
         )
 
-    estado_badge.short_description = "Estado"
 
 
 # =============================================================================
@@ -138,6 +138,7 @@ class TipoExamenAdmin(admin.ModelAdmin):
 
     inlines = [ValorReferenciaInline]
 
+    @admin.display(description="Categoría")
     def categoria_badge(self, obj):
         """Badge de categoría con color"""
         colores = {
@@ -155,24 +156,23 @@ class TipoExamenAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px;">{}</span>',
             color,
-            obj.get_categoria_display(),
+            getattr(obj, 'get_categoria_display')(),
         )
 
-    categoria_badge.short_description = "Categoría"
 
+    @admin.display(description="Valores Referencia")
     def total_valores_referencia(self, obj):
         """Total de valores de referencia definidos"""
         count = obj.valores_referencia.count()
         return format_html("<strong>{}</strong> parámetros", count)
 
-    total_valores_referencia.short_description = "Valores Referencia"
 
+    @admin.display(description="Exámenes Realizados")
     def total_examenes(self, obj):
         """Total de exámenes realizados"""
         count = obj.examenes.count()
         return format_html("<strong>{}</strong> exámenes", count)
 
-    total_examenes.short_description = "Exámenes Realizados"
 
 
 # =============================================================================
@@ -233,6 +233,7 @@ class ValorReferenciaAdmin(admin.ModelAdmin):
         ("Condiciones", {"fields": ("condicion",)}),
     )
 
+    @admin.display(description="Rango de Referencia")
     def rango_completo(self, obj):
         """Mostrar rango completo con formato"""
         if obj.valor_minimo is not None and obj.valor_maximo is not None:
@@ -246,15 +247,14 @@ class ValorReferenciaAdmin(admin.ModelAdmin):
             return format_html("<em>{}</em>", obj.valor_normal)
         return "-"
 
-    rango_completo.short_description = "Rango de Referencia"
 
+    @admin.display(description="Valores Críticos")
     def tiene_criticos(self, obj):
         """Indica si tiene valores críticos definidos"""
         if obj.es_critico_bajo or obj.es_critico_alto:
             return format_html('<span style="color: #f5222d;">⚠️ Sí</span>')
         return "-"
 
-    tiene_criticos.short_description = "Valores Críticos"
 
 
 # =============================================================================
@@ -346,6 +346,7 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
         "marcar_como_urgente",
     ]
 
+    @admin.display(description="Paciente")
     def paciente_info(self, obj):
         """Información del paciente"""
         return format_html(
@@ -354,8 +355,8 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
             obj.paciente.ci if obj.paciente else "N/A",
         )
 
-    paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Estado")
     def estado_badge(self, obj):
         """Badge del estado del examen"""
         colores = {
@@ -378,11 +379,11 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{} {}</span>',
             color,
             icono,
-            obj.get_estado_display().upper(),
+            getattr(obj, 'get_estado_display')().upper(),
         )
 
-    estado_badge.short_description = "Estado"
 
+    @admin.display(description="Prioridad")
     def prioridad_badge(self, obj):
         """Badge de prioridad"""
         colores = {
@@ -396,11 +397,11 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px;">{}</span>',
             color,
-            obj.get_prioridad_display().upper(),
+            getattr(obj, 'get_prioridad_display')().upper(),
         )
 
-    prioridad_badge.short_description = "Prioridad"
 
+    @admin.display(description="N / A / C")
     def resumen_resultados(self, obj):
         """Resumen de resultados"""
         try:
@@ -419,29 +420,28 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
         except Exception:
             return "-"
 
-    resumen_resultados.short_description = "N / A / C"
 
     # Acciones en batch
+    @admin.action(description="✅ Marcar como Completado")
     def marcar_como_completado(self, request, queryset):
         """Marcar como completado"""
         updated = queryset.update(estado="completado")
         self.message_user(request, f"{updated} examen(es) marcado(s) como completado.")
 
-    marcar_como_completado.short_description = "✅ Marcar como Completado"
 
+    @admin.action(description="⏳ Marcar como Pendiente")
     def marcar_como_pendiente(self, request, queryset):
         """Marcar como pendiente"""
         updated = queryset.update(estado="pendiente")
         self.message_user(request, f"{updated} examen(es) marcado(s) como pendiente.")
 
-    marcar_como_pendiente.short_description = "⏳ Marcar como Pendiente"
 
+    @admin.action(description="⚠️ Marcar como Urgente")
     def marcar_como_urgente(self, request, queryset):
         """Marcar como urgente"""
         updated = queryset.update(prioridad="urgente")
         self.message_user(request, f"{updated} examen(es) marcado(s) como urgente.")
 
-    marcar_como_urgente.short_description = "⚠️ Marcar como Urgente"
 
 
 # =============================================================================
@@ -520,6 +520,7 @@ class ResultadoLaboratorioAdmin(admin.ModelAdmin):
 
     readonly_fields = ("fecha_registro",)
 
+    @admin.display(description="Examen")
     def examen_info(self, obj):
         """Información del examen"""
         return format_html(
@@ -528,16 +529,16 @@ class ResultadoLaboratorioAdmin(admin.ModelAdmin):
             obj.examen.tipo_examen.nombre if obj.examen.tipo_examen else "N/A",
         )
 
-    examen_info.short_description = "Examen"
 
+    @admin.display(description="Parámetro")
     def parametro_info(self, obj):
         """Información del parámetro"""
         if obj.valor_referencia:
             return format_html("<strong>{}</strong>", obj.valor_referencia.parametro)
         return "-"
 
-    parametro_info.short_description = "Parámetro"
 
+    @admin.display(description="Valor")
     def valor_obtenido(self, obj):
         """Valor obtenido con unidad"""
         if obj.valor_numerico is not None:
@@ -550,8 +551,8 @@ class ResultadoLaboratorioAdmin(admin.ModelAdmin):
             return format_html("<em>{}</em>", obj.valor_texto)
         return "-"
 
-    valor_obtenido.short_description = "Valor"
 
+    @admin.display(description="Rango Ref.")
     def rango_referencia(self, obj):
         """Rango de referencia"""
         if obj.valor_referencia:
@@ -568,8 +569,8 @@ class ResultadoLaboratorioAdmin(admin.ModelAdmin):
                 )
         return "-"
 
-    rango_referencia.short_description = "Rango Ref."
 
+    @admin.display(description="Estado")
     def estado_visual(self, obj):
         """Estado visual con badge"""
         if obj.es_critico:
@@ -584,15 +585,14 @@ class ResultadoLaboratorioAdmin(admin.ModelAdmin):
             '<span style="background-color: #52c41a; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;"> NORMAL</span>',
         )
 
-    estado_visual.short_description = "Estado"
 
+    @admin.display(description="Fecha Registro")
     def fecha_registro(self, obj):
         """Fecha de registro"""
         if hasattr(obj, "fecha_creacion") and obj.fecha_creacion:
             return obj.fecha_creacion.strftime("%d/%m/%Y %H:%M")
         return "-"
 
-    fecha_registro.short_description = "Fecha Registro"
 
 
 # =============================================================================
@@ -641,6 +641,7 @@ class ImagenLaboratorioAdmin(admin.ModelAdmin):
         ("Metadata", {"fields": ("fecha_digitalizacion",), "classes": ("collapse",)}),
     )
 
+    @admin.display(description="Paciente/Examen")
     def get_examen_info(self, obj):
         """Información del examen"""
         if obj.examen and obj.examen.paciente:
@@ -651,8 +652,8 @@ class ImagenLaboratorioAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    get_examen_info.short_description = "Paciente/Examen"
 
+    @admin.display(description="Tipo")
     def tipo_archivo_badge(self, obj):
         """Badge del tipo de archivo"""
         colors = {
@@ -667,11 +668,11 @@ class ImagenLaboratorioAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">{}</span>',
             color,
-            obj.get_tipo_archivo_display().upper(),
+            getattr(obj, 'get_tipo_archivo_display')().upper(),
         )
 
-    tipo_archivo_badge.short_description = "Tipo"
 
+    @admin.display(description="Archivo")
     def get_archivo_link(self, obj):
         """Link al archivo"""
         if obj.archivo:
@@ -680,7 +681,6 @@ class ImagenLaboratorioAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    get_archivo_link.short_description = "Archivo"
 
 
 # =============================================================================

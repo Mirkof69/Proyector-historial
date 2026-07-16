@@ -8,4 +8,6 @@ class PacientesConfig(AppConfig):
     name = "pacientes"
 
     def ready(self):
-        """Ready"""
+        """Conecta las señales del módulo (registro/riesgo de paciente)."""
+        from pacientes import signals as _signals
+        _ = _signals

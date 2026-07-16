@@ -8,13 +8,13 @@ Adaptado para condiciones de altura (La Paz, Bolivia - 3600-4000m)
 
 from django.db.models import Avg, Count
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
-from rest_framework import status, viewsets
+from drf_spectacular.utils import extend_schema
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
 
 from .models import (
     BiomarcadorMOM,
@@ -22,9 +22,11 @@ from .models import (
     MedicionEcografica,
 )
 from .models_doppler import DopplerMaterno
+from .models_historial import CalculoHistorial
 from .serializers import (
     CalculadoraRiesgoCreateSerializer,
     CalculadoraRiesgoSerializer,
+    CalculoHistorialSerializer,
 )
 from .services.mom_converter import MOMConverter
 from .services.risk_calculator import RiskCalculator
@@ -66,15 +68,11 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
         description="Calculate preeclampsia risk using Bayesian FMF model with biomarker MoM conversion. "
         "Accepts maternal factors, biomarkers (PAM, UTPI, PLGF, sFLT1, PAPP-A), and Doppler measurements.",
         tags=["Risk Calculators"],
-        request=OpenApiParameter(
-            name="body", type=dict, description="Risk calculation parameters",
-        ),
-        responses={
-            201: OpenApiResponse(description="Preeclampsia risk calculation completed"),
-            400: OpenApiResponse(description="Bad Request - Invalid input data"),
-        },
+        request=None,
+        responses={200: dict},
     )
     @action(detail=False, methods=["post"], url_path="calcular-preeclampsia")
+    @extend_schema(request=serializers.Serializer, responses={200: dict})
     def calcular_preeclampsia(self, request):
         """Calcula riesgo de preeclampsia usando modelo Bayesiano FMF
 
@@ -232,19 +230,21 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
         )
 
         # 4. Guardar biomarcadores MoM
+        from decimal import Decimal as _D
+
         for marcador_nombre, resultado in biomarcadores_mom.items():
             BiomarcadorMOM.objects.create(
                 calculadora=calculadora,
                 marcador=marcador_nombre,
-                valor_crudo=resultado["valor_crudo"],
+                valor_crudo=resultado.get("valor_crudo"),
                 unidad=resultado.get("unidad", ""),
-                mediana_esperada=resultado["mediana_ajustada"],
-                mediana_base=resultado["mediana_base"],
-                mom_calculado=resultado["mom"],
-                correccion_peso=resultado["correcciones"].get("peso", 1.0),
-                correccion_etnia=resultado["correcciones"].get("etnia", 1.0),
-                correccion_tabaco=resultado["correcciones"].get("tabaco", 1.0),
-                correccion_diabetes=resultado["correcciones"].get("diabetes", 1.0),
+                mediana_esperada=_D(str(resultado["mediana_ajustada"])),
+                mediana_base=_D(str(resultado["mediana_base"])),
+                mom_calculado=_D(str(resultado["mom"])),
+                correccion_peso=_D(str(resultado["correcciones"].get("peso", 1.0))),
+                correccion_etnia=_D(str(resultado["correcciones"].get("etnia", 1.0))),
+                correccion_tabaco=_D(str(resultado["correcciones"].get("tabaco", 1.0))),
+                correccion_diabetes=_D(str(resultado["correcciones"].get("diabetes", 1.0))),
             )
 
         # 5. Guardar doppler si existe
@@ -281,15 +281,11 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
         description="Calculate risk for trisomies 21, 18, and 13 (First Trimester Combined Screening). "
         "Requires nuchal translucency measurement and biomarkers (PAPP-A, beta-hCG).",
         tags=["Risk Calculators"],
-        request=OpenApiParameter(
-            name="body", type=dict, description="Trisomy screening parameters",
-        ),
-        responses={
-            201: OpenApiResponse(description="Trisomy screening completed"),
-            400: OpenApiResponse(description="Bad Request - Invalid input data"),
-        },
+        request=None,
+        responses={200: dict},
     )
     @action(detail=False, methods=["post"], url_path="calcular-trisomias")
+    @extend_schema(request=serializers.Serializer, responses={200: dict})
     def calcular_trisomias(self, request):
         """Calcula riesgo de trisomías 21, 18 y 13 (Cribado Combinado 1º Trimestre)
 
@@ -387,16 +383,18 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
         )
 
         # Guardar biomarcadores
+        from decimal import Decimal as _D
+
         BiomarcadorMOM.objects.create(
             calculadora=calc,
             marcador="pappa",
             valor_crudo=data.get("pappa_crudo"),
             unidad="mIU/mL",
-            mediana_esperada=pappa_result["mediana_ajustada"],
-            mediana_base=pappa_result["mediana_base"],
-            mom_calculado=pappa_mom,
-            correccion_peso=pappa_result["correcciones"]["peso"],
-            correccion_etnia=pappa_result["correcciones"]["etnia"],
+            mediana_esperada=_D(str(pappa_result["mediana_ajustada"])),
+            mediana_base=_D(str(pappa_result["mediana_base"])),
+            mom_calculado=_D(str(pappa_mom)),
+            correccion_peso=_D(str(pappa_result["correcciones"]["peso"])),
+            correccion_etnia=_D(str(pappa_result["correcciones"]["etnia"])),
         )
 
         BiomarcadorMOM.objects.create(
@@ -404,11 +402,11 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
             marcador="bhcg",
             valor_crudo=data.get("bhcg_crudo"),
             unidad="ng/mL",
-            mediana_esperada=bhcg_result["mediana_ajustada"],
-            mediana_base=bhcg_result["mediana_base"],
-            mom_calculado=bhcg_mom,
-            correccion_peso=bhcg_result["correcciones"]["peso"],
-            correccion_etnia=bhcg_result["correcciones"]["etnia"],
+            mediana_esperada=_D(str(bhcg_result["mediana_ajustada"])),
+            mediana_base=_D(str(bhcg_result["mediana_base"])),
+            mom_calculado=_D(str(bhcg_mom)),
+            correccion_peso=_D(str(bhcg_result["correcciones"]["peso"])),
+            correccion_etnia=_D(str(bhcg_result["correcciones"]["etnia"])),
         )
 
         # Guardar medición NT
@@ -440,15 +438,11 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
         summary="Calculate gestational diabetes risk",
         description="Calculate gestational diabetes risk based on maternal factors and medical history.",
         tags=["Risk Calculators"],
-        request=OpenApiParameter(
-            name="body", type=dict, description="Diabetes risk parameters",
-        ),
-        responses={
-            201: OpenApiResponse(description="Diabetes risk calculation completed"),
-            400: OpenApiResponse(description="Bad Request - Invalid input data"),
-        },
+        request=None,
+        responses={200: dict},
     )
     @action(detail=False, methods=["post"], url_path="calcular-diabetes")
+    @extend_schema(request=serializers.Serializer, responses={200: dict})
     def calcular_diabetes(self, request):
         """Calcula riesgo de diabetes gestacional
 
@@ -586,6 +580,7 @@ class HemogramaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         hemogramas = self.queryset.filter(paciente_id=paciente_id)
         serializer = HemogramaSerializer(hemogramas, many=True)
 
@@ -607,6 +602,7 @@ class HemogramaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         hemogramas = self.queryset.filter(embarazo_id=embarazo_id)
         serializer = HemogramaSerializer(hemogramas, many=True)
 
@@ -621,6 +617,7 @@ class HemogramaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="criticos")
     def criticos(self, _request):
         """Obtener todos los hemogramas con valores críticos"""
+        assert self.queryset is not None
         hemogramas = self.queryset.filter(es_critico=True)
         serializer = HemogramaSerializer(hemogramas, many=True)
 
@@ -636,6 +633,7 @@ class HemogramaViewSet(viewsets.ModelViewSet):
     def estadisticas(self, _request):
         """Estadísticas generales de hemogramas"""
 
+        assert self.queryset is not None
         total = self.queryset.count()
         criticos = self.queryset.filter(es_critico=True).count()
 
@@ -705,6 +703,7 @@ class BioquimicaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         bioquimicas = self.queryset.filter(paciente_id=paciente_id)
         serializer = BioquimicaSerializer(bioquimicas, many=True)
 
@@ -726,6 +725,7 @@ class BioquimicaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         bioquimicas = self.queryset.filter(embarazo_id=embarazo_id)
         serializer = BioquimicaSerializer(bioquimicas, many=True)
 
@@ -740,6 +740,7 @@ class BioquimicaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="criticos")
     def criticos(self, _request):
         """Obtener bioquímicas con valores críticos"""
+        assert self.queryset is not None
         bioquimicas = self.queryset.filter(es_critico=True)
         serializer = BioquimicaSerializer(bioquimicas, many=True)
 
@@ -901,6 +902,7 @@ class MarcadorEmbarazoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         marcadores = self.queryset.filter(embarazo_id=embarazo_id)
         serializer = MarcadorEmbarazoSerializer(marcadores, many=True)
 
@@ -939,7 +941,8 @@ class MarcadorEmbarazoViewSet(viewsets.ModelViewSet):
             altitud_bolivia=data.get("altitud_bolivia", True),
         )
 
-        clasificacion_mom = calculador_mom.clasificar_mom(resultado)
+        from typing import cast
+        clasificacion_mom = calculador_mom.clasificar_mom(cast(float, resultado))
 
         return Response(
             {
@@ -980,6 +983,8 @@ class DopplerMaternoViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "paciente_id requerido"}, status=status.HTTP_400_BAD_REQUEST,
             )
+        assert self.queryset is not None
+        assert self.serializer_class is not None
         dopplers = self.queryset.filter(paciente_id=paciente_id)
         serializer = self.serializer_class(dopplers, many=True)
         return Response(
@@ -989,6 +994,8 @@ class DopplerMaternoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="alto-riesgo")
     def alto_riesgo(self, _request):
         """Dopplers con alto riesgo de preeclampsia"""
+        assert self.queryset is not None
+        assert self.serializer_class is not None
         dopplers = self.queryset.filter(escotadura_diastolica=True)
         serializer = self.serializer_class(dopplers, many=True)
         return Response(
@@ -998,6 +1005,7 @@ class DopplerMaternoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="estadisticas")
     def estadisticas(self, _request):
         """Estadísticas de dopplers maternos"""
+        assert self.queryset is not None
         total = self.queryset.count()
         alto_riesgo = self.queryset.filter(escotadura_diastolica=True).count()
         por_clasificacion = (
@@ -1015,3 +1023,30 @@ class DopplerMaternoViewSet(viewsets.ModelViewSet):
                 "promedios": promedio_ip,
             },
         )
+
+
+# =============================================================================
+# HISTORIAL DE CALCULADORAS SIMPLES
+# =============================================================================
+
+
+class CalculoHistorialViewSet(viewsets.ModelViewSet):
+    """ViewSet para el historial de las 8 calculadoras simples del frontend
+    (Edad Gestacional, Score de Bishop, IMC, Riesgo Preeclampsia, Diabetes
+    Gestacional, Indice de Liquido Amniotico, Peso Fetal, Score de Apgar).
+
+    Antes estos resultados solo se guardaban en localStorage del navegador.
+    """
+
+    queryset = CalculoHistorial.objects.select_related("paciente", "embarazo", "calculado_por")
+    serializer_class = CalculoHistorialSerializer
+    permission_classes = [FetalMedicalPermission]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["tipo_calculadora", "paciente", "embarazo"]
+    search_fields = ["resultado_resumen"]
+    ordering_fields = ["fecha_calculo"]
+    ordering = ["-fecha_calculo"]
+
+    def perform_create(self, serializer):
+        """Asigna automáticamente quién hizo el cálculo"""
+        serializer.save(calculado_por=self.request.user)

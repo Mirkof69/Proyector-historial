@@ -5,14 +5,16 @@ VIEWS PARA CONFIGURACIÓN DEL SISTEMA
 
 import logging
 
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from .models_config import HorarioAtencion, SistemaConfiguracion
+from .models_config import ConfiguracionAlertas, HorarioAtencion, SistemaConfiguracion
 from .serializers_config import (
+    ConfiguracionAlertasSerializer,
     HorarioAtencionSerializer,
     SistemaConfiguracionSerializer,
 )
@@ -26,7 +28,15 @@ logger = logging.getLogger(__name__)
 # ==========================================================================================
 
 
+@extend_schema(
+    request=inline_serializer(
+        "configuracion_general_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET", "POST"])
+@extend_schema(request=None, responses={200: dict})
 @permission_classes([IsAuthenticated, IsAdminUser])
 @parser_classes([MultiPartParser, FormParser])
 def configuracion_general(request):
@@ -51,10 +61,45 @@ def configuracion_general(request):
 
 
 # ==========================================================================================
+# CONFIGURACIÓN DE ALERTAS
+# ==========================================================================================
+
+
+@extend_schema(request=None, responses={200: dict})
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def configuracion_alertas(request):
+    """GET: Obtener configuración actual de umbrales y notificaciones de alertas.
+    POST: Actualizar configuración de alertas.
+    """
+    config = ConfiguracionAlertas.get_configuracion()
+
+    if request.method == "GET":
+        serializer = ConfiguracionAlertasSerializer(config)
+        return Response(serializer.data)
+
+    serializer = ConfiguracionAlertasSerializer(
+        config, data=request.data, partial=True,
+    )
+    if serializer.is_valid():
+        serializer.save(actualizado_por=request.user)
+        logger.info("Configuración de alertas actualizada por %s", request.user.email)
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ==========================================================================================
 # HORARIOS DE ATENCIÓN
 # ==========================================================================================
 
 
+@extend_schema(
+    request=inline_serializer(
+        "horarios_atencion_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def horarios_atencion(request):
@@ -116,6 +161,13 @@ def horarios_atencion(request):
 # ==========================================================================================
 
 
+@extend_schema(
+    request=inline_serializer(
+        "crear_backup_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def crear_backup(request):
@@ -138,6 +190,14 @@ def crear_backup(request):
         )
 
 
+@extend_schema(
+    operation_id="reportes_configuracion_listar_backups",
+    request=inline_serializer(
+        "listar_backups_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def listar_backups(_request):
@@ -152,6 +212,14 @@ def listar_backups(_request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@extend_schema(
+    operation_id="reportes_configuracion_descargar_backup",
+    request=inline_serializer(
+        "descargar_backup_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def descargar_backup(request, filename):
@@ -172,6 +240,13 @@ def descargar_backup(request, filename):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "eliminar_backup_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def eliminar_backup(request, filename):
@@ -190,4 +265,33 @@ def eliminar_backup(request, filename):
 
     except Exception as e:
         logger.error("Error al eliminar backup: %s", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@extend_schema(
+    request=inline_serializer(
+        "restaurar_backup_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def restaurar_backup(request, filename):
+    """Restaura la base de datos completa desde un backup.
+
+    Operacion destructiva: sobrescribe toda la base de datos actual. El
+    servicio crea automaticamente un backup de seguridad de la base actual
+    antes de ejecutar el restore.
+    """
+    try:
+        service = DatabaseBackupService()
+        result = service.restore_backup(filename)
+        logger.warning(
+            "Base de datos restaurada por %s desde %s", request.user.email, filename,
+        )
+        return Response(result, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.error("Error al restaurar backup: %s", str(e))
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

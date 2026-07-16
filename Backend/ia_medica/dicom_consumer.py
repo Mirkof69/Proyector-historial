@@ -9,7 +9,9 @@ Cada nueva serie DICOM queda automáticamente analizada por EfficientNet-B4
 sin intervención manual del médico.
 """
 
+import contextlib
 import logging
+
 from celery import shared_task
 
 logger = logging.getLogger("ia_medica.dicom")
@@ -37,16 +39,16 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
         paciente_id:          ID del paciente en nuestra BD (opcional)
         usuario_id:           ID del médico que recibe el estudio (opcional)
     """
-    import io
     import os
-    import tempfile
+    from typing import Any, cast
 
     import requests
     from django.contrib.auth import get_user_model
     from django.core.files.base import ContentFile
 
     from ia_medica.models import ImagenEcografica
-    from ia_medica.tasks import analizar_imagen_task
+    from ia_medica.tasks import analizar_imagen_task as _analizar_imagen_task
+    analizar_imagen_task = cast(Any, _analizar_imagen_task)
 
     ORTHANC_URL = os.environ.get("ORTHANC_URL", "http://orthanc:8042")
     ORTHANC_USER = os.environ.get("ORTHANC_USER", "fetalmedical")
@@ -74,13 +76,16 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
 
         from pacientes.models import Paciente
         paciente = Paciente.objects.filter(id=paciente_id).first() if paciente_id else None
+        if paciente is None:
+            logger.error("No se puede procesar el DICOM %s: Paciente no encontrado (paciente_id=%s)", orthanc_instance_id, paciente_id)
+            return {"status": "error", "message": f"Paciente no encontrado con id {paciente_id}"}
 
         imagen_obj = ImagenEcografica.objects.create(
             paciente=paciente,
             tipo_imagen="eco_2d",
             estado="pendiente",
             nombre_original=nombre_archivo,
-            metadatos_dicom={
+            dicom_metadata={
                 "orthanc_id": orthanc_instance_id,
                 "PatientName": tags.get("PatientName", ""),
                 "StudyDate": tags.get("StudyDate", ""),
@@ -93,13 +98,13 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
 
         logger.info(
             "ImagenEcografica creada: id=%s desde DICOM %s",
-            imagen_obj.id,
+            getattr(imagen_obj, 'id', None),
             orthanc_instance_id,
         )
 
         # ── 4. Encolar análisis CNN ─────────────────────────────────────────
         analizar_imagen_task.delay(
-            imagen_id=imagen_obj.id,
+            imagen_id=getattr(imagen_obj, 'id', None),
             modelo="efficientnet_b4",
             user_id=usuario_id,
         )
@@ -111,7 +116,7 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
                 usuario=usuario,
                 accion="ANALISIS_CNN",
                 modulo="ImagenEcografica",
-                registro_id=str(imagen_obj.id),
+                registro_id=str(getattr(imagen_obj, 'id', None)),
                 detalle=f"DICOM recibido de Orthanc: {orthanc_instance_id}",
             )
         except Exception:
@@ -119,7 +124,7 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
 
         return {
             "status": "success",
-            "imagen_id": imagen_obj.id,
+            "imagen_id": getattr(imagen_obj, 'id', None),
             "orthanc_id": orthanc_instance_id,
         }
 
@@ -133,8 +138,6 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
 
     except Exception as exc:
         logger.error("Error procesando DICOM %s: %s", orthanc_instance_id, exc)
-        try:
+        with contextlib.suppress(self.MaxRetriesExceededError):
             self.retry(countdown=60, exc=exc)
-        except self.MaxRetriesExceededError:
-            pass
         return {"status": "error", "message": str(exc)}

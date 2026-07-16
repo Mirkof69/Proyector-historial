@@ -117,12 +117,12 @@ class DopplerMaterno(models.Model):
 
     def calcular_sd_ratio(self):
         """Calcula relación S/D: PS / ED"""
-        if self.ed_cm_s and self.ed_cm_s > 0:
+        if self.ps_cm_s is not None and self.ed_cm_s and self.ed_cm_s > 0:
             return round(self.ps_cm_s / self.ed_cm_s, 2)
         return None
 
     @property
-    def es_alto_riesgo(self):
+    def es_alto_riesgo(self) -> bool:
         """Evalúa si el Doppler indica alto riesgo de preeclampsia"""
         if (
             self.ip
@@ -132,6 +132,4 @@ class DopplerMaterno(models.Model):
             return self.ip > 2.35
         if self.ip and self.edad_gestacional_semanas > 13:
             return self.ip > 1.45
-        if self.escotadura_diastolica:
-            return True
-        return False
+        return bool(self.escotadura_diastolica)

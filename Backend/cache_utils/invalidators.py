@@ -11,6 +11,13 @@ import logging
 
 from django.core.cache import cache
 
+
+def _delete_pattern(pattern: str) -> None:
+    """Wrapper for delete_pattern which is a django-redis extension."""
+    func = getattr(cache, 'delete_pattern', None)
+    if func is not None:
+        func(pattern)
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,13 +47,13 @@ def invalidate_patient_cache(patient_id=None):
                 f"patient_embarazos:{patient_id}",
             ]
             for pattern in patterns:
-                cache.delete_pattern(pattern)
+                _delete_pattern(pattern)
             logger.info("Invalidated cache for patient %s", patient_id)
         else:
             # Invalidate all patient caches
-            cache.delete_pattern("patient_data:*")
-            cache.delete_pattern("patient_detail:*")
-            cache.delete_pattern("patient_history:*")
+            _delete_pattern("patient_data:*")
+            _delete_pattern("patient_detail:*")
+            _delete_pattern("patient_history:*")
             logger.info("Invalidated all patient caches")
     except Exception as e:
         logger.error("Failed to invalidate patient cache: %s", e)
@@ -62,9 +69,9 @@ def invalidate_dashboard_cache():
         invalidate_dashboard_cache()
     """
     try:
-        cache.delete_pattern("dashboard_stats:*")
-        cache.delete_pattern("dashboard_kpi:*")
-        cache.delete_pattern("dashboard_alerts:*")
+        _delete_pattern("dashboard_stats:*")
+        _delete_pattern("dashboard_kpi:*")
+        _delete_pattern("dashboard_alerts:*")
         logger.info("Invalidated all dashboard caches")
     except Exception as e:
         logger.error("Failed to invalidate dashboard cache: %s", e)
@@ -79,10 +86,10 @@ def invalidate_ultrasound_cache(embarazo_id=None):
     """
     try:
         if embarazo_id:
-            cache.delete_pattern(f"ultrasound_images:*{embarazo_id}*")
+            _delete_pattern(f"ultrasound_images:*{embarazo_id}*")
             logger.info("Invalidated ultrasound cache for pregnancy %s", embarazo_id)
         else:
-            cache.delete_pattern("ultrasound_images:*")
+            _delete_pattern("ultrasound_images:*")
             logger.info("Invalidated all ultrasound caches")
     except Exception as e:
         logger.error("Failed to invalidate ultrasound cache: %s", e)
@@ -92,9 +99,9 @@ def invalidate_statistics_cache():
     """Clear all statistics and report caches.
     """
     try:
-        cache.delete_pattern("statistics:*")
-        cache.delete_pattern("report_stats:*")
-        cache.delete_pattern("general_stats:*")
+        _delete_pattern("statistics:*")
+        _delete_pattern("report_stats:*")
+        _delete_pattern("general_stats:*")
         logger.info("Invalidated all statistics caches")
     except Exception as e:
         logger.error("Failed to invalidate statistics cache: %s", e)
@@ -109,14 +116,14 @@ def invalidate_embarazo_cache(embarazo_id=None):
     """
     try:
         if embarazo_id:
-            cache.delete_pattern(f"embarazo_data:*{embarazo_id}*")
-            cache.delete_pattern(f"embarazo_controles:*{embarazo_id}*")
-            cache.delete_pattern(f"embarazo_estadisticas:*{embarazo_id}*")
+            _delete_pattern(f"embarazo_data:*{embarazo_id}*")
+            _delete_pattern(f"embarazo_controles:*{embarazo_id}*")
+            _delete_pattern(f"embarazo_estadisticas:*{embarazo_id}*")
             logger.info("Invalidated cache for pregnancy %s", embarazo_id)
         else:
-            cache.delete_pattern("embarazo_data:*")
-            cache.delete_pattern("embarazo_controles:*")
-            cache.delete_pattern("embarazo_estadisticas:*")
+            _delete_pattern("embarazo_data:*")
+            _delete_pattern("embarazo_controles:*")
+            _delete_pattern("embarazo_estadisticas:*")
             logger.info("Invalidated all pregnancy caches")
     except Exception as e:
         logger.error("Failed to invalidate embarazo cache: %s", e)
@@ -151,7 +158,7 @@ def invalidate_all_caches():
         ]
 
         for pattern in patterns:
-            cache.delete_pattern(pattern)
+            _delete_pattern(pattern)
 
         logger.warning("ALL CACHES INVALIDATED - Nuclear option executed")
     except Exception as e:

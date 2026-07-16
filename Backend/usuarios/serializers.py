@@ -142,8 +142,9 @@ class UsuarioDetailSerializer(serializers.ModelSerializer):
             "grupos",
             "fecha_creacion",
             "fecha_modificacion",
+            "last_login",
         ]
-        read_only_fields = ["id", "uuid", "fecha_creacion", "fecha_modificacion"]
+        read_only_fields = ["id", "uuid", "fecha_creacion", "fecha_modificacion", "last_login"]
 
     def get_foto_url(self, obj):
         """Obtener URL completa de la foto"""
@@ -313,12 +314,26 @@ class LoginSerializer(serializers.Serializer):
     )
 
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+    def validate_email(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("El email es obligatorio")
+        return value.strip().lower()
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+        if not email:
+            raise serializers.ValidationError({"email": "El email es obligatorio"})
+        if not password:
+            raise serializers.ValidationError({"password": "La contraseña es obligatoria"})
+        return attrs
 
 
 class MfaVerifySerializer(serializers.Serializer):
@@ -341,10 +356,20 @@ class MfaVerifySerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
+
+    def validate(self, attrs):
+        totp_code = attrs.get("totp_code")
+        if totp_code and len(totp_code) != 6:
+            raise serializers.ValidationError(
+                {"totp_code": "El código TOTP debe tener exactamente 6 dígitos"},
+            )
+        return attrs
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -364,20 +389,35 @@ class ChangePasswordSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        """Validar que las contraseñas nuevas coincidan"""
+        """Validar que las contraseñas nuevas coincidan y sean diferentes a la actual"""
         if attrs["password_nueva"] != attrs["password_nueva_confirm"]:
             raise serializers.ValidationError(
                 {"password_nueva_confirm": "Las contraseñas no coinciden"},
             )
+        if (
+            attrs.get("password_actual")
+            and attrs.get("password_nueva")
+            and attrs["password_actual"] == attrs["password_nueva"]
+        ):
+            raise serializers.ValidationError(
+                {"password_nueva": "La nueva contraseña debe ser diferente a la actual"},
+            )
         return attrs
 
+    def validate_password_nueva(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError(
+                "La contraseña debe tener al menos 8 caracteres",
+            )
+        return value
+
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
 
 
 class AdminChangePasswordSerializer(serializers.Serializer):
@@ -394,20 +434,32 @@ class AdminChangePasswordSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        """Validar que las contraseñas nuevas coincidan"""
+        """Validar que las contraseñas nuevas coincidan y el admin tenga permiso"""
         if attrs["password_nueva"] != attrs["password_nueva_confirm"]:
             raise serializers.ValidationError(
                 {"password_nueva_confirm": "Las contraseñas no coinciden"},
             )
+        request = self.context.get("request")
+        if request and not request.user.is_staff:
+            raise serializers.ValidationError(
+                "Solo administradores pueden cambiar contraseñas de otros usuarios",
+            )
         return attrs
 
+    def validate_password_nueva(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError(
+                "La contraseña debe tener al menos 8 caracteres",
+            )
+        return value
+
     def create(self, validated_data):
-        """Create"""
-        raise NotImplementedError
+        return validated_data
 
     def update(self, instance, validated_data):
-        """Update"""
-        raise NotImplementedError
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        return instance
 
 
 # ======================================================================================

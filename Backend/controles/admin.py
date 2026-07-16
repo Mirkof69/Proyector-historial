@@ -115,34 +115,35 @@ class ControlPrenatalAdmin(admin.ModelAdmin):
         ("Metadata", {"fields": ("fecha_registro",), "classes": ("collapse",)}),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_nombre(self, obj):
         """Get paciente nombre"""
         if obj.embarazo and obj.embarazo.paciente:
             return f"{obj.embarazo.paciente.nombre} {obj.embarazo.paciente.apellido_paterno}"
         return "-"
 
-    get_paciente_nombre.short_description = "Paciente"
 
+    @admin.display(description="Edad Gestacional")
     def get_edad_gestacional(self, obj):
         """Get edad gestacional"""
         return obj.edad_gestacional_texto
 
-    get_edad_gestacional.short_description = "Edad Gestacional"
 
+    @admin.display(description="PA (mmHg)")
     def get_presion_arterial(self, obj):
         """Get presion arterial"""
         if obj.presion_arterial_sistolica and obj.presion_arterial_diastolica:
             return f"{obj.presion_arterial_sistolica}/{obj.presion_arterial_diastolica}"
         return "-"
 
-    get_presion_arterial.short_description = "PA (mmHg)"
 
+    @admin.display(description="Alertas")
     def get_tiene_alertas(self, obj):
         """Get tiene alertas"""
         return "⚠️ Sí" if obj.tiene_alertas_criticas() else "✓ No"
 
-    get_tiene_alertas.short_description = "Alertas"
 
+    @admin.display(description="IMC")
     def get_imc(self, obj):
         """Get imc"""
         imc = obj.imc
@@ -150,8 +151,8 @@ class ControlPrenatalAdmin(admin.ModelAdmin):
             return f"{imc} - {obj.clasificacion_imc}"
         return "-"
 
-    get_imc.short_description = "IMC"
 
+    @admin.display(description="PAM")
     def get_pam(self, obj):
         """Get pam"""
         pam = obj.presion_arterial_media
@@ -159,8 +160,8 @@ class ControlPrenatalAdmin(admin.ModelAdmin):
             return f"{pam} mmHg"
         return "-"
 
-    get_pam.short_description = "PAM"
 
+    @admin.display(description="Ganancia de Peso")
     def get_ganancia_peso(self, obj):
         """Get ganancia peso"""
         ganancia = obj.ganancia_peso
@@ -169,21 +170,22 @@ class ControlPrenatalAdmin(admin.ModelAdmin):
             return f"{signo}{ganancia} kg"
         return "-"
 
-    get_ganancia_peso.short_description = "Ganancia de Peso"
 
+    @admin.display(description="Alertas Detectadas")
     def get_alertas_display(self, obj):
         """Get alertas display"""
         alertas = obj.get_alertas()
         if not alertas:
             return "✓ Sin alertas"
 
-        from django.utils.html import format_html
+        from django.utils.html import format_html, format_html_join
 
-        html = "<ul style='margin: 0; padding-left: 20px;'>"
-        for alerta in alertas:
-            icono = "" if alerta["tipo"] == "critico" else ""
-            html += f"<li>{icono} <strong>{alerta['mensaje']}</strong>: {alerta['valor']}</li>"
-        html += "</ul>"
-        return format_html(html)
+        items = format_html_join(
+            "",
+            "<li><strong>{}</strong>: {}</li>",
+            ((alerta["mensaje"], alerta["valor"]) for alerta in alertas),
+        )
+        return format_html(
+            "<ul style='margin: 0; padding-left: 20px;'>{}</ul>", items,
+        )
 
-    get_alertas_display.short_description = "Alertas Detectadas"

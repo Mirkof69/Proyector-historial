@@ -11,18 +11,20 @@ MÓDULO: CONTROLES PRENATALES - VIEWSET COMPLETO V2.0 CORREGIDO
 =============================================================================
 """
 
-from datetime import date, timedelta
+import contextlib
+from datetime import timedelta
 
 from django.db.models import Avg, Count, Q
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
 
+from core.permissions import FetalMedicalPermission
 from embarazos.models import Embarazo
 from embarazos.serializers import EmbarazoSerializer
+from pacientes.models import Paciente
 
 from .models import ControlPrenatal
 from .serializers import (
@@ -101,7 +103,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         "paciente__apellido_materno",
         "paciente__id_clinico",
         "observaciones",
-        "medico_id__username",
+        "medico_id__email",
     ]
 
     ordering_fields = [
@@ -132,46 +134,41 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         """✅ EXTENDIDO: Filtros avanzados con validaciones"""
         queryset = super().get_queryset()
 
+        # query_params pertenece a rest_framework.request.Request (no HttpRequest)
+        params = self.request.query_params  # type: ignore[attr-defined]
+
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # FILTROS POR FECHA
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        fecha_desde = self.request.query_params.get("fecha_desde", None)
-        fecha_hasta = self.request.query_params.get("fecha_hasta", None)
+        fecha_desde = params.get("fecha_desde", None)
+        fecha_hasta = params.get("fecha_hasta", None)
 
         if fecha_desde:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_control__gte=fecha_desde)
-            except Exception:
-                pass
 
         if fecha_hasta:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_control__lte=fecha_hasta)
-            except Exception:
-                pass
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # FILTROS POR SEMANAS DE GESTACIÓN
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        semanas_min = self.request.query_params.get("semanas_min", None)
-        semanas_max = self.request.query_params.get("semanas_max", None)
+        semanas_min = params.get("semanas_min", None)
+        semanas_max = params.get("semanas_max", None)
 
         if semanas_min:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 queryset = queryset.filter(semanas_gestacion__gte=int(semanas_min))
-            except (ValueError, TypeError):
-                pass
 
         if semanas_max:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 queryset = queryset.filter(semanas_gestacion__lte=int(semanas_max))
-            except (ValueError, TypeError):
-                pass
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # FILTRO POR ALERTAS (VALORES ANORMALES)
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        con_alertas = self.request.query_params.get("con_alertas", None)
+        con_alertas = params.get("con_alertas", None)
         if con_alertas == "true":
             queryset = queryset.filter(
                 Q(presion_arterial_sistolica__gte=140)
@@ -186,27 +183,25 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # FILTRO POR ESTADO DEL EMBARAZO
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        solo_activos = self.request.query_params.get("solo_activos", None)
+        solo_activos = params.get("solo_activos", None)
         if solo_activos == "true":
             queryset = queryset.filter(embarazo_id__estado="activo")
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # FILTRO POR PACIENTE
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        paciente_id = self.request.query_params.get("paciente_id", None)
+        paciente_id = params.get("paciente_id", None)
         if paciente_id:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 queryset = queryset.filter(
                     Q(paciente__id=int(paciente_id))
                     | Q(embarazo_id__paciente__id=int(paciente_id)),
                 )
-            except (ValueError, TypeError):
-                pass
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # FILTRO POR TRIMESTRE
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        trimestre = self.request.query_params.get("trimestre", None)
+        trimestre = params.get("trimestre", None)
         if trimestre:
             try:
                 trimestre = int(trimestre)
@@ -242,6 +237,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
 
         # Recargar control con todas las relaciones
+        assert serializer.instance is not None
         control = ControlPrenatal.objects.select_related(
             "embarazo", "embarazo__paciente", "paciente", "medico",
         ).get(id=serializer.instance.id)
@@ -279,7 +275,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """✅ Eliminar control prenatal completamente de la base de datos"""
         # ✅ SEGURIDAD: Solo administradores pueden eliminar
-        if request.user.rol != "administrador":
+        if getattr(request.user, 'rol', '') != "administrador":
             return Response(
                 {
                     "error": "Sin permisos para eliminar",
@@ -345,6 +341,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
                 {"error": "Embarazo no encontrado"}, status=status.HTTP_404_NOT_FOUND,
             )
 
+        assert self.queryset is not None
         controles = self.queryset.filter(embarazo_id=embarazo).order_by(
             "numero_control", "fecha_control",
         )
@@ -352,7 +349,14 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         # ✅ Estadísticas del embarazo
         estadisticas = {
             "total_controles": controles.count(),
-            "controles_con_alertas": controles.filter(tiene_alertas=True).count(),
+            "controles_con_alertas": controles.filter(
+                Q(presion_arterial_sistolica__gte=140)
+                | Q(presion_arterial_diastolica__gte=90)
+                | Q(frecuencia_cardiaca_fetal__lt=110)
+                | Q(frecuencia_cardiaca_fetal__gt=160)
+                | Q(edema__in=["severo", "generalizado"])
+                | Q(movimientos_fetales__in=["disminuidos", "ausentes"])
+            ).count(),
             "ultimo_peso": None,
             "ultima_pa": None,
             "ultima_fcf": None,
@@ -360,33 +364,32 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
         if controles.exists():
             ultimo_control = controles.last()
-            estadisticas["ultimo_peso"] = (
-                float(ultimo_control.peso_actual)
-                if ultimo_control.peso_actual
-                else None
-            )
-            if (
-                ultimo_control.presion_arterial_sistolica
-                and ultimo_control.presion_arterial_diastolica
-            ):
-                estadisticas["ultima_pa"] = (
-                    f"{ultimo_control.presion_arterial_sistolica}/{ultimo_control.presion_arterial_diastolica}"
+            if ultimo_control is not None:
+                estadisticas["ultimo_peso"] = (
+                    float(ultimo_control.peso_actual)
+                    if ultimo_control.peso_actual is not None
+                    else None
                 )
-            estadisticas["ultima_fcf"] = ultimo_control.frecuencia_cardiaca_fetal
+                if (
+                    ultimo_control.presion_arterial_sistolica
+                    and ultimo_control.presion_arterial_diastolica
+                ):
+                    estadisticas["ultima_pa"] = (
+                        f"{ultimo_control.presion_arterial_sistolica}/{ultimo_control.presion_arterial_diastolica}"
+                    )
+                estadisticas["ultima_fcf"] = ultimo_control.frecuencia_cardiaca_fetal
 
         serializer = ControlPrenatalSerializer(controles, many=True)
 
+        primer_ctrl = controles.first()
+        ultimo_ctrl = controles.last()
         return Response(
             {
                 "embarazo": EmbarazoSerializer(embarazo).data,
                 "controles": serializer.data,
                 "estadisticas": estadisticas,
-                "primer_control": controles.first().fecha_control
-                if controles.exists()
-                else None,
-                "ultimo_control": controles.last().fecha_control
-                if controles.exists()
-                else None,
+                "primer_control": primer_ctrl.fecha_control if primer_ctrl is not None else None,
+                "ultimo_control": ultimo_ctrl.fecha_control if ultimo_ctrl is not None else None,
             },
         )
 
@@ -402,8 +405,6 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            from pacientes.models import Paciente
-
             paciente = Paciente.objects.get(id=paciente_id)
         except Paciente.DoesNotExist:
             return Response(
@@ -411,6 +412,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
             )
 
         # Obtener todos los controles del paciente
+        assert self.queryset is not None
         controles = self.queryset.filter(
             Q(paciente=paciente) | Q(embarazo_id__paciente=paciente),
         ).order_by("-fecha_control")
@@ -437,7 +439,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         total = ControlPrenatal.objects.count()
 
         # Estadísticas temporales
-        hoy = date.today()
+        hoy = timezone.localdate()
         hace_una_semana = hoy - timedelta(days=7)
         hace_un_mes = hoy - timedelta(days=30)
         hace_tres_meses = hoy - timedelta(days=90)
@@ -461,7 +463,6 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
             fcf_promedio=Avg("frecuencia_cardiaca_fetal"),
             fcm_promedio=Avg("frecuencia_cardiaca"),
             temperatura_promedio=Avg("temperatura"),
-            imc_promedio=Avg("imc"),
         )
 
         # ✅ CORRECCIÓN: Alertas médicas
@@ -506,7 +507,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
         # ✅ NUEVO: Controles por médico
         controles_por_medico = (
-            ControlPrenatal.objects.values("medico_id__username")
+            ControlPrenatal.objects.values("medico_id__email")
             .annotate(total=Count("id"))
             .order_by("-total")[:10]
         )
@@ -543,6 +544,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def alertas(self, _request):
         """✅ EXTENDIDO: Controles con alertas médicas agrupadas por tipo"""
+        assert self.queryset is not None
         controles_alerta = self.queryset.filter(
             Q(presion_arterial_sistolica__gte=140)
             | Q(presion_arterial_diastolica__gte=90)
@@ -598,8 +600,9 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
     def recientes(self, request):
         """✅ EXTENDIDO: Controles recientes con estadísticas"""
         dias = int(request.query_params.get("dias", 7))
-        fecha_desde = date.today() - timedelta(days=dias)
+        fecha_desde = timezone.localdate() - timedelta(days=dias)
 
+        assert self.queryset is not None
         controles = self.queryset.filter(fecha_control__gte=fecha_desde).order_by(
             "-fecha_control",
         )
@@ -607,7 +610,14 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         # ✅ Estadísticas de controles recientes
         estadisticas = {
             "total": controles.count(),
-            "con_alertas": controles.filter(tiene_alertas=True).count(),
+            "con_alertas": controles.filter(
+                Q(presion_arterial_sistolica__gte=140)
+                | Q(presion_arterial_diastolica__gte=90)
+                | Q(frecuencia_cardiaca_fetal__lt=110)
+                | Q(frecuencia_cardiaca_fetal__gt=160)
+                | Q(edema__in=["severo", "generalizado"])
+                | Q(movimientos_fetales__in=["disminuidos", "ausentes"])
+            ).count(),
             "embarazos_unicos": controles.values("embarazo_id").distinct().count(),
         }
 
@@ -629,6 +639,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         dias = int(request.query_params.get("dias", 30))
 
         # Obtener último control de cada embarazo activo
+        assert self.queryset is not None
         controles = (
             self.queryset.filter(embarazo_id__estado="activo")
             .order_by("embarazo_id", "-fecha_control")
@@ -637,7 +648,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
         # Filtrar embarazos que necesitan control
         embarazos_pendientes = []
-        hoy = date.today()
+        hoy = timezone.localdate()
 
         for control in controles:
             dias_desde_ultimo = (hoy - control.fecha_control).days
@@ -680,6 +691,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
                 {"error": "Embarazo no encontrado"}, status=status.HTTP_404_NOT_FOUND,
             )
 
+        assert self.queryset is not None
         controles = self.queryset.filter(embarazo_id=embarazo).order_by("fecha_control")
 
         if not controles.exists():
@@ -756,13 +768,15 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
             elif pesos_validos[-1] < pesos_validos[0] * 0.95:
                 analisis["tendencia_peso"] = "disminución"
 
+        primer_ctrl = controles.first()
+        ultimo_ctrl = controles.last()
         return Response(
             {
                 "embarazo_id": embarazo.id,
                 "paciente": f"{embarazo.paciente.id_clinico} - {embarazo.paciente.nombre} {embarazo.paciente.apellido_paterno}",
                 "total_controles": controles.count(),
-                "primer_control": controles.first().fecha_control.strftime("%Y-%m-%d"),
-                "ultimo_control": controles.last().fecha_control.strftime("%Y-%m-%d"),
+                "primer_control": primer_ctrl.fecha_control.strftime("%Y-%m-%d") if primer_ctrl is not None else None,
+                "ultimo_control": ultimo_ctrl.fecha_control.strftime("%Y-%m-%d") if ultimo_ctrl is not None else None,
                 "evolucion": evolucion_data,
                 "analisis": analisis,
             },
@@ -786,6 +800,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def riesgo_alto(self, _request):
         """✅ NUEVO: Controles de embarazos de alto riesgo"""
+        assert self.queryset is not None
         controles_alto_riesgo = self.queryset.filter(
             embarazo_id__riesgo_embarazo="alto", embarazo_id__estado="activo",
         ).order_by("-fecha_control")
@@ -793,7 +808,14 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         # Estadísticas
         estadisticas = {
             "total": controles_alto_riesgo.count(),
-            "con_alertas": controles_alto_riesgo.filter(tiene_alertas=True).count(),
+            "con_alertas": controles_alto_riesgo.filter(
+                Q(presion_arterial_sistolica__gte=140)
+                | Q(presion_arterial_diastolica__gte=90)
+                | Q(frecuencia_cardiaca_fetal__lt=110)
+                | Q(frecuencia_cardiaca_fetal__gt=160)
+                | Q(edema__in=["severo", "generalizado"])
+                | Q(movimientos_fetales__in=["disminuidos", "ausentes"])
+            ).count(),
             "embarazos_unicos": controles_alto_riesgo.values("embarazo_id")
             .distinct()
             .count(),
@@ -808,3 +830,214 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
         serializer = ControlPrenatalSerializer(controles_alto_riesgo, many=True)
         return Response({"estadisticas": estadisticas, "controles": serializer.data})
+
+    @action(detail=False, methods=["get"], url_path="ultimo-control")
+    def ultimo_control(self, request):
+        """Obtener el último control de un embarazo"""
+        embarazo_id = request.query_params.get("embarazo_id")
+        if not embarazo_id:
+            return Response(
+                {"error": "Debe proporcionar el parámetro embarazo_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            ultimo = ControlPrenatal.objects.filter(embarazo_id=embarazo_id).order_by("-fecha_control").first()
+            if not ultimo:
+                return Response(
+                    {"error": "No hay controles para este embarazo"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            serializer = ControlPrenatalSerializer(ultimo)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=False, methods=["get"], url_path="con-alertas")
+    def con_alertas(self, _request):
+        """Alias para alertas — compatibilidad con frontend"""
+        return self.alertas(_request)
+
+    @action(detail=False, methods=["post"])
+    def programar(self, request):
+        """Programar próximo control prenatal automáticamente"""
+        embarazo_id = request.data.get("embarazo_id")
+        if not embarazo_id:
+            return Response(
+                {"error": "Se requiere embarazo_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            from datetime import timedelta
+            embarazo = Embarazo.objects.get(id=embarazo_id)
+            ultimo = ControlPrenatal.objects.filter(embarazo_id=embarazo).order_by("-fecha_control").first()
+            if ultimo:
+                dias_desde_ultimo = (timezone.localdate() - ultimo.fecha_control).days
+                if dias_desde_ultimo < 14:
+                    return Response({
+                        "mensaje": "El último control fue hace menos de 14 días",
+                        "ultimo_control": str(ultimo.fecha_control),
+                        "proximo_sugerido": str(ultimo.fecha_control + timedelta(days=28)),
+                    })
+            num_control = (ultimo.numero_control + 1) if ultimo else 1
+            proxima_fecha = timezone.localdate() + timedelta(days=30)
+            return Response({
+                "mensaje": "Próximo control programado",
+                "numero_control": num_control,
+                "fecha_sugerida": str(proxima_fecha),
+                "embarazo_id": int(embarazo_id),
+            })
+        except Embarazo.DoesNotExist:
+            return Response({"error": "Embarazo no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=["get"], url_path="sugerencias-controles")
+    def sugerencias_controles(self, request):
+        """Sugerir fechas de controles según protocolo"""
+        embarazo_id = request.query_params.get("embarazo_id")
+        if not embarazo_id:
+            return Response(
+                {"error": "Se requiere embarazo_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            embarazo = Embarazo.objects.get(id=embarazo_id)
+            sugerencias = []
+            if embarazo.fecha_ultima_menstruacion:
+                fum = embarazo.fecha_ultima_menstruacion
+                from datetime import timedelta
+                hitos = [
+                    (12, "Control 1er trimestre (sem 12-14)"),
+                    (20, "Ecografía morfológica (sem 20-22)"),
+                    (28, "Control 2do trimestre (sem 28)"),
+                    (32, "Control 3er trimestre (sem 32)"),
+                    (36, "Control semanal (sem 36+)"),
+                ]
+                for semana, desc in hitos:
+                    fecha = fum + timedelta(weeks=semana)
+                    sugerencias.append({
+                        "semana": semana,
+                        "descripcion": desc,
+                        "fecha_sugerida": str(fecha),
+                    })
+            return Response({"embarazo_id": embarazo.id, "sugerencias": sugerencias})
+        except Embarazo.DoesNotExist:
+            return Response({"error": "Embarazo no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=["post"])
+    def evaluar(self, request, _pk=None):
+        """Evaluar un control prenatal con análisis de riesgos"""
+        control = self.get_object()
+        alertas = []
+        if control.tiene_hipertension():
+            alertas.append("Hipertensión detectada")
+        if control.fcf_es_anormal():
+            alertas.append("Frecuencia cardíaca fetal anormal")
+        if control.proteinuria and "positiva" in str(control.proteinuria):
+            alertas.append("Proteinuria positiva")
+        return Response({
+            "control_id": control.id,
+            "evaluacion": "con_alertas" if alertas else "normal",
+            "alertas": alertas,
+            "recomendacion": "Revisión médica requerida" if alertas else "Control dentro de parámetros normales",
+        })
+
+    @action(detail=True, methods=["get"], url_path="detectar-riesgos")
+    def detectar_riesgos(self, _request, _pk=None):
+        """Detectar factores de riesgo en un control prenatal"""
+        control = self.get_object()
+        riesgos = []
+        if control.presion_arterial_sistolica and control.presion_arterial_sistolica >= 140:
+            riesgos.append({"tipo": "hipertension", "nivel": "alto", "valor": control.presion_arterial_sistolica})
+        if control.presion_arterial_diastolica and control.presion_arterial_diastolica >= 90:
+            riesgos.append({"tipo": "hipertension_diastolica", "nivel": "alto", "valor": control.presion_arterial_diastolica})
+        if control.frecuencia_cardiaca_fetal and (control.frecuencia_cardiaca_fetal < 110 or control.frecuencia_cardiaca_fetal > 160):
+            riesgos.append({"tipo": "fcf_anormal", "nivel": "alto", "valor": control.frecuencia_cardiaca_fetal})
+        if control.proteinuria and "positiva" in str(control.proteinuria):
+            riesgos.append({"tipo": "proteinuria", "nivel": "medio", "valor": control.proteinuria})
+        if control.edema in ("severo", "generalizado"):
+            riesgos.append({"tipo": "edema", "nivel": "medio", "valor": control.edema})
+        return Response({
+            "control_id": control.id,
+            "total_riesgos": len(riesgos),
+            "nivel": "alto" if any(r["nivel"] == "alto" for r in riesgos) else "bajo",
+            "riesgos": riesgos,
+        })
+
+    @action(detail=False, methods=["get"], url_path="curva-crecimiento")
+    def curva_crecimiento(self, request):
+        """Obtener datos para curva de crecimiento (peso, AU por semanas)"""
+        embarazo_id = request.query_params.get("embarazo_id")
+        if not embarazo_id:
+            return Response(
+                {"error": "Se requiere embarazo_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            controles = ControlPrenatal.objects.filter(
+                embarazo_id=embarazo_id
+            ).order_by("semanas_gestacion").values(
+                "semanas_gestacion", "peso_actual", "altura_uterina"
+            )
+            data = {
+                "peso": [{"semana": c["semanas_gestacion"], "valor": float(c["peso_actual"]) if c["peso_actual"] else None} for c in controles],
+                "altura_uterina": [{"semana": c["semanas_gestacion"], "valor": float(c["altura_uterina"]) if c["altura_uterina"] else None} for c in controles],
+            }
+            return Response(data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=["get"], url_path="exportar-excel")
+    def exportar_excel(self, request):
+        """Exportar controles a Excel"""
+        try:
+            from io import BytesIO
+
+            import openpyxl
+            from django.http import HttpResponse
+            queryset = self.filter_queryset(self.get_queryset())
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Controles"
+            ws.append(["ID", "Embarazo", "N° Control", "Fecha", "Semanas", "Peso", "AU", "PA Sist", "PA Diast", "FCF"])
+            for c in queryset:
+                ws.append([
+                    c.id, c.embarazo_id, c.numero_control, str(c.fecha_control),
+                    c.semanas_gestacion, float(c.peso_actual) if c.peso_actual else None,
+                    float(c.altura_uterina) if c.altura_uterina else None,
+                    c.presion_arterial_sistolica, c.presion_arterial_diastolica,
+                    c.frecuencia_cardiaca_fetal,
+                ])
+            output = BytesIO()
+            wb.save(output)
+            output.seek(0)
+            response = HttpResponse(output.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = "attachment; filename=controles.xlsx"
+            return response
+        except ImportError:
+            return Response({"error": "openpyxl no instalado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=["get"], url_path="exportar-pdf")
+    def exportar_pdf(self, request, pk=None):
+        """Exporta control prenatal a PDF
+        GET /api/controles/{id}/exportar-pdf/
+        """
+        control = self.get_object()
+        try:
+            import pdfkit
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+            html = render_to_string("controles/reporte_control_pdf.html", {
+                "control": control,
+                "paciente": control.paciente,
+            })
+            pdf = pdfkit.from_string(html, False)
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="control_{control.id}.pdf"'
+            return response
+        except ImportError:
+            serializer = self.get_serializer(control)
+            return Response({"mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit", "control": serializer.data})
+        except Exception as e:
+            return Response({"error": f"Error generando PDF: {e}"}, status=500)

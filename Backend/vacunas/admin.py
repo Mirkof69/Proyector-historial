@@ -8,6 +8,7 @@ Configuración del panel de administración para vacunas
 """
 
 from django.contrib import admin
+from django.utils import timezone
 from django.utils.html import format_html
 
 from .models import RegistroVacuna, TipoVacuna
@@ -95,6 +96,7 @@ class TipoVacunaAdmin(admin.ModelAdmin):
 
     ordering = ["nombre"]
 
+    @admin.display(description="Dosis Requeridas")
     def dosis_requeridas_badge(self, obj):
         """Badge con el número de dosis"""
         color = "green" if obj.dosis_requeridas == 1 else "blue"
@@ -104,8 +106,8 @@ class TipoVacunaAdmin(admin.ModelAdmin):
             obj.dosis_requeridas,
         )
 
-    dosis_requeridas_badge.short_description = "Dosis Requeridas"
 
+    @admin.display(description="Embarazo")
     def obligatoria_badge(self, obj):
         """Badge indicando si es obligatoria"""
         if obj.obligatoria_embarazo:
@@ -116,8 +118,8 @@ class TipoVacunaAdmin(admin.ModelAdmin):
             '<span style="background-color: gray; color: white; padding: 3px 10px; border-radius: 3px;">Opcional</span>',
         )
 
-    obligatoria_badge.short_description = "Embarazo"
 
+    @admin.display(description="Estado")
     def activo_badge(self, obj):
         """Badge de estado activo/inactivo"""
         if obj.activo:
@@ -128,8 +130,8 @@ class TipoVacunaAdmin(admin.ModelAdmin):
             '<span style="background-color: red; color: white; padding: 3px 10px; border-radius: 3px;">INACTIVO</span>',
         )
 
-    activo_badge.short_description = "Estado"
 
+    @admin.display(description="Aplicaciones")
     def total_registros_badge(self, obj):
         """Total de registros de aplicación"""
         total = obj.registros.count()
@@ -140,47 +142,49 @@ class TipoVacunaAdmin(admin.ModelAdmin):
             total,
         )
 
-    total_registros_badge.short_description = "Aplicaciones"
 
+    @admin.display(description="Estadísticas")
     def get_estadisticas(self, obj):
         """Muestra estadísticas del tipo de vacuna"""
         if not obj.pk:
             return "Guarde para ver estadísticas"
 
-        _total = obj.registros.count()
-        _activos = obj.registros.filter(activo=True).count()
-        _completos = sum(1 for r in obj.registros.all() if r.esquema_completo)
+        total = obj.registros.count()
+        activos = obj.registros.filter(activo=True).count()
+        completos = sum(1 for r in obj.registros.all() if r.esquema_completo)
 
-        html = """
+        return format_html(
+            """
         <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
             <h3 style="margin-top: 0;">Estadísticas de Aplicación</h3>
             <ul style="list-style: none; padding: 0;">
-                <li><strong>Total de aplicaciones:</strong> {total}</li>
-                <li><strong>Registros activos:</strong> {activos}</li>
-                <li><strong>Esquemas completos:</strong> {completos}</li>
+                <li><strong>Total de aplicaciones:</strong> {}</li>
+                <li><strong>Registros activos:</strong> {}</li>
+                <li><strong>Esquemas completos:</strong> {}</li>
             </ul>
         </div>
-        """
-        return format_html(html)
+        """,
+            total, activos, completos,
+        )
 
-    get_estadisticas.short_description = "Estadísticas"
 
     actions = ["activar_vacunas", "desactivar_vacunas", "marcar_obligatorias"]
 
+    @admin.action(description="Activar vacunas seleccionadas")
     def activar_vacunas(self, request, queryset):
         """Activa las vacunas seleccionadas"""
         updated = queryset.update(activo=True)
         self.message_user(request, f"{updated} vacuna(s) activada(s) exitosamente.")
 
-    activar_vacunas.short_description = "Activar vacunas seleccionadas"
 
+    @admin.action(description="Desactivar vacunas seleccionadas")
     def desactivar_vacunas(self, request, queryset):
         """Desactiva las vacunas seleccionadas"""
         updated = queryset.update(activo=False)
         self.message_user(request, f"{updated} vacuna(s) desactivada(s) exitosamente.")
 
-    desactivar_vacunas.short_description = "Desactivar vacunas seleccionadas"
 
+    @admin.action(description="Marcar como obligatorias en embarazo")
     def marcar_obligatorias(self, request, queryset):
         """Marca las vacunas como obligatorias en embarazo"""
         updated = queryset.update(obligatoria_embarazo=True)
@@ -188,7 +192,6 @@ class TipoVacunaAdmin(admin.ModelAdmin):
             request, f"{updated} vacuna(s) marcada(s) como obligatoria(s).",
         )
 
-    marcar_obligatorias.short_description = "Marcar como obligatorias en embarazo"
 
 
 @admin.register(RegistroVacuna)
@@ -307,6 +310,7 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
 
     ordering = ["-fecha_aplicacion"]
 
+    @admin.display(description="Paciente")
     def paciente_info(self, obj):
         """Información del paciente"""
         if obj.paciente:
@@ -317,8 +321,8 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Progreso")
     def dosis_badge(self, obj):
         """Badge con el número de dosis"""
         progreso = obj.get_progreso_esquema()
@@ -330,8 +334,8 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
             progreso["dosis_total"],
         )
 
-    dosis_badge.short_description = "Progreso"
 
+    @admin.display(description="Próxima Dosis")
     def proxima_dosis_badge(self, obj):
         """Badge con la próxima dosis"""
         if obj.esquema_completo:
@@ -339,9 +343,8 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
                 '<span style="background-color: green; color: white; padding: 3px 10px; border-radius: 3px;">COMPLETO</span>',
             )
         if obj.proxima_dosis_fecha:
-            from datetime import date
 
-            dias_restantes = (obj.proxima_dosis_fecha - date.today()).days
+            dias_restantes = (obj.proxima_dosis_fecha - timezone.localdate()).days
             if dias_restantes < 0:
                 color = "red"
                 texto = "VENCIDA"
@@ -360,8 +363,8 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
             '<span style="background-color: gray; color: white; padding: 3px 10px; border-radius: 3px;">Sin programar</span>',
         )
 
-    proxima_dosis_badge.short_description = "Próxima Dosis"
 
+    @admin.display(description="Reacciones")
     def reacciones_badge(self, obj):
         """Badge indicando si hay reacciones adversas"""
         if obj.tiene_reacciones_adversas:
@@ -372,8 +375,8 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
             '<span style="background-color: green; color: white; padding: 3px 10px; border-radius: 3px;">Sin reacciones</span>',
         )
 
-    reacciones_badge.short_description = "Reacciones"
 
+    @admin.display(description="Estado")
     def activo_badge(self, obj):
         """Badge de estado activo/inactivo"""
         if obj.activo:
@@ -384,85 +387,95 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
             '<span style="background-color: red; color: white; padding: 3px 10px; border-radius: 3px;">INACTIVO</span>',
         )
 
-    activo_badge.short_description = "Estado"
 
+    @admin.display(description="Progreso del Esquema")
     def get_progreso_visual(self, obj):
         """Muestra progreso visual del esquema"""
         if not obj.pk:
             return "Guarde para ver progreso"
 
         progreso = obj.get_progreso_esquema()
-        _porcentaje = progreso["porcentaje"]
+        porcentaje = progreso["porcentaje"]
+        color = "green" if progreso["completado"] else "blue"
+        estado = " - COMPLETO" if progreso["completado"] else " - PENDIENTE"
 
-        html = """
+        return format_html(
+            """
         <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
             <h3 style="margin-top: 0;">Progreso del Esquema</h3>
             <div style="background-color: #e9ecef; border-radius: 10px; height: 30px; overflow: hidden;">
-                <div style="background-color: {"green" if progreso["completado"] else "blue"};
-                            width: {porcentaje}%; height: 100%;
+                <div style="background-color: {}; width: {}%; height: 100%;
                             display: flex; align-items: center; justify-content: center;
                             color: white; font-weight: bold;">
-                    {porcentaje}%
+                    {}%
                 </div>
             </div>
             <p style="margin-top: 10px;">
-                <strong>Dosis {progreso["dosis_actual"]} de {progreso["dosis_total"]}</strong>
-                {" - COMPLETO" if progreso["completado"] else " - PENDIENTE"}
+                <strong>Dosis {} de {}</strong>
+                {}
             </p>
         </div>
-        """
-        return format_html(html)
+        """,
+            color, porcentaje, porcentaje,
+            progreso["dosis_actual"], progreso["dosis_total"], estado,
+        )
 
-    get_progreso_visual.short_description = "Progreso del Esquema"
 
+    @admin.display(description="Información del Paciente")
     def get_info_paciente(self, obj):
         """Información detallada del paciente"""
         if not obj.paciente:
             return "Sin paciente asignado"
 
-        html = """
+        return format_html(
+            """
         <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
             <h3 style="margin-top: 0;">Información del Paciente</h3>
             <ul style="list-style: none; padding: 0;">
-                <li><strong>Nombre:</strong> {obj.paciente.nombre_completo}</li>
-                <li><strong>ID Clínico:</strong> {obj.paciente.id_clinico}</li>
-                <li><strong>CI:</strong> {obj.paciente.ci}</li>
-                <li><strong>Edad:</strong> {obj.paciente.edad} años</li>
+                <li><strong>Nombre:</strong> {}</li>
+                <li><strong>ID Clínico:</strong> {}</li>
+                <li><strong>CI:</strong> {}</li>
+                <li><strong>Edad:</strong> {} años</li>
             </ul>
         </div>
-        """
-        return format_html(html)
+        """,
+            obj.paciente.nombre_completo, obj.paciente.id_clinico,
+            obj.paciente.ci, obj.paciente.edad,
+        )
 
-    get_info_paciente.short_description = "Información del Paciente"
 
+    @admin.display(description="Información de la Vacuna")
     def get_info_vacuna(self, obj):
         """Información detallada de la vacuna"""
         if not obj.tipo_vacuna:
             return "Sin vacuna asignada"
 
-        html = """
+        obligatoria = "Sí" if obj.tipo_vacuna.obligatoria_embarazo else "No"
+        return format_html(
+            """
         <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
             <h3 style="margin-top: 0;">Información de la Vacuna</h3>
             <ul style="list-style: none; padding: 0;">
-                <li><strong>Vacuna:</strong> {obj.tipo_vacuna.nombre}</li>
-                <li><strong>Dosis requeridas:</strong> {obj.tipo_vacuna.dosis_requeridas}</li>
-                <li><strong>Obligatoria:</strong> {"Sí" if obj.tipo_vacuna.obligatoria_embarazo else "No"}</li>
+                <li><strong>Vacuna:</strong> {}</li>
+                <li><strong>Dosis requeridas:</strong> {}</li>
+                <li><strong>Obligatoria:</strong> {}</li>
             </ul>
         </div>
-        """
-        return format_html(html)
+        """,
+            obj.tipo_vacuna.nombre, obj.tipo_vacuna.dosis_requeridas, obligatoria,
+        )
 
-    get_info_vacuna.short_description = "Información de la Vacuna"
 
     actions = ["activar_registros", "desactivar_registros", "calcular_proximas_dosis"]
 
+    @admin.action(description="Activar registros seleccionados")
     def activar_registros(self, request, queryset):
         """Activa los registros seleccionados"""
         updated = queryset.update(activo=True)
         self.message_user(request, f"{updated} registro(s) activado(s) exitosamente.")
 
-    activar_registros.short_description = "Activar registros seleccionados"
 
+    @admin.action(description="Desactivar registros seleccionados")
     def desactivar_registros(self, request, queryset):
         """Desactiva los registros seleccionados"""
         updated = queryset.update(activo=False)
@@ -470,8 +483,8 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
             request, f"{updated} registro(s) desactivado(s) exitosamente.",
         )
 
-    desactivar_registros.short_description = "Desactivar registros seleccionados"
 
+    @admin.action(description="Calcular Proximas Dosis")
     def calcular_proximas_dosis(self, request, queryset):
         """Calcula automáticamente las próximas dosis"""
         updated = 0
@@ -486,6 +499,4 @@ class RegistroVacunaAdmin(admin.ModelAdmin):
             request, f"{updated} próxima(s) dosis calculada(s) exitosamente.",
         )
 
-    calcular_proximas_dosis.short_description = (
         "Calcular próximas dosis automáticamente"
-    )

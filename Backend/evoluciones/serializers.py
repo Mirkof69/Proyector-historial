@@ -74,11 +74,10 @@ class EvolucionEmbarazoCreateSerializer(serializers.ModelSerializer):
         embarazo = attrs.get("embarazo")
         paciente = attrs.get("paciente")
 
-        if embarazo and paciente:
-            if embarazo.paciente != paciente:
-                raise serializers.ValidationError(
-                    "El embarazo no pertenece a la paciente seleccionada",
-                )
+        if embarazo and paciente and embarazo.paciente != paciente:
+            raise serializers.ValidationError(
+                "El embarazo no pertenece a la paciente seleccionada",
+            )
 
         return attrs
 

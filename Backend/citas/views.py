@@ -1,12 +1,14 @@
 """Views module."""
-from datetime import date, datetime, timedelta
+import contextlib
+from datetime import datetime, timedelta
 
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
+
+from core.permissions import FetalMedicalPermission
 
 from .models import Cita, Disponibilidad, HistorialCita
 from .serializers import (
@@ -65,6 +67,7 @@ class DisponibilidadViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         disponibilidades = self.queryset.filter(medico_id=medico_id)
 
         if solo_activas:
@@ -79,6 +82,7 @@ class DisponibilidadViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def activas(self, _request):
         """Listar solo disponibilidades activas"""
+        assert self.queryset is not None
         disponibilidades = self.queryset.filter(activo=True)
 
         page = self.paginate_queryset(disponibilidades)
@@ -116,7 +120,7 @@ class DisponibilidadViewSet(viewsets.ModelViewSet):
             )
 
         # No permitir fechas pasadas
-        if fecha < date.today():
+        if fecha < timezone.localdate():
             return Response(
                 {"error": "No se pueden consultar fechas pasadas"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -289,23 +293,19 @@ class CitaViewSet(viewsets.ModelViewSet):
         fecha_hasta = self.request.query_params.get("fecha_hasta", None)
 
         if fecha_desde:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_cita__gte=fecha_desde)
-            except Exception:
-                pass
 
         if fecha_hasta:
-            try:
+            with contextlib.suppress(Exception):
                 queryset = queryset.filter(fecha_cita__lte=fecha_hasta)
-            except Exception:
-                pass
 
         # Restricción por Rol: Médicos solo ven sus propias citas y agendas
-        if self.request.user.is_authenticated and not (
-            self.request.user.is_superuser or self.request.user.rol == "administrador"
+        if getattr(self.request.user, 'is_authenticated', False) and not (
+            getattr(self.request.user, 'is_superuser', False) or getattr(self.request.user, 'rol', '') == "administrador"
         ):
             # Si es médico, solo ve lo suyo
-            if self.request.user.rol == "medico":
+            if getattr(self.request.user, 'rol', '') == "medico":
                 queryset = queryset.filter(medico=self.request.user)
             # Enfermeros ven todo (para poder agendar/gestionar para cualquier médico)
             # o si se requiere restricción, agregar aquí.
@@ -319,6 +319,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
 
         # Retornar con serializer detallado
+        assert serializer.instance is not None
         cita = Cita.objects.select_related("paciente", "medico", "creado_por").get(
             id=serializer.instance.id,
         )
@@ -346,6 +347,7 @@ class CitaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         citas = self.queryset.filter(paciente_id=paciente_id).order_by(
             "-fecha_cita", "-hora_cita",
         )
@@ -376,6 +378,7 @@ class CitaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        assert self.queryset is not None
         citas = self.queryset.filter(medico_id=medico_id)
 
         if fecha_str:
@@ -398,6 +401,7 @@ class CitaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def pendientes(self, _request):
         """Listar citas pendientes (agendadas o confirmadas)"""
+        assert self.queryset is not None
         citas = self.queryset.filter(estado__in=["agendada", "confirmada"]).order_by(
             "fecha_cita", "hora_cita",
         )
@@ -413,7 +417,8 @@ class CitaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def hoy(self, _request):
         """Citas de hoy"""
-        hoy = date.today()
+        assert self.queryset is not None
+        hoy = timezone.localdate()
         citas = self.queryset.filter(fecha_cita=hoy).order_by("hora_cita")
 
         serializer = CitaListSerializer(citas, many=True)
@@ -430,9 +435,10 @@ class CitaViewSet(viewsets.ModelViewSet):
         - dias: número de días hacia adelante (default: 7)
         """
         dias = int(request.query_params.get("dias", 7))
-        hoy = date.today()
+        hoy = timezone.localdate()
         fecha_limite = hoy + timedelta(days=dias)
 
+        assert self.queryset is not None
         citas = self.queryset.filter(
             fecha_cita__gte=hoy,
             fecha_cita__lte=fecha_limite,
@@ -507,10 +513,10 @@ class CitaViewSet(viewsets.ModelViewSet):
         # Crear diccionario de citas por hora
         citas_dict = {
             cita.hora_cita: {
-                "cita_id": cita.id,
+                "cita_id": getattr(cita, 'id', None),
                 "paciente_nombre": cita.paciente.nombre_completo,
                 "estado": cita.estado,
-                "tipo_cita": cita.get_tipo_cita_display(),
+                "tipo_cita": getattr(cita, 'get_tipo_cita_display')(),
                 "motivo": cita.motivo,
             }
             for cita in citas
@@ -560,7 +566,7 @@ class CitaViewSet(viewsets.ModelViewSet):
             por_tipo[tipo_nombre] = count
 
         # Estadísticas temporales
-        hoy = date.today()
+        hoy = timezone.localdate()
         esta_semana = Cita.objects.filter(
             fecha_cita__gte=hoy, fecha_cita__lte=hoy + timedelta(days=7),
         ).count()
@@ -600,7 +606,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado not in ["agendada"]:
             return Response(
                 {
-                    "error": f"No se puede confirmar una cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede confirmar una cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -621,7 +627,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado in ["completada", "cancelada"]:
             return Response(
                 {
-                    "error": f"No se puede cancelar una cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede cancelar una cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -651,7 +657,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado not in ["agendada", "confirmada"]:
             return Response(
                 {
-                    "error": f"No se puede completar una cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede completar una cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -681,7 +687,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado not in ["agendada", "confirmada"]:
             return Response(
                 {
-                    "error": f"No se puede marcar como no asistió una cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede marcar como no asistió una cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -708,7 +714,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado not in ["agendada", "confirmada"]:
             return Response(
                 {
-                    "error": f"No se puede marcar como presente una cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede marcar como presente una cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -736,7 +742,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado not in ["en_espera", "agendada", "confirmada"]:
             return Response(
                 {
-                    "error": f"No se puede pasar a consulta una cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede pasar a consulta una cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -764,7 +770,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado in ["completada", "cancelada", "no_asistio"]:
             return Response(
                 {
-                    "error": f"No se puede enviar recordatorio para cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede enviar recordatorio para cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -788,7 +794,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         if cita.estado in ["completada", "cancelada", "no_asistio"]:
             return Response(
                 {
-                    "error": f"No se puede reprogramar una cita en estado {cita.get_estado_display()}",
+                    "error": f"No se puede reprogramar una cita en estado {getattr(cita, 'get_estado_display')()}",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )

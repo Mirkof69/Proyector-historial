@@ -3,13 +3,14 @@
 
 import datetime
 from decimal import Decimal
+from typing import cast
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from django.core.exceptions import ValidationError
 from controles.models import ControlPrenatal
 from embarazos.models import Embarazo
 from pacientes.models import Paciente
@@ -207,13 +208,13 @@ class ControlPrenatalAPITest(APITestCase):
             password="medicopass123",
             rol="medico",
         )
-        self.paciente = Paciente.objects.create(
+        self.paciente = cast(Paciente, Paciente.objects.create(
             nombre="Maria",
             apellido_paterno="Lopez",
             fecha_nacimiento=datetime.date(1990, 5, 15),
             genero="femenino",
             ci="12345678",
-        )
+        ))
         self.embarazo = Embarazo.objects.create(
             paciente=self.paciente,
             numero_gesta=1,
@@ -412,7 +413,7 @@ class ControlPrenatalAPITest(APITestCase):
             presion_arterial_sistolica=110,
             presion_arterial_diastolica=70,
         )
-        url = reverse("controlprenatal-por_embarazo")
+        url = reverse("controlprenatal-por-embarazo")
         response = self.client.get(url, {"embarazo_id": self.embarazo.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("controles", response.data)
@@ -420,14 +421,14 @@ class ControlPrenatalAPITest(APITestCase):
     def test_por_paciente_endpoint(self):
         """Test por_paciente custom endpoint."""
         self._authenticate()
-        url = reverse("controlprenatal-por_paciente")
+        url = reverse("controlprenatal-por-paciente")
         response = self.client.get(url, {"paciente_id": self.paciente.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_por_paciente_missing_param(self):
         """Test por_paciente without paciente_id returns 400."""
         self._authenticate()
-        url = reverse("controlprenatal-por_paciente")
+        url = reverse("controlprenatal-por-paciente")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

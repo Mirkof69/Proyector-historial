@@ -797,9 +797,10 @@ class PartoSerializer(serializers.ModelSerializer):
         """Crear parto y recién nacido asociado"""
         #  MAPEO DE CAMPOS FRONTEND → BACKEND
         # El source='campo' ya maneja la mayoría, pero edad_gestacional_parto necesita construcción
-        if "semanas_gestacion" in self.initial_data:
-            semanas = self.initial_data.get("semanas_gestacion", 0)
-            dias = self.initial_data.get("dias_gestacion", 0)
+        initial_data = self.initial_data if self.initial_data is not None else {}
+        if "semanas_gestacion" in initial_data:
+            semanas = initial_data.get("semanas_gestacion", 0)
+            dias = initial_data.get("dias_gestacion", 0)
             validated_data["edad_gestacional_parto"] = (
                 f"{semanas}+{dias}" if dias else str(semanas)
             )
@@ -818,17 +819,18 @@ class PartoSerializer(serializers.ModelSerializer):
 
         # ✅ FIX: Extraer Y REMOVER datos del recién nacido de validated_data
         # Primero intentar desde validated_data (por si acaso), luego desde initial_data
+        _initial = self.initial_data if self.initial_data is not None else {}
         rn_data = {
             "sexo": validated_data.pop("sexo_bebe", None)
-            or self.initial_data.get("sexo_bebe"),
+            or _initial.get("sexo_bebe"),
             "peso_nacimiento": validated_data.pop("peso_bebe", None)
-            or self.initial_data.get("peso_bebe"),
+            or _initial.get("peso_bebe"),
             "talla_nacimiento": validated_data.pop("talla_bebe", None)
-            or self.initial_data.get("talla_bebe"),
+            or _initial.get("talla_bebe"),
             "apgar_1_minuto": validated_data.pop("apgar_1min", None)
-            or self.initial_data.get("apgar_1min"),
+            or _initial.get("apgar_1min"),
             "apgar_5_minutos": validated_data.pop("apgar_5min", None)
-            or self.initial_data.get("apgar_5min"),
+            or _initial.get("apgar_5min"),
         }
 
         # Crear parto (ahora sin los campos del recién nacido)

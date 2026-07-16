@@ -9,20 +9,25 @@ from datetime import timedelta
 
 from django.db.models import Avg, Count
 from django.utils import timezone
-from rest_framework import viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
 
 from controles.models import ControlPrenatal
+from core.permissions import FetalMedicalPermission
 
 from .models import Embarazo
+
+
+class ClasificacionRiesgosSerializer(serializers.Serializer):
+    """Serializer for ClasificacionRiesgosViewSet"""
 
 
 class ClasificacionRiesgosViewSet(viewsets.ViewSet):
     """ViewSet para estadísticas y dashboard de clasificación de riesgos
     """
+
+    serializer_class = ClasificacionRiesgosSerializer
 
     permission_classes = [FetalMedicalPermission]
 
@@ -98,7 +103,7 @@ class ClasificacionRiesgosViewSet(viewsets.ViewSet):
                         "ci": embarazo.paciente.ci,
                         "edad": embarazo.paciente.edad,
                     },
-                    "semanas_gestacion": embarazo.semanas_gestacion,
+                    "semanas_gestacion": getattr(embarazo, 'semanas_gestacion', 0),
                     "fecha_ultimo_control": ultimo_control.fecha_control.isoformat()
                     if ultimo_control
                     else None,

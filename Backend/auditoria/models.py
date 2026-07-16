@@ -127,7 +127,7 @@ class RegistroAuditoria(models.Model):
             self.usuario_nombre = str(self.usuario)
             self.usuario_rol = getattr(self.usuario, "rol", "")
 
-        data_str = f"{self.usuario_id}|{self.accion}|{self.modulo}|{self.registro_id}|{self.fecha}"
+        data_str = f"{getattr(self, 'usuario_id', '')}|{self.accion}|{self.modulo}|{self.registro_id}|{self.fecha}"
         self.checksum = hashlib.sha256(data_str.encode("utf-8")).hexdigest()
         super().save(*args, **kwargs)
 
@@ -141,7 +141,7 @@ class RegistroAuditoria(models.Model):
     def __str__(self) -> str:
         """Str"""
         nombre = self.usuario_nombre or (
-            self.usuario.email if self.usuario else "Sistema"
+            getattr(self.usuario, "email", "Sistema") if self.usuario else "Sistema"
         )
         return f"{self.accion} en {self.modulo} por {nombre} - {self.fecha.strftime('%d/%m/%Y %H:%M')}"
 
@@ -151,7 +151,10 @@ class RegistroAuditoria(models.Model):
         if self.usuario_nombre:
             return self.usuario_nombre
         if self.usuario:
-            return getattr(self.usuario, "nombre_completo", self.usuario.email)
+            return str(
+                getattr(self.usuario, "nombre_completo", None)
+                or getattr(self.usuario, "email", "") or ""
+            )
         return "Sistema"
 
     @property
@@ -217,7 +220,7 @@ class RegistroAuditoria(models.Model):
             usuario_rol=rol,
             accion=accion,
             modulo=modulo,
-            registro_id=str(registro_id),
+            registro_id=registro_id if isinstance(registro_id, str) else str(registro_id),
             datos_anteriores=datos_anteriores,
             datos_nuevos=datos_nuevos,
             detalle=detalle,

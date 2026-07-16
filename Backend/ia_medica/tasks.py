@@ -100,10 +100,10 @@ def analizar_imagen_task(self, imagen_id, modelo, user_id=None):
 
         logger.info(
             "Análisis asíncrono completado: imagen=%s, resultado=%s",
-            instancia.id,
-            analisis.resultado,
+            getattr(instancia, 'id', None),
+            getattr(analisis, 'resultado', 'indeterminado'),
         )
-        return {"status": "success", "analisis_id": analisis.id}
+        return {"status": "success", "analisis_id": getattr(analisis, 'id', None)}
 
     except OperationalError as e:
         logger.error("Error de base de datos en análisis CNN: %s", e)

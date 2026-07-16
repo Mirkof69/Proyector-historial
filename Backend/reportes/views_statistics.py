@@ -6,11 +6,14 @@ Includes: Statistics, Charts, PDF/Excel Export
 =============================================================================
 """
 
+import logging
 import traceback
 from datetime import datetime
 
 from django.http import HttpResponse
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -21,8 +24,18 @@ from .pdf_generator import pdf_generator
 from .pdf_generator_enhanced import pdf_generator_enhanced
 from .services.report_service import ReportService as report_service
 
+logger = logging.getLogger(__name__)
 
+
+@extend_schema(
+    request=inline_serializer(
+        "dashboard_statistics_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
+@extend_schema(request=None, responses={200: dict})
 @permission_classes([IsAuthenticated])
 def dashboard_statistics(request):
     """Obtiene estadísticas generales del dashboard
@@ -51,6 +64,13 @@ def dashboard_statistics(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "embarazos_statistics_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def embarazos_statistics(request):
@@ -74,6 +94,13 @@ def embarazos_statistics(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "controles_statistics_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def controles_statistics(request):
@@ -97,6 +124,13 @@ def controles_statistics(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "citas_statistics_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def citas_statistics(request):
@@ -120,6 +154,13 @@ def citas_statistics(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "partos_statistics_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def partos_statistics(request):
@@ -143,6 +184,13 @@ def partos_statistics(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "all_statistics_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def all_statistics(request):
@@ -169,13 +217,17 @@ def all_statistics(request):
             "type": type(e).__name__,
             "traceback": traceback.format_exc(),
         }
-        print("=" * 80)
-        print("ERROR IN STATISTICS:")
-        print(traceback.format_exc())
-        print("=" * 80)
+        logger.exception("Error en statistics")
         return Response(error_detail, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "download_statistics_pdf_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_statistics_pdf(request):
@@ -209,6 +261,13 @@ def download_statistics_pdf(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "download_statistics_pdf_enhanced_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_statistics_pdf_enhanced(request):
@@ -252,10 +311,17 @@ def download_statistics_pdf_enhanced(request):
 
     except Exception as e:
 
-        print("Error generando PDF mejorado:", traceback.format_exc())
+        logger.exception("Error generando PDF mejorado")
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "download_statistics_excel_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_statistics_excel(request):
@@ -302,10 +368,17 @@ def download_statistics_excel(request):
 
     except Exception as e:
 
-        print("Error generando Excel:", traceback.format_exc())
+        logger.exception("Error generando Excel")
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "statistics_by_period_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def statistics_by_period(request):
@@ -360,10 +433,17 @@ def statistics_by_period(request):
 
     except Exception as e:
 
-        print("Error en statistics_by_period:", traceback.format_exc())
+        logger.exception("Error en statistics_by_period")
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "composition_chart_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def composition_chart(request):
@@ -379,6 +459,13 @@ def composition_chart(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "stacked_bar_chart_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def stacked_bar_chart(request):
@@ -392,6 +479,13 @@ def stacked_bar_chart(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=inline_serializer(
+        "distribution_chart_request",
+        fields={}
+    ),
+    responses={200: dict}
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def distribution_chart(_request):
@@ -402,3 +496,140 @@ def distribution_chart(_request):
         return Response(data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# =============================================================================
+# WRAPPERS PARA PREVENIR COLISIONES DE OPERATION ID
+# =============================================================================
+
+@extend_schema(
+    operation_id="reportes_pacientes_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def pacientes_statistics_view(request):
+    return embarazos_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_pacientes_embarazadas_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def pacientes_embarazadas_statistics_view(request):
+    return embarazos_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_nuevos_pacientes_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def nuevos_pacientes_statistics_view(request):
+    return dashboard_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_embarazos_alto_riesgo_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def embarazos_alto_riesgo_statistics_view(request):
+    return embarazos_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_embarazos_trimestre_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def embarazos_trimestre_statistics_view(request):
+    return embarazos_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_tasa_cesareas_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def tasa_cesareas_statistics_view(request):
+    return partos_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_complicaciones_partos_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def complicaciones_partos_statistics_view(request):
+    return partos_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_resultados_neonatales_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def resultados_neonatales_statistics_view(request):
+    return partos_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_adherencia_controles_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def adherencia_controles_statistics_view(request):
+    return controles_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_laboratorios_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def laboratorios_statistics_view(request):
+    return all_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_examenes_pendientes_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def examenes_pendientes_statistics_view(request):
+    return all_statistics(request)
+
+
+@extend_schema(
+    operation_id="reportes_resultados_criticos_stats",
+    request=None,
+    responses={200: OpenApiTypes.OBJECT}
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def resultados_criticos_statistics_view(request):
+    return all_statistics(request)
+

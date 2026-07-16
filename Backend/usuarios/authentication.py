@@ -11,7 +11,6 @@ class CustomJWTAuthentication(JWTAuthentication):
         """Get user"""
         try:
             user_id = validated_token.get("user_id")
-            user = Usuario.objects.get(id=user_id, activo=True)
-            return user
+            return Usuario.objects.get(id=user_id, activo=True)
         except Usuario.DoesNotExist as exc:
             raise InvalidToken("Usuario no encontrado") from exc

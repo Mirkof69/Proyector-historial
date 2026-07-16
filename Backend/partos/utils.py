@@ -97,6 +97,7 @@ def calcular_tendencias_partos(queryset, periodo_dias=30):
     primera_mitad = partos_periodo.filter(fecha_parto__lt=fecha_mitad).count()
     segunda_mitad = partos_periodo.filter(fecha_parto__gte=fecha_mitad).count()
 
+    cambio_porcentual = 0.0
     if primera_mitad == 0:
         tendencia = "creciente"
     else:

@@ -88,6 +88,7 @@ class ScoreBishopAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         return format_html(
@@ -96,8 +97,8 @@ class ScoreBishopAdmin(admin.ModelAdmin):
             obj.embarazo_id or "No asignado",
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Score Bishop")
     def score_badge(self, obj):
         """Score badge"""
         if obj.score_total is None:
@@ -117,8 +118,8 @@ class ScoreBishopAdmin(admin.ModelAdmin):
             score,
         )
 
-    score_badge.short_description = "Score Bishop"
 
+    @admin.display(description="Interpretación")
     def interpretacion_badge(self, obj):
         """Interpretacion badge"""
         if not obj.interpretacion:
@@ -137,8 +138,8 @@ class ScoreBishopAdmin(admin.ModelAdmin):
             obj.interpretacion,
         )
 
-    interpretacion_badge.short_description = "Interpretación"
 
+    @admin.display(description="Probabilidad")
     def probabilidad_badge(self, obj):
         """Probabilidad badge"""
         if not obj.probabilidad_parto_espontaneo:
@@ -156,8 +157,8 @@ class ScoreBishopAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{}%</span>', color, prob,
         )
 
-    probabilidad_badge.short_description = "Probabilidad"
 
+    @admin.display(description="Recomendación")
     def get_recomendacion_short(self, obj):
         """Get recomendacion short"""
         recom = obj.get_recomendacion_clinica()
@@ -165,15 +166,14 @@ class ScoreBishopAdmin(admin.ModelAdmin):
             return f"{recom[:50]}..."
         return recom
 
-    get_recomendacion_short.short_description = "Recomendación"
 
+    @admin.display(description="Get Recomendacion Clinica Display")
     def get_recomendacion_clinica_display(self, obj):
         """Get recomendacion clinica display"""
         return obj.get_recomendacion_clinica()
 
-    get_recomendacion_clinica_display.short_description = (
         "Recomendación Clínica Completa"
-    )
+        return None
 
 
 @admin.register(RiesgoPreeclampsia)
@@ -269,6 +269,7 @@ class RiesgoPreeclampsiaAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         return format_html(
@@ -278,8 +279,8 @@ class RiesgoPreeclampsiaAdmin(admin.ModelAdmin):
             obj.edad_gestacional_semanas,
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Riesgo")
     def riesgo_badge(self, obj):
         """Riesgo badge"""
         if not obj.riesgo_porcentaje:
@@ -299,8 +300,8 @@ class RiesgoPreeclampsiaAdmin(admin.ModelAdmin):
             riesgo,
         )
 
-    riesgo_badge.short_description = "Riesgo"
 
+    @admin.display(description="Clasificación")
     def clasificacion_badge(self, obj):
         """Clasificacion badge"""
         if not obj.clasificacion_riesgo:
@@ -319,8 +320,8 @@ class RiesgoPreeclampsiaAdmin(admin.ModelAdmin):
             obj.clasificacion_riesgo,
         )
 
-    clasificacion_badge.short_description = "Clasificación"
 
+    @admin.display(description="Factores de Riesgo")
     def get_factores_riesgo(self, obj):
         """Get factores riesgo"""
         factores = []
@@ -337,20 +338,19 @@ class RiesgoPreeclampsiaAdmin(admin.ModelAdmin):
 
         return ", ".join(factores) if factores else "Sin factores mayores"
 
-    get_factores_riesgo.short_description = "Factores de Riesgo"
 
+    @admin.display(description="IMC Calculado")
     def get_imc_display(self, obj):
         """Get imc display"""
         return obj.get_imc_calculado()
 
-    get_imc_display.short_description = "IMC Calculado"
 
+    @admin.display(description="Recomendaciones Clínicas")
     def get_recomendaciones_display(self, obj):
         """Get recomendaciones display"""
         recom_list = obj.get_recomendaciones()
         return "\n".join([f"• {r}" for r in recom_list])
 
-    get_recomendaciones_display.short_description = "Recomendaciones Clínicas"
 
 
 @admin.register(CrecimientoFetal)
@@ -445,6 +445,7 @@ class CrecimientoFetalAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         return format_html(
@@ -453,14 +454,14 @@ class CrecimientoFetalAdmin(admin.ModelAdmin):
             obj.ecografia_id or "No asociada",
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="EG")
     def get_edad_gestacional(self, obj):
         """Get edad gestacional"""
         return f"{obj.edad_gestacional_semanas}+{obj.edad_gestacional_dias or 0}"
 
-    get_edad_gestacional.short_description = "EG"
 
+    @admin.display(description="Peso (Percentil)")
     def peso_percentil_badge(self, obj):
         """Peso percentil badge"""
         if not obj.peso_fetal_estimado or not obj.percentil_peso:
@@ -481,8 +482,8 @@ class CrecimientoFetalAdmin(admin.ModelAdmin):
             percentil,
         )
 
-    peso_percentil_badge.short_description = "Peso (Percentil)"
 
+    @admin.display(description="Clasificación")
     def clasificacion_badge(self, obj):
         """Clasificacion badge"""
         if not obj.clasificacion_peso:
@@ -501,8 +502,8 @@ class CrecimientoFetalAdmin(admin.ModelAdmin):
             obj.clasificacion_peso,
         )
 
-    clasificacion_badge.short_description = "Clasificación"
 
+    @admin.display(description="Alertas")
     def get_alertas_crecimiento(self, obj):
         """Get alertas crecimiento"""
         alertas = []
@@ -518,20 +519,19 @@ class CrecimientoFetalAdmin(admin.ModelAdmin):
             )
         return format_html('<span style="color: #27ae60;">Normal</span>')
 
-    get_alertas_crecimiento.short_description = "Alertas"
 
+    @admin.display(description="EG Decimal")
     def get_edad_gestacional_decimal_display(self, obj):
         """Get edad gestacional decimal display"""
         return obj.get_edad_gestacional_decimal()
 
-    get_edad_gestacional_decimal_display.short_description = "EG Decimal"
 
+    @admin.display(description="Recomendaciones Clínicas")
     def get_recomendaciones_display(self, obj):
         """Get recomendaciones display"""
         recom_list = obj.get_recomendaciones()
         return "\n".join([f"• {r}" for r in recom_list])
 
-    get_recomendaciones_display.short_description = "Recomendaciones Clínicas"
 
 
 @admin.register(RiesgoCromosomico)
@@ -628,6 +628,7 @@ class RiesgoCromosomicoAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         return format_html(
@@ -638,8 +639,8 @@ class RiesgoCromosomicoAdmin(admin.ModelAdmin):
             obj.edad_gestacional_dias,
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Riesgo Down")
     def riesgo_down_badge(self, obj):
         """Riesgo down badge"""
         if not obj.riesgo_down_ajustado:
@@ -663,8 +664,8 @@ class RiesgoCromosomicoAdmin(admin.ModelAdmin):
             obj.riesgo_down_ajustado,
         )
 
-    riesgo_down_badge.short_description = "Riesgo Down"
 
+    @admin.display(description="Clasificación")
     def clasificacion_badge(self, obj):
         """Clasificacion badge"""
         if not obj.clasificacion_down:
@@ -684,8 +685,8 @@ class RiesgoCromosomicoAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{}</span>', color, texto,
         )
 
-    clasificacion_badge.short_description = "Clasificación"
 
+    @admin.display(description="TN")
     def get_tn_valor(self, obj):
         """Get tn valor"""
         if obj.translucencia_nucal:
@@ -702,8 +703,8 @@ class RiesgoCromosomicoAdmin(admin.ModelAdmin):
             )
         return format_html('<span style="color: #6c757d;">No medida</span>')
 
-    get_tn_valor.short_description = "TN"
 
+    @admin.display(description="Interpretación Completa")
     def get_interpretacion_completa_display(self, obj):
         """Get interpretacion completa display"""
         interp = obj.get_interpretacion_completa()
@@ -712,7 +713,6 @@ class RiesgoCromosomicoAdmin(admin.ModelAdmin):
             result.append(f"{key}: {value}")
         return "\n".join(result)
 
-    get_interpretacion_completa_display.short_description = "Interpretación Completa"
 
 
 @admin.register(DosisMedicamentos)
@@ -812,6 +812,7 @@ class DosisMedicamentosAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         return format_html(
@@ -820,8 +821,8 @@ class DosisMedicamentosAdmin(admin.ModelAdmin):
             obj.peso_materno,
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Medicamento")
     def medicamento_badge(self, obj):
         """Medicamento badge"""
         colors = {
@@ -836,11 +837,11 @@ class DosisMedicamentosAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: white; padding: 4px 8px; border-radius: 3px; font-weight: bold;">{}</span>',
             color,
-            obj.get_medicamento_display(),
+            getattr(obj, 'get_medicamento_display')(),
         )
 
-    medicamento_badge.short_description = "Medicamento"
 
+    @admin.display(description="Indicación")
     def indicacion_badge(self, obj):
         """Indicacion badge"""
         colors = {
@@ -854,17 +855,17 @@ class DosisMedicamentosAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>',
             color,
-            obj.get_indicacion_display(),
+            getattr(obj, 'get_indicacion_display')(),
         )
 
-    indicacion_badge.short_description = "Indicación"
 
+    @admin.display(description="Dosis Inicial")
     def get_dosis_inicial(self, obj):
         """Get dosis inicial"""
         return obj.dosis_inicial or "No calculada"
 
-    get_dosis_inicial.short_description = "Dosis Inicial"
 
+    @admin.display(description="Protocolo Completo")
     def get_protocolo_administracion_display(self, obj):
         """Get protocolo administracion display"""
         protocolo = obj.get_protocolo_administracion()
@@ -873,7 +874,6 @@ class DosisMedicamentosAdmin(admin.ModelAdmin):
             result.append(f"{key}: {value}")
         return "\n".join(result)
 
-    get_protocolo_administracion_display.short_description = "Protocolo Completo"
 
 
 @admin.register(HemorragiaObstetrica)
@@ -992,16 +992,17 @@ class HemorragiaObstetricaAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         return format_html(
             "<strong>Paciente ID: {}</strong><br/><small>{}</small>",
             obj.paciente_id,
-            obj.get_tipo_hemorragia_display(),
+            getattr(obj, 'get_tipo_hemorragia_display')(),
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="Severidad")
     def severidad_badge(self, obj):
         """Severidad badge"""
         colors = {
@@ -1018,8 +1019,8 @@ class HemorragiaObstetricaAdmin(admin.ModelAdmin):
             obj.severidad_hemorragia or "No calculada",
         )
 
-    severidad_badge.short_description = "Severidad"
 
+    @admin.display(description="Pérdida Sanguínea")
     def perdida_sanguinea_badge(self, obj):
         """Perdida sanguinea badge"""
         if not obj.perdida_sanguinea_estimada:
@@ -1039,14 +1040,14 @@ class HemorragiaObstetricaAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{} mL</span>', color, perdida,
         )
 
-    perdida_sanguinea_badge.short_description = "Pérdida Sanguínea"
 
+    @admin.display(description="Signos Vitales")
     def get_signos_vitales(self, obj):
         """Get signos vitales"""
         return f"PA: {obj.presion_arterial_sistolica}/{obj.presion_arterial_diastolica} - FC: {obj.frecuencia_cardiaca}"
 
-    get_signos_vitales.short_description = "Signos Vitales"
 
+    @admin.display(description="Protocolo de Manejo")
     def get_protocolo_manejo_display(self, obj):
         """Get protocolo manejo display"""
         protocolo = obj.get_protocolo_manejo()
@@ -1054,16 +1055,15 @@ class HemorragiaObstetricaAdmin(admin.ModelAdmin):
         result.extend([f"• {accion}" for accion in protocolo["acciones"]])
         return "\n".join(result)
 
-    get_protocolo_manejo_display.short_description = "Protocolo de Manejo"
 
+    @admin.display(description="Get Recomendaciones Laboratorio Display")
     def get_recomendaciones_laboratorio_display(self, obj):
         """Get recomendaciones laboratorio display"""
         recom_list = obj.get_recomendaciones_laboratorio()
         return "\n".join([f"• {r}" for r in recom_list])
 
-    get_recomendaciones_laboratorio_display.short_description = (
         "Recomendaciones de Laboratorio"
-    )
+        return None
 
 
 @admin.register(SufrimientoFetal)
@@ -1179,17 +1179,18 @@ class SufrimientoFetalAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Paciente")
     def get_paciente_info(self, obj):
         """Get paciente info"""
         return format_html(
             "<strong>Paciente ID: {}</strong><br/><small>{} sem - {}</small>",
             obj.paciente_id,
             obj.edad_gestacional_semanas,
-            obj.get_tipo_evaluacion_display(),
+            getattr(obj, 'get_tipo_evaluacion_display')(),
         )
 
-    get_paciente_info.short_description = "Paciente"
 
+    @admin.display(description="FCF Basal")
     def fcf_badge(self, obj):
         """Fcf badge"""
         if not obj.fcf_basal:
@@ -1207,8 +1208,8 @@ class SufrimientoFetalAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{} lpm</span>', color, fcf,
         )
 
-    fcf_badge.short_description = "FCF Basal"
 
+    @admin.display(description="CTG")
     def clasificacion_ctg_badge(self, obj):
         """Clasificacion ctg badge"""
         if not obj.clasificacion_ctg:
@@ -1235,8 +1236,8 @@ class SufrimientoFetalAdmin(admin.ModelAdmin):
             nombre,
         )
 
-    clasificacion_ctg_badge.short_description = "CTG"
 
+    @admin.display(description="Riesgo")
     def riesgo_badge(self, obj):
         """Riesgo badge"""
         if not obj.riesgo_sufrimiento_fetal:
@@ -1261,8 +1262,8 @@ class SufrimientoFetalAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{}</span>', color, nombre,
         )
 
-    riesgo_badge.short_description = "Riesgo"
 
+    @admin.display(description="Interpretación Completa")
     def get_interpretacion_completa_display(self, obj):
         """Get interpretacion completa display"""
         interp = obj.get_interpretacion_completa()
@@ -1271,7 +1272,6 @@ class SufrimientoFetalAdmin(admin.ModelAdmin):
             result.append(f"{key}: {value}")
         return "\n".join(result)
 
-    get_interpretacion_completa_display.short_description = "Interpretación Completa"
 
 
 # Personalizar títulos del admin

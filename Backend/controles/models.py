@@ -1,4 +1,5 @@
 """Models module."""
+import contextlib
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -553,13 +554,13 @@ class ControlPrenatal(models.Model):
                     "tipo": "critico",
                     "categoria": "edema",
                     "mensaje": "EDEMA SEVERO",
-                    "valor": self.get_edema_display(),
+                    "valor": getattr(self, 'get_edema_display')(),
                     "recomendacion": "Alto riesgo preeclampsia.",
                 },
             )
 
         if self.proteinuria in ["positiva_1", "positiva_2", "positiva_3", "positiva_4"]:
-            nivel = self.get_proteinuria_display()
+            nivel = getattr(self, 'get_proteinuria_display')()
             alertas.append(
                 {
                     "tipo": "critico",
@@ -655,10 +656,10 @@ class ControlPrenatal(models.Model):
                 if self.altura_uterina
                 else None,
                 "fcf": self.frecuencia_cardiaca_fetal,
-                "presentacion": self.get_presentacion_fetal_display()
+                "presentacion": getattr(self, 'get_presentacion_fetal_display')()
                 if self.presentacion_fetal
                 else None,
-                "movimientos": self.get_movimientos_fetales_display()
+                "movimientos": getattr(self, 'get_movimientos_fetales_display')()
                 if self.movimientos_fetales
                 else None,
             },
@@ -768,11 +769,9 @@ class ControlPrenatal(models.Model):
     def save(self, *args, **kwargs):
         """Override save para validaciones adicionales"""
         # Auto-populate paciente from embarazo before validation so full_clean passes.
-        if not self.paciente_id and self.embarazo_id:
-            try:
+        if not getattr(self, 'paciente_id', None) and getattr(self, 'embarazo_id', None):
+            with contextlib.suppress(Exception):
                 self.paciente = self.embarazo.paciente
-            except Exception:
-                pass
 
         # Omitir full_clean en updates parciales (update_fields) para no rechazar
         # registros históricos que serían invalidados por cambios de regla.

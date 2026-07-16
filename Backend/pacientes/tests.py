@@ -1,15 +1,14 @@
 """Tests para módulo de Pacientes"""
 
 from datetime import date
+from typing import cast
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Paciente
-
-User = get_user_model()
+from pacientes.models import Paciente
+from usuarios.models import Usuario
 
 
 class PacienteModelTestCase(TestCase):
@@ -17,13 +16,13 @@ class PacienteModelTestCase(TestCase):
 
     def test_crear_paciente(self):
         """Test crear paciente"""
-        paciente = Paciente.objects.create(
+        paciente = cast(Paciente, Paciente.objects.create(
             nombre="María",
             apellido_paterno="García",
             apellido_materno="López",
             fecha_nacimiento=date(1990, 1, 1),
             genero="F",
-        )
+        ))
 
         self.assertIsNotNone(paciente.id)
         self.assertEqual(paciente.nombre, "María")
@@ -46,7 +45,7 @@ class PacienteAPITestCase(APITestCase):
 
     def setUp(self):
         """Setup"""
-        self.user = User.objects.create_user(
+        self.user = Usuario.objects.create_user(
             email="testdoctor@clinica.com",
             nombre="Doctor",
             apellido_paterno="Prueba",

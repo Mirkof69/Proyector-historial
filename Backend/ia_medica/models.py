@@ -90,7 +90,8 @@ class ConsultaIA(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"{self.usuario.email} - {self.categoria} - {self.fecha_consulta.strftime('%d/%m/%Y %H:%M')}"
+        email = getattr(self.usuario, "email", str(self.usuario_id))
+        return f"{email} - {self.categoria} - {self.fecha_consulta.strftime('%d/%m/%Y %H:%M')}"
 
 
 class AnalisisLaboratorioML(models.Model):
@@ -400,9 +401,9 @@ class EstadisticasIA(models.Model):
 
 def imagen_ecografica_upload_path(instance, filename):
     """Ruta dinámica para guardar imágenes: media/ia_medica/imagenes/YYYY/MM/DD/"""
-    from datetime import datetime
+    from django.utils import timezone
 
-    now = datetime.now()
+    now = timezone.localtime()
     ext = filename.rsplit(".", 1)[-1].lower()
     return f"ia_medica/imagenes/{now.year}/{now.month:02d}/{now.day:02d}/{instance.paciente_id}_{now.strftime('%H%M%S')}.{ext}"
 
@@ -628,6 +629,10 @@ class AnalisisCNN(models.Model):
     )
     shap_valores = models.JSONField(null=True, blank=True)
     patologias = models.JSONField(default=list, blank=True)
+    sugerencia_diagnostica = models.JSONField(
+        null=True, blank=True,
+        help_text="Diagnóstico sugerido: {patologia, confianza, descripcion, icd10, recomendacion}",
+    )
 
     # Tiempo de procesamiento
     tiempo_procesamiento_ms = models.IntegerField(default=0)
@@ -645,6 +650,18 @@ class AnalisisCNN(models.Model):
     notas_medico = models.TextField(blank=True)
     observaciones_medico = models.TextField(blank=True)
     fecha_validacion = models.DateTimeField(null=True, blank=True)
+
+    # Reporte narrativo generado por LLM local (Ollama, vision). Los campos
+    # diagnosticos (clasificacion_clinica, tipo_embarazo, patologias, etc.)
+    # dentro de este JSON SIEMPRE se toman de este mismo AnalisisCNN (campos
+    # arriba) — el LLM solo redacta/narra y puede agregar hallazgos visuales
+    # adicionales en "hallazgos_visuales_complementarios", nunca contradice
+    # ni reemplaza el diagnostico del CNN.
+    reporte_narrativo_ia = models.JSONField(
+        null=True, blank=True,
+        help_text="Reporte narrativo generado por LLM local con vision (Ollama), grounded en el resultado real del CNN.",
+    )
+    reporte_narrativo_fecha = models.DateTimeField(null=True, blank=True)
 
     # Timestamps
     fecha_analisis = models.DateTimeField(auto_now_add=True)
@@ -788,7 +805,7 @@ class PatologiaDetectadaCNN(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.patologia} ({self.confianza:.0%}) — {self.analisis_id}"
+        return f"{self.patologia} ({self.confianza:.0%}) — {getattr(self, 'analisis_id', None)}"
 
 
 class AlertaCNNAnalisis(models.Model):

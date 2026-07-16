@@ -1,6 +1,7 @@
 """Models module."""
 import logging
 import os
+from decimal import Decimal
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -195,12 +196,11 @@ class Ecografia(models.Model):
         from django.core.exceptions import ValidationError
 
         # Validar FCF según edad gestacional
-        if self.frecuencia_cardiaca_fetal:
-            if (
-                self.edad_gestacional_semanas < 12
-                and self.frecuencia_cardiaca_fetal < 110
-            ):
-                raise ValidationError("FCF muy baja para edad gestacional temprana")
+        if self.frecuencia_cardiaca_fetal and (
+            self.edad_gestacional_semanas < 12
+            and self.frecuencia_cardiaca_fetal < 110
+        ):
+            raise ValidationError("FCF muy baja para edad gestacional temprana")
 
     def get_edad_gestacional_texto(self):
         """Devuelve edad gestacional en formato texto"""
@@ -268,7 +268,7 @@ class Ecografia(models.Model):
 
     def __str__(self):
         """Str"""
-        return f"Ecografía {self.get_tipo_ecografia_display()} - {self.paciente.nombre_completo} - {self.fecha_ecografia}"
+        return f"Ecografía {getattr(self, 'get_tipo_ecografia_display')()} - {self.paciente.nombre_completo} - {self.fecha_ecografia}"
 
     @property
     def edad_gestacional_completa(self):
@@ -448,10 +448,10 @@ class BiometriaFetal(models.Model):
         ):
             return None
 
-        bpd = float(self.diametro_biparietal)
-        hc = float(self.circunferencia_cefalica)
-        ac = float(self.circunferencia_abdominal)
-        fl = float(self.longitud_femur)
+        bpd = float(self.diametro_biparietal) if self.diametro_biparietal is not None else 0.0
+        hc = float(self.circunferencia_cefalica) if self.circunferencia_cefalica is not None else 0.0
+        ac = float(self.circunferencia_abdominal) if self.circunferencia_abdominal is not None else 0.0
+        fl = float(self.longitud_femur) if self.longitud_femur is not None else 0.0
 
         log_peso = (
             1.3596
@@ -466,17 +466,17 @@ class BiometriaFetal(models.Model):
 
     def calcular_relaciones(self):
         """Calcula relaciones biométricas"""
-        if self.circunferencia_cefalica and self.circunferencia_abdominal:
-            self.relacion_cc_ca = round(
+        if self.circunferencia_cefalica is not None and self.circunferencia_abdominal is not None:
+            self.relacion_cc_ca = Decimal(str(round(
                 float(self.circunferencia_cefalica)
                 / float(self.circunferencia_abdominal),
                 2,
-            )
+            )))
 
-        if self.longitud_femur and self.circunferencia_abdominal:
-            self.relacion_lf_ca = round(
+        if self.longitud_femur is not None and self.circunferencia_abdominal is not None:
+            self.relacion_lf_ca = Decimal(str(round(
                 float(self.longitud_femur) / float(self.circunferencia_abdominal), 2,
-            )
+            )))
 
     def get_evaluacion_crecimiento(self):
         """Evalúa el crecimiento fetal"""
@@ -864,6 +864,12 @@ class ImagenEcografia(models.Model):
         help_text="Imagen representativa de la ecografía",
     )
 
+    # Integración PACS/Orthanc: solo se completan para archivos DICOM (.dcm).
+    # Quedan en null si Orthanc no esta disponible al subir — el archivo se
+    # guarda localmente de todas formas (ver subir_imagen en ecografias/views.py).
+    orthanc_instance_id = models.CharField(max_length=100, blank=True, null=True)
+    orthanc_study_id = models.CharField(max_length=100, blank=True, null=True)
+
     # Trazabilidad
     created_by = models.ForeignKey(
         Usuario,
@@ -922,7 +928,7 @@ class ImagenEcografia(models.Model):
                 return None
 
             # Ruta para el thumbnail
-            thumb_name = f"thumb_{os.path.basename(self.imagen.name)}"
+            thumb_name = f"thumb_{os.path.basename(str(self.imagen.name))}"
             thumb_path = os.path.join(
                 os.path.dirname(self.imagen.path), "thumbnails", thumb_name,
             )
@@ -937,7 +943,7 @@ class ImagenEcografia(models.Model):
 
             return thumb_path
         except Exception as e:
-            print(f"Error generando thumbnail: {e}")
+            logger.warning("Error generando thumbnail: %s", e)
             return None
 
     def analizar_con_ia(self):
@@ -991,8 +997,16 @@ class ImagenEcografia(models.Model):
             return fallback
 
     def save(self, *args, **kwargs):
-        """Save"""
-        # Solo regenerar thumbnail si la imagen cambió (evita I/O innecesario en cada update)
+        """Save. Renombra el archivo al nombre del paciente en nuevas imágenes."""
+        if not self.pk and self.imagen:
+            nombre_paciente = self.ecografia.paciente.nombre_completo.replace(
+                " ", "_"
+            )
+            ext = os.path.splitext(self.imagen.name)[1]
+            timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+            nuevo_nombre = f"{nombre_paciente}_{timestamp}{ext}"
+            self.imagen.name = nuevo_nombre
+
         regenerar_thumb = False
         if self.pk:
             try:
