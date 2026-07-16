@@ -41,7 +41,7 @@ const FiltrosAvanzadosDrawer: React.FC<FiltrosAvanzadosDrawerProps> = ({
         </Radio.Group>
       </Form.Item>
 
-      <Form.Item label="Mostrar state.embarazos">
+      <Form.Item label="Mostrar embarazos">
         <Radio.Group
           value={mostrarFinalizados}
           onChange={(e) => dispatch({ type: 'SET_MOSTRAR_FINALIZADOS', payload: e.target.value })}

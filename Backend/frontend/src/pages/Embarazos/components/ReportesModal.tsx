@@ -41,7 +41,7 @@ const ReportesModal: React.FC<ReportesModalProps> = ({ visible, onClose, embaraz
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Incluir en elfax reporte">
+          <Form.Item label="Incluir en el reporte">
             <Checkbox.Group>
               <Row>
                 <Col span={12}><Checkbox value="datos_basicos">Datos Básicos</Checkbox></Col>

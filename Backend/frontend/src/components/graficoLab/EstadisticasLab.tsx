@@ -40,10 +40,7 @@ const EstadisticasLab: React.FC<EstadisticasLabProps> = ({ promedio, tendencia, 
       <Statistic
         title="Tendencia General"
         value={Math.abs(tendencia).toFixed(1)}
-        // NOTA(refactor): comportamiento preservado exacto del original. El
-        // template string estrangula el ícono JSX a "[object Object]" — bug
-        // pre-existente, reportado aparte para decisión (no se toca en refactor).
-        suffix={`% ${getTendenciaIcono(tendencia)}`}
+        suffix={<>% {getTendenciaIcono(tendencia)}</>}
         precision={1}
         valueStyle={{
           color:

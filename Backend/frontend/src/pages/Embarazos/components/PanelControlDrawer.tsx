@@ -62,7 +62,7 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
 
       <Col span={8}>
         <Card title="Análisis Temporal" size="small">
-          <Text strong>state.embarazos por Trimestre Actual:</Text>
+          <Text strong>Embarazos por Trimestre Actual:</Text>
           <div style={{ marginTop: 16 }}>
             <Row gutter={8}>
               <Col span={8}>

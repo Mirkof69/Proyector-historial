@@ -138,7 +138,7 @@ const Embarazos: React.FC = () => {
             // Si no hay datos, salir temprano
             if (embarazosCount === 0) {
                 dispatch({ type: 'SET_EMBARAZOS', payload: [] });
-                message.info('No hay state.embarazos registrados. Verifique que esté autenticado correctamente.', 3);
+                message.info('No hay embarazos registrados. Verifique que esté autenticado correctamente.', 3);
                 dispatch({ type: 'SET_LOADING', payload: false });
                 return;
             }
@@ -539,8 +539,8 @@ const Embarazos: React.FC = () => {
                 columnas,
                 {
                     filename: `embarazos_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-                    sheetName: 'state.embarazos',
-                    title: `Listado de state.embarazos - ${dayjs().format('DD/MM/YYYY')}`
+                    sheetName: 'Embarazos',
+                    title: `Listado de Embarazos - ${dayjs().format("DD/MM/YYYY")}`
                 }
             );
             message.success('Archivo Excel generado exitosamente');
@@ -675,7 +675,7 @@ const Embarazos: React.FC = () => {
     }
 
     return (
-        <div className="state.embarazos-module animate-fade-in">
+        <div className="embarazos-module animate-fade-in">
 
             {/* --- HEADER DE ESTADÍSTICAS (KPIs) --- */}
             <div style={{ marginBottom: 24 }}>
@@ -683,7 +683,7 @@ const Embarazos: React.FC = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
                             <Statistic
-                                title="state.embarazos Activos"
+                                title="Embarazos Activos"
                                 value={stats.activos}
                                 prefix={<HeartOutlined style={{ color: '#1890ff' }} />}
                             />
@@ -876,7 +876,7 @@ const Embarazos: React.FC = () => {
                         emptyText: (
                             <ResultEmpty
                                 icon={heartOutlinedIcon6}
-                                title="No hay state.embarazos registrados"
+                                title="No hay embarazos registrados"
                                 subTitle="Comience registrando un nuevo embarazo utilizando el botón superior"
                                 extra={
                                     canAdd('embarazo') ? (
