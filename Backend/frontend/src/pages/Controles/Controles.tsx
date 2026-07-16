@@ -21,29 +21,18 @@ import {
   Col,
   Tag,
   Typography,
-  DatePicker,
-  Select,
-  Tooltip,
   Badge,
-  Drawer,
   Alert,
   Form,
-  Modal,
-  Divider,
-  Descriptions,
-  Statistic,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { usePermissions } from '../../hooks/usePermissions';
 import {
   PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
   SearchOutlined,
   MedicineBoxOutlined,
   WarningOutlined,
   ReloadOutlined,
-  EyeOutlined,
   CheckCircleOutlined,
   FilterOutlined,
   ExportOutlined,
@@ -55,142 +44,28 @@ import { controlesService, ControlPrenatal } from '../../services/controlesServi
 import { Embarazo } from '../../services/embarazosService';
 import { Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import { exportarExcel } from '../../utils/excelExport';
+import {
+  filtrosReducer, uiReducer, initialUIState,
+} from './controlesReducers';
+import {
+  detectarAlertas as detectarAlertasUtil,
+  calcularEdadGestacional as calcularEdadGestacionalUtil,
+  calcularIMC as calcularIMCUtil,
+  clasificarIMC as clasificarIMCUtil,
+} from './controlesUtils';
+import { buildControlesColumns } from './controlesColumns';
+import FiltrosDrawer from './components/FiltrosDrawer';
+import VistaRapidaModal from './components/VistaRapidaModal';
+import AlertasPanelDrawer from './components/AlertasPanelDrawer';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 
-const { Option } = Select;
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// INTERFACES Y TIPOS ADICIONALES
-// ═══════════════════════════════════════════════════════════════════════════
-
-interface FiltrosAvanzados {
-  fechaDesde?: Dayjs;
-  fechaHasta?: Dayjs;
-  conAlertas?: boolean;
-  trimestre?: 1 | 2 | 3 | null;
-  rangoPA?: 'normal' | 'hipertension' | 'prehipertension' | null;
-  rangoFCF?: 'normal' | 'anormal' | null;
-}
-
-type FiltrosAction =
-  | { type: 'SET_FECHA_DESDE'; payload: Dayjs | undefined }
-  | { type: 'SET_FECHA_HASTA'; payload: Dayjs | undefined }
-  | { type: 'SET_CON_ALERTAS'; payload: boolean | undefined }
-  | { type: 'SET_TRIMESTRE'; payload: 1 | 2 | 3 | null }
-  | { type: 'SET_RANGO_PA'; payload: 'normal' | 'hipertension' | 'prehipertension' | null }
-  | { type: 'SET_RANGO_FCF'; payload: 'normal' | 'anormal' | null }
-  | { type: 'RESET' };
-
-const filtrosReducer = (state: FiltrosAvanzados, action: FiltrosAction): FiltrosAvanzados => {
-  switch (action.type) {
-    case 'SET_FECHA_DESDE':
-      return { ...state, fechaDesde: action.payload };
-    case 'SET_FECHA_HASTA':
-      return { ...state, fechaHasta: action.payload };
-    case 'SET_CON_ALERTAS':
-      return { ...state, conAlertas: action.payload };
-    case 'SET_TRIMESTRE':
-      return { ...state, trimestre: action.payload };
-    case 'SET_RANGO_PA':
-      return { ...state, rangoPA: action.payload };
-    case 'SET_RANGO_FCF':
-      return { ...state, rangoFCF: action.payload };
-    case 'RESET':
-      return {};
-    default:
-      return state;
-  }
-};
-
-// ═══════════════════════════════════════════════════════════════════════════
-// COMPONENTE PRINCIPAL
-// ═══════════════════════════════════════════════════════════════════════════
-
-interface UIState {
-  modalVisible: boolean;
-  editingControl: ControlPrenatal | null;
-  searchText: string;
-  alertasPreview: string[];
-  selectedEmbarazo: Embarazo | null;
-  pageSize: number;
-  lastLoaded: string | null;
-  filtrosDrawerVisible: boolean;
-  formHasChanges: boolean;
-  autoSaveEnabled: boolean;
-  showAlertasPanel: boolean;
-  controlVistaRapida: ControlPrenatal | null;
-}
-
-type UIAction =
-  | { type: 'SET_MODAL_VISIBLE'; payload: boolean }
-  | { type: 'SET_EDITING_CONTROL'; payload: ControlPrenatal | null }
-  | { type: 'SET_SEARCH_TEXT'; payload: string }
-  | { type: 'SET_ALERTAS_PREVIEW'; payload: string[] }
-  | { type: 'SET_SELECTED_EMBARAZO'; payload: Embarazo | null }
-  | { type: 'SET_PAGE_SIZE'; payload: number }
-  | { type: 'SET_LAST_LOADED'; payload: string | null }
-  | { type: 'SET_FILTROS_DRAWER_VISIBLE'; payload: boolean }
-  | { type: 'SET_FORM_HAS_CHANGES'; payload: boolean }
-  | { type: 'TOGGLE_AUTO_SAVE' }
-  | { type: 'TOGGLE_ALERTAS_PANEL' }
-  | { type: 'SET_CONTROL_VISTA_RAPIDA'; payload: ControlPrenatal | null }
-  | { type: 'RESET_MODAL' };
-
-const initialUIState: UIState = {
-  modalVisible: false,
-  editingControl: null,
-  searchText: '',
-  alertasPreview: [],
-  selectedEmbarazo: null,
-  pageSize: 50,
-  lastLoaded: null,
-  filtrosDrawerVisible: false,
-  formHasChanges: false,
-  autoSaveEnabled: false,
-  showAlertasPanel: false,
-  controlVistaRapida: null,
-};
-
-function uiReducer(state: UIState, action: UIAction): UIState {
-  switch (action.type) {
-    case 'SET_MODAL_VISIBLE':
-      return { ...state, modalVisible: action.payload };
-    case 'SET_EDITING_CONTROL':
-      return { ...state, editingControl: action.payload };
-    case 'SET_SEARCH_TEXT':
-      return { ...state, searchText: action.payload };
-    case 'SET_ALERTAS_PREVIEW':
-      return { ...state, alertasPreview: action.payload };
-    case 'SET_SELECTED_EMBARAZO':
-      return { ...state, selectedEmbarazo: action.payload };
-    case 'SET_PAGE_SIZE':
-      return { ...state, pageSize: action.payload };
-    case 'SET_LAST_LOADED':
-      return { ...state, lastLoaded: action.payload };
-    case 'SET_FILTROS_DRAWER_VISIBLE':
-      return { ...state, filtrosDrawerVisible: action.payload };
-    case 'SET_FORM_HAS_CHANGES':
-      return { ...state, formHasChanges: action.payload };
-    case 'TOGGLE_AUTO_SAVE':
-      return { ...state, autoSaveEnabled: !state.autoSaveEnabled };
-    case 'TOGGLE_ALERTAS_PANEL':
-      return { ...state, showAlertasPanel: !state.showAlertasPanel };
-    case 'SET_CONTROL_VISTA_RAPIDA':
-      return { ...state, controlVistaRapida: action.payload };
-    case 'RESET_MODAL':
-      return { ...state, modalVisible: false, editingControl: null, controlVistaRapida: null, selectedEmbarazo: null, alertasPreview: [] };
-    default:
-      return state;
-  }
-}
 
 const Controles: React.FC = () => {
   const navigate = useNavigate();
@@ -297,141 +172,23 @@ const Controles: React.FC = () => {
   }, [autoSaveEnabled, formHasChanges, editingControl, message]);
 
   // ========== DETECCIÓN DE ALERTAS MÉDICAS ==========
-  const detectarAlertas = useCallback((values: any): string[] => {
-    const alertasDetectadas: string[] = [];
-
-    // ALERTA: Hipertensión arterial (≥140/90)
-    if (values.presion_arterial_sistolica && values.presion_arterial_diastolica) {
-      if (values.presion_arterial_sistolica >= 140 || values.presion_arterial_diastolica >= 90) {
-        alertasDetectadas.push('🔴 HIPERTENSIÓN ARTERIAL - Riesgo de preeclampsia');
-      } else if (
-        values.presion_arterial_sistolica >= 120 ||
-        values.presion_arterial_diastolica >= 80
-      ) {
-        alertasDetectadas.push('⚠️ PREHIPERTENSIÓN - Monitoreo estrecho requerido');
-      } else if (
-        values.presion_arterial_sistolica < 90 ||
-        values.presion_arterial_diastolica < 60
-      ) {
-        alertasDetectadas.push('⚠️ HIPOTENSIÓN ARTERIAL - Evaluar hidratación');
-      }
-    }
-
-    // ALERTA: Frecuencia cardíaca fetal anormal (<110 o >160)
-    if (values.frecuencia_cardiaca_fetal) {
-      if (values.frecuencia_cardiaca_fetal < 110) {
-        alertasDetectadas.push('🚨 BRADICARDIA FETAL (<110 lpm) - URGENTE: NST inmediato');
-      } else if (values.frecuencia_cardiaca_fetal > 160) {
-        alertasDetectadas.push('🔴 TAQUICARDIA FETAL (>160 lpm) - Evaluar bienestar fetal');
-      } else if (
-        values.frecuencia_cardiaca_fetal < 120 ||
-        values.frecuencia_cardiaca_fetal > 150
-      ) {
-        alertasDetectadas.push('⚠️ FCF en límite de normalidad - Monitoreo continuo');
-      }
-    }
-
-    // ALERTA: Edema severo/generalizado
-    if (values.edema === 'severo' || values.edema === 'generalizado') {
-      alertasDetectadas.push('⚠️ EDEMA SEVERO/GENERALIZADO - Evaluar preeclampsia');
-    }
-
-    // ALERTA: Proteinuria positiva
-    if (values.proteinuria && !['negativa', 'trazas'].includes(values.proteinuria)) {
-      const nivelProteinuria = values.proteinuria.includes('4')
-        ? 'CRÍTICA (++++)'
-        : values.proteinuria.includes('3')
-          ? 'SEVERA (+++)'
-          : values.proteinuria.includes('2')
-            ? 'MODERADA (++)'
-            : 'LEVE (+)';
-      alertasDetectadas.push(
-        `⚠️ PROTEINURIA ${nivelProteinuria} - Descartar preeclampsia/síndrome nefrítico`
-      );
-    }
-
-    // ALERTA: Movimientos fetales ausentes o disminuidos
-    if (values.movimientos_fetales === 'ausentes') {
-      alertasDetectadas.push('🚨 MOVIMIENTOS FETALES AUSENTES - EMERGENCIA: Evaluación inmediata');
-    } else if (values.movimientos_fetales === 'disminuidos') {
-      alertasDetectadas.push('⚠️ MOVIMIENTOS FETALES DISMINUIDOS - NST en 24 horas');
-    }
-
-    // ALERTA: Temperatura elevada (≥38°C)
-    if (values.temperatura && values.temperatura >= 38) {
-      alertasDetectadas.push(
-        '⚠️ FIEBRE MATERNA (≥38°C) - Descartar infección. Hemograma y hemocultivo'
-      );
-    } else if (values.temperatura && values.temperatura >= 37.5) {
-      alertasDetectadas.push('⚠️ FEBRÍCULA (≥37.5°C) - Monitoreo de temperatura cada 4 horas');
-    }
-
-    // ALERTA: Frecuencia cardíaca materna anormal
-    if (values.frecuencia_cardiaca) {
-      if (values.frecuencia_cardiaca > 100) {
-        alertasDetectadas.push('⚠️ TAQUICARDIA MATERNA (>100 lpm) - Evaluar causas');
-      } else if (values.frecuencia_cardiaca < 60) {
-        alertasDetectadas.push('⚠️ BRADICARDIA MATERNA (<60 lpm) - Evaluar medicación');
-      }
-    }
-
-    // ALERTA: Ganancia de peso excesiva
-    if (values.peso_actual && values.peso_pregestacional) {
-      const ganancia = values.peso_actual - values.peso_pregestacional;
-      const semanas = values.edad_gestacional_semanas || 0;
-      if (semanas > 12) {
-        const gananciaEsperadaMax = semanas < 28 ? 0.5 * (semanas - 12) : 18;
-        if (ganancia > gananciaEsperadaMax) {
-          alertasDetectadas.push('⚠️ GANANCIA DE PESO EXCESIVA - Evaluar dieta y retención');
-        }
-      }
-    }
-
-    // ALERTA: Altura uterina discordante
-    if (values.altura_uterina && values.edad_gestacional_semanas && values.edad_gestacional_semanas >= 20) {
-      const esperada = values.edad_gestacional_semanas;
-      const diferencia = Math.abs(values.altura_uterina - esperada);
-      if (diferencia > 3) {
-        if (values.altura_uterina < esperada - 3) {
-          alertasDetectadas.push('⚠️ ALTURA UTERINA BAJA - Descartar RCIU o oligohidramnios');
-        } else {
-          alertasDetectadas.push(
-            '⚠️ ALTURA UTERINA ELEVADA - Descartar macrosomía o polihidramnios'
-          );
-        }
-      }
-    }
-
-    // ✅ FIX: Ya NO llama a setAlertasPreview aquí (evita loop infinito)
-    // setAlertasPreview se llama solo en event handlers (handleQuickView)
-    return alertasDetectadas;
-  }, []);
+  const detectarAlertas = useCallback((values: any): string[] => detectarAlertasUtil(values), []);
 
   // ========== CALCULAR EDAD GESTACIONAL DESDE FUM ==========
-  const calcularEdadGestacional = useCallback((fum: string) => {
-    const hoy = dayjs();
-    const fechaFum = dayjs(fum);
-    const diasDiferencia = hoy.diff(fechaFum, 'day');
-    const semanas = Math.floor(diasDiferencia / 7);
-    const dias = diasDiferencia % 7;
-    return { semanas, dias };
-  }, []);
+  const calcularEdadGestacional = useCallback((fum: string) => calcularEdadGestacionalUtil(fum), []);
 
   // ========== CÁLCULO DE IMC MATERNO ==========
-  const calcularIMC = useCallback((peso: number | null | undefined, talla: number | null | undefined): number | null => {
-    if (!peso || !talla) return null;
-    const tallaMts = talla / 100;
-    return peso / (tallaMts * tallaMts);
-  }, []);
+  const calcularIMC = useCallback(
+    (peso: number | null | undefined, talla: number | null | undefined): number | null =>
+      calcularIMCUtil(peso, talla),
+    []
+  );
 
   // ========== CLASIFICACIÓN DE IMC ==========
-  const clasificarIMC = useCallback((imc: number | null): { texto: string; color: string } => {
-    if (!imc) return { texto: '-', color: 'default' };
-    if (imc < 18.5) return { texto: 'Bajo peso', color: 'warning' };
-    if (imc < 25) return { texto: 'Normal', color: 'success' };
-    if (imc < 30) return { texto: 'Sobrepeso', color: 'warning' };
-    return { texto: 'Obesidad', color: 'error' };
-  }, []);
+  const clasificarIMC = useCallback(
+    (imc: number | null): { texto: string; color: string } => clasificarIMCUtil(imc),
+    []
+  );
 
   /**
    * ✅ FIX: Obtiene el ID Clínico del paciente desde el backend
@@ -758,171 +515,22 @@ const Controles: React.FC = () => {
 
   // ========== COLUMNAS DE LA TABLA ==========
   // ✅ FIX: Memoizado para evitar recreación en cada render (evita loop infinito)
-  const columns = useMemo(() => [
-    {
-      title: 'ID Clínico',
-      key: 'id_clinico',
-      width: 120,
-      render: (_: any, record: ControlPrenatal) => (
-        <Tag color="blue">{getIdClinicoPaciente(record)}</Tag>
-      ),
-    },
-    {
-      title: 'Paciente',
-      key: 'paciente',
-      render: (_: any, record: ControlPrenatal) => (
-        <Text strong>{getNombrePaciente(record)}</Text>
-      ),
-    },
-    {
-      title: 'Fecha',
-      dataIndex: 'fecha_control',
-      key: 'fecha_control',
-      width: 120,
-      render: (date: string) => dayjs(date).format('DD/MM/YYYY'),
-      sorter: (a: ControlPrenatal, b: ControlPrenatal) =>
-        dayjs(a.fecha_control).unix() - dayjs(b.fecha_control).unix(),
-    },
-    {
-      title: 'EG',
-      key: 'edad_gestacional',
-      width: 100,
-      render: (_: any, record: ControlPrenatal) => (
-        <Tag color="cyan">{getEdadGestacional(record)}</Tag>
-      ),
-    },
-    {
-      title: 'N°',
-      dataIndex: 'numero_control',
-      key: 'numero_control',
-      width: 60,
-      align: 'center' as const,
-    },
-    {
-      title: 'PA (mmHg)',
-      key: 'presion_arterial',
-      width: 100,
-      render: (_: any, record: ControlPrenatal) => {
-        const pa = getPresionArterial(record);
-        const isHigh =
-          (record.presion_arterial_sistolica || 0) >= 140 ||
-          (record.presion_arterial_diastolica || 0) >= 90;
-        return <Text type={isHigh ? 'danger' : undefined}>{pa}</Text>;
-      },
-    },
-    {
-      title: 'AU (cm)',
-      dataIndex: 'altura_uterina',
-      key: 'altura_uterina',
-      width: 90,
-      align: 'center' as const,
-      render: (val: number) => val || '-',
-    },
-    {
-      title: 'Peso (kg)',
-      dataIndex: 'peso_actual',
-      key: 'peso_actual',
-      width: 90,
-    },
-    {
-      title: 'IMC',
-      key: 'imc',
-      width: 120,
-      render: (_: any, record: ControlPrenatal) => {
-        const imc = calcularIMC(record.peso_actual, record.talla);
-        if (!imc) return <Text type="secondary">-</Text>;
-        const clasificacion = clasificarIMC(imc);
-        return (
-          <Space direction="vertical" size={0} style={{ width: '100%' }}>
-            <Text strong style={{ fontSize: 14 }}>{imc.toFixed(1)}</Text>
-            <Tag color={clasificacion.color} style={{ fontSize: '12px', margin: 0, padding: '0 4px' }}>
-              {clasificacion.texto}
-            </Tag>
-          </Space>
-        );
-      },
-    },
-    {
-      title: 'FCF (lpm)',
-      dataIndex: 'frecuencia_cardiaca_fetal',
-      key: 'frecuencia_cardiaca_fetal',
-      width: 90,
-      render: (val: number) => {
-        if (!val) return '-';
-        const isBad = val < 110 || val > 160;
-        return <Text type={isBad ? 'danger' : undefined}>{val}</Text>;
-      },
-    },
-    {
-      title: 'Alertas',
-      key: 'alertas',
-      width: 100,
-      align: 'center' as const,
-      render: (_: any, record: ControlPrenatal) => {
-        const alertas = detectarAlertas(record);
-        return record.tiene_alertas ? (
-          <Tooltip title={`${alertas.length} alertas detectadas`}>
-            <Badge count={alertas.length} offset={[0, 0]}>
-              <WarningOutlined style={{ color: 'red', fontSize: 18 }} />
-            </Badge>
-          </Tooltip>
-        ) : (
-          <Tooltip title="Sin alertas">
-            <Badge count={0} showZero color="green">
-              <CheckCircleOutlined style={{ color: 'green', fontSize: 18 }} />
-            </Badge>
-          </Tooltip>
-        );
-      },
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      width: 200,
-      align: 'center' as const,
-      render: (_: any, record: ControlPrenatal) => {
-        const eg = calcularEdadGestacional(record.fecha_control);
-        return (
-          <Space>
-            <Tooltip title={`Vista rápida (EG: ${eg.semanas}+${eg.dias})`}>
-              <Button
-                icon={<SearchOutlined />}
-                size="small"
-                onClick={() => handleQuickView(record)}
-              />
-            </Tooltip>
-            <Tooltip title="Ver detalles completos">
-              <Button
-                icon={<EyeOutlined />}
-                size="small"
-                onClick={() => handleViewDetails(record)}
-              />
-            </Tooltip>
-            {canChange('control') && (
-              <Tooltip title="Editar control">
-                <Button
-                  type="primary"
-                  icon={<EditOutlined />}
-                  size="small"
-                  onClick={() => handleEdit(record)}
-                />
-              </Tooltip>
-            )}
-            {canDelete('control') && (
-              <Tooltip title="Eliminar control">
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  size="small"
-                  onClick={() => handleDelete(record)}
-                />
-              </Tooltip>
-            )}
-          </Space>
-        );
-      },
-    },
-  ], [
+  const columns = useMemo(() => buildControlesColumns({
+    getIdClinicoPaciente,
+    getNombrePaciente,
+    getEdadGestacional,
+    getPresionArterial,
+    calcularIMC,
+    clasificarIMC,
+    detectarAlertas,
+    calcularEdadGestacional,
+    handleQuickView,
+    handleViewDetails,
+    handleEdit,
+    handleDelete,
+    canChange,
+    canDelete,
+  }), [
     getIdClinicoPaciente,
     getNombrePaciente,
     getEdadGestacional,
@@ -1053,423 +661,44 @@ const Controles: React.FC = () => {
       </Card>
 
       {/* DRAWER DE FILTROS */}
-      <Drawer
-        title={
-          <Space>
-            Filtros Avanzados
-            {formHasChanges && <Badge status="processing" text="Modificado" />}
-          </Space>
-        }
-        placement="right"
+      <FiltrosDrawer
+        filtrosDrawerVisible={filtrosDrawerVisible}
+        formHasChanges={formHasChanges}
+        form={form}
         onClose={() => dispatchUI({ type: 'SET_FILTROS_DRAWER_VISIBLE', payload: false })}
-        open={filtrosDrawerVisible}
-        width={320}
-      >
-        <Form form={form} layout="vertical" onValuesChange={handleFormChange}>
-          <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <div>
-              <Text strong>Rango de Fechas</Text>
-              <RangePicker
-                style={{ width: '100%', marginTop: 8 }}
-                onChange={(dates) => {
-                  handleFormChange();
-                  dispatchFiltros({ type: 'SET_FECHA_DESDE', payload: dates ? dates[0] || undefined : undefined });
-                  dispatchFiltros({ type: 'SET_FECHA_HASTA', payload: dates ? dates[1] || undefined : undefined });
-                }}
-              />
-            </div>
-
-            <div>
-              <Text strong>Estado de Alerta</Text>
-              <Select
-                style={{ width: '100%', marginTop: 8 }}
-                placeholder="Todos"
-                allowClear
-                onChange={(val) => {
-                  handleFormChange();
-                  dispatchFiltros({ type: 'SET_CON_ALERTAS', payload: val });
-                }}
-              >
-                <Option value={true}>Con Alertas</Option>
-                <Option value={false}>Sin Alertas</Option>
-              </Select>
-            </div>
-
-            <div>
-              <Text strong>Trimestre</Text>
-              <Select
-                style={{ width: '100%', marginTop: 8 }}
-                placeholder="Todos"
-                allowClear
-                onChange={(val) => {
-                  handleFormChange();
-                  dispatchFiltros({ type: 'SET_TRIMESTRE', payload: val });
-                }}
-              >
-                <Option value={1}>1° Trimestre (&lt;13 sem)</Option>
-                <Option value={2}>2° Trimestre (13-28 sem)</Option>
-                <Option value={3}>3° Trimestre (&gt;28 sem)</Option>
-              </Select>
-            </div>
-
-            <Button
-              block
-              onClick={() => {
-                dispatchFiltros({ type: 'RESET' });
-                dispatchUI({ type: 'SET_SEARCH_TEXT', payload: '' });
-                form.resetFields();
-                dispatchUI({ type: 'SET_FORM_HAS_CHANGES', payload: false });
-              }}
-            >
-              Limpiar Filtros
-            </Button>
-          </Space>
-        </Form>
-      </Drawer>
+        handleFormChange={handleFormChange}
+        dispatchFiltros={dispatchFiltros}
+        dispatchUI={dispatchUI}
+      />
 
       {/* MODAL DE VISTA RÁPIDA */}
-      <Modal
-        title={
-          <Space>
-            <MedicineBoxOutlined />
-            Vista Rápida del Control
-            {controlVistaRapida && (
-              <Tag color="blue">#{controlVistaRapida.numero_control}</Tag>
-            )}
-          </Space>
-        }
-        open={modalVisible}
-        onCancel={handleCloseModal}
-        width={800}
-        footer={[
-          <Button key="close" onClick={handleCloseModal}>
-            Cerrar
-          </Button>,
-          <Button
-            key="edit"
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => {
-              if (editingControl) {
-                handleEdit(editingControl);
-                handleCloseModal();
-              }
-            }}
-          >
-            Editar Completo
-          </Button>,
-        ]}
-      >
-        {editingControl && (
-          <>
-            <Descriptions bordered column={2} size="small">
-              <Descriptions.Item label="Paciente" span={2}>
-                <Text strong>{getNombrePaciente(editingControl)}</Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="ID Clínico">
-                <Tag color="blue">{getIdClinicoPaciente(editingControl)}</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Fecha Control">
-                {dayjs(editingControl.fecha_control).format('DD/MM/YYYY')}
-              </Descriptions.Item>
-              <Descriptions.Item label="Edad Gestacional">
-                <Tag color="cyan">{getEdadGestacional(editingControl)}</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="N° Control">
-                {editingControl.numero_control}
-              </Descriptions.Item>
-            </Descriptions>
-
-            <Divider>Signos Vitales</Divider>
-
-            <Row gutter={[16, 16]}>
-              <Col span={8}>
-                <Statistic
-                  title="Presión Arterial"
-                  value={getPresionArterial(editingControl)}
-                  suffix="mmHg"
-                  valueStyle={{
-                    color:
-                      (editingControl.presion_arterial_sistolica || 0) >= 140 ||
-                        (editingControl.presion_arterial_diastolica || 0) >= 90
-                        ? '#cf1322'
-                        : '#3f8600',
-                  }}
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic
-                  title="FCF"
-                  value={editingControl.frecuencia_cardiaca_fetal || '-'}
-                  suffix="lpm"
-                  valueStyle={{
-                    color:
-                      editingControl.frecuencia_cardiaca_fetal &&
-                        (editingControl.frecuencia_cardiaca_fetal < 110 ||
-                          editingControl.frecuencia_cardiaca_fetal > 160)
-                        ? '#cf1322'
-                        : '#3f8600',
-                  }}
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic
-                  title="Altura Uterina"
-                  value={editingControl.altura_uterina || '-'}
-                  suffix="cm"
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic
-                  title="Peso Actual"
-                  value={editingControl.peso_actual || '-'}
-                  suffix="kg"
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic
-                  title="IMC"
-                  value={
-                    calcularIMC(editingControl.peso_actual, editingControl.talla)?.toFixed(
-                      1
-                    ) || '-'
-                  }
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic
-                  title="Temperatura"
-                  value={editingControl.temperatura || '-'}
-                  suffix="°C"
-                />
-              </Col>
-            </Row>
-
-            {selectedEmbarazo && (
-              <>
-                <Divider>Datos del Embarazo</Divider>
-                <Descriptions bordered column={2} size="small">
-                  <Descriptions.Item label="Estado">
-                    <Tag color={selectedEmbarazo.estado === 'activo' ? 'green' : 'default'}>
-                      {selectedEmbarazo.estado}
-                    </Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="FUM">
-                    {selectedEmbarazo.fecha_ultima_menstruacion
-                      ? dayjs(selectedEmbarazo.fecha_ultima_menstruacion).format(
-                        'DD/MM/YYYY'
-                      )
-                      : '-'}
-                  </Descriptions.Item>
-                </Descriptions>
-              </>
-            )}
-
-            {alertasPreview && alertasPreview.length > 0 && (
-              <>
-                <Divider>Alertas Médicas</Divider>
-                <Alert
-                  message={`${alertasPreview.length} Alerta(s) Detectada(s)`}
-                  description={
-                    <ul style={{ margin: 0, paddingLeft: 20 }}>
-                      {alertasPreview.map((alerta) => (
-                        <li key={`alerta-${alerta}`}>{alerta}</li>
-                      ))}
-                    </ul>
-                  }
-                  type="warning"
-                  showIcon
-                />
-              </>
-            )}
-
-            <Divider orientation="left">🔗 Acceso Rápido a Módulos</Divider>
-            <Card size="small" style={{ marginBottom: 16 }}>
-              <Space direction="vertical" style={{ width: '100%' }} size="small">
-                <Button
-                  type="link"
-                  icon={<EyeOutlined />}
-                  block
-                  style={{ textAlign: 'left' }}
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate(`/dashboard/pacientes?id=${editingControl.paciente}`);
-                  }}
-                >
-                  Ver Paciente: {getNombrePaciente(editingControl)}
-                </Button>
-                <Button
-                  type="link"
-                  icon={<MedicineBoxOutlined />}
-                  block
-                  style={{ textAlign: 'left' }}
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate(`/dashboard/embarazos?id=${editingControl.embarazo}`);
-                  }}
-                >
-                  Ver Datos del Embarazo
-                </Button>
-                <Button
-                  type="link"
-                  icon={<SearchOutlined />}
-                  block
-                  style={{ textAlign: 'left' }}
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate(`/dashboard/ecografias?embarazo=${editingControl.embarazo}`);
-                  }}
-                >
-                  Ver Ecografías del Embarazo
-                </Button>
-                <Button
-                  type="link"
-                  icon={<ExportOutlined />}
-                  block
-                  style={{ textAlign: 'left' }}
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate(`/dashboard/laboratorio?embarazo=${editingControl.embarazo}`);
-                  }}
-                >
-                  Ver Exámenes de Laboratorio
-                </Button>
-                <Button
-                  type="link"
-                  icon={<CheckCircleOutlined />}
-                  block
-                  style={{ textAlign: 'left' }}
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate(`/dashboard/citas?embarazo=${editingControl.embarazo}`);
-                  }}
-                >
-                  Ver Citas del Embarazo
-                </Button>
-                <Button
-                  type="link"
-                  icon={<MedicineBoxOutlined />}
-                  block
-                  style={{ textAlign: 'left' }}
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate(`/dashboard/partos?embarazo=${editingControl.embarazo}`);
-                  }}
-                >
-                  Ver Información de Parto
-                </Button>
-                <Divider style={{ margin: '8px 0' }} />
-                <Button
-                  type="primary"
-                  icon={<ExportOutlined />}
-                  block
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate(`/dashboard/pacientes/${editingControl.paciente}/historia`);
-                  }}
-                >
-                  Ver Historia Clínica Completa
-                </Button>
-              </Space>
-            </Card>
-          </>
-        )}
-      </Modal>
+      <VistaRapidaModal
+        modalVisible={modalVisible}
+        editingControl={editingControl}
+        controlVistaRapida={controlVistaRapida}
+        selectedEmbarazo={selectedEmbarazo}
+        alertasPreview={alertasPreview}
+        handleCloseModal={handleCloseModal}
+        handleEdit={handleEdit}
+        navigate={navigate}
+        getNombrePaciente={getNombrePaciente}
+        getIdClinicoPaciente={getIdClinicoPaciente}
+        getEdadGestacional={getEdadGestacional}
+        getPresionArterial={getPresionArterial}
+        calcularIMC={calcularIMC}
+      />
 
       {/* DRAWER DE ALERTAS GLOBALES */}
-      <Drawer
-        title={
-          <Space>
-            <WarningOutlined />
-            Panel de Alertas
-            <Badge
-              count={
-                controles.filter((c) => c.tiene_alertas).length
-              }
-              style={{ backgroundColor: '#ff4d4f' }}
-            />
-          </Space>
-        }
-        placement="right"
+      <AlertasPanelDrawer
+        showAlertasPanel={showAlertasPanel}
         onClose={handleShowAlertasPanel}
-        open={showAlertasPanel}
-        width={400}
-      >
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <Alert
-            message="Resumen de Alertas"
-            description={`Se encontraron ${controles.filter((c) => c.tiene_alertas).length
-              } controles con alertas médicas de un total de ${controles.length} controles.`}
-            type="info"
-            showIcon
-          />
-
-          <Divider>Controles con Alertas</Divider>
-
-          {controles
-            .filter((c) => c.tiene_alertas)
-            .slice(0, 10)
-            .map((control) => {
-              const alertas = detectarAlertas(control);
-              return (
-                <Card
-                  key={control.id}
-                  size="small"
-                  title={
-                    <Space>
-                      <Badge count={alertas.length} />
-                      <Text strong>{getNombrePaciente(control)}</Text>
-                    </Space>
-                  }
-                  extra={
-                    <Button
-                      size="small"
-                      type="link"
-                      onClick={() => {
-                        handleQuickView(control);
-                        handleShowAlertasPanel();
-                      }}
-                    >
-                      Ver
-                    </Button>
-                  }
-                >
-                  <Space direction="vertical" style={{ width: '100%' }} size="small">
-                    <Text type="secondary">
-                      Control #{control.numero_control} -{' '}
-                      {dayjs(control.fecha_control).format('DD/MM/YYYY')}
-                    </Text>
-                    {alertas.slice(0, 2).map((alerta) => (
-                      <Alert
-                        key={`alerta-${alerta}`}
-                        message={alerta}
-                        type="warning"
-                        showIcon
-                        style={{ fontSize: 12 }}
-                      />
-                    ))}
-                    {alertas.length > 2 && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        +{alertas.length - 2} alertas más…
-                      </Text>
-                    )}
-                  </Space>
-                </Card>
-              );
-            })}
-
-          {controles.filter((c) => c.tiene_alertas).length > 10 && (
-            <Alert
-              message={`Mostrando 10 de ${controles.filter((c) => c.tiene_alertas).length
-                } controles con alertas`}
-              type="info"
-            />
-          )}
-        </Space>
-      </Drawer>
+        controles={controles}
+        detectarAlertas={detectarAlertas}
+        getNombrePaciente={getNombrePaciente}
+        handleQuickView={handleQuickView}
+      />
     </div>
   );
 };
 
 export default Controles;
-
