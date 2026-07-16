@@ -6,7 +6,21 @@ from django.core.validators import EmailValidator
 from django.utils import timezone
 from rest_framework import serializers
 
+from .fields import compute_search_hash
 from .models import Paciente
+
+
+def _validar_ci_disponible(value, instancia=None):
+    """Rechaza CI duplicado ANTES de llegar a la BD. La unicidad vive en
+    ci_hash (el campo ci va cifrado con IV aleatorio); sin este chequeo un
+    duplicado revienta con IntegrityError → 500 en vez de un 400 claro."""
+    qs = Paciente.objects.filter(ci_hash=compute_search_hash(value))
+    if instancia is not None:
+        qs = qs.exclude(pk=instancia.pk)
+    if qs.exists():
+        raise serializers.ValidationError(
+            "Ya existe un paciente registrado con esta cédula de identidad",
+        )
 
 
 class PacienteSerializer(serializers.ModelSerializer):
@@ -236,6 +250,7 @@ class PacienteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "La cédula debe tener entre 5 y 10 dígitos",
                 )
+            _validar_ci_disponible(value, self.instance)
         return value
 
     def validate_telefono(self, value):
@@ -542,6 +557,7 @@ class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "La cédula debe tener entre 5 y 10 dígitos",
                 )
+            _validar_ci_disponible(value, self.instance)
         return value
 
     def validate_telefono(self, value):

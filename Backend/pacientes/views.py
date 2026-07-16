@@ -1,7 +1,7 @@
 """Views module."""
 import hashlib
 import hmac as _hmac
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 
 from django.conf import settings as _settings
 from django.core.cache import cache
@@ -381,7 +381,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return Response(result)
 
     @action(detail=True, methods=["get"])
-    def embarazos(self, _request, _pk=None):
+    def embarazos(self, _request, pk=None):
         """Obtener todos los embarazos de un paciente"""
         paciente = self.get_object()
         embarazos = paciente.embarazos.all().order_by("-fecha_registro")
@@ -523,7 +523,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         description="Reactivate an inactive patient.",
         responses={200: OpenApiResponse(description="Patient activated successfully")},
     )
-    def activar(self, _request, _pk=None):
+    def activar(self, _request, pk=None):
         """Reactivar un paciente inactivo"""
         paciente = self.get_object()
         paciente.activo = True
@@ -545,7 +545,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
             200: OpenApiResponse(description="PDF file with clinical history"),
         },
     )
-    def historia_clinica(self, _request, _pk=None):
+    def historia_clinica(self, _request, pk=None):
         """✨ NUEVA FUNCIONALIDAD: Historia Clínica Integrada Completa
 
         Consolida TODOS los datos del embarazo en una vista Timeline:
@@ -623,8 +623,18 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 parto_data["embarazo_id"] = embarazo.id
                 timeline.append(parto_data)
 
-        # Ordenar timeline por fecha
-        timeline.sort(key=lambda x: x.get("fecha_evento", ""), reverse=True)
+        # Ordenar timeline por fecha. Los eventos mezclan date (controles/ecos)
+        # y datetime (laboratorios/partos): normalizamos todo a date para que
+        # la comparación no explote (datetime vs date no son comparables).
+        def _clave_fecha(evento):
+            valor = evento.get("fecha_evento")
+            if isinstance(valor, datetime):
+                return valor.date()
+            if isinstance(valor, date):
+                return valor
+            return date.min
+
+        timeline.sort(key=_clave_fecha, reverse=True)
 
         # Calcular estadísticas
         estadisticas = {
@@ -765,7 +775,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
-    def controles(self, _request, _pk=None):
+    def controles(self, _request, pk=None):
         paciente = self.get_object()
         from controles.models import ControlPrenatal
         from controles.serializers import ControlPrenatalSerializer
@@ -776,7 +786,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return Response({"total": controles_qs.count(), "controles": serializer.data})
 
     @action(detail=True, methods=["get"])
-    def ecografias(self, _request, _pk=None):
+    def ecografias(self, _request, pk=None):
         paciente = self.get_object()
         from ecografias.models import Ecografia
         from ecografias.serializers import EcografiaListSerializer
@@ -785,7 +795,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return Response({"total": ecografias_qs.count(), "ecografias": serializer.data})
 
     @action(detail=True, methods=["get"], url_path="examenes-laboratorio")
-    def examenes_laboratorio(self, _request, _pk=None):
+    def examenes_laboratorio(self, _request, pk=None):
         paciente = self.get_object()
         from laboratorio.models import ExamenLaboratorio
         from laboratorio.serializers import ExamenLaboratorioListSerializer
@@ -794,7 +804,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return Response({"total": examenes.count(), "examenes": serializer.data})
 
     @action(detail=True, methods=["get"])
-    def citas(self, _request, _pk=None):
+    def citas(self, _request, pk=None):
         paciente = self.get_object()
         from citas.models import Cita
         from citas.serializers import CitaListSerializer
@@ -803,7 +813,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return Response({"total": citas_qs.count(), "citas": serializer.data})
 
     @action(detail=True, methods=["get"])
-    def partos(self, _request, _pk=None):
+    def partos(self, _request, pk=None):
         paciente = self.get_object()
         from partos.models import Parto
         from partos.serializers import PartoSerializer
@@ -812,7 +822,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return Response({"total": partos_qs.count(), "partos": serializer.data})
 
     @action(detail=True, methods=["get"], url_path="estadisticas")
-    def estadisticas_paciente(self, _request, _pk=None):
+    def estadisticas_paciente(self, _request, pk=None):
         paciente = self.get_object()
         from controles.models import ControlPrenatal
         from ecografias.models import Ecografia
@@ -829,7 +839,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="evaluar-riesgos")
-    def evaluar_riesgos(self, _request, _pk=None):
+    def evaluar_riesgos(self, _request, pk=None):
         paciente = self.get_object()
         factores = []
         if paciente.edad and paciente.edad >= 35:
@@ -850,7 +860,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="historial-completo")
-    def historial_completo(self, _request, _pk=None):
+    def historial_completo(self, _request, pk=None):
         paciente = self.get_object()
         from embarazos.serializers import EmbarazoSerializer
         embarazos = paciente.embarazos.all().order_by("-fecha_registro")
@@ -860,11 +870,11 @@ class PacienteViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="reporte-pdf")
-    def reporte_pdf(self, _request, _pk=None):
-        return self.historia_clinica(_request, _pk)
+    def reporte_pdf(self, _request, pk=None):
+        return self.historia_clinica(_request, pk)
 
     @action(detail=True, methods=["get"], url_path="exportar-excel")
-    def exportar_excel_paciente(self, request, _pk=None):
+    def exportar_excel_paciente(self, request, pk=None):
         paciente = self.get_object()
         try:
             from io import BytesIO
