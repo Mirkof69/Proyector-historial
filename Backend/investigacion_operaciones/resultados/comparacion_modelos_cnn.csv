@@ -1,4 +1,0 @@
-modelo,nombre,sensibilidad,especificidad,auc_roc,f1_score,kappa_cohen,mae_biometria_mm,tiempo_inferencia_ms,accuracy,parametros_M,costo_gpu_hora_usd,tiempo_entrenamiento_horas,memoria_vram_gb
-A,EfficientNet-B4,0.924,0.871,0.912,0.887,0.763,2.8,1450,0.901,19.3,0.9,48,11.2
-B,DenseNet-121,0.896,0.882,0.907,0.871,0.741,3.4,890,0.887,7.0,0.65,36,6.8
-C,ResNet-50 + Attention,0.911,0.858,0.903,0.878,0.752,3.1,1100,0.893,25.6,1.1,56,14.5
