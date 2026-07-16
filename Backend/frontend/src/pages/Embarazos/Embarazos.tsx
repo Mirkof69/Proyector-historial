@@ -29,7 +29,6 @@ import {
     Card,
     Row,
     Col,
-    Statistic,
     Typography,
     Tooltip,
     Progress,
@@ -65,6 +64,7 @@ import 'dayjs/locale/es';
 import { embarazosService } from '../../services/embarazosService';
 import { api } from '../../services/api';
 import { GlobalLoader } from '../../components/common/GlobalLoader'; // Para buscar pacientes
+import AnimatedStatistic from '../../components/common/AnimatedStatistic';
 import { usuariosService } from '../../services/usuariosService';
 import { exportarExcel } from '../../utils/excelExport';
 import {
@@ -682,7 +682,7 @@ const Embarazos: React.FC = () => {
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic
+                            <AnimatedStatistic
                                 title="Embarazos Activos"
                                 value={stats.activos}
                                 prefix={<HeartOutlined style={{ color: '#1890ff' }} />}
@@ -694,7 +694,7 @@ const Embarazos: React.FC = () => {
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic
+                            <AnimatedStatistic
                                 title="Alto Riesgo"
                                 value={stats.altoRiesgo}
                                 prefix={<WarningOutlined style={{ color: '#ff4d4f' }} />}
@@ -705,7 +705,7 @@ const Embarazos: React.FC = () => {
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic
+                            <AnimatedStatistic
                                 title="Próximos a Término"
                                 value={stats.termino}
                                 prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}

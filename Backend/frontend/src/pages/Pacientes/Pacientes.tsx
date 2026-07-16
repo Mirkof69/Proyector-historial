@@ -29,7 +29,6 @@ import {
     Card,
     Row,
     Col,
-    Statistic,
     Checkbox,
     Progress,
     theme
@@ -62,6 +61,7 @@ import { api } from '../../services/api';
 import pdfService from '../../services/pdfService';
 import { exportarExcel } from '../../utils/excelExport';
 import { GlobalLoader } from '../../components/common/GlobalLoader';
+import AnimatedStatistic from '../../components/common/AnimatedStatistic';
 import { Paciente, AdvancedFilters, PacienteStats } from './pacientesTypes';
 import { buildPacientesColumns } from './pacientesColumns';
 import PacienteWizardModal from './components/PacienteWizardModal';
@@ -528,25 +528,25 @@ const Pacientes: React.FC = () => {
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic title="Total Pacientes" value={stats.total} prefix={<TeamOutlined />} />
+                            <AnimatedStatistic title="Total Pacientes" value={stats.total} prefix={<TeamOutlined />} />
                             <Progress percent={100} showInfo={false} strokeColor={token.colorPrimary} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic title="Embarazos Activos" value={stats.embarazadas} prefix={<HeartOutlined style={{ color: token.colorError }} />} valueStyle={{ color: token.colorError }} />
+                            <AnimatedStatistic title="Embarazos Activos" value={stats.embarazadas} prefix={<HeartOutlined style={{ color: token.colorError }} />} valueStyle={{ color: token.colorError }} />
                             <Progress percent={(stats.embarazadas / stats.total) * 100} showInfo={false} strokeColor={token.colorError} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic title="Nuevos este Mes" value={stats.nuevosMes} prefix={<PlusOutlined style={{ color: token.colorSuccess }} />} valueStyle={{ color: token.colorSuccess }} />
+                            <AnimatedStatistic title="Nuevos este Mes" value={stats.nuevosMes} prefix={<PlusOutlined style={{ color: token.colorSuccess }} />} valueStyle={{ color: token.colorSuccess }} />
                             <Progress percent={stats.nuevosMes > 0 ? 100 : 0} showInfo={false} strokeColor={token.colorSuccess} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <Statistic title="Promedio Edad" value={stats.promedioEdad} suffix="años" prefix={<InfoCircleOutlined style={{ color: token.colorWarning }} />} />
+                            <AnimatedStatistic title="Promedio Edad" value={stats.promedioEdad} suffix="años" prefix={<InfoCircleOutlined style={{ color: token.colorWarning }} />} />
                         </Card>
                     </Col>
                 </Row>

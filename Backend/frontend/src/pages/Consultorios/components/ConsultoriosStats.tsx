@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, Row, Col, Statistic } from 'antd';
+import { Card, Row, Col } from 'antd';
+import AnimatedStatistic from '../../../components/common/AnimatedStatistic';
 import {
   HomeOutlined, ToolOutlined, CheckCircleOutlined, CloseCircleOutlined,
 } from '@ant-design/icons';
@@ -17,7 +18,7 @@ const ConsultoriosStats: React.FC<ConsultoriosStatsProps> = ({ stats }) => (
   <Row gutter={16} style={{ marginBottom: 16 }}>
     <Col xs={24} sm={12} md={6}>
       <Card>
-        <Statistic
+        <AnimatedStatistic
           title="Total Consultorios"
           value={stats.total}
           prefix={<HomeOutlined />}
@@ -27,7 +28,7 @@ const ConsultoriosStats: React.FC<ConsultoriosStatsProps> = ({ stats }) => (
     </Col>
     <Col xs={24} sm={12} md={6}>
       <Card>
-        <Statistic
+        <AnimatedStatistic
           title="Disponibles"
           value={stats.disponibles}
           prefix={<CheckCircleOutlined />}
@@ -37,7 +38,7 @@ const ConsultoriosStats: React.FC<ConsultoriosStatsProps> = ({ stats }) => (
     </Col>
     <Col xs={24} sm={12} md={6}>
       <Card>
-        <Statistic
+        <AnimatedStatistic
           title="En Mantenimiento"
           value={stats.enMantenimiento}
           prefix={<ToolOutlined />}
@@ -47,7 +48,7 @@ const ConsultoriosStats: React.FC<ConsultoriosStatsProps> = ({ stats }) => (
     </Col>
     <Col xs={24} sm={12} md={6}>
       <Card>
-        <Statistic
+        <AnimatedStatistic
           title="Inactivos"
           value={stats.inactivos}
           prefix={<CloseCircleOutlined />}
