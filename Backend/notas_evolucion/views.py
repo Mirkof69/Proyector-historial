@@ -206,7 +206,7 @@ class NotaEvolucionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"], url_path="revisar")
-    def revisar_nota(self, request, _pk=None):
+    def revisar_nota(self, request, pk=None):
         """Endpoint para marcar una nota como revisada
 
         POST /api/notas-evolucion/{id}/revisar/

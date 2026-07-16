@@ -415,7 +415,7 @@ class PartoViewSet(viewsets.ModelViewSet):
     # ═══════════════════════════════════════════════════════════════════════
 
     @action(detail=True, methods=["post"])
-    def finalizar_parto(self, request, _pk=None):
+    def finalizar_parto(self, request, pk=None):
         """Marca un parto como finalizado
         POST /api/partos/{id}/finalizar_parto/
         """
@@ -439,7 +439,7 @@ class PartoViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def reabrir_parto(self, request, _pk=None):
+    def reabrir_parto(self, request, pk=None):
         """Reabre un parto finalizado (solo si tiene permisos)
         POST /api/partos/{id}/reabrir_parto/
         """
@@ -461,7 +461,7 @@ class PartoViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"])
-    def resumen_completo(self, _request, _pk=None):
+    def resumen_completo(self, _request, pk=None):
         """Obtiene resumen completo del parto con todas sus relaciones
         GET /api/partos/{id}/resumen_completo/
         """
@@ -604,7 +604,7 @@ class PartoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="calcular-riesgo")
-    def calcular_riesgo(self, _request, _pk=None):
+    def calcular_riesgo(self, _request, pk=None):
         """Calcula nivel de riesgo de un parto
         GET /api/partos/{id}/calcular-riesgo/
         """
@@ -643,7 +643,7 @@ class PartoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="generar-pdf")
-    def generar_pdf(self, _request, _pk=None):
+    def generar_pdf(self, _request, pk=None):
         """Genera PDF con resumen del parto
         GET /api/partos/{id}/generar-pdf/
         """
@@ -675,7 +675,7 @@ class PartoViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=["get"], url_path="partograma-pdf")
-    def partograma_pdf(self, _request, _pk=None):
+    def partograma_pdf(self, _request, pk=None):
         """Genera PDF del partograma
         GET /api/partos/{id}/partograma-pdf/
         """
@@ -949,7 +949,7 @@ class RecienNacidoViewSet(viewsets.ModelViewSet):
         return Response({"total": rns.count(), "recien_nacidos": serializer.data})
 
     @action(detail=True, methods=["get"])
-    def resumen_completo(self, _request, _pk=None):
+    def resumen_completo(self, _request, pk=None):
         """Obtiene resumen completo del recién nacido
         GET /api/partos/recien-nacidos/{id}/resumen_completo/
         """

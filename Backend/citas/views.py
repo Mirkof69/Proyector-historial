@@ -599,7 +599,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def confirmar(self, request, _pk=None):
+    def confirmar(self, request, pk=None):
         """Confirmar una cita"""
         cita = self.get_object()
 
@@ -619,7 +619,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def cancelar(self, request, _pk=None):
+    def cancelar(self, request, pk=None):
         """Cancelar una cita"""
         cita = self.get_object()
         motivo = request.data.get("motivo", "")
@@ -650,7 +650,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def completar(self, request, _pk=None):
+    def completar(self, request, pk=None):
         """Marcar cita como completada"""
         cita = self.get_object()
 
@@ -680,7 +680,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="no-asistio")
-    def no_asistio(self, request, _pk=None):
+    def no_asistio(self, request, pk=None):
         """Marcar que el paciente no asistió"""
         cita = self.get_object()
 
@@ -708,7 +708,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         return Response({"mensaje": "Marcado como no asistió", "cita": serializer.data})
 
     @action(detail=True, methods=["post"], url_path="marcar-presente")
-    def marcar_presente(self, request, _pk=None):
+    def marcar_presente(self, request, pk=None):
         """Registra llegada del paciente → estado en_espera"""
         cita = self.get_object()
         if cita.estado not in ["agendada", "confirmada"]:
@@ -736,7 +736,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="pasar-consulta")
-    def pasar_consulta(self, request, _pk=None):
+    def pasar_consulta(self, request, pk=None):
         """Pasa el paciente al consultorio → estado en_consulta"""
         cita = self.get_object()
         if cita.estado not in ["en_espera", "agendada", "confirmada"]:
@@ -764,7 +764,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="enviar-recordatorio")
-    def enviar_recordatorio(self, _request, _pk=None):
+    def enviar_recordatorio(self, _request, pk=None):
         """Marca el recordatorio como enviado"""
         cita = self.get_object()
         if cita.estado in ["completada", "cancelada", "no_asistio"]:
@@ -788,7 +788,7 @@ class CitaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def reprogramar(self, request, _pk=None):
+    def reprogramar(self, request, pk=None):
         """Cambia la fecha y hora de una cita → vuelve a estado agendada"""
         cita = self.get_object()
         if cita.estado in ["completada", "cancelada", "no_asistio"]:

@@ -436,7 +436,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         return Response(result)
 
     @action(detail=True, methods=["get"])
-    def controles(self, _request, _pk=None):
+    def controles(self, _request, pk=None):
         """✅ Controles del embarazo"""
         embarazo = self.get_object()
 
@@ -456,7 +456,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def reactivar(self, _request, _pk=None):
+    def reactivar(self, _request, pk=None):
         """✅ Reactivar embarazo"""
         embarazo = self.get_object()
 
@@ -601,7 +601,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"])
-    def resumen_completo(self, _request, _pk=None):
+    def resumen_completo(self, _request, pk=None):
         """✅ Resumen completo"""
         embarazo = self.get_object()
         embarazo_data = EmbarazoSerializer(embarazo).data
@@ -682,7 +682,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=["get"], url_path="edad-gestacional")
-    def edad_gestacional(self, _request, _pk=None):
+    def edad_gestacional(self, _request, pk=None):
         """Calcular edad gestacional actual desde FUM del embarazo"""
         embarazo = self.get_object()
         if not embarazo.fecha_ultima_menstruacion:
@@ -714,7 +714,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="evaluar-riesgo")
-    def evaluar_riesgo(self, _request, _pk=None):
+    def evaluar_riesgo(self, _request, pk=None):
         """Evaluar nivel de riesgo del embarazo"""
         embarazo = self.get_object()
         factores_riesgo = []
@@ -746,7 +746,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="calcular-riesgo-detallado")
-    def calcular_riesgo_detallado(self, _request, _pk=None):
+    def calcular_riesgo_detallado(self, _request, pk=None):
         """Cálculo detallado de riesgo obstétrico"""
         embarazo = self.get_object()
         riesgos = {
@@ -766,7 +766,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="timeline-completo")
-    def timeline_completo(self, _request, _pk=None):
+    def timeline_completo(self, _request, pk=None):
         """Línea de tiempo completa del embarazo con todos los eventos"""
         embarazo = self.get_object()
         try:
@@ -810,7 +810,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
             return Response({"embarazo_id": embarazo.id, "eventos": [], "total_eventos": 0})
 
     @action(detail=True, methods=["get"])
-    def ecografias(self, _request, _pk=None):
+    def ecografias(self, _request, pk=None):
         """Obtener ecografías del embarazo"""
         embarazo = self.get_object()
         ecografias_qs = embarazo.ecografias.all().order_by("-fecha_ecografia")
@@ -823,7 +823,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"])
-    def riesgos(self, _request, _pk=None):
+    def riesgos(self, _request, pk=None):
         """Obtener clasificaciones de riesgo del embarazo"""
         embarazo = self.get_object()
         try:
@@ -844,7 +844,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"])
-    def complicaciones(self, _request, _pk=None):
+    def complicaciones(self, _request, pk=None):
         """Obtener complicaciones del embarazo"""
         embarazo = self.get_object()
         try:
@@ -868,7 +868,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"])
-    def parto(self, _request, _pk=None):
+    def parto(self, _request, pk=None):
         """Obtener parto asociado al embarazo"""
         embarazo = self.get_object()
         try:
@@ -888,7 +888,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=["get"], url_path="generar-pdf")
-    def generar_pdf(self, _request, _pk=None):
+    def generar_pdf(self, _request, pk=None):
         """Generar PDF con resumen del embarazo"""
         embarazo = self.get_object()
         try:

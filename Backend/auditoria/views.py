@@ -285,7 +285,7 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
     @action(detail=True, methods=["get"], url_path="cambios-detallados")
-    def cambios_detallados(self, _request, _pk=None):
+    def cambios_detallados(self, _request, pk=None):
         """Retorna los cambios de un registro de auditoría en formato detallado
         para visualización con DiffViewer.
 

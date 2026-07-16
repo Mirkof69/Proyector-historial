@@ -335,7 +335,7 @@ class CrecimientoFetalViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"])
-    def seguimiento_crecimiento(self, _request, _pk=None):
+    def seguimiento_crecimiento(self, _request, pk=None):
         """Seguimiento del crecimiento para un paciente específico"""
         evaluacion = self.get_object()
 

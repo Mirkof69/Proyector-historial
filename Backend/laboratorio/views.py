@@ -594,7 +594,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def cambiar_estado(self, request, _pk=None):
+    def cambiar_estado(self, request, pk=None):
         """Cambiar el estado de un examen
 
         Body requerido:
@@ -694,7 +694,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"], url_path="estadisticas-paciente")
-    def estadisticas_paciente(self, request, _pk=None):
+    def estadisticas_paciente(self, request, pk=None):
         """Obtener histórico de resultados de un paciente para análisis estadístico
 
         Obtiene los últimos exámenes del mismo tipo que el examen actual,
@@ -786,7 +786,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="crear-resultado-multiple")
-    def crear_resultado_multiple(self, request, _pk=None):
+    def crear_resultado_multiple(self, request, pk=None):
         """Crear múltiples resultados de laboratorio en una sola petición
 
         Body requerido:
