@@ -18,7 +18,6 @@ import {
 } from '@ant-design/icons';
 import axios from 'axios';
 import { useAntdApp } from '../../../hooks/useMessage';
-import { useAuth } from '../../../hooks/useAuth';
 import { API_URL } from '../../../services/api';
 import { RegistroPacienteCompleto } from './registroPacienteTypes';
 import PasoDatosPersonalesReg from './components/PasoDatosPersonalesReg';
@@ -35,7 +34,6 @@ export const ModalRegistroPacienteCompleto: React.FC<{
 }> = ({ open, onClose, onSuccess, pacienteEditar }) => {
   const { message } = useAntdApp();
   const [form] = Form.useForm();
-  const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Partial<RegistroPacienteCompleto>>({});
@@ -81,13 +79,14 @@ export const ModalRegistroPacienteCompleto: React.FC<{
 
       const method = pacienteEditar?.id_clinico ? 'PUT' : 'POST';
 
+      // Auth por cookie httpOnly + CSRF (defaults globales de axios:
+      // withCredentials y X-CSRFToken configurados en services/api.ts)
       const response = await axios({
         method,
         url: endpoint,
         data: datosCompletos,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
         }
       });
 
@@ -106,7 +105,7 @@ export const ModalRegistroPacienteCompleto: React.FC<{
     } finally {
       setLoading(false);
     }
-  }, [formData, pacienteEditar, form, message, onSuccess, onClose, getToken]);
+  }, [formData, pacienteEditar, form, message, onSuccess, onClose]);
 
   const nextStep = useCallback(async () => {
     try {

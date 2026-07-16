@@ -1,20 +1,19 @@
 """Views module."""
-import hashlib
-import hmac
-import json
-import pyotp
 from datetime import timedelta
 
+import pyotp
 from django.contrib.auth.models import Permission
+from django.middleware.csrf import get_token as csrf_get_token
 from django.utils import timezone as tz
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .auth_cookies import REFRESH_COOKIE, clear_jwt_cookies, set_jwt_cookies
 from .models import HorarioAtencion, Usuario
 from .serializers import (
     AdminChangePasswordSerializer,
@@ -47,8 +46,8 @@ def _build_temp_token(usuario) -> str:
 
 def _decode_temp_token(token_str):
     """Valida el temp_token y retorna el Usuario o lanza excepción."""
-    from rest_framework_simplejwt.tokens import AccessToken
     from rest_framework_simplejwt.exceptions import TokenError
+    from rest_framework_simplejwt.tokens import AccessToken
 
     try:
         token = AccessToken(token_str)
@@ -384,7 +383,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     # GESTIÓN DE HORARIOS
     # =================================================================================
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get"], url_path="horarios-atencion")
     def horarios(self, _request, _pk=None):
         """Ver horarios de atención del usuario"""
         usuario = self.get_object()
@@ -681,7 +680,7 @@ def login_view(request):
         )
 
     # MFA OBLIGATORIO: médico/admin sin MFA configurado → bloquear
-    elif getattr(usuario, "mfa_obligatorio", False) and not usuario.mfa_enabled:
+    if getattr(usuario, "mfa_obligatorio", False) and not usuario.mfa_enabled:
         return Response(
             {
                 "mfa_setup_required": True,
@@ -701,6 +700,7 @@ def login_view(request):
 
     # Auditoría: login exitoso
     try:
+        from auditoria.models import RegistroAuditoria
 
         RegistroAuditoria.registrar(
             usuario=usuario,
@@ -729,10 +729,11 @@ def login_view(request):
     # Convertir a lista
     permisos = list(permisos_set)
 
-    return Response(
+    # SEGURIDAD: los JWT viajan SOLO como cookies httpOnly (nunca en el body,
+    # nunca a localStorage). Se incluye la cookie csrftoken para el
+    # double-submit del frontend.
+    response = Response(
         {
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
             "user": {
                 "id": usuario.id,
                 "email": usuario.email,
@@ -749,43 +750,50 @@ def login_view(request):
         },
         status=status.HTTP_200_OK,
     )
+    set_jwt_cookies(response, access=refresh.access_token, refresh=refresh)
+    csrf_get_token(request)  # fuerza Set-Cookie: csrftoken en esta respuesta
+    return response
 
 
 @extend_schema(
     tags=["Authentication"],
     summary="User logout",
     description="Blacklist the provided refresh token to end the session.",
-    request=OpenApiParameter(
-        name="refresh_token", type=str, description="JWT refresh token", required=True,
-    ),
+    request=dict,
     responses={
         200: OpenApiResponse(description="Session closed successfully"),
         400: OpenApiResponse(description="Bad Request - Invalid token"),
     },
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def logout_view(request):
-    """Endpoint de logout
-    POST: refresh_token
-    """
-    try:
-        refresh_token = request.data.get("refresh_token")
-        token = RefreshToken(refresh_token)
-        token.blacklist()
+    """Endpoint de logout.
 
-        return Response({"mensaje": "Sesión cerrada correctamente"})
+    Lee el refresh de la cookie httpOnly (fallback: body ``refresh_token``),
+    lo blacklistea (best-effort) y SIEMPRE limpia las cookies JWT para que la
+    sesión del navegador quede cerrada aunque el token ya estuviera vencido.
+    """
+    refresh_token = request.COOKIES.get(REFRESH_COOKIE) or request.data.get(
+        "refresh_token",
+    )
+    try:
+        if refresh_token:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
     except Exception:
-        return Response({"error": "Token inválido"}, status=status.HTTP_400_BAD_REQUEST)
+        pass  # token vencido/inválido: igual cerramos la sesión del navegador
+
+    response = Response({"mensaje": "Sesión cerrada correctamente"})
+    clear_jwt_cookies(response)
+    return response
 
 
 @extend_schema(
     tags=["Authentication"],
     summary="Refresh access token",
     description="Generate a new access token using a valid refresh token.",
-    request=OpenApiParameter(
-        name="refresh_token", type=str, description="JWT refresh token", required=True,
-    ),
+    request=dict,
     responses={
         200: OpenApiResponse(description="New access token generated"),
         401: OpenApiResponse(description="Unauthorized - Invalid or expired token"),
@@ -937,10 +945,9 @@ def mfa_verify_view(request):
     for group in usuario.groups.all():
         permisos_set.update(group.permissions.values_list("codename", flat=True))
 
-    return Response(
+    # SEGURIDAD: igual que login_view — JWT solo en cookies httpOnly
+    response = Response(
         {
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
             "user": {
                 "id": usuario.id,
                 "email": usuario.email,
@@ -957,3 +964,6 @@ def mfa_verify_view(request):
         },
         status=status.HTTP_200_OK,
     )
+    set_jwt_cookies(response, access=refresh.access_token, refresh=refresh)
+    csrf_get_token(request)
+    return response

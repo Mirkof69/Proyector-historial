@@ -2,18 +2,17 @@ import React from 'react';
 import { Card, Space, Tag, Alert, Row, Col, Image, Typography, Upload, Button } from 'antd';
 import { FileImageOutlined, UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import { Ecografia } from '../../../services/ecografiasService';
-import { API_URL } from '../../../services/api';
+import { API_URL, getCsrfToken } from '../../../services/api';
 
 const { Text } = Typography;
 
 interface DetalleEcoImagenesProps {
   ecografia: Ecografia;
   id?: string;
-  getToken: () => string | null;
   handleImageUpload: (info: any) => void;
 }
 
-const DetalleEcoImagenes: React.FC<DetalleEcoImagenesProps> = ({ ecografia, id, getToken, handleImageUpload }) => (
+const DetalleEcoImagenes: React.FC<DetalleEcoImagenesProps> = ({ ecografia, id, handleImageUpload }) => (
   <Card
     title={
       <Space>
@@ -27,8 +26,10 @@ const DetalleEcoImagenes: React.FC<DetalleEcoImagenesProps> = ({ ecografia, id, 
     <Upload
       name="imagen"
       action={`${API_URL}/ecografias/${id}/subir_imagen/`}
+      withCredentials
       headers={{
-        'Authorization': `Bearer ${getToken()}`,
+        // Auth por cookie httpOnly; CSRF via double-submit cookie
+        'X-CSRFToken': getCsrfToken() ?? '',
       }}
       onChange={handleImageUpload}
       listType="picture-card"

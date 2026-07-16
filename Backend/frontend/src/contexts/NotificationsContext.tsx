@@ -14,9 +14,10 @@ import { API_URL } from '../services/api';
 
 /**
  * URL del WebSocket de notificaciones (ws/notifications/ del backend Channels).
- * El backend autentica vía query string: ?token=<jwt access>
+ * El backend autentica vía la cookie httpOnly `access_token`, que el
+ * navegador envía automáticamente en el handshake (mismo host).
  */
-const getWebSocketUrl = (token: string): string => {
+const getWebSocketUrl = (): string => {
     let base: string;
     if (API_URL.startsWith('http')) {
         // http://host:8000/api -> ws://host:8000
@@ -26,7 +27,7 @@ const getWebSocketUrl = (token: string): string => {
         const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
         base = `${proto}://${window.location.host}`;
     }
-    return `${base}/ws/notifications/?token=${encodeURIComponent(token)}`;
+    return `${base}/ws/notifications/`;
 };
 
 interface NotificationsContextType {
@@ -132,11 +133,11 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
         let reconnectTimer: NodeJS.Timeout | null = null;
 
         const connect = () => {
-            const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-            if (!token || disposed) return;
+            if (disposed) return;
 
             try {
-                const ws = new WebSocket(getWebSocketUrl(token));
+                // La cookie httpOnly `access_token` viaja en el handshake WS
+                const ws = new WebSocket(getWebSocketUrl());
                 wsRef.current = ws;
 
                 ws.onopen = () => {

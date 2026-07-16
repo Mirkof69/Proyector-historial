@@ -9,7 +9,6 @@ import {
   ReloadOutlined, DeleteOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
-import { useAuth } from '../../hooks/useAuth';
 import { API_URL } from '../../services/api';
 import { Reporte } from './reporteTypes';
 import { IconoFormatoReporte } from './components/DetalleReporteHelpers';
@@ -23,7 +22,6 @@ const DetalleReporte: React.FC = () => {
   const { modal, message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getToken } = useAuth();
 
   // Estados
   const [reporte, setReporte] = useState<Reporte | null>(null);
@@ -37,14 +35,8 @@ const DetalleReporte: React.FC = () => {
     try {
       if (!silencioso) setLoading(true);
 
-      const token = getToken();
-      if (!token) {
-        throw new Error("No autenticado. Por favor inicie sesión.");
-      }
-
-      const response = await axios.get(`${API_URL}/reportes/${id}/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Auth por cookie httpOnly (withCredentials global en services/api.ts)
+      const response = await axios.get(`${API_URL}/reportes/${id}/`);
 
       setReporte(response.data);
       setError(null);
@@ -63,7 +55,7 @@ const DetalleReporte: React.FC = () => {
     } finally {
       if (!silencioso) setLoading(false);
     }
-  }, [id, API_URL, getToken, message]);
+  }, [id, API_URL, message]);
 
   useEffect(() => {
     obtenerDetalleReporte();
@@ -102,10 +94,8 @@ const DetalleReporte: React.FC = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          const token = getToken();
-          await axios.delete(`${API_URL}/reportes/${id}/`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          // Cookie httpOnly + X-CSRFToken (defaults globales de axios)
+          await axios.delete(`${API_URL}/reportes/${id}/`);
           message.success("Reporte eliminado");
           navigate('/reportes');
         } catch (e) {
