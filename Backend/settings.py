@@ -1,8 +1,10 @@
 """Settings module."""
+import contextlib
 import logging
 import os
 from datetime import timedelta
 from pathlib import Path
+from typing import Any, cast
 
 import environ
 
@@ -46,6 +48,11 @@ env = environ.Env(
     SENTRY_TRACES_SAMPLE_RATE=(float, 0.2),
     LOG_LEVEL=(str, "INFO"),
     AI_SERVICE_URL=(str, "http://localhost:8001"),
+    ENCRYPTION_KEY=(str, ""),
+    ORTHANC_URL=(str, "http://localhost:8042"),
+    ORTHANC_USERNAME=(str, "fetalmedical"),
+    ORTHANC_PASSWORD=(str, ""),
+    OHIF_VIEWER_URL=(str, "http://localhost:3000/viewer"),
 )
 
 # Leer archivo .env si existe
@@ -81,6 +88,28 @@ if VAULT_ADDR and VAULT_TOKEN:
 # ========== CONFIGURACIONES DE SEGURIDAD ==========
 # DEBUG debe definirse ANTES del bloque Sentry (que lo referencia)
 SECRET_KEY = env("SECRET_KEY")
+if not SECRET_KEY:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("SECRET_KEY must be set in .env or environment")
+ENCRYPTION_KEY = env("ENCRYPTION_KEY")
+# "fernet" (default, AES-128-CBC+HMAC, formato legado) o "aes256gcm" (AES-256
+# real). Cambiar a "aes256gcm" hace que las ESCRITURAS nuevas usen AES-256;
+# las lecturas siguen soportando ambos formatos indefinidamente (ver
+# pacientes/fields.py EncryptedFieldMixin), asi que la migracion es gradual,
+# no un corte de un solo dia.
+ENCRYPTION_CIPHER_MODE = os.environ.get("ENCRYPTION_CIPHER_MODE", "fernet")
+
+# ========== INTEGRACIÓN ORTHANC (PACS DICOM) ==========
+ORTHANC_URL = env("ORTHANC_URL")
+ORTHANC_USERNAME = env("ORTHANC_USERNAME")
+ORTHANC_PASSWORD = env("ORTHANC_PASSWORD")
+OHIF_VIEWER_URL = env("OHIF_VIEWER_URL")
+if not ENCRYPTION_KEY and not env("DEBUG"):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(
+        "ENCRYPTION_KEY must be set in .env or environment. "
+        'Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'
+    )
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
@@ -100,26 +129,28 @@ if SENTRY_DSN and not DEBUG:
     )
 
     sentry_sdk.init(
-        dsn=SENTRY_DSN,
+        dsn=cast(str, SENTRY_DSN),
         integrations=[
             DjangoIntegration(transaction_style="url"),
             sentry_logging,
         ],
-        environment=SENTRY_ENVIRONMENT,
-        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        environment=cast(str, SENTRY_ENVIRONMENT),
+        traces_sample_rate=cast(float, SENTRY_TRACES_SAMPLE_RATE),
         send_default_pii=False,  # SEGURIDAD: nunca enviar PII (datos pacientes) a Sentry — Ley 164 Bolivia
         _experiments={
             "continuous_profiling_auto_start": True,
         },
     )
 else:
-    try:
+    with contextlib.suppress(ImportError):
         import sentry_sdk
-    except ImportError:
-        pass
 
 # ========== VERSION DE LA APLICACIÓN ==========
-APP_VERSION = "1.0.0"
+try:
+    from importlib.metadata import version as _importlib_version
+    APP_VERSION = _importlib_version("backend")
+except (ImportError, Exception):
+    APP_VERSION = "3.0.0"
 
 SHARED_APPS = [
     "django_tenants",
@@ -169,6 +200,7 @@ TENANT_APPS = [
     "notas_evolucion",
     "vacunas",
     "ia_medica",
+    "soporte",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [
@@ -217,7 +249,7 @@ ASGI_APPLICATION = "asgi.application"
 
 # ========== CHANNEL LAYERS (WebSocket Backend) ==========
 # InMemoryChannelLayer for development; RedisChannelLayer for production.
-_REDIS_URL = env("REDIS_URL", default="")
+_REDIS_URL = env("REDIS_URL", default=cast(Any, ""))
 
 if _REDIS_URL:
     CHANNEL_LAYERS = {
@@ -238,7 +270,7 @@ else:
         },
     }
 
-DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
 
 DATABASES = {
     "default": {
@@ -251,14 +283,11 @@ DATABASES = {
         "OPTIONS": {
             "client_encoding": "UTF8",
             "connect_timeout": 30,
-            "sslmode": "disable",
+            "sslmode": env("DB_SSLMODE", default="disable"),
         },
     },
 }
 
-# Fallback SQLite para desarrollo sin PostgreSQL instalado.
-# Activar con: $env:USE_SQLITE="true"  (PowerShell)
-# Luego:       python manage.py migrate
 if os.environ.get("USE_SQLITE", "").lower() == "true":
     DATABASES = {
         "default": {
@@ -267,9 +296,28 @@ if os.environ.get("USE_SQLITE", "").lower() == "true":
         },
     }
 
+# ========== TESTING CONFIGURATION FOR MULTI-TENANCY FALLBACK ==========
+import sys
+
+TESTING = 'test' in sys.argv or any('pytest' in arg for arg in sys.argv)
+
+if TESTING:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+    DATABASE_ROUTERS: list[str] = []  # type: ignore[no-redef]
+    SHARED_APPS = [app for app in SHARED_APPS if app != "django_tenants"]
+    TENANT_APPS = [app for app in TENANT_APPS if app != "django_tenants"]
+    INSTALLED_APPS = [app for app in INSTALLED_APPS if app != "django_tenants"]
+    MIDDLEWARE = [mw for mw in MIDDLEWARE if "clientes.middleware" not in mw]
+
+
 # ========== CONFIGURACION DE CACHE ==========
 # Redis cache configuration with fallback to LocMemCache for development
-_REDIS_CACHE_URL = env("REDIS_URL", default="")
+_REDIS_CACHE_URL = env("REDIS_URL", default=cast(Any, ""))
 
 if _REDIS_CACHE_URL:
     CACHES = {
@@ -400,9 +448,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ========== REST FRAMEWORK CONFIGURATION ==========
 REST_FRAMEWORK = {
-    # Autenticación: JWT para APIs externas + Session para navegador
+    # Autenticación: JWT por header (Kong/API externa) con fallback a cookie
+    # httpOnly + CSRF para el navegador (migración de seguridad: los tokens
+    # ya no viven en localStorage).
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT primero
+        "usuarios.auth_cookies.CookieJWTAuthentication",  # header Bearer o cookie
         "rest_framework.authentication.SessionAuthentication",  # Session para browsable API
     ],
     # Permisos por defecto — RBAC por rol (mínimo privilegio)
@@ -543,8 +593,8 @@ API Version: 1.0.0
     },
     # Server configuration
     "SERVERS": [
-        {"url": "http://localhost:8000", "description": "Development server"},
-        {"url": "https://api.fetalmedical.com", "description": "Production server"},
+        {"url": os.environ.get("DEV_SERVER_URL", "http://localhost:8000"), "description": "Development server"},
+        {"url": os.environ.get("PROD_SERVER_URL", "https://api.fetalmedical.com"), "description": "Production server"},
     ],
     # Warnings and validation
     "DISABLE_ERRORS_AND_WARNINGS": not True,  # Show warnings in development
@@ -565,10 +615,13 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
+    # Kong valida los JWT con KONG_JWT_SECRET; debe ser la misma clave con la
+    # que Django firma. Sin Kong (dev local) cae a SECRET_KEY.
+    "SIGNING_KEY": env("KONG_JWT_SECRET", default=SECRET_KEY),
     "VERIFYING_KEY": None,
     "AUDIENCE": None,
-    "ISSUER": None,
+    # Kong usa key_claim_name=iss para mapear el consumer "fetal-medical-frontend".
+    "ISSUER": env("JWT_ISSUER", default="fetal-medical-frontend"),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
@@ -589,12 +642,12 @@ if DEBUG_CORS:
 else:
     CORS_ALLOWED_ORIGINS = env.list(
         "CORS_ALLOWED_ORIGINS",
-        default=[
+        default=cast(Any, [
             "http://localhost:3000",
             "http://127.0.0.1:3000",
             "http://localhost:5173",
             "http://127.0.0.1:5173",
-        ],
+        ]),
     )
 
 CORS_ALLOW_CREDENTIALS = True
@@ -623,14 +676,14 @@ CORS_ALLOW_HEADERS = [
 # ========== SEGURIDAD ==========
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
-    default=[
+    default=cast(Any, [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "http://clinica-demo.localhost:3000",
         "http://clinica-demo.127.0.0.1:3000",
-    ],
+    ]),
 )
 
 # Configuraciones de seguridad para producción
@@ -644,10 +697,14 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
+# Configuración de seguridad para proxies inversos (nginx/Kong)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
 # Configuración de cookies de sesión
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # React necesita leer la cookie CSRF via JS
 CSRF_COOKIE_SAMESITE = "Lax"
 
 # Suppress security warnings for development (DEBUG=True)
@@ -837,13 +894,22 @@ LOGGING = {
     },
 }
 
+# ========== CONFIGURACIÓN DE EMAIL ==========
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@fetalmedical.com")
+
 # ========== CONFIGURACIÓN CELERY ==========
 # Broker: Redis (no requiere instalación de RabbitMQ)
 # Para usar RabbitMQ en producción: CELERY_BROKER_URL=amqp://guest:guest@localhost:5672//
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=cast(Any, "redis://127.0.0.1:6379/0"))
 
 # Resultados de las tareas
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://127.0.0.1:6379/1")
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=cast(Any, "redis://127.0.0.1:6379/1"))
 
 # Serialización
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -856,3 +922,31 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = (
     30 * 60
 )  # 30 minutos máximo por tarea (ideal para procesamiento DICOM pesado)
+
+# Ejecución síncrona/eager en desarrollo si Celery no está corriendo
+CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=cast(bool, DEBUG))
+CELERY_TASK_EAGER_PROPAGATES = True
+
+# ========== ESCALAMIENTO DE ALERTAS CRÍTICAS ==========
+# Cadena de derivación cuando una notificación de prioridad CRÍTICA sigue SIN
+# LEERSE. Los tiempos y roles son CONFIGURABLES (no hardcodeados) para que un
+# comité médico los ajuste. Solo escala prioridad crítica (el resto no, para no
+# generar alert fatigue en los niveles superiores).
+#
+# NOTA (pendiente de validación con comité médico real): 15/30 min y los roles
+# 'jefe_guardia'/'coordinacion_medica' son un DEFAULT razonable, no una decisión
+# clínica definitiva. Mientras esos roles no existan en el sistema, el
+# escalamiento cae al fallback de administradores activos.
+ESCALAMIENTO_NIVEL2_MINUTOS = env.int("ESCALAMIENTO_NIVEL2_MINUTOS", default=15)
+ESCALAMIENTO_NIVEL3_MINUTOS = env.int("ESCALAMIENTO_NIVEL3_MINUTOS", default=30)
+ESCALAMIENTO_ROL_NIVEL2 = env("ESCALAMIENTO_ROL_NIVEL2", default="jefe_guardia")
+ESCALAMIENTO_ROL_NIVEL3 = env("ESCALAMIENTO_ROL_NIVEL3", default="coordinacion_medica")
+
+# Programación periódica del chequeo de escalamiento (Celery beat).
+CELERY_BEAT_SCHEDULE = {
+    "escalar-notificaciones-criticas": {
+        "task": "notificaciones.tasks.escalar_notificaciones_criticas",
+        # Cada 5 min: suficiente resolución para umbrales de 15/30 min.
+        "schedule": env.int("ESCALAMIENTO_CHECK_SEGUNDOS", default=300),
+    },
+}

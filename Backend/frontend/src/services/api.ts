@@ -41,7 +41,6 @@ export const API_URL = getApiUrl();
 const TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT || '30000', 10);
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-const PUBLIC_ROUTES = ['/login/', '/usuarios/login/', '/token/refresh/'];
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 2. INSTANCIAS DE AXIOS
@@ -52,6 +51,24 @@ const tunnelHeaders = API_URL.includes('.loca.lt')
   ? { 'bypass-tunnel-reminder': 'true' }
   : {};
 
+// ── SEGURIDAD: JWT en cookies httpOnly ──────────────────────────────────────
+// Los tokens ya NO se guardan en localStorage (mitiga XSS). El servidor los
+// emite como cookies httpOnly y el navegador las envía solo con
+// withCredentials. CSRF: Django emite la cookie `csrftoken` (legible) y
+// axios la reenvía como header X-CSRFToken en métodos no-safe.
+const CSRF_CONFIG = {
+  withCredentials: true,
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
+  withXSRFToken: true, // axios >=1.6: aplicar XSRF también cross-origin
+} as const;
+
+// Defaults globales: cubren también los usos de `axios` directo en la app
+axios.defaults.withCredentials = true;
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+(axios.defaults as any).withXSRFToken = true;
+
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
   timeout: TIMEOUT,
@@ -60,6 +77,7 @@ const apiClient: AxiosInstance = axios.create({
     Accept: 'application/json',
     ...tunnelHeaders,
   },
+  ...CSRF_CONFIG,
 });
 
 const refreshClient: AxiosInstance = axios.create({
@@ -68,30 +86,32 @@ const refreshClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  ...CSRF_CONFIG,
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 3. GESTIÓN DE TOKENS (LOCAL STORAGE)
+// 3. GESTIÓN DE SESIÓN (los tokens viven en cookies httpOnly del servidor)
 // ═══════════════════════════════════════════════════════════════════════════
 
-const getAccessToken = (): string | null =>
-  localStorage.getItem('access_token') || localStorage.getItem('token');
+/** Lee la cookie csrftoken (única cookie legible a propósito). */
+export const getCsrfToken = (): string | null => {
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
 
-const getRefreshToken = (): string | null =>
-  localStorage.getItem('refresh_token') || null;
-
-export const saveTokens = (accessToken: string, refreshToken?: string): void => {
-  localStorage.setItem('access_token', accessToken);
-  localStorage.setItem('token', accessToken);
-  if (refreshToken) {
-    localStorage.setItem('refresh_token', refreshToken);
-  }
+/**
+ * @deprecated Los JWT viven en cookies httpOnly gestionadas por el servidor;
+ * ya no hay nada que guardar en el cliente. Se conserva como no-op para
+ * compatibilidad con llamadas antiguas.
+ */
+export const saveTokens = (_accessToken?: string, _refreshToken?: string): void => {
   if (IS_DEV) {
-    logger.log('✅ Tokens guardados/actualizados correctamente');
+    logger.log('ℹ️ saveTokens(): no-op — los tokens viven en cookies httpOnly');
   }
 };
 
 const clearAuth = (): void => {
+  // Limpieza de sesión local + restos de la implementación anterior
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   localStorage.removeItem('token');
@@ -102,8 +122,9 @@ const clearAuth = (): void => {
 };
 
 const isAuthenticated = (): boolean => {
-  const token = getAccessToken();
-  return !!token;
+  // Sin acceso al token (httpOnly): la señal de sesión es el usuario cacheado.
+  // La autoridad real es el servidor (401 → refresh → login).
+  return !!localStorage.getItem('user:v1');
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -112,11 +133,8 @@ const isAuthenticated = (): boolean => {
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = getAccessToken();
-    const isPublic = PUBLIC_ROUTES.some(route => config.url?.includes(route));
-    if (token && config.headers && !isPublic) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // La autenticación viaja en la cookie httpOnly (withCredentials);
+    // no se inyecta header Authorization desde el cliente.
     if (IS_DEV) {
       logger.log(`🚀 [REQ] ${config.method?.toUpperCase()} ${config.url}`, {
         headers: config.headers,
@@ -153,20 +171,11 @@ const processQueue = (error: any = null, token: string | null = null) => {
   failedQueue = [];
 };
 
-const refreshAccessToken = async (): Promise<string> => {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) {
-    throw new Error('No refresh token available');
-  }
+const refreshAccessToken = async (): Promise<void> => {
   try {
-    const response = await refreshClient.post('/token/refresh/', { refresh: refreshToken });
-    const newAccessToken = response.data.access;
-    if (!newAccessToken) {
-      throw new Error('El servidor no devolvió un nuevo access token');
-    }
-    const newRefreshToken = response.data.refresh;
-    saveTokens(newAccessToken, newRefreshToken);
-    return newAccessToken;
+    // El refresh token viaja en la cookie httpOnly; el servidor rota los
+    // tokens y responde seteando las nuevas cookies (body sin JWT).
+    await refreshClient.post('/token/refresh/', {});
   } catch (error) {
     clearAuth();
     throw error;
@@ -212,12 +221,7 @@ apiClient.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return apiClient(originalRequest);
-          })
+          .then(() => apiClient(originalRequest))
           .catch((err) => Promise.reject(err));
       }
 
@@ -225,11 +229,9 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const newToken = await refreshAccessToken();
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        }
-        processQueue(null, newToken);
+        await refreshAccessToken();
+        // La nueva cookie de access ya viaja con el retry
+        processQueue(null, null);
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
@@ -341,25 +343,25 @@ const login = async (email: string, password: string): Promise<any> => {
     if (IS_DEV) logger.log('🔐 Enviando credenciales...');
     const response = await apiClient.post('/usuarios/login/', { email, password });
     const data = response.data;
-    const accessToken = data.access || data.token || data.access_token;
-    const refreshToken = data.refresh || data.refresh_token;
-    const user = data.user || data.usuario || data;
 
-    if (!accessToken) {
-      throw new Error('Respuesta de login inválida: No se recibió token de acceso.');
+    // Flujo MFA de 2 pasos: la respuesta intermedia no trae usuario todavía
+    if (data?.mfa_required || data?.mfa_setup_required) {
+      return data;
     }
 
-    saveTokens(accessToken, refreshToken);
-
-    if (user) {
-      const safeUser = { ...user };
-      delete safeUser.access;
-      delete safeUser.refresh;
-      delete safeUser.token;
-      localStorage.setItem('user:v1', JSON.stringify(safeUser));
+    // Los JWT llegan como cookies httpOnly (Set-Cookie); el body trae el user.
+    const user = data.user || data.usuario;
+    if (!user) {
+      throw new Error('Respuesta de login inválida: no se recibió el usuario.');
     }
 
-    if (IS_DEV) logger.log('✅ Login exitoso');
+    const safeUser = { ...user };
+    delete safeUser.access;
+    delete safeUser.refresh;
+    delete safeUser.token;
+    localStorage.setItem('user:v1', JSON.stringify(safeUser));
+
+    if (IS_DEV) logger.log('✅ Login exitoso (sesión por cookies httpOnly)');
     return data;
   } catch (error: any) {
     if (IS_DEV) console.error('❌ Login fallido:', error);
@@ -369,10 +371,9 @@ const login = async (email: string, password: string): Promise<any> => {
 
 const logout = async (): Promise<void> => {
   try {
-    const refreshToken = getRefreshToken();
-    if (refreshToken) {
-      await refreshClient.post('/usuarios/logout/', { refresh: refreshToken });
-    }
+    // El refresh viaja en la cookie httpOnly; el servidor blacklistea y
+    // limpia las cookies JWT.
+    await refreshClient.post('/usuarios/logout/', {});
   } catch (e) {
     console.warn('Logout local (servidor no respondió o token inválido)');
   } finally {

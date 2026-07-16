@@ -30,7 +30,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { ecografiasService, Ecografia } from '../../services/ecografiasService';
 import { FRONTEND_ROUTES } from '../../config/routes';
-import { useAuth } from '../../hooks/useAuth';
 import DetalleEcoDatosGenerales from './components/DetalleEcoDatosGenerales';
 import DetalleEcoTimeline from './components/DetalleEcoTimeline';
 import DetalleEcoTabs from './components/DetalleEcoTabs';
@@ -47,7 +46,6 @@ const DetalleEcografia: React.FC = () => {
   const { modal, message } = useAntdApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [ecografia, setEcografia] = useState<Ecografia | null>(null);
 
@@ -195,7 +193,6 @@ const DetalleEcografia: React.FC = () => {
           <DetalleEcoImagenes
             ecografia={ecografia}
             id={id}
-            getToken={getToken}
             handleImageUpload={handleImageUpload}
           />
         </Col>

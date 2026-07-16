@@ -207,8 +207,10 @@ const HistoriaClinica: React.FC = () => {
     if (!pacienteId) return;
     setLoading(true);
     try {
+      // Auth por cookie httpOnly (withCredentials global); si existiera un
+      // token legado en memoria se mantiene el header por compatibilidad.
       const token = getToken();
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
       // 1. Datos Base del Paciente
       const resPaciente = await axios.get(`${API_URL}/pacientes/${pacienteId}/`, { headers });
