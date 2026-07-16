@@ -116,7 +116,7 @@ const Roles: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-container" style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <h1><SafetyOutlined /> Roles y Permisos</h1>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/roles/nuevo')}>

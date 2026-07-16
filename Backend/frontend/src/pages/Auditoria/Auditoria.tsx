@@ -111,7 +111,7 @@ const Auditoria: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-container" style={{ padding: 24 }}>
       <Spin spinning={loading}>
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={6}>

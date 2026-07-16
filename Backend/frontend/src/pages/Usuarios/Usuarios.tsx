@@ -146,7 +146,7 @@ const Usuarios: React.FC = () => {
   }, [usuarios, searchText, filtroRol, filtroEstado]);
 
   return (
-    <div className="usuarios-container" style={{ padding: 24 }}>
+    <div className="usuarios-container page-container" style={{ padding: 24 }}>
       <UsuariosStatsCards estadisticas={estadisticas} />
 
       <UsuariosFilterBar

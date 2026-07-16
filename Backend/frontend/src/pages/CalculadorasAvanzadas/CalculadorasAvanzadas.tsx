@@ -738,7 +738,7 @@ const CalculadorasAvanzadas: React.FC = () => {
   });
 
   return (
-    <div className="calculadoras-avanzadas-container">
+    <div className="calculadoras-avanzadas-container page-container">
       <Card
         title={
           <Space>
