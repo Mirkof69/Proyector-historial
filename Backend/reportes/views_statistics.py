@@ -510,7 +510,7 @@ def distribution_chart(_request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def pacientes_statistics_view(request):
-    return embarazos_statistics(request)
+    return embarazos_statistics(request._request)
 
 
 @extend_schema(
@@ -521,7 +521,7 @@ def pacientes_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def pacientes_embarazadas_statistics_view(request):
-    return embarazos_statistics(request)
+    return embarazos_statistics(request._request)
 
 
 @extend_schema(
@@ -532,7 +532,7 @@ def pacientes_embarazadas_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def nuevos_pacientes_statistics_view(request):
-    return dashboard_statistics(request)
+    return dashboard_statistics(request._request)
 
 
 @extend_schema(
@@ -543,7 +543,7 @@ def nuevos_pacientes_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def embarazos_alto_riesgo_statistics_view(request):
-    return embarazos_statistics(request)
+    return embarazos_statistics(request._request)
 
 
 @extend_schema(
@@ -554,7 +554,7 @@ def embarazos_alto_riesgo_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def embarazos_trimestre_statistics_view(request):
-    return embarazos_statistics(request)
+    return embarazos_statistics(request._request)
 
 
 @extend_schema(
@@ -565,7 +565,7 @@ def embarazos_trimestre_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def tasa_cesareas_statistics_view(request):
-    return partos_statistics(request)
+    return partos_statistics(request._request)
 
 
 @extend_schema(
@@ -576,7 +576,7 @@ def tasa_cesareas_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def complicaciones_partos_statistics_view(request):
-    return partos_statistics(request)
+    return partos_statistics(request._request)
 
 
 @extend_schema(
@@ -587,7 +587,7 @@ def complicaciones_partos_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def resultados_neonatales_statistics_view(request):
-    return partos_statistics(request)
+    return partos_statistics(request._request)
 
 
 @extend_schema(
@@ -598,7 +598,7 @@ def resultados_neonatales_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def adherencia_controles_statistics_view(request):
-    return controles_statistics(request)
+    return controles_statistics(request._request)
 
 
 @extend_schema(
@@ -609,7 +609,7 @@ def adherencia_controles_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def laboratorios_statistics_view(request):
-    return all_statistics(request)
+    return all_statistics(request._request)
 
 
 @extend_schema(
@@ -620,7 +620,7 @@ def laboratorios_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def examenes_pendientes_statistics_view(request):
-    return all_statistics(request)
+    return all_statistics(request._request)
 
 
 @extend_schema(
@@ -631,5 +631,5 @@ def examenes_pendientes_statistics_view(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def resultados_criticos_statistics_view(request):
-    return all_statistics(request)
+    return all_statistics(request._request)
 
