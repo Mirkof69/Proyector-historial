@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { triajeService, TriajeEnfermeria } from '../../services/triajeService';
-import { Table, Button, Card, Row, Col, Typography, Space } from 'antd';
+import { Empty, Table, Button, Card, Row, Col, Typography, Space } from 'antd';
 import {
   PlusOutlined, PrinterOutlined, ExportOutlined, MedicineBoxOutlined,
 } from '@ant-design/icons';
@@ -221,6 +221,7 @@ const Triaje: React.FC = () => {
       <Table
         columns={columns}
         dataSource={filteredTriajes}
+        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay registros de triaje" /> }}
         rowKey="id"
         loading={loading}
         className="shadow-card"

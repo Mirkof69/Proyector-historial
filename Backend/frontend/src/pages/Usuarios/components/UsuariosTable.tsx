@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Avatar, Space, Tag, Tooltip, Switch, Button, Popconfirm, Typography } from 'antd';
+import { Empty, Table, Avatar, Space, Tag, Tooltip, Switch, Button, Popconfirm, Typography } from 'antd';
 import { UserOutlined, MailOutlined, PhoneOutlined, EyeOutlined, EditOutlined, KeyOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined, MedicineBoxOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { Usuario } from '../../../services/usuariosService';
 
@@ -118,6 +118,7 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
     <Table
       columns={columnas}
       dataSource={usuarios}
+      locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay usuarios registrados" /> }}
       rowKey="id"
       loading={loading}
       pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `Total: ${total} usuarios` }}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Row, Col, Card, Space, Tag, Button, Table, Tooltip, Descriptions, Progress, Alert, Typography } from 'antd';
+import { Empty, Row, Col, Card, Space, Tag, Button, Table, Tooltip, Descriptions, Progress, Alert, Typography } from 'antd';
 import {
   ScanOutlined, FileTextOutlined, EditOutlined, CalendarOutlined, PlusOutlined,
   EyeOutlined, UserOutlined, ClockCircleOutlined,
@@ -141,6 +141,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
 
       <Table
         dataSource={[...ecografias].reverse()}
+        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin ecografías registradas en este embarazo" /> }}
         rowKey="id"
         size="middle"
         bordered

@@ -14,14 +14,15 @@ import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import { exportarExcel } from '../../utils/excelExport';
-import {Card,
+import {
+  Empty,Card,
   Table,
   Button,
   Space,
   Modal,
   Row,
   Col,
-  Alert} from "antd";
+  Alert} from 'antd';
 import {
   EyeOutlined,
   EditOutlined,
@@ -311,6 +312,7 @@ const Ecografias: React.FC = () => {
         <Table
           columns={columns}
           dataSource={ecografiasFiltradas}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay ecografías registradas" /> }}
           rowKey={(record: any) => record._uniqueRowKey || `ecografia-fallback-${record.id}`}
           loading={loading}
           pagination={{

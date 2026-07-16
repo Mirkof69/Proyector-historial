@@ -269,6 +269,7 @@ const RenderHistory: React.FC<RenderHistoryProps> = ({ reportes, busqueda, filtr
         (r.tipo_reporte_nombre?.toLowerCase().includes(busqueda.toLowerCase())) &&
         (!filtroTipo || r.tipo_reporte_nombre?.toLowerCase().includes(filtroTipo.toLowerCase()))
       )}
+      locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay reportes generados todavía" /> }}
       loading={loading}
       rowKey="id"
       columns={[

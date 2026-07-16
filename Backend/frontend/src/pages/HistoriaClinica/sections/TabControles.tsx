@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Empty,
   Row, Col, Card, Space, Tag, Button, Table, Tooltip, Popconfirm, Divider, Typography,
 } from 'antd';
 import {
@@ -112,6 +113,7 @@ const TabControles: React.FC<TabControlesProps> = ({ controles, embarazoActivo, 
 
       <Table
         dataSource={[...controles].reverse()}
+        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin controles prenatales registrados en este embarazo" /> }}
         rowKey="id"
         size="middle"
         bordered

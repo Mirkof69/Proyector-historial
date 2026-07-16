@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Input, Select, Row, Col, Statistic } from 'antd';
+import { Empty, Card, Table, Button, Space, Tag, Input, Select, Row, Col, Statistic } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SearchOutlined, ExportOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -277,6 +277,7 @@ const NotasEvolucionPage: React.FC = () => {
         <Table
           columns={columns}
           dataSource={filteredNotas}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay notas de evolución registradas" /> }}
           loading={loading}
           rowKey="id"
           pagination={{ pageSize: 20 }}

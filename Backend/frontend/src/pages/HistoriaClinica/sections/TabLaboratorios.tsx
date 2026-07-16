@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, Space, Tag, Button, Table, Descriptions, Alert, Badge, Typography } from 'antd';
+import { Empty, Row, Col, Card, Space, Tag, Button, Table, Descriptions, Alert, Badge, Typography } from 'antd';
 import {
   ExperimentOutlined, DownloadOutlined, WarningOutlined, CheckCircleOutlined,
   UserOutlined, ClockCircleOutlined, EditOutlined,
@@ -107,6 +107,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
 
       <Table
         dataSource={[...laboratorios].reverse()}
+        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin exámenes de laboratorio registrados" /> }}
         rowKey="id"
         size="middle"
         bordered

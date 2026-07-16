@@ -19,6 +19,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
+  Empty,
     Table,
     Button,
     Form,
@@ -655,6 +656,7 @@ const Pacientes: React.FC = () => {
                 <Table
                     rowKey={(record: any) => record._uniqueRowKey || `paciente-fallback-${record.id}`}
                     dataSource={filteredData}
+                    locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay pacientes registrados" /> }}
                     columns={columns as any}
                     loading={loading}
                     rowSelection={{

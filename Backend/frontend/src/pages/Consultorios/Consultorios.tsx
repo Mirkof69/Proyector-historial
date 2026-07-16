@@ -9,7 +9,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { useAuth } from "../../hooks/useAuth";
-import { Card, Row, Col, Table, Button, Input, Select, Space, Form, Tabs } from "antd";
+import { Empty, Card, Row, Col, Table, Button, Input, Select, Space, Form, Tabs } from 'antd';
 import {
   PlusOutlined, SearchOutlined, HomeOutlined, ToolOutlined, CheckCircleOutlined,
 } from '@ant-design/icons';
@@ -520,6 +520,7 @@ const Consultorios: React.FC = () => {
                 <Table
                   columns={columns}
                   dataSource={consultoriosFiltrados}
+                  locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay consultorios registrados" /> }}
                   rowKey="id"
                   loading={loading}
                   pagination={{
