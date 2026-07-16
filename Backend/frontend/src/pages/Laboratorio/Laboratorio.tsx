@@ -10,7 +10,7 @@
 import React, { useRef, useState, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
-import { Card, Table, Button, Space } from 'antd';
+import { Empty, Card, Table, Button, Space } from 'antd';
 import {
   PlusOutlined, ReloadOutlined, ExperimentOutlined,
   ExclamationCircleOutlined, FileExcelOutlined,
@@ -281,6 +281,7 @@ const Laboratorio: React.FC = () => {
         <Table
           columns={columns}
           dataSource={examenesFiltrados}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay exámenes de laboratorio registrados" /> }}
           rowKey={(record: any) => record._uniqueRowKey || `laboratorio-fallback-${record.id}`}
           loading={loading}
           pagination={{

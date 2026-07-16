@@ -3,7 +3,7 @@
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Form, Input, Select, DatePicker, InputNumber, Button, Table, Space, Tag, Row, Col, Checkbox } from 'antd';
+import { Card, Form, Input, Select, DatePicker, InputNumber, Button, Table, Space, Tag, Row, Col, Checkbox, Empty } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { SearchOutlined, ClearOutlined, UserOutlined } from '@ant-design/icons';
 import { api } from '../../services/api';
@@ -123,7 +123,7 @@ const BusquedaAvanzada: React.FC = () => {
 
             {total > 0 && (
                 <Card title={`Resultados (${total})`} style={{ marginTop: 24 }}>
-                    <Table columns={columns} dataSource={resultados} rowKey="id" pagination={{ pageSize: 20 }} />
+                    <Table columns={columns} dataSource={resultados} rowKey="id" pagination={{ pageSize: 20 }} locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin resultados — ajuste los filtros de búsqueda" /> }} />
                 </Card>
             )}
         </div>

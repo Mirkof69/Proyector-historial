@@ -12,6 +12,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
+  Empty,
   Card,
   Table,
   Button,
@@ -535,6 +536,7 @@ const CitasPage: React.FC = () => {
         <Table
           columns={columns}
           dataSource={citasFiltradas}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay citas registradas" /> }}
           rowKey={(record: any) => record._uniqueRowKey || `cita-fallback-${record.id}`}
           loading={loading}
           pagination={{

@@ -215,6 +215,7 @@ const AlertasMedicas: React.FC = () => {
             <Table
               columns={columns}
               dataSource={filteredAlertas}
+              locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay alertas médicas registradas" /> }}
               loading={false}
               rowKey="id"
               pagination={{

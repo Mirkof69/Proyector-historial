@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Switch, Popconfirm } from 'antd';
+import { Card, Table, Button, Space, Tag, Switch, Popconfirm, Empty } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -124,7 +124,7 @@ const Roles: React.FC = () => {
         </Button>
       </div>
       <Card>
-        <Table columns={columns} dataSource={roles} loading={loading} rowKey="id" />
+        <Table columns={columns} dataSource={roles} loading={loading} rowKey="id" locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay roles configurados" /> }} />
       </Card>
     </div>
   );

@@ -12,6 +12,7 @@
  */
 import React, { useState, useReducer, useEffect, useCallback, useMemo } from 'react';
 import {
+  Empty,
   Table,
   Button,
   Input,
@@ -647,6 +648,7 @@ const Controles: React.FC = () => {
         <Table
           columns={columns}
           dataSource={filteredData}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay controles prenatales registrados" /> }}
           rowKey={(record: any) => record._uniqueRowKey || `fallback-${record.id}`}
           loading={loading}
           pagination={{

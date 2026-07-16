@@ -9,8 +9,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
-import {Card, Table, Button, Input, Tag, Space, Tooltip, Badge,
-  Row, Col, Statistic} from "antd";
+import {
+  Empty,Card, Table, Button, Input, Tag, Space, Tooltip, Badge,
+  Row, Col, Statistic} from 'antd';
 import {
   FileTextOutlined, EyeOutlined, PlusOutlined, SearchOutlined,
   CheckCircleOutlined, WarningOutlined
@@ -252,6 +253,7 @@ const ListaHistoriasClinicas: React.FC = () => {
         <Table
           columns={columns}
           dataSource={filteredPacientes}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay historias clínicas registradas" /> }}
           loading={loading}
           rowKey="id"
           pagination={{
