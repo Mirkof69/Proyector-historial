@@ -18,9 +18,8 @@ router.register(
 )
 
 urlpatterns = [
-    # APIs REST principales - ✅ FIX: Incluir directamente sin 'api/' adicional
-    path("", include(router.urls)),
-    # URLs adicionales para funcionalidades específicas
+    # Las rutas explícitas van ANTES que el router: PartoViewSet está registrado
+    # en r"" y su ruta detail (pk) capturaría "estadisticas/", "hoy/", etc.
     path(
         "estadisticas/",
         views.PartoViewSet.as_view({"get": "estadisticas_generales"}),
@@ -68,6 +67,8 @@ urlpatterns = [
         views.RecienNacidoViewSet.as_view({"get": "list"}),
         name="buscar-rn-peso",
     ),
+    # El router va al final para que su ruta detail (pk) no tape las de arriba
+    path("", include(router.urls)),
 ]
 
 # Configuración del app_name para namespacing
