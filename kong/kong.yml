@@ -143,15 +143,17 @@ services:
             - 127.0.0.1
 
 # ── Consumidores JWT (usuarios del sistema) ────────────────────────────────
+# Los secretos se resuelven en runtime vía el vault de entorno de Kong
+# ({vault://env/...}); la sintaxis ${VAR} NO se expande en config declarativa.
 consumers:
   - username: fetal-medical-frontend
     jwt_secrets:
       - key: fetal-medical-frontend
         algorithm: HS256
-        secret: "${KONG_JWT_SECRET}"
+        secret: "{vault://env/KONG_JWT_SECRET}"
 
   - username: ia-microservice-internal
     jwt_secrets:
       - key: ia-service
         algorithm: HS256
-        secret: "${KONG_IA_SECRET}"
+        secret: "{vault://env/KONG_IA_SECRET}"

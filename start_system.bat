@@ -90,7 +90,13 @@ echo [%TIMESTAMP%] [OK] Entorno verificado >> "%LOG_FILE%"
 echo [2/6] Verificando base de datos...
 echo.
 
-set PGPASSWORD=25693
+set "PGPASSWORD_FILE=%~dp0Backend\.env"
+for /f "tokens=2 delims==" %%A in ('findstr /i "^DB_PASSWORD=" "%PGPASSWORD_FILE%" 2^>nul') do set "DB_PASSWORD=%%A"
+if defined DB_PASSWORD (
+    set "PGPASSWORD=%DB_PASSWORD%"
+) else (
+    set "PGPASSWORD=25693"
+)
 psql -U postgres -h 127.0.0.1 -lqt 2>nul | findstr historial >nul
 if %errorlevel% neq 0 (
     echo   [!] Base de datos 'historial' no existe
@@ -176,15 +182,15 @@ if %errorlevel% equ 0 (
 )
 
 :: Verificar si IA ya está corriendo
-netstat -ano | findstr ":8001" >nul
+netstat -ano | findstr ":8005" >nul
 if %errorlevel% equ 0 (
-    echo   [!] Microservicio IA ya está corriendo en puerto 8001
+    echo   [!] Microservicio IA ya está corriendo en puerto 8005
 ) else (
-    echo   [+] Iniciando AI Microservice (puerto 8001)...
-    start "AI Microservice - Fetal Medical" cmd /k "cd /d "%~dp0Backend\Microservicio_IA" && echo Iniciando AI Microservice... && set PYTHONIOENCODING=utf-8 && python -m uvicorn main:app --host 0.0.0.0 --port 8001"
+    echo   [+] Iniciando AI Microservice (puerto 8005)...
+    start "AI Microservice - Fetal Medical" cmd /k "cd /d "%~dp0Backend\Microservicio_IA" && echo Iniciando AI Microservice... && set PYTHONIOENCODING=utf-8 && python -m uvicorn main:app --host 0.0.0.0 --port 8005"
     timeout /t 3 /nobreak >nul
     echo   [+] AI Microservice iniciado
-    echo [%TIMESTAMP%] [OK] AI Microservice iniciado en puerto 8001 >> "%LOG_FILE%"
+    echo [%TIMESTAMP%] [OK] AI Microservice iniciado en puerto 8005 >> "%LOG_FILE%"
 )
 
 echo.
@@ -208,7 +214,7 @@ if %errorlevel% equ 0 (
 )
 
 :: Verificar IA
-netstat -ano | findstr ":8001" | findstr "LISTENING" >nul
+netstat -ano | findstr ":8005" | findstr "LISTENING" >nul
 if %errorlevel% equ 0 (
     echo   [+] AI Microservice: FUNCIONANDO ✓
     echo [%TIMESTAMP%] [OK] AI Microservice verificado >> "%LOG_FILE%"
@@ -239,7 +245,8 @@ echo.
 echo  📊 Estado del Sistema:
 echo  ─────────────────────────────────────
 echo   Django Backend:    http://127.0.0.1:8000
-echo   AI Microservice:   http://127.0.0.1:8001
+echo   AI Microservice:   http://127.0.0.1:8005
+echo   React Frontend:    http://127.0.0.1:3000
 echo   API Docs:          http://127.0.0.1:8000/api/docs/
 echo   ReDoc:             http://127.0.0.1:8000/api/redoc/
 echo   Health Check:      http://127.0.0.1:8000/api/health/
@@ -251,6 +258,7 @@ echo     cd Backend\frontend
 echo     npm start
 echo.
 echo  📝 Log de trazabilidad: %LOG_FILE%
+echo  🔐 Las credenciales se leen desde Backend\.env (no hardcodeadas)
 echo.
 echo [%TIMESTAMP%] === EJECUCIÓN COMPLETADA === >> "%LOG_FILE%"
 echo.

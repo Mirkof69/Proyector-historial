@@ -3,15 +3,15 @@ CNN EfficientNet-B4 (PyTorch + MONAI) + Chatbot obstétrico
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from .config import IMAGE_CONFIG
-from .models import ModelManager
-from .preprocessing import ImagePreprocessor
+from .config import CITY_ALTITUDE_M, IMAGE_CONFIG
+from .models import PATHOLOGY_CLASSES, ModelManager
+from .preprocessing import PILImagePreprocessor as ImagePreprocessor
 
 router = APIRouter(prefix="/api", tags=["AI Analysis"])
 
@@ -19,37 +19,174 @@ model_manager = ModelManager()
 preprocessor = ImagePreprocessor()
 
 
+def _build_non_ultrasound_response(
+    filename: str, file_size: int, quality: dict, validation: dict,
+) -> dict:
+    """Respuesta rapida cuando validate_ultrasound determina que la imagen
+    claramente no es una ecografia. NO corre el modelo."""
+    return {
+        "status": "success",
+        "fuente": "pre_validation",
+        "modelo_version": "N/A",
+        "ultrasound_validation": {
+            "es_ecografia_obstetrica_valida": False,
+            "tipo_ecografia": "desconocida",
+            "calidad_suficiente": False,
+            "motivo": validation.get("motivo", ""),
+            "motivo_calidad": validation.get("motivo", ""),
+            "saturacion_media": validation.get("color", {}).get("saturacion_media"),
+        },
+        "pregnancy_assessment": {
+            "feto_presente": False,
+            "actividad_cardiaca": False,
+            "semanas_gestacion_estimadas": None,
+            "crecimiento_adecuado": None,
+        },
+        "pathology_detection": {
+            "pathologies": [],
+            "total_detected": 0,
+            "requires_specialist": False,
+            "all_probabilities": dict.fromkeys(PATHOLOGY_CLASSES, 0.0),
+        },
+        "biometry": {"BPD_mm": None, "HC_mm": None, "AC_mm": None, "FL_mm": None, "peso_estimado_g": None, "disponible": False, "motivo": "No se procesó la imagen."},
+        "score_global": 0.0,
+        "shap_risk_scores": {},
+        "riesgo_preeclampsia": 0.0,
+        "riesgo_parto_prematuro": 0.0,
+        "ajuste_altitud": {},
+        "liquido_amniotico": {"evaluacion": "no evaluado", "nota": ""},
+        "placenta": {"posicion": "no evaluada", "nota": ""},
+        "clinical_recommendations": {
+            "urgencia": "N/A",
+            "especialista_requerido": "Obstetra tratante",
+            "tiempo_recomendado": "Repetir con una ecografia valida",
+            "estudios_adicionales": ["Verificar que el archivo sea una ecografia obstetrica"],
+        },
+        "gradcam_base64": "",
+        "gradcam_disponible": False,
+        "filename": filename,
+        "file_size_kb": round(file_size / 1024, 1),
+        "image_quality": quality,
+        "modelo_solicitado": "N/A",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "device": "N/A",
+        "advertencia": (
+            "La imagen no paso la validacion preliminar de calidad. "
+            "Verifique que el archivo subido sea una ecografia obstetrica valida."
+        ),
+    }
+
+
+def _apply_safety_checks(result: dict, quality: dict, color_check: dict) -> None:
+    """Capas de seguridad que no dependen del modelo:
+    de color. Se anotan en ultrasound_validation sin pisar un resultado
+    exitoso del modelo, solo lo complementan."""
+    validation = result.setdefault("ultrasound_validation", {})
+
+    if quality.get("resolucion_baja"):
+        min_rec = quality.get("resolucion_minima_recomendada_px")
+        validation["motivo_calidad"] = (
+            f"Resolucion de imagen baja ({quality.get('ancho_px')}x{quality.get('alto_px')} px). "
+            f"Se recomienda al menos {min_rec}x{min_rec} px para un analisis confiable."
+        )
+        validation["calidad_suficiente"] = False
+
+    # Si el modelo ya detecto con confianza una patologia real (p. ej. Doppler
+    # color en placenta previa, que tiene saturacion alta por el flujo a
+    # color pero SI es una ecografia valida), se confia en el modelo y no se
+    # pisa con la heuristica de color: solo se reporta como dato informativo.
+    # Tambien protege el caso de senal real por debajo del umbral clinico de
+    # confirmacion (p. ej. embarazo_multiple al 92.9%, cuyo umbral de
+    # confirmacion es 0.95 por ser una clase con pocas imagenes de
+    # entrenamiento): esa imagen SI es una ecografia real, solo no alcanza a
+    # confirmarse clinicamente, y no debe acusarse de "ser una foto".
+    pathologies = result.get("pathology_detection", {}).get("pathologies", [])
+    all_probs = result.get("pathology_detection", {}).get("all_probabilities", {})
+    # "normal" SI cuenta como senal real (un caso real verificado: imagen
+    # valida con saturacion 0.184 por compresion JPEG, "normal" en 40.8% sin
+    # llegar a su propio umbral de confirmacion — excluirla de la proteccion
+    # hacia que se acusara de "ser una foto" a una ecografia real solo
+    # ambigua). Solo "no_ecografia" se excluye, porque esa clase es
+    # justamente la opinion del modelo de que NO es una ecografia.
+    señal_real_detectada = any(
+        v >= 0.40 for k, v in all_probs.items() if k != "no_ecografia"
+    )
+    detecciones_confiables = (
+        any(p.get("pathology") not in ("normal", "baja_confianza") for p in pathologies)
+        or señal_real_detectada
+    )
+
+    if not color_check.get("parece_ecografia", True) and not detecciones_confiables:
+        validation["motivo_validez"] = (
+            "La imagen tiene colores tipicos de una fotografia (no de una ecografia en "
+            "escala de grises). Verifique que el archivo subido sea realmente una ecografia."
+        )
+        validation["es_ecografia_obstetrica_valida"] = False
+        validation["calidad_suficiente"] = False
+
+    validation["saturacion_media"] = color_check.get("saturacion_media")
+    motivo_previo = validation.get("motivo")
+    motivos = [
+        m for m in (motivo_previo, validation.get("motivo_calidad"), validation.get("motivo_validez"))
+        if m
+    ]
+    if motivos:
+        validation["motivo"] = " ".join(dict.fromkeys(motivos))
+
+
 # ── CNN: ANÁLISIS COMPLETO ────────────────────────────────────────────────────
 
 
 @router.post("/analyze", summary="Análisis completo EfficientNet-B4")
-async def analyze_ultrasound(file: UploadFile = File(...)) -> dict:
+async def analyze_ultrasound(
+    file: UploadFile = File(...),
+    modelo: str = "efficientnet",
+    ciudad: str | None = Form(None),
+    altitud_m: float | None = Form(None),
+) -> dict:
     """Análisis completo con EfficientNet-B4 (PyTorch 2.2 + MONAI):
     - 15 patologías fetales (umbral ≥ 0.50)
     - Biometría: BPD, HC, AC, FL, peso estimado
     - Grad-CAM sobre última capa convolucional
-    - SHAP risk scores (preeclampsia, parto prematuro, etc.)
+    - SHAP risk scores (preeclampsia, parto prematuro, etc.), con ajuste por
+      altitud si se indica `ciudad` (Bolivia) o `altitud_m` directamente.
     """
     try:
-        ext = os.path.splitext(file.filename)[1].lower()
-        if ext not in IMAGE_CONFIG["allowed_extensions"]:
+        resolved_altitude = altitud_m
+        if resolved_altitude is None and ciudad:
+            resolved_altitude = CITY_ALTITUDE_M.get(ciudad.strip().lower())
+
+        filename = file.filename or ""
+        ext = os.path.splitext(filename)[1].lower()
+        allowed: list = IMAGE_CONFIG["allowed_extensions"]  # type: ignore[assignment]
+        if ext not in allowed:
             raise HTTPException(
                 status_code=400,
-                detail=f"Extensión no permitida. Use: {IMAGE_CONFIG['allowed_extensions']}",
+                detail=f"Extensión no permitida. Use: {allowed}",
             )
         content = await file.read()
-        if len(content) > IMAGE_CONFIG["max_size"]:
+        max_size: int = IMAGE_CONFIG["max_size"]  # type: ignore[assignment]
+        if len(content) > max_size:
             raise HTTPException(
                 status_code=400,
-                detail=f"Archivo muy grande. Máximo: {IMAGE_CONFIG['max_size'] // 1024 // 1024} MB",
+                detail=f"Archivo muy grande. Máximo: {max_size // 1024 // 1024} MB",
             )
         image = preprocessor.load_image(content, ext)
         quality = preprocessor.calculate_image_quality(image)
+        color_check = preprocessor.looks_like_ultrasound(image)
+
+        # SIEMPRE correr el modelo primero. validate_ultrasound se usa solo
+        # como anotacion post-analisis en _apply_safety_checks, nunca como
+        # bloqueo pre-analisis: imagenes chicas o con algo de saturacion
+        # (Doppler color, JPEG artifacts) deben llegar al modelo para que
+        # decida si hay senial real.
         enhanced = preprocessor.enhance_image(image)
-        result = model_manager.analyze(enhanced, compute_cam=True)
-        result["filename"] = file.filename
+        result = model_manager.analyze(enhanced, compute_cam=True, altitude_m=resolved_altitude)
+        result["filename"] = filename
         result["file_size_kb"] = round(len(content) / 1024, 1)
         result["image_quality"] = quality
+        result["modelo_solicitado"] = modelo
+        _apply_safety_checks(result, quality, color_check)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -60,24 +197,27 @@ async def analyze_ultrasound(file: UploadFile = File(...)) -> dict:
 @router.post("/detect-pathologies", summary="Detectar patologías fetales + biometría")
 async def detect_pathologies(file: UploadFile = File(...)) -> dict:
     """Detect pathologies"""
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in IMAGE_CONFIG["allowed_extensions"]:
+    filename = file.filename or ""
+    ext = os.path.splitext(filename)[1].lower()
+    allowed2: list = IMAGE_CONFIG["allowed_extensions"]  # type: ignore[assignment]
+    if ext not in allowed2:
         raise HTTPException(
             status_code=400,
-            detail=f"Extensión no permitida. Use: {IMAGE_CONFIG['allowed_extensions']}",
+            detail=f"Extensión no permitida. Use: {allowed2}",
         )
     content = await file.read()
-    if len(content) > IMAGE_CONFIG["max_size"]:
+    max_size2: int = IMAGE_CONFIG["max_size"]  # type: ignore[assignment]
+    if len(content) > max_size2:
         raise HTTPException(
             status_code=400,
-            detail=f"Archivo muy grande. Máximo: {IMAGE_CONFIG['max_size'] // 1024 // 1024} MB",
+            detail=f"Archivo muy grande. Máximo: {max_size2 // 1024 // 1024} MB",
         )
     image = preprocessor.load_image(content, ext)
     enhanced = preprocessor.enhance_image(image)
-    result = model_manager.analyze(enhanced, compute_cam=False)
+    result = model_manager.analyze(enhanced, compute_cam=True)
     return {
         "status": result["status"],
-        "filename": file.filename,
+        "filename": filename,
         "pathology_detection": result["pathology_detection"],
         "biometry": result["biometry"],
         "shap_risk_scores": result["shap_risk_scores"],
@@ -88,24 +228,27 @@ async def detect_pathologies(file: UploadFile = File(...)) -> dict:
 @router.post("/detect-anomalies", summary="Detectar anomalías fetales")
 async def detect_anomalies(file: UploadFile = File(...)) -> dict:
     """Detect anomalies"""
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in IMAGE_CONFIG["allowed_extensions"]:
+    filename3 = file.filename or ""
+    ext = os.path.splitext(filename3)[1].lower()
+    allowed3: list = IMAGE_CONFIG["allowed_extensions"]  # type: ignore[assignment]
+    if ext not in allowed3:
         raise HTTPException(
             status_code=400,
-            detail=f"Extensión no permitida. Use: {IMAGE_CONFIG['allowed_extensions']}",
+            detail=f"Extensión no permitida. Use: {allowed3}",
         )
     content = await file.read()
-    if len(content) > IMAGE_CONFIG["max_size"]:
+    max_size3: int = IMAGE_CONFIG["max_size"]  # type: ignore[assignment]
+    if len(content) > max_size3:
         raise HTTPException(
             status_code=400,
-            detail=f"Archivo muy grande. Máximo: {IMAGE_CONFIG['max_size'] // 1024 // 1024} MB",
+            detail=f"Archivo muy grande. Máximo: {max_size3 // 1024 // 1024} MB",
         )
     image = preprocessor.load_image(content, ext)
     enhanced = preprocessor.enhance_image(image)
-    result = model_manager.analyze(enhanced, compute_cam=False)
+    result = model_manager.analyze(enhanced, compute_cam=True)
     return {
         "status": result["status"],
-        "filename": file.filename,
+        "filename": filename3,
         "anomaly_detection": result["pathology_detection"],
         "shap_risk_scores": result["shap_risk_scores"],
         "fuente": result["fuente"],
@@ -115,24 +258,27 @@ async def detect_anomalies(file: UploadFile = File(...)) -> dict:
 @router.post("/classify", summary="Clasificar tipo de ecografía (legado)")
 async def classify_ultrasound(file: UploadFile = File(...)) -> dict:
     """Classify ultrasound"""
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in IMAGE_CONFIG["allowed_extensions"]:
+    filename4 = file.filename or ""
+    ext = os.path.splitext(filename4)[1].lower()
+    allowed4: list = IMAGE_CONFIG["allowed_extensions"]  # type: ignore[assignment]
+    if ext not in allowed4:
         raise HTTPException(
             status_code=400,
-            detail=f"Extensión no permitida. Use: {IMAGE_CONFIG['allowed_extensions']}",
+            detail=f"Extensión no permitida. Use: {allowed4}",
         )
     content = await file.read()
-    if len(content) > IMAGE_CONFIG["max_size"]:
+    max_size4: int = IMAGE_CONFIG["max_size"]  # type: ignore[assignment]
+    if len(content) > max_size4:
         raise HTTPException(
             status_code=400,
-            detail=f"Archivo muy grande. Máximo: {IMAGE_CONFIG['max_size'] // 1024 // 1024} MB",
+            detail=f"Archivo muy grande. Máximo: {max_size4 // 1024 // 1024} MB",
         )
     image = preprocessor.load_image(content, ext)
     enhanced = preprocessor.enhance_image(image)
-    result = model_manager.analyze(enhanced, compute_cam=False)
+    result = model_manager.analyze(enhanced, compute_cam=True)
     return {
         "status": result["status"],
-        "filename": file.filename,
+        "filename": filename4,
         "classification": {
             "pathology_detection": result["pathology_detection"],
             "score_global": result["score_global"],
@@ -143,21 +289,24 @@ async def classify_ultrasound(file: UploadFile = File(...)) -> dict:
 @router.post("/quality-check", summary="Evaluar calidad de imagen médica")
 async def check_image_quality(file: UploadFile = File(...)) -> dict:
     """Check image quality"""
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in IMAGE_CONFIG["allowed_extensions"]:
+    filename5 = file.filename or ""
+    ext = os.path.splitext(filename5)[1].lower()
+    allowed5: list = IMAGE_CONFIG["allowed_extensions"]  # type: ignore[assignment]
+    if ext not in allowed5:
         raise HTTPException(
             status_code=400,
-            detail=f"Extensión no permitida. Use: {IMAGE_CONFIG['allowed_extensions']}",
+            detail=f"Extensión no permitida. Use: {allowed5}",
         )
     content = await file.read()
-    if len(content) > IMAGE_CONFIG["max_size"]:
+    max_size5: int = IMAGE_CONFIG["max_size"]  # type: ignore[assignment]
+    if len(content) > max_size5:
         raise HTTPException(
             status_code=400,
-            detail=f"Archivo muy grande. Máximo: {IMAGE_CONFIG['max_size'] // 1024 // 1024} MB",
+            detail=f"Archivo muy grande. Máximo: {max_size5 // 1024 // 1024} MB",
         )
     image = preprocessor.load_image(content, ext)
     quality = preprocessor.calculate_image_quality(image)
-    return {"status": "success", "filename": file.filename, "quality": quality}
+    return {"status": "success", "filename": filename5, "quality": quality}
 
 
 # ── CHATBOT OBSTÉTRICO ────────────────────────────────────────────────────────
@@ -302,7 +451,7 @@ _OBSTETRIC_KB = {
         ],
         "categoria": "emergencia",
         "respuesta": (
-            "⚠️ EMERGENCIA OBSTÉTRICA — Activar protocolo institucional urgente. "
+            "EMERGENCIA OBSTETRICA — Activar protocolo institucional urgente. "
             "Hemorragia posparto: masaje uterino, oxitocina 20 UI/500mL IV, misoprostol 600μg SL, "
             "ácido tranexámico 1g IV (primeras 3h). "
             "Eclampsia: MgSO4 4g IV lento (15 min) + 1g/h mantenimiento, posición lateral izquierda. "
@@ -365,9 +514,9 @@ async def chatbot_consultar(body: ConsultaRequest) -> dict:
     if not body.consulta or not body.consulta.strip():
         raise HTTPException(status_code=400, detail="La consulta no puede estar vacía")
 
-    start = datetime.utcnow()
+    start = datetime.now(timezone.utc)
     result = _chatbot_response(body.consulta.strip(), body.contexto)
-    elapsed_ms = int((datetime.utcnow() - start).total_seconds() * 1000)
+    elapsed_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
 
     return {
         "status": "success",

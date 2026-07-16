@@ -92,7 +92,17 @@ services:
       - DEBUG=${DEBUG:-0}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY required}
-      - AI_SERVICE_URL=http://ia_service:8000
+      - KONG_JWT_SECRET=${KONG_JWT_SECRET:?KONG_JWT_SECRET required}
+      - CELERY_BROKER_URL=pyamqp://${RABBITMQ_USER:-fetalmedical}:${RABBITMQ_PASS:?RABBITMQ_PASS required}@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD required}@redis:6379/0
+      - AI_SERVICE_URL=https://ia_service:8001
+      - MTLS_ENABLED=${MTLS_ENABLED:-true}
+      # ".:/app" ya monta todo Backend/, incluido scripts/certs/ — no hace
+      # falta un volumen aparte para este servicio.
+      - MTLS_CERTS_DIR=/app/scripts/certs
+      - ORTHANC_URL=http://orthanc:8042
+      - ORTHANC_USERNAME=${ORTHANC_USER:-fetalmedical}
+      - ORTHANC_PASSWORD=${ORTHANC_PASS:?ORTHANC_PASS required}
     restart: unless-stopped
 
   # ─── CELERY WORKER ─────────────────────────────────────────────
@@ -102,6 +112,8 @@ services:
       dockerfile: Dockerfile.backend
     networks:
       - fetal-internal
+    volumes:
+      - .:/app
     depends_on:
       backend:
         condition: service_started
@@ -120,6 +132,9 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD required}
       - CELERY_BROKER_URL=pyamqp://${RABBITMQ_USER:-fetalmedical}:${RABBITMQ_PASS:?RABBITMQ_PASS required}@rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD required}@redis:6379/0
+      - AI_SERVICE_URL=https://ia_service:8001
+      - MTLS_ENABLED=${MTLS_ENABLED:-true}
+      - MTLS_CERTS_DIR=/app/scripts/certs
     command: celery -A celery_app worker --loglevel=info --concurrency=4
     restart: unless-stopped
 
@@ -144,9 +159,10 @@ services:
     networks:
       - fetal-internal
     ports:
-      - "8001:8000"
+      - "8001:8001"
     volumes:
       - ./Microservicio_IA/trained_models:/app/trained_models
+      - ./scripts/certs:/app/certs:ro
     depends_on:
       db:
         condition: service_healthy
@@ -154,7 +170,9 @@ services:
       - MODEL_PATH=/app/trained_models/efficientnet_b4.pth
       - LOG_LEVEL=INFO
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      # mTLS: el healthcheck debe presentar certificado de cliente, si no el
+      # servidor lo rechaza y Docker marca el servicio como unhealthy.
+      test: ["CMD", "curl", "-f", "--cert", "/app/certs/client.crt", "--key", "/app/certs/client.key", "--cacert", "/app/certs/ca.crt", "https://localhost:8001/health"]
       interval: 30s
       timeout: 10s
       retries: 3

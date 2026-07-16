@@ -4,7 +4,6 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV TF_CPP_MIN_LOG_LEVEL=2
 
 # Set work directory
 WORKDIR /app
@@ -38,9 +37,13 @@ USER iauser
 # Expose port
 EXPOSE 8001
 
-# Health check
+# Health check: con mTLS el servidor exige certificado de cliente, asi que
+# el propio healthcheck debe presentar uno (ver docker-compose.yml para el
+# volumen montado en /app/certs).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8001/health', timeout=5)" || exit 1
+    CMD python -c "import requests; requests.get('https://localhost:8001/health', timeout=5, cert=('/app/certs/client.crt','/app/certs/client.key'), verify='/app/certs/ca.crt')" || exit 1
 
-# Run server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "2"]
+# Run server con mTLS (certificado de cliente obligatorio). start_mtls.sh
+# falla rapido y con un mensaje claro si los certificados no estan montados,
+# en vez de arrancar en HTTP plano silenciosamente.
+CMD ["bash", "start_mtls.sh"]
