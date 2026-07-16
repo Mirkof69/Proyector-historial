@@ -206,7 +206,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
               block
               onClick={() => {
                 dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false });
-                navigate(`/dashboard/state.embarazos/${selectedEmbarazo?.id}/historia`);
+                navigate(`/dashboard/embarazos/${selectedEmbarazo?.id}`);
               }}
             >
               Ver Historia Completa del Embarazo
@@ -231,7 +231,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
           </Row>
         </div>
       </div>
-    ) : <Empty />}
+    ) : <Empty description="Seleccione un embarazo para ver su resumen" />}
   </Drawer>
 );
 

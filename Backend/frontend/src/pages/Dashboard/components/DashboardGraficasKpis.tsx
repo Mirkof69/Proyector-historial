@@ -6,8 +6,18 @@ import {
   CheckCircleOutlined, ExperimentOutlined, FileImageOutlined, TeamOutlined,
 } from '@ant-design/icons';
 import { COLORS, DashboardKpis } from '../dashboardGraficasUtils';
+import { useCountUp } from '../../../hooks/useCountUp';
 
 const { Text } = Typography;
+
+/** Statistic con conteo animado (premium) — respeta prefers-reduced-motion. */
+const AnimatedStatistic: React.FC<React.ComponentProps<typeof Statistic> & { value: number }> = ({
+  value,
+  ...rest
+}) => {
+  const animated = useCountUp(value);
+  return <Statistic {...rest} value={animated} />;
+};
 
 interface DashboardGraficasKpisProps {
   kpis: DashboardKpis;
@@ -19,8 +29,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
       <Col xs={24} sm={12} md={6}>
         <Badge count={kpis.pacientes.nuevosMes} offset={[-10, 10]} showZero>
-          <Card>
-            <Statistic
+          <Card className="stats-card">
+            <AnimatedStatistic
               title="Pacientes Activos"
               value={kpis.pacientes.total}
               prefix={<TeamOutlined />}
@@ -36,8 +46,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
       </Col>
       <Col xs={24} sm={12} md={6}>
         <Badge count={kpis.embarazos.altoRiesgo} offset={[-10, 10]}>
-          <Card>
-            <Statistic
+          <Card className="stats-card">
+            <AnimatedStatistic
               title="Embarazos Activos"
               value={kpis.embarazos.activos}
               prefix={<HeartOutlined />}
@@ -55,8 +65,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
       </Col>
       <Col xs={24} sm={12} md={6}>
         <Badge count={kpis.citas.pendientes} offset={[-10, 10]}>
-          <Card>
-            <Statistic
+          <Card className="stats-card">
+            <AnimatedStatistic
               title="Citas Hoy"
               value={kpis.citas.hoy}
               prefix={<CalendarOutlined />}
@@ -71,8 +81,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
         </Badge>
       </Col>
       <Col xs={24} sm={12} md={6}>
-        <Card>
-          <Statistic
+        <Card className="stats-card">
+          <AnimatedStatistic
             title="Partos este Mes"
             value={kpis.partos.mes}
             prefix={<SmileOutlined />}
@@ -90,8 +100,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
     {/* Estadísticas Adicionales con Iconos Restaurados */}
     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
       <Col xs={24} sm={12} md={6}>
-        <Card>
-          <Statistic
+        <Card className="stats-card">
+          <AnimatedStatistic
             title="Ecografías Realizadas"
             value={kpis.ecografias.mes}
             prefix={<FileImageOutlined />}
@@ -101,8 +111,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
         </Card>
       </Col>
       <Col xs={24} sm={12} md={6}>
-        <Card>
-          <Statistic
+        <Card className="stats-card">
+          <AnimatedStatistic
             title="Exámenes de Laboratorio"
             value={kpis.laboratorio.total}
             prefix={<ExperimentOutlined />}
@@ -116,8 +126,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
         </Card>
       </Col>
       <Col xs={24} sm={12} md={6}>
-        <Card>
-          <Statistic
+        <Card className="stats-card">
+          <AnimatedStatistic
             title="Consultas Médicas"
             value={kpis.citas.semana}
             prefix={<MedicineBoxOutlined />}
@@ -127,8 +137,8 @@ const DashboardGraficasKpis: React.FC<DashboardGraficasKpisProps> = ({ kpis }) =
         </Card>
       </Col>
       <Col xs={24} sm={12} md={6}>
-        <Card>
-          <Statistic
+        <Card className="stats-card">
+          <AnimatedStatistic
             title="Partos Exitosos"
             value={kpis.partos.total}
             prefix={<CheckCircleOutlined />}

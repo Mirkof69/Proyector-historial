@@ -16,7 +16,7 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
   visible, onClose, embarazos, stats,
 }) => (
   <Modal
-    title={<Space><LineChartOutlined /> Análisis de Evolución de state.embarazos</Space>}
+    title={<Space><LineChartOutlined /> Análisis de Evolución de Embarazos</Space>}
     open={visible}
     onCancel={onClose}
     width={1200}
@@ -32,7 +32,7 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
               <Alert
                 message="Distribución de Riesgo Obstétrico"
                 description={`
-                Análisis de ${embarazos.length} state.embarazos registrados.
+                Análisis de ${embarazos.length} embarazos registrados.
                 Alto riesgo: ${stats.altoRiesgo} casos, requieren seguimiento especializado.
             `}
                 type="info"
@@ -44,7 +44,7 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
                   <Statistic title="Tasa de Alto Riesgo" value={stats.activos > 0 ? ((stats.altoRiesgo / stats.activos) * 100).toFixed(1) : 0} suffix="%" valueStyle={{ color: '#cf1322' }} />
                 </Col>
                 <Col span={12}>
-                  <Statistic title="state.embarazos a Término" value={stats.termino} suffix={`/ ${stats.activos}`} valueStyle={{ color: '#3f8600' }} />
+                  <Statistic title="Embarazos a Término" value={stats.termino} suffix={`/ ${stats.activos}`} valueStyle={{ color: '#3f8600' }} />
                 </Col>
               </Row>
             </Card>
@@ -56,7 +56,7 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
           children: (
             <Alert
               message="Herramienta de Comparación"
-              description="Seleccione hasta 3 state.embarazos para comparar evolución, factores de riesgo y resultados."
+              description="Seleccione hasta 3 embarazos para comparar evolución, factores de riesgo y resultados."
               type="info"
               showIcon
             />
