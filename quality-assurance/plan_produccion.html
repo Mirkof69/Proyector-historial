@@ -1,0 +1,145 @@
+<title>Plan de Producción Clínica · Fetal Medical Bolivia</title>
+<style>
+  :root{
+    --ground:#f4f6f8;--surface:#fff;--surface2:#eaeef2;--ink:#131c26;--ink2:#46525f;
+    --faint:#7b8794;--line:#dde3ea;--accent:#0c6b6b;
+    --done:#1c8a55;--done-b:#1c8a5514;--warn:#b5730a;--warn-b:#b5730a14;
+    --crit:#c53a2d;--crit-b:#c53a2d14;--legal:#6a4bc4;--legal-b:#6a4bc414;--info:#2f6db0;--info-b:#2f6db014;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+    --sans:"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --ground:#0d131a;--surface:#151f2a;--surface2:#1d2734;--ink:#e7edf3;--ink2:#a7b3bf;
+    --faint:#73808d;--line:#26313d;--accent:#33b0b0;
+    --done:#4cc189;--done-b:#4cc1891e;--warn:#e0a545;--warn-b:#e0a5451e;
+    --crit:#e86a5c;--crit-b:#e86a5c1e;--legal:#a48ae6;--legal-b:#a48ae61e;--info:#6ba7e0;--info-b:#6ba7e01e;
+  }}
+  :root[data-theme="light"]{--ground:#f4f6f8;--surface:#fff;--surface2:#eaeef2;--ink:#131c26;--ink2:#46525f;--faint:#7b8794;--line:#dde3ea;--accent:#0c6b6b;--done:#1c8a55;--done-b:#1c8a5514;--warn:#b5730a;--warn-b:#b5730a14;--crit:#c53a2d;--crit-b:#c53a2d14;--legal:#6a4bc4;--legal-b:#6a4bc414;--info:#2f6db0;--info-b:#2f6db014;}
+  :root[data-theme="dark"]{--ground:#0d131a;--surface:#151f2a;--surface2:#1d2734;--ink:#e7edf3;--ink2:#a7b3bf;--faint:#73808d;--line:#26313d;--accent:#33b0b0;--done:#4cc189;--done-b:#4cc1891e;--warn:#e0a545;--warn-b:#e0a5451e;--crit:#e86a5c;--crit-b:#e86a5c1e;--legal:#a48ae6;--legal-b:#a48ae61e;--info:#6ba7e0;--info-b:#6ba7e01e;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:880px;margin:0 auto;padding:52px 22px 90px;}
+  .eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 12px;}
+  h1{font-size:clamp(26px,4.3vw,38px);line-height:1.12;margin:0 0 12px;letter-spacing:-.02em;text-wrap:balance;}
+  .lede{font-size:16.5px;color:var(--ink2);max-width:64ch;margin:0;}
+  .callout{margin:22px 0 8px;padding:16px 18px;border-radius:12px;background:var(--crit-b);border:1px solid var(--crit);font-size:14.5px;color:var(--ink);}
+  .callout b{color:var(--crit);}
+  h2{font-size:21px;margin:46px 0 4px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:11px;}
+  h2 .t{font-family:var(--mono);font-size:11.5px;font-weight:800;color:#fff;border-radius:6px;padding:2px 8px;}
+  .sub{color:var(--ink2);font-size:14.5px;margin:2px 0 18px;max-width:68ch;}
+  .item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:10px;border-left:4px solid var(--c,var(--line));}
+  .item-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:5px;}
+  .item-h h3{font-size:15px;margin:0;font-weight:650;flex:1 1 55%;}
+  .chip{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+  .c-done{color:var(--done);background:var(--done-b);} .c-todo{color:var(--warn);background:var(--warn-b);}
+  .c-crit{color:var(--crit);background:var(--crit-b);} .c-legal{color:var(--legal);background:var(--legal-b);}
+  .item p{margin:4px 0 0;color:var(--ink2);font-size:13.8px;}
+  code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:1px 6px;border-radius:5px;}
+  .foot{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--faint);}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Camino a producción · clínica real</p>
+  <h1>Fetal Medical Bolivia — Plan de producción clínica</h1>
+  <p class="lede">La diferencia entre «el código funciona» y «está listo para operar en una clínica con pacientes reales». Lo hecho en esta ronda, lo pendiente en código, y lo legal/organizacional que no es código pero sin lo cual no se puede operar.</p>
+
+  <div class="callout"><b>Principio rector:</b> un registro en la tabla de notificaciones que nadie leyó no es una notificación, es un log. Un sistema que compila no es un sistema autorizado. Este plan separa las dos cosas.</div>
+
+  <!-- A. Seguridad clínica -->
+  <h2><span class="t" style="background:var(--done)">A</span>Seguridad clínica del flujo</h2>
+  <p class="sub">El corazón de un sistema de historia clínica: que un valor crítico llegue al médico correcto, a tiempo, y quede rastro de ello.</p>
+
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Notificaciones del flujo clínico: reconectadas y con rigor</h3><span class="chip c-done">Hecho</span></div>
+    <p>Las 17 señales (laboratorio, controles, citas, pacientes) estaban <b>desconectadas y rotas</b>; ahora disparan de verdad, vía un servicio único (<code>notificaciones/services.crear_notificacion_clinica</code>) que garantiza: destinatario correcto (médico solicitante/responsable), difusión WebSocket para críticos (ya persistida → se ve al reconectar), y confirmación de lectura (<code>leida</code>/<code>fecha_leida</code>). Verificado con 30+ tests.</p>
+  </div>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Fallback de destinatario (turno rotativo / licencia)</h3><span class="chip c-done">Hecho</span></div>
+    <p>Si el médico es <code>null</code> o está inactivo, la alerta NO se pierde en silencio: cae a los administradores activos (y como último recurso, superusuarios). Probado con tests de médico null e inactivo.</p>
+  </div>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Anti-fatiga de alertas (alert fatigue)</h3><span class="chip c-done">Hecho</span></div>
+    <p>No se repite la misma alerta crítica sin leer del mismo evento dentro de 30 min — evita que el médico empiece a ignorar alertas por saturación. Si ya la leyó, un nuevo evento sí vuelve a avisar.</p>
+  </div>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Auditoría de la notificación misma</h3><span class="chip c-done">Hecho</span></div>
+    <p>Cada notificación clínica deja rastro inmutable de a quién se avisó y cuándo — lo exigible ante una demanda por un valor crítico no atendido a tiempo.</p>
+  </div>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Escalamiento multinivel por timeout (configurable)</h3><span class="chip c-done">Hecho</span></div>
+    <p>Cadena de derivación implementada y probada (7 tests): <b>Nivel 1</b> médico solicitante/responsable → <b>Nivel 2</b> jefe de guardia a los 15 min sin leer → <b>Nivel 3</b> coordinación médica a los 30 min. <b>Solo</b> prioridad crítica escala (evita fatiga en niveles superiores). Idempotente (no re-escala al mismo nivel). Cada escalamiento deja su propio registro de auditoría con motivo <code>timeout</code>. Corre por Celery beat cada 5 min, o a mano con <code>manage.py escalar_criticas</code>.</p>
+  </div>
+
+  <!-- B. Auditoría -->
+  <h2><span class="t" style="background:var(--done)">B</span>Auditoría completa</h2>
+  <p class="sub">El administrador debe poder ver toda acción de cualquier usuario — incluido el propio administrador — con quién, cuándo y qué acción (no verbos HTTP).</p>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Traza semántica inmutable de toda acción</h3><span class="chip c-done">Hecho + demostrado</span></div>
+    <p>Login, login fallido, MFA, y CRUD de todo modelo clínico (crear/editar/eliminar) se registran automáticamente con usuario, fecha exacta, acción semántica, registro afectado y datos antes/después. Inmutable (delete bloqueado, checksum de integridad), con PII redactada y usuario desnormalizado (sobrevive al borrado del usuario). Demostrado con 10 tests nuevos.</p>
+  </div>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Bug de portabilidad corregido</h3><span class="chip c-done">Hecho</span></div>
+    <p>La auditoría se auto-deshabilitaba fuera de PostgreSQL (usaba <code>information_schema</code>). Ahora usa la introspección de Django → funciona en cualquier motor, y por eso ahora se puede testear de verdad.</p>
+  </div>
+
+  <!-- C. Reportes y UI/UX -->
+  <h2><span class="t" style="background:var(--warn)">C</span>Reportes y UI/UX bajo presión</h2>
+  <p class="sub">Los médicos usan esto bajo presión de tiempo. La interfaz tiene que comunicar estado (cargando / éxito / error / vacío) y ser usable por alguien que no la conoce.</p>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Gráficos de reportes animados</h3><span class="chip c-done">Base hecha</span></div>
+    <p>El componente compartido <code>Charts.tsx</code> (Recharts) ya cubre line/bar/area/pie/radar/scatter/composed con animación de entrada consistente (800ms, ease-out), tooltip custom, estados de carga y vacío, y sanitización de datos. Se corrigió un bug del PieChart (renderizaba datos sin sanitizar y sin animación). Los endpoints existen (<code>/reportes/charts/*</code>). Pendiente: pulir la composición visual por reporte (endpoint enfatizado, KPIs con count-up).</p>
+  </div>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Estados vacíos + transiciones</h3><span class="chip c-done">Hecho (sistémico)</span></div>
+    <p>Se resolvió en un solo lugar con efecto en toda la app: <b>estado vacío global</b> vía <code>renderEmpty</code> en el <code>ConfigProvider</code> — TODAS las tablas, listas y selects ahora muestran un «No hay registros» claro (distinto de cargando/roto), sin tocar las ~90 pantallas una por una. Y las <b>transiciones por navegación</b>: <code>PageTransition</code> ahora lleva <code>key</code> por ruta, así la animación de entrada corre en cada cambio de pantalla (antes solo al montar). Respeta <code>prefers-reduced-motion</code>. El micro-feedback (toast en submit/guardar) ya estaba extendido en la app.</p>
+  </div>
+  <div class="item" style="--c:var(--done)">
+    <div class="item-h"><h3>Accesibilidad: tamaño de texto ajustable</h3><span class="chip c-done">Hecho</span></div>
+    <p>Control de tamaño de fuente (Normal / Grande / Extra grande) en el menú de tema, persistido en <code>localStorage</code>, que reescala el token <code>fontSize</code> de Ant Design → toda la interfaz crece de forma consistente. Pensado para turnos largos y personal con presbicia. Base previa sólida: lazy loading, ErrorBoundary, confirmación en acciones destructivas.</p>
+  </div>
+  <div class="item" style="--c:var(--warn)">
+    <div class="item-h"><h3>Flujos guiados para las acciones críticas</h3><span class="chip c-todo">Pendiente</span></div>
+    <p>Wizards paso-a-paso para lo frecuente bajo presión (registrar triaje, cargar un resultado crítico) y rótulos en lenguaje clínico. Es trabajo por-pantalla, no sistémico.</p>
+  </div>
+
+  <!-- D. Legal / regulatorio -->
+  <h2><span class="t" style="background:var(--legal)">D</span>Legal y regulatorio (no es código)</h2>
+  <p class="sub">Una clínica privada boliviana no opera sin esto resuelto, por perfecto que sea el software. Va en el plan como lista real, no como línea de slide.</p>
+  <div class="item" style="--c:var(--legal)">
+    <div class="item-h"><h3>Certificación IEC 62304 del módulo de IA</h3><span class="chip c-legal">Legal · bloqueante</span></div>
+    <p>Sin esto, el análisis de IA no puede usarse legalmente para decisiones clínicas reales, aunque el modelo funcione. El sistema ya es honesto (marca la IA como apoyo, no diagnóstico, y la biometría/laboratorio como reglas no-ML) — eso ayuda, pero la certificación es un proceso externo.</p>
+  </div>
+  <div class="item" style="--c:var(--legal)">
+    <div class="item-h"><h3>Responsable de Protección de Datos (Ley 164 / RM 1328)</h3><span class="chip c-legal">Legal</span></div>
+    <p>Una persona con nombre, responsable ante la clínica y el paciente ante una brecha. El código ya cifra PII y no la envía a Sentry; falta el rol humano designado.</p>
+  </div>
+  <div class="item" style="--c:var(--legal)">
+    <div class="item-h"><h3>Validación clínica con médicos reales sobre casos reales</h3><span class="chip c-legal">Clínico</span></div>
+    <p>Antes de que la salida de la IA influya en una decisión sobre un paciente real, validar con médicos sobre casos reales (no solo el dataset de entrenamiento). El dashboard QA y ESTADO_RED_NEURONAL.md ya documentan el rendimiento medido por clase — insumo para esa validación.</p>
+  </div>
+  <div class="item" style="--c:var(--legal)">
+    <div class="item-h"><h3>Continuidad y backup con RTO/RPO definidos</h3><span class="chip c-legal">Operación</span></div>
+    <p>No «hacemos backup», sino: si el servidor cae a las 3am con una paciente en trabajo de parto, ¿qué pasa? El backup ya es real (pg_dump, con protección contra path traversal y pre-restore de seguridad); falta definir RTO/RPO, réplica y plan de failover.</p>
+  </div>
+  <div class="item" style="--c:var(--legal)">
+    <div class="item-h"><h3>Contrato de responsabilidad civil</h3><span class="chip c-legal">Legal · bloqueante</span></div>
+    <p>Si la IA se equivoca y hay daño, ¿quién responde: la clínica, el desarrollador, el proveedor del modelo? No es código. Una clínica no opera sin tenerlo resuelto.</p>
+  </div>
+  <div class="item" style="--c:var(--legal)">
+    <div class="item-h"><h3>Capacitación del personal</h3><span class="chip c-legal">Operación</span></div>
+    <p>Un sistema técnicamente perfecto que el personal no sabe usar bajo presión genera errores igual. Requiere material y sesiones antes del despliegue.</p>
+  </div>
+  <div class="item" style="--c:var(--legal)">
+    <div class="item-h"><h3>Validar los parámetros de escalamiento con comité médico</h3><span class="chip c-legal">Clínico · pendiente</span></div>
+    <p>Los tiempos (15 min → jefe de guardia, 30 min → coordinación) y la cadena de roles están implementados como <b>default configurable</b> en <code>settings</code> (env vars: <code>ESCALAMIENTO_NIVEL2_MINUTOS</code>, <code>ESCALAMIENTO_ROL_NIVEL3</code>, etc.), <b>no hardcodeados</b>. Son un punto de partida razonable, <b>no una decisión clínica definitiva</b>: un comité médico real debe validar/ajustar los umbrales por área y la cadena de derivación antes de operar. Mientras los roles <code>jefe_guardia</code>/<code>coordinacion_medica</code> no existan en el sistema, el escalamiento cae al fallback de administradores.</p>
+  </div>
+
+  <!-- E. QA -->
+  <h2><span class="t" style="background:var(--info)">E</span>Calidad continua</h2>
+  <div class="item" style="--c:var(--info)">
+    <div class="item-h"><h3>Cobertura de los módulos rojos + gate CI</h3><span class="chip c-todo">En curso</span></div>
+    <p>Subir cobertura de <code>laboratorio</code>, <code>pacientes</code>, <code>ia_medica</code>, <code>reportes</code> hacia 60-70%. Gate de CI ya en <code>--fail-under=40</code> (ratchet). El escáner QA (6 dimensiones ISO 25010) corre reejecutable con <code>qa_scan.py --coverage</code>.</p>
+  </div>
+
+  <div class="foot" id="foot">Estado del código: verde tras cada cambio (suite completa). Todo lo de la sección A y B está implementado y demostrado con tests en esta ronda. Las secciones C, D y E son el trabajo restante, con C y E en código y D fuera de código (legal/organizacional).</div>
+</div>

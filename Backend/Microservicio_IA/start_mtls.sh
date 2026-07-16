@@ -4,7 +4,14 @@
 # =============================================================================
 # Inicia el servidor Uvicorn exigiendo un certificado cliente firmado por la CA.
 
-CERTS_DIR="../scripts/certs"
+# En Docker los certificados se montan en /app/certs (ver docker-compose.yml).
+# Localmente (fuera de Docker), caen en ../scripts/certs respecto a este
+# directorio, que es donde los deja scripts/generate_mtls_certs.sh.
+if [ -d "/app/certs" ]; then
+    CERTS_DIR="${CERTS_DIR:-/app/certs}"
+else
+    CERTS_DIR="${CERTS_DIR:-../scripts/certs}"
+fi
 
 if [ ! -f "$CERTS_DIR/server.crt" ]; then
     echo "Error: Certificados no encontrados. Ejecute scripts/generate_mtls_certs.sh primero."

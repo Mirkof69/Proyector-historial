@@ -1,0 +1,21 @@
+{
+  "entry": ["./src/index.tsx"],
+  "ignore": {
+    "files": [
+      "build/**",
+      "dist/**",
+      "node_modules/**",
+      "**/build/**",
+      "**/dist/**"
+    ],
+    "rules": [
+      "deslop/unused-file",
+      "react-doctor/no-giant-component",
+      "react-doctor/prefer-module-scope-pure-function",
+      "react-doctor/prefer-useReducer",
+      "react-doctor/no-derived-state",
+      "react-doctor/no-initialize-state",
+      "react-doctor/jsx-no-jsx-as-prop"
+    ]
+  }
+}

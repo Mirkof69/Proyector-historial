@@ -10,9 +10,13 @@ torchvision>=0.17.0
 monai>=1.3.0
 timm>=0.9.16
 
-# Explicabilidad CNN
-git+https://github.com/jacobgil/pytorch-grad-cam.git
-shap>=0.44.0
+# Explicabilidad CNN — paquete PyPI oficial (provee el import pytorch_grad_cam).
+# Antes apuntaba a un commit git inexistente (hash corrupto ...0b0b0b0b) que
+# hacía fallar pip install.
+grad-cam>=1.5.0
+
+# Cliente HTTP para Docker HEALTHCHECK y callbacks
+requests>=2.31
 
 # Procesamiento de imágenes médicas
 opencv-python>=4.9

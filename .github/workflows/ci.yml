@@ -58,12 +58,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 black isort
 
+      # Gate BLOQUEANTE: E9 (errores de sintaxis) y F82 (nombres indefinidos,
+      # incluye F821). Atrapa crashes como imports faltantes antes del merge.
       - name: Run flake8 (Backend)
         run: |
           cd Backend
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics \
-            --exclude=.venv,node_modules,__pycache__,migrations,staticfiles,media,logs
-        continue-on-error: true
+            --exclude=.venv,.venv_gpu,node_modules,__pycache__,migrations,staticfiles,media,logs
 
       - name: Run black --check (Backend)
         run: |
@@ -75,8 +76,7 @@ jobs:
         run: |
           cd Backend/Microservicio_IA
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics \
-            --exclude=__pycache__,temp,trained_models,datasets
-        continue-on-error: true
+            --exclude=.venv,.venv_gpu,__pycache__,temp,trained_models,datasets
 
       - name: Run black --check (AI Service)
         run: |
@@ -106,11 +106,13 @@ jobs:
         working-directory: Backend/frontend
         run: npm ci
 
+      # Gate BLOQUEANTE: el typecheck debe pasar (0 errores hoy).
       - name: Run TypeScript type check
         working-directory: Backend/frontend
         run: npx tsc --noEmit
-        continue-on-error: true
 
+      # ESLint informativo: no bloquea por el ruido de directivas react-doctor
+      # (plugin no instalado en CI) y las unused-vars pendientes de limpieza.
       - name: Run ESLint
         working-directory: Backend/frontend
         run: npm run lint
@@ -183,16 +185,21 @@ jobs:
           DB_PORT: 5432
         run: python manage.py migrate --run-syncdb
 
+      # Gate BLOQUEANTE: los tests deben pasar. Antes usaba "|| true" y
+      # "2>/dev/null", que ocultaban cualquier fallo y hacían el CI decorativo.
+      # --fail-under=40 es un ratchet anti-regresión: la cobertura real medida
+      # (2026-07-12) es 45% ponderado; el gate falla si baja de 40%. Subir el
+      # umbral a medida que suba la cobertura (ver quality-assurance/).
       - name: Run Django tests with coverage
         working-directory: Backend
         env:
           DB_HOST: localhost
           DB_PORT: 5432
         run: |
-          coverage run manage.py test --verbosity=2 2>/dev/null || true
+          coverage run manage.py test --verbosity=2
           coverage xml -o coverage-backend.xml
           coverage html -d coverage-backend-html
-          coverage report --fail-under=0 || true
+          coverage report --fail-under=40
 
       - name: Upload backend coverage report
         uses: actions/upload-artifact@v4
@@ -292,13 +299,12 @@ jobs:
       - name: Validate Python syntax
         working-directory: Backend/Microservicio_IA
         run: |
-          python -m py_compile main.py
+          python -m compileall -q app
 
       - name: Validate FastAPI app imports
         working-directory: Backend/Microservicio_IA
         run: |
-          python -c "from main import app; print('FastAPI app imported successfully')"
-        continue-on-error: true
+          python -c "from app.main import app; print('FastAPI app imported successfully')"
 
   # ──────────────────────────────────────────────
   # DOCKER BUILD

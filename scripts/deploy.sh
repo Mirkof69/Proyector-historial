@@ -354,7 +354,7 @@ SENTRY_ENVIRONMENT=production
 SENTRY_TRACES_SAMPLE_RATE=0.1
 
 # ========== AI SERVICE ==========
-AI_SERVICE_URL=http://ia_service:8000
+AI_SERVICE_URL=http://ia_service:8001
 AI_SERVICE_TIMEOUT=30
 
 # ========== SESSION ==========

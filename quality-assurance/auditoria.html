@@ -1,0 +1,148 @@
+<title>Auditoría Total · Fetal Medical Bolivia</title>
+<style>
+  :root{
+    --ground:#f5f6f8;--surface:#fff;--surface2:#eef1f4;--ink:#151d28;--ink2:#47535f;
+    --faint:#7c8896;--line:#dde3ea;--accent:#0d6e6e;
+    --crit:#c9382c;--crit-b:#c9382c14;--warn:#b5730a;--warn-b:#b5730a14;
+    --done:#1c8a55;--done-b:#1c8a5514;--info:#2f6db0;--info-b:#2f6db014;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+    --sans:"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --ground:#0d131a;--surface:#151f2a;--surface2:#1d2734;--ink:#e7edf3;--ink2:#a8b4c0;
+    --faint:#74808e;--line:#26313d;--accent:#33b0b0;
+    --crit:#e86a5c;--crit-b:#e86a5c1e;--warn:#e0a545;--warn-b:#e0a5451e;
+    --done:#4cc189;--done-b:#4cc1891e;--info:#6ba7e0;--info-b:#6ba7e01e;
+  }}
+  :root[data-theme="light"]{--ground:#f5f6f8;--surface:#fff;--surface2:#eef1f4;--ink:#151d28;--ink2:#47535f;--faint:#7c8896;--line:#dde3ea;--accent:#0d6e6e;--crit:#c9382c;--crit-b:#c9382c14;--warn:#b5730a;--warn-b:#b5730a14;--done:#1c8a55;--done-b:#1c8a5514;--info:#2f6db0;--info-b:#2f6db014;}
+  :root[data-theme="dark"]{--ground:#0d131a;--surface:#151f2a;--surface2:#1d2734;--ink:#e7edf3;--ink2:#a8b4c0;--faint:#74808e;--line:#26313d;--accent:#33b0b0;--crit:#e86a5c;--crit-b:#e86a5c1e;--warn:#e0a545;--warn-b:#e0a5451e;--done:#4cc189;--done-b:#4cc1891e;--info:#6ba7e0;--info-b:#6ba7e01e;}
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:52px 22px 96px;}
+  .eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 12px;}
+  h1{font-size:clamp(27px,4.4vw,40px);line-height:1.1;margin:0 0 12px;letter-spacing:-.02em;text-wrap:balance;}
+  .lede{font-size:16.5px;color:var(--ink2);max-width:64ch;margin:0;}
+  .meta{font-size:12.5px;color:var(--faint);font-family:var(--mono);margin-top:16px;}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:36px 0 6px;}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 15px;position:relative;overflow:hidden;}
+  .stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--sc);}
+  .stat .n{font-size:27px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--sc);}
+  .stat .l{font-size:12px;color:var(--ink2);margin-top:1px;line-height:1.3;}
+
+  h2.sec{font-size:22px;margin:52px 0 6px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:12px;}
+  h2.sec .tag{font-family:var(--mono);font-size:12px;font-weight:800;color:#fff;background:var(--accent);border-radius:6px;padding:2px 8px;}
+  .sub{color:var(--ink2);font-size:14.5px;margin:2px 0 20px;max-width:68ch;}
+
+  .find{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:17px 19px;margin-bottom:11px;border-left:4px solid var(--fc,var(--line));}
+  .find.crit{--fc:var(--crit);} .find.warn{--fc:var(--warn);} .find.done{--fc:var(--done);} .find.info{--fc:var(--info);}
+  .find-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px;}
+  .find-h h3{font-size:15.5px;margin:0;font-weight:650;flex:1 1 55%;}
+  .chip{font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+  .chip.crit{color:var(--crit);background:var(--crit-b);} .chip.warn{color:var(--warn);background:var(--warn-b);}
+  .chip.done{color:var(--done);background:var(--done-b);} .chip.info{color:var(--info);background:var(--info-b);}
+  .find p{margin:5px 0 0;color:var(--ink2);font-size:14px;}
+  .find .why{margin-top:7px;font-size:13px;color:var(--faint);border-top:1px dashed var(--line);padding-top:7px;}
+  code,.path{font-family:var(--mono);font-size:12.5px;background:var(--surface2);padding:1.5px 6px;border-radius:5px;word-break:break-word;}
+
+  .plan-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .plan-item:last-child{border-bottom:none;}
+  .plan-num{font-family:var(--mono);font-weight:800;font-size:15px;color:var(--accent);flex:none;width:34px;}
+  .plan-b h4{margin:0 0 3px;font-size:15px;}
+  .plan-b p{margin:0;font-size:13.5px;color:var(--ink2);}
+  .prio{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle;}
+  .p1{color:var(--crit);background:var(--crit-b);} .p2{color:var(--warn);background:var(--warn-b);} .p3{color:var(--info);background:var(--info-b);} .p4{color:var(--faint);background:var(--surface2);}
+
+  .foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--faint);}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr);}}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Auditoría y refactorización total</p>
+  <h1>Fetal Medical Bolivia — Auditoría por fases</h1>
+  <p class="lede">Revisión módulo por módulo (27 apps Django + microservicio IA + frontend React) buscando código muerto, implementaciones falsas, contratos rotos entre servicios, flujo clínico cortado y estado de UI/UX. Con las correcciones aplicadas y el plan de lo que queda.</p>
+  <p class="meta" id="meta">2026-07-12 · 328 tests backend en verde · sistema estable tras cada cambio</p>
+
+  <div class="stats">
+    <div class="stat" style="--sc:var(--done)"><div class="n">6</div><div class="l">correcciones aplicadas y verificadas</div></div>
+    <div class="stat" style="--sc:var(--crit)"><div class="n">1</div><div class="l">bug crítico de flujo (documentado)</div></div>
+    <div class="stat" style="--sc:var(--warn)"><div class="n">3</div><div class="l">frentes de deuda priorizados</div></div>
+    <div class="stat" style="--sc:var(--info)"><div class="n">70K</div><div class="l">líneas auditadas</div></div>
+  </div>
+
+  <!-- FASE 1 -->
+  <h2 class="sec"><span class="tag">F1</span>Código muerto, stubs y falsos</h2>
+  <p class="sub">Buscando implementaciones que aparentan hacer algo pero no lo hacen — como el OCR/firma/MoM falsos que ya se habían corregido antes.</p>
+
+  <div class="find done">
+    <div class="find-h"><h3>Puerto del microservicio de IA equivocado en desarrollo</h3><span class="chip done">Corregido</span></div>
+    <p>El default de <code>AI_SERVICE_URL</code> era <code>localhost:8002</code> en 5 archivos, pero el microservicio escucha en <strong>8001</strong> (Dockerfile, start_mtls.sh, docker-compose). En Docker el env var lo tapaba; en <strong>desarrollo local toda llamada a la IA fallaba</strong> (puerto cerrado). Cambiado a 8001.</p>
+    <p class="why">Por qué importa: el análisis de ecografías por IA no funcionaba en local, silenciosamente. Es el bug de contrato de puerto que ya se sospechaba, confirmado y extendido.</p>
+  </div>
+  <div class="find done">
+    <div class="find-h"><h3>«MLLaboratorioService» no es Machine Learning</h3><span class="chip done">Honesto ahora</span></div>
+    <p><span class="path">ia_medica/services/ml_laboratorio_service.py</span> se llama «ML» y reporta <code>confianza_modelo</code>/<code>probabilidad</code>, pero es 100% análisis por reglas sobre umbrales (sin modelo, sin sklearn, sin <code>.predict()</code>). El análisis es real y útil; el framing de ML y las probabilidades fabricadas (0.85/0.15) no. Marcado con <code>metodo: reglas_clinicas_por_umbral</code> y <code>es_modelo_entrenado: False</code>.</p>
+    <p class="why">Por qué importa: un médico no debe creer que una «probabilidad de modelo» respalda una decisión cuando es una heurística de reglas. Mismo criterio que el MoM/OCR ya corregidos.</p>
+  </div>
+  <div class="find done">
+    <div class="find-h"><h3>Método <code>calcular_mom()</code> vacío que devolvía None</h3><span class="chip done">Corregido</span></div>
+    <p><span class="path">calculadoras/models_laboratorio.py</span> — <code>MarcadorEmbarazo.calcular_mom()</code> era un stub vacío: quien lo llamara creía obtener un MoM y recibía <code>None</code>. Ahora lanza <code>NotImplementedError</code> apuntando al servicio real (<code>MOMConverter</code>).</p>
+  </div>
+  <div class="find info">
+    <div class="find-h"><h3>Contrato de endpoints frontend↔backend: coherente</h3><span class="chip info">Sin hallazgos</span></div>
+    <p>Se cruzaron los ~70 endpoints que consume el frontend contra las rutas registradas. Los sospechosos (<code>/laboratorios/</code> plural, <code>evaluar_capurro</code>, <code>evaluar_icc</code>) <strong>sí existen</strong> en el backend. No se hallaron llamadas a endpoints inexistentes en la muestra.</p>
+  </div>
+
+  <!-- FASE 2 -->
+  <h2 class="sec"><span class="tag" style="background:var(--crit)">F2</span>Flujo clínico end-to-end</h2>
+  <p class="sub">Recorriendo paciente → triaje → control → ecografía → IA → resultado → notificación. Buscando dónde el sistema aparenta funcionar pero corta el flujo real.</p>
+
+  <div class="find crit">
+    <div class="find-h"><h3>17 señales del flujo clínico están desconectadas Y rotas</h3><span class="chip crit">Crítico · documentado</span></div>
+    <p>Los módulos <code>pacientes</code>, <code>controles</code>, <code>laboratorio</code> y <code>citas</code> tienen <code>signals.py</code> con 17 <code>@receiver</code> (notificar resultado de laboratorio listo/crítico, alertas de control anómalo, recordatorios de cita), pero su <code>apps.ready()</code> está <strong>vacío</strong> — nunca importa las señales, así que <strong>ninguna dispara</strong>. Solo <code>partos</code> lo conecta bien.</p>
+    <p>Además, al intentar conectarlas se confirmó que los handlers están rotos contra el código actual: (1) renombraron el parámetro <code>sender</code>→<code>_sender</code>, incompatible con el dispatch de Django; (2) crean <code>Notificacion</code> sin el campo <code>usuario</code>, que es obligatorio. Conectarlas tal cual <strong>crashea el guardado</strong> de resultados y controles (19 tests fallaron al probarlo).</p>
+    <p class="why">Por qué importa (clínico): las notificaciones de un resultado de laboratorio crítico o de un control con hipertensión <strong>nunca llegan</strong>. El sistema «parece» tener notificaciones (hay código, hay modelo, hay WebSocket) pero el disparo está muerto. No se auto-arregló porque el destinatario (a quién se notifica un valor crítico) es una <strong>decisión clínica</strong>, no mecánica — se dejó el sistema estable y se detalla el fix abajo.</p>
+  </div>
+
+  <!-- FASE 3 -->
+  <h2 class="sec"><span class="tag" style="background:var(--info)">F3</span>UI / UX</h2>
+  <p class="sub">Estado de las pantallas del frontend: carga, error, vacío y feedback al usuario.</p>
+  <div class="find warn">
+    <div class="find-h"><h3>Gap de estados «vacío» (empty states)</h3><span class="chip warn">A mejorar</span></div>
+    <p>De ~90 pantallas: <strong>98</strong> manejan carga (Spin/Skeleton), <strong>123</strong> manejan error (catch/Alert) — buena cobertura — pero solo <strong>71</strong> tienen estado vacío explícito («no hay resultados»). Las listas sin datos pueden verse como si estuvieran cargando o rotas.</p>
+    <p class="why">Ya corregido en rondas previas: enlaces rotos de NotFound, módulo de Ayuda duplicado, toasts de debug, colores hardcodeados que rompían el modo oscuro, y el cliente WebSocket de notificaciones que faltaba.</p>
+  </div>
+
+  <!-- PLAN -->
+  <h2 class="sec"><span class="tag" style="background:var(--warn)">PLAN</span>Implementación — lo que queda</h2>
+  <p class="sub">Priorizado: primero lo que rompe funcionalidad clínica real, después cobertura, después deuda técnica y UX.</p>
+
+  <div class="find" style="--fc:var(--crit)">
+    <div class="plan-item"><div class="plan-num">1</div><div class="plan-b">
+      <h4>Reconectar y arreglar las 17 señales del flujo clínico <span class="prio p1">P1 · clínico</span></h4>
+      <p>Por cada handler: (a) renombrar <code>_sender</code>→<code>sender</code>; (b) definir el destinatario de la <code>Notificacion</code> — propuesta: el <code>medico_solicitante</code> del examen / <code>medico_responsable</code> del embarazo, derivable del instance; (c) importar <code>signals</code> en <code>apps.ready()</code> de los 4 módulos (como hace <code>partos</code>); (d) test que verifique que la notificación se crea. Requiere validar con un clínico a quién se avisa ante un valor crítico.</p>
+    </div></div>
+    <div class="plan-item"><div class="plan-num">2</div><div class="plan-b">
+      <h4>Subir cobertura de los 6 módulos «rojos» a 60-70% <span class="prio p2">P2 · fiabilidad</span></h4>
+      <p><code>notifications_websocket</code> (14%), <code>cache_utils</code> (19%), <code>laboratorio</code> (33%), <code>pacientes</code> (35%), <code>ia_medica</code> (36%), <code>reportes</code> (38%). Los tests actuales son focalizados (lógica clínica y seguridad); falta cubrir vistas/serializers/servicios. Llevaría el score global a 90+. El gate de CI (<code>--fail-under=40</code>) evita que baje mientras tanto.</p>
+    </div></div>
+    <div class="plan-item"><div class="plan-num">3</div><div class="plan-b">
+      <h4>Estados vacíos en las pantallas de listado <span class="prio p3">P3 · UX</span></h4>
+      <p>Agregar <code>&lt;Empty&gt;</code> con mensaje y acción a las ~20 pantallas de lista que hoy solo tienen carga/error. Un usuario clínico bajo presión debe distinguir «no hay datos» de «está cargando» o «se rompió».</p>
+    </div></div>
+    <div class="plan-item"><div class="plan-num">4</div><div class="plan-b">
+      <h4>~200 hallazgos de lint no-auto-fixables <span class="prio p4">P4 · deuda</span></h4>
+      <p>Reglas de bugbear/simplify que ruff no puede corregir solo (requieren juicio). Revisión caso por caso, sin urgencia.</p>
+    </div></div>
+    <div class="plan-item"><div class="plan-num">5</div><div class="plan-b">
+      <h4>~140 variables sin usar del frontend <span class="prio p4">P4 · deuda</span></h4>
+      <p>Sin herramienta de auto-fix segura (probada). Limpieza manual por lotes o instalar <code>eslint-plugin-unused-imports</code>. El build ya está limpio; cosmético.</p>
+    </div></div>
+  </div>
+
+  <div class="foot" id="foot">Método: análisis estático (ruff, bandit, coverage), cruce de contratos de API, inspección de wiring de señales y estados de UI. Cada corrección se verificó con la suite de 328 tests. El código queda estable y sin commitear en el working tree.</div>
+</div>
+<script>
+  const el=document.getElementById('meta');
+</script>
