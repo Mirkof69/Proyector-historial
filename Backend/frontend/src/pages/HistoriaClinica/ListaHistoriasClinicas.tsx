@@ -172,7 +172,7 @@ const ListaHistoriasClinicas: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-container" style={{ padding: 24 }}>
       {/* Header */}
       <Card style={{ marginBottom: 24 }}>
         <Row align="middle" justify="space-between">

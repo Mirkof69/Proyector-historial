@@ -71,7 +71,7 @@ const BusquedaAvanzada: React.FC = () => {
     ];
 
     return (
-        <div style={{ padding: 24 }}>
+        <div className="page-container" style={{ padding: 24 }}>
             <Card title={<Space><SearchOutlined /> Búsqueda Avanzada de Pacientes</Space>}>
                 <Form form={form} layout="vertical" onFinish={handleBuscar}>
                     <Row gutter={16}>

@@ -448,7 +448,7 @@ const Consultorios: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className="page-container" style={{ padding: '24px' }}>
       {/* Estadísticas */}
       <ConsultoriosStats stats={stats} />
 
