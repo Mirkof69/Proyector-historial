@@ -1,23 +1,14 @@
 import React from 'react';
-import { Card, Row, Col, Statistic, Typography, Tag, Badge } from 'antd';
+import { Card, Row, Col, Typography, Tag, Badge } from 'antd';
 import {
   HeartOutlined, WarningOutlined, CalendarOutlined,
   RiseOutlined, SmileOutlined, MedicineBoxOutlined,
   CheckCircleOutlined, ExperimentOutlined, FileImageOutlined, TeamOutlined,
 } from '@ant-design/icons';
 import { COLORS, DashboardKpis } from '../dashboardGraficasUtils';
-import { useCountUp } from '../../../hooks/useCountUp';
+import AnimatedStatistic from '../../../components/common/AnimatedStatistic';
 
 const { Text } = Typography;
-
-/** Statistic con conteo animado (premium) — respeta prefers-reduced-motion. */
-const AnimatedStatistic: React.FC<React.ComponentProps<typeof Statistic> & { value: number }> = ({
-  value,
-  ...rest
-}) => {
-  const animated = useCountUp(value);
-  return <Statistic {...rest} value={animated} />;
-};
 
 interface DashboardGraficasKpisProps {
   kpis: DashboardKpis;
