@@ -3,9 +3,11 @@
  * de dosis por medicamento, catálogo y datos de gráficas. Extraído de
  * DosisMedicamentos.
  *
- * NOTA(refactor): el switch de calcularDosis sólo implementa 4 de los 16
- * medicamentos del catálogo; el resto cae a "Medicamento no encontrado".
- * Comportamiento preservado exacto (bug pre-existente, reportado aparte).
+ * SEGURIDAD CLÍNICA: solo 4 de los 16 medicamentos del catálogo tienen fórmula
+ * implementada (oxitocina, misoprostol, metilergonovina, sulfato de magnesio).
+ * Los 12 restantes se muestran como "Cálculo no disponible — consulte tablas
+ * de referencia" y quedan deshabilitados en el selector hasta que un
+ * sub-proyecto con validación médica real implemente sus fórmulas.
  */
 export interface DatosPaciente {
   peso: number;
@@ -51,25 +53,34 @@ export const calcularCLCr = (peso: number, edad: number, creatinina: number, es_
   return ((140 - edad) * peso * factor_mujer) / (72 * creatinina);
 };
 
-// Medicamentos obstétricos disponibles
+// Medicamentos obstétricos del catálogo.
+// SEGURIDAD CLÍNICA: solo los marcados con `disponible: true` tienen fórmula
+// de dosificación implementada y revisada. El resto se muestra en el selector
+// como "Cálculo no disponible — consulte tablas de referencia" y NO puede
+// seleccionarse: implementar sus fórmulas requiere validación médica real
+// (sub-proyecto futuro), nunca fórmulas improvisadas.
 export const medicamentos = [
-  { value: 'oxitocina', label: 'Oxitocina (Inducción/Conducción)' },
-  { value: 'misoprostol', label: 'Misoprostol (Maduración cervical/HPP)' },
-  { value: 'metilergonovina', label: 'Metilergonovina (Atonía uterina)' },
-  { value: 'sulfato_mg', label: 'Sulfato de Magnesio (Eclampsia/Neuroprotección)' },
-  { value: 'nifedipino', label: 'Nifedipino (Tocolisis/HTA)' },
-  { value: 'labetalol', label: 'Labetalol (Crisis hipertensiva)' },
-  { value: 'hidralazina', label: 'Hidralazina (Crisis hipertensiva)' },
-  { value: 'betametasona', label: 'Betametasona (Maduración pulmonar)' },
-  { value: 'penicilina_g', label: 'Penicilina G (Profilaxis EGB)' },
-  { value: 'cefazolina', label: 'Cefazolina (Profilaxis quirúrgica)' },
-  { value: 'ampicilina', label: 'Ampicilina (Corioamnionitis)' },
-  { value: 'metronidazol', label: 'Metronidazol (Infección anaerobios)' },
-  { value: 'heparina', label: 'Heparina (Anticoagulación)' },
-  { value: 'enoxaparina', label: 'Enoxaparina (Tromboprofilaxis)' },
-  { value: 'insulina', label: 'Insulina regular (Diabetes gestacional)' },
-  { value: 'carboprost', label: 'Carboprost (HPP refractaria)' }
+  { value: 'oxitocina', label: 'Oxitocina (Inducción/Conducción)', disponible: true },
+  { value: 'misoprostol', label: 'Misoprostol (Maduración cervical/HPP)', disponible: true },
+  { value: 'metilergonovina', label: 'Metilergonovina (Atonía uterina)', disponible: true },
+  { value: 'sulfato_mg', label: 'Sulfato de Magnesio (Eclampsia/Neuroprotección)', disponible: true },
+  { value: 'nifedipino', label: 'Nifedipino (Tocolisis/HTA)', disponible: false },
+  { value: 'labetalol', label: 'Labetalol (Crisis hipertensiva)', disponible: false },
+  { value: 'hidralazina', label: 'Hidralazina (Crisis hipertensiva)', disponible: false },
+  { value: 'betametasona', label: 'Betametasona (Maduración pulmonar)', disponible: false },
+  { value: 'penicilina_g', label: 'Penicilina G (Profilaxis EGB)', disponible: false },
+  { value: 'cefazolina', label: 'Cefazolina (Profilaxis quirúrgica)', disponible: false },
+  { value: 'ampicilina', label: 'Ampicilina (Corioamnionitis)', disponible: false },
+  { value: 'metronidazol', label: 'Metronidazol (Infección anaerobios)', disponible: false },
+  { value: 'heparina', label: 'Heparina (Anticoagulación)', disponible: false },
+  { value: 'enoxaparina', label: 'Enoxaparina (Tromboprofilaxis)', disponible: false },
+  { value: 'insulina', label: 'Insulina regular (Diabetes gestacional)', disponible: false },
+  { value: 'carboprost', label: 'Carboprost (HPP refractaria)', disponible: false }
 ];
+
+/** true si el medicamento tiene fórmula de cálculo implementada y revisada. */
+export const esCalculoDisponible = (value: string): boolean =>
+  medicamentos.some((m) => m.value === value && m.disponible);
 
 export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
   const clcr = calcularCLCr(valores.peso, valores.edad, valores.creatinina, true);
@@ -174,9 +185,14 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
       interpretacion = 'Sulfato de Magnesio: Anticonvulsivante de elección en eclampsia. Neuroprotector fetal <32sem. Monitoreo estricto.';
       break;
 
-    // ... (rest of switch cases - continuing pattern)
     default:
-      interpretacion = 'Medicamento no encontrado';
+      // Medicamentos del catálogo SIN fórmula implementada/validada: mensaje
+      // honesto en lugar de un cálculo inventado. (El selector ya los
+      // deshabilita; esto es el blindaje de última línea.)
+      interpretacion =
+        'Cálculo no disponible para este medicamento — consulte tablas de '
+        + 'referencia oficiales (protocolos MSP/OMS). La dosificación '
+        + 'automática de este fármaco requiere validación médica pendiente.';
       color = '#999';
   }
 
