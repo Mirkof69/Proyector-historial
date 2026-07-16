@@ -94,7 +94,7 @@ class TipoReporteViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def campos(self, _request, _pk=None):
+    def campos(self, _request, pk=None):
         """Devuelve los campos/filtros requeridos y formatos disponibles para un tipo de reporte.
         """
         tipo = self.get_object()
@@ -244,7 +244,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         return Response(preview_data)
 
     @action(detail=True, methods=["post"])
-    def marcar_procesando(self, _request, _pk=None):
+    def marcar_procesando(self, _request, pk=None):
         """Cambia el estado del reporte a 'procesando'.
         """
         reporte = self.get_object()
@@ -261,7 +261,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         return Response(ReporteGeneradoSerializer(reporte).data)
 
     @action(detail=True, methods=["post"])
-    def marcar_completado(self, request, _pk=None):
+    def marcar_completado(self, request, pk=None):
         """Marca un reporte como completado y permite registrar info del archivo.
         """
         reporte = self.get_object()
@@ -290,7 +290,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         return Response(ReporteGeneradoSerializer(reporte).data)
 
     @action(detail=True, methods=["get"])
-    def descargar(self, _request, _pk=None):
+    def descargar(self, _request, pk=None):
         """Descarga el archivo real de un reporte ya completado.
         """
         reporte = self.get_object()
@@ -315,7 +315,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def marcar_error(self, request, _pk=None):
+    def marcar_error(self, request, pk=None):
         """Marca un reporte como error, registrando mensaje de error opcional.
         """
         reporte = self.get_object()
@@ -327,7 +327,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         return Response(ReporteGeneradoSerializer(reporte).data)
 
     @action(detail=True, methods=["post"])
-    def incrementar_descarga(self, _request, _pk=None):
+    def incrementar_descarga(self, _request, pk=None):
         """Incrementa el contador de descargas del reporte.
         Útil para ser llamado cuando el usuario descarga el archivo.
         """
@@ -421,7 +421,7 @@ class DashboardKAPIViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
-    def actualizar_valor(self, request, _pk=None):
+    def actualizar_valor(self, request, pk=None):
         """Permite actualizar manualmente valor_actual / valor_anterior / metas.
         Ideal para pruebas o KPIs calculados externamente.
         """
@@ -544,7 +544,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         return Response(result)
 
     @action(detail=True, methods=["post"])
-    def marcar_revisada(self, request, _pk=None):
+    def marcar_revisada(self, request, pk=None):
         """Marca una alerta como revisada.
         """
         alerta = self.get_object()
@@ -565,7 +565,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         return Response(AlertaMedicaSerializer(alerta).data)
 
     @action(detail=True, methods=["post"])
-    def marcar_resuelta(self, request, _pk=None):
+    def marcar_resuelta(self, request, pk=None):
         """Marca una alerta como resuelta.
         """
         alerta = self.get_object()
@@ -586,7 +586,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         return Response(AlertaMedicaSerializer(alerta).data)
 
     @action(detail=True, methods=["post"])
-    def descartar(self, request, _pk=None):
+    def descartar(self, request, pk=None):
         """Descarta una alerta (no aplica).
         """
         alerta = self.get_object()
@@ -600,7 +600,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         return Response(AlertaMedicaSerializer(alerta).data)
 
     @action(detail=True, methods=["post"])
-    def escalar(self, _request, _pk=None):
+    def escalar(self, _request, pk=None):
         """Escala una alerta (por ejemplo, a un nivel superior).
         """
         alerta = self.get_object()

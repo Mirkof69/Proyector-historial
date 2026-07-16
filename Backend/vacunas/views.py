@@ -151,7 +151,7 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"])
-    def registros(self, request, _pk=None):
+    def registros(self, request, pk=None):
         """Retorna todos los registros de aplicación de esta vacuna
         GET /api/vacunas/tipos-vacunas/{id}/registros/
         """
@@ -442,7 +442,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def marcar_reaccion_adversa(self, request, _pk=None):
+    def marcar_reaccion_adversa(self, request, pk=None):
         """Marca una reacción adversa en un registro
         POST /api/vacunas/registros/{id}/marcar_reaccion_adversa/
         Body: {"reaccion": "descripción de la reacción"}
@@ -468,7 +468,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def programar_siguiente_dosis(self, request, _pk=None):
+    def programar_siguiente_dosis(self, request, pk=None):
         """Programa la fecha de siguiente dosis
         POST /api/vacunas/registros/{id}/programar_siguiente_dosis/
         Body: {"fecha": "YYYY-MM-DD"}

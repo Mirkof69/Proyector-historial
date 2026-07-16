@@ -212,7 +212,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], parser_classes=[MultiPartParser, FormParser])
-    def subir_imagen(self, request, _pk=None):
+    def subir_imagen(self, request, pk=None):
         """Endpoint para subir imágenes a una ecografía
 
         Parámetros:
@@ -297,7 +297,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["get"])
-    def imagenes(self, request, _pk=None):
+    def imagenes(self, request, pk=None):
         """Obtener todas las imágenes de una ecografía"""
         ecografia = self.get_object()
         imagenes = ecografia.imagenes.all().order_by("orden")
@@ -307,7 +307,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         return Response({"total": imagenes.count(), "imagenes": serializer.data})
 
     @action(detail=True, methods=["delete"])
-    def eliminar_imagen(self, request, _pk=None):
+    def eliminar_imagen(self, request, pk=None):
         """Eliminar una imagen específica"""
         ecografia = self.get_object()
         imagen_id = request.data.get("imagen_id")
@@ -451,7 +451,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"])
-    def reporte_completo(self, _request, _pk=None):
+    def reporte_completo(self, _request, pk=None):
         """Generar reporte completo de una ecografía"""
         ecografia = self.get_object()
 
@@ -538,7 +538,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         return Response(reporte)
 
     @action(detail=True, methods=["get"])
-    def mediciones(self, _request, _pk=None):
+    def mediciones(self, _request, pk=None):
         """Obtener todas las mediciones (biometría) de una ecografía"""
         ecografia = self.get_object()
         if hasattr(ecografia, "biometria") and ecografia.biometria:

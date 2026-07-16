@@ -783,7 +783,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"])
-    def reporte_completo(self, _request, _pk=None):
+    def reporte_completo(self, _request, pk=None):
         """✅ EXTENDIDO: Reporte completo con información del embarazo"""
         control = self.get_object()
 
@@ -926,7 +926,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
             return Response({"error": "Embarazo no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=["post"])
-    def evaluar(self, request, _pk=None):
+    def evaluar(self, request, pk=None):
         """Evaluar un control prenatal con análisis de riesgos"""
         control = self.get_object()
         alertas = []
@@ -944,7 +944,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=["get"], url_path="detectar-riesgos")
-    def detectar_riesgos(self, _request, _pk=None):
+    def detectar_riesgos(self, _request, pk=None):
         """Detectar factores de riesgo en un control prenatal"""
         control = self.get_object()
         riesgos = []

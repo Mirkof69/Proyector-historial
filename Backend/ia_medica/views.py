@@ -797,7 +797,7 @@ class ConsultaIAViewSet(viewsets.ModelViewSet):
         return ConsultaIASerializer
 
     @action(detail=True, methods=["post"], url_path="calificar")
-    def calificar(self, request, _pk=None):
+    def calificar(self, request, pk=None):
         """Registrar feedback médico sobre la respuesta del chatbot IA."""
         consulta = self.get_object()
 

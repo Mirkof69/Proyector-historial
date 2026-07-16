@@ -100,7 +100,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         return Response({"count": notificaciones.count(), "results": serializer.data})
 
     @action(detail=True, methods=["POST"])
-    def marcar_leida(self, request, _pk=None):
+    def marcar_leida(self, request, pk=None):
         """POST /notificaciones/{id}/marcar_leida/
 
         Marca una notificación como leída
@@ -138,7 +138,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["POST"])
-    def archivar(self, request, _pk=None):
+    def archivar(self, request, pk=None):
         """POST /notificaciones/{id}/archivar/
 
         Archiva una notificación

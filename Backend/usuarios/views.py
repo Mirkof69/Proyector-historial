@@ -190,7 +190,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     # =================================================================================
 
     @action(detail=True, methods=["post"])
-    def activar(self, _request, _pk=None):
+    def activar(self, _request, pk=None):
         """Activar un usuario"""
         usuario = self.get_object()
         usuario.activo = True
@@ -201,7 +201,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def desactivar(self, request, _pk=None):
+    def desactivar(self, request, pk=None):
         """Desactivar un usuario (baja lógica)"""
         usuario = self.get_object()
 
@@ -224,7 +224,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     # =================================================================================
 
     @action(detail=True, methods=["post"])
-    def cambiar_password(self, request, _pk=None):
+    def cambiar_password(self, request, pk=None):
         """Cambiar contraseña del usuario (requiere contraseña actual)"""
         usuario = self.get_object()
 
@@ -254,7 +254,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
-    def admin_cambiar_password(self, request, _pk=None):
+    def admin_cambiar_password(self, request, pk=None):
         """Admin cambia contraseña de cualquier usuario (sin requerir contraseña actual)"""
         # Solo administradores
         if not request.user.is_superuser and request.user.rol != "administrador":
@@ -284,7 +284,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     # =================================================================================
 
     @action(detail=True, methods=["get"])
-    def permisos(self, _request, _pk=None):
+    def permisos(self, _request, pk=None):
         """Ver permisos asignados al usuario"""
         usuario = self.get_object()
         permisos = usuario.user_permissions.all()
@@ -292,7 +292,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
-    def asignar_permisos(self, request, _pk=None):
+    def asignar_permisos(self, request, pk=None):
         """Asignar permisos a un usuario"""
         # Solo administradores
         if not request.user.is_superuser and request.user.rol != "administrador":
@@ -326,7 +326,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def quitar_permisos(self, request, _pk=None):
+    def quitar_permisos(self, request, pk=None):
         """Quitar permisos de un usuario"""
         # Solo administradores
         if not request.user.is_superuser and request.user.rol != "administrador":
@@ -384,7 +384,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     # =================================================================================
 
     @action(detail=True, methods=["get"], url_path="horarios-atencion")
-    def horarios(self, _request, _pk=None):
+    def horarios(self, _request, pk=None):
         """Ver horarios de atención del usuario"""
         usuario = self.get_object()
         horarios = usuario.horarios_atencion.all()
@@ -392,7 +392,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
-    def agregar_horario(self, request, _pk=None):
+    def agregar_horario(self, request, pk=None):
         """Agregar horario de atención al usuario"""
         usuario = self.get_object()
 
