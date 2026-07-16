@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, Form, Row, Col, InputNumber, Switch, Divider, Select, Button } from 'antd';
+import { Card, Form, Row, Col, InputNumber, Switch, Divider, Select, Button, Tag, Alert } from 'antd';
 import type { FormInstance } from 'antd';
-import { MedicineBoxOutlined, ExperimentOutlined } from '@ant-design/icons';
+import { MedicineBoxOutlined, ExperimentOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { medicamentos, DatosPaciente } from './dosisMedicamentosUtils';
 
 const { Option } = Select;
@@ -43,10 +43,26 @@ const FormDosis: React.FC<FormDosisProps> = ({ form, onFinish }) => (
 
       <Divider>Selección de Medicamento</Divider>
 
+      <Alert
+        type="info"
+        showIcon
+        icon={<InfoCircleOutlined />}
+        style={{ marginBottom: 12 }}
+        message="Cálculo automático disponible solo para medicamentos verificados"
+        description="Los medicamentos marcados como «Cálculo no disponible» aún no tienen fórmula de dosificación validada en el sistema: consulte las tablas de referencia oficiales (protocolos MSP/OMS) para dosificarlos."
+      />
+
       <Form.Item label="Medicamento" name="medicamento" rules={[{ required: true }]} initialValue="oxitocina">
         <Select showSearch optionFilterProp="children">
           {medicamentos.map(med => (
-            <Option key={med.value} value={med.value}>{med.label}</Option>
+            <Option key={med.value} value={med.value} disabled={!med.disponible}>
+              {med.label}
+              {!med.disponible && (
+                <Tag color="default" style={{ marginLeft: 8, fontSize: 11 }}>
+                  Cálculo no disponible — consulte tablas de referencia
+                </Tag>
+              )}
+            </Option>
           ))}
         </Select>
       </Form.Item>
