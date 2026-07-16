@@ -23,6 +23,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TIPOS Y ENUMS
@@ -256,7 +257,7 @@ export const controlesService = {
   async crear(data: Partial<ControlPrenatal>): Promise<ControlPrenatal> {
     try {
       const response = await api.post<ControlPrenatal>('/controles/', data);
-      console.log('✅ Control prenatal creado');
+      logger.log('✅ Control prenatal creado');
       return normalizeSingleResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
       console.error('❌ Error creando control:', error);
@@ -274,7 +275,7 @@ export const controlesService = {
   async actualizar(id: number, data: Partial<ControlPrenatal>): Promise<ControlPrenatal> {
     try {
       const response = await api.put<ControlPrenatal>(`/controles/${id}/`, data);
-      console.log(`✅ Control ${id} actualizado`);
+      logger.log(`✅ Control ${id} actualizado`);
       return normalizeSingleResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
       console.error(`❌ Error actualizando control ${id}:`, error);
@@ -285,7 +286,7 @@ export const controlesService = {
   async actualizarParcial(id: number, data: Partial<ControlPrenatal>): Promise<ControlPrenatal> {
     try {
       const response = await api.patch<ControlPrenatal>(`/controles/${id}/`, data);
-      console.log(`✅ Control ${id} actualizado parcialmente`);
+      logger.log(`✅ Control ${id} actualizado parcialmente`);
       return normalizeSingleResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
       console.error(`❌ Error actualizando control ${id}:`, error);
@@ -303,7 +304,7 @@ export const controlesService = {
   async eliminar(id: number): Promise<void> {
     try {
       await api.delete(`/controles/${id}/`);
-      console.log(`✅ Control ${id} eliminado`);
+      logger.log(`✅ Control ${id} eliminado`);
     } catch (error: any) {
       console.error(`❌ Error eliminando control ${id}:`, error);
       throw error;
@@ -370,7 +371,7 @@ export const controlesService = {
    */
   async obtenerConAlertas(): Promise<ControlPrenatal[]> {
     try {
-      const response = await api.get<ControlPrenatal[]>('/controles/con-alertas/');
+      const response = await api.get<ControlPrenatal[]>('/controles/alertas/');
       return normalizeListResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
       console.error('❌ Error obteniendo controles con alertas:', error);
@@ -394,7 +395,7 @@ export const controlesService = {
         '/controles/programar/',
         { embarazo: embarazoId, fecha_control: fechaControl }
       );
-      console.log('✅ Control programado');
+      logger.log('✅ Control programado');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error programando control:', error);
@@ -551,10 +552,10 @@ export const controlesService = {
    */
   async generarReportePDF(controlId: number): Promise<Blob> {
     try {
-      const response = await api.get(`/controles/${controlId}/generar-pdf/`, {
+      const response = await api.get(`/controles/${controlId}/reporte_completo/`, {
         responseType: 'blob'
       });
-      console.log(`✅ PDF del control ${controlId} generado`);
+      logger.log(`✅ PDF del control ${controlId} generado`);
       return response.data;
     } catch (error: any) {
       console.error(`❌ Error generando PDF:`, error);
@@ -571,7 +572,7 @@ export const controlesService = {
         params: filtros,
         responseType: 'blob'
       });
-      console.log('✅ Excel exportado');
+      logger.log('✅ Excel exportado');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error exportando Excel:', error);

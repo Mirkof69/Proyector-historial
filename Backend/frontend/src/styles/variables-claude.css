@@ -1,0 +1,136 @@
+/* =============================================================================
+   VARIABLES-CLAUDE.CSS - MODERN EFFECTS AND TRANSITIONS
+   =============================================================================
+   Custom variables, transitions, pulse keyframes, slide/fade-in animations,
+   and layout utility enhancements.
+   ============================================================================= */
+
+:root {
+  --transition-ultra-fast: 0.1s;
+  --transition-fast: 0.2s;
+  --transition-base: 0.3s;
+  --transition-slow: 0.5s;
+  --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Base custom animations & micro-interactions */
+.smooth-hover {
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.smooth-hover:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Status Pulse Animation (Critical for medical alerts, live sync) */
+.status-pulse-red {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-red 2s infinite;
+}
+
+.status-pulse-green {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* Floating elements / Modals entry animations */
+.animate-slide-in-up {
+  animation: slideInUp var(--transition-base) var(--transition-bounce) forwards;
+}
+
+.animate-fade-in-blur {
+  animation: fadeInBlur var(--transition-slow) var(--transition-ease) forwards;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInBlur {
+  from {
+    filter: blur(4px);
+    opacity: 0;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* Custom Scroll Progress Bar helper */
+.scroll-smooth-all {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+/* Modern Gradient Text */
+.gradient-text-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphism utility variables */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-effect {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}

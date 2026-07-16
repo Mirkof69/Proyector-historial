@@ -37,6 +37,7 @@ import TimelineEvoluciones from './TimelineEvoluciones';
 import EvolucionesHeader from './components/EvolucionesHeader';
 import EvolucionesStats from './components/EvolucionesStats';
 import EvolucionesFilters from './components/EvolucionesFilters';
+import { exportarExcel } from '../../utils/excelExport';
 import './Evoluciones.css';
 
 dayjs.extend(relativeTime);
@@ -126,6 +127,41 @@ const Evoluciones: React.FC = () => {
       return matchSearch && matchType && matchDate;
     });
   }, [evoluciones, filtros]);
+
+  const handleExportExcel = useCallback(() => {
+    try {
+      const datos = filteredEvoluciones.map(e => ({
+        fecha: dayjs(e.fecha || e.fecha_evento).format('DD/MM/YYYY HH:mm'),
+        paciente: e.paciente_nombre || '-',
+        medico: e.medico_nombre || '-',
+        tipo: (e.tipo || e.tipo_evento || '-').toString().toUpperCase(),
+        diagnostico: e.diagnostico || '-',
+        descripcion: e.descripcion || e.resumen || '-',
+        estado: e.estado?.toUpperCase() || '-',
+      }));
+      const columnas = {
+        fecha: 'Fecha',
+        paciente: 'Paciente',
+        medico: 'Médico',
+        tipo: 'Tipo de Evento',
+        diagnostico: 'Diagnóstico',
+        descripcion: 'Descripción',
+        estado: 'Estado',
+      };
+      exportarExcel(
+        datos,
+        columnas,
+        {
+          filename: `evoluciones_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
+          sheetName: 'Evoluciones',
+          title: `Evolución Clínica - ${dayjs().format('DD/MM/YYYY')}`,
+        },
+      );
+      message.success('Archivo Excel generado exitosamente');
+    } catch (error) {
+      message.error('Error al generar el archivo Excel');
+    }
+  }, [filteredEvoluciones, message]);
 
   const handleDelete = useCallback((id: number) => {
     modal.confirm({
@@ -259,7 +295,7 @@ const Evoluciones: React.FC = () => {
   return (
     <div className="animate-fade-in" style={{ padding: '24px' }}>
       <Card className="shadow-card overflow-hidden">
-        <EvolucionesHeader loading={loading} onReload={loadEvoluciones} />
+        <EvolucionesHeader loading={loading} onReload={loadEvoluciones} onExport={handleExportExcel} />
 
         <EvolucionesStats stats={stats} />
 

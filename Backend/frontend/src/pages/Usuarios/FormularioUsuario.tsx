@@ -7,8 +7,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import {
-  Form,
+import { useAntdApp } from "../../hooks/useMessage";
+import {Form,
   Input,
   Select,
   Button,
@@ -18,9 +18,7 @@ import {
   Switch,
   Upload,
   Avatar,
-  message,
-  Spin,
-} from 'antd';
+  Spin} from "antd";
 import {
   UserOutlined,
   MailOutlined,
@@ -67,13 +65,24 @@ const ESPECIALIDADES = [
 ];
 
 const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose }) => {
+  const { message } = useAntdApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+  const [selectedFotoPreview, setSelectedFotoPreview] = useState<string | null>(null);
+  const fotoPreview = selectedFotoPreview || usuario?.foto_url || null;
+
+  // Patrón oficial de React para ajustar estado al cambiar una prop (sin ref
+  // mutado en render): guardar el id previo en estado y comparar.
+  const [prevUsuarioId, setPrevUsuarioId] = useState<number | undefined>(usuario?.id);
+  if (usuario?.id !== prevUsuarioId) {
+    setPrevUsuarioId(usuario?.id);
+    setSelectedFotoPreview(null);
+  }
 
   const isEditing = !!usuario;
 
+  // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change
   useEffect(() => {
     if (usuario) {
       form.setFieldsValue({
@@ -88,9 +97,6 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
         activo: usuario.activo,
         is_staff: usuario.is_staff,
       });
-      if (usuario.foto_url) {
-        setFotoPreview(usuario.foto_url);
-      }
     } else {
       form.resetFields();
       form.setFieldsValue({ activo: true, is_staff: false });
@@ -169,7 +175,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
                 return false;
               }
               const reader = new FileReader();
-              reader.onload = (e) => setFotoPreview(e.target?.result as string);
+              reader.onload = (e) => setSelectedFotoPreview(e.target?.result as string);
               reader.readAsDataURL(file);
               return false;
             }}

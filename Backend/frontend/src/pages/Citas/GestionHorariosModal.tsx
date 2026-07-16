@@ -36,32 +36,40 @@ export const GestionHorariosModal: React.FC<GestionHorariosModalProps> = ({
 }) => {
   const { message } = useAntdApp();
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [horarios, setHorarios] = useState<HorarioAtencion[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  // Ajuste de estado al cambiar de usuario, con estado previo en vez de ref
+  // mutado en render (patrón oficial de React).
+  const [prevUserId, setPrevUserId] = useState<number | undefined>(currentUser?.id);
+  if (currentUser?.id !== prevUserId) {
+    setPrevUserId(currentUser?.id);
+    setHorarios([]);
+  }
+
   const cargarHorarios = useCallback(async () => {
     if (!currentUser?.id) return;
-    setLoading(true);
+    setIsLoading(true);
     try {
       const data = await horariosService.getAll({ usuario_id: currentUser.id });
       setHorarios(data || []);
     } catch (error) {
       message.error('Error al cargar los horarios');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, message]);
 
   useEffect(() => {
-    if (open && currentUser?.id) {
-      cargarHorarios();
-    }
-  }, [open, currentUser?.id, cargarHorarios]);
+    if (!currentUser?.id) return;
+    cargarHorarios();
+    return () => {};
+  }, [currentUser?.id, cargarHorarios]);
 
   const handleGuardar = async (values: any) => {
     if (!currentUser?.id) return;
-    setLoading(true);
+    setIsLoading(true);
     try {
       const horarioData = {
         usuario: currentUser.id,
@@ -85,7 +93,7 @@ export const GestionHorariosModal: React.FC<GestionHorariosModalProps> = ({
     } catch (error) {
       message.error('Error al guardar el horario');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -187,7 +195,7 @@ export const GestionHorariosModal: React.FC<GestionHorariosModalProps> = ({
               </Form.Item>
               <Form.Item>
                 <Space>
-                  <Button type="primary" htmlType="submit" loading={loading} icon={<PlusOutlined />}>
+                  <Button type="primary" htmlType="submit" loading={isLoading} icon={<PlusOutlined />}>
                     {editingId ? 'Actualizar' : 'Agregar'}
                   </Button>
                   {editingId && <Button onClick={handleNuevo}>Nuevo</Button>}
@@ -196,7 +204,7 @@ export const GestionHorariosModal: React.FC<GestionHorariosModalProps> = ({
             </Form>
           </Card>
 
-          {loading ? (
+          {isLoading ? (
             <div style={{ textAlign: 'center', padding: 20 }}>
               <Spin />
             </div>

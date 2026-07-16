@@ -2,84 +2,31 @@
  * =============================================================================
  * GESTIÓN DE PARTOS - LISTADO PRINCIPAL
  * =============================================================================
- * Vista principal para la gestión de registros de partos.
- * Funcionalidades:
- * - Listado paginado de partos
- * - Filtrado por fecha, paciente, tipo de parto
- * - Estadísticas rápidas (total partos, cesáreas, etc.)
- * - Acceso a creación, edición y detalle de partos
- * - Conexión: GET /partos/
+ * Vista principal para la gestión de registros de partos: listado paginado,
+ * filtros, estadísticas rápidas y acceso a crear/editar/detalle.
+ * Stats, toolbar y columnas viven en ./components.
  * =============================================================================
  */
 
 import React, { useState, useReducer, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
-import {
-  Table,
-  Button,
-  Input,
-  Space,
-  Card,
-  Row,
-  Col,
-  Tag,
-  Tooltip,
-  Modal,
-  message,
-  DatePicker,
-  Select,
-  Statistic,
-  Typography,
-} from 'antd';
-import {
-  PlusOutlined,
-  SearchOutlined,
-  EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  MedicineBoxOutlined,
-  ReloadOutlined,
-  CalendarOutlined,
-  WomanOutlined,
-  WarningOutlined,
-  FileExcelOutlined,
-} from '@ant-design/icons';
+import { Table, Card } from "antd";
+import { WarningOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { partosService, Parto } from '../../services/partosService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import api from '../../services/api';
 import { usePermissions } from '../../hooks/usePermissions';
 import { exportarExcel } from '../../utils/excelExport';
+import { filtrosPartosReducer } from './components/partosFiltrosReducer';
+import { buildPartosColumns } from './components/partosColumns';
+import PartosStats from './components/PartosStats';
+import PartosToolbar from './components/PartosToolbar';
 import './Partos.css';
 
-const { RangePicker } = DatePicker;
-const { Option } = Select;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { Title, Text } = Typography;
-
-interface FiltrosPartosState {
-  searchText: string;
-  dateRange: [dayjs.Dayjs, dayjs.Dayjs] | null;
-  tipoPartoFilter: string | null;
-}
-
-type FiltrosPartosAction =
-  | { type: 'SET_SEARCH'; payload: string }
-  | { type: 'SET_DATE_RANGE'; payload: [dayjs.Dayjs, dayjs.Dayjs] | null }
-  | { type: 'SET_TIPO_PARTO'; payload: string | null }
-  | { type: 'LIMPIAR' };
-
-const filtrosPartosReducer = (state: FiltrosPartosState, action: FiltrosPartosAction): FiltrosPartosState => {
-  switch (action.type) {
-    case 'SET_SEARCH': return { ...state, searchText: action.payload };
-    case 'SET_DATE_RANGE': return { ...state, dateRange: action.payload };
-    case 'SET_TIPO_PARTO': return { ...state, tipoPartoFilter: action.payload };
-    case 'LIMPIAR': return { searchText: '', dateRange: null, tipoPartoFilter: null };
-    default: return state;
-  }
-};
-
 const Partos: React.FC = () => {
+  const { message, modal } = useAntdApp();
   const navigate = useNavigate();
   const { canAdd, canChange, canDelete } = usePermissions();
   const [loading, setLoading] = useState(false);
@@ -136,7 +83,6 @@ const Partos: React.FC = () => {
   // ==========================================================================
   const cargarPartos = useCallback(async () => {
     setLoading(true);
-    const startTime = performance.now();
 
     try {
 
@@ -166,13 +112,8 @@ const Partos: React.FC = () => {
         }
       }
 
-      const endTime = performance.now();
-      const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-
-
       if (isMounted.current) {
         setPartos(allPartos);
-        message.success(`${allPartos.length} partos cargados en ${loadTime}s`);
       }
     } catch (error) {
       if (isMounted.current) {
@@ -204,7 +145,7 @@ const Partos: React.FC = () => {
   };
 
   const handleDelete = (parto: any) => {
-    Modal.confirm({
+    modal.confirm({
       title: '⚠️ ¿Confirmar eliminación permanente del parto?',
       icon: <WarningOutlined />,
       content: (
@@ -277,218 +218,7 @@ const Partos: React.FC = () => {
     }
   };
 
-  // ==========================================================================
-  // HELPERS
-  // ==========================================================================
-  const getViaPartoColor = (via: string) => {
-    const colores: Record<string, string> = {
-      vaginal_espontaneo: 'green',
-      vaginal_instrumentado: 'blue',
-      cesarea_electiva: 'orange',
-      cesarea_urgencia: 'red',
-      cesarea_emergencia: 'volcano',
-    };
-    return colores[via] || 'default';
-  };
-
-  const getViaPartoLabel = (via: string) => {
-    return via?.replace(/_/g, ' ').toUpperCase() || 'NO ESPECIFICADO';
-  };
-
-  // ✅ HELPER: Detectar si es aborto basado en edad gestacional
-  const esAborto = (edadGestacional: string | undefined) => {
-    if (!edadGestacional) return false;
-    try {
-      const semanas = parseInt(edadGestacional.split('+')[0]);
-      return semanas < 20;
-    } catch {
-      return false;
-    }
-  };
-
-  // ✅ HELPER: Obtener etiqueta de tipo de aborto
-  const getTipoAbortoLabel = (tipoAborto: string) => {
-    const etiquetas: Record<string, string> = {
-      espontaneo: 'Aborto Espontáneo',
-      inducido: 'Aborto Inducido',
-      incompleto: 'Aborto Incompleto',
-      completo: 'Aborto Completo',
-      diferido: 'Aborto Diferido/Retenido',
-      inevitable: 'Aborto Inevitable',
-    };
-    return etiquetas[tipoAborto] || tipoAborto.toUpperCase();
-  };
-
-  // ==========================================================================
-  // COLUMNAS TABLA
-  // ==========================================================================
-  const columns = [
-    {
-      title: 'ID Parto',
-      dataIndex: 'id',
-      key: 'id',
-      width: 100,
-      render: (id: number) => <Tag color="blue">#{id}</Tag>,
-    },
-    {
-      title: 'CI Paciente',
-      key: 'ci_paciente',
-      width: 120,
-      render: (_: any, record: Parto) => (
-        record.paciente_info?.cedula_identidad ? (
-          <Tag color="geekblue">{record.paciente_info.cedula_identidad}</Tag>
-        ) : <Text type="secondary">-</Text>
-      ),
-    },
-    {
-      title: 'Nombre Paciente',
-      key: 'nombre_paciente',
-      width: 200,
-      render: (_: any, record: Parto) => (
-        <Text strong>
-          {record.paciente_info
-            ? `${record.paciente_info.nombre} ${record.paciente_info.apellido_paterno}`
-            : 'Paciente Desconocido'}
-        </Text>
-      ),
-    },
-    {
-      title: 'Fecha de Parto',
-      dataIndex: 'fecha_parto',
-      key: 'fecha_parto',
-      width: 160,
-      render: (text: string) => (
-        <Space>
-          <CalendarOutlined style={{ color: '#1890ff' }} />
-          {dayjs(text).format('DD/MM/YYYY HH:mm')}
-        </Space>
-      ),
-      sorter: (a: Parto, b: Parto) => dayjs(a.fecha_parto).unix() - dayjs(b.fecha_parto).unix(),
-      defaultSortOrder: 'descend' as const,
-    },
-    {
-      title: 'Tipo de Parto',
-      key: 'tipo_parto',
-      width: 130,
-      render: (_: any, record: Parto) => {
-        // ✅ DETERMINAR SI ES ABORTO O PARTO SEGÚN LOS CAMPOS REGISTRADOS
-        const tipoAborto = (record as any).tipo_aborto;
-        const tipoParto = record.tipo_parto;
-
-        // Si tiene tipo_aborto registrado, ES UN ABORTO
-        if (tipoAborto) {
-          return (
-            <Tag color="orange">
-              {getTipoAbortoLabel(tipoAborto)}
-            </Tag>
-          );
-        }
-        // Si tiene tipo_parto registrado, ES UN PARTO
-        else if (tipoParto) {
-          return (
-            <Tag color={getViaPartoColor(tipoParto)}>
-              {getViaPartoLabel(tipoParto)}
-            </Tag>
-          );
-        }
-        // Solo si no tiene ninguno, usar edad gestacional para determinar
-        else {
-          const isAborto = esAborto(record.edad_gestacional_parto);
-          return (
-            <Tag color={isAborto ? "orange" : "default"}>
-              {isAborto ? 'ABORTO' : 'Sin clasificar'}
-            </Tag>
-          );
-        }
-      },
-    },
-    {
-      title: 'Resultado',
-      key: 'resultado',
-      width: 120,
-      render: (_: any, record: Parto) => {
-        const rn = record.recien_nacidos && record.recien_nacidos.length > 0 ? record.recien_nacidos[0] : null;
-        const apgar5 = rn?.apgar_5_minutos || record.apgar_5min;
-
-        // Determinar resultado basado en Apgar 5
-        if (!apgar5 && !rn) return <Tag color="default">Sin datos</Tag>;
-        if (typeof apgar5 === 'number') {
-          if (apgar5 >= 7) return <Tag color="success">Normal</Tag>;
-          if (apgar5 >= 4) return <Tag color="warning">Moderado</Tag>;
-          return <Tag color="error">Crítico</Tag>;
-        }
-        return <Tag color="processing">Evaluando</Tag>;
-      },
-    },
-    {
-      title: 'Sexo RN',
-      key: 'sexo_rn',
-      width: 110,
-      render: (_: any, record: Parto) => {
-        const rn = record.recien_nacidos && record.recien_nacidos.length > 0 ? record.recien_nacidos[0] : null;
-        if (!rn || !rn.sexo) return <Text type="secondary">-</Text>;
-        return (
-          <Tag color={rn.sexo === 'masculino' ? 'blue' : 'magenta'}>
-            {rn.sexo === 'masculino' ? 'Masculino' : 'Femenino'}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Peso RN (g)',
-      key: 'peso_rn',
-      width: 110,
-      render: (_: any, record: Parto) => {
-        const rn = record.recien_nacidos && record.recien_nacidos.length > 0 ? record.recien_nacidos[0] : null;
-        if (!rn || !rn.peso_nacimiento) return <Text type="secondary">-</Text>;
-
-        // Color según peso
-        const peso = rn.peso_nacimiento;
-        let color = 'default';
-        if (peso < 2500) color = 'orange'; // Bajo peso
-        else if (peso >= 2500 && peso <= 4000) color = 'green'; // Normal
-        else color = 'red'; // Macrosomía
-
-        return <Tag color={color}>{peso}g</Tag>;
-      },
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      render: (_: any, record: Parto) => (
-        <Space>
-          <Tooltip title="Ver detalles">
-            <Button
-              icon={<EyeOutlined />}
-              onClick={() => handleView(record.id!)}
-              size="small"
-            />
-          </Tooltip>
-          {canChange('parto') && (
-            <Tooltip title="Editar">
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={() => handleEdit(record.id!)}
-                size="small"
-                ghost
-              />
-            </Tooltip>
-          )}
-          {canDelete('parto') && (
-            <Tooltip title="Eliminar">
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete(record)}
-                size="small"
-              />
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-  ];
+  const columns = buildPartosColumns(canChange, canDelete, handleView, handleEdit, handleDelete);
 
   // ==========================================================================
   // RENDER
@@ -496,100 +226,21 @@ const Partos: React.FC = () => {
   return (
     <div className="partos-container page-container">
       {/* HEADER Y ESTADÍSTICAS */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Total Partos Registrados"
-              value={partos.length}
-              prefix={<MedicineBoxOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Cesáreas"
-              value={partos.filter(p => p.tipo_parto?.includes('cesarea')).length}
-              suffix={`/ ${partos.length}`}
-              valueStyle={{ color: '#cf1322' }}
-              prefix={<WarningOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Partos Vaginales"
-              value={partos.filter(p => p.tipo_parto?.includes('vaginal')).length}
-              suffix={`/ ${partos.length}`}
-              valueStyle={{ color: '#389e0d' }}
-              prefix={<WomanOutlined />}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <PartosStats
+        total={partos.length}
+        cesareas={partos.filter(p => p.tipo_parto?.includes('cesarea')).length}
+        vaginales={partos.filter(p => p.tipo_parto?.includes('vaginal')).length}
+      />
 
       {/* BARRA DE HERRAMIENTAS */}
-      <Card className="toolbar-card" style={{ marginBottom: 16 }}>
-        <Row gutter={[16, 16]} justify="space-between" align="middle">
-          <Col xs={24} md={16}>
-            <Space wrap>
-              <Input
-                placeholder="Buscar paciente..."
-                prefix={<SearchOutlined />}
-                value={filtros.searchText}
-                onChange={(e) => dispatchFiltros({ type: 'SET_SEARCH', payload: e.target.value })}
-                style={{ width: 200 }}
-              />
-              <RangePicker
-                onChange={(dates) => dispatchFiltros({ type: 'SET_DATE_RANGE', payload: dates as any })}
-                placeholder={['Desde', 'Hasta']}
-              />
-              <Select
-                placeholder="Tipo de parto"
-                allowClear
-                style={{ width: 180 }}
-                value={filtros.tipoPartoFilter}
-                onChange={(val) => dispatchFiltros({ type: 'SET_TIPO_PARTO', payload: val })}
-              >
-                <Option value="vaginal_espontaneo">Vaginal Espontáneo</Option>
-                <Option value="vaginal_instrumentado">Vaginal Instrumentado</Option>
-                <Option value="cesarea_electiva">Cesárea Electiva</Option>
-                <Option value="cesarea_urgencia">Cesárea Urgencia</Option>
-                <Option value="cesarea_emergencia">Cesárea Emergencia</Option>
-              </Select>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={cargarPartos}
-                title="Recargar datos"
-              />
-              <Button
-                icon={<FileExcelOutlined />}
-                onClick={handleExportExcel}
-                title="Exportar a Excel"
-                type="primary"
-                ghost
-              >
-                Exportar Excel
-              </Button>
-            </Space>
-          </Col>
-          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
-            {canAdd('parto') && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleCreate}
-                size="large"
-              >
-                Registrar Nuevo Parto
-              </Button>
-            )}
-          </Col>
-        </Row>
-      </Card>
+      <PartosToolbar
+        filtros={filtros}
+        dispatchFiltros={dispatchFiltros}
+        onReload={cargarPartos}
+        onExport={handleExportExcel}
+        onNew={handleCreate}
+        canAdd={canAdd('parto')}
+      />
 
       {/* TABLA PRINCIPAL */}
       <Card className="table-card">

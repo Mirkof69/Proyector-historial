@@ -9,7 +9,6 @@ import ConfiguracionHorarios from './Configuracion/components/ConfiguracionHorar
 import ConfiguracionSistema from './Configuracion/components/ConfiguracionSistema';
 
 const { Text } = Typography;
-const { TabPane } = Tabs;
 
 interface HorarioDia {
   dia: string;
@@ -47,16 +46,25 @@ const Configuracion: React.FC = () => {
   const [formGeneral] = Form.useForm();
   const [formSmtp] = Form.useForm();
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [horarios, setHorarios] = useState<HorarioDia[]>([]);
-  const [backups, setBackups] = useState<Backup[]>([]);
+  const [state, setState] = useState({
+    loading: true,
+    saving: false,
+    horarios: [] as HorarioDia[],
+    backups: [] as Backup[],
+    configData: null as ConfigSistema | null,
+    diasRetencion: 30,
+    notasAdmin: ''
+  });
+  const { loading, saving, horarios, backups, configData, diasRetencion, notasAdmin } = state;
   const logoFileRef = useRef<any>(null);
-  const [configData, setConfigData] = useState<ConfigSistema | null>(null);
-  const [diasRetencion, setDiasRetencion] = useState<number>(30);
-  const [notasAdmin, setNotasAdmin] = useState<string>('');
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+  const setLoading = (loading: boolean) => setState(prev => ({ ...prev, loading }));
+  const setSaving = (saving: boolean) => setState(prev => ({ ...prev, saving }));
+  const setHorarios = (horarios: HorarioDia[]) => setState(prev => ({ ...prev, horarios }));
+  const setBackups = (backups: Backup[]) => setState(prev => ({ ...prev, backups }));
+  const setConfigData = (configData: ConfigSistema | null) => setState(prev => ({ ...prev, configData }));
+  const setDiasRetencion = (diasRetencion: number) => setState(prev => ({ ...prev, diasRetencion }));
+  const setNotasAdmin = (notasAdmin: string) => setState(prev => ({ ...prev, notasAdmin }));
 
   const cargarConfiguracion = useCallback(async () => {
     setLoading(true);
@@ -102,7 +110,7 @@ const Configuracion: React.FC = () => {
       message.error('Error cargando configuración del sistema');
       setLoading(false);
     }
-  }, [formGeneral, formSmtp]);
+  }, [formGeneral, formSmtp, message]);
 
   useEffect(() => {
     cargarConfiguracion();
@@ -233,7 +241,7 @@ const Configuracion: React.FC = () => {
           <Card size="small" style={{ marginBottom: 16, background: '#f5f5f5' }}>
             <Row gutter={16}>
               <Col span={12}>
-                <Text type="secondary"><CloudServerOutlined /> Conectado a: <Tag color="blue">{API_URL}</Tag></Text>
+                <Text type="secondary"><CloudServerOutlined /> Sistema en línea</Text>
               </Col>
               <Col span={12} style={{ textAlign: 'right' }}>
                 <Space>
@@ -247,40 +255,49 @@ const Configuracion: React.FC = () => {
             </Row>
           </Card>
 
-          <Tabs defaultActiveKey="1" type="card" size="large">
-            <TabPane tab={tabIdentidadClinica} key="1">
-              <ConfiguracionIdentidad
-                form={formGeneral}
-                saving={saving}
-                onSave={handleSaveGeneral}
-                logoFileRef={logoFileRef}
-                configData={configData}
-              />
-            </TabPane>
-
-            <TabPane tab={tabHorariosAtencion} key="2">
-              <ConfiguracionHorarios
-                horarios={horarios}
-                setHorarios={setHorarios}
-                saving={saving}
-                onSave={handleSaveHorarios}
-              />
-            </TabPane>
-
-            <TabPane tab={tabSistemaBackups} key="3">
-              <ConfiguracionSistema
-                formSmtp={formSmtp}
-                diasRetencion={diasRetencion}
-                setDiasRetencion={setDiasRetencion}
-                notasAdmin={notasAdmin}
-                setNotasAdmin={setNotasAdmin}
-                backups={backups}
-                onCreateBackup={handleCreateBackup}
-                onDescargarBackup={handleDescargarBackup}
-                onEliminarBackup={handleEliminarBackup}
-              />
-            </TabPane>
-          </Tabs>
+          <Tabs
+            defaultActiveKey="1"
+            type="card"
+            size="large"
+            items={[
+              {
+                key: '1',
+                label: tabIdentidadClinica,
+                children: <ConfiguracionIdentidad
+                  form={formGeneral}
+                  saving={saving}
+                  onSave={handleSaveGeneral}
+                  logoFileRef={logoFileRef}
+                  configData={configData}
+                />,
+              },
+              {
+                key: '2',
+                label: tabHorariosAtencion,
+                children: <ConfiguracionHorarios
+                  horarios={horarios}
+                  setHorarios={setHorarios}
+                  saving={saving}
+                  onSave={handleSaveHorarios}
+                />,
+              },
+              {
+                key: '3',
+                label: tabSistemaBackups,
+                children: <ConfiguracionSistema
+                  formSmtp={formSmtp}
+                  diasRetencion={diasRetencion}
+                  setDiasRetencion={setDiasRetencion}
+                  notasAdmin={notasAdmin}
+                  setNotasAdmin={setNotasAdmin}
+                  backups={backups}
+                  onCreateBackup={handleCreateBackup}
+                  onDescargarBackup={handleDescargarBackup}
+                  onEliminarBackup={handleEliminarBackup}
+                />,
+              },
+            ]}
+          />
         </div>
       </Layout.Content>
     </Layout>

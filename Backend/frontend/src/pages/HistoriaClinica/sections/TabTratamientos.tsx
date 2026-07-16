@@ -61,6 +61,7 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
       {/* TABLA DE TRATAMIENTOS */}
       <Table
         dataSource={tratamientos.slice().sort((a, b) => (b.activo ? 1 : 0) - (a.activo ? 1 : 0))}
+        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin tratamientos registrados" /> }}
         rowKey="id"
         columns={[
           {

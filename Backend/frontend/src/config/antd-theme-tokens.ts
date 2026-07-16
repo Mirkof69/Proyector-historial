@@ -9,7 +9,7 @@
  * =============================================================================
  */
 
-import { ThemeConfig } from 'antd';
+import { ThemeConfig, theme } from 'antd';
 
 // Medical color palette - coordinated for clinical context
 const MEDICAL_PRIMARY = '#1890ff';
@@ -22,6 +22,7 @@ const MEDICAL_INFO = '#1890ff';
  * TEMA CLARO (LIGHT MODE)
  */
 const lightThemeTokens: ThemeConfig = {
+  algorithm: theme.defaultAlgorithm,
   token: {
     // Colores principales - coordinated medical palette
     colorPrimary: MEDICAL_PRIMARY,
@@ -131,6 +132,13 @@ const lightThemeTokens: ThemeConfig = {
     Tabs: {
       borderRadius: 8,
     },
+    Table: {
+      colorBgContainer: '#ffffff',
+      headerBg: '#fafafa',
+      headerColor: '#1a1a2e',
+      rowHoverBg: '#f5f5f5',
+      borderColor: '#f0f0f0',
+    },
   },
 };
 
@@ -138,6 +146,7 @@ const lightThemeTokens: ThemeConfig = {
  * TEMA OSCURO (DARK MODE)
  */
 const darkThemeTokens: ThemeConfig = {
+  algorithm: theme.darkAlgorithm,
   token: {
     // Colores principales - adjusted for dark mode
     colorPrimary: '#40a9ff',
@@ -245,6 +254,14 @@ const darkThemeTokens: ThemeConfig = {
     },
     Tabs: {
       borderRadius: 8,
+    },
+    Table: {
+      colorBgContainer: '#141428',
+      headerBg: '#1a1a3e',
+      headerColor: '#e8e8e8',
+      rowHoverBg: '#1a1a3e',
+      borderColor: '#2a2a4a',
+      colorText: '#e8e8e8',
     },
   },
 };

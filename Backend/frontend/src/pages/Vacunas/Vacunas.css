@@ -93,13 +93,13 @@
 }
 
 .vacunas-page .table-card .ant-table-thead>tr>th {
-  background-color: var(--bg-tertiary, #f0f5ff);
+  background-color: var(--bg-tertiary);
   font-weight: 600;
-  color: var(--color-primary, #1890ff);
+  color: var(--color-primary);
 }
 
 .vacunas-page .table-card .ant-table-tbody>tr:hover {
-  background-color: var(--bg-hover, #f0f5ff);
+  background-color: var(--bg-hover);
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -132,7 +132,7 @@
 
 /* Drawer */
 .vacunas-page .ant-drawer-content {
-  background: var(--bg-card, #ffffff);
+  background: var(--bg-card);
 }
 
 /* Progress bars */

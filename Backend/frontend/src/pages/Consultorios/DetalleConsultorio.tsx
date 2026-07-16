@@ -6,11 +6,9 @@
  * =============================================================================
  */
 
-import React, { useState, useRef } from 'react';
-import {
-  Card, Descriptions, Button, Space, Tag, Statistic, Row, Col,
-  message, Spin, Empty
-} from 'antd';
+import React, { useState, useEffect } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Card, Descriptions, Button, Space, Tag, Statistic, Row, Col, Spin, Empty} from "antd";
 import {
   ArrowLeftOutlined, EditOutlined, HomeOutlined,
   CheckCircleOutlined, CloseCircleOutlined, ToolOutlined,
@@ -19,7 +17,19 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { consultoriosService, Consultorio, EstadoConsultorio } from '../../services/consultoriosService';
 
+const getEstadoConfig = (estado: EstadoConsultorio | string) => {
+  const configs: Record<string, { color: string; icon: React.ReactElement; text: string }> = {
+    'disponible': { color: 'success', icon: <CheckCircleOutlined />, text: 'Disponible' },
+    'ocupado': { color: 'processing', icon: <HomeOutlined />, text: 'Ocupado' },
+    'mantenimiento': { color: 'warning', icon: <ToolOutlined />, text: 'En Mantenimiento' },
+    'reservado': { color: 'default', icon: <ClockCircleOutlined />, text: 'Reservado' },
+    'inactivo': { color: 'error', icon: <CloseCircleOutlined />, text: 'Inactivo' },
+  };
+  return configs[estado] || configs['inactivo'];
+};
+
 const DetalleConsultorio: React.FC = () => {
+  const { message } = useAntdApp();
   const [consultorio, setConsultorio] = useState<Consultorio | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -37,11 +47,10 @@ const DetalleConsultorio: React.FC = () => {
     }
   };
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (id && loadedIdRef.current !== parseInt(id)) {
-    loadedIdRef.current = parseInt(id);
-    cargarConsultorio(parseInt(id));
-  }
+  useEffect(() => {
+    if (id) cargarConsultorio(parseInt(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (loading) {
     return (
@@ -63,17 +72,6 @@ const DetalleConsultorio: React.FC = () => {
       </div>
     );
   }
-
-  const getEstadoConfig = (estado: EstadoConsultorio | string) => {
-    const configs: Record<string, { color: string; icon: React.ReactElement; text: string }> = {
-      'disponible': { color: 'success', icon: <CheckCircleOutlined />, text: 'Disponible' },
-      'ocupado': { color: 'processing', icon: <HomeOutlined />, text: 'Ocupado' },
-      'mantenimiento': { color: 'warning', icon: <ToolOutlined />, text: 'En Mantenimiento' },
-      'reservado': { color: 'default', icon: <ClockCircleOutlined />, text: 'Reservado' },
-      'inactivo': { color: 'error', icon: <CloseCircleOutlined />, text: 'Inactivo' },
-    };
-    return configs[estado] || configs['inactivo'];
-  };
 
   const estadoConfig = getEstadoConfig(consultorio.estado || 'inactivo');
 
@@ -126,7 +124,7 @@ const DetalleConsultorio: React.FC = () => {
           <Card>
             <Statistic
               title="Capacidad"
-              value={consultorio.capacidad || 0}
+              value={consultorio.capacidad_personas || 0}
               suffix="personas"
             />
           </Card>
@@ -168,7 +166,7 @@ const DetalleConsultorio: React.FC = () => {
             {consultorio.piso || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Capacidad">
-            {consultorio.capacidad || '-'}
+            {consultorio.capacidad_personas || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Descripción" span={3}>
             {consultorio.descripcion || '-'}

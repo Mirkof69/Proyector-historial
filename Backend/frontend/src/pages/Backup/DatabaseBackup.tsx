@@ -1,9 +1,9 @@
-import React, { useReducer, useEffect } from 'react';
-import { backupService, Backup, BackupStats } from '../../services/backupService';
+import React, { useReducer, useEffect, useState } from 'react';
+import { backupService, Backup } from '../../services/backupService';
 import {
-    Table, Button, Tag, Tooltip, Space,
+    Table, Button, Tooltip, Space,
     Card, Row, Col, Statistic, Empty, Spin,
-    Popconfirm, Modal, Progress, Alert
+    Popconfirm, Input, Alert
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
@@ -13,10 +13,8 @@ import {
     ReloadOutlined,
     HistoryOutlined,
     HddOutlined,
-    ScheduleOutlined,
     PlusOutlined,
     WarningOutlined,
-    CheckCircleOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -28,26 +26,23 @@ dayjs.extend(relativeTime);
 dayjs.locale('es');
 
 interface BackupState {
-    backups: any[];
-    stats: any | null;
+    backups: Backup[];
     loading: boolean;
     creating: boolean;
-    restoring: boolean;
+    restoring: string | null;
 }
 
 type BackupAction =
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SET_CREATING'; payload: boolean }
-    | { type: 'SET_RESTORING'; payload: boolean }
-    | { type: 'SET_DATA'; payload: { backups: any[]; stats: any | null } }
-    | { type: 'SET_BACKUPS'; payload: any[] };
+    | { type: 'SET_RESTORING'; payload: string | null }
+    | { type: 'SET_BACKUPS'; payload: Backup[] };
 
 const initialState: BackupState = {
     backups: [],
-    stats: null,
     loading: false,
     creating: false,
-    restoring: false,
+    restoring: null,
 };
 
 function backupReducer(state: BackupState, action: BackupAction): BackupState {
@@ -58,54 +53,50 @@ function backupReducer(state: BackupState, action: BackupAction): BackupState {
             return { ...state, creating: action.payload };
         case 'SET_RESTORING':
             return { ...state, restoring: action.payload };
-        case 'SET_DATA':
-            return { ...state, backups: action.payload.backups, stats: action.payload.stats, loading: false };
         case 'SET_BACKUPS':
-            return { ...state, backups: action.payload };
+            return { ...state, backups: action.payload, loading: false };
         default:
             return state;
     }
 }
 
 const DatabaseBackup: React.FC = () => {
-    const { message } = useAntdApp();
+    const { modal, message } = useAntdApp();
     const [state, dispatch] = useReducer(backupReducer, initialState);
-    const { backups, stats, loading, creating, restoring } = state;
+    const { backups, loading, creating, restoring } = state;
+    const [confirmacionRestaurar, setConfirmacionRestaurar] = useState('');
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
+    const loadData = React.useCallback(async () => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            const [backupsData, statsData] = await Promise.all([
-                backupService.listar(),
-                backupService.obtenerEstadisticas()
-            ]);
-            dispatch({ type: 'SET_DATA', payload: { backups: backupsData, stats: statsData } });
+            const backupsData = await backupService.listar();
+            dispatch({ type: 'SET_BACKUPS', payload: backupsData });
         } catch (error) {
             message.error('Error al cargar backups');
             dispatch({ type: 'SET_LOADING', payload: false });
         }
-    };
+    }, [message]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const handleCreateBackup = async () => {
         dispatch({ type: 'SET_CREATING', payload: true });
         try {
-            await backupService.crear({ type: 'manual' });
+            await backupService.crear();
             message.success('Backup creado exitosamente');
             loadData();
-        } catch (error) {
-            message.error('Error al crear backup');
+        } catch (error: any) {
+            message.error(error?.response?.data?.message || error?.response?.data?.error || 'Error al crear backup');
         } finally {
             dispatch({ type: 'SET_CREATING', payload: false });
         }
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (filename: string) => {
         try {
-            await backupService.eliminar(id);
+            await backupService.eliminar(filename);
             message.success('Backup eliminado');
             loadData();
         } catch (error) {
@@ -113,42 +104,9 @@ const DatabaseBackup: React.FC = () => {
         }
     };
 
-    const handleRestore = async (id: number) => {
-        Modal.confirm({
-            title: '¿Restaurar base de datos?',
-            icon: <WarningOutlined style={{ color: 'red' }} />,
-            content: (
-                <div>
-                    <p>Esta acción reemplazará la base de datos actual con la versión seleccionada.</p>
-                    <p><strong>¡Se perderán todos los datos creados después de este backup!</strong></p>
-                    <Alert
-                        message="Advertencia de Seguridad"
-                        description="Se recomienda crear un backup manual antes de restaurar."
-                        type="warning"
-                        showIcon
-                    />
-                </div>
-            ),
-            okText: 'Sí, Restaurar',
-            okType: 'danger',
-            cancelText: 'Cancelar',
-            onOk: async () => {
-                dispatch({ type: 'SET_RESTORING', payload: true });
-                try {
-                    await backupService.restaurar(id, true);
-                    message.success('Base de datos restaurada exitosamente');
-                } catch (error) {
-                    message.error('Error al restaurar base de datos');
-                } finally {
-                    dispatch({ type: 'SET_RESTORING', payload: false });
-                }
-            }
-        });
-    };
-
-    const handleDownload = async (id: number, filename: string) => {
+    const handleDownload = async (filename: string) => {
         try {
-            const blob = await backupService.descargar(id);
+            const blob = await backupService.descargar(filename);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -156,20 +114,62 @@ const DatabaseBackup: React.FC = () => {
             document.body.appendChild(link);
             link.click();
             link.remove();
+            window.URL.revokeObjectURL(url);
         } catch (error) {
             message.error('Error al descargar backup');
         }
     };
 
-    const getTypeColor = (type: string) => {
-        switch (type) {
-            case 'manual': return 'default';
-            case 'daily': return 'blue';
-            case 'weekly': return 'purple';
-            case 'monthly': return 'green';
-            default: return 'default';
+    const ejecutarRestauracion = async (filename: string) => {
+        dispatch({ type: 'SET_RESTORING', payload: filename });
+        try {
+            const resultado = await backupService.restaurar(filename);
+            message.success(`Base de datos restaurada. Backup de seguridad pre-restore: ${resultado.backup_seguridad}`);
+            loadData();
+        } catch (error: any) {
+            message.error(error?.response?.data?.error || 'Error al restaurar base de datos');
+        } finally {
+            dispatch({ type: 'SET_RESTORING', payload: null });
         }
     };
+
+    const handleRestore = (filename: string) => {
+        setConfirmacionRestaurar('');
+        modal.confirm({
+            title: '¿Restaurar base de datos?',
+            icon: <WarningOutlined style={{ color: 'red' }} />,
+            width: 520,
+            content: (
+                <div>
+                    <p>Esta acción reemplazará <strong>toda</strong> la base de datos actual con el contenido de <strong>{filename}</strong>.</p>
+                    <p>Se perderán todos los datos creados después de ese backup. El sistema creará automáticamente un backup de seguridad de la base actual antes de restaurar, pero esta operación es destructiva.</p>
+                    <Alert
+                        message="Para confirmar, escriba RESTAURAR en el campo de abajo"
+                        type="warning"
+                        showIcon
+                        style={{ marginBottom: 12 }}
+                    />
+                    <Input
+                        placeholder="RESTAURAR"
+                        onChange={(e) => setConfirmacionRestaurar(e.target.value)}
+                    />
+                </div>
+            ),
+            okText: 'Sí, Restaurar',
+            okType: 'danger',
+            cancelText: 'Cancelar',
+            onOk: async () => {
+                if (confirmacionRestaurar.trim() !== 'RESTAURAR') {
+                    message.error('Debe escribir RESTAURAR exactamente para confirmar');
+                    return Promise.reject();
+                }
+                await ejecutarRestauracion(filename);
+            },
+        });
+    };
+
+    const totalSizeBytes = backups.reduce((acc, b) => acc + (b.size || 0), 0);
+    const ultimoBackup = backups[0]?.created_at;
 
     const columns = [
         {
@@ -179,20 +179,10 @@ const DatabaseBackup: React.FC = () => {
             render: (text: string) => <span style={{ fontWeight: 500 }}>{text}</span>
         },
         {
-            title: 'Tipo',
-            dataIndex: 'type',
-            key: 'type',
-            render: (type: string) => (
-                <Tag color={getTypeColor(type)} className={`type-tag ${type}`}>
-                    {type.toUpperCase()}
-                </Tag>
-            )
-        },
-        {
             title: 'Tamaño',
-            dataIndex: 'size_mb',
+            dataIndex: 'size',
             key: 'size',
-            render: (size: number) => `${size.toFixed(2)} MB`
+            render: (size: number) => `${(size / (1024 * 1024)).toFixed(2)} MB`
         },
         {
             title: 'Fecha',
@@ -216,7 +206,7 @@ const DatabaseBackup: React.FC = () => {
                             type="text"
                             className="action-btn download"
                             icon={<CloudDownloadOutlined />}
-                            onClick={() => handleDownload(record.id!, record.filename)}
+                            onClick={() => handleDownload(record.filename)}
                         />
                     </Tooltip>
                     <Tooltip title="Restaurar">
@@ -224,13 +214,14 @@ const DatabaseBackup: React.FC = () => {
                             type="text"
                             className="action-btn restore"
                             icon={<HistoryOutlined />}
-                            onClick={() => handleRestore(record.id!)}
-                            disabled={restoring}
+                            onClick={() => handleRestore(record.filename)}
+                            loading={restoring === record.filename}
+                            disabled={restoring !== null}
                         />
                     </Tooltip>
                     <Popconfirm
                         title="¿Eliminar backup?"
-                        onConfirm={() => handleDelete(record.id!)}
+                        onConfirm={() => handleDelete(record.filename)}
                         okText="Sí"
                         cancelText="No"
                     >
@@ -275,66 +266,47 @@ const DatabaseBackup: React.FC = () => {
                 </Space>
             </div>
 
-            <Spin spinning={loading} tip="Cargando estadísticas…">
-                {stats && (
-                    <Row gutter={[16, 16]} className="backup-stats-row">
-                        <Col xs={24} sm={12} md={6}>
-                            <Card>
-                                <Statistic
-                                    title="Total Backups"
-                                    value={stats.total_backups}
-                                    prefix={<DatabaseOutlined style={{ color: '#1890ff' }} />}
-                                    suffix={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: 16 }} />}
-                                    valueStyle={{ color: '#1890ff' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Card>
-                                <Statistic
-                                    title="Espacio Usado"
-                                    value={stats.total_size_mb.toFixed(2)}
-                                    suffix="MB"
-                                    prefix={<HddOutlined style={{ color: '#722ed1' }} />}
-                                    valueStyle={{ color: '#722ed1' }}
-                                />
-                                <Progress
-                                    percent={Math.min((stats.total_size_mb / 1000) * 100, 100)}
-                                    size="small"
-                                    status={stats.total_size_mb > 800 ? 'exception' : 'active'}
-                                    style={{ marginTop: 8 }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Card>
-                                <Statistic
-                                    title="Programación"
-                                    value="Diario"
-                                    prefix={<ScheduleOutlined style={{ color: '#52c41a' }} />}
-                                    valueStyle={{ color: '#52c41a', fontSize: 20 }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Card>
-                                <Statistic
-                                    title="Último Backup"
-                                    value={stats.ultimo_backup ? dayjs(stats.ultimo_backup).fromNow() : 'Nunca'}
-                                    prefix={<HistoryOutlined style={{ color: '#fa8c16' }} />}
-                                    valueStyle={{ color: '#fa8c16', fontSize: 16 }}
-                                />
-                            </Card>
-                        </Col>
-                    </Row>
-                )}
+            <Spin spinning={loading}>
+                <Row gutter={[16, 16]} className="backup-stats-row">
+                    <Col xs={24} sm={12} md={8}>
+                        <Card>
+                            <Statistic
+                                title="Total Backups"
+                                value={backups.length}
+                                prefix={<DatabaseOutlined style={{ color: '#1890ff' }} />}
+                                valueStyle={{ color: '#1890ff' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Card>
+                            <Statistic
+                                title="Espacio Usado"
+                                value={(totalSizeBytes / (1024 * 1024)).toFixed(2)}
+                                suffix="MB"
+                                prefix={<HddOutlined style={{ color: '#722ed1' }} />}
+                                valueStyle={{ color: '#722ed1' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Card>
+                            <Statistic
+                                title="Último Backup"
+                                value={ultimoBackup ? dayjs(ultimoBackup).fromNow() : 'Nunca'}
+                                prefix={<HistoryOutlined style={{ color: '#fa8c16' }} />}
+                                valueStyle={{ color: '#fa8c16', fontSize: 16 }}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
             </Spin>
 
             <div className="backup-table-card">
                 <Table
                     columns={columns}
                     dataSource={backups}
-                    rowKey="id"
+                    rowKey="filename"
                     loading={loading}
                     pagination={{ pageSize: 10 }}
                     locale={{

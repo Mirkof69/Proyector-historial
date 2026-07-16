@@ -10,6 +10,7 @@
  */
 
 import { post, api } from './api';
+import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INTERFACES Y TIPOS
@@ -153,7 +154,7 @@ class AuthService {
   private normalizeListResponse<T>(raw: any, label: string): T[] {
     try {
       if (raw && Array.isArray(raw.results)) {
-        console.log(`✅ ${label} obtenidos (paginado):`, raw.results.length);
+        logger.log(`✅ ${label} obtenidos (paginado):`, raw.results.length);
         return raw.results as T[];
       }
       if (raw && Array.isArray(raw.data)) {
@@ -173,7 +174,7 @@ class AuthService {
   private handleApiError(error: any, context: string): never {
     console.error(`❌ Error en ${context}:`, error);
     if (error.response?.data) {
-      const errorData = error.response.data as ApiError;
+      const errorData = error.response?.data as ApiError;
       if (errorData.errores) {
         const msgs = Object.entries(errorData.errores)
           .map(([f, m]) => `${f}: ${Array.isArray(m) ? m.join(', ') : m}`)
@@ -248,13 +249,9 @@ class AuthService {
       // Limpiar temp_token — ya no se necesita
       sessionStorage.removeItem('mfa_temp_token');
 
+      // Los JWT llegan como cookies httpOnly (Set-Cookie del servidor);
+      // el cliente solo persiste la info de usuario para la UI.
       const data = response.data;
-      const accessToken = data.access || data.token || data.access_token;
-      const refreshToken = data.refresh || data.refresh_token;
-      if (accessToken) {
-        const { saveTokens } = await import('./api');
-        saveTokens(accessToken, refreshToken);
-      }
       const user = data.user || data.usuario || data;
       if (user) {
         const safeUser = { ...user };
@@ -288,9 +285,9 @@ class AuthService {
 
   async refreshToken(): Promise<LoginSuccessResponse> {
     try {
-      const refreshToken = this.getRefreshToken();
-      if (!refreshToken) throw new Error('No hay refresh token disponible');
-      const response = await post<LoginSuccessResponse>('/token/refresh/', { refresh: refreshToken });
+      // El refresh token viaja en la cookie httpOnly; el servidor rota
+      // los tokens y responde seteando nuevas cookies.
+      const response = await post<LoginSuccessResponse>('/token/refresh/', {});
       return response;
     } catch (error: any) {
       this.handleApiError(error, 'refresh token');
@@ -313,16 +310,23 @@ class AuthService {
   // TOKEN MANAGEMENT
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * @deprecated Los JWT viven en cookies httpOnly: JavaScript ya no puede
+   * (ni debe) leerlos. Devuelve null; la autenticación viaja sola con
+   * withCredentials.
+   */
   getToken(): string | null {
-    return localStorage.getItem('access_token') || localStorage.getItem('token');
+    return null;
   }
 
+  /** @deprecated Ver getToken(). */
   getAccessToken(): string | null {
     return this.getToken();
   }
 
+  /** @deprecated Ver getToken(). */
   getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
+    return null;
   }
 
   isAuthenticated(): boolean {
@@ -333,15 +337,18 @@ class AuthService {
     return api.getCurrentUser() as Usuario | null;
   }
 
-  setToken(token: string): void {
-    localStorage.setItem('access_token', token);
+  /** @deprecated No-op: las cookies las gestiona el servidor. */
+  setToken(_token: string): void {
+    // no-op
   }
 
-  setRefreshToken(token: string): void {
-    localStorage.setItem('refresh_token', token);
+  /** @deprecated No-op: las cookies las gestiona el servidor. */
+  setRefreshToken(_token: string): void {
+    // no-op
   }
 
   clearTokens(): void {
+    // Limpieza de sesión local + restos de la implementación anterior
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('token');

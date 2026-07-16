@@ -1,47 +1,38 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Form,
-  Input,
-  InputNumber,
-  DatePicker,
   Button,
   Card,
-  Row,
-  Col,
-  Select,
   Space,
   Spin,
   Typography,
-  Divider,
   Alert,
-  Modal,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
   SaveOutlined,
   CloseOutlined,
   UserOutlined,
-  PhoneOutlined,
-  MailOutlined,
-  IdcardOutlined,
   ArrowLeftOutlined,
-  RiseOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { pacientesService } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import dayjs from 'dayjs';
+import SeccionDatosContactoPaciente from './components/SeccionDatosContactoPaciente';
+import SeccionInfoMedicaPaciente from './components/SeccionInfoMedicaPaciente';
+import SeccionAdminEmergenciaPaciente from './components/SeccionAdminEmergenciaPaciente';
+import SeccionConsentimientoPaciente from './components/SeccionConsentimientoPaciente';
 
-const { Option } = Select;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const FormularioPaciente: React.FC = () => {
-  const { message } = useAntdApp();
+  const {modal,  message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const loadingDataRef = useRef(false);
+  const [loadingData, setLoadingData] = useState(false);
   const [edadCalculada, setEdadCalculada] = useState<string>('');
   const [imcCalculado, setImcCalculado] = useState<string>('');
 
@@ -88,14 +79,29 @@ const FormularioPaciente: React.FC = () => {
   }, [form]);
 
   const loadPaciente = React.useCallback(async (pacienteId: number) => {
-    loadingDataRef.current = true;
+    setLoadingData(true);
     try {
       const data = await pacientesService.getById(pacienteId) as any;
       form.setFieldsValue({
-        ...data,
-        fecha_nacimiento: data.fecha_nacimiento ? dayjs(data.fecha_nacimiento) : null,
+        nombre: data.nombre || '',
+        apellido_paterno: data.apellido_paterno || '',
+        apellido_materno: data.apellido_materno || '',
+        genero: data.genero || '',
         estado_civil: data.estado_civil || '',
+        fecha_nacimiento: data.fecha_nacimiento ? dayjs(data.fecha_nacimiento) : null,
+        fecha_baja: data.fecha_baja ? dayjs(data.fecha_baja) : null,
+        telefono: data.telefono || '',
+        email: data.email || '',
+        ci: data.ci || '',
+        direccion: data.direccion || '',
+        ciudad: data.ciudad || '',
+        pais: data.pais || 'Bolivia',
         tipo_sangre: data.tipo_sangre || '',
+        factor_rh: data.factor_rh || '',
+        numero_seguro_social: data.numero_seguro_social || '',
+        peso_kg: data.peso_kg || null,
+        altura_cm: data.altura_cm || null,
+        estado_paciente: data.estado_paciente || 'activo',
         contacto_emergencia_nombre: data.contacto_emergencia_nombre || '',
         contacto_emergencia_telefono: data.contacto_emergencia_telefono || '',
         contacto_emergencia_relacion: data.contacto_emergencia_relacion || '',
@@ -113,15 +119,15 @@ const FormularioPaciente: React.FC = () => {
       message.error('Error al cargar datos del paciente');
       handleCancel();
     } finally {
-      loadingDataRef.current = false;
+      setLoadingData(false);
     }
-  }, [calcularEdad, calcularIMC, form, handleCancel]);
+  }, [calcularEdad, calcularIMC, form, handleCancel, message]);
 
-  const loadedIdRef = useRef<number | null>(null);
-  if (isEditing && id && loadedIdRef.current !== parseInt(id)) {
-    loadedIdRef.current = parseInt(id);
-    loadPaciente(parseInt(id));
-  }
+  useEffect(() => {
+    if (isEditing && id) {
+      loadPaciente(parseInt(id));
+    }
+  }, [id, isEditing, loadPaciente]);
 
   const handleSave = async (values: any, shouldExit: boolean = true) => {
     setLoading(true);
@@ -142,7 +148,7 @@ const FormularioPaciente: React.FC = () => {
         direccion: values.direccion || '',
         ciudad: values.ciudad || '',
         pais: values.pais || 'Bolivia',
-        activo: true,
+        activo: values.activo !== undefined ? values.activo : true,
         tipo_sangre: values.tipo_sangre || '',
         factor_rh: values.factor_rh || '',
         numero_seguro_social: values.numero_seguro_social || '',
@@ -154,6 +160,12 @@ const FormularioPaciente: React.FC = () => {
         contacto_emergencia_telefono: values.contacto_emergencia_telefono || '',
         contacto_emergencia_relacion: values.contacto_emergencia_relacion || '',
       };
+
+      // Consentimiento de tratamiento de datos (Ley 164 Bolivia) — solo
+      // aplica a la creación; en edición no se reenvía (ya quedó registrado).
+      if (!isEditing) {
+        dataToSend.consentimiento_datos_aceptado = values.consentimiento_datos_aceptado || false;
+      }
 
       if (isEditing) {
         await pacientesService.update(parseInt(id!), dataToSend);
@@ -175,7 +187,7 @@ const FormularioPaciente: React.FC = () => {
     } catch (error: any) {
 
       if (error.response?.data) {
-        const errorData = error.response.data;
+        const errorData = error.response?.data;
 
         if (typeof errorData === 'object' && !errorData.message && !errorData.detail && !errorData.errores && !errorData.error) {
           const errorList = Object.entries(errorData).map(([field, msgs]: [string, any]) => {
@@ -183,7 +195,7 @@ const FormularioPaciente: React.FC = () => {
             return `${field}: ${msgArray.join(', ')}`;
           });
 
-          Modal.error({
+          modal.error({
             title: 'Error al Guardar Paciente',
             content: (
               <div>
@@ -207,7 +219,7 @@ const FormularioPaciente: React.FC = () => {
           message.error('Por favor corrija los errores en el formulario');
         } else {
           const msg = errorData.detail || errorData.message || errorData.error || 'Error desconocido';
-          Modal.error({
+          modal.error({
             title: 'Error',
             content: msg,
           });
@@ -232,7 +244,7 @@ const FormularioPaciente: React.FC = () => {
     });
   };
 
-  if (loadingDataRef.current) {
+  if (loadingData) {
     return (
       <div style={{ textAlign: 'center', padding: '100px' }}>
         <Spin size="large" tip="Cargando datos del paciente…"><div /></Spin>
@@ -278,396 +290,13 @@ const FormularioPaciente: React.FC = () => {
             }
           }}
         >
-          <Divider orientation="left">Datos Personales</Divider>
+          <SeccionDatosContactoPaciente edadCalculada={edadCalculada} />
 
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="nombre"
-                label="Nombre"
-                rules={[
-                  { required: true, message: 'Ingrese el nombre' },
-                  {
-                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
-                    message: 'Solo letras y espacios',
-                  },
-                ]}
-              >
-                <Input prefix={<UserOutlined />} placeholder="Nombre" />
-              </Form.Item>
-            </Col>
+          <SeccionInfoMedicaPaciente calcularIMC={calcularIMC} imcCalculado={imcCalculado} />
 
-            <Col span={8}>
-              <Form.Item
-                name="apellido_paterno"
-                label="Apellido Paterno"
-                rules={[
-                  { required: true, message: 'Ingrese el apellido paterno' },
-                  {
-                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
-                    message: 'Solo letras y espacios',
-                  },
-                ]}
-              >
-                <Input prefix={<UserOutlined />} placeholder="Apellido Paterno" />
-              </Form.Item>
-            </Col>
+          <SeccionAdminEmergenciaPaciente />
 
-            <Col span={8}>
-              <Form.Item
-                name="apellido_materno"
-                label="Apellido Materno"
-                rules={[
-                  {
-                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/,
-                    message: 'Solo letras y espacios',
-                  },
-                ]}
-              >
-                <Input prefix={<UserOutlined />} placeholder="Apellido Materno (Opcional)" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider orientation="left">Informacion Demografica</Divider>
-
-          <Row gutter={16}>
-            <Col span={6}>
-              <Form.Item
-                name="genero"
-                label="Genero"
-                rules={[{ required: true, message: 'Seleccione el genero' }]}
-              >
-                <Select placeholder="Seleccione genero">
-                  <Option value="femenino">Femenino</Option>
-                  <Option value="masculino">Masculino</Option>
-                  <Option value="otro">Otro</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col span={6}>
-              <Form.Item
-                name="estado_civil"
-                label="Estado Civil"
-              >
-                <Select placeholder="Seleccione estado civil">
-                  <Option value="soltero">Soltero/a</Option>
-                  <Option value="casado">Casado/a</Option>
-                  <Option value="union_libre">Unión Libre</Option>
-                  <Option value="divorciado">Divorciado/a</Option>
-                  <Option value="viudo">Viudo/a</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col span={6}>
-              <Form.Item
-                name="fecha_nacimiento"
-                label="Fecha de Nacimiento"
-                rules={[{ required: true, message: 'Seleccione la fecha' }]}
-                tooltip="La edad se calculara automaticamente"
-              >
-                <DatePicker
-                  style={{ width: '100%' }}
-                  format="DD/MM/YYYY"
-                  placeholder="Seleccione fecha"
-                />
-              </Form.Item>
-              {edadCalculada && (
-                <Text type="success" style={{ fontSize: 12 }}>
-                  Edad: {edadCalculada}
-                </Text>
-              )}
-            </Col>
-
-            <Col span={6}>
-              <Form.Item
-                name="ci"
-                label="Cedula de Identidad"
-                rules={[
-                  {
-                    pattern: /^[0-9-]*$/,
-                    message: 'Solo numeros y guiones',
-                  },
-                ]}
-                tooltip="Documento de identidad del paciente"
-              >
-                <Input prefix={<IdcardOutlined />} placeholder="Ej: 12345678" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider orientation="left">Informacion de Contacto</Divider>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="telefono"
-                label="Telefono"
-                rules={[
-                  {
-                    pattern: /^[0-9+\-\s()]*$/,
-                    message: 'Solo numeros y simbolos telefonicos',
-                  },
-                ]}
-              >
-                <Input prefix={<PhoneOutlined />} placeholder="Ej: 70123456 o +591 70123456" />
-              </Form.Item>
-            </Col>
-
-            <Col span={12}>
-              <Form.Item
-                name="email"
-                label="Correo Electronico"
-                rules={[{ type: 'email', message: 'Email invalido' }]}
-              >
-                <Input prefix={<MailOutlined />} placeholder="correo@ejemplo.com" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="ciudad"
-                label="Ciudad"
-              >
-                <Input placeholder="Ciudad de residencia" />
-              </Form.Item>
-            </Col>
-
-            <Col span={12}>
-              <Form.Item
-                name="pais"
-                label="Pais"
-                initialValue="Bolivia"
-              >
-                <Input placeholder="Pais" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider orientation="left">Domicilio</Divider>
-
-          <Form.Item
-            name="direccion"
-            label="Direccion Completa"
-            tooltip="Direccion de residencia del paciente"
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder="Calle, numero, zona, ciudad. Ej: Av. 6 de Agosto #123, Zona Centro, La Paz"
-              maxLength={500}
-              showCount
-            />
-          </Form.Item>
-
-          <Divider orientation="left">Informacion Medica</Divider>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="tipo_sangre"
-                label="Tipo de Sangre"
-              >
-                <Select placeholder="Seleccione tipo de sangre">
-                  <Option value="O+">O+</Option>
-                  <Option value="O-">O-</Option>
-                  <Option value="A+">A+</Option>
-                  <Option value="A-">A-</Option>
-                  <Option value="B+">B+</Option>
-                  <Option value="B-">B-</Option>
-                  <Option value="AB+">AB+</Option>
-                  <Option value="AB-">AB-</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col span={8}>
-              <Form.Item
-                name="factor_rh"
-                label="Factor RH"
-              >
-                <Select placeholder="Seleccione factor RH">
-                  <Option value="positivo">Positivo</Option>
-                  <Option value="negativo">Negativo</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col span={8}>
-              <Form.Item
-                name="numero_seguro_social"
-                label="Numero de Seguro Social"
-                rules={[
-                  {
-                    pattern: /^[0-9-]*$/,
-                    message: 'Solo numeros y guiones',
-                  },
-                ]}
-                tooltip="Numero del seguro o afiliacion medica"
-              >
-                <Input placeholder="Ej: 123456789-0" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="peso_kg"
-                label="Peso (kg)"
-                rules={[
-                  {
-                    type: 'number',
-                    min: 20,
-                    max: 200,
-                    message: 'El peso debe estar entre 20 y 200 kg',
-                  },
-                ]}
-                tooltip="Peso actual del paciente en kilogramos"
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={20}
-                  max={200}
-                  step={0.1}
-                  placeholder="Ej: 65.5"
-                  prefix={<RiseOutlined />}
-                  onChange={calcularIMC}
-                />
-              </Form.Item>
-            </Col>
-
-            <Col span={8}>
-              <Form.Item
-                name="altura_cm"
-                label="Altura (cm)"
-                rules={[
-                  {
-                    type: 'number',
-                    min: 100,
-                    max: 220,
-                    message: 'La altura debe estar entre 100 y 220 cm',
-                  },
-                ]}
-                tooltip="Altura del paciente en centimetros"
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={100}
-                  max={220}
-                  step={0.1}
-                  placeholder="Ej: 165"
-                  prefix={<RiseOutlined />}
-                  onChange={calcularIMC}
-                />
-              </Form.Item>
-            </Col>
-
-            <Col span={8}>
-              {imcCalculado && (
-                <Alert
-                  message={imcCalculado}
-                  type="info"
-                  showIcon
-                  style={{ marginTop: 30 }}
-                />
-              )}
-            </Col>
-          </Row>
-
-          <Divider orientation="left">Estado Administrativo</Divider>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="estado_paciente"
-                label="Estado"
-              >
-                <Select placeholder="Seleccione estado">
-                  <Option value="activo">Activo</Option>
-                  <Option value="inactivo">Inactivo</Option>
-                  <Option value="trasladado">Trasladado</Option>
-                  <Option value="fallecido">Fallecido</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col span={12}>
-              <Form.Item
-                name="fecha_baja"
-                label="Fecha de Baja (si aplica)"
-                tooltip="Solo si el paciente esta inactivo"
-              >
-                <DatePicker
-                  style={{ width: '100%' }}
-                  format="DD/MM/YYYY"
-                  placeholder="Seleccione fecha"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider orientation="left">Contacto de Emergencia</Divider>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="contacto_emergencia_nombre"
-                label="Nombre"
-                rules={[
-                  {
-                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/,
-                    message: 'Solo letras y espacios',
-                  },
-                ]}
-              >
-                <Input prefix={<UserOutlined />} placeholder="Nombre del contacto" />
-              </Form.Item>
-            </Col>
-
-            <Col span={12}>
-              <Form.Item
-                name="contacto_emergencia_telefono"
-                label="Telefono"
-                rules={[
-                  {
-                    pattern: /^[0-9+\-\s()]*$/,
-                    message: 'Solo numeros y simbolos telefonicos',
-                  },
-                  {
-                    validator: (_, value) => {
-                      if (!value) return Promise.resolve();
-                      const clean = value.replace(/[\s\-()]/g, '');
-                      if (clean.length >= 7 && clean.length <= 8) return Promise.resolve();
-                      return Promise.reject(new Error('Telefono debe tener 7-8 digitos'));
-                    },
-                  },
-                ]}
-              >
-                <Input prefix={<PhoneOutlined />} placeholder="Ej: 70123456" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                name="contacto_emergencia_relacion"
-                label="Relacion con el Paciente"
-                rules={[
-                  {
-                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/,
-                    message: 'Solo letras y espacios',
-                  },
-                ]}
-              >
-                <Input placeholder="Ej: Madre, Esposo, Hermano, etc." />
-              </Form.Item>
-            </Col>
-          </Row>
+          {!isEditing && <SeccionConsentimientoPaciente />}
 
           <Form.Item style={{ marginBottom: 0 }}>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>

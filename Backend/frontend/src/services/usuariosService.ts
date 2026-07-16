@@ -7,6 +7,7 @@
  */
 
 import api from './api';
+import { logger } from '../utils/logger';
 
 // =================================================================================
 // INTERFACES
@@ -58,6 +59,7 @@ export interface Usuario {
   is_superuser: boolean;
   fecha_creacion?: string;
   fecha_modificacion?: string;
+  last_login?: string | null;
 
   // Relaciones
   horarios_atencion?: HorarioAtencion[];
@@ -409,7 +411,7 @@ export const usuariosService = {
   }): Promise<any> {
     try {
       const response = await api.get(`/usuarios/${id}/actividad/`, { params });
-      console.log(`✅ Actividad del usuario ${id} obtenida`);
+      logger.log(`✅ Actividad del usuario ${id} obtenida`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -479,8 +481,11 @@ export const horariosService = {
    */
   async getAll(params?: { usuario_id?: number }): Promise<HorarioAtencion[]> {
     try {
-      const response = await api.get<HorarioAtencion[]>('/usuarios/horarios/', { params });
-      return response.data;
+      const response = await api.get<any>('/usuarios/horarios/', { params });
+      const data = response.data;
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.results)) return data.results;
+      return [];
     } catch (error) {
       console.error('Error fetching horarios:', error);
       throw error;

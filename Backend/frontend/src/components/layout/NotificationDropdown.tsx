@@ -56,11 +56,12 @@ const NotificationDropdown: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) {
       cargarNotificaciones();
     }
-  }, [open]);
+  };
 
   const handleMarcarLeida = async (id: number) => {
     try {
@@ -154,7 +155,7 @@ const NotificationDropdown: React.FC = () => {
       popupRender={() => menuContent}
       trigger={['click']}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       placement="bottomRight"
       arrow
     >

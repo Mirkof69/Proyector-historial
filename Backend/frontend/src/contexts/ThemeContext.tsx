@@ -12,6 +12,15 @@ import React, { createContext, useState, useEffect, ReactNode, useContext } from
 // Tipos
 type Theme = 'light' | 'dark' | 'normal' | 'mocha';
 
+// Escala de fuente para accesibilidad (turnos largos, personal con presbicia).
+// Se persiste y multiplica el token fontSize de Ant Design.
+export type FontScale = 'normal' | 'grande' | 'extra';
+export const FONT_SCALE_FACTOR: Record<FontScale, number> = {
+  normal: 1,
+  grande: 1.15,
+  extra: 1.3,
+};
+
 interface ThemeColors {
   primary: string;
   secondary: string;
@@ -38,6 +47,9 @@ interface ThemeContextType {
   themeName: Theme;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
+  fontScale: FontScale;
+  fontScaleFactor: number;
+  setFontScale: (scale: FontScale) => void;
 }
 
 // Definición de colores para cada tema
@@ -201,6 +213,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     setThemeState(newTheme);
   };
 
+  // ── Escala de fuente (accesibilidad) ──────────────────────────────────────
+  const [fontScale, setFontScaleState] = useState<FontScale>(() => {
+    const saved = localStorage.getItem('app-font-scale') as FontScale | null;
+    return saved && saved in FONT_SCALE_FACTOR ? saved : 'normal';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('app-font-scale', fontScale);
+    document.documentElement.setAttribute('data-font-scale', fontScale);
+  }, [fontScale]);
+
+  const setFontScale = (scale: FontScale) => setFontScaleState(scale);
+
   // Crear objeto de tema completo
   const themeObject: ThemeObject = {
     name: theme,
@@ -212,7 +237,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     theme: themeObject,
     themeName: theme,
     toggleTheme,
-    setTheme
+    setTheme,
+    fontScale,
+    fontScaleFactor: FONT_SCALE_FACTOR[fontScale],
+    setFontScale
   };
 
   return (

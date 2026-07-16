@@ -87,6 +87,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
         dataSource={vacunas.slice().sort((a, b) =>
           dayjs(b.fecha_aplicacion).diff(dayjs(a.fecha_aplicacion))
         )}
+        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin vacunas registradas" /> }}
         rowKey="id"
         columns={[
           {

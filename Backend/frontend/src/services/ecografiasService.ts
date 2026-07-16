@@ -131,6 +131,7 @@ export interface Ecografia {
   requiere_seguimiento?: boolean;
   estado_liquido_amniotico?: 'normal' | 'disminuido' | 'aumentado';
   tiene_alertas?: boolean;
+  tiene_analisis_ia?: boolean;
   alertas?: any[];
   fecha_creacion?: string;
   fecha_registro?: string; // Fecha de registro del estudio
@@ -265,7 +266,7 @@ export const ecografiasService = {
   },
 
   obtenerPorPaciente: async (paciente_id: number) => {
-    const response = await api.get(`/ecografias/?paciente_id=${paciente_id}`);
+    const response = await api.get(`/ecografias/?paciente=${paciente_id}`);
     return response.data;
   },
 

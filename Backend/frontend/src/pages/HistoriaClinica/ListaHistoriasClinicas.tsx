@@ -8,10 +8,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
 import {
-  Card, Table, Button, Input, Tag, Space, Tooltip, message, Badge,
-  Row, Col, Statistic
-} from 'antd';
+  Empty,Card, Table, Button, Input, Tag, Space, Tooltip, Badge,
+  Row, Col, Statistic} from 'antd';
 import {
   FileTextOutlined, EyeOutlined, PlusOutlined, SearchOutlined,
   CheckCircleOutlined, WarningOutlined
@@ -20,19 +20,21 @@ import { useNavigate } from 'react-router-dom';
 import { pacientesService, Paciente } from '../../services/pacientesService';
 
 const ListaHistoriasClinicas: React.FC = () => {
+  const { message } = useAntdApp();
   const navigate = useNavigate();
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [pacientes, setPacientes] = useState<Paciente[] | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean | undefined>(undefined);
   const [searchText, setSearchText] = useState('');
 
   // Estadísticas
   const stats = {
-    total: pacientes.length,
-    conHistoria: pacientes.filter(p => p.tiene_historia_clinica).length,
-    sinHistoria: pacientes.filter(p => !p.tiene_historia_clinica).length,
-    embarazadas: pacientes.filter(p => p.embarazo_activo).length,
+    total: pacientes?.length || 0,
+    conHistoria: pacientes?.filter(p => p.tiene_historia_clinica).length || 0,
+    sinHistoria: pacientes?.filter(p => !p.tiene_historia_clinica).length || 0,
+    embarazadas: pacientes?.filter(p => p.embarazo_activo).length || 0,
   };
 
+  // eslint-disable-next-line react-doctor/no-initialize-state
   useEffect(() => {
     cargarPacientes();
   }, []);
@@ -60,7 +62,7 @@ const ListaHistoriasClinicas: React.FC = () => {
     }
   };
 
-  const filteredPacientes = pacientes.filter(p =>
+  const filteredPacientes = (pacientes || []).filter(p =>
     p.nombre_completo?.toLowerCase().includes(searchText.toLowerCase()) ||
     p.numero_documento?.includes(searchText) ||
     p.numero_historia?.includes(searchText)
@@ -170,7 +172,7 @@ const ListaHistoriasClinicas: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-container" style={{ padding: 24 }}>
       {/* Header */}
       <Card style={{ marginBottom: 24 }}>
         <Row align="middle" justify="space-between">
@@ -251,6 +253,7 @@ const ListaHistoriasClinicas: React.FC = () => {
         <Table
           columns={columns}
           dataSource={filteredPacientes}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay historias clínicas registradas" /> }}
           loading={loading}
           rowKey="id"
           pagination={{

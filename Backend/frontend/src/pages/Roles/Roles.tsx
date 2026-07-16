@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Switch } from 'antd';
+import { Card, Table, Button, Space, Tag, Switch, Popconfirm, Empty } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import rolesService from '../../services/rolesService';
 
 interface Rol {
   id: number;
@@ -23,31 +24,8 @@ const Roles: React.FC = () => {
   const cargarRoles = useCallback(async () => {
     setLoading(true);
     try {
-      const datosEjemplo: Rol[] = [
-        {
-          id: 1,
-          nombre: 'Administrador',
-          descripcion: 'Acceso completo al sistema',
-          permisos: ['all'],
-          activo: true
-        },
-        {
-          id: 2,
-          nombre: 'Médico',
-          descripcion: 'Acceso a pacientes y controles',
-          permisos: ['view_paciente', 'add_control', 'view_embarazo'],
-          activo: true
-        },
-        {
-          id: 3,
-          nombre: 'Enfermera',
-          descripcion: 'Acceso a triaje y signos vitales',
-          permisos: ['view_paciente', 'add_triaje', 'view_cita'],
-          activo: true
-        }
-      ];
-      setRoles(datosEjemplo);
-      message.success('Roles cargados');
+      const data = await rolesService.listar();
+      setRoles(data);
     } catch (error) {
       message.error('Error al cargar roles');
     } finally {
@@ -58,6 +36,28 @@ const Roles: React.FC = () => {
   useEffect(() => {
     cargarRoles();
   }, [cargarRoles]);
+
+  const handleEliminarRol = async (id: number) => {
+    try {
+      await rolesService.eliminar(id);
+      message.success('Rol eliminado correctamente');
+      cargarRoles();
+    } catch (error) {
+      message.error('Error al eliminar el rol');
+    }
+  };
+
+  const handleToggleActivo = async (record: Rol, activo: boolean) => {
+    try {
+      // El endpoint usa PUT (reemplazo completo), no PATCH: hay que mandar
+      // el registro completo, no solo el campo que cambió.
+      await rolesService.actualizar(record.id, { ...record, activo });
+      setRoles(prev => prev.map(r => r.id === record.id ? { ...r, activo } : r));
+      message.success(`Rol ${activo ? 'activado' : 'desactivado'} correctamente`);
+    } catch (error) {
+      message.error('Error al actualizar el estado del rol');
+    }
+  };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
@@ -90,7 +90,9 @@ const Roles: React.FC = () => {
       title: 'Activo',
       dataIndex: 'activo',
       key: 'activo',
-      render: (activo: boolean) => <Switch checked={activo} />
+      render: (activo: boolean, record: Rol) => (
+        <Switch checked={activo} onChange={(checked) => handleToggleActivo(record, checked)} />
+      )
     },
     {
       title: 'Acciones',
@@ -99,14 +101,22 @@ const Roles: React.FC = () => {
         <Space>
           <Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/dashboard/roles/${record.id}`)} />
           <Button size="small" icon={<EditOutlined />} onClick={() => navigate(`/dashboard/roles/${record.id}/editar`)} />
-          <Button size="small" danger icon={<DeleteOutlined />} />
+          <Popconfirm
+            title="¿Eliminar este rol?"
+            description="Esta acción no se puede deshacer."
+            okText="Sí, eliminar"
+            cancelText="Cancelar"
+            onConfirm={() => handleEliminarRol(record.id)}
+          >
+            <Button size="small" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
         </Space>
       )
     }
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-container" style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <h1><SafetyOutlined /> Roles y Permisos</h1>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/roles/nuevo')}>
@@ -114,7 +124,7 @@ const Roles: React.FC = () => {
         </Button>
       </div>
       <Card>
-        <Table columns={columns} dataSource={roles} loading={loading} rowKey="id" />
+        <Table columns={columns} dataSource={roles} loading={loading} rowKey="id" locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay roles configurados" /> }} />
       </Card>
     </div>
   );

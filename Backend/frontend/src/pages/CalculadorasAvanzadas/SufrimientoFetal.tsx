@@ -362,52 +362,13 @@ const calcularSufrimiento = (datos: DatosSufrimiento): ResultadoSufrimiento => {
 // COMPONENTE PRINCIPAL
 // ============================================
 
-const _datosEjemploSufrimiento: DatosSufrimiento = {
-  fcf_basal: 140,
-  variabilidad_fcf: 12,
-  aceleraciones_20min: 3,
-  desaceleraciones_tipo: 'ninguna',
-  contracciones_10min: 3,
-  nst_reactivo: true,
-  movimientos_respiratorios: true,
-  movimientos_corporales: true,
-  tono_fetal: true,
-  volumen_liquido: 12,
-  arteria_umbilical_pi: 0.85,
-  arteria_umbilical_ri: 0.65,
-  arteria_cerebral_media_pi: 1.8,
-  ductus_venoso_normal: true,
-  edad_gestacional: 37,
-  oligohidramnios: false,
-  peso_estimado_percentil: 55
-};
-
-const _historialEjemploSufrimiento: RegistroSufrimiento[] = [
-  {
-    fecha: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-    bpp_score: 10,
-    ctg_categoria: 'Categoría I - Normal',
-    nivel_riesgo: '🟢 BIENESTAR FETAL NORMAL'
-  },
-  {
-    fecha: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toLocaleString('es-ES'),
-    bpp_score: 10,
-    ctg_categoria: 'Categoría I - Normal',
-    nivel_riesgo: '🟢 BIENESTAR FETAL NORMAL'
-  }
-];
-
 const SufrimientoFetal: React.FC = () => {
   const [form] = Form.useForm();
-  const [resultado, setResultado] = useState<ResultadoSufrimiento | null>(() => calcularSufrimiento(_datosEjemploSufrimiento));
-  const [historial, setHistorial] = useState<RegistroSufrimiento[]>(_historialEjemploSufrimiento);
+  const [resultado, setResultado] = useState<ResultadoSufrimiento | null>(null);
+  const [historial, setHistorial] = useState<RegistroSufrimiento[]>([]);
   const [loading, setLoading] = useState(false);
-  const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(true);
 
   const onFinish = (valores: any) => {
-    // Cambiar a modo de datos reales
-    setUsandoDatosEjemplo(false);
-
     setLoading(true);
 
     const datos: DatosSufrimiento = {
@@ -452,7 +413,6 @@ const SufrimientoFetal: React.FC = () => {
           <>
             <HeartOutlined style={{ marginRight: 8, color: '#eb2f96' }} />
             Evaluación Integral de Bienestar Fetal
-            {usandoDatosEjemplo && <Tag color="blue" style={{ marginLeft: 8 }}>Datos de Ejemplo</Tag>}
           </>
         }
       >

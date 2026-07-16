@@ -28,6 +28,14 @@ interface DateRangeSelectorProps {
     showCompare?: boolean;
 }
 
+const presets = [
+    { key: 'today', label: 'Hoy', icon: <ClockCircleOutlined /> },
+    { key: 'week', label: 'Última Semana', icon: <CalendarOutlined /> },
+    { key: 'month', label: 'Último Mes', icon: <CalendarOutlined /> },
+    { key: 'quarter', label: 'Último Trimestre', icon: <CalendarOutlined /> },
+    { key: 'year', label: 'Último Año', icon: <CalendarOutlined /> },
+];
+
 const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
     onChange,
     defaultPreset = 'month',
@@ -98,13 +106,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
         }
     };
 
-    const presets = [
-        { key: 'today', label: 'Hoy', icon: <ClockCircleOutlined /> },
-        { key: 'week', label: 'Última Semana', icon: <CalendarOutlined /> },
-        { key: 'month', label: 'Último Mes', icon: <CalendarOutlined /> },
-        { key: 'quarter', label: 'Último Trimestre', icon: <CalendarOutlined /> },
-        { key: 'year', label: 'Último Año', icon: <CalendarOutlined /> },
-    ];
+
 
     return (
         <div className="date-range-selector">
