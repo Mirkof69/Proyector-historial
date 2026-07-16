@@ -20,6 +20,7 @@ env/
 
 # Django
 *.log
+*.err
 logs/
 staticfiles/
 media/
@@ -73,3 +74,8 @@ docs/*.pdf
 *.tmp
 *.bak
 *.cache
+
+# Certificados mTLS (claves privadas, generados por scripts/generate_mtls_certs.sh)
+scripts/certs/
+*.key
+*.csr

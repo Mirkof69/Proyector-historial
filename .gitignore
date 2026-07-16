@@ -36,7 +36,12 @@ Backend/frontend/.next/
 Backend/staticfiles/
 Backend/logs/
 *.log
+*.err
+*.bak
 *.sqlite3
+
+# ─── Archivo histórico local (no se commitea) ───
+_archive/
 
 # ─── Media & Uploads ───
 Backend/media/
@@ -83,3 +88,17 @@ zip/*.rar
 *.zip
 *.rar
 zip/docs/diagrama uml png/*.png
+zip/material de investigacion/
+
+# ─── Datos locales / workspace (NUNCA commitear) ───
+nuveos data seeds/
+Backend/backups/
+Backend/Microservicio_IA/training_logs/
+.claude/
+**/.claude/
+**/.agents/
+
+# ─── Reportes de diagnóstico generados ───
+Backend/frontend/diagnostics_*.txt
+Backend/frontend/doctor_verbose*.txt
+Backend/frontend/react-doctor-report.json
