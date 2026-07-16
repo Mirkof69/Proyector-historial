@@ -16,7 +16,7 @@ const IMCHistorial: React.FC<IMCHistorialProps> = ({ historial, promedioGanancia
 
     <Row gutter={16} style={{ marginBottom: 24 }}>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="Total Mediciones"
             value={historial.length}
@@ -26,7 +26,7 @@ const IMCHistorial: React.FC<IMCHistorialProps> = ({ historial, promedioGanancia
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="Ganancia Promedio"
             value={promedioGanancia}
@@ -36,7 +36,7 @@ const IMCHistorial: React.FC<IMCHistorialProps> = ({ historial, promedioGanancia
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="% Ganancia Adecuada"
             value={tasaAdecuada}
@@ -46,7 +46,7 @@ const IMCHistorial: React.FC<IMCHistorialProps> = ({ historial, promedioGanancia
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="Último Registro"
             value={historial[0]?.semanas || 0}
@@ -57,7 +57,7 @@ const IMCHistorial: React.FC<IMCHistorialProps> = ({ historial, promedioGanancia
       </Col>
     </Row>
 
-    <Card title="Historial de Mediciones" bordered={false}>
+    <Card title="Historial de Mediciones" variant="borderless">
       <Table
         columns={columnsIMC}
         dataSource={historial}

@@ -22,7 +22,7 @@ interface DetallePacienteTabsProps {
 const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
   embarazos, triajes, notasEvolucion, vacunas, antecedentes, ecografias, navigate,
 }) => (
-  <Card bordered={false}>
+  <Card variant="borderless">
     <Tabs
       defaultActiveKey="1"
       items={[

@@ -14,7 +14,7 @@ interface DetallePacienteInfoProps {
 const DetallePacienteInfo: React.FC<DetallePacienteInfoProps> = ({ paciente }) => (
   <>
     <Col span={24}>
-      <Card title={<span><UserOutlined /> Información Personal</span>} bordered={false}>
+      <Card title={<span><UserOutlined /> Información Personal</span>} variant="borderless">
         <Descriptions bordered column={{ xxl: 4, xl: 3, lg: 3, md: 2, sm: 1, xs: 1 }}>
           <Descriptions.Item label="ID Clínico"><strong>{paciente.id_clinico}</strong></Descriptions.Item>
           <Descriptions.Item label="Cédula de Identidad">{paciente.ci}</Descriptions.Item>
@@ -28,7 +28,7 @@ const DetallePacienteInfo: React.FC<DetallePacienteInfoProps> = ({ paciente }) =
             </Space>
           </Descriptions.Item>
           <Descriptions.Item label="Email">{paciente.email || '-'}</Descriptions.Item>
-          <Descriptions.Item label="Dirección" span={2}>
+          <Descriptions.Item label="Dirección" span="filled">
             <Space>
               <HomeOutlined /> {paciente.direccion || '-'}
             </Space>
@@ -47,7 +47,7 @@ const DetallePacienteInfo: React.FC<DetallePacienteInfoProps> = ({ paciente }) =
     </Col>
 
     <Col span={24}>
-      <Card title={<span><HeartOutlined /> Información Médica</span>} bordered={false}>
+      <Card title={<span><HeartOutlined /> Información Médica</span>} variant="borderless">
         <Descriptions bordered column={{ xxl: 4, xl: 3, lg: 3, md: 2, sm: 1, xs: 1 }}>
           <Descriptions.Item label="Peso">
             {paciente.peso_kg ? <Text strong>{paciente.peso_kg} kg</Text> : <Text type="secondary">No registrado</Text>}
@@ -55,7 +55,7 @@ const DetallePacienteInfo: React.FC<DetallePacienteInfoProps> = ({ paciente }) =
           <Descriptions.Item label="Altura">
             {paciente.altura_cm ? <Text strong>{paciente.altura_cm} cm</Text> : <Text type="secondary">No registrado</Text>}
           </Descriptions.Item>
-          <Descriptions.Item label="IMC" span={2}>
+          <Descriptions.Item label="IMC" span="filled">
             {paciente.imc ? (
               <Space>
                 <Text strong style={{ fontSize: '16px' }}>{paciente.imc.toFixed(1)}</Text>
@@ -73,10 +73,10 @@ const DetallePacienteInfo: React.FC<DetallePacienteInfoProps> = ({ paciente }) =
               <Text type="secondary">No disponible</Text>
             )}
           </Descriptions.Item>
-          <Descriptions.Item label="Alergias" span={3}>
+          <Descriptions.Item label="Alergias" span="filled">
             {paciente.alergias || 'Ninguna registrada'}
           </Descriptions.Item>
-          <Descriptions.Item label="Enfermedades Crónicas" span={3}>
+          <Descriptions.Item label="Enfermedades Crónicas" span="filled">
             {paciente.enfermedades_cronicas || 'Ninguna registrada'}
           </Descriptions.Item>
           <Descriptions.Item label="Contacto Emergencia">

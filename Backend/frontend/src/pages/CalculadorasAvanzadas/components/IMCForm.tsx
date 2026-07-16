@@ -10,7 +10,7 @@ interface IMCFormProps {
 }
 
 const IMCForm: React.FC<IMCFormProps> = ({ form, onFinish }) => (
-  <Card title="Datos de la Paciente" bordered={false}>
+  <Card title="Datos de la Paciente" variant="borderless">
     <Form form={form} layout="vertical" onFinish={onFinish}>
       <Form.Item
         label="Peso Pregestacional (kg)"

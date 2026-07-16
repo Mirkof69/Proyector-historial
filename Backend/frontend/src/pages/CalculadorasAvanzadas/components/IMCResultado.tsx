@@ -15,7 +15,7 @@ const IMCResultado: React.FC<IMCResultadoProps> = ({ resultado, values }) => (
     {/* Estadísticas principales */}
     <Row gutter={16}>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="IMC Pregestacional"
             value={resultado.imc_pregestacional.toFixed(1)}
@@ -28,7 +28,7 @@ const IMCResultado: React.FC<IMCResultadoProps> = ({ resultado, values }) => (
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="Ganancia Actual"
             value={resultado.ganancia_actual.toFixed(1)}
@@ -42,7 +42,7 @@ const IMCResultado: React.FC<IMCResultadoProps> = ({ resultado, values }) => (
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="Rango Recomendado"
             value={`${resultado.ganancia_recomendada_min}-${resultado.ganancia_recomendada_max}`}
@@ -55,7 +55,7 @@ const IMCResultado: React.FC<IMCResultadoProps> = ({ resultado, values }) => (
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card bordered={false}>
+        <Card variant="borderless">
           <Statistic
             title="Percentil Ganancia"
             value={`P${resultado.percentil_ganancia}`}

@@ -211,7 +211,7 @@ const BELL_ICON_2 = <BellOutlined />;
         filtros={filtros}
         dispatchFiltros={dispatchFiltros}
         filteredCount={filteredNotificaciones.length}
-        total={notificaciones.length}
+        total={stats.total}
       />
 
       <div className="notifications-table-card">

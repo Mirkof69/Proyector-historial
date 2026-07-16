@@ -26,7 +26,7 @@ const IMCGraficas: React.FC<IMCGraficasProps> = ({ values, resultado, historial 
     <Row gutter={[16, 16]}>
       {/* Curvas de ganancia ponderal */}
       <Col xs={24} lg={12}>
-        <Card title="Curvas de Ganancia Ponderal (Percentiles)" bordered={false}>
+        <Card title="Curvas de Ganancia Ponderal (Percentiles)" variant="borderless">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={getCurvasGanancia(values, resultado)}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -48,7 +48,7 @@ const IMCGraficas: React.FC<IMCGraficasProps> = ({ values, resultado, historial 
 
       {/* Comparación por trimestre */}
       <Col xs={24} lg={12}>
-        <Card title="Ganancia por Trimestre vs Recomendado" bordered={false}>
+        <Card title="Ganancia por Trimestre vs Recomendado" variant="borderless">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={getComparacionTrimestre(values, resultado)}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -70,7 +70,7 @@ const IMCGraficas: React.FC<IMCGraficasProps> = ({ values, resultado, historial 
 
       {/* Distribución de componentes del peso */}
       <Col xs={24} lg={12}>
-        <Card title="Componentes de la Ganancia de Peso" bordered={false}>
+        <Card title="Componentes de la Ganancia de Peso" variant="borderless">
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -99,7 +99,7 @@ const IMCGraficas: React.FC<IMCGraficasProps> = ({ values, resultado, historial 
 
       {/* Evolución temporal del IMC */}
       <Col xs={24} lg={12}>
-        <Card title="Evolución del Peso Gestacional" bordered={false}>
+        <Card title="Evolución del Peso Gestacional" variant="borderless">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={getEvolucionIMC(historial)}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -124,7 +124,7 @@ const IMCGraficas: React.FC<IMCGraficasProps> = ({ values, resultado, historial 
           <>
             Tendencia Acumulada de Ganancia Ponderal
           </>
-        } bordered={false}>
+        } variant="borderless">
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={getCurvasGanancia(values, resultado)}>
               <CartesianGrid strokeDasharray="3 3" />
