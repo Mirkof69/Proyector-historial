@@ -62,15 +62,12 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
             size="large"
             icon={USER_ICON}
             src={record.foto_perfil}
-            style={{
-              backgroundColor: record.genero === 'femenino' ? '#ffadd2' : token.colorPrimary,
-              marginRight: 12
-            }}
+            style={{ backgroundColor: '#ffadd2', marginRight: 12 }}
           />
           <div>
             <Text strong style={{ fontSize: 15 }}>{record.nombre_completo}</Text>
             <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
-              {record.edad} años • {record.genero === 'femenino' ? 'Mujer' : 'Hombre'}
+              {record.edad} años
             </div>
           </div>
         </div>

@@ -34,7 +34,6 @@ const BusquedaAvanzada: React.FC = () => {
             }
             if (values.edad_min) payload.edad_min = values.edad_min;
             if (values.edad_max) payload.edad_max = values.edad_max;
-            if (values.genero) payload.genero = values.genero;
             if (values.estado_civil) payload.estado_civil = values.estado_civil;
             if (values.embarazo_activo !== undefined) payload.embarazo_activo = values.embarazo_activo;
             if (values.riesgo_alto !== undefined) payload.riesgo_alto = values.riesgo_alto;
@@ -61,7 +60,6 @@ const BusquedaAvanzada: React.FC = () => {
         { title: 'Nombre Completo', key: 'nombre', render: (r: any) => `${r.nombre} ${r.apellido_paterno} ${r.apellido_materno || ''}` },
         { title: 'CI', dataIndex: 'ci', key: 'ci', width: 120 },
         { title: 'Edad', key: 'edad', render: (r: any) => `${r.edad || 'N/A'} años`, width: 80 },
-        { title: 'Género', dataIndex: 'genero', key: 'genero', width: 100, render: (g: string) => <Tag color={g === 'femenino' ? 'pink' : 'blue'}>{g}</Tag> },
         { title: 'Teléfono', dataIndex: 'telefono', key: 'telefono', width: 120 },
         {
             title: 'Acciones', key: 'acciones', width: 100, render: (r: any) => (
@@ -86,15 +84,8 @@ const BusquedaAvanzada: React.FC = () => {
                         <Col span={6}><Form.Item label="Edad Máxima" name="edad_max"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
                     </Row>
 
+                    {/* Sin filtro de género: todas las pacientes son femeninas. */}
                     <Row gutter={16}>
-                        <Col span={8}>
-                            <Form.Item label="Género" name="genero">
-                                <Select placeholder="Seleccionar" allowClear>
-                                    <Option value="femenino">Femenino</Option>
-                                    <Option value="masculino">Masculino</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
                         <Col span={8}>
                             <Form.Item label="Estado Civil" name="estado_civil">
                                 <Select placeholder="Seleccionar" allowClear>

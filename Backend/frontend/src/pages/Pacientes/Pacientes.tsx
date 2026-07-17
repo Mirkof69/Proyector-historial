@@ -612,18 +612,9 @@ const Pacientes: React.FC = () => {
                 {/* Panel de Filtros Avanzados (Colapsable) */}
                 {showFilters && (
                     <div style={{ marginTop: 20, paddingTop: 20, borderTop: `1px solid ${token.colorBorderSecondary}` }} className="animate-slide-down">
+                        {/* Sin filtro de género: todas las pacientes son femeninas
+                            (sistema exclusivamente gineco-obstétrico). */}
                         <Row gutter={[16, 16]}>
-                            <Col span={6}>
-                                <Select
-                                    placeholder="Género"
-                                    style={{ width: '100%' }}
-                                    allowClear
-                                    onChange={(val) => setFilters(prev => ({ ...prev, genero: val }))}
-                                >
-                                    <Option value="femenino">Femenino</Option>
-                                    <Option value="masculino">Masculino</Option>
-                                </Select>
-                            </Col>
                             <Col span={6}>
                                 <Input
                                     placeholder="Ciudad"

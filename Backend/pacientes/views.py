@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 
 from django.conf import settings as _settings
 from django.core.cache import cache
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -66,7 +66,8 @@ class PacienteViewSet(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter,
     ]
-    filterset_fields = ["genero", "activo"]
+    # Sin filtro por genero: todas las pacientes son femeninas.
+    filterset_fields = ["activo"]
     search_fields = ["nombre", "apellido_paterno", "apellido_materno", "id_clinico"]
     ordering_fields = ["fecha_registro", "nombre", "apellido_paterno"]
 
@@ -354,13 +355,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
         activos = Paciente.objects.filter(activo=True).count()
         inactivos = total - activos
 
-        # Por genero
-        por_genero = (
-            Paciente.objects.filter(activo=True)
-            .values("genero")
-            .annotate(total=Count("id"))
-        )
-
         # Con embarazos activos
         con_embarazos = (
             Paciente.objects.filter(embarazos__estado="activo", activo=True)
@@ -368,11 +362,12 @@ class PacienteViewSet(viewsets.ModelViewSet):
             .count()
         )
 
+        # Sin desglose por genero: el sistema es exclusivamente gineco-obstetrico,
+        # todas las pacientes son femeninas (agrupacion de un solo valor).
         result = {
             "total_pacientes": total,
             "activos": activos,
             "inactivos": inactivos,
-            "por_genero": list(por_genero),
             "con_embarazos_activos": con_embarazos,
         }
 
@@ -418,7 +413,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
             "fecha_hasta": "YYYY-MM-DD",
             "edad_min": int,
             "edad_max": int,
-            "genero": "femenino|masculino",
             "estado_civil": "string",
             "embarazo_activo": bool,
             "riesgo_alto": bool
@@ -433,7 +427,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
         fecha_hasta = request.data.get("fecha_hasta")
         edad_min = request.data.get("edad_min")
         edad_max = request.data.get("edad_max")
-        genero = request.data.get("genero")
         estado_civil = request.data.get("estado_civil")
         embarazo_activo = request.data.get("embarazo_activo")
         riesgo_alto = request.data.get("riesgo_alto")
@@ -467,10 +460,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
             if edad_min:
                 fecha_max = today - timedelta(days=int(edad_min) * 365.25)
                 queryset = queryset.filter(fecha_nacimiento__lte=fecha_max)
-
-        # Género
-        if genero:
-            queryset = queryset.filter(genero=genero)
 
         # Estado civil
         if estado_civil:

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, Input, DatePicker, Row, Col, Select, Typography, Divider } from 'antd';
-import { UserOutlined, PhoneOutlined, MailOutlined, IdcardOutlined } from '@ant-design/icons';
+import { UserOutlined, PhoneOutlined, MailOutlined, IdcardOutlined, WomanOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -66,16 +66,21 @@ const SeccionDatosContactoPaciente: React.FC<SeccionDatosContactoPacienteProps> 
 
     <Row gutter={16}>
       <Col span={6}>
+        {/* Sistema exclusivamente gineco-obstetrico: la paciente siempre es
+            femenina. Campo fijo y no editable (no un selector de una opcion).
+            El sexo del RECIEN NACIDO es otro campo (RecienNacido.sexo) y si
+            admite masculino/femenino. */}
         <Form.Item
           name="genero"
-          label="Genero"
-          rules={[{ required: true, message: 'Seleccione el genero' }]}
+          label="Género"
+          initialValue="femenino"
+          tooltip="El sistema atiende exclusivamente pacientes gineco-obstétricas"
         >
-          <Select placeholder="Seleccione genero">
-            <Option value="femenino">Femenino</Option>
-            <Option value="masculino">Masculino</Option>
-            <Option value="otro">Otro</Option>
-          </Select>
+          <Input
+            disabled
+            value="Femenino"
+            prefix={<WomanOutlined />}
+          />
         </Form.Item>
       </Col>
 
