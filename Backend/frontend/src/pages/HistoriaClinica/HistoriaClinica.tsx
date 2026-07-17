@@ -405,7 +405,7 @@ const HistoriaClinica: React.FC = () => {
         acciones_recomendadas: ['Revisar resultados', 'Correlacionar con clínica', 'Considerar repetir exámenes']
       });
     }
-    if (((paciente as any)?.grupo_sanguineo || paciente?.tipo_sangre) && paciente?.factor_rh === '-' && !laboratorios.some(l => l.tipo_examen.includes('Coombs'))) {
+    if (((paciente as any)?.grupo_sanguineo || paciente?.tipo_sangre) && paciente?.factor_rh === '-' && !laboratorios.some(l => String(l.tipo_examen || '').includes('Coombs'))) {
       list.push({
         id: `alerta-${Date.now()}-3`,
         tipo: 'WARNING',
@@ -423,7 +423,10 @@ const HistoriaClinica: React.FC = () => {
       const { semanas } = calcularEGActual();
 
       // Alerta para ecografía morfológica
-      if (semanas >= 18 && semanas <= 23 && !ecografias.some(e => e.tipo.includes('Morfológica'))) {
+      // El campo de la API es tipo_ecografia; e.tipo era undefined y con una
+      // eco cargada entre las semanas 18-23 tiraba TODA la historia clínica
+      // al ErrorBoundary (cazado creando el flujo completo por UI).
+      if (semanas >= 18 && semanas <= 23 && !ecografias.some(e => String((e as any).tipo_ecografia || e.tipo || '').includes('Morfológica'))) {
         list.push({
           id: `alerta-${Date.now()}-4`,
           tipo: 'INFO',
@@ -793,7 +796,7 @@ const HistoriaClinica: React.FC = () => {
 
     // Recordatorios de vacunas pendientes
     VACUNAS_EMBARAZO.forEach(vacuna => {
-      if (vacuna.obligatoria && !vacunas.some(v => v.nombre.includes(vacuna.nombre.split(' ')[0]))) {
+      if (vacuna.obligatoria && !vacunas.some(v => String(v.nombre || '').includes(vacuna.nombre.split(' ')[0]))) {
         nuevosRecordatorios.push({
           id: `rec-${Date.now()}-vac-${vacuna.nombre}`,
           tipo: 'VACUNA',

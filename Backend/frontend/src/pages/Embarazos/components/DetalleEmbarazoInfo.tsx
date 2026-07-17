@@ -49,7 +49,7 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
   >
     <Descriptions bordered column={2} size="middle">
       {/* INFORMACIÓN DE LA PACIENTE */}
-      <Descriptions.Item label={<><UserOutlined /> Paciente</>} span={2}>
+      <Descriptions.Item label={<><UserOutlined /> Paciente</>} span="filled">
         <Space>
           <Text strong style={{ fontSize: 16 }}>
             {nombrePaciente}
@@ -99,7 +99,7 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
       </Descriptions.Item>
 
       {/* EDAD GESTACIONAL */}
-      <Descriptions.Item label="Edad Gestacional Actual" span={2}>
+      <Descriptions.Item label="Edad Gestacional Actual" span="filled">
         <Space size="large">
           <Text strong style={{ fontSize: '18px', color: '#1890ff' }}>
             {eg.texto}
@@ -111,7 +111,7 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
       </Descriptions.Item>
 
       {/* PROGRESO */}
-      <Descriptions.Item label="Progreso del Embarazo" span={2}>
+      <Descriptions.Item label="Progreso del Embarazo" span="filled">
         <Space direction="vertical" style={{ width: '100%' }}>
           <Progress
             percent={progreso}
@@ -149,7 +149,7 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
       )}
 
       {embarazo.imc_pregestacional && imcClasificacion && (
-        <Descriptions.Item label="IMC Pregestacional" span={2}>
+        <Descriptions.Item label="IMC Pregestacional" span="filled">
           <Space>
             <Text strong>{embarazo.imc_pregestacional.toFixed(2)}</Text>
             <Tag color={imcClasificacion.color}>{imcClasificacion.texto}</Tag>
@@ -159,19 +159,19 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
 
       {/* OTROS DATOS */}
       {embarazo.grupo_sanguineo_pareja && (
-        <Descriptions.Item label="Grupo Sanguíneo Pareja" span={2}>
+        <Descriptions.Item label="Grupo Sanguíneo Pareja" span="filled">
           <Tag color="red">{embarazo.grupo_sanguineo_pareja}</Tag>
         </Descriptions.Item>
       )}
 
       {embarazo.medico_responsable && (
-        <Descriptions.Item label="Médico Responsable" span={2}>
+        <Descriptions.Item label="Médico Responsable" span="filled">
           <Text>{embarazo.medico_responsable}</Text>
         </Descriptions.Item>
       )}
 
       {embarazo.notas && (
-        <Descriptions.Item label="Observaciones Clínicas" span={2}>
+        <Descriptions.Item label="Observaciones Clínicas" span="filled">
           <Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
             {embarazo.notas}
           </Paragraph>
@@ -179,7 +179,7 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
       )}
 
       {/* METADATOS */}
-      <Descriptions.Item label="Fecha de Registro" span={2}>
+      <Descriptions.Item label="Fecha de Registro" span="filled">
         <Space>
           <CalendarOutlined />
           {embarazo.fecha_registro

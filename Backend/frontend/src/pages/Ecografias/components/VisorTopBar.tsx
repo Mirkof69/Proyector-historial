@@ -23,7 +23,7 @@ const VisorTopBar: React.FC<VisorTopBarProps> = ({
   <Card
     size="small"
     style={{ borderRadius: 0, background: '#141414' }}
-    bodyStyle={{ padding: '8px 16px' }}
+    styles={{ body: { padding: '8px 16px' } }}
   >
     <Row justify="space-between" align="middle">
       <Col>
