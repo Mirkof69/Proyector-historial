@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Form, Button, Card, Space, Row, Col, Alert, Typography } from 'antd';
-import { SaveOutlined, CloseOutlined, WarningOutlined, MedicineBoxOutlined } from '@ant-design/icons';
+import { Form, Button, Card, Space, Row, Col, Alert, Typography, Steps } from 'antd';
+import {
+    SaveOutlined, CloseOutlined, WarningOutlined, MedicineBoxOutlined,
+    UserOutlined, HeartOutlined, FileTextOutlined, ArrowLeftOutlined, ArrowRightOutlined,
+} from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { triajeService, TriajeEnfermeria } from '../../services/triajeService';
 import { pacientesService } from '../../services/pacientesService';
@@ -12,6 +15,35 @@ import SeccionMotivoTriaje from './components/SeccionMotivoTriaje';
 
 const { Title, Text } = Typography;
 
+// Flujo guiado: la enfermera avanza paso a paso y el sistema valida cada paso
+// antes de dejar avanzar — pensado para uso bajo presión (menos campos a la
+// vista = menos errores). Los campos de pasos ocultos siguen montados para no
+// perder valores.
+const PASOS_TRIAJE = [
+    {
+        titulo: 'Paciente',
+        descripcion: 'Identificación y prioridad',
+        icono: <UserOutlined />,
+        campos: ['paciente', 'prioridad', 'nivel_conciencia'],
+    },
+    {
+        titulo: 'Signos vitales',
+        descripcion: 'Medición y registro',
+        icono: <HeartOutlined />,
+        campos: [
+            'presion_sistolica', 'presion_diastolica', 'temperatura',
+            'frecuencia_cardiaca', 'frecuencia_respiratoria',
+            'saturacion_oxigeno', 'dolor_escala', 'peso_kg', 'talla_cm',
+        ],
+    },
+    {
+        titulo: 'Motivo y evaluación',
+        descripcion: 'Motivo de consulta y observaciones',
+        icono: <FileTextOutlined />,
+        campos: ['motivo_visita', 'observaciones'],
+    },
+];
+
 const FormularioTriaje: React.FC = () => {
     const [form] = Form.useForm();
     const navigate = useNavigate();
@@ -19,6 +51,7 @@ const FormularioTriaje: React.FC = () => {
     const { message } = useAntdApp();
 
     const [loading, setLoading] = useState(false);
+    const [pasoActual, setPasoActual] = useState(0);
     const [dataLoading, setDataLoading] = useState(false);
     const [pacientes, setPacientes] = useState<any[]>([]);
     const [imc, setImc] = useState<number | null>(null);
@@ -162,6 +195,34 @@ const FormularioTriaje: React.FC = () => {
         }
     };
 
+    // Avanza solo si los campos del paso actual validan; el error queda a la
+    // vista y el foco va al primer campo inválido.
+    const siguientePaso = async () => {
+        try {
+            await form.validateFields(PASOS_TRIAJE[pasoActual].campos);
+            setPasoActual(pasoActual + 1);
+        } catch {
+            message.warning('Complete los campos requeridos de este paso antes de continuar');
+        }
+    };
+
+    // Permite volver atrás con el Steps clickeable; para saltar hacia adelante
+    // exige validar los pasos intermedios.
+    const irAPaso = async (paso: number) => {
+        if (paso <= pasoActual) {
+            setPasoActual(paso);
+            return;
+        }
+        try {
+            for (let i = pasoActual; i < paso; i++) {
+                await form.validateFields(PASOS_TRIAJE[i].campos);
+            }
+            setPasoActual(paso);
+        } catch {
+            message.warning('Complete los campos requeridos antes de avanzar');
+        }
+    };
+
     const handleSubmit = async (values: any) => {
         setLoading(true);
         try {
@@ -225,6 +286,17 @@ const FormularioTriaje: React.FC = () => {
                     />
                 )}
 
+                <Steps
+                    current={pasoActual}
+                    onChange={irAPaso}
+                    style={{ marginBottom: 32 }}
+                    items={PASOS_TRIAJE.map((p) => ({
+                        title: p.titulo,
+                        description: p.descripcion,
+                        icon: p.icono,
+                    }))}
+                />
+
                 <Form
                     form={form}
                     layout="vertical"
@@ -233,37 +305,66 @@ const FormularioTriaje: React.FC = () => {
                     autoComplete="off"
                     requiredMark="optional"
                 >
-                    <SeccionDatosPacienteTriaje
-                        pacientes={pacientes}
-                        dataLoading={dataLoading}
-                        loading={loading}
-                        disabled={!!id}
-                        onPacienteChange={handlePacienteChange}
-                        datosAnteriores={datosAnteriores}
-                        onCloseDatosAnteriores={() => setDatosAnteriores(null)}
-                    />
+                    {/* Los pasos ocultos quedan montados (display:none) para conservar valores */}
+                    <div style={{ display: pasoActual === 0 ? 'block' : 'none' }}>
+                        <SeccionDatosPacienteTriaje
+                            pacientes={pacientes}
+                            dataLoading={dataLoading}
+                            loading={loading}
+                            disabled={!!id}
+                            onPacienteChange={handlePacienteChange}
+                            datosAnteriores={datosAnteriores}
+                            onCloseDatosAnteriores={() => setDatosAnteriores(null)}
+                        />
+                    </div>
 
-                    <SeccionSignosVitalesTriaje imc={imc} />
+                    <div style={{ display: pasoActual === 1 ? 'block' : 'none' }}>
+                        <SeccionSignosVitalesTriaje imc={imc} />
+                    </div>
 
-                    <SeccionMotivoTriaje />
+                    <div style={{ display: pasoActual === 2 ? 'block' : 'none' }}>
+                        <SeccionMotivoTriaje />
+                    </div>
 
-                    <div style={{ marginTop: 24, padding: '16px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'right' }}>
-                        <Space size="large">
-                            <Button size="large" onClick={() => navigate('/dashboard/triaje')}>
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                loading={loading}
-                                icon={<SaveOutlined />}
-                                size="large"
-                                className="btn-primary-gradient"
-                                style={{ minWidth: 200 }}
-                            >
-                                {id ? 'Guardar Cambios' : 'Registrar Triaje'}
-                            </Button>
-                        </Space>
+                    <div style={{ marginTop: 24, padding: '16px', background: '#f9f9f9', borderRadius: '8px' }}>
+                        <Row justify="space-between" align="middle">
+                            <Col>
+                                {pasoActual > 0 && (
+                                    <Button size="large" icon={<ArrowLeftOutlined />} onClick={() => setPasoActual(pasoActual - 1)}>
+                                        Paso anterior
+                                    </Button>
+                                )}
+                            </Col>
+                            <Col>
+                                <Space size="large">
+                                    <Button size="large" onClick={() => navigate('/dashboard/triaje')}>
+                                        Cancelar
+                                    </Button>
+                                    {pasoActual < PASOS_TRIAJE.length - 1 ? (
+                                        <Button
+                                            type="primary"
+                                            size="large"
+                                            style={{ minWidth: 200 }}
+                                            onClick={siguientePaso}
+                                        >
+                                            Continuar <ArrowRightOutlined />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="primary"
+                                            htmlType="submit"
+                                            loading={loading}
+                                            icon={<SaveOutlined />}
+                                            size="large"
+                                            className="btn-primary-gradient"
+                                            style={{ minWidth: 200 }}
+                                        >
+                                            {id ? 'Guardar cambios del triaje' : 'Registrar triaje'}
+                                        </Button>
+                                    )}
+                                </Space>
+                            </Col>
+                        </Row>
                     </div>
                 </Form>
             </Card>
