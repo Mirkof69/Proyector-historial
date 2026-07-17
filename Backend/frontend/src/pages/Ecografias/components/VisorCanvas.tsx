@@ -125,7 +125,7 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
     <Card
       size="small"
       style={{ borderRadius: 0, background: '#141414' }}
-      bodyStyle={{ padding: '12px 16px' }}
+      styles={{ body: { padding: '12px 16px' } }}
     >
       <Tabs
         type="card"

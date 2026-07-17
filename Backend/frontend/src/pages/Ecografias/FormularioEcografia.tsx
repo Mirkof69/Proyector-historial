@@ -19,7 +19,6 @@ import {
   Form,
   Button,
   Upload,
-  message,
   Spin,
   Typography,
   Tabs,
@@ -28,6 +27,7 @@ import {
   Space,
   Modal,
 } from 'antd';
+import { useAntdApp } from '../../hooks/useMessage';
 import {
   SaveOutlined,
   ArrowLeftOutlined,
@@ -75,6 +75,8 @@ const ARROW_LEFT_ICON_5 = <ArrowLeftOutlined />;
 const SAVE_ICON_4 = <SaveOutlined />;
 
 const FormularioEcografia: React.FC = () => {
+  // message del hook (no el estático de antd): respeta el tema dinámico
+  const { message } = useAntdApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditing = !!id;
@@ -463,6 +465,7 @@ const FormularioEcografia: React.FC = () => {
             items={[
               {
                 key: '1',
+                forceRender: true,
                 label: tabDatosGenerales,
                 children: (
                   <TabDatosGeneralesEco
@@ -478,21 +481,25 @@ const FormularioEcografia: React.FC = () => {
               },
               {
                 key: '2',
+                forceRender: true,
                 label: tabBiometriaFetal,
                 children: <TabBiometriaEco />,
               },
               {
                 key: '3',
+                forceRender: true,
                 label: tabAnatomiaFetal,
                 children: <TabAnatomiaEco />,
               },
               {
                 key: '4',
+                forceRender: true,
                 label: tabAnexosFetales,
                 children: <TabAnexosEco />,
               },
               {
                 key: '5',
+                forceRender: true,
                 label: tabImagenesConclusiones,
                 children: (
                   <TabImagenesConclusionesEco
@@ -515,13 +522,15 @@ const FormularioEcografia: React.FC = () => {
         onCancel={handleCancelPreview}
         width="80%"
         style={{ top: 20 }}
-        bodyStyle={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '24px',
-          maxHeight: '80vh',
-          overflow: 'auto',
+        styles={{
+          body: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '24px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+          },
         }}
       >
         <img

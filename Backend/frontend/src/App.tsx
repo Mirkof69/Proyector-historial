@@ -5,6 +5,7 @@ import { NotificationsProvider } from './contexts/NotificationsContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ThemedConfigProvider from './providers/ThemedConfigProvider';
 import AppRoutes from './routes/AppRoutes';
+import { AntdGlobalBridge } from './utils/antdGlobal';
 
 // =============================================================================
 // CSS IMPORTS
@@ -27,6 +28,9 @@ function App() {
         <ThemedConfigProvider>
           <NotificationsProvider>
             <AntdApp>
+              {/* Puente para que los interceptores (axios) usen modal/message
+                  TEMADOS en vez de los estáticos que ignoran el modo oscuro */}
+              <AntdGlobalBridge />
               <AppRoutes />
             </AntdApp>
           </NotificationsProvider>

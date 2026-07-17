@@ -18,7 +18,7 @@ import axios, {
   AxiosResponse,
   AxiosRequestConfig
 } from 'axios';
-import { notification, Modal } from 'antd';
+import { antdGlobal } from '../utils/antdGlobal';
 import { logger } from '../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -235,7 +235,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        notification.error({
+        antdGlobal.notification.error({
           message: 'Sesión Expirada',
           description: 'Tu sesión ha caducado por seguridad. Serás redirigido al login.',
           key: 'session_expired_key',
@@ -253,19 +253,19 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
 
     if (status === 403) {
-      Modal.error({
+      antdGlobal.modal.error({
         title: '⛔ Acceso Denegado',
         content: 'No tienes permisos suficientes para realizar esta acción.',
       });
     } else if (status === 404 && !isExpected404) {
       console.warn('Recurso no encontrado:', originalRequest.url);
     } else if (status === 500) {
-      Modal.error({
+      antdGlobal.modal.error({
         title: '🔥 Error del Servidor',
         content: 'Ocurrió un error interno en el servidor. Por favor, contacte a soporte técnico.',
       });
     } else if (!error.response) {
-      Modal.error({
+      antdGlobal.modal.error({
         title: '📡 Error de Conexión',
         content: 'No se pudo conectar con el servidor. Verifique su conexión a internet.',
       });
@@ -283,7 +283,7 @@ apiClient.interceptors.response.use(
         content = errorList;
       }
 
-      Modal.error({
+      antdGlobal.modal.error({
         title: '⚠️ Datos Inválidos',
         content: content,
         styles: { body: { whiteSpace: 'pre-line' } }

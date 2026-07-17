@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divider, Row, Col, Form, Select, Input, DatePicker, Alert, Card, Typography, Tag } from 'antd';
+import { Divider, Row, Col, Form, Select, Input, InputNumber, DatePicker, Alert, Card, Typography, Tag } from 'antd';
 import type { FormInstance } from 'antd';
 import dayjs from 'dayjs';
 import { Paciente } from '../../../services/pacientesService';
@@ -71,7 +71,10 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
             }),
           ]}
         >
-          <Input type="number" placeholder="1" min={1} />
+          {/* InputNumber (no Input type="number"): el HTML nativo emite STRING
+              y la regla type:'number' rechazaba CUALQUIER valor tecleado —
+              era imposible crear un embarazo desde este formulario. */}
+          <InputNumber style={{ width: '100%' }} placeholder="1" min={1} />
         </Form.Item>
       </Col>
     </Row>
