@@ -602,30 +602,101 @@ class EcografiaViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="exportar-pdf")
     def exportar_pdf(self, request, pk=None):
-        """Exporta ecografía a PDF
+        """Informe de ecografía en PDF institucional, con biometría fetal
+        graficada e interpretación del líquido amniótico.
         GET /api/ecografias/{id}/exportar-pdf/
         """
+        from django.http import HttpResponse
+
+        from reportes.pdf_clinico import PdfClinico
+
         ecografia = self.get_object()
-        try:
-            import pdfkit
-            from django.http import HttpResponse
-            from django.template.loader import render_to_string
-            html = render_to_string("ecografias/reporte_ecografia_pdf.html", {
-                "ecografia": ecografia,
-                "paciente": ecografia.paciente,
-            })
-            pdf = pdfkit.from_string(html, False)
-            response = HttpResponse(pdf, content_type="application/pdf")
-            response["Content-Disposition"] = f'attachment; filename="ecografia_{ecografia.id}.pdf"'
-            return response
-        except ImportError:
-            serializer = self.get_serializer(ecografia)
-            return Response({
-                "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
-                "ecografia": serializer.data,
-            })
-        except Exception as e:
-            return Response({"error": f"Error generando PDF: {e}"}, status=500)
+        paciente = ecografia.paciente
+
+        pdf = PdfClinico(
+            "Informe Ecográfico",
+            f"Paciente: {paciente.nombre_completo} · CI {paciente.ci} · {ecografia.fecha_ecografia}",
+        )
+        pdf.seccion("Datos del estudio")
+        pdf.ficha([
+            ("Tipo de ecografía", ecografia.tipo_ecografia),
+            ("Edad gestacional", f"{ecografia.edad_gestacional_semanas}+{getattr(ecografia, 'edad_gestacional_dias', 0)} semanas"),
+            ("FCF (lpm)", getattr(ecografia, "frecuencia_cardiaca_fetal", None)),
+            ("ILA (cm)", getattr(ecografia, "indice_liquido_amniotico", None)),
+            ("Placenta", getattr(ecografia, "localizacion_placenta", None)),
+            ("Calidad del estudio", getattr(ecografia, "calidad_estudio", None)),
+        ])
+        ila = getattr(ecografia, "indice_liquido_amniotico", None)
+        if ila is not None:
+            estado_ila = ecografia.get_estado_liquido_amniotico() if hasattr(ecografia, "get_estado_liquido_amniotico") else None
+            pdf.explicacion(
+                f"Índice de líquido amniótico {ila} cm"
+                + (f" — {estado_ila}." if estado_ila else ".")
+                + " Valores <5 cm sugieren oligohidramnios y >24 cm polihidramnios; ambos "
+                "requieren correlación clínica y seguimiento.",
+            )
+
+        biometria = getattr(ecografia, "biometria", None)
+        bio = biometria.first() if hasattr(biometria, "first") else biometria
+        if bio:
+            pdf.seccion("Biometría fetal")
+            medidas = [
+                ("DBP (mm)", getattr(bio, "diametro_biparietal", None)),
+                ("CC (mm)", getattr(bio, "circunferencia_cefalica", None)),
+                ("CA (mm)", getattr(bio, "circunferencia_abdominal", None)),
+                ("LF (mm)", getattr(bio, "longitud_femur", None)),
+                ("Peso fetal estimado (g)", getattr(bio, "peso_fetal_estimado", None)),
+            ]
+            pdf.ficha(medidas)
+            etiquetas = [m[0].split(" (")[0] for m in medidas[:4] if m[1] is not None]
+            valores = [float(m[1]) for m in medidas[:4] if m[1] is not None]
+            if len(valores) >= 2:
+                pdf.grafico_barras("Biometría fetal (mm)", etiquetas, valores)
+                pdf.explicacion(
+                    "Las medidas biométricas se contrastan con las curvas percentilares "
+                    "para la edad gestacional; discordancias entre parámetros (p. ej. CA "
+                    "baja con DBP normal) orientan a restricción de crecimiento asimétrica.",
+                )
+
+        if getattr(ecografia, "observaciones", None):
+            pdf.seccion("Observaciones")
+            pdf.parrafo(ecografia.observaciones)
+
+        buffer = pdf.generar()
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="ecografia_{ecografia.id}.pdf"'
+        return response
+
+    @action(detail=True, methods=["get"], url_path="exportar-excel")
+    def exportar_excel_detalle(self, request, pk=None):
+        """El mismo informe ecográfico, como Excel (mismo punto que el PDF)."""
+        from reportes.excel_clinico import escribir_ficha, libro_clinico, respuesta_excel
+
+        ecografia = self.get_object()
+        biometria = getattr(ecografia, "biometria", None)
+        bio = biometria.first() if hasattr(biometria, "first") else biometria
+
+        wb, ws = libro_clinico("Ecografía")
+        pares = [
+            ("Paciente", ecografia.paciente.nombre_completo),
+            ("Fecha", str(ecografia.fecha_ecografia)),
+            ("Tipo", str(ecografia.tipo_ecografia)),
+            ("Edad gestacional", f"{ecografia.edad_gestacional_semanas}+{getattr(ecografia, 'edad_gestacional_dias', 0)}"),
+            ("FCF (lpm)", getattr(ecografia, "frecuencia_cardiaca_fetal", "")),
+            ("ILA (cm)", getattr(ecografia, "indice_liquido_amniotico", "")),
+            ("Placenta", getattr(ecografia, "localizacion_placenta", "")),
+        ]
+        if bio:
+            pares += [
+                ("DBP (mm)", getattr(bio, "diametro_biparietal", "")),
+                ("CC (mm)", getattr(bio, "circunferencia_cefalica", "")),
+                ("CA (mm)", getattr(bio, "circunferencia_abdominal", "")),
+                ("LF (mm)", getattr(bio, "longitud_femur", "")),
+                ("Peso fetal estimado (g)", getattr(bio, "peso_fetal_estimado", "")),
+            ]
+        pares.append(("Observaciones", getattr(ecografia, "observaciones", "")))
+        escribir_ficha(ws, pares)
+        return respuesta_excel(wb, f"ecografia_{ecografia.id}")
 
     @action(detail=False, methods=["get"], url_path="exportar-excel")
     def exportar_excel(self, request):

@@ -889,35 +889,106 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="generar-pdf")
     def generar_pdf(self, _request, pk=None):
-        """Generar PDF con resumen del embarazo"""
+        """Resumen del embarazo en PDF institucional (pdf_clinico), con la
+        curva de peso materno de los controles y su interpretación."""
+        from django.http import HttpResponse
+
+        from reportes.pdf_clinico import PdfClinico
+
         embarazo = self.get_object()
-        try:
-            import pdfkit
-            from django.http import HttpResponse
-            from django.template.loader import render_to_string
-            html = render_to_string("embarazos/reporte_pdf.html", {
-                "embarazo": embarazo,
-                "paciente": embarazo.paciente,
-                "controles": embarazo.controles.all().order_by("fecha_control"),
-            })
-            pdf = pdfkit.from_string(html, False)
-            response = HttpResponse(pdf, content_type="application/pdf")
-            response["Content-Disposition"] = f'attachment; filename="embarazo_{embarazo.id}.pdf"'
-            return response
-        except ImportError:
-            from rest_framework.response import Response as DRFResponse
-            return DRFResponse(
-                {
-                    "embarazo_id": embarazo.id,
-                    "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
-                    "datos": EmbarazoSerializer(embarazo).data,
-                }
+        paciente = embarazo.paciente
+        controles = list(embarazo.controles.all().order_by("fecha_control"))
+
+        pdf = PdfClinico(
+            "Resumen de Embarazo",
+            f"Paciente: {paciente.nombre_completo} · CI {paciente.ci} · {paciente.id_clinico}",
+        )
+        pdf.seccion("Datos del embarazo")
+        pdf.ficha([
+            ("Estado", embarazo.get_estado_display() if hasattr(embarazo, "get_estado_display") else embarazo.estado),
+            ("Nivel de riesgo", getattr(embarazo, "nivel_riesgo", None)),
+            ("FUM", embarazo.fecha_ultima_menstruacion),
+            ("FPP", embarazo.fecha_probable_parto),
+            ("Gesta / Para", f"G{embarazo.numero_gesta} P{embarazo.numero_para}"),
+            ("Controles registrados", len(controles)),
+        ])
+
+        if controles:
+            pdf.seccion("Controles prenatales")
+            pdf.tabla(
+                ["Fecha", "Sem.", "Peso (kg)", "PA", "FCF", "Alt. uterina"],
+                [[
+                    c.fecha_control,
+                    getattr(c, "semanas_gestacion", None) or getattr(c, "edad_gestacional_semanas", None),
+                    getattr(c, "peso_kg", None) or getattr(c, "peso_actual", None),
+                    f"{getattr(c, 'presion_arterial_sistolica', '')}/{getattr(c, 'presion_arterial_diastolica', '')}",
+                    getattr(c, "frecuencia_cardiaca_fetal", None),
+                    getattr(c, "altura_uterina", None),
+                ] for c in controles[-12:]],
             )
-        except Exception as e:
-            return Response(
-                {"error": f"Error generando PDF: {e}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            pesos = [
+                float(p) for p in (
+                    getattr(c, "peso_kg", None) or getattr(c, "peso_actual", None)
+                    for c in controles
+                ) if p
+            ]
+            if len(pesos) >= 2:
+                etiquetas = [str(c.fecha_control) for c in controles][-len(pesos):]
+                pdf.grafico_lineas("Evolución del peso materno (kg)", etiquetas[-10:], {"Peso": pesos[-10:]})
+                delta = pesos[-1] - pesos[0]
+                pdf.explicacion(
+                    f"La paciente registra una variación total de {delta:+.1f} kg a lo largo de "
+                    f"{len(pesos)} controles. La curva permite contrastar la ganancia ponderal "
+                    "contra lo esperado para la edad gestacional; desvíos bruscos ameritan "
+                    "evaluación nutricional u obstétrica.",
+                )
+        else:
+            pdf.parrafo("Sin controles prenatales registrados para este embarazo.")
+
+        buffer = pdf.generar()
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="embarazo_{embarazo.id}.pdf"'
+        return response
+
+    @action(detail=True, methods=["get"], url_path="exportar-excel")
+    def exportar_excel_detalle(self, _request, pk=None):
+        """El mismo resumen del embarazo, como Excel (mismo punto que el PDF)."""
+        from reportes.excel_clinico import (
+            escribir_ficha,
+            escribir_tabla,
+            libro_clinico,
+            respuesta_excel,
+        )
+
+        embarazo = self.get_object()
+        paciente = embarazo.paciente
+        controles = list(embarazo.controles.all().order_by("fecha_control"))
+
+        wb, ws = libro_clinico("Embarazo")
+        siguiente = escribir_ficha(ws, [
+            ("Paciente", paciente.nombre_completo),
+            ("CI", paciente.ci),
+            ("ID Clínico", paciente.id_clinico),
+            ("Estado", embarazo.estado),
+            ("FUM", str(embarazo.fecha_ultima_menstruacion)),
+            ("FPP", str(embarazo.fecha_probable_parto)),
+            ("Gesta / Para", f"G{embarazo.numero_gesta} P{embarazo.numero_para}"),
+        ])
+        escribir_tabla(
+            ws,
+            ["Fecha", "Semanas", "Peso (kg)", "PA sist.", "PA diast.", "FCF", "Altura uterina"],
+            [[
+                str(c.fecha_control),
+                getattr(c, "semanas_gestacion", None) or getattr(c, "edad_gestacional_semanas", None),
+                getattr(c, "peso_kg", None) or getattr(c, "peso_actual", None),
+                getattr(c, "presion_arterial_sistolica", None),
+                getattr(c, "presion_arterial_diastolica", None),
+                getattr(c, "frecuencia_cardiaca_fetal", None),
+                getattr(c, "altura_uterina", None),
+            ] for c in controles],
+            fila_inicio=siguiente,
+        )
+        return respuesta_excel(wb, f"embarazo_{embarazo.id}")
 
     @action(detail=False, methods=["get"], url_path="exportar-excel")
     def exportar_excel(self, request):

@@ -1020,24 +1020,89 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="exportar-pdf")
     def exportar_pdf(self, request, pk=None):
-        """Exporta control prenatal a PDF
+        """Control prenatal en PDF institucional, con signos vitales
+        comparados contra sus rangos y evolución respecto a controles previos.
         GET /api/controles/{id}/exportar-pdf/
         """
+        from django.http import HttpResponse
+
+        from reportes.pdf_clinico import PdfClinico
+
         control = self.get_object()
-        try:
-            import pdfkit
-            from django.http import HttpResponse
-            from django.template.loader import render_to_string
-            html = render_to_string("controles/reporte_control_pdf.html", {
-                "control": control,
-                "paciente": control.paciente,
-            })
-            pdf = pdfkit.from_string(html, False)
-            response = HttpResponse(pdf, content_type="application/pdf")
-            response["Content-Disposition"] = f'attachment; filename="control_{control.id}.pdf"'
-            return response
-        except ImportError:
-            serializer = self.get_serializer(control)
-            return Response({"mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit", "control": serializer.data})
-        except Exception as e:
-            return Response({"error": f"Error generando PDF: {e}"}, status=500)
+        paciente = control.paciente
+
+        pdf = PdfClinico(
+            "Control Prenatal",
+            f"Paciente: {paciente.nombre_completo} · CI {paciente.ci} · Fecha {control.fecha_control}",
+        )
+
+        pdf.seccion("Signos vitales y examen")
+        sist = getattr(control, "presion_arterial_sistolica", None)
+        diast = getattr(control, "presion_arterial_diastolica", None)
+        pdf.ficha([
+            ("Semanas de gestación", getattr(control, "semanas_gestacion", None) or getattr(control, "edad_gestacional_semanas", None)),
+            ("Peso (kg)", getattr(control, "peso_kg", None) or getattr(control, "peso_actual", None)),
+            ("Presión arterial", f"{sist}/{diast} mmHg" if sist else None),
+            ("FCF (lpm)", getattr(control, "frecuencia_cardiaca_fetal", None)),
+            ("Altura uterina (cm)", getattr(control, "altura_uterina", None)),
+            ("Movimientos fetales", getattr(control, "movimientos_fetales", None)),
+            ("Edemas", getattr(control, "edemas", None)),
+            ("Observaciones", getattr(control, "observaciones", None)),
+        ])
+        if sist and diast:
+            estado_pa = (
+                "HIPERTENSIÓN — criterio de alarma obstétrica (≥140/90)"
+                if (sist >= 140 or diast >= 90)
+                else "dentro de parámetros normales (<140/90)"
+            )
+            pdf.explicacion(
+                f"Presión arterial {sist}/{diast} mmHg: {estado_pa}. En el embarazo la "
+                "hipertensión sostenida obliga a descartar preeclampsia (proteinuria, "
+                "síntomas neurosensoriales) y derivar según protocolo.",
+            )
+
+        # Evolución respecto a los controles previos del mismo embarazo
+        if control.embarazo_id:
+            previos = list(
+                ControlPrenatal.objects.filter(embarazo_id=control.embarazo_id)
+                .order_by("fecha_control"),
+            )
+            pesos = [
+                float(p) for p in (
+                    getattr(c, "peso_kg", None) or getattr(c, "peso_actual", None)
+                    for c in previos
+                ) if p
+            ]
+            if len(pesos) >= 2:
+                pdf.seccion("Evolución en el embarazo")
+                etiquetas = [str(c.fecha_control) for c in previos][-len(pesos):]
+                pdf.grafico_lineas("Peso materno en los controles (kg)", etiquetas[-10:], {"Peso": pesos[-10:]})
+                pdf.explicacion(
+                    "El punto más reciente corresponde a este control. La curva permite "
+                    "detectar ganancias o pérdidas bruscas entre controles consecutivos.",
+                )
+
+        buffer = pdf.generar()
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="control_{control.id}.pdf"'
+        return response
+
+    @action(detail=True, methods=["get"], url_path="exportar-excel")
+    def exportar_excel_detalle(self, request, pk=None):
+        """El mismo control, como Excel (mismo punto que el PDF)."""
+        from reportes.excel_clinico import escribir_ficha, libro_clinico, respuesta_excel
+
+        control = self.get_object()
+        wb, ws = libro_clinico("Control")
+        escribir_ficha(ws, [
+            ("Paciente", control.paciente.nombre_completo),
+            ("Fecha", str(control.fecha_control)),
+            ("Semanas de gestación", getattr(control, "semanas_gestacion", None) or getattr(control, "edad_gestacional_semanas", "")),
+            ("Peso (kg)", getattr(control, "peso_kg", None) or getattr(control, "peso_actual", "")),
+            ("Presión sistólica", getattr(control, "presion_arterial_sistolica", "")),
+            ("Presión diastólica", getattr(control, "presion_arterial_diastolica", "")),
+            ("FCF (lpm)", getattr(control, "frecuencia_cardiaca_fetal", "")),
+            ("Altura uterina (cm)", getattr(control, "altura_uterina", "")),
+            ("Observaciones", getattr(control, "observaciones", "")),
+        ])
+        return respuesta_excel(wb, f"control_{control.id}")
