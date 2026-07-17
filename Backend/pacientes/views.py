@@ -1,9 +1,6 @@
 """Views module."""
-import hashlib
-import hmac as _hmac
 from datetime import date, datetime, timedelta
 
-from django.conf import settings as _settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.http import HttpResponse
@@ -304,10 +301,15 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 {"error": "Parámetro ci requerido"}, status=status.HTTP_400_BAD_REQUEST,
             )
         try:
+            # MISMO hash que usa el modelo al guardar (compute_search_hash con
+            # ENCRYPTION_KEY, sin upper). La implementación anterior usaba
+            # SECRET_KEY + upper(): claves distintas → el hash JAMÁS coincidía
+            # y la búsqueda por cédula devolvía 404 para pacientes existentes.
+            from .fields import compute_search_hash
 
-            key = str(getattr(_settings, "SEARCH_HMAC_KEY", _settings.SECRET_KEY)).encode()
-            ci_hash = _hmac.new(key, ci.upper().encode(), hashlib.sha256).hexdigest()
-            paciente = Paciente.objects.get(ci_hash=ci_hash, activo=True)
+            paciente = Paciente.objects.get(
+                ci_hash=compute_search_hash(ci), activo=True,
+            )
             return Response(self.get_serializer(paciente).data)
         except Paciente.DoesNotExist:
             return Response(
@@ -438,12 +440,11 @@ class PacienteViewSet(viewsets.ModelViewSet):
         if id_clinico:
             queryset = queryset.filter(id_clinico__icontains=id_clinico)
 
-        # CI — campo cifrado, buscar por hash exacto (HMAC-SHA256)
+        # CI — campo cifrado, buscar por hash exacto (el MISMO del modelo)
         if ci:
+            from .fields import compute_search_hash
 
-            key = str(getattr(_settings, "SEARCH_HMAC_KEY", _settings.SECRET_KEY)).encode()
-            ci_hash = _hmac.new(key, ci.upper().encode(), hashlib.sha256).hexdigest()
-            queryset = queryset.filter(ci_hash=ci_hash)
+            queryset = queryset.filter(ci_hash=compute_search_hash(ci))
 
         # Rango de fechas de registro
         if fecha_desde:
