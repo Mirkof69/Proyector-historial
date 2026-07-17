@@ -29,6 +29,8 @@ import {
   ArrowLeftOutlined,
   EditOutlined,
   PrinterOutlined,
+  FilePdfOutlined,
+  FileExcelOutlined,
   DeleteOutlined,
   MedicineBoxOutlined,
   UserOutlined,
@@ -43,6 +45,7 @@ import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import './DetalleParto.css';
 import { handleImprimir, getApgarInterpretacion, getClasificacionPeso } from './detallePartoUtils';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import DetallePartoAbortoView from './components/DetallePartoAbortoView';
 import DetallePartoView from './components/DetallePartoView';
 
@@ -292,6 +295,22 @@ const DetalleParto: React.FC = () => {
             <Space>
               <Button icon={PRINTER_ICON_2} onClick={handleImprimir}>
                 Imprimir
+              </Button>
+              <Button
+                icon={<FilePdfOutlined />}
+                onClick={() => descargarArchivo(`/partos/${id}/generar-pdf/`, `parto_${id}.pdf`)
+                  .then(() => message.success('PDF descargado'))
+                  .catch(() => message.error('No se pudo generar el PDF'))}
+              >
+                PDF
+              </Button>
+              <Button
+                icon={<FileExcelOutlined />}
+                onClick={() => descargarArchivo(`/partos/${id}/exportar-excel/`, `parto_${id}.xlsx`)
+                  .then(() => message.success('Excel descargado'))
+                  .catch(() => message.error('No se pudo generar el Excel'))}
+              >
+                Excel
               </Button>
               <Button type="primary" icon={EDIT_ICON_3} onClick={handleEditar}>
                 Editar

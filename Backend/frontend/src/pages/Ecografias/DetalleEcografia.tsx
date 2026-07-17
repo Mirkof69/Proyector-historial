@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import {Card,
   Button,
   Space,
@@ -22,6 +23,8 @@ import {
   ArrowLeftOutlined,
   EditOutlined,
   PrinterOutlined,
+  FilePdfOutlined,
+  FileExcelOutlined,
   DeleteOutlined,
   FileImageOutlined,
   ExclamationCircleOutlined,
@@ -166,6 +169,22 @@ const DetalleEcografia: React.FC = () => {
             <Space>
               <Button icon={<PrinterOutlined />} onClick={handleImprimir}>
                 Imprimir
+              </Button>
+              <Button
+                icon={<FilePdfOutlined />}
+                onClick={() => descargarArchivo(`/ecografias/${id}/exportar-pdf/`, `ecografia_${id}.pdf`)
+                  .then(() => message.success('PDF descargado'))
+                  .catch(() => message.error('No se pudo generar el PDF'))}
+              >
+                PDF
+              </Button>
+              <Button
+                icon={<FileExcelOutlined />}
+                onClick={() => descargarArchivo(`/ecografias/${id}/exportar-excel/`, `ecografia_${id}.xlsx`)
+                  .then(() => message.success('Excel descargado'))
+                  .catch(() => message.error('No se pudo generar el Excel'))}
+              >
+                Excel
               </Button>
               <Button type="primary" icon={<EditOutlined />} onClick={handleEditar}>
                 Editar
