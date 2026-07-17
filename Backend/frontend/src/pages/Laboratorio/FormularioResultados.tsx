@@ -218,7 +218,7 @@ const FormularioResultados: React.FC<FormularioResultadosProps> = ({
                 style={{ width: '100%' }}
                 placeholder="Valor medido"
                 step="any"
-                addonAfter={vr.unidad !== 'cualitativo' ? vr.unidad : undefined}
+                suffix={vr.unidad !== 'cualitativo' ? vr.unidad : undefined}
               />
             </Form.Item>
           </Col>
