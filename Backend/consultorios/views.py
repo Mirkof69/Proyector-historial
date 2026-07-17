@@ -599,29 +599,52 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="reporte-pdf")
     def reporte_pdf(self, request):
-        """Exporta reporte de consultorios como archivo descargable"""
+        """Reporte de consultorios en PDF institucional (antes devolvía un
+        .txt plano) con distribución por estado y ranking de uso."""
+        from reportes.pdf_clinico import PdfClinico
+
         fecha_inicio = request.query_params.get("fecha_inicio", "")
         fecha_fin = request.query_params.get("fecha_fin", "")
 
-        consultorios = Consultorio.objects.all()
-        lines = [
-            "REPORTE DE CONSULTORIOS",
-            f"Periodo: {fecha_inicio} - {fecha_fin}",
-            "",
-            f"{'Consultorio':<25} {'Estado':<15} {'Ocupaciones':<12}",
-            "-" * 55,
-        ]
+        consultorios = list(Consultorio.objects.all())
+        filas = []
+        disponibles = no_disponibles = 0
         for c in consultorios:
-            estado = "Disponible" if c.esta_disponible() else "No disponible"
-            total_oc = c.ocupaciones.count()
-            lines.append(f"{c.nombre:<25} {estado:<15} {total_oc:<12}")
+            disponible = c.esta_disponible()
+            disponibles += int(disponible)
+            no_disponibles += int(not disponible)
+            filas.append([
+                c.nombre,
+                "Disponible" if disponible else "No disponible",
+                c.ocupaciones.count(),
+            ])
 
-        response = HttpResponse(
-            "\n".join(lines), content_type="text/plain; charset=utf-8"
-        )
-        response["Content-Disposition"] = (
-            'attachment; filename="reporte_consultorios.txt"'
-        )
+        subtitulo = f"Período: {fecha_inicio} – {fecha_fin}" if fecha_inicio else "Estado actual"
+        pdf = PdfClinico("Reporte de Consultorios", subtitulo)
+        pdf.seccion("Consultorios")
+        pdf.tabla(["Consultorio", "Estado", "Ocupaciones registradas"], filas)
+
+        if consultorios:
+            pdf.grafico_torta(
+                "Distribución por disponibilidad",
+                ["Disponibles", "No disponibles"],
+                [disponibles, no_disponibles],
+            )
+            mas_usados = sorted(filas, key=lambda f: f[2], reverse=True)[:6]
+            pdf.grafico_barras(
+                "Consultorios con más ocupaciones",
+                [f[0] for f in mas_usados],
+                [float(f[2]) for f in mas_usados],
+            )
+            pdf.explicacion(
+                "La torta muestra la capacidad operativa actual; el ranking de "
+                "ocupaciones identifica los consultorios con mayor carga, útil para "
+                "redistribuir agenda o planificar mantenimiento sin afectar la atención.",
+            )
+
+        buffer = pdf.generar()
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="reporte_consultorios.pdf"'
         return response
 
     @action(detail=False, methods=["get"], url_path="exportar-excel")

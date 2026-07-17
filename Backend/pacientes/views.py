@@ -913,25 +913,50 @@ class PacienteViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="exportar-pdf")
     def exportar_pdf(self, request):
-        """Exporta listado de pacientes a PDF
+        """Listado de pacientes en PDF institucional, con distribución etaria.
         GET /api/pacientes/exportar-pdf/
         """
-        try:
-            import pdfkit
-            from django.http import HttpResponse
-            from django.template.loader import render_to_string
-            queryset = self.filter_queryset(self.get_queryset())
-            html = render_to_string("pacientes/listado_pacientes_pdf.html", {
-                "pacientes": queryset,
-                "total": queryset.count(),
-            })
-            pdf = pdfkit.from_string(html, False)
-            response = HttpResponse(pdf, content_type="application/pdf")
-            response["Content-Disposition"] = 'attachment; filename="listado_pacientes.pdf"'
-            return response
-        except ImportError:
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(queryset, many=True)
-            return Response({"mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit", "total": queryset.count(), "datos": serializer.data})
-        except Exception as e:
-            return Response({"error": f"Error generando PDF: {e}"}, status=500)
+        from django.http import HttpResponse
+
+        from reportes.pdf_clinico import PdfClinico
+
+        queryset = self.filter_queryset(self.get_queryset())
+        pacientes = list(queryset)
+
+        pdf = PdfClinico("Listado de Pacientes", f"Total: {len(pacientes)} pacientes")
+        pdf.seccion("Pacientes")
+        pdf.tabla(
+            ["ID Clínico", "Nombre completo", "Edad", "Teléfono", "Ciudad", "Estado"],
+            [[
+                p.id_clinico,
+                p.nombre_completo,
+                getattr(p, "edad", None),
+                p.telefono,
+                getattr(p, "ciudad", None),
+                "Activa" if p.activo else "Inactiva",
+            ] for p in pacientes[:200]],
+        )
+
+        edades = [p.edad for p in pacientes if getattr(p, "edad", None)]
+        if edades:
+            rangos = {"< 20": 0, "20–29": 0, "30–39": 0, "≥ 40": 0}
+            for e in edades:
+                if e < 20:
+                    rangos["< 20"] += 1
+                elif e < 30:
+                    rangos["20–29"] += 1
+                elif e < 40:
+                    rangos["30–39"] += 1
+                else:
+                    rangos["≥ 40"] += 1
+            pdf.grafico_barras("Distribución etaria de las pacientes", list(rangos), [float(v) for v in rangos.values()])
+            pdf.explicacion(
+                "Los extremos etarios (<20 y ≥40 años) concentran mayor riesgo "
+                "obstétrico y ayudan a dimensionar la demanda de control prenatal "
+                "de alto riesgo de la clínica.",
+            )
+
+        buffer = pdf.generar()
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="listado_pacientes.pdf"'
+        return response

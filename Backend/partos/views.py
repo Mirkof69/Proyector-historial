@@ -644,68 +644,158 @@ class PartoViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="generar-pdf")
     def generar_pdf(self, _request, pk=None):
-        """Genera PDF con resumen del parto
+        """Resumen del parto en PDF institucional, con Apgar graficado.
         GET /api/partos/{id}/generar-pdf/
         """
+        from django.http import HttpResponse
+
+        from reportes.pdf_clinico import COLOR_PARTOS, PdfClinico
+
         parto = self.get_object()
-        try:
-            import pdfkit
-            from django.http import HttpResponse
-            from django.template.loader import render_to_string
-            html = render_to_string("partos/reporte_parto_pdf.html", {
-                "parto": parto,
-                "paciente": parto.paciente,
-                "recien_nacidos": parto.recien_nacidos.all(),
-                "complicaciones": parto.complicaciones.all(),
-            })
-            pdf = pdfkit.from_string(html, False)
-            response = HttpResponse(pdf, content_type="application/pdf")
-            response["Content-Disposition"] = f'attachment; filename="parto_{parto.id}.pdf"'
-            return response
-        except ImportError:
-            return Response({
-                "parto_id": parto.id,
-                "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
-                "datos": self.get_serializer(parto).data,
-            })
-        except Exception as e:
-            return Response(
-                {"error": f"Error generando PDF: {e}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        paciente = parto.paciente
+        recien_nacidos = list(parto.recien_nacidos.all())
+        complicaciones = list(parto.complicaciones.all())
+
+        pdf = PdfClinico(
+            "Resumen de Parto",
+            f"Paciente: {paciente.nombre_completo} · CI {paciente.ci}",
+        )
+        pdf.seccion("Datos del parto")
+        pdf.ficha([
+            ("Fecha", parto.fecha_parto),
+            ("Tipo de parto", parto.get_tipo_parto_display() if hasattr(parto, "get_tipo_parto_display") else parto.tipo_parto),
+            ("Estado", getattr(parto, "estado", None)),
+            ("Semanas de gestación", getattr(parto, "semanas_gestacion", None)),
+            ("Recién nacidos", len(recien_nacidos)),
+            ("Complicaciones", len(complicaciones) or "Ninguna"),
+        ])
+
+        if recien_nacidos:
+            pdf.seccion("Recién nacidos")
+            pdf.tabla(
+                ["Sexo", "Peso (g)", "Talla (cm)", "Apgar 1'", "Apgar 5'"],
+                [[
+                    rn.get_sexo_display() if hasattr(rn, "get_sexo_display") else rn.sexo,
+                    getattr(rn, "peso_gramos", None) or getattr(rn, "peso", None),
+                    getattr(rn, "talla_cm", None) or getattr(rn, "talla", None),
+                    getattr(rn, "apgar_1min", None) or getattr(rn, "apgar_1_min", None),
+                    getattr(rn, "apgar_5min", None) or getattr(rn, "apgar_5_min", None),
+                ] for rn in recien_nacidos],
             )
+            apgar1 = [getattr(rn, "apgar_1min", None) or getattr(rn, "apgar_1_min", None) for rn in recien_nacidos]
+            apgar5 = [getattr(rn, "apgar_5min", None) or getattr(rn, "apgar_5_min", None) for rn in recien_nacidos]
+            if any(a is not None for a in apgar1 + apgar5):
+                etiquetas: list[str] = []
+                valores: list[float] = []
+                for idx, (a1, a5) in enumerate(zip(apgar1, apgar5), start=1):
+                    if a1 is not None:
+                        etiquetas.append(f"RN{idx} 1'")
+                        valores.append(float(a1))
+                    if a5 is not None:
+                        etiquetas.append(f"RN{idx} 5'")
+                        valores.append(float(a5))
+                pdf.grafico_barras("Puntaje de Apgar por recién nacido", etiquetas, valores, color=COLOR_PARTOS)
+                pdf.explicacion(
+                    "Apgar ≥7 se considera adaptación neonatal adecuada; 4–6 depresión "
+                    "moderada y ≤3 depresión severa. La comparación entre el minuto 1 y el "
+                    "minuto 5 muestra la respuesta a la reanimación inicial.",
+                )
+
+        if complicaciones:
+            pdf.seccion("Complicaciones")
+            pdf.tabla(
+                ["Tipo", "Descripción"],
+                [[getattr(c, "tipo", None), getattr(c, "descripcion", None)] for c in complicaciones],
+            )
+
+        buffer = pdf.generar()
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="parto_{parto.id}.pdf"'
+        return response
+
+    @action(detail=True, methods=["get"], url_path="exportar-excel")
+    def exportar_excel_detalle(self, _request, pk=None):
+        """El mismo resumen del parto, como Excel (mismo punto que el PDF)."""
+        from reportes.excel_clinico import (
+            escribir_ficha,
+            escribir_tabla,
+            libro_clinico,
+            respuesta_excel,
+        )
+
+        parto = self.get_object()
+        recien_nacidos = list(parto.recien_nacidos.all())
+
+        wb, ws = libro_clinico("Parto")
+        siguiente = escribir_ficha(ws, [
+            ("Paciente", parto.paciente.nombre_completo),
+            ("Fecha", str(parto.fecha_parto)),
+            ("Tipo de parto", str(parto.tipo_parto)),
+            ("Semanas de gestación", getattr(parto, "semanas_gestacion", "")),
+            ("Recién nacidos", len(recien_nacidos)),
+        ])
+        escribir_tabla(
+            ws,
+            ["Sexo", "Peso (g)", "Talla (cm)", "Apgar 1'", "Apgar 5'"],
+            [[
+                str(rn.sexo),
+                getattr(rn, "peso_gramos", None) or getattr(rn, "peso", None),
+                getattr(rn, "talla_cm", None) or getattr(rn, "talla", None),
+                getattr(rn, "apgar_1min", None) or getattr(rn, "apgar_1_min", None),
+                getattr(rn, "apgar_5min", None) or getattr(rn, "apgar_5_min", None),
+            ] for rn in recien_nacidos],
+            fila_inicio=siguiente,
+        )
+        return respuesta_excel(wb, f"parto_{parto.id}")
 
     @action(detail=True, methods=["get"], url_path="partograma-pdf")
     def partograma_pdf(self, _request, pk=None):
-        """Genera PDF del partograma
+        """Partograma en PDF institucional, con la curva de dilatación.
         GET /api/partos/{id}/partograma-pdf/
         """
+        from django.http import HttpResponse
+
+        from reportes.pdf_clinico import PdfClinico
+
         parto = self.get_object()
-        try:
-            import pdfkit
-            from django.http import HttpResponse
-            from django.template.loader import render_to_string
-            registros = parto.partograma.all().order_by("hora_registro")
-            html = render_to_string("partos/partograma_pdf.html", {
-                "parto": parto,
-                "registros": registros,
-            })
-            pdf = pdfkit.from_string(html, False)
-            response = HttpResponse(pdf, content_type="application/pdf")
-            response["Content-Disposition"] = f'attachment; filename="partograma_{parto.id}.pdf"'
-            return response
-        except ImportError:
-            from .serializers import PartogramaRegistroSerializer
-            registros = parto.partograma.all().order_by("hora_registro")
-            return Response({
-                "parto_id": parto.id,
-                "mensaje": "PDF no disponible. Instale pdfkit: pip install pdfkit",
-                "registros": PartogramaRegistroSerializer(registros, many=True).data,
-            })
-        except Exception as e:
-            return Response(
-                {"error": f"Error generando PDF: {e}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        registros = list(parto.partograma.all().order_by("hora_registro"))
+
+        pdf = PdfClinico(
+            "Partograma",
+            f"Paciente: {parto.paciente.nombre_completo} · Parto #{parto.id}",
+        )
+        if registros:
+            pdf.seccion("Registros")
+            pdf.tabla(
+                ["Hora", "Dilatación (cm)", "FCF", "Contracciones/10min"],
+                [[
+                    getattr(r, "hora_registro", None),
+                    getattr(r, "dilatacion_cm", None) or getattr(r, "dilatacion", None),
+                    getattr(r, "fcf", None) or getattr(r, "frecuencia_cardiaca_fetal", None),
+                    getattr(r, "contracciones", None) or getattr(r, "contracciones_10min", None),
+                ] for r in registros],
             )
+            dilataciones = [
+                float(d) for d in (
+                    getattr(r, "dilatacion_cm", None) or getattr(r, "dilatacion", None)
+                    for r in registros
+                ) if d is not None
+            ]
+            if len(dilataciones) >= 2:
+                etiquetas = [str(getattr(r, "hora_registro", ""))[:5] for r in registros][-len(dilataciones):]
+                pdf.grafico_lineas("Curva de dilatación cervical (cm)", etiquetas[-12:], {"Dilatación": dilataciones[-12:]})
+                pdf.explicacion(
+                    "En fase activa se espera una progresión aproximada de 1 cm/hora "
+                    "(curva de alerta de la OMS). Una curva aplanada sostenida sugiere "
+                    "detención del trabajo de parto y obliga a reevaluar la conducta.",
+                )
+        else:
+            pdf.parrafo("Sin registros de partograma para este parto.")
+
+        buffer = pdf.generar()
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="partograma_{parto.id}.pdf"'
+        return response
 
     @action(detail=False, methods=["get"], url_path="exportar-excel")
     def exportar_excel(self, request):
