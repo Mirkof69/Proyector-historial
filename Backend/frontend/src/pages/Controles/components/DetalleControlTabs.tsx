@@ -88,7 +88,7 @@ const DetalleControlTabs: React.FC<DetalleControlTabsProps> = ({
             <Descriptions.Item label="Proteinuria"><Tag color={control.proteinuria === 'negativa' ? 'green' : control.proteinuria === 'trazas' ? 'orange' : 'red'}>{control.proteinuria?.toUpperCase()}</Tag></Descriptions.Item>
           </Descriptions>
           <Divider orientation="left">Observaciones Clínicas</Divider>
-          <Card style={{ backgroundColor: '#f9f9f9' }}>
+          <Card style={{ backgroundColor: 'var(--bg-secondary)' }}>
             <Paragraph>{control.observaciones || <Text type="secondary">Sin observaciones registradas.</Text>}</Paragraph>
           </Card>
         </div>,

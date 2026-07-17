@@ -1048,6 +1048,17 @@ body {
   color: #ffffff;
 }
 
+
+/* Calendar completo (no DatePicker): la regla de arriba pinta el fondo de la
+   celda seleccionada con --color-primary y su texto en blanco, pero antd le
+   asigna al NUMERO su propio color azul que gana al blanco heredado
+   -> azul sobre azul (1.12:1). antd inyecta su CSS-in-JS DESPUES de esta hoja,
+   asi que con igual especificidad gana el suyo: hace falta !important. */
+.ant-picker-calendar-full .ant-picker-panel .ant-picker-cell-selected .ant-picker-calendar-date-value,
+.ant-picker-calendar-full .ant-picker-panel .ant-picker-cell-selected .ant-picker-calendar-date-content {
+  color: var(--text-on-brand) !important;
+}
+
 /* ============================================================================
    DATE PICKER & TIME PICKER
    ============================================================================ */

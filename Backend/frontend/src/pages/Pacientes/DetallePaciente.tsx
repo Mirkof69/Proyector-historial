@@ -168,7 +168,7 @@ const DetallePaciente: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#f0f2f5' }}>
+    <div style={{ padding: '24px', backgroundColor: 'var(--bg-secondary)' }}>
       {/* Header */}
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Space>

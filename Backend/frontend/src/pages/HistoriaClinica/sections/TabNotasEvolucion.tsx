@@ -71,7 +71,7 @@ const TabNotasEvolucion: React.FC<TabNotasEvolucionProps> = ({ notas, setDrawerN
                 </div>
               </div>
             </div>
-            <Card variant="borderless" style={{ background: '#f9f9f9', borderTop: '1px solid #f0f0f0', padding: '8px 16px' }}>
+            <Card variant="borderless" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color, #f0f0f0)', padding: '8px 16px' }}>
               <Space split={verticalDivider} size="large" wrap>
                 <Space direction="vertical" size={0}>
                   <Text type="secondary">Signos Vitales:</Text>

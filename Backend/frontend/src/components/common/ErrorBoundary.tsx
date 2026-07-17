@@ -54,7 +54,7 @@ class ErrorBoundary extends Component<Props, State> {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#f0f2f5',
+            background: 'var(--bg-secondary)',
             padding: 24,
           }}
         >

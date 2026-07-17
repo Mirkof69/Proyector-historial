@@ -120,7 +120,7 @@ const DashboardGraficasReales: React.FC = () => {
   }
 
   return (
-    <div className="page-container" style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+    <div className="page-container" style={{ padding: '24px', background: 'var(--bg-secondary)', minHeight: '100vh' }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
         <Col>
           <Title level={2} style={{ margin: 0 }}>

@@ -52,6 +52,12 @@
   --text-tertiary: #9ca3af;
   --text-disabled: #d1d5db;
   --text-inverse: #ffffff;
+  /* Texto sobre superficies de MARCA (botón primario, badges de estado,
+     paginación activa). Esas superficies NO se invierten con el tema: siguen
+     siendo azul/verde/rojo saturado en claro y en oscuro, así que su texto es
+     blanco SIEMPRE. Usar --text-inverse aquí rompía el contraste en oscuro
+     (texto #111827 sobre gradiente violeta = 2.66:1). */
+  --text-on-brand: #ffffff;
   --text-link: #2563eb;
   --text-link-hover: #1d4ed8;
 
@@ -192,6 +198,8 @@
   --text-tertiary: #9ca3af;
   --text-disabled: #6b7280;
   --text-inverse: #111827;
+  /* Constante en ambos temas: las superficies de marca no se invierten. */
+  --text-on-brand: #ffffff;
   --text-link: #60a5fa;
   --text-link-hover: #93c5fd;
 
@@ -403,7 +411,7 @@ code {
 /* Botón Primary */
 .btn-primary {
   background-color: var(--color-primary);
-  color: var(--text-inverse);
+  color: var(--text-on-brand);
   border-color: var(--color-primary);
 }
 
@@ -433,7 +441,7 @@ code {
 /* Botón Danger */
 .btn-danger {
   background-color: var(--color-danger);
-  color: var(--text-inverse);
+  color: var(--text-on-brand);
   border-color: var(--color-danger);
 }
 
@@ -447,7 +455,7 @@ code {
 /* Botón Success */
 .btn-success {
   background-color: var(--color-success);
-  color: var(--text-inverse);
+  color: var(--text-on-brand);
   border-color: var(--color-success);
 }
 
@@ -591,7 +599,7 @@ code {
 
 .badge-primary {
   background-color: var(--color-primary);
-  color: var(--text-inverse);
+  color: var(--text-on-brand);
 }
 
 .badge-success {

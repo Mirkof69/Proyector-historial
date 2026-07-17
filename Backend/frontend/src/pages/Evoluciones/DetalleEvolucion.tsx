@@ -189,7 +189,7 @@ const DetalleEvolucion: React.FC = () => {
             </Card>
 
             <Card className="detail-section-card" style={{ marginTop: 24 }} title={<Space><RiseOutlined /> Evaluación Clínica (Hallazgos)</Space>}>
-              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color, #e2e8f0)' }}>
                 <Title level={4}>Subjetivo / Objetivo / Análisis</Title>
                 <Paragraph style={{ fontSize: '1.1em', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
                   {evolucion.resumen || 'No se registraron detalles del resumen clínico.'}
@@ -292,7 +292,7 @@ const DetalleEvolucion: React.FC = () => {
         </Row>
 
         {/* FOOTER ACTIONS */}
-        <div className="no-print" style={{ marginTop: 32, padding: '20px', background: '#f8fafc', borderRadius: '12px', textAlign: 'right' }}>
+        <div className="no-print" style={{ marginTop: 32, padding: '20px', background: 'var(--bg-secondary)', borderRadius: '12px', textAlign: 'right' }}>
           <Space>
             <Button icon={<HomeOutlined />} onClick={() => navigate('/dashboard')}>Inicio</Button>
             <Button icon={<FileTextOutlined />} onClick={() => navigate('/dashboard/evoluciones')}>Listado Evoluciones</Button>
