@@ -27,32 +27,32 @@ const SeccionSignosVitalesTriaje: React.FC<SeccionSignosVitalesTriajeProps> = ({
           <Row gutter={16}>
             <Col xs={12} sm={6}>
               <Form.Item label="P. Sistólica" name="presion_sistolica" rules={[{ required: true }]}>
-                <InputNumber className="w-full" size="large" addonAfter="mmHg" />
+                <InputNumber className="w-full" size="large" suffix="mmHg" />
               </Form.Item>
             </Col>
             <Col xs={12} sm={6}>
               <Form.Item label="P. Diastólica" name="presion_diastolica" rules={[{ required: true }]}>
-                <InputNumber className="w-full" size="large" addonAfter="mmHg" />
+                <InputNumber className="w-full" size="large" suffix="mmHg" />
               </Form.Item>
             </Col>
             <Col xs={12} sm={6}>
               <Form.Item label="Temperatura" name="temperatura" rules={[{ required: true }]}>
-                <InputNumber className="w-full" size="large" addonAfter="°C" step={0.1} />
+                <InputNumber className="w-full" size="large" suffix="°C" step={0.1} />
               </Form.Item>
             </Col>
             <Col xs={12} sm={6}>
               <Form.Item label="F. Cardíaca" name="frecuencia_cardiaca" rules={[{ required: true }]}>
-                <InputNumber className="w-full" size="large" addonAfter="bpm" />
+                <InputNumber className="w-full" size="large" suffix="bpm" />
               </Form.Item>
             </Col>
             <Col xs={12} sm={6}>
               <Form.Item label="F. Resp." name="frecuencia_respiratoria" rules={[{ required: true }]}>
-                <InputNumber className="w-full" size="large" addonAfter="rpm" />
+                <InputNumber className="w-full" size="large" suffix="rpm" />
               </Form.Item>
             </Col>
             <Col xs={12} sm={6}>
               <Form.Item label="Saturación" name="saturacion_oxigeno">
-                <InputNumber className="w-full" size="large" addonAfter="%" />
+                <InputNumber className="w-full" size="large" suffix="%" />
               </Form.Item>
             </Col>
             <Col xs={12} sm={6}>
@@ -68,12 +68,12 @@ const SeccionSignosVitalesTriaje: React.FC<SeccionSignosVitalesTriajeProps> = ({
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Peso" name="peso_kg" rules={[{ required: true }]}>
-                <InputNumber className="w-full" size="large" addonAfter="kg" step={0.1} />
+                <InputNumber className="w-full" size="large" suffix="kg" step={0.1} />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item label="Talla" name="talla_cm" rules={[{ required: true }]}>
-                <InputNumber className="w-full" size="large" addonAfter="cm" />
+                <InputNumber className="w-full" size="large" suffix="cm" />
               </Form.Item>
             </Col>
             <Col span={24}>
