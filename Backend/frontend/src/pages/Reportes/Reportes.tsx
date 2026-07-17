@@ -188,10 +188,22 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
           <div className="reportes-chart-card__body">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie data={compositionData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} fill="#8884d8" dataKey="value" label={renderPieLabel} animationDuration={800}>
-                  {compositionData.map((entry: any) => (<Cell key={entry.name} fill={['#4caf50', '#9c27b0', '#ff9800', '#2196f3'][compositionData.indexOf(entry) % 4]} />))}
+                <Pie
+                  data={compositionData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={renderPieLabel}
+                  animationDuration={800}
+                >
+                  {compositionData.map((entry: any) => (
+                    <Cell key={entry.name} fill={colorEntidad(entry.name)} stroke="#fff" strokeWidth={2} />
+                  ))}
                 </Pie>
-                <RechartsTooltip contentStyle={{ backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8 }} />
+                <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -203,12 +215,16 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
           <div className="reportes-chart-card__header"><div className="reportes-chart-card__title">Comparativa Mensual</div><div className="reportes-chart-card__subtitle">Últimos 12 meses - Actividad del sistema</div></div>
           <div className="reportes-chart-card__body">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stackedBarData}>
+              <BarChart data={stackedBarData} maxBarSize={48}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
                 <XAxis dataKey="month" stroke="#666" style={{ fontSize: 12 }} /><YAxis stroke="#666" style={{ fontSize: 12 }} />
-                <RechartsTooltip contentStyle={{ backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8 }} />
+                <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
                 <Legend wrapperStyle={{ paddingTop: 10 }} />
-                <Bar dataKey="embarazos" stackId="a" fill="#9c27b0" name="Embarazos" /><Bar dataKey="controles" stackId="a" fill="#4caf50" name="Controles" /><Bar dataKey="partos" stackId="a" fill="#ff9800" name="Partos" /><Bar dataKey="citas" stackId="a" fill="#2196f3" name="Citas" />
+                {/* Color fijo por entidad + separador blanco de 2px entre segmentos */}
+                <Bar dataKey="citas" stackId="a" fill={SERIES_COLORS.citas} name="Citas" stroke="#fff" strokeWidth={2} animationDuration={800} />
+                <Bar dataKey="embarazos" stackId="a" fill={SERIES_COLORS.embarazos} name="Embarazos" stroke="#fff" strokeWidth={2} animationDuration={800} />
+                <Bar dataKey="controles" stackId="a" fill={SERIES_COLORS.controles} name="Controles" stroke="#fff" strokeWidth={2} animationDuration={800} />
+                <Bar dataKey="partos" stackId="a" fill={SERIES_COLORS.partos} name="Partos" stroke="#fff" strokeWidth={2} radius={[4, 4, 0, 0]} animationDuration={800} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -216,15 +232,16 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
       )}
       {distributionData && distributionData.data && distributionData.data.length > 0 && (
         <div className="reportes-chart-card">
-          <div className="reportes-chart-card__header"><div className="reportes-chart-card__title">Distribución de Edades</div><div className="reportes-chart-card__subtitle">Promedio: {distributionData.stats.mean} años | Total: {distributionData.stats.count} pacientes</div></div>
+          <div className="reportes-chart-card__header"><div className="reportes-chart-card__title">Distribución de Edades</div><div className="reportes-chart-card__subtitle">Promedio: {distributionData.stats.mean} años · Mediana: {distributionData.stats.median} · Rango: {distributionData.stats.min}–{distributionData.stats.max} · {distributionData.stats.count} pacientes</div></div>
           <div className="reportes-chart-card__body">
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={distributionData.data}>
-                <defs><linearGradient id="colorAge" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b1fa2" stopOpacity={0.8} /><stop offset="95%" stopColor="#8b1fa2" stopOpacity={0.1} /></linearGradient></defs>
+                {/* Magnitud = un solo tono secuencial (azul del token primario) */}
+                <defs><linearGradient id="colorAge" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#1890ff" stopOpacity={0.8} /><stop offset="95%" stopColor="#1890ff" stopOpacity={0.1} /></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-                <XAxis dataKey="age" stroke="#666" label={{ value: 'Edad (años)', position: 'insideBottom', offset: -5 }} /><YAxis stroke="#666" label={{ value: 'Cantidad', angle: -90, position: 'insideLeft' }} />
-                <RechartsTooltip contentStyle={{ backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8 }} />
-                <Area type="monotone" dataKey="count" stroke="#8b1fa2" fillOpacity={1} fill="url(#colorAge)" name="Pacientes" />
+                <XAxis dataKey="age" stroke="#666" label={{ value: 'Edad (años)', position: 'insideBottom', offset: -5 }} /><YAxis stroke="#666" label={{ value: 'Cantidad', angle: -90, position: 'insideLeft' }} allowDecimals={false} />
+                <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
+                <Area type="monotone" dataKey="count" stroke="#1890ff" strokeWidth={2} fillOpacity={1} fill="url(#colorAge)" name="Pacientes" animationDuration={800} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -321,6 +338,19 @@ const RenderGenerator: React.FC<{ onGenerateReporte: (tipo: string) => void }> =
 );
 
 const TOOLTIP_CONTENT_STYLE = { backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' };
+
+// Paleta categórica por ENTIDAD (fija, nunca por posición): pasos oscuros de las
+// familias antd de los tokens, validada CVD/contraste con el validador de dataviz.
+// El color sigue a la entidad en TODOS los gráficos — no se recicla ni se rota.
+const SERIES_COLORS: Record<string, string> = {
+  pacientes: '#1890ff',
+  citas: '#08979c',
+  embarazos: '#d48806',
+  controles: '#722ed1',
+  partos: '#389e0d',
+};
+const colorEntidad = (nombre: string): string =>
+  SERIES_COLORS[nombre.toLowerCase()] ?? '#8c8c8c';
 const TOOLTIP_FORMATTER = (value: any) => [value, ''];
 const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 const renderPieLabel = (entry: any) => `${entry.name}: ${entry.percentage}%`;
