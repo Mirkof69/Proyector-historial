@@ -105,6 +105,7 @@ import TabProtocolosCumplimiento from './sections/TabProtocolosCumplimiento';
 import TabComparacionEmbarazos from './sections/TabComparacionEmbarazos';
 import TabAntecedentes from './sections/TabAntecedentes';
 import HeaderInfoPaciente from './sections/HeaderInfoPaciente';
+import ResumenCompletitud from './sections/ResumenCompletitud';
 import HistoriaClinicaModales from './sections/HistoriaClinicaModales';
 import { RiesgoPreeclampsiaItem } from './historiaClinicaHelpers';
 import {
@@ -287,8 +288,14 @@ const HistoriaClinica: React.FC = () => {
       const partosData = resPartos.data.results || resPartos.data;
       const ctrlData = resControles.data.results || resControles.data;
       const controlesArray = Array.isArray(ctrlData) ? ctrlData : [];
-      const ecosData = resEcos.data.results || resEcos.data;
-      const labsData = resLabs.data.results || resLabs.data;
+      // Normalizar SIEMPRE a array: /laboratorios/ (root del router) puede
+      // devolver un objeto; pasarlo crudo a generarAlertas/calcularTendencias
+      // reventaba con "laboratorios.forEach is not a function" y tiraba TODA
+      // la historia clínica al branch de error.
+      const ecosRaw = resEcos.data.results || resEcos.data;
+      const labsRaw = resLabs.data.results || resLabs.data;
+      const ecosData = Array.isArray(ecosRaw) ? ecosRaw : [];
+      const labsData = Array.isArray(labsRaw) ? labsRaw : [];
 
       if (isMounted.current) {
         setVacunas(Array.isArray(vacunasData) ? vacunasData : []);
@@ -318,6 +325,8 @@ const HistoriaClinica: React.FC = () => {
       }
 
     } catch (err: any) {
+      // Sin este log el error real quedaba tragado y el diagnóstico era a ciegas.
+      console.error('[HistoriaClinica] fallo la carga:', err);
       setError("No se pudo cargar la historia clínica completa. Verifique su conexión o permisos.");
       notification.error({ message: 'Error de Conexión', description: 'Algunos módulos clínicos no pudieron cargarse.' });
     } finally {
@@ -916,6 +925,19 @@ const HistoriaClinica: React.FC = () => {
           setDrawerTimelineVisible={setDrawerTimelineVisible}
           setModalComparacionVisible={setModalComparacionVisible}
           setDrawerAlertasVisible={setDrawerAlertasVisible}
+        />
+
+        {/* COMPLETITUD DE UN VISTAZO: qué tiene y qué le FALTA a la paciente */}
+        <ResumenCompletitud
+          embarazoActivo={embarazoActivo}
+          controles={controles}
+          ecografias={ecografias}
+          laboratorios={laboratorios}
+          notas={notas}
+          vacunas={vacunas}
+          antecedenteGineco={antecedenteGineco}
+          antecedentePatologico={antecedentePatologico}
+          onIrATab={setActiveTab}
         />
 
         {/* CONTROLES DE VISTA Y FILTROS */}
