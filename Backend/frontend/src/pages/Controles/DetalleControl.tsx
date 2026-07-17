@@ -25,7 +25,6 @@ import {
   Empty,
   Badge,
   Modal,
-  message,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -39,6 +38,8 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { controlesService, ControlPrenatal } from '../../services/controlesService';
+import { descargarArchivo } from '../../utils/descargarArchivo';
+import { useAntdApp } from '../../hooks/useMessage';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
 import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
@@ -60,6 +61,8 @@ const { Title, Text } = Typography;
 // ═══════════════════════════════════════════════════════════════════════════
 
 const DetalleControl: React.FC = () => {
+  // message del hook (no el estático de antd): respeta el tema dinámico
+  const { message } = useAntdApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -162,12 +165,19 @@ const DetalleControl: React.FC = () => {
     window.print();
   }, []);
 
+  // Antes era un toast falso (setTimeout sin descarga); ahora descarga el PDF
+  // real del backend (reportes/pdf_clinico).
   const handleExportPDF = useCallback(() => {
-    message.info('Preparando exportación a PDF...');
-    setTimeout(() => {
-      message.success('Control exportado correctamente');
-    }, 1000);
-  }, []);
+    descargarArchivo(`/controles/${id}/exportar-pdf/`, `control_${id}.pdf`)
+      .then(() => message.success('PDF del control descargado'))
+      .catch(() => message.error('No se pudo generar el PDF'));
+  }, [id]);
+
+  const handleExportExcel = useCallback(() => {
+    descargarArchivo(`/controles/${id}/exportar-excel/`, `control_${id}.xlsx`)
+      .then(() => message.success('Excel del control descargado'))
+      .catch(() => message.error('No se pudo generar el Excel'));
+  }, [id]);
 
   const handleNavigateControl = useCallback(
     (direccion: 'anterior' | 'siguiente') => {
@@ -305,6 +315,9 @@ const DetalleControl: React.FC = () => {
               </Button>
               <Button icon={<ExportOutlined />} onClick={handleExportPDF}>
                 Exportar PDF
+              </Button>
+              <Button icon={<ExportOutlined />} onClick={handleExportExcel}>
+                Exportar Excel
               </Button>
               <Button icon={<EditOutlined />} type="primary" onClick={handleEdit}>
                 Editar

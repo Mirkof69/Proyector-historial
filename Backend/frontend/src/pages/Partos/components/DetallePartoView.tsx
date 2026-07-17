@@ -147,7 +147,7 @@ const DetallePartoView: React.FC<DetallePartoViewProps> = ({
             </Descriptions.Item>
           )}
           {parto.tipo_alumbramiento && (
-            <Descriptions.Item label="Alumbramiento" span={2}>
+            <Descriptions.Item label="Alumbramiento" span="filled">
               {parto.tipo_alumbramiento.toUpperCase()}
             </Descriptions.Item>
           )}

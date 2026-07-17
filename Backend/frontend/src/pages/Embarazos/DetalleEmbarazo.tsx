@@ -25,6 +25,8 @@ import {
   PlusOutlined,
   SafetyOutlined,
   HistoryOutlined,
+  FilePdfOutlined,
+  FileExcelOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
@@ -32,6 +34,7 @@ import { pacientesService, Paciente } from '../../services/pacientesService';
 import { controlesService, ControlPrenatal } from '../../services/controlesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import { useAntdApp } from '../../hooks/useMessage';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import {
   calcularSemanasGestacion, calcularDiasRestantes, calcularProgreso,
   getTrimestre, calcularIMCClasificacion, getEstadoConfig, getRiesgoConfig,
@@ -288,6 +291,22 @@ const DetalleEmbarazo: React.FC = () => {
           style={{ borderColor: '#722ed1', color: '#722ed1' }}
         >
           Ver Timeline Completo
+        </Button>
+        <Button
+          icon={<FilePdfOutlined />}
+          onClick={() => descargarArchivo(`/embarazos/${id}/generar-pdf/`, `embarazo_${id}.pdf`)
+            .then(() => antdApp.message.success('PDF descargado'))
+            .catch(() => antdApp.message.error('No se pudo generar el PDF'))}
+        >
+          Descargar PDF
+        </Button>
+        <Button
+          icon={<FileExcelOutlined />}
+          onClick={() => descargarArchivo(`/embarazos/${id}/exportar-excel/`, `embarazo_${id}.xlsx`)
+            .then(() => antdApp.message.success('Excel descargado'))
+            .catch(() => antdApp.message.error('No se pudo generar el Excel'))}
+        >
+          Descargar Excel
         </Button>
       </Space>
 

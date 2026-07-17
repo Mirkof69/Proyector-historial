@@ -95,7 +95,7 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
             </Descriptions.Item>
           )}
           {parto.hemorragia_postparto && (
-            <Descriptions.Item label="Hemorragia Post-Evacuación" span={2}>
+            <Descriptions.Item label="Hemorragia Post-Evacuación" span="filled">
               <Tag color="red"><WarningOutlined /> Sí presente</Tag>
             </Descriptions.Item>
           )}
