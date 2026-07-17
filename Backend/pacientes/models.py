@@ -18,10 +18,13 @@ class Paciente(models.Model):
 
     id = models.AutoField(primary_key=True)
 
+    # El sistema atiende EXCLUSIVAMENTE pacientes gineco-obstetricas: femenino
+    # es el unico valor valido. Se conserva el campo (y no se borra de la BD)
+    # por integridad historica y porque los serializers/exportes lo exponen.
+    # OJO: el sexo del RECIEN NACIDO es otro campo (RecienNacido.sexo) y si
+    # admite masculino/femenino.
     GENERO_CHOICES = (
         ("femenino", "Femenino"),
-        ("masculino", "Masculino"),
-        ("otro", "Otro"),
     )
 
     # Identificación
@@ -39,7 +42,10 @@ class Paciente(models.Model):
     )
     fecha_nacimiento = models.DateField(verbose_name="Fecha de Nacimiento")
     genero = models.CharField(
-        max_length=20, choices=GENERO_CHOICES, verbose_name="Género",
+        max_length=20,
+        choices=GENERO_CHOICES,
+        default="femenino",
+        verbose_name="Género",
     )
 
     # Documentos

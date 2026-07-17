@@ -64,8 +64,8 @@ const PacienteDrawer: React.FC<PacienteDrawerProps> = ({
           <div className="drawer-header-section">
             <Avatar
               size={80}
-              icon={selectedPaciente.genero === 'femenino' ? <WomanOutlined /> : <ManOutlined />}
-              style={{ backgroundColor: selectedPaciente.genero === 'femenino' ? '#ffadd2' : token.colorPrimary, marginBottom: 10 }}
+              icon={<WomanOutlined />}
+              style={{ backgroundColor: '#ffadd2', marginBottom: 10 }}
             />
             <Title level={3} style={{ margin: 0 }}>{selectedPaciente.nombre_completo}</Title>
             <Text type="secondary">{selectedPaciente.id_clinico}</Text>
@@ -76,12 +76,7 @@ const PacienteDrawer: React.FC<PacienteDrawerProps> = ({
                 <Tag color="red" icon={CLOSE_CIRCLE_ICON_2}>INACTIVO</Tag>
               )}
               {selectedPaciente.embarazos_activos && <Tag color="purple">GESTANTE</Tag>}
-              {selectedPaciente.genero === 'femenino' && (
-                <Tag icon={WOMAN_ICON} color="pink">Femenino</Tag>
-              )}
-              {selectedPaciente.genero === 'masculino' && (
-                <Tag icon={MAN_ICON_2} color="blue">Masculino</Tag>
-              )}
+              <Tag icon={WOMAN_ICON} color="pink">Femenino</Tag>
             </div>
           </div>
 

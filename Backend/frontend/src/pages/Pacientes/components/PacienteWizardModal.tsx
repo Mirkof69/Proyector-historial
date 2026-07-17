@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, Form, Input, DatePicker, Select, Row, Col, Divider, Button, Steps } from 'antd';
 import {
   UserOutlined, HomeOutlined, MedicineBoxOutlined, IdcardOutlined,
-  PhoneOutlined, MailOutlined, GlobalOutlined, CheckCircleOutlined,
+  PhoneOutlined, MailOutlined, GlobalOutlined, CheckCircleOutlined, WomanOutlined,
 } from '@ant-design/icons';
 import type { FormInstance } from 'antd';
 import dayjs from 'dayjs';
@@ -89,12 +89,15 @@ const PacienteWizardModal: React.FC<PacienteWizardModalProps> = ({
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="genero" label="Género" rules={[{ required: true }]}>
-              <Select>
-                <Option value="femenino">Femenino</Option>
-                <Option value="masculino">Masculino</Option>
-                <Option value="otro">Otro</Option>
-              </Select>
+            {/* Fijo: sistema exclusivamente gineco-obstétrico (ver
+                SeccionDatosContactoPaciente). */}
+            <Form.Item
+              name="genero"
+              label="Género"
+              initialValue="femenino"
+              tooltip="El sistema atiende exclusivamente pacientes gineco-obstétricas"
+            >
+              <Input disabled value="Femenino" prefix={<WomanOutlined />} />
             </Form.Item>
           </Col>
         </Row>
