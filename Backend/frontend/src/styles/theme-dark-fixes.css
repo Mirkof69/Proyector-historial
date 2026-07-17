@@ -356,8 +356,10 @@
 [data-theme='dark'] .ant-picker-cell-selected .ant-picker-cell-inner,
 [data-theme='dark'] .ant-picker-cell-range-start .ant-picker-cell-inner,
 [data-theme='dark'] .ant-picker-cell-range-end .ant-picker-cell-inner {
-  background: #3b82f6 !important;
-  color: #ffffff !important;
+  /* El azul de marca (#3b82f6) es demasiado claro para texto blanco: 3.68:1.
+     Usamos el paso oscuro del token -> 6.6:1 (WCAG AA). */
+  background: var(--color-primary-dark) !important;
+  color: var(--text-on-brand) !important;
 }
 
 .dark .ant-picker-today-btn,

@@ -12,7 +12,7 @@ import './NotFound.css';
 const { Text, Title, Paragraph } = Typography;
 
 const notFoundTitle = (
-  <Title level={1} style={{ color: '#595959', marginBottom: 0 }}>
+  <Title level={1} style={{ color: 'var(--text-secondary)', marginBottom: 0 }}>
     404
   </Title>
 );
@@ -61,7 +61,6 @@ const NotFound: React.FC = () => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      background: '#f0f2f5'
     }}>
       <Card
         variant="borderless"

@@ -326,7 +326,7 @@ const FormularioTriaje: React.FC = () => {
                         <SeccionMotivoTriaje />
                     </div>
 
-                    <div style={{ marginTop: 24, padding: '16px', background: '#f9f9f9', borderRadius: '8px' }}>
+                    <div style={{ marginTop: 24, padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
                         <Row justify="space-between" align="middle">
                             <Col>
                                 {pasoActual > 0 && (

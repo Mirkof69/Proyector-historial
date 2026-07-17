@@ -124,7 +124,9 @@
   padding: 4px 8px;
   border-radius: 4px;
   background: var(--bg-secondary, #1a1a1a);
-  color: var(--primary-color, #5c6bc0);
+  /* --primary-color no existe fuera de DashboardHome.css: caia al fallback
+     indigo #5c6bc0 = 3.88:1 sobre el fondo oscuro. Es una etiqueta neutra. */
+  color: var(--text-secondary, #6b7280);
 }
 
 .reportes-kpi-card__trend--up {

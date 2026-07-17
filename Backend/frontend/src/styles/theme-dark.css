@@ -44,10 +44,13 @@
         color: var(--color-primary);
     }
 
+    /* El fondo del botón primario NO se invierte con el tema (sigue siendo el
+       gradiente/azul de marca), así que su texto debe ser blanco también en
+       oscuro. Con --text-inverse quedaba #111827 sobre violeta: 2.66:1. */
     .ant-btn-primary {
         background-color: var(--color-primary);
         border-color: var(--color-primary);
-        color: var(--text-inverse);
+        color: var(--text-on-brand);
     }
 
     .ant-btn-primary:hover {
@@ -281,7 +284,16 @@
     }
 
     .ant-pagination-item-active a {
-        color: var(--text-inverse);
+        color: var(--text-on-brand);
+    }
+
+    /* El azul de marca en oscuro (#3b82f6) es demasiado claro para texto
+       blanco: 3.68:1 (< 4.5). Donde va texto blanco encima usamos el paso
+       oscuro del token -> 6.6:1. (La celda del calendario se corrige en
+       theme-dark-fixes.css, que gana con !important.) */
+    .ant-pagination-item-active {
+        background-color: var(--color-primary-dark);
+        border-color: var(--color-primary-dark);
     }
 
     /* ========== COMPONENTES PERSONALIZADOS ========== */
@@ -409,17 +421,17 @@
     /* Badges de Estado */
     .badge-activo {
         background-color: var(--color-success);
-        color: var(--text-inverse);
+        color: var(--text-on-brand);
     }
 
     .badge-pendiente {
         background-color: var(--color-warning);
-        color: var(--text-inverse);
+        color: var(--text-on-brand);
     }
 
     .badge-cancelado {
         background-color: var(--color-error);
-        color: var(--text-inverse);
+        color: var(--text-on-brand);
     }
 
     /* Cards de Alertas */

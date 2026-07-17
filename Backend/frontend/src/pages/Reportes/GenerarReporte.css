@@ -1,6 +1,6 @@
 .generar-reporte-container {
   padding: 30px;
-  background-color: #f4f7fe;
+  background-color: var(--bg-secondary, #f4f7fe);
   min-height: 100vh;
 }
 

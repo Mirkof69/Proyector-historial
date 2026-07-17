@@ -12,7 +12,7 @@ interface VacunasFiltrosProps {
 }
 
 const VacunasFiltros: React.FC<VacunasFiltrosProps> = ({ filtros, dispatchFiltros }) => (
-  <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', marginBottom: 24, border: '1px solid #e2e8f0' }}>
+  <div style={{ background: 'var(--bg-secondary)', padding: '20px', borderRadius: '12px', marginBottom: 24, border: '1px solid var(--border-color, #e2e8f0)' }}>
     <Row gutter={[16, 16]} align="middle">
       <Col xs={24} lg={8}>
         <Input

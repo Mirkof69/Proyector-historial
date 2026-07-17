@@ -24,8 +24,8 @@ const Ayuda: React.FC = () => {
   };
 
   return (
-    <Layout className="animate-fade-in" style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-      <div style={{ padding: '16px 24px', background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
+    <Layout className="animate-fade-in" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
+      <div style={{ padding: '16px 24px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color, #f0f0f0)' }}>
         <Breadcrumb>
           <Breadcrumb.Item>
             <button
