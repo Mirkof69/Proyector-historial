@@ -102,3 +102,4 @@ Backend/Microservicio_IA/training_logs/
 Backend/frontend/diagnostics_*.txt
 Backend/frontend/doctor_verbose*.txt
 Backend/frontend/react-doctor-report.json
+Backend/Microservicio_IA/datasets_pathology_v2/

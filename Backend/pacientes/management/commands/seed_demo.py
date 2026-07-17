@@ -131,10 +131,18 @@ class Command(BaseCommand):
                     apellido_paterno=ap_pat,
                     apellido_materno=ap_mat,
                     fecha_nacimiento=fnac,
+                    # El sistema es exclusivamente gineco-obstetrico: toda
+                    # paciente es femenina. El seed lo omitia y dejaba el campo
+                    # obligatorio vacio (detectado en la auditoria de integridad).
+                    genero="femenino",
                     tipo_sangre=grupo,
                     telefono=f"7{random.randint(1000000, 9999999)}",
                     ciudad=random.choice(["La Paz", "El Alto", "Cochabamba"]),
-                    estado_civil=random.choice(["soltera", "casada", "union_libre"]),
+                    # Los choices del modelo son la forma canonica en masculino
+                    # ("soltero"/"casado"); la UI ya los muestra en femenino via
+                    # getEstadoCivilConGenero(). El seed guardaba "soltera"/"casada",
+                    # valores que NO existen en choices.
+                    estado_civil=random.choice(["soltero", "casado", "union_libre"]),
                     activo=True,
                     estado_paciente="activo",
                 )
