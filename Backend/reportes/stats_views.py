@@ -41,12 +41,15 @@ def dashboard_stats_view(_request):
         today = now.date()
 
         stats = {
-            "total_pacientes": Paciente.objects.filter(
-                estado_paciente="activo",
-            ).count(),
-            "pacientes_activos": Paciente.objects.filter(
-                estado_paciente="activo",
-            ).count(),
+            # "total" es el TOTAL, no un filtrado: antes ambas claves corrían
+            # la MISMA consulta (estado_paciente="activo"), así que el
+            # dashboard mostraba 295 cuando había 430 pacientes y las
+            # inactivas quedaban invisibles. Se usa `activo`, que es la
+            # bandera canónica del resto del sistema (estado_paciente puede
+            # quedar desincronizado).
+            "total_pacientes": Paciente.objects.count(),
+            "pacientes_activos": Paciente.objects.filter(activo=True).count(),
+            "pacientes_inactivos": Paciente.objects.filter(activo=False).count(),
             "pacientes_nuevos_mes": Paciente.objects.filter(
                 fecha_registro__month=now.month, fecha_registro__year=now.year,
             ).count(),
