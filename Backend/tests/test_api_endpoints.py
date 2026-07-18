@@ -150,8 +150,13 @@ class APIEndpointStatusTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_token_refresh_200_with_valid_token(self):
-        """POST /api/usuarios/refresh/ returns 200 with valid refresh token."""
-        obtain = self.client.post(
+        """El refresh por cookie httpOnly devuelve 200 y rota el access token.
+
+        Reescrito al contrato actual: tras la migración a cookies httpOnly el
+        login ya NO expone refresh_token en el body (antes este test se
+        SALTABA por eso). El refresh lo lee de la cookie que setea el login.
+        """
+        self.client.post(
             reverse("login"),
             {
                 "email": "admin@test.com",
@@ -159,17 +164,16 @@ class APIEndpointStatusTest(APITestCase):
             },
             format="json",
         )
-        refresh_token = obtain.data.get("refresh_token")
-        if not refresh_token:
-            self.skipTest("Login did not return refresh_token (MFA flow)")
+        # El test client conserva las cookies del login: el refresh viaja en
+        # la cookie httpOnly, sin body.
         response = self.client.post(
-            reverse("refresh-token"),
-            {
-                "refresh_token": refresh_token,
-            },
+            reverse("token_refresh"),
+            {},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # El nuevo access token vuelve como cookie, nunca en el body.
+        self.assertIn("access_token", response.cookies)
 
     def test_token_refresh_400_with_invalid_token(self):
         """POST /api/usuarios/refresh/ returns 400/401 with invalid refresh token."""
