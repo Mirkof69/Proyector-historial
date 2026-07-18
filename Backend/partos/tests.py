@@ -250,7 +250,14 @@ class PartoAPITestCase(APITestCase):
         self.assertEqual(response.data["id"], parto.id)
 
     def test_estadisticas_partos(self):
-        """Test endpoint de estadísticas"""
+        """Las estadísticas cuentan los partos y los desglosan por tipo.
+
+        Ajustado al contrato REAL del endpoint: devuelve un objeto por
+        secciones ({"resumen": {...}, "por_tipo": [...], ...}), no una clave
+        plana "total". El test buscaba esa clave inexistente y fallaba
+        siempre; además el `if status == 200` lo dejaba pasar en silencio si
+        el endpoint devolvía cualquier otro código.
+        """
         # Crear algunos partos
         for i in range(3):
             Parto.objects.create(
@@ -263,5 +270,9 @@ class PartoAPITestCase(APITestCase):
 
         response = self.client.get("/api/partos/estadisticas/")
 
-        if response.status_code == status.HTTP_200_OK:
-            self.assertIn("total", response.data or {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        datos = response.data or {}
+        self.assertEqual(datos["resumen"]["total_partos"], 3)
+        por_tipo = {fila["tipo_parto"]: fila["total"] for fila in datos["por_tipo"]}
+        self.assertEqual(por_tipo["vaginal"], 2)
+        self.assertEqual(por_tipo["cesarea"], 1)
