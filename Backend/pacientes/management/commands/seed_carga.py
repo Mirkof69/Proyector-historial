@@ -17,7 +17,7 @@ Qué genera por paciente COMPLETO:
     - 1 embarazo (activo o finalizado)
     - 2-8 controles prenatales con signos vitales variados (normales y de riesgo)
     - 1-3 ecografías con biometría
-    - 0-3 exámenes de laboratorio
+    - 1-4 exámenes de laboratorio (panel prenatal; el catálogo se siembra solo)
     - 0-2 registros de vacunación
     - Desenlace: parto (con recién nacido) o pérdida, según corresponda
 
@@ -162,7 +162,33 @@ class Command(BaseCommand):
 
         from laboratorio.models import TipoExamen
 
-        self.tipos_examen = list(TipoExamen.objects.all()[:5])
+        # El catálogo de exámenes venía VACÍO en el tenant, así que la lista
+        # quedaba en [] y no se creaba ni un laboratorio: la sección
+        # "Laboratorio" de la historia clínica salía vacía para las 500.
+        # Se siembra el panel prenatal básico del MSP boliviano.
+        examenes_base = [
+            ("Hemograma completo", "HEM-001", "hematologia", 24, "35.00"),
+            ("Glucemia en ayunas", "BIO-001", "bioquimica", 12, "20.00"),
+            ("Grupo sanguíneo y factor Rh", "INM-001", "inmunologia", 24, "40.00"),
+            ("Examen general de orina", "URI-001", "urinalisis", 12, "25.00"),
+            ("VDRL / sífilis", "SER-001", "serologia", 48, "45.00"),
+        ]
+        self.tipos_examen = []
+        for nombre, codigo, categoria, horas, precio in examenes_base:
+            te, _ = TipoExamen.objects.get_or_create(
+                codigo=codigo,
+                defaults={
+                    "nombre": nombre,
+                    "categoria": categoria,
+                    "descripcion": f"{nombre} — control prenatal de rutina",
+                    "preparacion": "Ayuno de 8 horas" if categoria == "bioquimica" else "Sin preparación especial",
+                    "tiempo_resultado": horas,
+                    "precio": Decimal(precio),
+                    "activo": True,
+                    "created_by": self.medico,
+                },
+            )
+            self.tipos_examen.append(te)
 
     # ── Limpieza ───────────────────────────────────────────────────────────
     def _limpiar(self):
@@ -382,6 +408,27 @@ class Command(BaseCommand):
                 aplicado_por=self.medico,
                 proxima_dosis_fecha=date.today() + timedelta(days=random.randint(30, 180)),
                 observaciones=f"{MARCA_CARGA}",
+            )
+
+        # ── Exámenes de laboratorio (panel prenatal) ──
+        from laboratorio.models import ExamenLaboratorio
+
+        for te in random.sample(self.tipos_examen, k=random.randint(1, 4)):
+            solicitud = timezone.now() - timedelta(days=random.randint(5, 200))
+            # Mayoría completados; algunos en curso, como en la vida real.
+            estado = random.choices(
+                ["completado", "en_proceso", "solicitado"], [75, 15, 10])[0]
+            ExamenLaboratorio.objects.create(
+                paciente=paciente,
+                tipo_examen=te,
+                medico_solicitante=self.medico,
+                fecha_solicitud=solicitud,
+                fecha_muestra=solicitud + timedelta(days=1) if estado != "solicitado" else None,
+                fecha_resultado=solicitud + timedelta(days=2) if estado == "completado" else None,
+                estado=estado,
+                prioridad=random.choices(["normal", "urgente", "stat"], [85, 12, 3])[0],
+                indicaciones=te.preparacion,
+                observaciones=f"{MARCA_CARGA} panel prenatal",
             )
 
         # ── Desenlace: parto o pérdida (solo si el embarazo está a término) ──
