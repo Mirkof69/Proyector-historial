@@ -31,6 +31,7 @@ import {
   PrinterOutlined,
   FilePdfOutlined,
   FileExcelOutlined,
+  FileTextOutlined,
   DeleteOutlined,
   MedicineBoxOutlined,
   UserOutlined,
@@ -311,6 +312,14 @@ const DetalleParto: React.FC = () => {
                   .catch(() => message.error('No se pudo generar el Excel'))}
               >
                 Excel
+              </Button>
+              <Button
+                icon={<FileTextOutlined />}
+                onClick={() => descargarArchivo(`/partos/${id}/exportar-csv/`, `parto_${id}.csv`)
+                  .then(() => message.success('CSV descargado'))
+                  .catch(() => message.error('No se pudo generar el CSV'))}
+              >
+                CSV
               </Button>
               <Button type="primary" icon={EDIT_ICON_3} onClick={handleEditar}>
                 Editar

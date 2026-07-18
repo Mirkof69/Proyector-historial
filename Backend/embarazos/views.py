@@ -990,6 +990,38 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         )
         return respuesta_excel(wb, f"embarazo_{embarazo.id}")
 
+    @action(detail=True, methods=["get"], url_path="exportar-csv")
+    def exportar_csv_detalle(self, _request, pk=None):
+        """El mismo resumen del embarazo, como CSV (mismos datos que el Excel)."""
+        from reportes.csv_clinico import respuesta_csv
+
+        embarazo = self.get_object()
+        paciente = embarazo.paciente
+        controles = list(embarazo.controles.all().order_by("fecha_control"))
+
+        return respuesta_csv(f"embarazo_{embarazo.id}", [
+            {"titulo": "Datos del embarazo", "pares": [
+                ("Paciente", paciente.nombre_completo),
+                ("CI", paciente.ci),
+                ("ID Clínico", paciente.id_clinico),
+                ("Estado", embarazo.estado),
+                ("FUM", str(embarazo.fecha_ultima_menstruacion)),
+                ("FPP", str(embarazo.fecha_probable_parto)),
+                ("Gesta / Para", f"G{embarazo.numero_gesta} P{embarazo.numero_para}"),
+            ]},
+            {"titulo": "Controles prenatales",
+             "encabezados": ["Fecha", "Semanas", "Peso (kg)", "PA sist.", "PA diast.", "FCF", "Altura uterina"],
+             "filas": [[
+                 str(c.fecha_control),
+                 getattr(c, "semanas_gestacion", None) or getattr(c, "edad_gestacional_semanas", None),
+                 getattr(c, "peso_kg", None) or getattr(c, "peso_actual", None),
+                 getattr(c, "presion_arterial_sistolica", None),
+                 getattr(c, "presion_arterial_diastolica", None),
+                 getattr(c, "frecuencia_cardiaca_fetal", None),
+                 getattr(c, "altura_uterina", None),
+             ] for c in controles]},
+        ])
+
     @action(detail=False, methods=["get"], url_path="exportar-excel")
     def exportar_excel(self, request):
         """Exportar lista de embarazos a Excel"""

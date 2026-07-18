@@ -27,6 +27,7 @@ import {
   HistoryOutlined,
   FilePdfOutlined,
   FileExcelOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
@@ -307,6 +308,14 @@ const DetalleEmbarazo: React.FC = () => {
             .catch(() => antdApp.message.error('No se pudo generar el Excel'))}
         >
           Descargar Excel
+        </Button>
+        <Button
+          icon={<FileTextOutlined />}
+          onClick={() => descargarArchivo(`/embarazos/${id}/exportar-csv/`, `embarazo_${id}.csv`)
+            .then(() => antdApp.message.success('CSV descargado'))
+            .catch(() => antdApp.message.error('No se pudo generar el CSV'))}
+        >
+          Descargar CSV
         </Button>
       </Space>
 

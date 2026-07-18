@@ -25,6 +25,7 @@ import {
   PrinterOutlined,
   FilePdfOutlined,
   FileExcelOutlined,
+  FileTextOutlined,
   DeleteOutlined,
   FileImageOutlined,
   ExclamationCircleOutlined,
@@ -185,6 +186,14 @@ const DetalleEcografia: React.FC = () => {
                   .catch(() => message.error('No se pudo generar el Excel'))}
               >
                 Excel
+              </Button>
+              <Button
+                icon={<FileTextOutlined />}
+                onClick={() => descargarArchivo(`/ecografias/${id}/exportar-csv/`, `ecografia_${id}.csv`)
+                  .then(() => message.success('CSV descargado'))
+                  .catch(() => message.error('No se pudo generar el CSV'))}
+              >
+                CSV
               </Button>
               <Button type="primary" icon={<EditOutlined />} onClick={handleEditar}>
                 Editar

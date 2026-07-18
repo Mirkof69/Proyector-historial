@@ -54,6 +54,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import 'dayjs/locale/es';
 
 // Importamos el motor API robusto creado anteriormente
@@ -410,33 +411,14 @@ const Pacientes: React.FC = () => {
         });
     }, [selectedRowKeys, modal, message, loadPacientes]);
 
+    // CSV del listado desde el MISMO endpoint institucional que el Excel/PDF
+    // (BOM UTF-8 + cabecera de marca + mismas columnas). Antes era una
+    // "simulación" client-side con formato distinto e incompatible.
     const handleExport = useCallback(() => {
-        // Simulación de exportación a CSV
-        const header = ["ID Clinico", "Nombre", "CI", "Telefono", "Edad", "Genero", "Ciudad"];
-        const rows = filteredData.map(p => [
-            p.id_clinico,
-            `"${p.nombre} ${p.apellido_paterno}"`,
-            p.ci,
-            p.telefono || '',
-            p.edad,
-            p.genero,
-            p.ciudad || ''
-        ]);
-
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + header.join(",") + "\n"
-            + rows.map(e => e.join(",")).join("\n");
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "reporte_pacientes_" + dayjs().format('YYYYMMDD') + ".csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        message.success("Archivo CSV generado");
-    }, [filteredData, message]);
+        descargarArchivo(`/pacientes/exportar-csv/`, `pacientes_${dayjs().format('YYYYMMDD')}.csv`)
+            .then(() => message.success('CSV descargado'))
+            .catch(() => message.error('No se pudo generar el CSV'));
+    }, [message]);
 
     // ✨ GENERAR PDF DE LISTADO DE PACIENTES
     const handleExportPDF = useCallback(() => {
