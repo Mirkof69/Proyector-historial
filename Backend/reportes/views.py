@@ -690,12 +690,11 @@ def dashboard_stats_view(request):
         anio_actual = timezone.now().year
 
         stats = {
-            "total_pacientes": Paciente.objects.filter(
-                estado_paciente="activo",
-            ).count(),
-            "pacientes_activos": Paciente.objects.filter(
-                estado_paciente="activo",
-            ).count(),
+            # Mismo criterio que reportes/stats_views.py: el total es el
+            # total; "activos" usa la bandera canónica `activo`.
+            "total_pacientes": Paciente.objects.count(),
+            "pacientes_activos": Paciente.objects.filter(activo=True).count(),
+            "pacientes_inactivos": Paciente.objects.filter(activo=False).count(),
             "pacientes_nuevos_mes": Paciente.objects.filter(
                 fecha_registro__month=mes_actual, fecha_registro__year=anio_actual,
             ).count(),
