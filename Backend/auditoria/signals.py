@@ -7,7 +7,14 @@ import json
 import logging
 import threading
 
-from django.db.models.signals import post_delete, post_save, pre_save
+from django.db import transaction
+from django.db.models.signals import (
+    post_delete,
+    post_migrate,
+    post_save,
+    pre_migrate,
+    pre_save,
+)
 from django.dispatch import receiver
 
 from .models import RegistroAuditoria
@@ -15,6 +22,23 @@ from .models import RegistroAuditoria
 logger = logging.getLogger(__name__)
 
 _thread_locals = threading.local()
+
+# Durante `migrate` la tabla de auditoría puede no existir todavía, y el
+# SELECT de comprobación —lanzado desde un signal dentro del schema editor—
+# abortaba la transacción de la migración ("You can't execute queries until
+# the end of the 'atomic' block"), tumbando hasta la creación de la BD de
+# tests. Migrar no es una acción clínica: durante la migración no se audita.
+_migrando = {"activo": False}
+
+
+@receiver(pre_migrate)
+def _marcar_inicio_migracion(**_kwargs):
+    _migrando["activo"] = True
+
+
+@receiver(post_migrate)
+def _marcar_fin_migracion(**_kwargs):
+    _migrando["activo"] = False
 
 
 def set_current_request(request):
@@ -118,11 +142,21 @@ def verificar_tabla_auditoria_existe():
     ocurría sin contexto de tenant (arranque, comando, worker), ese False
     quedaba fijo y la auditoría seguía apagada, en silencio, durante TODA la
     vida del proceso. Reintentar cuesta un `SELECT 1 LIMIT 1`.
+
+    La comprobación va dentro de un SAVEPOINT propio. Sin él, cuando la
+    primera llamada caía dentro de un signal (o sea, dentro de la transacción
+    del save que la disparó) y la consulta fallaba, la transacción entera
+    quedaba abortada. El middleware hacía un "warm-up" para que la primera vez
+    ocurriera en un momento limpio, pero eso solo cubre lo que pasa por un
+    request: los saves del ORM en comandos, workers o tests —donde no hay
+    middleware— seguían sin auditarse. Con el savepoint, un fallo se contiene
+    y se reintenta en la siguiente llamada.
     """
     if _tabla_cache["existe"]:
         return True
     try:
-        RegistroAuditoria.objects.exists()
+        with transaction.atomic():
+            RegistroAuditoria.objects.exists()
         _tabla_cache["existe"] = True
     except Exception:
         return False
@@ -131,6 +165,8 @@ def verificar_tabla_auditoria_existe():
 
 def debe_auditar_modelo(sender):
     """Debe auditar modelo"""
+    if _migrando["activo"]:
+        return False
     if not verificar_tabla_auditoria_existe():
         return False
     return sender.__name__ not in EXCLUIR_MODELOS
