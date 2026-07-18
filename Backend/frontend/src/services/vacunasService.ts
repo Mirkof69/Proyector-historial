@@ -121,7 +121,11 @@ interface EstadisticasVacunas {
 
 class VacunasService {
     private baseUrl = '/vacunas';
-    private tiposUrl = `${this.baseUrl}/tipos`;
+    // El router del backend registra "tipos-vacunas" (vacunas/urls.py). Con
+    // "/tipos" TODAS las llamadas daban 404 y el catch de abajo las tragaba
+    // devolviendo lista vacía: el catálogo de tipos nunca cargaba y el 404
+    // pasaba desapercibido.
+    private tiposUrl = `${this.baseUrl}/tipos-vacunas`;
     private registrosUrl = `${this.baseUrl}/registros`;
 
     // ═════════════════════════════════════════════════════════════════════
