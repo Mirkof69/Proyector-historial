@@ -748,6 +748,33 @@ class PartoViewSet(viewsets.ModelViewSet):
         )
         return respuesta_excel(wb, f"parto_{parto.id}")
 
+    @action(detail=True, methods=["get"], url_path="exportar-csv")
+    def exportar_csv_detalle(self, _request, pk=None):
+        """El mismo resumen del parto, como CSV (mismos datos que el Excel)."""
+        from reportes.csv_clinico import respuesta_csv
+
+        parto = self.get_object()
+        recien_nacidos = list(parto.recien_nacidos.all())
+
+        return respuesta_csv(f"parto_{parto.id}", [
+            {"titulo": "Datos del parto", "pares": [
+                ("Paciente", parto.paciente.nombre_completo),
+                ("Fecha", str(parto.fecha_parto)),
+                ("Tipo de parto", str(parto.tipo_parto)),
+                ("Semanas de gestación", getattr(parto, "semanas_gestacion", "")),
+                ("Recién nacidos", len(recien_nacidos)),
+            ]},
+            {"titulo": "Recién nacidos",
+             "encabezados": ["Sexo", "Peso (g)", "Talla (cm)", "Apgar 1'", "Apgar 5'"],
+             "filas": [[
+                 str(rn.sexo),
+                 getattr(rn, "peso_gramos", None) or getattr(rn, "peso", None),
+                 getattr(rn, "talla_cm", None) or getattr(rn, "talla", None),
+                 getattr(rn, "apgar_1min", None) or getattr(rn, "apgar_1_min", None),
+                 getattr(rn, "apgar_5min", None) or getattr(rn, "apgar_5_min", None),
+             ] for rn in recien_nacidos]},
+        ])
+
     @action(detail=True, methods=["get"], url_path="partograma-pdf")
     def partograma_pdf(self, _request, pk=None):
         """Partograma en PDF institucional, con la curva de dilatación.

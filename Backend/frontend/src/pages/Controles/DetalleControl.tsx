@@ -179,6 +179,12 @@ const DetalleControl: React.FC = () => {
       .catch(() => message.error('No se pudo generar el Excel'));
   }, [id]);
 
+  const handleExportCSV = useCallback(() => {
+    descargarArchivo(`/controles/${id}/exportar-csv/`, `control_${id}.csv`)
+      .then(() => message.success('CSV del control descargado'))
+      .catch(() => message.error('No se pudo generar el CSV'));
+  }, [id]);
+
   const handleNavigateControl = useCallback(
     (direccion: 'anterior' | 'siguiente') => {
       if (!control) return;
@@ -318,6 +324,9 @@ const DetalleControl: React.FC = () => {
               </Button>
               <Button icon={<ExportOutlined />} onClick={handleExportExcel}>
                 Exportar Excel
+              </Button>
+              <Button icon={<ExportOutlined />} onClick={handleExportCSV}>
+                Exportar CSV
               </Button>
               <Button icon={<EditOutlined />} type="primary" onClick={handleEdit}>
                 Editar

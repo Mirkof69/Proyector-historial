@@ -698,6 +698,35 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         escribir_ficha(ws, pares)
         return respuesta_excel(wb, f"ecografia_{ecografia.id}")
 
+    @action(detail=True, methods=["get"], url_path="exportar-csv")
+    def exportar_csv_detalle(self, request, pk=None):
+        """El mismo informe ecográfico, como CSV (mismos datos que el Excel)."""
+        from reportes.csv_clinico import respuesta_csv
+
+        ecografia = self.get_object()
+        biometria = getattr(ecografia, "biometria", None)
+        bio = biometria.first() if hasattr(biometria, "first") else biometria
+
+        pares = [
+            ("Paciente", ecografia.paciente.nombre_completo),
+            ("Fecha", str(ecografia.fecha_ecografia)),
+            ("Tipo", str(ecografia.tipo_ecografia)),
+            ("Edad gestacional", f"{ecografia.edad_gestacional_semanas}+{getattr(ecografia, 'edad_gestacional_dias', 0)}"),
+            ("FCF (lpm)", getattr(ecografia, "frecuencia_cardiaca_fetal", "")),
+            ("ILA (cm)", getattr(ecografia, "indice_liquido_amniotico", "")),
+            ("Placenta", getattr(ecografia, "localizacion_placenta", "")),
+        ]
+        if bio:
+            pares += [
+                ("DBP (mm)", getattr(bio, "diametro_biparietal", "")),
+                ("CC (mm)", getattr(bio, "circunferencia_cefalica", "")),
+                ("CA (mm)", getattr(bio, "circunferencia_abdominal", "")),
+                ("LF (mm)", getattr(bio, "longitud_femur", "")),
+                ("Peso fetal estimado (g)", getattr(bio, "peso_fetal_estimado", "")),
+            ]
+        pares.append(("Observaciones", getattr(ecografia, "observaciones", "")))
+        return respuesta_csv(f"ecografia_{ecografia.id}", [{"titulo": "Informe ecográfico", "pares": pares}])
+
     @action(detail=False, methods=["get"], url_path="exportar-excel")
     def exportar_excel(self, request):
         """Exporta lista de ecografías a Excel

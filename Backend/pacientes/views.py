@@ -912,6 +912,26 @@ class PacienteViewSet(viewsets.ModelViewSet):
         except ImportError:
             return Response({"error": "openpyxl no instalado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=["get"], url_path="exportar-csv")
+    def exportar_lista_csv(self, request):
+        """Listado de pacientes como CSV (mismas columnas que el Excel/PDF)."""
+        from reportes.csv_clinico import respuesta_csv
+
+        queryset = self.filter_queryset(self.get_queryset())
+        return respuesta_csv("pacientes", [
+            {"titulo": f"Listado de pacientes (total: {queryset.count()})",
+             "encabezados": ["ID Clínico", "Nombre completo", "Edad", "CI", "Teléfono", "Ciudad", "Estado"],
+             "filas": [[
+                 p.id_clinico,
+                 p.nombre_completo,
+                 getattr(p, "edad", None),
+                 p.ci,
+                 p.telefono,
+                 getattr(p, "ciudad", None),
+                 "Activa" if p.activo else "Inactiva",
+             ] for p in queryset]},
+        ])
+
     @action(detail=False, methods=["get"], url_path="exportar-pdf")
     def exportar_pdf(self, request):
         """Listado de pacientes en PDF institucional, con distribución etaria.

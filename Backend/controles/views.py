@@ -1106,3 +1106,23 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
             ("Observaciones", getattr(control, "observaciones", "")),
         ])
         return respuesta_excel(wb, f"control_{control.id}")
+
+    @action(detail=True, methods=["get"], url_path="exportar-csv")
+    def exportar_csv_detalle(self, request, pk=None):
+        """El mismo control, como CSV (mismos datos que el Excel)."""
+        from reportes.csv_clinico import respuesta_csv
+
+        control = self.get_object()
+        return respuesta_csv(f"control_{control.id}", [
+            {"titulo": "Control prenatal", "pares": [
+                ("Paciente", control.paciente.nombre_completo),
+                ("Fecha", str(control.fecha_control)),
+                ("Semanas de gestación", getattr(control, "semanas_gestacion", None) or getattr(control, "edad_gestacional_semanas", "")),
+                ("Peso (kg)", getattr(control, "peso_kg", None) or getattr(control, "peso_actual", "")),
+                ("Presión sistólica", getattr(control, "presion_arterial_sistolica", "")),
+                ("Presión diastólica", getattr(control, "presion_arterial_diastolica", "")),
+                ("FCF (lpm)", getattr(control, "frecuencia_cardiaca_fetal", "")),
+                ("Altura uterina (cm)", getattr(control, "altura_uterina", "")),
+                ("Observaciones", getattr(control, "observaciones", "")),
+            ]},
+        ])
