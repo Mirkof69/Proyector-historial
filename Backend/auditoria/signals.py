@@ -17,13 +17,37 @@ logger = logging.getLogger(__name__)
 _thread_locals = threading.local()
 
 
+def set_current_request(request):
+    """Guarda el request del hilo actual (lo llama AuditoriaMiddleware)."""
+    _thread_locals.request = request
+
+
 def get_current_user():
-    """Get current user"""
-    return getattr(_thread_locals, "user", None)
+    """Usuario autenticado del request en curso, resuelto AL VUELO.
+
+    Se resuelve aquí y no en el middleware porque con autenticación DRF por
+    JWT/cookie el usuario recién queda disponible cuando la vista se ejecuta;
+    en el middleware `request.user` todavía es AnonymousUser y la auditoría
+    guardaba el "quién" vacío.
+    """
+    # set_current_user() explícito (comandos, tareas) tiene prioridad
+    usuario = getattr(_thread_locals, "user", None)
+    if usuario is not None:
+        return usuario
+    request = getattr(_thread_locals, "request", None)
+    if request is None:
+        return None
+    try:
+        candidato = getattr(request, "user", None)
+        if candidato is not None and getattr(candidato, "is_authenticated", False):
+            return candidato
+    except Exception:  # request ya cerrado / usuario no resoluble
+        return None
+    return None
 
 
 def set_current_user(user):
-    """Set current user"""
+    """Set current user (uso explícito fuera de un request HTTP)."""
     _thread_locals.user = user
 
 
@@ -74,21 +98,35 @@ _tabla_cache: dict[str, bool | None] = {"existe": None}
 
 
 def verificar_tabla_auditoria_existe():
-    """¿Existe la tabla de auditoría? Usa la introspección de Django (portable a
-    PostgreSQL, SQLite y cualquier backend), en vez de un query a
-    information_schema que solo funciona en PostgreSQL (antes eso deshabilitaba
-    la auditoría en SQLite/tests)."""
-    if _tabla_cache["existe"] is not None:
-        return _tabla_cache["existe"]
-    try:
-        from django.db import connection
+    """¿La tabla de auditoría es accesible desde el contexto actual?
 
-        _tabla_cache["existe"] = (
-            "auditoria_registros" in connection.introspection.table_names()
-        )
+    Se comprueba con una consulta real del ORM en vez de introspección de
+    esquema. Motivo (bug encontrado en pruebas de carga): con django_tenants
+    el search_path es "<tenant>, public" y
+    `connection.introspection.table_names()` devuelve SOLO las tablas del
+    esquema del tenant. Como `auditoria_registros` vive en `public` (app
+    compartida), la comprobación daba False SIEMPRE y `debe_auditar_modelo()`
+    apagaba en silencio la auditoría de TODOS los modelos clínicos: no se
+    registraba ni una creación, edición o borrado de pacientes, embarazos,
+    controles ni partos.
+
+    Un SELECT del propio modelo respeta el search_path completo y es portable
+    a cualquier backend (PostgreSQL, SQLite en tests).
+
+    SOLO se memoriza el resultado POSITIVO. Antes también se cacheaba el
+    negativo y eso envenenaba el proceso entero: si la primera comprobación
+    ocurría sin contexto de tenant (arranque, comando, worker), ese False
+    quedaba fijo y la auditoría seguía apagada, en silencio, durante TODA la
+    vida del proceso. Reintentar cuesta un `SELECT 1 LIMIT 1`.
+    """
+    if _tabla_cache["existe"]:
+        return True
+    try:
+        RegistroAuditoria.objects.exists()
+        _tabla_cache["existe"] = True
     except Exception:
-        _tabla_cache["existe"] = False
-    return _tabla_cache["existe"]
+        return False
+    return True
 
 
 def debe_auditar_modelo(sender):
