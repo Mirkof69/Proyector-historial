@@ -292,6 +292,18 @@ export const actualizarProtocolos = (controles: any[], ecografias: any[], labora
 
 type TendenciaLab = { examen: string; valores: Array<{ fecha: string; valor: number; referencia: string }>; tendencia: 'MEJORANDO' | 'EMPEORANDO' | 'ESTABLE' };
 
+/**
+ * Nombre legible del examen de un laboratorio.
+ *
+ * El serializer devuelve `tipo_examen` como PK NUMÉRICA y el nombre aparte en
+ * `tipo_examen_nombre`. El código hacía `lab.tipo_examen.toLowerCase()`, que
+ * con un número revienta ("toLowerCase is not a function") y tumbaba TODA la
+ * historia clínica al branch de error. No se veía porque la lista de labs
+ * llegaba siempre vacía (se pedía la raíz del router en vez de /examenes/).
+ */
+export const nombreExamen = (lab: any): string =>
+  String(lab?.tipo_examen_nombre ?? lab?.tipo_examen ?? '');
+
   export const calcularTendencias = (laboratorios: any[]): TendenciaLab[] => {
   if (laboratorios.length < 2) return [];
   const tendencias: TendenciaLab[] = [];
@@ -300,7 +312,7 @@ type TendenciaLab = { examen: string; valores: Array<{ fecha: string; valor: num
   for (const param of parametros) {
     const valores: Array<{ fecha: string; valor: number; referencia: string }> = [];
     for (const lab of laboratorios) {
-      const tipoLower = (lab.tipo_examen || '').toLowerCase();
+      const tipoLower = nombreExamen(lab).toLowerCase();
       if (tipoLower.includes(param)) {
         const valor = parseFloat(lab.resultado);
         if (!isNaN(valor)) {

@@ -82,6 +82,13 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
     # ✅ CORRECCIÓN: Campos correctos del modelo
     filterset_fields = [
+        # El campo del modelo se llama `embarazo` (con db_column="embarazo_id").
+        # Solo estaba declarado "embarazo_id", así que ?embarazo=N NO era un
+        # filtro válido y django-filter lo IGNORABA en silencio: la historia
+        # clínica pedía /controles/?embarazo=660 y recibía los 1328 controles
+        # de TODAS las pacientes — mostraba controles ajenos como propios.
+        # Se aceptan ambos nombres para no romper a quien ya use embarazo_id.
+        "embarazo",
         "embarazo_id",
         "paciente",
         "semanas_gestacion",

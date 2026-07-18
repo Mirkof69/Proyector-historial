@@ -236,7 +236,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
                       <>
                         <strong>Ecografía - {eco.tipo}</strong>
                         <div>
-                          EG: {eco.edad_gestacional_calculada} sem | Peso Fetal: {eco.peso_fetal_estimado}g
+                          EG: {eco.edad_gestacional ?? eco.edad_gestacional_semanas ?? '-'} sem | Peso Fetal: {eco.peso_fetal_estimado ? `${eco.peso_fetal_estimado}g` : 'no medido'}
                         </div>
                       </>
                     )

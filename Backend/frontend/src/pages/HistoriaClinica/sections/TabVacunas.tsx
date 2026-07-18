@@ -20,7 +20,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
     dayjs(v.fecha_aplicacion).isAfter(dayjs().subtract(1, 'month'))
   ).length;
   const vacunasPendientes = VACUNAS_EMBARAZO.filter(ve =>
-    ve.obligatoria && !vacunas.some(v => v.nombre.toLowerCase().includes(ve.nombre.toLowerCase().split(' ')[0]))
+    ve.obligatoria && !vacunas.some(v => String(v.nombre || '').toLowerCase().includes(ve.nombre.toLowerCase().split(' ')[0]))
   );
 
   return (
@@ -108,7 +108,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
               { text: 'Hepatitis', value: 'Hepatitis' },
               { text: 'COVID-19', value: 'COVID' },
             ],
-            onFilter: (value, record) => record.nombre.toLowerCase().includes(String(value).toLowerCase()),
+            onFilter: (value, record) => String(record.nombre || '').toLowerCase().includes(String(value).toLowerCase()),
           },
           {
             title: 'Dosis',
