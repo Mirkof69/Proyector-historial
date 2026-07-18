@@ -87,7 +87,8 @@ import {
   generarAlertas,
   interpretarNST,
   actualizarProtocolos,
-  calcularTendencias
+  calcularTendencias,
+  nombreExamen
 } from './utils';
 import TabVacunas from './sections/TabVacunas';
 import {
@@ -239,7 +240,11 @@ const HistoriaClinica: React.FC = () => {
       // 3. Carga de Datos (carga para embarazo activo o más reciente)
       const promises: Promise<AxiosResponse<any>>[] = [
         axios.get(`${API_URL}/notas-evolucion/?paciente=${pacienteId}`, { headers }),
-        axios.get(`${API_URL}/vacunas/?paciente=${pacienteId}`, { headers }),
+        // "/vacunas/" es la RAÍZ del router, no la lista: devolvía el índice
+        // {"tipos-vacunas": ..., "registros": ...} con status 200, así que el
+        // array quedaba vacío y la tab Vacunas salía en blanco aunque la
+        // paciente tuviera dosis registradas. La lista está en /registros/.
+        axios.get(`${API_URL}/vacunas/registros/?paciente=${pacienteId}`, { headers }),
         axios.get(`${API_URL}/citas/?paciente=${pacienteId}`, { headers }).catch(err => ({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} })),
         axios.get(`${API_URL}/partos/?paciente=${pacienteId}`, { headers }).catch(err => ({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} }))
       ];
@@ -256,7 +261,9 @@ const HistoriaClinica: React.FC = () => {
             .catch(() => emptyResponse)
         );
         promises.push(
-          axios.get(`${API_URL}/laboratorios/?paciente=${pacienteId}&fecha_min=${embarazoParaMostrar.fecha_ultima_menstruacion}`, { headers })
+          // Mismo caso que vacunas: "/laboratorios/" es la raíz del router.
+          // La lista de exámenes vive en /laboratorios/examenes/.
+          axios.get(`${API_URL}/laboratorios/examenes/?paciente=${pacienteId}&fecha_min=${embarazoParaMostrar.fecha_ultima_menstruacion}`, { headers })
             .catch(() => emptyResponse)
         );
         // REMOVIDO: tratamientos endpoint no existe
@@ -269,7 +276,7 @@ const HistoriaClinica: React.FC = () => {
         promises.push(Promise.resolve(emptyResponse));
         promises.push(Promise.resolve(emptyResponse));
         promises.push(
-          axios.get(`${API_URL}/laboratorios/?paciente=${pacienteId}&limit=10`, { headers })
+          axios.get(`${API_URL}/laboratorios/examenes/?paciente=${pacienteId}&limit=10`, { headers })
             .catch(() => emptyResponse)
         );
         // REMOVIDO: tratamientos endpoint no existe
@@ -298,7 +305,18 @@ const HistoriaClinica: React.FC = () => {
       const labsData = Array.isArray(labsRaw) ? labsRaw : [];
 
       if (isMounted.current) {
-        setVacunas(Array.isArray(vacunasData) ? vacunasData : []);
+        // El serializer de /vacunas/registros/ usa OTROS nombres que el tipo
+        // Vacuna del frontend (tipo_vacuna_nombre / numero_dosis /
+        // proxima_dosis_fecha). Sin normalizar, TabVacunas hacía
+        // `v.nombre.toLowerCase()` sobre undefined y tumbaba la tab entera.
+        setVacunas(
+          (Array.isArray(vacunasData) ? vacunasData : []).map((v: any) => ({
+            ...v,
+            nombre: v.nombre ?? v.tipo_vacuna_nombre ?? 'Vacuna',
+            dosis: v.dosis ?? v.numero_dosis,
+            fecha_proxima_dosis: v.fecha_proxima_dosis ?? v.proxima_dosis_fecha,
+          }))
+        );
         setCitas(Array.isArray(citasData) ? citasData : []);
         setPartos(Array.isArray(partosData) ? partosData : []);
         setControles(controlesArray.sort((a: any, b: any) => new Date(a.fecha_control || a.fecha || 0).getTime() - new Date(b.fecha_control || b.fecha || 0).getTime()));
@@ -405,7 +423,7 @@ const HistoriaClinica: React.FC = () => {
         acciones_recomendadas: ['Revisar resultados', 'Correlacionar con clínica', 'Considerar repetir exámenes']
       });
     }
-    if (((paciente as any)?.grupo_sanguineo || paciente?.tipo_sangre) && paciente?.factor_rh === '-' && !laboratorios.some(l => String(l.tipo_examen || '').includes('Coombs'))) {
+    if (((paciente as any)?.grupo_sanguineo || paciente?.tipo_sangre) && paciente?.factor_rh === '-' && !laboratorios.some(l => nombreExamen(l).includes('Coombs'))) {
       list.push({
         id: `alerta-${Date.now()}-3`,
         tipo: 'WARNING',
@@ -441,7 +459,7 @@ const HistoriaClinica: React.FC = () => {
 
       // Alerta para test de O'Sullivan
       if (semanas >= 24 && semanas <= 28 && !laboratorios.some(l => {
-        const tipoExamen = String(l.tipo_examen || '').toLowerCase();
+        const tipoExamen = nombreExamen(l).toLowerCase();
         return tipoExamen.includes('glucosa') || tipoExamen.includes('sullivan');
       })) {
         list.push({
@@ -458,7 +476,7 @@ const HistoriaClinica: React.FC = () => {
 
       // Alerta para cultivo vaginal/rectal (Streptococo B)
       if (semanas >= 35 && semanas <= 37 && !laboratorios.some(l => {
-        const tipoExamen = String(l.tipo_examen || '').toLowerCase();
+        const tipoExamen = nombreExamen(l).toLowerCase();
         return tipoExamen.includes('cultivo') && tipoExamen.includes('vaginal');
       })) {
         list.push({
@@ -700,10 +718,13 @@ const HistoriaClinica: React.FC = () => {
       // Solo procesar laboratorios cuantitativos
       const valorNumerico = parseFloat(lab.resultado);
       if (!isNaN(valorNumerico)) {
-        if (!agrupados[lab.tipo_examen]) {
-          agrupados[lab.tipo_examen] = [];
+        // Agrupar por NOMBRE del examen: `tipo_examen` es la PK numerica,
+        // asi que agrupaba por id y el grafico mostraba "1", "2"...
+        const claveExamen = nombreExamen(lab);
+        if (!agrupados[claveExamen]) {
+          agrupados[claveExamen] = [];
         }
-        agrupados[lab.tipo_examen].push({
+        agrupados[claveExamen].push({
           fecha: lab.fecha_toma,
           valor: valorNumerico,
           referencia: lab.valores_referencia
@@ -816,7 +837,7 @@ const HistoriaClinica: React.FC = () => {
         // Verificar si falta algún examen del protocolo
         const examenFaltante = protocolo.examenes_requeridos.find(examen => {
           const examenLower = String(examen || '').toLowerCase();
-          return !laboratorios.some(l => String(l.tipo_examen || '').toLowerCase().includes(examenLower)) &&
+          return !laboratorios.some(l => nombreExamen(l).toLowerCase().includes(examenLower)) &&
             !ecografias.some(e => String(e.tipo || '').toLowerCase().includes(examenLower));
         });
 

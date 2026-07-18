@@ -21,7 +21,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
   const labChartData = {
     hemoglobina: laboratorios
       .reduce((acc, l) => {
-        const tipo = typeof l.tipo_examen === 'string' ? l.tipo_examen.toLowerCase() : String(l.tipo_examen || '').toLowerCase();
+        const tipo = String(l.tipo_examen_nombre ?? l.tipo_examen ?? '').toLowerCase();
         if (tipo.includes('hemoglobina') && l.resultado) {
           acc.push({ fecha: dayjs(l.fecha_toma).format('DD/MM'), valor: parseFloat(l.resultado), fecha_timestamp: new Date(l.fecha_toma).getTime() });
         }
@@ -30,7 +30,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
       .sort((a, b) => a.fecha_timestamp - b.fecha_timestamp),
     glucosa: laboratorios
       .reduce((acc, l) => {
-        const tipo = typeof l.tipo_examen === 'string' ? l.tipo_examen.toLowerCase() : String(l.tipo_examen || '').toLowerCase();
+        const tipo = String(l.tipo_examen_nombre ?? l.tipo_examen ?? '').toLowerCase();
         if ((tipo.includes('glucosa') || tipo.includes('glicemia')) && l.resultado) {
           acc.push({ fecha: dayjs(l.fecha_toma).format('DD/MM'), valor: parseFloat(l.resultado), fecha_timestamp: new Date(l.fecha_toma).getTime() });
         }
@@ -39,7 +39,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
       .sort((a, b) => a.fecha_timestamp - b.fecha_timestamp),
     hematocrito: laboratorios
       .reduce((acc, l) => {
-        const tipo = typeof l.tipo_examen === 'string' ? l.tipo_examen.toLowerCase() : String(l.tipo_examen || '').toLowerCase();
+        const tipo = String(l.tipo_examen_nombre ?? l.tipo_examen ?? '').toLowerCase();
         if (tipo.includes('hematocrito') && l.resultado) {
           acc.push({ fecha: dayjs(l.fecha_toma).format('DD/MM'), valor: parseFloat(l.resultado), fecha_timestamp: new Date(l.fecha_toma).getTime() });
         }
@@ -114,7 +114,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
         columns={[
           { title: 'Fecha Toma', dataIndex: 'fecha_toma', render: (t) => dayjs(t).format('DD/MM/YY'), width: 100, sorter: (a: any, b: any) => new Date(a.fecha_toma).getTime() - new Date(b.fecha_toma).getTime() },
           { title: 'Categoría', dataIndex: 'categoria', render: (t) => <Tag color="blue">{t || 'General'}</Tag>, width: 120, filters: [{ text: 'Hematología', value: 'HEMATOLOGIA' }, { text: 'Química', value: 'QUIMICA' }, { text: 'Inmunología', value: 'INMUNOLOGIA' }, { text: 'Microbiología', value: 'MICROBIOLOGIA' }], onFilter: (value: any, record: any) => record.categoria === value },
-          { title: 'Examen', dataIndex: 'tipo_examen', width: 200 },
+          { title: 'Examen', dataIndex: 'tipo_examen_nombre', render: (n, r: any) => n ?? r.tipo_examen, width: 200 },
           { title: 'Resultado', dataIndex: 'resultado', render: (t, r: any) => (<Text strong type={r.es_anormal ? 'danger' : 'success'}>{t} {r.unidad || ''}</Text>), width: 120 },
           { title: 'Valores Ref.', dataIndex: 'valores_referencia', responsive: ['md'] as any, width: 120 },
           { title: 'Estado', dataIndex: 'es_anormal', render: (v) => v ? (<Badge status="error" text="Anormal" />) : (<Badge status="success" text="Normal" />), align: 'center' as const, width: 100, filters: [{ text: 'Normal', value: false }, { text: 'Anormal', value: true }], onFilter: (value: any, record: any) => record.es_anormal === value },
@@ -127,7 +127,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
                 <Col span={24}>
                   <Descriptions bordered column={3} size="small">
                     <Descriptions.Item label="Categoría" span={1}><Tag color="blue">{record.categoria || 'General'}</Tag></Descriptions.Item>
-                    <Descriptions.Item label="Tipo de Examen" span={2}><Text strong>{record.tipo_examen}</Text></Descriptions.Item>
+                    <Descriptions.Item label="Tipo de Examen" span={2}><Text strong>{record.tipo_examen_nombre ?? record.tipo_examen}</Text></Descriptions.Item>
                     <Descriptions.Item label="Fecha de Toma" span={1}>{dayjs(record.fecha_toma).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
                     <Descriptions.Item label="Resultado" span={1}><Text strong style={{ fontSize: 16 }} type={record.es_anormal ? 'danger' : 'success'}>{record.resultado} {record.unidad || ''}</Text></Descriptions.Item>
                     <Descriptions.Item label="Estado" span={1}>{record.es_anormal ? (<Tag color="error" icon={<WarningOutlined />}>ANORMAL</Tag>) : (<Tag color="success" icon={<CheckCircleOutlined />}>NORMAL</Tag>)}</Descriptions.Item>

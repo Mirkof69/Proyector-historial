@@ -515,6 +515,7 @@ class EcografiaListSerializer(serializers.ModelSerializer):
     edad_gestacional = serializers.SerializerMethodField()
     tiene_imagenes = serializers.SerializerMethodField()
     tiene_analisis_ia = serializers.SerializerMethodField()
+    peso_fetal_estimado = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -533,7 +534,18 @@ class EcografiaListSerializer(serializers.ModelSerializer):
             "diagnostico",
             "tiene_imagenes",
             "tiene_analisis_ia",
+            "peso_fetal_estimado",
         ]
+
+    def get_peso_fetal_estimado(self, obj):
+        """Peso fetal estimado (vive en la biometría, no en la ecografía).
+
+        La historia clínica lo muestra en la tarjeta y en la tabla de
+        ecografías; sin este campo la lista salía con "Peso: g" vacío en
+        TODAS las ecografías porque el dato nunca viajaba.
+        """
+        biometria = getattr(obj, "biometria", None)
+        return biometria.peso_fetal_estimado if biometria else None
 
     def get_paciente_nombre(self, obj):
         """Obtener nombre del paciente"""

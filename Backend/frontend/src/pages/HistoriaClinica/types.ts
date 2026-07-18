@@ -121,8 +121,18 @@ export interface Ecografia {
   id: number;
   fecha: string;
   tipo: string;
-  edad_gestacional_calculada: number;
-  peso_fetal_estimado: number;
+  /**
+   * Nombres REALES del serializer de la API (EcografiaListSerializer).
+   * El tipo declaraba `edad_gestacional_calculada`, que la API nunca manda:
+   * la tabla y las tarjetas mostraban "EG: sem" vacio en toda la lista.
+   * `edad_gestacional` viene ya formateada ("32+4").
+   */
+  edad_gestacional?: string;
+  edad_gestacional_semanas?: number;
+  edad_gestacional_dias?: number;
+  edad_gestacional_calculada?: number;
+  /** Vive en la biometria; el serializer la expone aplanada. */
+  peso_fetal_estimado?: number;
   percentil?: number;
   placenta_posicion: string;
   liquido_amniotico: string;
@@ -135,8 +145,10 @@ export interface Ecografia {
 export interface Laboratorio {
   id: number;
   fecha_toma: string;
-  categoria: 'HEMATOLOGIA' | 'BIOQUIMICA' | 'SEROLOGIA' | 'ORINA' | 'OTRO';
-  tipo_examen: string;
+  categoria: string;
+  /** La API manda la PK numerica en `tipo_examen` y el nombre aparte. */
+  tipo_examen: string | number;
+  tipo_examen_nombre?: string;
   resultado: string;
   valores_referencia: string;
   es_anormal: boolean;

@@ -23,9 +23,9 @@ interface TabEcografiasProps {
 const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, embarazoActivo }) => {
   const fetalGrowthData = ecografias
     .reduce((acc, e: any) => {
-      if (e.peso_fetal_estimado && e.edad_gestacional_calculada) {
+      if (e.peso_fetal_estimado && e.edad_gestacional_semanas) {
         acc.push({
-          semana: Number(e.edad_gestacional_calculada),
+          semana: Number(e.edad_gestacional_semanas),
           fecha: dayjs(e.fecha).format('DD/MM'),
           peso: Number(e.peso_fetal_estimado),
           dbp: e.diametro_biparietal ? Number(e.diametro_biparietal) : null,
@@ -123,8 +123,8 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                   description={
                     <div style={{ fontSize: 12 }}>
                       <p><CalendarOutlined /> {dayjs(eco.fecha).format('DD/MM/YYYY')}</p>
-                      <p><strong>EG:</strong> {eco.edad_gestacional_calculada} sem</p>
-                      <p><strong>Peso:</strong> {eco.peso_fetal_estimado}g</p>
+                      <p><strong>EG:</strong> {eco.edad_gestacional ?? eco.edad_gestacional_semanas ?? '-'} sem</p>
+                      <p><strong>Peso:</strong> {eco.peso_fetal_estimado ? `${eco.peso_fetal_estimado}g` : 'no medido'}</p>
                     </div>
                   }
                 />
@@ -148,7 +148,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
         columns={[
           { title: 'Fecha', dataIndex: 'fecha', render: (t) => dayjs(t).format('DD/MM/YY'), width: 100, sorter: (a: any, b: any) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime() },
           { title: 'Tipo', dataIndex: 'tipo', width: 180, filters: [{ text: 'Primer Trimestre', value: 'PRIMER_TRIMESTRE' }, { text: 'Segundo Trimestre', value: 'SEGUNDO_TRIMESTRE' }, { text: 'Tercer Trimestre', value: 'TERCER_TRIMESTRE' }, { text: 'Doppler', value: 'DOPPLER' }], onFilter: (value: any, record: any) => record.tipo === value, render: (tipo) => <Tag color="purple">{tipo}</Tag> },
-          { title: 'EG Calculada', dataIndex: 'edad_gestacional_calculada', render: (eg) => <Text strong>{eg} sem</Text>, align: 'center' as const, width: 100 },
+          { title: 'EG Calculada', dataIndex: 'edad_gestacional', render: (eg, r: any) => <Text strong>{eg ?? r.edad_gestacional_semanas ?? '-'} sem</Text>, align: 'center' as const, width: 100 },
           { title: 'Peso Fetal', dataIndex: 'peso_fetal_estimado', render: (peso) => peso ? `${peso}g` : '-', align: 'center' as const, width: 100 },
           { title: 'Medidas Biométricas', render: (_, r: any) => (<Space size={4} direction="vertical">{r.diametro_biparietal && <Text type="secondary" style={{ fontSize: 12 }}>DBP: {r.diametro_biparietal}mm</Text>}{r.circunferencia_abdominal && <Text type="secondary" style={{ fontSize: 12 }}>CA: {r.circunferencia_abdominal}mm</Text>}{r.longitud_femur && <Text type="secondary" style={{ fontSize: 12 }}>LF: {r.longitud_femur}mm</Text>}</Space>), width: 150 },
           { title: 'Líquido Amniótico', dataIndex: 'liquido_amniotico', render: (la) => { if (!la) return '-'; const colors: any = { NORMAL: 'success', OLIGOHIDRAMNIOS: 'error', POLIHIDRAMNIOS: 'warning' }; return <Tag color={colors[la] || 'default'}>{la}</Tag>; }, align: 'center' as const, width: 130 },
@@ -162,8 +162,8 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                   <Descriptions bordered column={3} size="small">
                     <Descriptions.Item label="Tipo de Ecografía" span={1}><Tag color="purple">{record.tipo}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Fecha" span={1}>{dayjs(record.fecha).format('DD/MM/YYYY')}</Descriptions.Item>
-                    <Descriptions.Item label="EG Calculada" span={1}><Text strong>{record.edad_gestacional_calculada} semanas</Text></Descriptions.Item>
-                    <Descriptions.Item label="Peso Fetal Estimado" span={1}><Text strong style={{ fontSize: 16 }}>{record.peso_fetal_estimado}g</Text></Descriptions.Item>
+                    <Descriptions.Item label="EG Calculada" span={1}><Text strong>{record.edad_gestacional ?? record.edad_gestacional_semanas ?? '-'} semanas</Text></Descriptions.Item>
+                    <Descriptions.Item label="Peso Fetal Estimado" span={1}><Text strong style={{ fontSize: 16 }}>{record.peso_fetal_estimado ? `${record.peso_fetal_estimado}g` : 'no medido'}</Text></Descriptions.Item>
                     <Descriptions.Item label="Percentil de Peso" span={2}>{record.percentil_peso ? <Progress percent={record.percentil_peso} size="small" /> : 'No calculado'}</Descriptions.Item>
                     <Descriptions.Item label="Diámetro Biparietal (DBP)" span={1}>{record.diametro_biparietal ? `${record.diametro_biparietal} mm` : '-'}</Descriptions.Item>
                     <Descriptions.Item label="Circunferencia Abdominal (CA)" span={1}>{record.circunferencia_abdominal ? `${record.circunferencia_abdominal} mm` : '-'}</Descriptions.Item>
