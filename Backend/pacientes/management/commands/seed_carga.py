@@ -70,7 +70,20 @@ OCUPACIONES = [
     "Costurera", "Empleada doméstica", "Vendedora ambulante", "Secretaria", "Cocinera",
 ]
 ESTADOS_CIVILES = ["soltero", "casado", "union_libre", "divorciado", "viudo"]
-TIPOS_SANGRE = ["O", "A", "B", "AB"]
+# Las choices REALES del modelo llevan el signo pegado ("O+", "A-"...) y
+# factor_rh es "positivo"/"negativo" — no "+"/"-". El generador inventaba
+# valores que el modelo rechaza; se corrige el GENERADOR, no el modelo.
+TIPOS_SANGRE = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"]
+
+
+def _tipo_ecografia(semanas: int) -> str:
+    """Tipo de ecografia segun el trimestre (choices reales del modelo)."""
+    if semanas < 14:
+        return "primer_trimestre"
+    if semanas < 28:
+        # la morfologica se hace en el 2do trimestre (semanas 20-24)
+        return "morfologica" if 20 <= semanas <= 24 and random.random() < 0.5 else "segundo_trimestre"
+    return random.choices(["tercer_trimestre", "doppler"], [70, 30])[0]
 
 
 def _rango(a, b, dec=1):
@@ -100,7 +113,7 @@ class Command(BaseCommand):
     # ── Entrada ────────────────────────────────────────────────────────────
     def handle(self, *args, **opts):
         random.seed(opts["semilla"])
-        self._contador_ci = 0
+        self._contadores_ci = {"99": 0, "98": 0}
         with schema_context(opts["tenant"]):
             if opts["limpiar"]:
                 self._limpiar()
@@ -111,6 +124,71 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 f"\n[OK] seed_carga: {n_c} completos + {n_e} editables = {n_c + n_e} pacientes",
             ))
+            self._validar_lote()
+
+    # ── Verificación: los datos deben cumplir las reglas del sistema ───────
+    def _validar_lote(self):
+        """Corre full_clean() sobre TODO lo sembrado y reporta lo que no valida.
+
+        Por qué existe: `objects.create()` NO ejecuta las validaciones del
+        modelo. Sin esta comprobación el seed puede meter en la base datos
+        que la API o un formulario rechazarían —pasó de verdad: el generador
+        inventaba tipo_sangre="O" (el modelo exige "O+"/"O-"), factor_rh="+"
+        (exige "positivo"/"negativo") y tipo_ecografia="obstetrica" (no es
+        una opción)— y nadie se enteraba porque la fila entraba igual.
+
+        La regla es: el sistema manda y el generador se adapta. Si esto
+        reporta errores se corrige el GENERADOR, nunca la validación.
+        """
+        from collections import Counter
+
+        from controles.models import ControlPrenatal
+        from ecografias.models import Ecografia
+        from embarazos.models import Embarazo
+        from laboratorio.models import ExamenLaboratorio
+        from pacientes.models import Paciente
+        from partos.models import Parto
+        from vacunas.models import RegistroVacuna
+
+        pacientes = Paciente.objects.filter(observaciones__contains=MARCA_CARGA)
+        grupos = [
+            ("Paciente", pacientes),
+            ("Embarazo", Embarazo.objects.filter(paciente__in=pacientes)),
+            ("ControlPrenatal", ControlPrenatal.objects.filter(paciente__in=pacientes)),
+            ("Ecografia", Ecografia.objects.filter(paciente__in=pacientes)),
+            ("ExamenLaboratorio", ExamenLaboratorio.objects.filter(paciente__in=pacientes)),
+            ("RegistroVacuna", RegistroVacuna.objects.filter(paciente__in=pacientes)),
+            ("Parto", Parto.objects.filter(paciente__in=pacientes)),
+        ]
+        total_invalidos = 0
+        self.stdout.write("\nValidación contra las reglas del sistema (full_clean):")
+        for nombre, qs in grupos:
+            errores = Counter()
+            invalidos = 0
+            for obj in qs.iterator():
+                try:
+                    obj.full_clean()
+                except Exception as exc:  # ValidationError y afines
+                    invalidos += 1
+                    detalle = getattr(exc, "message_dict", {"__all__": [str(exc)]})
+                    for campo, msgs in detalle.items():
+                        errores[f"{campo}: {msgs[0][:70]}"] += 1
+            total_invalidos += invalidos
+            marca = "OK" if invalidos == 0 else "FALLA"
+            self.stdout.write(
+                f"  [{marca}] {nombre}: {qs.count()} registros, {invalidos} inválidos",
+            )
+            for msg, veces in errores.most_common(5):
+                self.stdout.write(self.style.ERROR(f"        {veces} x {msg}"))
+        if total_invalidos:
+            self.stdout.write(self.style.ERROR(
+                f"\n[FALLA] {total_invalidos} registros no cumplen las reglas del "
+                "sistema. Corregí el GENERADOR (no la validación) y volvé a sembrar.",
+            ))
+        else:
+            self.stdout.write(self.style.SUCCESS(
+                "\n[OK] Todos los registros sembrados pasan full_clean().",
+            ))
 
     # ── Catálogos que deben existir ────────────────────────────────────────
     def _preparar_catalogos(self):
@@ -119,12 +197,30 @@ class Command(BaseCommand):
         from usuarios.models import Usuario
         from vacunas.models import TipoVacuna
 
-        # El contador de CI arranca donde terminó la corrida anterior: si
-        # reiniciara en 0, la segunda ejecución chocaría con los ci_hash ya
-        # existentes (unique=True) y el lote fallaría entero.
-        self._contador_ci = Paciente.objects.filter(
+        # Un contador POR PREFIJO, calculado desde las CI que ya existen.
+        #
+        # Antes era un solo contador inicializado con el total de pacientes
+        # sembrados, y los dos lotes (prefijo "99" completos, "98" editables)
+        # se pisaban: al re-sembrar sobre una base donde ya se habían borrado
+        # pacientes, el contador arrancaba por debajo del máximo real y los
+        # editables chocaban contra CIs vivas -> "llave duplicada viola
+        # restricción de unicidad «pacientes_ci_hash_key»" y el lote entero
+        # se perdía. La unicidad del sistema es correcta; lo que estaba mal
+        # era el generador.
+        #
+        # `ci` está cifrada, así que no se puede ordenar por prefijo en SQL:
+        # se recorren en Python los pacientes del seed (unos cientos) y se
+        # toma el máximo sufijo de cada prefijo.
+        self._contadores_ci = {"99": 0, "98": 0}
+        for ci_existente in Paciente.objects.filter(
             observaciones__contains=MARCA_CARGA,
-        ).count()
+        ).values_list("ci", flat=True):
+            texto = str(ci_existente or "")
+            prefijo = texto[:2]
+            if prefijo in self._contadores_ci and texto[2:].isdigit():
+                self._contadores_ci[prefijo] = max(
+                    self._contadores_ci[prefijo], int(texto[2:]),
+                )
         # Ídem para numero_parto (UNIQUE): continúa desde los ya existentes
         from partos.models import Parto
 
@@ -251,9 +347,13 @@ class Command(BaseCommand):
         # CI ÚNICA y determinista: prefijo por lote + contador global. Con
         # random puro había colisiones (ci_hash tiene unique=True) y el lote
         # fallaba a mitad de camino.
-        self._contador_ci += 1
         prefijo = "99" if completo else "98"
-        ci = f"{prefijo}{self._contador_ci:05d}"
+        self._contadores_ci[prefijo] += 1
+        ci = f"{prefijo}{self._contadores_ci[prefijo]:05d}"
+
+        # Rh ponderado como en la poblacion real (~85% positivo)
+        grupo = random.choice(["O", "A", "B", "AB"])
+        tipo_sangre = grupo + random.choices(["+", "-"], [85, 15])[0]
 
         paciente = Paciente(
             nombre=random.choice(NOMBRES),
@@ -268,8 +368,9 @@ class Command(BaseCommand):
             ciudad=ciudad,
             estado_civil=random.choice(ESTADOS_CIVILES),
             ocupacion=random.choice(OCUPACIONES),
-            tipo_sangre=random.choice(TIPOS_SANGRE),
-            factor_rh=random.choices(["+", "-"], [85, 15])[0],
+            tipo_sangre=tipo_sangre,
+            # Coherente con el grupo: un "O-" no puede ser Rh positivo.
+            factor_rh="negativo" if tipo_sangre.endswith("-") else "positivo",
             peso_kg=_rango(45, 90),
             altura_cm=random.randint(145, 175),
             contacto_emergencia_nombre=f"{random.choice(NOMBRES)} {random.choice(APELLIDOS)}",
@@ -370,7 +471,9 @@ class Command(BaseCommand):
             eco = Ecografia.objects.create(
                 embarazo=embarazo, paciente=paciente, medico=self.medico,
                 fecha_ecografia=fum + timedelta(weeks=sem_eco),
-                tipo_ecografia=random.choice(["obstetrica", "doppler", "morfologica"]),
+                # "obstetrica" NO es una opcion del modelo; el tipo real
+                # depende del trimestre en que se hace el estudio.
+                tipo_ecografia=_tipo_ecografia(sem_eco),
                 indicacion="control_rutina",
                 edad_gestacional_semanas=sem_eco,
                 edad_gestacional_dias=random.randint(0, 6),
