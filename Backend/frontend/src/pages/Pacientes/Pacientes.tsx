@@ -92,6 +92,10 @@ const FILE_PDF_ICON_4 = <FilePdfOutlined />;
 const RELOAD_ICON_2 = <ReloadOutlined />;
 const PLUS_ICON_5 = <PlusOutlined />;
 
+/** Minusculas y sin tildes, para buscar "López" escribiendo "lopez". */
+const normalizarTexto = (texto?: string | null): string =>
+    (texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 const Pacientes: React.FC = () => {
     const navigate = useNavigate();
     const { message, modal } = useAntdApp();
@@ -279,13 +283,18 @@ const Pacientes: React.FC = () => {
 
         // 1. Búsqueda de Texto
         if (searchText) {
-            const lower = searchText.toLowerCase();
+            // Sin tildes: el backend ya devuelve "López" cuando se busca
+            // "lopez", pero este filtro del cliente volvia a descartarlo
+            // porque comparaba con acentos y dejaba la tabla en 0 filas.
+            // En Bolivia los apellidos se escriben con y sin tilde
+            // indistintamente (Lopez/López, Cusi/Cusí, Suarez/Suárez).
+            const lower = normalizarTexto(searchText);
             data = data.filter(p =>
-                (p.nombre_completo?.toLowerCase().includes(lower)) ||
-                (p.nombre?.toLowerCase().includes(lower)) ||
-                (p.apellido_paterno?.toLowerCase().includes(lower)) ||
-                (p.ci?.toLowerCase().includes(lower)) ||
-                (p.id_clinico?.toLowerCase().includes(lower))
+                (normalizarTexto(p.nombre_completo).includes(lower)) ||
+                (normalizarTexto(p.nombre).includes(lower)) ||
+                (normalizarTexto(p.apellido_paterno).includes(lower)) ||
+                (normalizarTexto(p.ci).includes(lower)) ||
+                (normalizarTexto(p.id_clinico).includes(lower))
             );
         }
 
