@@ -609,18 +609,31 @@ def _auditar_notificacion(destinatarios, *, tipo, prioridad, titulo,
 VENTANA_DEDUP_MINUTOS = 30
 
 
-def _ya_notificado(usuario, tipo, entidad_tipo, entidad_id) -> bool:
+def _ya_notificado(usuario, tipo, entidad_tipo, entidad_id, titulo="") -> bool:
     """True si el usuario ya tiene una notificación SIN LEER del mismo evento
-    dentro de la ventana anti-fatiga."""
+    dentro de la ventana anti-fatiga.
+
+    El `titulo` forma parte de la clave a propósito. Sin él, dos eventos
+    DISTINTOS sobre la misma entidad y con el mismo `tipo` se pisaban: un
+    "Embarazo Finalizado" quedaba suprimido por el "Nuevo Embarazo Registrado"
+    sin leer del mismo embarazo, porque ambos son `alerta_informacion`. Se
+    perdía un aviso clínico real creyendo que era una repetición.
+
+    Anti-fatiga significa no repetir la MISMA alerta, no callar avisos
+    diferentes.
+    """
     if entidad_id is None:
         return False
     from .models import Notificacion
     corte = timezone.now() - timedelta(minutes=VENTANA_DEDUP_MINUTOS)
-    return Notificacion.objects.filter(
-        usuario=usuario, tipo=tipo, entidad_tipo=entidad_tipo,
-        entidad_id=entidad_id, leida=False, archivada=False,
-        fecha_creacion__gte=corte,
-    ).exists()
+    filtros = {
+        "usuario": usuario, "tipo": tipo, "entidad_tipo": entidad_tipo,
+        "entidad_id": entidad_id, "leida": False, "archivada": False,
+        "fecha_creacion__gte": corte,
+    }
+    if titulo:
+        filtros["titulo"] = titulo
+    return Notificacion.objects.filter(**filtros).exists()
 
 
 def crear_notificacion_clinica(*, destinatario_preferido, tipo, titulo, mensaje,
@@ -634,7 +647,7 @@ def crear_notificacion_clinica(*, destinatario_preferido, tipo, titulo, mensaje,
     fue_fallback = not _usuario_activo(destinatario_preferido)
     creadas = []
     for usuario in destinatarios:
-        if _ya_notificado(usuario, tipo, entidad_tipo, entidad_id):
+        if _ya_notificado(usuario, tipo, entidad_tipo, entidad_id, titulo):
             logger.debug(
                 "Anti-fatiga: %s ya tiene notificación sin leer de %s#%s, se omite.",
                 getattr(usuario, "email", usuario), entidad_tipo, entidad_id,
