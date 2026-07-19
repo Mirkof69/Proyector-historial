@@ -154,3 +154,62 @@ class BackupServiceSecurityTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.svc.backup_dir = tmp
             self.assertFalse(self.svc.delete_backup("no_existe.sql"))
+
+
+class DashboardTotalesTest(TestCase):
+    """El dashboard debe mostrar el total REAL de pacientes.
+
+    Regresión: `total_pacientes` y `pacientes_activos` corrían la MISMA
+    consulta (`estado_paciente="activo"`), duplicada además en
+    stats_views.py y views.py. Con 430 pacientes en la base el dashboard
+    mostraba 295 y las inactivas eran invisibles. El test crea una mezcla
+    conocida de activas e inactivas y exige que los tres números cuadren.
+    """
+
+    def setUp(self):
+        from datetime import date
+
+        from pacientes.models import Paciente
+
+        for i in range(5):
+            Paciente.objects.create(
+                id_clinico=f"PAC-DASH-A{i}", nombre="Activa", apellido_paterno="Test",
+                fecha_nacimiento=date(1990, 1, 1), genero="femenino",
+                ci=f"9100{i:03d}", activo=True, estado_paciente="activo",
+            )
+        for i in range(3):
+            Paciente.objects.create(
+                id_clinico=f"PAC-DASH-I{i}", nombre="Inactiva", apellido_paterno="Test",
+                fecha_nacimiento=date(1990, 1, 1), genero="femenino",
+                ci=f"9200{i:03d}", activo=False, estado_paciente="inactivo",
+            )
+
+    def test_total_incluye_activas_e_inactivas(self):
+        from reportes.stats_views import dashboard_stats_view
+        from rest_framework.test import APIRequestFactory
+
+        peticion = APIRequestFactory().get("/api/reportes/dashboard/")
+        peticion.user = _crear_usuario("dash@test.bo")
+        datos = dashboard_stats_view(peticion).data
+
+        self.assertEqual(datos["total_pacientes"], 8, "el total debe ser TODAS")
+        self.assertEqual(datos["pacientes_activos"], 5)
+        self.assertEqual(datos["pacientes_inactivos"], 3)
+
+    def test_total_no_es_igual_a_activos(self):
+        """El síntoma exacto del bug: los dos números salían idénticos."""
+        from reportes.stats_views import dashboard_stats_view
+        from rest_framework.test import APIRequestFactory
+
+        peticion = APIRequestFactory().get("/api/reportes/dashboard/")
+        peticion.user = _crear_usuario("dash2@test.bo")
+        datos = dashboard_stats_view(peticion).data
+
+        self.assertNotEqual(
+            datos["total_pacientes"], datos["pacientes_activos"],
+            "habiendo pacientes inactivas, total y activos NO pueden coincidir",
+        )
+        self.assertEqual(
+            datos["pacientes_activos"] + datos["pacientes_inactivos"],
+            datos["total_pacientes"],
+        )
