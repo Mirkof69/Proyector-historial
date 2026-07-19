@@ -301,7 +301,20 @@ import sys
 
 TESTING = 'test' in sys.argv or any('pytest' in arg for arg in sys.argv)
 
-if TESTING:
+# La suite corre sobre SQLite en memoria y SIN django_tenants, porque es
+# rápido y no necesita una base levantada. El precio es que el aislamiento
+# entre clínicas —que es la columna vertebral del sistema— no lo ejercita
+# ningún test, y ahí vivió el bug que apagó la auditoría clínica entera
+# (`connection.introspection.table_names()` no ve el esquema `public`).
+#
+# Con TEST_CON_TENANTS=true la suite corre contra PostgreSQL con
+# django_tenants activo, para poder probar de verdad el aislamiento:
+#
+#     TEST_CON_TENANTS=true python -m pytest tests/test_aislamiento_tenants.py
+#
+TEST_CON_TENANTS = os.environ.get("TEST_CON_TENANTS", "").lower() == "true"
+
+if TESTING and not TEST_CON_TENANTS:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

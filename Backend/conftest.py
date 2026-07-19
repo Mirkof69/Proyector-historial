@@ -29,7 +29,13 @@ def reset_tenant_middleware(settings):
     Elimina middlewares que requieren contexto de tenant en tests.
     Estos middlewares requieren PostgreSQL+tenant que no existe en SQLite.
     No es un falso positivo: es una adaptacion legitima al entorno de test.
+
+    Con TEST_CON_TENANTS=true la suite SI corre con django_tenants sobre
+    PostgreSQL (ver settings.py), asi que los middlewares se dejan puestos:
+    quitarlos ahi anularia justamente lo que se quiere probar.
     """
+    if os.environ.get("TEST_CON_TENANTS", "").lower() == "true":
+        return
     settings.MIDDLEWARE = [
         mw for mw in settings.MIDDLEWARE
         if not any(skip in mw for skip in [
