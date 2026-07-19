@@ -20,6 +20,7 @@ import NotificacionesFiltros from './components/NotificacionesFiltros';
 import { buildColumnsNotificaciones } from './components/columnsNotificaciones';
 import NotificacionesListView from './components/NotificacionesListView';
 import NotificacionDrawer from './components/NotificacionDrawer';
+import { incluyeTexto } from '../../utils/texto';
 
 dayjs.extend(relativeTime);
 dayjs.locale('es');
@@ -119,8 +120,8 @@ const BELL_ICON_2 = <BellOutlined />;
   // Filtrado
   const filteredNotificaciones = (notificaciones || []).filter(item => {
     const matchesSearch = filtros.searchText
-      ? item.titulo.toLowerCase().includes(filtros.searchText.toLowerCase()) ||
-      item.mensaje.toLowerCase().includes(filtros.searchText.toLowerCase())
+      ? incluyeTexto(item.titulo, filtros.searchText) ||
+      incluyeTexto(item.mensaje, filtros.searchText)
       : true;
 
     const matchesType = filtros.filterType ? item.tipo === filtros.filterType : true;

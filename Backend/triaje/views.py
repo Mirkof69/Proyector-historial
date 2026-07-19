@@ -6,6 +6,7 @@ from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import EsMedicoOEnfermera
 
 from .models import TriajeEnfermeria
@@ -19,7 +20,7 @@ class TriajeEnfermeriaViewSet(viewsets.ModelViewSet):
     permission_classes = [EsMedicoOEnfermera]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
     filterset_fields = [
@@ -30,7 +31,13 @@ class TriajeEnfermeriaViewSet(viewsets.ModelViewSet):
         "alerta_fiebre",
         "alerta_taquicardia",
     ]
-    search_fields = ["paciente__nombre", "motivo_visita"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
+        "motivo_visita",
+    ]
     ordering = ["-fecha_registro"]
 
     def get_queryset(self):

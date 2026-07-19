@@ -27,6 +27,7 @@ import MantenimientoDrawer from './components/MantenimientoDrawer';
 import MantenimientoFormModal from './components/MantenimientoFormModal';
 import EstadisticasDrawer from './components/EstadisticasDrawer';
 import DisponibilidadModal from './components/DisponibilidadModal';
+import { incluyeTexto } from '../../utils/texto';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -426,9 +427,9 @@ const Consultorios: React.FC = () => {
   // Filtrado
   const consultoriosFiltrados = consultorios.filter(consultorio => {
     const matchSearch = !searchText ||
-      consultorio.nombre?.toLowerCase().includes(searchText.toLowerCase()) ||
-      consultorio.codigo?.toLowerCase().includes(searchText.toLowerCase()) ||
-      consultorio.area?.toLowerCase().includes(searchText.toLowerCase());
+      incluyeTexto(consultorio.nombre, searchText) ||
+      incluyeTexto(consultorio.codigo, searchText) ||
+      incluyeTexto(consultorio.area, searchText);
 
     const matchTipo = !filtroTipo || consultorio.tipo === filtroTipo;
     const matchEstado = !filtroEstado || consultorio.estado === filtroEstado;

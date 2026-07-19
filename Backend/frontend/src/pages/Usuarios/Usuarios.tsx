@@ -10,6 +10,7 @@ import UsuarioDetailDrawer from './components/UsuarioDetailDrawer';
 import UsuariosStatsCards from './components/UsuariosStatsCards';
 import UsuariosFilterBar from './components/UsuariosFilterBar';
 import './Usuarios.css';
+import { incluyeTexto } from '../../utils/texto';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -138,7 +139,7 @@ const Usuarios: React.FC = () => {
 
   const usuariosFiltrados = useMemo(() => {
     return usuarios.filter(usuario => {
-      const matchSearch = !searchText || usuario.nombre.toLowerCase().includes(searchText.toLowerCase()) || usuario.email.toLowerCase().includes(searchText.toLowerCase()) || usuario.apellido_paterno.toLowerCase().includes(searchText.toLowerCase());
+      const matchSearch = !searchText || incluyeTexto(usuario.nombre, searchText) || incluyeTexto(usuario.email, searchText) || incluyeTexto(usuario.apellido_paterno, searchText);
       const matchRol = !filtroRol || usuario.rol === filtroRol;
       const matchEstado = filtroEstado === undefined || usuario.activo === filtroEstado;
       return matchSearch && matchRol && matchEstado;

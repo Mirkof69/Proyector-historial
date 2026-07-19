@@ -18,6 +18,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 from .models import (
@@ -66,10 +67,12 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
 
     permission_classes = [FetalMedicalPermission]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = [
-        "paciente__nombre",
-        "paciente__apellido_paterno",
+    filter_backends = [BusquedaClinicaFilter, filters.OrderingFilter]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "descripcion",
         "tipo_imagen",
     ]

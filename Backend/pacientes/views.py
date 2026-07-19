@@ -32,19 +32,6 @@ from .serializers import (
 pdf_service = PDFService()
 
 
-def _normalizar(texto: str) -> str:
-    """Minúsculas y sin tildes, para que "López" se encuentre con "lopez".
-
-    En Bolivia los apellidos se escriben indistintamente con y sin tilde
-    (López/Lopez, Cusí/Cusi); una búsqueda que distinga acentos no sirve en
-    recepción.
-    """
-    import unicodedata
-
-    sin_tildes = unicodedata.normalize("NFKD", str(texto or ""))
-    return "".join(c for c in sin_tildes if not unicodedata.combining(c)).lower()
-
-
 class PacienteViewSet(viewsets.ModelViewSet):
     """ViewSet for comprehensive Patient management.
 
@@ -170,59 +157,19 @@ class PacienteViewSet(viewsets.ModelViewSet):
         return queryset
 
     def _filtrar_por_busqueda(self, queryset):
-        """Búsqueda por nombre, apellido o CI sobre campos CIFRADOS.
+        """Aplica `?search=` usando el buscador canónico de pacientes.
 
-        `SearchFilter` de DRF hace `icontains` en SQL, y nombre, apellidos y
-        ci son EncryptedCharField: el LIKE corría contra el texto cifrado y
-        NO encontraba nunca nada. En la práctica el buscador de pacientes
-        solo servía por `id_clinico` (el único campo en claro); buscar
-        "Vargas" o una cédula devolvía 0 resultados siempre. Es el flujo más
-        usado en recepción, y ningún test lo detectó porque los tests corren
-        sobre SQLite con datos que no ejercitan el cifrado.
-
-        Estrategia por campo, sin debilitar el cifrado:
-          - CI: se compara por `ci_hash` (HMAC del valor en claro), que ya
-            existe para garantizar unicidad. Coincidencia EXACTA, que es como
-            se busca una cédula en recepción.
-          - Nombres: no hay forma de hacer LIKE sobre texto cifrado, así que
-            el filtrado se hace en Python descifrando. Es O(n) sobre los
-            pacientes del tenant; aceptable en el orden de magnitud de una
-            clínica (cientos/miles), y se acota devolviendo IDs para que la
-            paginación siga ocurriendo en la base.
-
-        Pendiente de diseño (documentado, no improvisado aquí): para volumen
-        grande hace falta una columna de tokens de búsqueda normalizados
-        (sin tildes, minúsculas) que permita LIKE en SQL sin exponer el dato.
+        La lógica vive en pacientes/busqueda.py porque la comparten las 12
+        vistas que buscan pacientes (embarazos, controles, citas, partos...)
+        a través de BusquedaClinicaFilter; aquí solo se acota el queryset
+        propio para que la paginación siga ocurriendo en la base.
         """
         termino = (self.request.query_params.get("search") or "").strip()
         if not termino:
             return queryset
+        from .busqueda import ids_pacientes_que_coinciden
 
-        from .fields import compute_search_hash
-
-        # 1) ¿Es una CI exacta? Vía hash, sin descifrar nada.
-        try:
-            coincide_ci = queryset.filter(ci_hash=compute_search_hash(termino))
-        except Exception:  # ENCRYPTION_KEY ausente u otro problema de config
-            coincide_ci = queryset.none()
-        if coincide_ci.exists():
-            return coincide_ci
-
-        # 2) id_clinico está en claro: se resuelve en SQL.
-        en_claro = queryset.filter(id_clinico__icontains=termino)
-
-        # 3) Nombres cifrados: descifrar y comparar en Python.
-        objetivo = _normalizar(termino)
-        ids = [
-            paciente.pk
-            for paciente in queryset.only(
-                "id", "nombre", "apellido_paterno", "apellido_materno",
-            )
-            if objetivo in _normalizar(
-                f"{paciente.nombre} {paciente.apellido_paterno} {paciente.apellido_materno}",
-            )
-        ]
-        return queryset.filter(Q(pk__in=ids) | Q(pk__in=en_claro.values("pk")))
+        return queryset.filter(pk__in=ids_pacientes_que_coinciden(termino))
 
     def _generar_id_clinico(self) -> str:
         """Genera ID clinico unico formato PAC-YYYY-NNNN."""

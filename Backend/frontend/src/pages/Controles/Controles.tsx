@@ -62,6 +62,7 @@ import { buildControlesColumns } from './controlesColumns';
 import FiltrosDrawer from './components/FiltrosDrawer';
 import VistaRapidaModal from './components/VistaRapidaModal';
 import AlertasPanelDrawer from './components/AlertasPanelDrawer';
+import { incluyeTexto } from '../../utils/texto';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -496,16 +497,11 @@ const Controles: React.FC = () => {
 
     // Filtro de texto (búsqueda rápida)
     if (searchText) {
-      const lower = searchText.toLowerCase();
-      data = data.filter((item) => {
-        const nombrePaciente = getNombrePaciente(item).toLowerCase();
-        const idClinico = getIdClinicoPaciente(item).toLowerCase();
-        return (
-          nombrePaciente.includes(lower) ||
-          idClinico.includes(lower) ||
-          item.numero_control.toString().includes(lower)
-        );
-      });
+      data = data.filter((item) => (
+        incluyeTexto(getNombrePaciente(item), searchText) ||
+        incluyeTexto(getIdClinicoPaciente(item), searchText) ||
+        incluyeTexto(item.numero_control.toString(), searchText)
+      ));
     }
 
     // Filtros avanzados

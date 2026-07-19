@@ -17,6 +17,7 @@ import AlertasMedicasGraficas from './components/AlertasMedicasGraficas';
 import AlertasMedicasFiltros from './components/AlertasMedicasFiltros';
 import AlertaMedicaDetalleDrawer from './components/AlertaMedicaDetalleDrawer';
 import NuevaAlertaModal from './components/NuevaAlertaModal';
+import { incluyeTexto } from '../../utils/texto';
 
 const AlertasMedicas: React.FC = () => {
   const {modal,  message } = useAntdApp();
@@ -94,9 +95,9 @@ const AlertasMedicas: React.FC = () => {
     // Filtro por texto
     if (searchText) {
       filtered = filtered.filter(alerta =>
-        (alerta.paciente_nombre || '').toLowerCase().includes(searchText.toLowerCase()) ||
-        alerta.titulo.toLowerCase().includes(searchText.toLowerCase()) ||
-        (alerta.descripcion || '').toLowerCase().includes(searchText.toLowerCase())
+        incluyeTexto(alerta.paciente_nombre, searchText) ||
+        incluyeTexto(alerta.titulo, searchText) ||
+        incluyeTexto(alerta.descripcion, searchText)
       );
     }
 

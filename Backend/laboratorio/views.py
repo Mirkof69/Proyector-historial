@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import EsMedicoOEnfermeraOLaboratorista, FetalMedicalPermission
 
 from .models import ExamenLaboratorio, ResultadoLaboratorio, TipoExamen, ValorReferencia
@@ -297,7 +298,7 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, EsMedicoOEnfermeraOLaboratorista]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
     filterset_fields = [
@@ -307,10 +308,11 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
         "prioridad",
         "control_prenatal",
     ]
-    search_fields = [
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__id_clinico",
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "tipo_examen__nombre",
         "tipo_examen__codigo",
     ]

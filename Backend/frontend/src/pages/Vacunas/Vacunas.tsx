@@ -31,6 +31,7 @@ import VacunasStats from './components/VacunasStats';
 import VacunasFiltros from './components/VacunasFiltros';
 import VacunasGraficas from './components/VacunasGraficas';
 import CarnetVacunaDrawer from './components/CarnetVacunaDrawer';
+import { incluyeTexto } from '../../utils/texto';
 
 dayjs.extend(relativeTime);
 
@@ -79,14 +80,13 @@ const Vacunas: React.FC = () => {
     let filtered = [...vacunas];
 
     if (filtros.searchText) {
-      const searchLower = filtros.searchText.toLowerCase();
       filtered = filtered.filter(v =>
-        v.paciente_info?.nombre_completo?.toLowerCase().includes(searchLower) ||
-        v.tipo_vacuna_info?.nombre?.toLowerCase().includes(searchLower) ||
-        v.paciente_nombre?.toLowerCase().includes(searchLower) ||
-        v.tipo_vacuna_nombre?.toLowerCase().includes(searchLower) ||
-        v.lote?.toLowerCase().includes(searchLower) ||
-        v.laboratorio?.toLowerCase().includes(searchLower)
+        incluyeTexto(v.paciente_info?.nombre_completo, filtros.searchText) ||
+        incluyeTexto(v.tipo_vacuna_info?.nombre, filtros.searchText) ||
+        incluyeTexto(v.paciente_nombre, filtros.searchText) ||
+        incluyeTexto(v.tipo_vacuna_nombre, filtros.searchText) ||
+        incluyeTexto(v.lote, filtros.searchText) ||
+        incluyeTexto(v.laboratorio, filtros.searchText)
       );
     }
 

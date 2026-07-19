@@ -6,9 +6,10 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 from .models import (
@@ -40,7 +41,7 @@ class ScoreBishopViewSet(viewsets.ModelViewSet):
     queryset = ScoreBishop.objects.all()
     serializer_class = ScoreBishopSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     filterset_fields = [
         "paciente_id",
@@ -51,7 +52,11 @@ class ScoreBishopViewSet(viewsets.ModelViewSet):
         "posicion_cervical",
     ]
 
-    search_fields = ["paciente_id", "embarazo_id"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_evaluacion", "score_total", "edad_gestacional_semanas"]
     ordering = ["-fecha_evaluacion"]
 
@@ -167,7 +172,7 @@ class RiesgoPreeclampsiaViewSet(viewsets.ModelViewSet):
     queryset = RiesgoPreeclampsia.objects.all()
     serializer_class = RiesgoPreeclampsiaSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     filterset_fields = [
         "paciente_id",
@@ -180,7 +185,11 @@ class RiesgoPreeclampsiaViewSet(viewsets.ModelViewSet):
         "raza",
     ]
 
-    search_fields = ["paciente_id", "embarazo_id"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_evaluacion", "riesgo_porcentaje", "edad_materna"]
     ordering = ["-fecha_evaluacion"]
 
@@ -261,7 +270,7 @@ class CrecimientoFetalViewSet(viewsets.ModelViewSet):
     queryset = CrecimientoFetal.objects.all()
     serializer_class = CrecimientoFetalSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     filterset_fields = [
         "paciente_id",
@@ -271,7 +280,11 @@ class CrecimientoFetalViewSet(viewsets.ModelViewSet):
         "macrosomia",
     ]
 
-    search_fields = ["paciente_id", "embarazo_id", "ecografia_id"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = [
         "fecha_evaluacion",
         "edad_gestacional_semanas",
@@ -375,7 +388,7 @@ class RiesgoCromosomicoViewSet(viewsets.ModelViewSet):
     queryset = RiesgoCromosomico.objects.all()
     serializer_class = RiesgoCromosomicoSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     filterset_fields = [
         "paciente_id",
@@ -383,7 +396,11 @@ class RiesgoCromosomicoViewSet(viewsets.ModelViewSet):
         "hueso_nasal_presente",
     ]
 
-    search_fields = ["paciente_id", "embarazo_id"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_evaluacion", "edad_materna", "translucencia_nucal"]
     ordering = ["-fecha_evaluacion"]
 
@@ -439,7 +456,7 @@ class DosisMedicamentosViewSet(viewsets.ModelViewSet):
     queryset = DosisMedicamentos.objects.all()
     serializer_class = DosisMedicamentosSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     filterset_fields = [
         "paciente_id",
@@ -447,7 +464,11 @@ class DosisMedicamentosViewSet(viewsets.ModelViewSet):
         "indicacion",
     ]
 
-    search_fields = ["paciente_id", "embarazo_id", "parto_id"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_calculo", "peso_materno"]
     ordering = ["-fecha_calculo"]
 
@@ -514,7 +535,7 @@ class HemorragiaObstetricaViewSet(viewsets.ModelViewSet):
     queryset = HemorragiaObstetrica.objects.all()
     serializer_class = HemorragiaObstetricaSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     filterset_fields = [
         "paciente_id",
@@ -525,7 +546,11 @@ class HemorragiaObstetricaViewSet(viewsets.ModelViewSet):
         "hemorragia_controlada",
     ]
 
-    search_fields = ["paciente_id", "embarazo_id", "parto_id"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_evento", "perdida_sanguinea_estimada"]
     ordering = ["-fecha_evento"]
 
@@ -612,7 +637,7 @@ class SufrimientoFetalViewSet(viewsets.ModelViewSet):
     queryset = SufrimientoFetal.objects.all()
     serializer_class = SufrimientoFetalSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     filterset_fields = [
         "paciente_id",
@@ -623,7 +648,11 @@ class SufrimientoFetalViewSet(viewsets.ModelViewSet):
         "requiere_intervencion_inmediata",
     ]
 
-    search_fields = ["paciente_id", "embarazo_id", "parto_id"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_evaluacion", "fcf_basal", "score_fisher"]
     ordering = ["-fecha_evaluacion"]
 

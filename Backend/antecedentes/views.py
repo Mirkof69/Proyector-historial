@@ -11,6 +11,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 from .models import AntecedenteGinecoObstetrico, AntecedentePatologico
@@ -29,7 +30,7 @@ class AntecedenteGinecoObstetricoViewSet(viewsets.ModelViewSet):
     permission_classes = [FetalMedicalPermission]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
     filterset_fields = [
@@ -39,7 +40,11 @@ class AntecedenteGinecoObstetricoViewSet(viewsets.ModelViewSet):
         "partos",
         "cesareas",
     ]
-    search_fields = ["paciente__nombre", "paciente__apellido_paterno", "paciente__ci"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_registro", "menarquia_edad", "gestas"]
     ordering = ["-fecha_registro"]
 
@@ -86,7 +91,7 @@ class AntecedentePatologicoViewSet(viewsets.ModelViewSet):
     permission_classes = [FetalMedicalPermission]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
     filterset_fields = [
@@ -99,10 +104,11 @@ class AntecedentePatologicoViewSet(viewsets.ModelViewSet):
         "preeclampsia_previa",
         "eclampsia_previa",
     ]
-    search_fields = [
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__ci",
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "alergias_medicamentos",
         "otras_enfermedades",
     ]

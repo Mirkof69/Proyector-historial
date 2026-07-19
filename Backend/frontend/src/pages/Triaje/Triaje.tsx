@@ -12,6 +12,7 @@ import es from 'dayjs/locale/es';
 import TriajeStats from './components/TriajeStats';
 import TriajeFiltros from './components/TriajeFiltros';
 import { buildTriajeColumns } from './components/triajeColumns';
+import { incluyeTexto } from '../../utils/texto';
 
 dayjs.locale(es);
 const { Title, Text } = Typography;
@@ -97,10 +98,10 @@ const Triaje: React.FC = () => {
   const filteredTriajes = useMemo(() => {
     return triajesArray.filter(triaje => {
       const matchSearch =
-        triaje.paciente_info?.nombre_completo?.toLowerCase().includes(searchText.toLowerCase()) ||
-        triaje.paciente_nombre?.toLowerCase().includes(searchText.toLowerCase()) ||
-        triaje.motivo_visita?.toLowerCase().includes(searchText.toLowerCase()) ||
-        triaje.motivo_consulta?.toLowerCase().includes(searchText.toLowerCase());
+        incluyeTexto(triaje.paciente_info?.nombre_completo, searchText) ||
+        incluyeTexto(triaje.paciente_nombre, searchText) ||
+        incluyeTexto(triaje.motivo_visita, searchText) ||
+        incluyeTexto(triaje.motivo_consulta, searchText);
       const matchState = !filterState || triaje.estado === filterState;
       const matchPriority = !filterPriority || triaje.prioridad === filterPriority;
       const matchDate = !filterDate || dayjs(triaje.fecha_hora || triaje.fecha_registro).isSame(filterDate, 'day');

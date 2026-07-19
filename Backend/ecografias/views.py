@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 logger = logging.getLogger("ecografias")
@@ -64,7 +65,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
     permission_classes = [FetalMedicalPermission]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
 
@@ -75,10 +76,11 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         "medico",
         "vitalidad_fetal",
     ]
-    search_fields = [
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__id_clinico",
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "diagnostico",
         "observaciones",
     ]

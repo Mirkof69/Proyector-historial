@@ -81,6 +81,7 @@ import PanelControlDrawer from './components/PanelControlDrawer';
 import HistorialModal from './components/HistorialModal';
 import UploadDocsModal from './components/UploadDocsModal';
 import FiltrosAvanzadosDrawer from './components/FiltrosAvanzadosDrawer';
+import { incluyeTexto } from '../../utils/texto';
 
 dayjs.locale('es');
 const { Option } = Select;
@@ -633,8 +634,8 @@ const Embarazos: React.FC = () => {
         return state.embarazos.filter(item => {
             // Filtro de Texto (Nombre paciente, médico)
             const matchesSearch = !state.searchText ||
-                (item.paciente_nombre?.toLowerCase().includes(state.searchText.toLowerCase())) ||
-                (item.observaciones?.toLowerCase().includes(state.searchText.toLowerCase())); // Buscar en notas también
+                (incluyeTexto(item.paciente_nombre, state.searchText)) ||
+                (incluyeTexto(item.observaciones, state.searchText)); // Buscar en notas también
 
             // Filtro de Riesgo
             const matchesRisk = !state.riskFilter || item.riesgo_embarazo === state.riskFilter;

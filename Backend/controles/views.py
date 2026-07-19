@@ -21,6 +21,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 from embarazos.models import Embarazo
 from embarazos.serializers import EmbarazoSerializer
@@ -76,7 +77,7 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
     permission_classes = [FetalMedicalPermission]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
 
@@ -100,15 +101,11 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         "movimientos_fetales",
     ]
 
-    search_fields = [
-        "embarazo_id__paciente__nombre",
-        "embarazo_id__paciente__apellido_paterno",
-        "embarazo_id__paciente__apellido_materno",
-        "embarazo_id__paciente__id_clinico",
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__apellido_materno",
-        "paciente__id_clinico",
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "observaciones",
         "medico_id__email",
     ]
