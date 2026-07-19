@@ -8,6 +8,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 from .models import Cita, Disponibilidad, HistorialCita
@@ -255,14 +256,15 @@ class CitaViewSet(viewsets.ModelViewSet):
     permission_classes = [FetalMedicalPermission]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
     filterset_fields = ["paciente", "medico", "estado", "tipo_cita", "fecha_cita"]
-    search_fields = [
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__id_clinico",
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "medico__nombre",
         "medico__apellido_paterno",
     ]

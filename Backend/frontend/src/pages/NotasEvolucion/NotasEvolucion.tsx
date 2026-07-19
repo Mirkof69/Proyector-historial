@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { notasEvolucionService, NotaEvolucion } from '../../services/notasEvolucionService';
 import { exportarExcel } from '../../utils/excelExport';
+import { incluyeTexto } from '../../utils/texto';
 
 const NotasEvolucionPage: React.FC = () => {
   const navigate = useNavigate();
@@ -62,9 +63,9 @@ const NotasEvolucionPage: React.FC = () => {
 
   const filteredNotas = notasArray.filter(nota => {
     const matchSearch =
-      nota.paciente_nombre?.toLowerCase().includes(searchText.toLowerCase()) ||
-      nota.medico_nombre?.toLowerCase().includes(searchText.toLowerCase()) ||
-      nota.motivo_consulta?.toLowerCase().includes(searchText.toLowerCase());
+      incluyeTexto(nota.paciente_nombre, searchText) ||
+      incluyeTexto(nota.medico_nombre, searchText) ||
+      incluyeTexto(nota.motivo_consulta, searchText);
     const matchTipo = !filterTipo || nota.tipo_consulta === filterTipo;
     return matchSearch && matchTipo;
   });

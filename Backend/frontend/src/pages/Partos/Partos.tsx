@@ -24,6 +24,7 @@ import { buildPartosColumns } from './components/partosColumns';
 import PartosStats from './components/PartosStats';
 import PartosToolbar from './components/PartosToolbar';
 import './Partos.css';
+import { incluyeTexto } from '../../utils/texto';
 
 const Partos: React.FC = () => {
   const { message, modal } = useAntdApp();
@@ -42,18 +43,14 @@ const Partos: React.FC = () => {
     let result = partos;
 
     if (filtros.searchText) {
-      const lowerSearch = filtros.searchText.toLowerCase();
       result = result.filter((p) => {
         const pacienteNombre = p.paciente_info
-          ? `${p.paciente_info.nombre} ${p.paciente_info.apellido_paterno} ${p.paciente_info.apellido_materno}`.toLowerCase()
+          ? `${p.paciente_info.nombre} ${p.paciente_info.apellido_paterno} ${p.paciente_info.apellido_materno}`
           : '';
-        const pacienteCI = p.paciente_info?.cedula_identidad?.toLowerCase() || '';
-        const pacienteID = p.paciente_info?.id_clinico?.toLowerCase() || '';
-
         return (
-          pacienteNombre.includes(lowerSearch) ||
-          pacienteCI.includes(lowerSearch) ||
-          pacienteID.includes(lowerSearch)
+          incluyeTexto(pacienteNombre, filtros.searchText) ||
+          incluyeTexto(p.paciente_info?.cedula_identidad, filtros.searchText) ||
+          incluyeTexto(p.paciente_info?.id_clinico, filtros.searchText)
         );
       });
     }

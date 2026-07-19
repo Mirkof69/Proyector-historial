@@ -18,6 +18,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 from pacientes.models import Paciente
 
@@ -67,7 +68,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     permission_classes = [FetalMedicalPermission]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
 
@@ -79,12 +80,11 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         "numero_gesta",
     ]
 
-    search_fields = [
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__apellido_materno",
-        "paciente__id_clinico",
-        "paciente__ci",  # Campo correcto — era cedula_identidad (no existe)
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "notas",
     ]
 

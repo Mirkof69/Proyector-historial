@@ -14,6 +14,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 from .models import (
@@ -52,14 +53,20 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
     queryset = CalculadoraRiesgo.objects.all()
     serializer_class = CalculadoraRiesgoSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
     filterset_fields = [
         "paciente",
         "tipo",
         "categoria_riesgo",
         "edad_gestacional_semanas",
     ]
-    search_fields = ["paciente__nombre", "paciente__apellido_paterno", "tipo"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
+        "tipo",
+    ]
     ordering_fields = ["fecha_calculo", "riesgo_porcentaje"]
     ordering = ["-fecha_calculo"]
 
@@ -548,9 +555,13 @@ class HemogramaViewSet(viewsets.ModelViewSet):
 
     queryset = Hemograma.objects.filter(activo=True)
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
     filterset_fields = ["paciente", "embarazo", "clasificacion", "es_critico"]
-    search_fields = ["paciente__nombre", "paciente__apellido_paterno"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_toma", "hemoglobina", "leucocitos", "plaquetas"]
     ordering = ["-fecha_toma"]
 
@@ -671,9 +682,13 @@ class BioquimicaViewSet(viewsets.ModelViewSet):
 
     queryset = Bioquimica.objects.filter(activo=True)
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
     filterset_fields = ["paciente", "embarazo", "es_critico"]
-    search_fields = ["paciente__nombre", "paciente__apellido_paterno"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_toma", "glucosa_ayunas", "creatinina"]
     ordering = ["-fecha_toma"]
 
@@ -767,9 +782,13 @@ class MarcadorEmbarazoViewSet(viewsets.ModelViewSet):
 
     queryset = MarcadorEmbarazo.objects.filter(activo=True)
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
     filterset_fields = ["paciente", "embarazo"]
-    search_fields = ["paciente__nombre", "paciente__apellido_paterno"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_toma", "semanas_gestacion"]
     ordering = ["-fecha_toma"]
 
@@ -969,9 +988,13 @@ class DopplerMaternoViewSet(viewsets.ModelViewSet):
 
         serializer_class = DopplerMaternoSerializer
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
     filterset_fields = ["paciente", "embarazo", "lado", "clasificacion"]
-    search_fields = ["paciente__nombre", "paciente__apellido_paterno"]
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros: list[str] = []
     ordering_fields = ["fecha_examen", "edad_gestacional_semanas"]
     ordering = ["-fecha_examen"]
 

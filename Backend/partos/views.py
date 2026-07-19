@@ -20,6 +20,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 from .errors import (
@@ -74,7 +75,7 @@ class PartoViewSet(viewsets.ModelViewSet):
 
     queryset = Parto.objects.all()
     permission_classes = [FetalMedicalPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     # Campos de filtrado
     filterset_fields = {
@@ -90,12 +91,12 @@ class PartoViewSet(viewsets.ModelViewSet):
     }
 
     # Campos de búsqueda
-    search_fields = [
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "numero_parto",
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__apellido_materno",
-        "paciente__id_clinico",
         "observaciones_parto",
     ]
 

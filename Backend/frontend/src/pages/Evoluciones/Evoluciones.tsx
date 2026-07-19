@@ -39,6 +39,7 @@ import EvolucionesStats from './components/EvolucionesStats';
 import EvolucionesFilters from './components/EvolucionesFilters';
 import { exportarExcel } from '../../utils/excelExport';
 import './Evoluciones.css';
+import { incluyeTexto } from '../../utils/texto';
 
 dayjs.extend(relativeTime);
 dayjs.locale('es');
@@ -115,9 +116,9 @@ const Evoluciones: React.FC = () => {
   const filteredEvoluciones = useMemo(() => {
     return evoluciones.filter(evol => {
       const matchSearch =
-        (evol.paciente_nombre || '').toLowerCase().includes(filtros.searchText.toLowerCase()) ||
-        (evol.diagnostico || '').toLowerCase().includes(filtros.searchText.toLowerCase()) ||
-        (evol.medico_nombre || '').toLowerCase().includes(filtros.searchText.toLowerCase());
+        incluyeTexto(evol.paciente_nombre, filtros.searchText) ||
+        incluyeTexto(evol.diagnostico, filtros.searchText) ||
+        incluyeTexto(evol.medico_nombre, filtros.searchText);
 
       const tipoReal = evol.tipo || evol.tipo_evento;
       const matchType = filtros.filterType === 'todos' || tipoReal === filtros.filterType;

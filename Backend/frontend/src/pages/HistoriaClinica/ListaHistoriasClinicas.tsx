@@ -18,6 +18,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { pacientesService, Paciente } from '../../services/pacientesService';
+import { incluyeTexto } from '../../utils/texto';
 
 const ListaHistoriasClinicas: React.FC = () => {
   const { message } = useAntdApp();
@@ -63,7 +64,7 @@ const ListaHistoriasClinicas: React.FC = () => {
   };
 
   const filteredPacientes = (pacientes || []).filter(p =>
-    p.nombre_completo?.toLowerCase().includes(searchText.toLowerCase()) ||
+    incluyeTexto(p.nombre_completo, searchText) ||
     p.numero_documento?.includes(searchText) ||
     p.numero_historia?.includes(searchText)
   );

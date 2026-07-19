@@ -10,6 +10,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 from .models import NotaEvolucion
@@ -40,7 +41,7 @@ class NotaEvolucionViewSet(viewsets.ModelViewSet):
 
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
 
@@ -56,15 +57,15 @@ class NotaEvolucionViewSet(viewsets.ModelViewSet):
     }
 
     # Campos para búsqueda de texto
-    search_fields = [
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "motivo_consulta",
         "diagnosticos",
         "examen_fisico",
         "plan_tratamiento",
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__ci",
-        "paciente__id_clinico",
     ]
 
     # Campos para ordenamiento

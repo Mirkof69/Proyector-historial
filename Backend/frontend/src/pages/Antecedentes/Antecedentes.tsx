@@ -14,6 +14,7 @@ import es from 'dayjs/locale/es';
 import StatsCards from './components/StatsCards';
 import SearchBar from './components/SearchBar';
 import AntecedentesFormFields from './components/AntecedentesFormFields';
+import { incluyeTexto } from '../../utils/texto';
 
 dayjs.locale(es);
 
@@ -129,7 +130,7 @@ const Antecedentes: React.FC = () => {
 
   const filteredAntecedentes = antecedentesArray.filter((ant: any) => {
     if (!searchText) return true;
-    return getNombrePaciente(ant).toLowerCase().includes(searchText.toLowerCase());
+    return incluyeTexto(getNombrePaciente(ant), searchText);
   });
 
   const columns = [

@@ -14,6 +14,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
+
+from core.filtros import BusquedaClinicaFilter
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -205,7 +207,7 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
 
     queryset = RegistroVacuna.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     # Campos de filtrado
     filterset_fields = {
@@ -220,11 +222,11 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
     }
 
     # Campos de búsqueda
-    search_fields = [
-        "paciente__nombre",
-        "paciente__apellido_paterno",
-        "paciente__apellido_materno",
-        "paciente__id_clinico",
+    # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
+    # identificatorios de Paciente están cifrados y el SearchFilter de DRF
+    # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = [
         "tipo_vacuna__nombre",
         "lote",
         "laboratorio",
