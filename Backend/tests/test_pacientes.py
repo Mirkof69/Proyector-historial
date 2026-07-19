@@ -333,6 +333,62 @@ class PacienteAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(response.data["count"], 1)
 
+    def _crear_buscables(self):
+        """Dos pacientes con apellidos que se escriben con y sin tilde."""
+        Paciente.objects.create(
+            nombre="Modesta", apellido_paterno="López", apellido_materno="Choque",
+            fecha_nacimiento=datetime.date(1992, 5, 4), genero="femenino", ci="80011223",
+        )
+        Paciente.objects.create(
+            nombre="Fernanda", apellido_paterno="Vargas", apellido_materno="Suárez",
+            fecha_nacimiento=datetime.date(1988, 3, 9), genero="femenino", ci="80044556",
+        )
+
+    def test_buscar_por_apellido_en_el_listado(self):
+        """El buscador del listado encuentra por apellido.
+
+        Regresión: nombre/apellidos son EncryptedCharField y el SearchFilter
+        de DRF hacía `icontains` en SQL contra el texto CIFRADO, así que la
+        pantalla de Pacientes devolvía 0 resultados al buscar por apellido
+        —el flujo más usado en recepción— para TODAS las pacientes.
+        """
+        self._authenticate()
+        self._crear_buscables()
+        response = self.client.get(self.list_url, {"search": "Vargas"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        nombres = [p["nombre"] for p in response.data["results"]]
+        self.assertIn("Fernanda", nombres)
+        self.assertNotIn("Modesta", nombres)
+
+    def test_buscar_ignora_tildes_y_mayusculas(self):
+        """"lopez" debe encontrar a "López": en Bolivia se escribe de las dos formas."""
+        self._authenticate()
+        self._crear_buscables()
+        for termino in ("lopez", "LÓPEZ", "López"):
+            response = self.client.get(self.list_url, {"search": termino})
+            nombres = [p["nombre"] for p in response.data["results"]]
+            self.assertIn("Modesta", nombres, f"buscando {termino!r}")
+
+    def test_buscar_por_cedula_exacta(self):
+        """La CI está cifrada: la búsqueda se resuelve por ci_hash, no por LIKE."""
+        self._authenticate()
+        self._crear_buscables()
+        response = self.client.get(self.list_url, {"search": "80044556"})
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["nombre"], "Fernanda")
+
+    def test_buscar_sin_coincidencias_no_devuelve_todo(self):
+        """Un término inexistente devuelve 0, no la lista entera.
+
+        Importa porque el filtrado de campos cifrados se hace en Python: un
+        error ahí puede degradar en "devolver todo", que en una clínica es
+        peor que no encontrar nada.
+        """
+        self._authenticate()
+        self._crear_buscables()
+        response = self.client.get(self.list_url, {"search": "zzzznoexiste"})
+        self.assertEqual(response.data["count"], 0)
+
     def test_search_paciente_no_query(self):
         """Test search endpoint without query returns 400."""
         self._authenticate()
