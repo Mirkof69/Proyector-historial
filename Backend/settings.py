@@ -120,6 +120,15 @@ SENTRY_DSN = env("SENTRY_DSN")
 # (arriba) pero NUNCA se asignaba aquí, así que `settings.AI_SERVICE_URL` no
 # existía y todo el que la leía caía al valor por defecto, ignorando el .env.
 AI_SERVICE_URL = env("AI_SERVICE_URL")
+
+# Que lecturas se registran en la auditoria: "detalle" (abrir el registro
+# de una paciente), "todo" (tambien los listados) o "no".
+# El valor por defecto es "detalle" por una razon medida: auditar tambien
+# los listados anadia un INSERT a cada peticion de la pantalla mas usada y,
+# con 100 usuarios concurrentes, llevo los errores 500 por agotamiento de
+# conexiones de 94 a mas de 1.300. Con un pooler delante (PgBouncer) se
+# puede subir a "todo".
+AUDITAR_LECTURAS = env("AUDITAR_LECTURAS", default="detalle")
 SENTRY_ENVIRONMENT = env("SENTRY_ENVIRONMENT")
 SENTRY_TRACES_SAMPLE_RATE = env("SENTRY_TRACES_SAMPLE_RATE")
 
@@ -285,19 +294,28 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
-        # Conexiones persistentes. Con el valor por defecto de Django (0) se
-        # abre y se cierra una conexion en CADA peticion: bajo 100 usuarios
-        # concurrentes se agotaba `max_connections` de PostgreSQL y la API
-        # devolvia HTTP 500 con "lo siento, ya tenemos demasiados clientes".
+        # 0 (cerrar la conexion al terminar cada peticion) NO es un descuido:
+        # es el valor medido como correcto para este montaje.
         #
-        # Detras de PgBouncer el valor correcto es 0, no 60: el pooler ya
-        # reutiliza las conexiones, y mantenerlas vivas ademas del lado de
-        # Django solo ocupa ranuras del pool sin usarlas. Se controla con
-        # USA_PGBOUNCER para que el mismo settings sirva en los dos montajes.
-        "CONN_MAX_AGE": env.int(
-            "DB_CONN_MAX_AGE",
-            default=0 if env.bool("USA_PGBOUNCER", default=False) else 60,
-        ),
+        # Se probo poner 60 para reutilizar conexiones y fue CONTRAPRODUCENTE.
+        # Con 4 workers de uvicorn y ~15 hilos cada uno, mantenerlas vivas
+        # 60 s deja unas 80 conexiones OCIOSAS retenidas contra el
+        # max_connections=100 por defecto de PostgreSQL. Medido con 100
+        # usuarios concurrentes durante 3 minutos:
+        #
+        #   CONN_MAX_AGE=60 -> listado en 280 ms, pero ~1.283 errores HTTP 500
+        #                      ("FATAL: lo siento, ya tenemos demasiados
+        #                      clientes"), con 87 conexiones ociosas retenidas
+        #   CONN_MAX_AGE=0  -> listado en 1.700 ms y CERO errores
+        #
+        # En una clinica, una pantalla lenta es peor que nada; una pantalla que
+        # falla una de cada tres veces es inaceptable. Por eso gana 0.
+        #
+        # La forma de tener las dos cosas —rapidez y cero errores— es un pooler
+        # delante de la base (PgBouncer en modo transaction, ya definido en
+        # docker-compose.yml), no conexiones persistentes del lado de Django.
+        # Subir este valor sin un pooler reintroduce los errores 500.
+        "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=0),
         # Descarta conexiones que el servidor cerro por su cuenta antes de
         # usarlas; sin esto, reutilizar una conexion muerta da OperationalError.
         "CONN_HEALTH_CHECKS": True,

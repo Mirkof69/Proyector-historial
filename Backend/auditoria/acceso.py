@@ -76,8 +76,33 @@ def describir_ruta(path: str) -> tuple[str, str]:
     return modulo, registro_id
 
 
+def _modo_auditoria_lecturas() -> str:
+    """Qué lecturas se auditan: 'detalle' (por defecto), 'todo' o 'no'.
+
+    `detalle` audita solo el acceso a un registro concreto —abrir la historia
+    de una paciente— y no los listados. Es el valor por defecto por una razón
+    medida: auditar también los listados añadía un INSERT a cada petición de
+    la pantalla más usada, y con 100 usuarios concurrentes eso empujó el
+    agotamiento de conexiones de PostgreSQL de 94 errores 500 a más de 1.300.
+
+    Auditar quién abrió el expediente de una paciente es el hecho que un
+    hospital necesita poder responder; que alguien haya listado la agenda no
+    lo es, y cuesta el doble de latencia en la pantalla principal.
+
+    `todo` registra también los listados: correcto donde la normativa lo exija
+    y haya un pooler de conexiones delante de la base.
+    """
+    from django.conf import settings
+
+    return str(getattr(settings, "AUDITAR_LECTURAS", "detalle")).lower()
+
+
 def es_lectura_auditable(request) -> bool:
     """¿Esta petición es una lectura de datos clínicos por un usuario conocido?"""
+    modo = _modo_auditoria_lecturas()
+    if modo == "no":
+        return False
+
     if request.method not in ("GET", "HEAD"):
         return False
 
@@ -89,8 +114,16 @@ def es_lectura_auditable(request) -> bool:
     if not usuario or not getattr(usuario, "is_authenticated", False):
         return False
 
-    modulo, _ = describir_ruta(path)
-    return bool(modulo)
+    modulo, registro_id = describir_ruta(path)
+    if not modulo:
+        return False
+
+    # En modo `detalle` solo cuenta el acceso a un registro concreto: abrir la
+    # historia de una paciente. Un listado no identifica a quién se consultó.
+    if modo == "detalle" and not registro_id:
+        return False
+
+    return True
 
 
 def registrar_acceso(request, status_code: int) -> None:
