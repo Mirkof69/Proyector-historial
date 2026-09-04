@@ -1,7 +1,7 @@
 import React, { useState, useReducer, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { notificacionesService, Notificacion } from '../../services/notificacionesService';
-import { Card, Button, Space, Dropdown, Empty, Typography, Table } from "antd";
+import { Button, Space, Dropdown, Empty, Typography, Table } from "antd";
 import {
   DeleteOutlined,
   CheckOutlined,

@@ -44,7 +44,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
   pacienteId,
   navigate,
 }) => {
-  const { message, modal } = useAntdApp();
+  const { modal } = useAntdApp();
   const { semanas, dias } = calcularEGActual();
   const porcentaje = Math.min((semanas / 40) * 100, 100);
 

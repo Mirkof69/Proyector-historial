@@ -29,7 +29,7 @@ const TabHerramientasClinicas: React.FC<TabHerramientasClinicasProps> = ({
   handleGenerarRecordatorios, handleCalcularPesoFetal, setModalExportarVisible, laboratorios,
   calcularEG, calcularFPP, interpretarNST, notification
 }) => {
-  const { modal, message } = useAntdApp();
+  const { modal } = useAntdApp();
   return (
   <div>
     <Row gutter={[16, 16]}>

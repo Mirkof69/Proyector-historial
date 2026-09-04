@@ -10,21 +10,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import {Button,
-  Space,
   Spin,
   Alert,
   Row,
   Col,
   Modal} from "antd";
 import {
-  ArrowLeftOutlined,
-  EditOutlined,
   CalendarOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { citasService, Cita, EstadoCita } from '../../services/citasService';
+import { citasService, Cita } from '../../services/citasService';
 import { getEstadoTag } from './utils/citasUtils';
 import DetalleCitaInfo from './components/DetalleCitaInfo';
 import DetalleCitaSidebar from './components/DetalleCitaSidebar';

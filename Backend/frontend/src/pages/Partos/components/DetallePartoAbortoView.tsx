@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 import { Parto } from '../../../services/partosService';
 import { Paciente } from '../../../services/pacientesService';
 
-const { Title, Paragraph } = Typography;
+const { Paragraph } = Typography;
 const { Text } = Typography;
 
 interface DetallePartoAbortoViewProps {

@@ -20,12 +20,8 @@ import {
   Button,
   Space,
   Modal,
-  Row,
-  Col,
   Alert} from 'antd';
 import {
-  EyeOutlined,
-  EditOutlined,
   PlusOutlined,
   ReloadOutlined,
   FileImageOutlined,

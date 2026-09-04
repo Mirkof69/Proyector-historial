@@ -92,7 +92,6 @@ import {
 } from './utils';
 import TabVacunas from './sections/TabVacunas';
 import {
-  ModalRegistroPacienteCompleto
 } from './sections/ModalRegistroPacienteCompleto';
 import TabTratamientos from './sections/TabTratamientos';
 import TabPartos from './sections/TabPartos';

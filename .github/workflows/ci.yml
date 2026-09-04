@@ -119,12 +119,13 @@ jobs:
       # errores, y ESLint puede vigilar de verdad — incluidas las 9 reglas de
       # accesibilidad, que ahora son error.
       #
-      # --max-warnings queda alto a proposito: los 123 avisos que quedan son
-      # variables sin usar y dependencias de hooks, pendientes de limpieza.
-      # Bajar el numero a medida que se limpien.
+      # --max-warnings es un trinquete: baja a medida que se limpia. De 123
+      # se paso a 65 quitando imports y nombres sin usar; los que quedan son
+      # 28 dependencias de hooks (que hay que revisar una a una, cambiarlas
+      # a ciegas puede introducir bucles de render) y 37 variables sueltas.
       - name: Run ESLint
         working-directory: Backend/frontend
-        run: npx eslint src --ext .ts,.tsx --max-warnings 130
+        run: npx eslint src --ext .ts,.tsx --max-warnings 70
 
   # ──────────────────────────────────────────────
   # BACKEND TESTS

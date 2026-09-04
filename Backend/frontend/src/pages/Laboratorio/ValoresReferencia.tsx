@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Typography, Alert } from 'antd';
+import { Card, Table, Button, Tag, Typography, Alert } from 'antd';
 import { ReloadOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { laboratorioService, ValorReferencia } from '../../services/laboratorioService';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const ValoresReferencia: React.FC = () => {
   const [valores, setValores] = useState<ValorReferencia[]>([]);

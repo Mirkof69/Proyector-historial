@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, Timeline, Space, Typography } from 'antd';
+import { Col, Card, Timeline, Space, Typography } from 'antd';
 import { BellOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 

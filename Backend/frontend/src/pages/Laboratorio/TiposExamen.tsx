@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Typography } from 'antd';
+import { Card, Table, Button, Tag, Typography } from 'antd';
 import { ReloadOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { laboratorioService, TipoExamen } from '../../services/laboratorioService';
 

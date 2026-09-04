@@ -29,7 +29,7 @@ interface TabControlesProps {
   navigate: ReturnType<typeof useNavigate>;
 }
 const TabControles: React.FC<TabControlesProps> = ({ controles, embarazoActivo, navigate }) => {
-  const {modal,  message } = useAntdApp();
+  const {message } = useAntdApp();
   const chartData = controles
     .reduce((acc, c) => {
       if (c.peso_actual && c.presion_arterial_sistolica && c.presion_arterial_diastolica) {

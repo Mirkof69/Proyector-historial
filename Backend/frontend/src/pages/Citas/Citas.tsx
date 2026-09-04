@@ -262,10 +262,6 @@ const CitasPage: React.FC = () => {
     navigate('/dashboard/citas/nuevo');
   }, [navigate]);
 
-  const handleVer = useCallback((id: number) => {
-    navigate(`/dashboard/citas/${id}`);
-  }, [navigate]);
-
   // ✨ NUEVA FUNCIÓN PARA VISTA RÁPIDA CON DRAWER
   const handleVerVistaRapida = useCallback((cita: Cita) => {
     setCitaSeleccionada(cita);

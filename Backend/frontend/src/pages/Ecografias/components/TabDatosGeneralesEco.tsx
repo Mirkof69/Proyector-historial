@@ -5,7 +5,7 @@ import { Paciente } from '../../../services/pacientesService';
 import { Embarazo } from '../../../services/embarazosService';
 
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface TabDatosGeneralesEcoProps {
   pacientes: Paciente[];

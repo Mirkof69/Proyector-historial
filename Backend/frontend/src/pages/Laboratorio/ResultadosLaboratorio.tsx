@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Typography, Alert, Spin } from 'antd';
+import { Card, Table, Tag, Button, Typography, Alert, Spin } from 'antd';
 import { ReloadOutlined, ExperimentOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 import { laboratorioService, ResultadoLaboratorio } from '../../services/laboratorioService';

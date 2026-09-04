@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Descriptions, Tag, Space, Typography, Row, Col } from 'antd';
+import { Card, Descriptions, Tag, Space, Typography, Col } from 'antd';
 import { UserOutlined, HeartOutlined, PhoneOutlined, HomeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Paciente } from '../../../services/pacientesService';

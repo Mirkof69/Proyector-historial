@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Form, Alert, Tag } from 'antd';
+import { Card, Form, Alert } from 'antd';
 import { HeartOutlined } from '@ant-design/icons';
 import './SufrimientoFetal.css';
 import { FormularioBienestarFetal } from './components/FormularioBienestarFetal';

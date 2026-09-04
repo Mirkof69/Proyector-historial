@@ -11,7 +11,7 @@ import { Modal, Table, Button, Space, Form, Select, TimePicker, Switch, Tag, Ale
 import { useAntdApp } from '../../hooks/useMessage';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { usuariosService, HorarioAtencion, horariosService } from '../../services/usuariosService';
+import { HorarioAtencion, horariosService } from '../../services/usuariosService';
 
 interface GestionHorariosModalProps {
   open: boolean;

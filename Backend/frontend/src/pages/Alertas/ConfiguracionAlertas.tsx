@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Form, Switch, Button, Select, InputNumber, Typography, Space, message, Spin, Divider } from 'antd';
+import { Card, Form, Switch, Button, InputNumber, Typography, message, Spin, Divider } from 'antd';
 import { SaveOutlined, BellOutlined } from '@ant-design/icons';
 import api from '../../services/api';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const ConfiguracionAlertas: React.FC = () => {
   const [form] = Form.useForm();

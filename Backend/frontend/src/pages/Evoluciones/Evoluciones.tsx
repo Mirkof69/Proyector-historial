@@ -17,14 +17,10 @@ import {
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
-  SearchOutlined,
   RiseOutlined,
   UserOutlined,
   CalendarOutlined,
   MedicineBoxOutlined,
-  FileTextOutlined,
-  ReloadOutlined,
-  CheckCircleOutlined,
   HistoryOutlined,
   UnorderedListOutlined
 } from '@ant-design/icons';
@@ -44,7 +40,7 @@ import { incluyeTexto } from '../../utils/texto';
 dayjs.extend(relativeTime);
 dayjs.locale('es');
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface FiltrosState {
   searchText: string;

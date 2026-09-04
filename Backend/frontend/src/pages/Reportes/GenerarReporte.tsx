@@ -19,7 +19,6 @@ import {Card,
   Button,
   Space,
   Divider,
-  Typography,
   Steps,
 } from "antd";
 import {

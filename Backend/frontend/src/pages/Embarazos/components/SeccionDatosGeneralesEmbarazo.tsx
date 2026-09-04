@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divider, Row, Col, Form, Select, Input, InputNumber, DatePicker, Alert, Card, Typography, Tag } from 'antd';
+import { Divider, Row, Col, Form, Select, InputNumber, DatePicker, Alert, Card, Typography, Tag } from 'antd';
 import type { FormInstance } from 'antd';
 import dayjs from 'dayjs';
 import { Paciente } from '../../../services/pacientesService';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Form, Input, Button, Select, InputNumber, Typography, Space } from 'antd';
+import { Card, Form, Button, Select, InputNumber, Typography, Space } from 'antd';
 import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { logger } from '../../utils/logger';
 

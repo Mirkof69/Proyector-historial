@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Space, Card, Tag, Typography, Alert, Drawer, Divider, Badge } from 'antd';
+import { Button, Space, Card, Typography, Alert, Drawer, Divider, Badge } from 'antd';
 import { WarningOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { ControlPrenatal } from '../../../services/controlesService';

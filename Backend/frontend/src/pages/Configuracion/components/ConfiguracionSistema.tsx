@@ -3,7 +3,7 @@ import { Card, Form, Input, Button, Switch, Divider, Row, Col, Typography, Selec
 import { useAntdApp } from '../../../hooks/useMessage';
 import { MailOutlined, SaveOutlined, DatabaseOutlined, SafetyCertificateOutlined, DeleteOutlined } from '@ant-design/icons';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 

@@ -34,7 +34,6 @@ import {
   FileTextOutlined,
   DeleteOutlined,
   MedicineBoxOutlined,
-  UserOutlined,
   ExclamationCircleOutlined,
   WarningOutlined,
 } from '@ant-design/icons';

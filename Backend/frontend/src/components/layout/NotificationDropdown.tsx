@@ -6,9 +6,9 @@
  * =============================================================================
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Badge, Dropdown, List, Button, Typography, Space, Tag, Empty, Spin } from 'antd';
-import { BellOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons';
+import { BellOutlined } from '@ant-design/icons';
 import { notificacionesService, Notificacion } from '../../services/notificacionesService';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';

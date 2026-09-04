@@ -166,20 +166,6 @@ const IaMedica: React.FC = () => {
     }
   };
 
-  const handleVincularPacienteSearch = async (query: string) => {
-    if (!query || query.length < 2) return;
-    try {
-      const results = await pacientesService.listar();
-      const q = query.toLowerCase();
-      const filtered = results.filter((p: any) =>
-        `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''}`.toLowerCase().includes(q)
-      );
-      setPacientesSearch(filtered.map((p: any) => ({
-        id: p.id,
-        nombre: p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`.trim()
-      })));
-    } catch { /* silent */ }
-  };
 
   // Análisis completo EfficientNet-B4 con Grad-CAM + SHAP + biometría
   const handleAnalyzeCNN = async (img: ImagenEcografica) => {

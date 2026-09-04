@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Typography, Spin } from 'antd';
+import { Card, Table, Tag, Button, Typography, Spin } from 'antd';
 import { ReloadOutlined, WarningOutlined } from '@ant-design/icons';
 import { antecedentesService, AntecedentePatologico } from '../../services/antecedentesService';
 
