@@ -178,6 +178,23 @@ def crear_backup(request):
 
         if result["success"]:
             logger.info("Backup creado por %s: %s", request.user.email, result["filename"])
+
+            # Un backup es una copia completa de datos clinicos fuera de la
+            # base. Quien la genera y cuando tiene que quedar registrado: es
+            # el mismo criterio que con EXPORTAR, a mayor escala.
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                RegistroAuditoria.registrar(
+                    usuario=request.user,
+                    accion="BACKUP",
+                    modulo="Sistema",
+                    detalle=f"Backup manual generado: {result['filename']}",
+                    request=request,
+                )
+            except Exception:
+                logger.warning("No se pudo auditar el backup", exc_info=True)
+
             return Response(result, status=status.HTTP_201_CREATED)
         logger.error("Error al crear backup: %s", result["message"])
         return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

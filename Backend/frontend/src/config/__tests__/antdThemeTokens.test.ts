@@ -176,3 +176,44 @@ describe('tokens de Ant Design', () => {
     });
   });
 });
+
+describe('tema claro', () => {
+  const temaClaro = getThemeTokens('light');
+
+  it('los tokens de Table coinciden con lo que ve el usuario', () => {
+    // `headerBg` decia '#fafafa' pero antd-overrides.css imponia '#f9fafb'
+    // con !important: el token estaba MUERTO y lo que se veia era el CSS.
+    // Ahora coinciden, y el !important sobra.
+    const table = (temaClaro.components as Record<string, Record<string, string>>).Table;
+    expect(table.headerBg).toBe('#f9fafb');
+    expect(table.headerColor).toBe('#111827');
+    expect(table.rowSelectedBg).toBe('rgba(37, 99, 235, 0.08)');
+  });
+
+  it('define el pie de tabla, que solo existia en el CSS', () => {
+    const table = (temaClaro.components as Record<string, Record<string, string>>).Table;
+    expect(table.footerBg).toBeDefined();
+    expect(table.footerColor).toBeDefined();
+  });
+});
+
+describe('antd-overrides.css ya no pelea por la tabla', () => {
+  const RUTA_OVERRIDES = path.join(__dirname, '..', '..', 'styles', 'antd-overrides.css');
+  const COLOR = /^\s*(background|background-color|color|border-color)\s*:/;
+
+  it('las reglas de .ant-table no usan !important en colores', () => {
+    const css = fs.readFileSync(RUTA_OVERRIDES, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const conflictivas = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+      .filter(([, selector]) => selector.includes('.ant-table'))
+      .flatMap(([, , cuerpo]) =>
+        cuerpo
+          .split('\n')
+          .filter((linea) => linea.includes('!important') && COLOR.test(linea))
+          .map((linea) => linea.trim()),
+      );
+
+    // ESPERADO: ninguna. Los colores de la tabla los aplica Ant Design desde
+    // los tokens, en los dos temas.
+    expect(conflictivas).toEqual([]);
+  });
+});

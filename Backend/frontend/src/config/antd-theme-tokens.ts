@@ -132,11 +132,20 @@ const lightThemeTokens: ThemeConfig = {
     Tabs: {
       borderRadius: 8,
     },
+    // Los valores salen de antd-overrides.css, donde vivian con !important.
+    // Varios de los que habia aqui estaban MUERTOS: headerBg decia '#fafafa'
+    // pero el CSS imponia '#f9fafb', asi que lo que se veia era el segundo.
+    // Ahora el token coincide con lo que ve el usuario.
     Table: {
       colorBgContainer: '#ffffff',
-      headerBg: '#fafafa',
-      headerColor: '#1a1a2e',
+      headerBg: '#f9fafb',
+      headerColor: '#111827',
+      colorText: '#6b7280',
       rowHoverBg: '#f5f5f5',
+      rowSelectedBg: 'rgba(37, 99, 235, 0.08)',
+      rowSelectedHoverBg: 'rgba(37, 99, 235, 0.12)',
+      footerBg: '#f9fafb',
+      footerColor: '#6b7280',
       borderColor: '#f0f0f0',
     },
   },
@@ -271,6 +280,10 @@ const darkThemeTokens: ThemeConfig = {
       headerColor: '#f9fafb',
       headerSplitColor: 'rgba(255, 255, 255, 0.12)',
       rowHoverBg: 'rgba(42, 42, 42, 0.5)',
+      rowSelectedBg: 'rgba(59, 130, 246, 0.12)',
+      rowSelectedHoverBg: 'rgba(59, 130, 246, 0.18)',
+      footerBg: 'rgba(26, 26, 26, 0.8)',
+      footerColor: '#d1d5db',
       borderColor: 'rgba(255, 255, 255, 0.06)',
       colorText: '#d1d5db',
     },

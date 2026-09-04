@@ -23,6 +23,9 @@ ACCIONES_LEGADAS = {
     "crear": "CREAR",
     "actualizar": "EDITAR",
     "eliminar": "DESACTIVAR",
+    # Mismo hecho con otro nombre: dar de baja una paciente. Filtrar por
+    # DESACTIVAR no la encontraba.
+    "DESACTIVAR_PACIENTE": "DESACTIVAR",
 }
 
 

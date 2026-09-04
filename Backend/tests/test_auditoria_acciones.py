@@ -50,7 +50,15 @@ class AccionCanonicaTest(TestCase):
         auditoría prefiere un dato raro a un hueco.
         """
         assert canonica("ALGO_NUEVO") == "ALGO_NUEVO"
-        assert canonica("DESACTIVAR_PACIENTE") == "DESACTIVAR_PACIENTE"
+        assert canonica("IMPORTAR_LOTE") == "IMPORTAR_LOTE"
+
+    def test_desactivar_paciente_tambien_se_normaliza(self):
+        """ESPERADO: 'DESACTIVAR'.
+
+        Era otra variante del mismo hecho —dar de baja una paciente— guardada
+        con otro nombre. Filtrar por DESACTIVAR no la encontraba.
+        """
+        assert canonica("DESACTIVAR_PACIENTE") == "DESACTIVAR"
 
     def test_vacio_y_none_no_revientan(self):
         """ESPERADO: cadena vacía, sin excepción.

@@ -1,4 +1,5 @@
 """Views module."""
+import logging
 from datetime import date, datetime, timedelta
 
 from django.core.cache import cache
@@ -29,6 +30,8 @@ from .serializers import (
     PacienteListSerializer,
     PacienteSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 # Inicializar servicio PDF
 pdf_service = PDFService()
@@ -679,11 +682,28 @@ class PacienteViewSet(viewsets.ModelViewSet):
         description="Reactivate an inactive patient.",
         responses={200: OpenApiResponse(description="Patient activated successfully")},
     )
-    def activar(self, _request, pk=None):
+    def activar(self, request, pk=None):
         """Reactivar un paciente inactivo"""
         paciente = self.get_object()
         paciente.activo = True
         paciente.save()
+
+        # Reactivar es tan sensible como dar de baja: devuelve a circulacion
+        # una historia clinica que alguien habia retirado, y hay que poder
+        # reconstruir quien lo hizo.
+        try:
+            from auditoria.models import RegistroAuditoria
+
+            RegistroAuditoria.registrar(
+                usuario=request.user if getattr(request.user, "is_authenticated", False) else None,
+                accion="ACTIVAR",
+                modulo="Paciente",
+                registro_id=str(paciente.id),
+                detalle=f"Paciente reactivada. ID clinico: {paciente.id_clinico}",
+                request=request,
+            )
+        except Exception:
+            logger.warning("No se pudo auditar la reactivacion", exc_info=True)
 
         return Response(
             {

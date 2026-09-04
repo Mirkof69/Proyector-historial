@@ -1,4 +1,5 @@
 """Views module."""
+import logging
 from datetime import timedelta
 
 import pyotp
@@ -33,6 +34,8 @@ from .serializers import (
     UsuarioDetailSerializer,
     UsuarioListSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 # ── Temp token MFA ────────────────────────────────────────────────────────────
 # El temp_token es un JWT de 5 minutos que solo contiene user_id y el claim
@@ -122,6 +125,36 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         "especialidad",
     ]
     ordering_fields = ["fecha_creacion", "nombre", "apellido_paterno", "email"]
+
+    def perform_update(self, serializer):
+        """Guarda el usuario y deja constancia si le cambio el rol.
+
+        Un cambio de rol no es una edicion mas: da o quita acceso a datos
+        clinicos de otras pacientes. En la auditoria tiene que verse como el
+        hecho que es, con el rol anterior y el nuevo, no escondido dentro de
+        un EDITAR generico.
+        """
+        rol_anterior = serializer.instance.rol
+        usuario = serializer.save()
+
+        if usuario.rol != rol_anterior:
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                RegistroAuditoria.registrar(
+                    usuario=self.request.user
+                    if getattr(self.request.user, "is_authenticated", False)
+                    else None,
+                    accion="CAMBIO_ROL",
+                    modulo="Usuario",
+                    registro_id=str(usuario.id),
+                    detalle=(
+                        f"Rol de {usuario.email}: {rol_anterior} -> {usuario.rol}"
+                    ),
+                    request=self.request,
+                )
+            except Exception:
+                logger.warning("No se pudo auditar el cambio de rol", exc_info=True)
 
     def get_serializer_class(self):
         """Retornar el serializer apropiado según la acción"""
@@ -528,6 +561,24 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         if pyotp.TOTP(request.user.mfa_secret).verify(code, valid_window=1):
             request.user.mfa_enabled = True
             request.user.save(update_fields=["mfa_enabled"])
+
+            # Contrapartida de MFA_DESACTIVADO: sin registrar tambien la
+            # activacion, la auditoria mostraria bajas de seguridad sin sus
+            # altas y no se podria reconstruir el estado de una cuenta.
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                RegistroAuditoria.registrar(
+                    usuario=request.user,
+                    accion="MFA_ACTIVADO",
+                    modulo="Usuario",
+                    registro_id=str(request.user.id),
+                    detalle=f"MFA activado por {request.user.email}",
+                    request=request,
+                )
+            except Exception:
+                logger.warning("No se pudo auditar el MFA activado", exc_info=True)
+
             return Response(
                 {"mensaje": "MFA activado correctamente", "mfa_enabled": True},
             )
@@ -552,6 +603,23 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             request.user.mfa_enabled = False
             request.user.mfa_secret = None
             request.user.save(update_fields=["mfa_enabled", "mfa_secret"])
+
+            # Quitarse el segundo factor BAJA la seguridad de una cuenta con
+            # acceso a datos clinicos: es justo lo que hay que poder revisar.
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                RegistroAuditoria.registrar(
+                    usuario=request.user,
+                    accion="MFA_DESACTIVADO",
+                    modulo="Usuario",
+                    registro_id=str(request.user.id),
+                    detalle=f"MFA desactivado por {request.user.email}",
+                    request=request,
+                )
+            except Exception:
+                logger.warning("No se pudo auditar el MFA desactivado", exc_info=True)
+
             return Response(
                 {"mensaje": "MFA desactivado correctamente", "mfa_enabled": False},
             )
@@ -646,6 +714,22 @@ def login_view(request):
 
             usuario.bloqueado_hasta = tz.now() + timedelta(minutes=15)
             usuario.intentos_fallidos = 0
+            # El bloqueo es un hecho distinto de los intentos fallidos: la
+            # cuenta queda fuera de servicio 15 minutos. En una guardia eso
+            # deja a alguien sin poder trabajar, y hay que poder verlo.
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                RegistroAuditoria.registrar(
+                    usuario=None,
+                    accion="CUENTA_BLOQUEADA",
+                    modulo="Usuario",
+                    registro_id=str(usuario.id),
+                    detalle=f"Cuenta {email} bloqueada 15 min por 5 intentos fallidos",
+                    request=request,
+                )
+            except Exception:
+                pass
         usuario.save(update_fields=["intentos_fallidos", "bloqueado_hasta"])
         # Auditoría: login fallido
         try:

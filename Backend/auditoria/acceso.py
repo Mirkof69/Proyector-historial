@@ -53,6 +53,23 @@ MODULOS_AUDITABLES = {
     "reportes": "Reporte",
 }
 
+#: Fragmentos de ruta que indican que se estan SACANDO datos del sistema,
+#: no solo consultandolos. Para un hospital es la diferencia importante: quien
+#: descarga la historia clinica de una paciente a un Excel se la lleva a un
+#: sitio donde el sistema ya no la controla.
+RUTAS_DE_EXPORTACION = (
+    "exportar", "descargar", "historia-clinica", "reporte-pdf", "informe-pdf",
+)
+
+
+def accion_para_ruta(ruta: str) -> str:
+    """`EXPORTAR` si la peticion saca datos del sistema, `VER` si solo los lee."""
+    partes = [p for p in (ruta or "").lower().split("/") if p]
+    if any(any(marca in p for marca in RUTAS_DE_EXPORTACION) for p in partes):
+        return "EXPORTAR"
+    return "VER"
+
+
 #: Rutas que nunca se auditan aunque cuelguen de /api/.
 RUTAS_IGNORADAS = ("/api/schema", "/api/docs", "/api/redoc", "/api/health", "/api/metrics")
 
@@ -118,6 +135,11 @@ def es_lectura_auditable(request) -> bool:
     if not modulo:
         return False
 
+    # Una exportación se audita SIEMPRE, aunque sea de un listado: sacar la
+    # lista completa de pacientes a un Excel es justo lo que hay que registrar.
+    if accion_para_ruta(path) == "EXPORTAR":
+        return True
+
     # En modo `detalle` solo cuenta el acceso a un registro concreto: abrir la
     # historia de una paciente. Un listado no identifica a quién se consultó.
     if modo == "detalle" and not registro_id:
@@ -140,14 +162,16 @@ def registrar_acceso(request, status_code: int) -> None:
         from .models import RegistroAuditoria
 
         modulo, registro_id = describir_ruta(request.path)
-        detalle = (
-            f"Consultó {modulo} {registro_id}".strip()
-            if registro_id
-            else f"Listó {modulo}"
-        )
+        accion = accion_para_ruta(request.path)
+        if accion == "EXPORTAR":
+            detalle = f"Exportó {modulo} {registro_id}".strip()
+        elif registro_id:
+            detalle = f"Consultó {modulo} {registro_id}"
+        else:
+            detalle = f"Listó {modulo}"
         RegistroAuditoria.registrar(
             usuario=request.user,
-            accion="VER",
+            accion=accion,
             modulo=modulo,
             registro_id=registro_id,
             detalle=detalle,
