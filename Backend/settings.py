@@ -307,27 +307,23 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
-        # 0 (cerrar la conexion al terminar cada peticion) NO es un descuido:
-        # es el valor medido como correcto para este montaje.
+        # Por defecto 0 (cerrar al terminar cada peticion). Es el valor SEGURO
+        # con cualquier max_connections, y por eso es el que va aqui.
         #
-        # Se probo poner 60 para reutilizar conexiones y fue CONTRAPRODUCENTE.
-        # Con 4 workers de uvicorn y ~15 hilos cada uno, mantenerlas vivas
-        # 60 s deja unas 80 conexiones OCIOSAS retenidas contra el
-        # max_connections=100 por defecto de PostgreSQL. Medido con 100
-        # usuarios concurrentes durante 3 minutos:
+        # El valor rapido es 60, pero DEPENDE de la base: con 4 workers de
+        # uvicorn y ~15 hilos cada uno, mantener las conexiones vivas 60 s
+        # retiene unas 80 ociosas. Medido con 100 usuarios durante 3 minutos:
         #
-        #   CONN_MAX_AGE=60 -> listado en 280 ms, pero ~1.283 errores HTTP 500
-        #                      ("FATAL: lo siento, ya tenemos demasiados
-        #                      clientes"), con 87 conexiones ociosas retenidas
-        #   CONN_MAX_AGE=0  -> listado en 1.700 ms y CERO errores
+        #   max_connections=100, CONN_MAX_AGE=60 ->   770 ms y ~1.283 HTTP 500
+        #   max_connections=100, CONN_MAX_AGE=0  -> 2.100 ms y CERO errores
+        #   max_connections=300, CONN_MAX_AGE=60 ->   770 ms y CERO errores  <--
         #
-        # En una clinica, una pantalla lenta es peor que nada; una pantalla que
-        # falla una de cada tres veces es inaceptable. Por eso gana 0.
+        # La tercera fila es la configuracion actual: PostgreSQL se subio a
+        # 300 el 2026-09-04 (ver docs/DESPLIEGUE-NATIVO.md) y el .env activa
+        # el 60. Durante la carga quedaron 64 conexiones en uso de 300.
         #
-        # La forma de tener las dos cosas —rapidez y cero errores— es un pooler
-        # La forma de tener las dos cosas es subir `max_connections` de
-        # PostgreSQL (ver docs/DESPLIEGUE-NATIVO.md) y solo ENTONCES poner
-        # DB_CONN_MAX_AGE=60. Subirlo antes reintroduce los errores 500.
+        # Si algun dia se despliega contra una base con max_connections mas
+        # bajo, hay que quitar DB_CONN_MAX_AGE del .env o vuelven los 500.
         "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=0),
         # Descarta conexiones que el servidor cerro por su cuenta antes de
         # usarlas; sin esto, reutilizar una conexion muerta da OperationalError.
