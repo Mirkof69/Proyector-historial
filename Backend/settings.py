@@ -115,6 +115,11 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # ========== SENTRY SDK INTEGRATION ==========
 SENTRY_DSN = env("SENTRY_DSN")
+
+# URL del microservicio de IA. Estaba declarada en el esquema de `environ.Env`
+# (arriba) pero NUNCA se asignaba aquí, así que `settings.AI_SERVICE_URL` no
+# existía y todo el que la leía caía al valor por defecto, ignorando el .env.
+AI_SERVICE_URL = env("AI_SERVICE_URL")
 SENTRY_ENVIRONMENT = env("SENTRY_ENVIRONMENT")
 SENTRY_TRACES_SAMPLE_RATE = env("SENTRY_TRACES_SAMPLE_RATE")
 

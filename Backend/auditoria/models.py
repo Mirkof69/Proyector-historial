@@ -14,6 +14,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
+from .acciones import canonica
+
 Usuario = get_user_model()
 
 
@@ -218,7 +220,10 @@ class RegistroAuditoria(models.Model):
             else None,
             usuario_nombre=nombre,
             usuario_rol=rol,
-            accion=accion,
+            # Normalizado en la entrada: la auditoría acumulaba dos nombres
+            # para la misma operación (`crear`/`CREAR`, `actualizar`/`EDITAR`)
+            # y filtrar por el canónico perdía miles de registros.
+            accion=canonica(accion),
             modulo=modulo,
             registro_id=registro_id if isinstance(registro_id, str) else str(registro_id),
             datos_anteriores=datos_anteriores,

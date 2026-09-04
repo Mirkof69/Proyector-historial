@@ -792,6 +792,23 @@ def logout_view(request):
     except Exception:
         pass  # token vencido/inválido: igual cerramos la sesión del navegador
 
+    # `LOGOUT` estaba declarada en RegistroAuditoria.ACCIONES desde el
+    # principio pero nunca se emitía: la auditoría sabía cuándo entraba cada
+    # usuario y no cuándo salía, así que no se podía delimitar una sesión.
+    try:
+        from auditoria.models import RegistroAuditoria
+
+        usuario = request.user if getattr(request, "user", None) else None
+        RegistroAuditoria.registrar(
+            usuario=usuario if getattr(usuario, "is_authenticated", False) else None,
+            accion="LOGOUT",
+            modulo="Usuario",
+            detalle="Cierre de sesión",
+            request=request,
+        )
+    except Exception:  # auditar nunca puede impedir cerrar la sesión
+        pass
+
     response = Response({"mensaje": "Sesión cerrada correctamente"})
     clear_jwt_cookies(response)
     return response

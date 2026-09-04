@@ -145,7 +145,7 @@ def main() -> int:
         for split, lote in cortes.items():
             for h in lote:
                 asignacion[h] = split
-        resumen[clase] = {s: len(l) for s, l in cortes.items()}
+        resumen[clase] = {s: len(imagenes) for s, imagenes in cortes.items()}
 
     # ── Copia por lotes, con conteo antes/despues ──
     print("\n== PASO 4: copiando (el original NO se toca) ==", flush=True)

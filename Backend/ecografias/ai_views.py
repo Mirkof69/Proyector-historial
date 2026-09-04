@@ -24,8 +24,44 @@ from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
-# URL del microservicio de IA — configurable vía variable de entorno
-AI_SERVICE_URL = os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
+def obtener_url_ia() -> str:
+    """URL base del microservicio de IA, leída desde `settings`.
+
+    Antes esto era una constante de módulo que leía `os.environ` directamente.
+    Eso creó dos mecanismos distintos para la misma configuración —
+    `ia_medica/services/cnn_service.py` sí usa `settings`— y el resultado fue
+    que `.env` apuntaba al puerto 8002, donde no escucha nada, mientras el
+    microservicio corría en el 8001. El análisis de ecografías devolvía 503 y
+    nada lo detectaba, porque ningún test podía sobrescribir una constante ya
+    evaluada al importar el módulo.
+
+    Se resuelve en cada llamada para que `override_settings` funcione en los
+    tests, y se quita la barra final para no construir rutas con `//`.
+    """
+    from django.conf import settings
+
+    return str(getattr(settings, "AI_SERVICE_URL", "http://localhost:8001")).rstrip("/")
+
+
+def preparar_respuesta_ia(resultado: dict) -> dict:
+    """Deja el resultado del microservicio listo para viajar por la red.
+
+    Saca `gradcam_base64` del JSON y lo reemplaza por `gradcam_url`. Medido
+    sobre una ecografía real: la respuesta pesaba 252 KB, de los cuales 249 KB
+    (el 98%) eran ese base64; todos los datos clínicos juntos —patologías,
+    biometría, recomendaciones— suman menos de 2 KB.
+
+    En la red 3G de una clínica eso son unos 5 segundos por ecografía para
+    leer un resultado que cabe en dos kilobytes. Con la imagen como archivo
+    aparte, el navegador la pide cuando la necesita, se cachea y se sirve
+    comprimida.
+    """
+    from .gradcam import guardar_gradcam
+
+    salida = dict(resultado)
+    base64_gradcam = salida.pop("gradcam_base64", "")
+    salida["gradcam_url"] = guardar_gradcam(base64_gradcam, prefijo="eco")
+    return salida
 
 
 @extend_schema(
@@ -96,7 +132,7 @@ def analyze_ultrasound_with_ai(request):
 
         # Llamar al microservicio de IA
         ai_response = requests.post(
-            f"{AI_SERVICE_URL}/api/analyze", files=files, data=data, timeout=30,
+            f"{obtener_url_ia()}/api/analyze", files=files, data=data, timeout=30,
         )
 
         if ai_response.status_code == 200:
@@ -229,10 +265,35 @@ def analyze_ultrasound_with_ai(request):
                         "Error saving AI analysis to ia_medica.AnalisisCNN: %s", ex
                     )
 
+            # `ANALISIS_CNN` estaba declarada en RegistroAuditoria.ACCIONES
+            # pero nunca se emitía: no quedaba constancia de que una imagen de
+            # una paciente hubiera pasado por la red neuronal, ni de quién lo
+            # pidió. En un sistema que apoya decisiones clínicas eso es
+            # justamente lo que hay que poder reconstruir.
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                RegistroAuditoria.registrar(
+                    usuario=request.user
+                    if getattr(request.user, "is_authenticated", False)
+                    else None,
+                    accion="ANALISIS_CNN",
+                    modulo="Ecografia",
+                    registro_id=str(ecografia_id or ""),
+                    detalle="Análisis de imagen con red neuronal",
+                    request=request,
+                )
+            except Exception:  # auditar no puede impedir entregar el análisis
+                logger.warning("No se pudo auditar el análisis CNN", exc_info=True)
+
+            # El Grad-CAM se guarda como archivo y viaja como URL: incrustado
+            # en base64 era el 98% del peso de esta respuesta (249 KB de 252).
+            # Se hace DESPUÉS de persistir `ai_results`, para que el análisis
+            # guardado en la base conserve el mapa de calor original.
             return Response(
                 {
                     "status": "success",
-                    "ai_analysis": ai_results,
+                    "ai_analysis": preparar_respuesta_ia(ai_results),
                     "message": "Análisis de IA completado exitosamente",
                 },
                 status=status.HTTP_200_OK,
@@ -295,7 +356,7 @@ def classify_ultrasound(request):
         files = {"file": (image_file.name, image_file.read(), image_file.content_type)}
 
         ai_response = requests.post(
-            f"{AI_SERVICE_URL}/api/classify", files=files, timeout=15,
+            f"{obtener_url_ia()}/api/classify", files=files, timeout=15,
         )
 
         if ai_response.status_code == 200:
@@ -334,7 +395,7 @@ def detect_anomalies(request):
         files = {"file": (image_file.name, image_file.read(), image_file.content_type)}
 
         ai_response = requests.post(
-            f"{AI_SERVICE_URL}/api/detect-anomalies", files=files, timeout=15,
+            f"{obtener_url_ia()}/api/detect-anomalies", files=files, timeout=15,
         )
 
         if ai_response.status_code == 200:
@@ -363,7 +424,9 @@ def ai_service_health(_request):
     Endpoint: GET /api/ecografias/ai/health/
     """
     try:
-        health_response = requests.get(f"{AI_SERVICE_URL}/api/health", timeout=5)
+        # El microservicio expone /health en la RAIZ, no /api/health: verificado
+        # contra el servicio corriendo (/health -> 200, /api/health -> 404).
+        health_response = requests.get(f"{obtener_url_ia()}/health", timeout=5)
 
         if health_response.status_code == 200:
             return Response(
