@@ -111,12 +111,20 @@ jobs:
         working-directory: Backend/frontend
         run: npx tsc --noEmit
 
-      # ESLint informativo: no bloquea por el ruido de directivas react-doctor
-      # (plugin no instalado en CI) y las unused-vars pendientes de limpieza.
+      # Gate BLOQUEANTE. Antes iba con continue-on-error por el ruido de las
+      # directivas react-doctor: ESLint no conocia esas reglas y trataba cada
+      # comentario como error (25 de los 27 errores del proyecto), asi que la
+      # unica salida era no mirarlo. Con el plugin local que las declara
+      # (frontend/tools/eslint-plugin-react-doctor) el proyecto esta en 0
+      # errores, y ESLint puede vigilar de verdad — incluidas las 9 reglas de
+      # accesibilidad, que ahora son error.
+      #
+      # --max-warnings queda alto a proposito: los 123 avisos que quedan son
+      # variables sin usar y dependencias de hooks, pendientes de limpieza.
+      # Bajar el numero a medida que se limpien.
       - name: Run ESLint
         working-directory: Backend/frontend
-        run: npm run lint
-        continue-on-error: true
+        run: npx eslint src --ext .ts,.tsx --max-warnings 130
 
   # ──────────────────────────────────────────────
   # BACKEND TESTS

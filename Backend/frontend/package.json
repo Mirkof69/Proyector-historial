@@ -47,8 +47,15 @@
       "jsx-a11y/anchor-is-valid": "error",
       "jsx-a11y/click-events-have-key-events": "error",
       "jsx-a11y/no-static-element-interactions": "error",
-      "jsx-a11y/no-autofocus": "error"
-    }
+      "jsx-a11y/no-autofocus": "error",
+      "react-doctor/exhaustive-deps": "off",
+      "react-doctor/no-adjust-state-on-prop-change": "off",
+      "react-doctor/no-initialize-state": "off",
+      "react-doctor/prefer-dynamic-import": "off"
+    },
+    "plugins": [
+      "react-doctor"
+    ]
   },
   "browserslist": {
     "production": [
@@ -67,6 +74,7 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
     "autoprefixer": "^10.4.16",
+    "eslint-plugin-react-doctor": "file:tools/eslint-plugin-react-doctor",
     "postcss": "^8.4.32",
     "react-doctor": "^0.2.10",
     "tailwindcss": "^3.3.6"

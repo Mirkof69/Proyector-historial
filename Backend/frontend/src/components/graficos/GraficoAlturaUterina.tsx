@@ -4,6 +4,7 @@
  * comparada con la curva esperada (altura ≈ semanas ± 2cm)
  */
 import React, { lazy, Suspense, useCallback, useMemo } from 'react';
+import { Card, Typography, Alert, Spin } from 'antd';
 const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
 const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
 const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
@@ -14,7 +15,6 @@ const ReferenceLine = lazy(() => import('recharts').then(m => ({ default: m.Refe
 const Area = lazy(() => import('recharts').then(m => ({ default: m.Area })) as any);
 const AreaChart = lazy(() => import('recharts').then(m => ({ default: m.AreaChart })) as any);
 const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
-import { Card, Typography, Alert, Spin } from 'antd';
 
 const { Title, Text } = Typography;
 

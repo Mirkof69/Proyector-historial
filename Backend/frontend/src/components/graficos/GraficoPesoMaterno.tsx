@@ -3,6 +3,7 @@
  * Muestra la evolución del peso materno a lo largo del embarazo con rangos esperados según IMC
  */
 import React, { lazy, Suspense, useCallback, useMemo } from 'react';
+import { Card, Typography, Alert, Spin } from 'antd';
 const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
 const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
 const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
@@ -13,7 +14,6 @@ const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: 
 const ReferenceLine = lazy(() => import('recharts').then(m => ({ default: m.ReferenceLine })) as any);
 const Area = lazy(() => import('recharts').then(m => ({ default: m.Area })) as any);
 const AreaChart = lazy(() => import('recharts').then(m => ({ default: m.AreaChart })) as any);
-import { Card, Typography, Alert, Spin } from 'antd';
 
 const { Title, Text } = Typography;
 
