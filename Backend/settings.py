@@ -289,8 +289,15 @@ DATABASES = {
         # abre y se cierra una conexion en CADA peticion: bajo 100 usuarios
         # concurrentes se agotaba `max_connections` de PostgreSQL y la API
         # devolvia HTTP 500 con "lo siento, ya tenemos demasiados clientes".
-        # 60 s reutiliza la conexion sin dejarla colgada indefinidamente.
-        "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=60),
+        #
+        # Detras de PgBouncer el valor correcto es 0, no 60: el pooler ya
+        # reutiliza las conexiones, y mantenerlas vivas ademas del lado de
+        # Django solo ocupa ranuras del pool sin usarlas. Se controla con
+        # USA_PGBOUNCER para que el mismo settings sirva en los dos montajes.
+        "CONN_MAX_AGE": env.int(
+            "DB_CONN_MAX_AGE",
+            default=0 if env.bool("USA_PGBOUNCER", default=False) else 60,
+        ),
         # Descarta conexiones que el servidor cerro por su cuenta antes de
         # usarlas; sin esto, reutilizar una conexion muerta da OperationalError.
         "CONN_HEALTH_CHECKS": True,
@@ -864,7 +871,15 @@ LOGGING = {
         },
         "json": {
             "()": LOG_JSON_FORMATTER,
-            "format": "%(timestamp)s %(levelname)s %(name)s %(message)s %(filename)s %(lineno)d %(funcName)s",
+            # `timestamp` NO es un atributo de LogRecord —el estándar es
+            # `asctime`—, así que declararlo en el formato dejaba el campo en
+            # null en TODAS las líneas. Un log sin fecha no permite distinguir
+            # un error de hace un minuto de uno de hace un mes; durante una
+            # auditoría eso hizo perseguir un bug que ya estaba arreglado.
+            # El kwarg `timestamp=True` lo puebla con ISO 8601 y zona horaria,
+            # conservando el nombre del campo para no romper a quien lo lea.
+            "timestamp": True,
+            "format": "%(levelname)s %(name)s %(message)s %(filename)s %(lineno)d %(funcName)s",
         },
         "simple": {
             "format": "{levelname} {message}",

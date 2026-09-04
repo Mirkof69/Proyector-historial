@@ -13,6 +13,8 @@ Cada test declara el resultado esperado y lo compara con el obtenido.
 
 import datetime
 
+import pytest
+
 from django.test import TestCase
 from rest_framework.test import APITestCase
 
@@ -176,3 +178,59 @@ class RegistroDeAccesoConMiddlewareTest(APITestCase):
         AuditoriaMiddleware(lambda _req: respuesta)(peticion)
 
         assert RegistroAuditoria.objects.filter(accion="VER").count() == antes
+
+
+class AuditoriaConMiddlewareInstaladoTest(TestCase):
+    """La auditoría funciona con el middleware puesto de verdad en la cadena.
+
+    Los tests de arriba instancian `AuditoriaMiddleware` a mano. Este lo pone
+    en `settings.MIDDLEWARE` mediante el fixture `con_auditoria`, que es como
+    corre en producción: si algún día el middleware deja de estar registrado
+    o cambia de firma, este test lo detecta y los otros no.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _instalar(self, con_auditoria):
+        """Repone el middleware que `conftest.py` quita de toda la suite."""
+        self.middleware_instalado = con_auditoria
+
+    def test_el_middleware_esta_en_la_cadena(self):
+        """ESPERADO: AuditoriaMiddleware presente en settings.MIDDLEWARE."""
+        from django.conf import settings
+
+        assert self.middleware_instalado in settings.MIDDLEWARE, (
+            "El middleware de auditoría no quedó instalado: la suite volvería "
+            "a pasar en verde con la trazabilidad apagada."
+        )
+
+    def test_una_peticion_real_deja_registro_de_acceso(self):
+        """ESPERADO: 1 fila VER nueva tras consultar una paciente por la API."""
+        from rest_framework.test import APIClient
+
+        medica = Usuario.objects.create_user(
+            email="dra.cadena@test.bo",
+            nombre="Lucia",
+            apellido_paterno="Poma",
+            password="clave-de-prueba-123",
+            rol="medico",
+        )
+        paciente = Paciente.objects.create(
+            nombre="Carmen",
+            apellido_paterno="Cusi",
+            apellido_materno="Vargas",
+            fecha_nacimiento=datetime.date(1991, 4, 4),
+            genero="femenino",
+            ci="5544332",
+        )
+        cliente = APIClient()
+        cliente.force_authenticate(user=medica)
+
+        antes = RegistroAuditoria.objects.filter(accion="VER").count()
+        respuesta = cliente.get(f"/api/pacientes/{paciente.id}/")
+        despues = RegistroAuditoria.objects.filter(accion="VER").count()
+
+        assert respuesta.status_code == 200
+        assert despues == antes + 1, (
+            f"Esperado {antes + 1} registros VER, obtenido {despues}. "
+            f"El middleware está instalado pero no registró el acceso."
+        )

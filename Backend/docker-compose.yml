@@ -27,6 +27,43 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ─── POOL DE CONEXIONES ────────────────────────────────────────
+  # Por qué hace falta: medido con 100 usuarios concurrentes, la API devolvía
+  # 94 errores HTTP 500 con "FATAL: lo siento, ya tenemos demasiados clientes".
+  # La cuenta: 4 workers de uvicorn × ~20 hilos del pool de asgiref son 80
+  # conexiones persistentes potenciales, más Celery y overhead, contra el
+  # max_connections=100 por defecto de PostgreSQL.
+  #
+  # PgBouncer en modo `transaction` devuelve la conexión al pool al terminar
+  # cada transacción, que es como trabaja Django: 500 clientes de aplicación
+  # comparten 25 conexiones reales a la base.
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    networks:
+      - fetal-internal
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD required}
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=500
+      - DEFAULT_POOL_SIZE=25
+      # django-tenants cambia el `search_path` por petición. En modo
+      # transaction eso es seguro (la conexión no se comparte a mitad de
+      # transacción), pero los prepared statements sí darían problemas: por
+      # eso Django debe usar CONN_MAX_AGE=0 detrás de PgBouncer.
+      - AUTH_TYPE=scram-sha-256
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -p 6432 -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # ─── CACHE ─────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine

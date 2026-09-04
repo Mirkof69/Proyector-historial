@@ -44,3 +44,25 @@ def reset_tenant_middleware(settings):
             "monitoring.middleware",
         ])
     ]
+
+
+@pytest.fixture
+def con_auditoria(settings):
+    """Repone `AuditoriaMiddleware` para el test que lo pida.
+
+    El fixture `reset_tenant_middleware` lo quita de TODA la suite porque
+    necesita contexto de tenant. El efecto colateral es que la auditoria
+    —justo el componente que ya se apago en silencio una vez sin que ningun
+    test lo detectara— quedaba sin ninguna prueba que la ejercitara.
+
+    Este fixture lo devuelve solo donde hace falta, para poder probar el
+    registro de accesos de punta a punta sin volver a levantar tenants.
+
+    Uso:
+        def test_algo(client, con_auditoria):
+            ...
+    """
+    MIDDLEWARE_AUDITORIA = "auditoria.middleware.AuditoriaMiddleware"
+    if MIDDLEWARE_AUDITORIA not in settings.MIDDLEWARE:
+        settings.MIDDLEWARE = [*settings.MIDDLEWARE, MIDDLEWARE_AUDITORIA]
+    return MIDDLEWARE_AUDITORIA
