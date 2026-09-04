@@ -75,15 +75,21 @@ _DEFAULT_CLASS_THRESHOLDS = {
     "cardiopatia_congenita": 0.30,
     # AUC=0.964, sensibilidad real al umbral viejo (0.35) = 88.1%. Youden=0.130.
     "oligohidramnios": 0.25,
-    # AUC=0.937 (la mas baja de las 14, clase genuinamente mas dificil),
-    # sensibilidad real al umbral viejo (0.25) = SOLO 50%. Youden optimo=0.082;
-    # se deja margen amplio dado que es la clase con peor separacion medida.
-    "polihidramnios": 0.18,
+    # Recalibrado 2026-09-04 contra datasets_pathology_v2 (calibrado en
+    # valid/, medido en test/, 2.911 imagenes). El umbral de 0.18 estaba
+    # calibrado solo por sensibilidad y arruinaba la precision: 0.158, o sea
+    # 84 de cada 100 alertas eran falsas. Un detector en el que el medico deja
+    # de creer no sirve, por muy sensible que sea.
+    # AUC=0.959 (la separacion SI esta), F1 medido: 0.268 -> 0.430 con 0.49.
+    "polihidramnios": 0.49,
     # AUC=0.999, sensibilidad real al umbral viejo (0.40) = 86.3%. Youden=0.059.
     "restriccion_crecimiento": 0.28,
-    # AUC=0.943, sensibilidad real al umbral viejo (0.40) = SOLO 44% (mas de la
-    # mitad de los casos reales perdidos). Youden optimo=0.049; se deja margen.
-    "macrosomia_fetal": 0.22,
+    # Recalibrado 2026-09-04 igual que polihidramnios. Con 0.22 la precision
+    # era 0.225: 3 de cada 4 alertas, falsas. F1 medido: 0.305 -> 0.429.
+    # AUC=0.838, la MAS BAJA de las 14: aqui el limite no es el umbral sino el
+    # modelo, que no separa bien esta clase. Mejorarla de verdad necesita mas
+    # y mejores imagenes de entrenamiento, no recalibrar.
+    "macrosomia_fetal": 0.37,
     # AUC=1.000, sensibilidad real al umbral viejo (0.85) = 95% — ya excelente,
     # Youden=0.817 (casi igual al actual). No se toca.
     "placenta_previa": 0.85,

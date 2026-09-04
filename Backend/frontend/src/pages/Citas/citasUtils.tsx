@@ -33,17 +33,9 @@ export const calendarIcon4 = <CalendarOutlined />;
 export const clockCircleIcon4 = <ClockCircleOutlined />;
 export const checkCircleIcon5 = <CheckCircleOutlined />;
 export const closeCircleIcon2 = <CloseCircleOutlined />;
-export const warningIcon3 = <WarningOutlined />;
 export const userIcon2 = <UserOutlined />;
 export const medicineBoxIcon2 = <MedicineBoxOutlined />;
-export const moreIcon = <MoreOutlined />;
-export const phoneIcon = <PhoneOutlined />;
 export const bellIcon = <BellOutlined />;
-export const fileExcelIcon2 = <FileExcelOutlined />;
-export const eyeIcon3 = <EyeOutlined />;
-export const editIcon3 = <EditOutlined />;
-export const deleteIcon2 = <DeleteOutlined />;
-export const plusIcon3 = <PlusOutlined />;
 export const reloadIcon = <ReloadOutlined />;
 export const exclamationIcon = <ExclamationCircleOutlined />;
 
