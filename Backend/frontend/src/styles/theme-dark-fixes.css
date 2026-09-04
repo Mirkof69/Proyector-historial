@@ -50,43 +50,42 @@
 /* ========== NOTIFICATION - GLASSMORPHISM MEJORADO ========== */
 .dark .ant-notification-notice,
 [data-theme='dark'] .ant-notification-notice {
-  background: rgba(20, 20, 20, 0.9) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7) !important;
+  /* Fondo, borde, color y sombra viven ahora en config/antd-theme-tokens.ts.
+     Solo queda el desenfoque: Ant Design no lo expone como token, y nunca
+     necesito !important porque Ant Design tampoco lo define. */
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .dark .ant-notification-notice-message,
 [data-theme='dark'] .ant-notification-notice-message {
-  color: #f9fafb !important;
+  color: #f9fafb;
   font-weight: 600 !important;
 }
 
 .dark .ant-notification-notice-description,
 [data-theme='dark'] .ant-notification-notice-description {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .dark .ant-notification-notice-close,
 [data-theme='dark'] .ant-notification-notice-close {
-  color: #9ca3af !important;
+  color: #9ca3af;
 }
 
 .dark .ant-notification-notice-close:hover,
 [data-theme='dark'] .ant-notification-notice-close:hover {
-  color: #f9fafb !important;
+  color: #f9fafb;
 }
 
 /* ========== MESSAGE - DARK MODE ========== */
 .dark .ant-message-notice-content,
 [data-theme='dark'] .ant-message-notice-content {
-  background: rgba(20, 20, 20, 0.95) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.5) !important;
-  color: #f9fafb !important;
+  /* Fondo, borde, color y sombra viven ahora en config/antd-theme-tokens.ts.
+     Solo queda el desenfoque: Ant Design no lo expone como token, y nunca
+     necesito !important porque Ant Design tampoco lo define. */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 /* ========== TABLE - VISIBILIDAD DE TEXTOS ========== */
@@ -254,11 +253,11 @@
 
 .dark .ant-select-dropdown,
 [data-theme='dark'] .ant-select-dropdown {
-  background: rgba(20, 20, 20, 0.95) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.6) !important;
+  /* Fondo, borde, color y sombra viven ahora en config/antd-theme-tokens.ts.
+     Solo queda el desenfoque: Ant Design no lo expone como token, y nunca
+     necesito !important porque Ant Design tampoco lo define. */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 .dark .ant-select-item,
@@ -281,32 +280,32 @@
 /* ========== DROPDOWN MENU - DARK MODE ========== */
 .dark .ant-dropdown-menu,
 [data-theme='dark'] .ant-dropdown-menu {
-  background: rgba(20, 20, 20, 0.95) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.6) !important;
+  /* Fondo, borde, color y sombra viven ahora en config/antd-theme-tokens.ts.
+     Solo queda el desenfoque: Ant Design no lo expone como token, y nunca
+     necesito !important porque Ant Design tampoco lo define. */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 .dark .ant-dropdown-menu-item,
 .dark .ant-dropdown-menu-submenu-title,
 [data-theme='dark'] .ant-dropdown-menu-item,
 [data-theme='dark'] .ant-dropdown-menu-submenu-title {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .dark .ant-dropdown-menu-item:hover,
 .dark .ant-dropdown-menu-submenu-title:hover,
 [data-theme='dark'] .ant-dropdown-menu-item:hover,
 [data-theme='dark'] .ant-dropdown-menu-submenu-title:hover {
-  background: rgba(42, 42, 42, 0.7) !important;
-  color: #f9fafb !important;
+  background: rgba(42, 42, 42, 0.7);
+  color: #f9fafb;
 }
 
 .dark .ant-dropdown-menu-item-selected,
 [data-theme='dark'] .ant-dropdown-menu-item-selected {
-  background: rgba(59, 130, 246, 0.2) !important;
-  color: #60a5fa !important;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
 }
 
 /* ========== DATE PICKER - DARK MODE ========== */
@@ -417,12 +416,11 @@
 /* ========== TOOLTIP - DARK MODE ========== */
 .dark .ant-tooltip-inner,
 [data-theme='dark'] .ant-tooltip-inner {
-  background: rgba(20, 20, 20, 0.95) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #f9fafb !important;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.6) !important;
+  /* Fondo, borde, color y sombra viven ahora en config/antd-theme-tokens.ts.
+     Solo queda el desenfoque: Ant Design no lo expone como token, y nunca
+     necesito !important porque Ant Design tampoco lo define. */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .dark .ant-tooltip-arrow-content,
@@ -482,11 +480,11 @@
 /* ========== POPOVER - DARK MODE ========== */
 .dark .ant-popover-inner,
 [data-theme='dark'] .ant-popover-inner {
-  background: rgba(20, 20, 20, 0.95) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.6) !important;
+  /* Fondo, borde, color y sombra viven ahora en config/antd-theme-tokens.ts.
+     Solo queda el desenfoque: Ant Design no lo expone como token, y nunca
+     necesito !important porque Ant Design tampoco lo define. */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 .dark .ant-popover-title,
@@ -497,7 +495,7 @@
 
 .dark .ant-popover-inner-content,
 [data-theme='dark'] .ant-popover-inner-content {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .dark .ant-popover-arrow-content,

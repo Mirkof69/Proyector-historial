@@ -248,6 +248,8 @@ const darkThemeTokens: ThemeConfig = {
     Select: {
       borderRadius: 8,
       controlHeight: 36,
+      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
+      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
     },
     Modal: {
       borderRadiusLG: 16,
@@ -262,6 +264,37 @@ const darkThemeTokens: ThemeConfig = {
       rowHoverBg: '#1a1a3e',
       borderColor: '#2a2a4a',
       colorText: '#e8e8e8',
+    },
+    // Superficies flotantes (tooltip, popover, notificaciones, desplegables).
+    //
+    // Estos valores vivian en theme-dark-fixes.css a base de `!important`:
+    // seis por componente, unos 40 en total. Hacia falta porque Ant Design 5
+    // inyecta sus estilos en tiempo de ejecucion, DESPUES de las hojas
+    // estaticas, asi que una regla CSS normal nunca le ganaba.
+    //
+    // Aqui no hay pelea: son los tokens que el propio Ant Design usa para
+    // pintarse. Lo unico que se queda en CSS es `backdrop-filter`, que Ant
+    // Design no expone como token — y que nunca necesito `!important`, porque
+    // Ant Design tampoco lo define y no habia nada que sobrescribir.
+    Tooltip: {
+      colorBgSpotlight: 'rgba(20, 20, 20, 0.95)',
+      colorTextLightSolid: '#f9fafb',
+    },
+    Notification: {
+      colorBgElevated: 'rgba(20, 20, 20, 0.9)',
+      boxShadowSecondary: '0 8px 32px 0 rgba(0, 0, 0, 0.7)',
+    },
+    Popover: {
+      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
+      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
+    },
+    Message: {
+      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
+      boxShadowSecondary: '0 4px 12px 0 rgba(0, 0, 0, 0.5)',
+    },
+    Dropdown: {
+      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
+      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
     },
   },
 };
