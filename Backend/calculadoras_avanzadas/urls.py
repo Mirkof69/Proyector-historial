@@ -2,7 +2,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from . import views, views_fmf
 
 # Crear router para las APIs REST
 router = DefaultRouter()
@@ -33,6 +33,19 @@ router.register(
 urlpatterns = [
     # APIs REST principales
     path("", include(router.urls)),
+    # Modelo bayesiano de la Fetal Medicine Foundation. El servicio
+    # (calculadoras/services/calculador_riesgos_fmf.py) llevaba 543 lineas
+    # escritas sin que ninguna pantalla pudiera llegar a el.
+    path(
+        "fmf/preeclampsia/",
+        views_fmf.riesgo_preeclampsia_fmf,
+        name="fmf-preeclampsia",
+    ),
+    path(
+        "fmf/trisomias/",
+        views_fmf.riesgo_trisomias_fmf,
+        name="fmf-trisomias",
+    ),
     # URLs adicionales para funcionalidades específicas de Score Bishop
     path(
         "score-bishop/estadisticas/",
