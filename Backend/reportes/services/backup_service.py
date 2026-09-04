@@ -43,7 +43,7 @@ class DatabaseBackupService:
         raise BackupError(
             f"{nombre} no esta instalado o no se encuentra en PATH. "
             "En el contenedor de produccion, agregar el paquete "
-            "'postgresql-client' a Backend/Dockerfile.backend.",
+            "PostgreSQL (que incluye pg_dump) y que este en el PATH.",
         )
 
     def _resolver_pg_dump(self) -> str:

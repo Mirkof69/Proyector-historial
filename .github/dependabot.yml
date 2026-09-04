@@ -116,58 +116,6 @@ updates:
   # ──────────────────────────────────────────────
   # DOCKER
   # ──────────────────────────────────────────────
-  - package-ecosystem: "docker"
-    directory: "/Backend"
-    file: "Dockerfile.backend"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-      time: "06:00"
-      timezone: "America/La_Paz"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "docker"
-    commit-message:
-      prefix: "chore(docker)"
-      include: "scope"
-
-  - package-ecosystem: "docker"
-    directory: "/Backend"
-    file: "Dockerfile.frontend"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-      time: "06:00"
-      timezone: "America/La_Paz"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "docker"
-    commit-message:
-      prefix: "chore(docker)"
-      include: "scope"
-
-  - package-ecosystem: "docker"
-    directory: "/Backend/Microservicio_IA"
-    file: "Dockerfile"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-      time: "06:00"
-      timezone: "America/La_Paz"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "docker"
-      - "ai-service"
-    commit-message:
-      prefix: "chore(docker)"
-      include: "scope"
-
-  # ──────────────────────────────────────────────
-  # GITHUB ACTIONS
-  # ──────────────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

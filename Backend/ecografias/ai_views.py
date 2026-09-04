@@ -468,7 +468,7 @@ def ai_result_callback(request, ecografia_id):
 
     Endpoint: POST /api/ecografias/{ecografia_id}/ai-result/
 
-    Solo accesible desde la red interna de Docker (no expuesto por Kong al exterior).
+    Endpoint interno de diagnostico: no debe exponerse fuera de la red de la clinica.
     El microservicio IA llama a este endpoint con el resultado del análisis CNN.
 
     Body:

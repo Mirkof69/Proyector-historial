@@ -126,8 +126,8 @@ AI_SERVICE_URL = env("AI_SERVICE_URL")
 # El valor por defecto es "detalle" por una razon medida: auditar tambien
 # los listados anadia un INSERT a cada peticion de la pantalla mas usada y,
 # con 100 usuarios concurrentes, llevo los errores 500 por agotamiento de
-# conexiones de 94 a mas de 1.300. Con un pooler delante (PgBouncer) se
-# puede subir a "todo".
+# conexiones de 94 a mas de 1.300. Tras subir max_connections a 300 (ver
+# docs/DESPLIEGUE-NATIVO.md) se puede pasar a "todo".
 AUDITAR_LECTURAS = env("AUDITAR_LECTURAS", default="detalle")
 SENTRY_ENVIRONMENT = env("SENTRY_ENVIRONMENT")
 SENTRY_TRACES_SAMPLE_RATE = env("SENTRY_TRACES_SAMPLE_RATE")
@@ -312,9 +312,9 @@ DATABASES = {
         # falla una de cada tres veces es inaceptable. Por eso gana 0.
         #
         # La forma de tener las dos cosas —rapidez y cero errores— es un pooler
-        # delante de la base (PgBouncer en modo transaction, ya definido en
-        # docker-compose.yml), no conexiones persistentes del lado de Django.
-        # Subir este valor sin un pooler reintroduce los errores 500.
+        # La forma de tener las dos cosas es subir `max_connections` de
+        # PostgreSQL (ver docs/DESPLIEGUE-NATIVO.md) y solo ENTONCES poner
+        # DB_CONN_MAX_AGE=60. Subirlo antes reintroduce los errores 500.
         "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=0),
         # Descarta conexiones que el servidor cerro por su cuenta antes de
         # usarlas; sin esto, reutilizar una conexion muerta da OperationalError.

@@ -320,54 +320,6 @@ jobs:
           python -c "from app.main import app; print('FastAPI app imported successfully')"
 
   # ──────────────────────────────────────────────
-  # DOCKER BUILD
-  # ──────────────────────────────────────────────
-  docker-build:
-    name: Build Docker Images
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [lint-python, lint-typescript]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Backend
-          file: ./Backend/Dockerfile.backend
-          push: false
-          load: true
-          tags: fetal-medical-backend:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build Frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Backend
-          file: ./Backend/Dockerfile.frontend
-          push: false
-          load: true
-          tags: fetal-medical-frontend:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build AI Service image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Backend/Microservicio_IA
-          file: ./Backend/Microservicio_IA/Dockerfile
-          push: false
-          load: true
-          tags: fetal-medical-ai:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # ──────────────────────────────────────────────
   # SECURITY SCAN
   # ──────────────────────────────────────────────
   security-scan:
@@ -409,7 +361,6 @@ jobs:
         test-backend,
         test-frontend,
         validate-ai-service,
-        docker-build,
         security-scan,
       ]
     if: always()
@@ -422,7 +373,6 @@ jobs:
           echo "Test Backend: ${{ needs.test-backend.result }}"
           echo "Test Frontend: ${{ needs.test-frontend.result }}"
           echo "Validate AI Service: ${{ needs.validate-ai-service.result }}"
-          echo "Docker Build: ${{ needs.docker-build.result }}"
           echo "Security Scan: ${{ needs.security-scan.result }}"
 
           # Fail if any critical jobs failed

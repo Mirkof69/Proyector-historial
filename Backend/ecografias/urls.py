@@ -25,7 +25,7 @@ urlpatterns = [
     path("detect-anomalies/", detect_anomalies, name="detect-anomalies"),
     path("ai/health/", ai_service_health, name="ai-health"),
     # Callback receptor del Microservicio IA (flujo asíncrono via RabbitMQ)
-    # Solo accesible desde red interna Docker — NO expuesto por Kong
+    # Endpoint interno de diagnostico: no exponer fuera de la red de la clinica
     path("<str:ecografia_id>/ai-result/", ai_result_callback, name="ai-result-callback"),
     # Router — debe ir DESPUES de los paths fijos para evitar colisión de rutas
     path("", include(router.urls)),

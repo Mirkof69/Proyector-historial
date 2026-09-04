@@ -25,7 +25,19 @@ class RolPermiso(BasePermission):
     Las instancias son reutilizables como clases vía __call__ (compatible con DRF)."""
     def __init__(self, roles_requeridos: tuple[str, ...], mensaje: str = ""):
         self._roles = roles_requeridos
-        self._nivel_minimo = max(_ROLE_HIERARCHY.get(r, 0) for r in roles_requeridos)
+        # MIN, no MAX. Aqui habia un `max(...)` y era un bug grave: como
+        # "administrador" (nivel 100) aparece en casi todas las tuplas, el nivel
+        # exigido acababa siendo 100 SIEMPRE, y un medico (80) fallaba la
+        # comprobacion `nivel >= minimo` aunque su rol estuviera explicitamente
+        # entre los permitidos. En la clinica eso significaba que enfermeria no
+        # podia registrar un triaje, los medicos no podian escribir evoluciones
+        # ni consultar la auditoria, y el laboratorista no podia cargar
+        # resultados: solo el administrador usaba esos cinco modulos.
+        #
+        # El nombre de la variable ya decia lo que habia que calcular: el nivel
+        # MINIMO entre los roles permitidos. Quien no este en `self._roles`
+        # sigue quedando fuera por la segunda condicion de `has_permission`.
+        self._nivel_minimo = min(_ROLE_HIERARCHY.get(r, 0) for r in roles_requeridos)
         self.message = mensaje or f"Se requiere uno de estos roles: {', '.join(roles_requeridos)}"
 
     def __call__(self):
