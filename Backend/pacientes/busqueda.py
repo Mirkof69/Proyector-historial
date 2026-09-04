@@ -17,6 +17,11 @@ Estrategia, sin debilitar el cifrado:
   - Nombres: se descifran y comparan en Python, ignorando tildes y
     mayúsculas (en Bolivia los apellidos se escriben de las dos formas:
     López/Lopez, Cusí/Cusi, Suárez/Suarez).
+  - Si la comparación exacta no encuentra a nadie, se reintenta por
+    FONÉTICA (ver `pacientes/fonetica.py`): Huanca/Guanca/Wanca,
+    Cusi/Kusi, Quispe/Kispe, Poma/Puma son el mismo apellido escrito de
+    formas distintas, y buscar una grafía no encontraba las otras. Los
+    resultados aproximados salen ordenados por parecido.
 
 Costo y límite conocido
 -----------------------
@@ -32,6 +37,7 @@ from __future__ import annotations
 
 import unicodedata
 
+from .fonetica import coincide
 from .models import Paciente
 
 
@@ -75,14 +81,36 @@ def ids_pacientes_que_coinciden(termino: str) -> list[int]:
     )
 
     # 3) Nombres cifrados: descifrar y comparar en Python.
+    #
+    # Dos pasadas. La primera busca la subcadena exacta, que es lo que la
+    # usuaria espera cuando escribe bien el apellido. La segunda, solo si la
+    # primera no encontró nada, compara por fonética: en Bolivia el mismo
+    # apellido se escribe de varias formas (Huanca/Guanca/Wanca,
+    # Cusi/Kusi, Quispe/Kispe) y buscar la grafía "correcta" no encontraba a
+    # nadie. Medido: las 15 variantes más frecuentes fallaban las 15.
+    #
+    # El orden importa: si hay coincidencia exacta no se abre la búsqueda
+    # aproximada, para no mezclar resultados seguros con parecidos.
     objetivo = normalizar(termino)
+    aproximados: list[tuple[float, int]] = []
+
     for paciente in Paciente.objects.only(
         "id", "nombre", "apellido_paterno", "apellido_materno",
     ):
-        completo = normalizar(
-            f"{paciente.nombre} {paciente.apellido_paterno} {paciente.apellido_materno}",
+        nombre_completo = (
+            f"{paciente.nombre} {paciente.apellido_paterno} {paciente.apellido_materno}"
         )
-        if objetivo in completo:
+        if objetivo in normalizar(nombre_completo):
             ids.add(paciente.pk)
+            continue
+        puntaje = coincide(termino, nombre_completo)
+        if puntaje:
+            aproximados.append((puntaje, paciente.pk))
 
-    return list(ids)
+    if ids:
+        return list(ids)
+
+    # Solo aproximados: se devuelven ordenados de más a menos parecido, para
+    # que la paciente más probable salga primero en pantalla.
+    aproximados.sort(reverse=True)
+    return [pk for _, pk in aproximados]
