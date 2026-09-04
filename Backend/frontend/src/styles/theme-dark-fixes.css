@@ -10,23 +10,23 @@
 /* ========== MODAL - DARK MODE GLASSMORPHISM ========== */
 .dark .ant-modal-content,
 [data-theme='dark'] .ant-modal-content {
-  background: rgba(20, 20, 20, 0.85) !important;
+  background: rgba(20, 20, 20, 0.85);
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
 }
 
 .dark .ant-modal-header,
 [data-theme='dark'] .ant-modal-header {
-  background: rgba(26, 26, 26, 0.6) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(26, 26, 26, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px) !important;
 }
 
 .dark .ant-modal-title,
 [data-theme='dark'] .ant-modal-title {
-  color: #f9fafb !important;
+  color: #f9fafb;
 }
 
 .dark .ant-modal-close,
@@ -42,8 +42,8 @@
 
 .dark .ant-modal-footer,
 [data-theme='dark'] .ant-modal-footer {
-  background: rgba(26, 26, 26, 0.6) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(26, 26, 26, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px) !important;
 }
 
@@ -91,32 +91,32 @@
 /* ========== TABLE - VISIBILIDAD DE TEXTOS ========== */
 .dark .ant-table,
 [data-theme='dark'] .ant-table {
-  background: rgba(20, 20, 20, 0.6) !important;
-  color: #f9fafb !important;
+  background: rgba(20, 20, 20, 0.6);
+  color: #f9fafb;
 }
 
 .dark .ant-table-thead > tr > th,
 [data-theme='dark'] .ant-table-thead > tr > th {
-  background: rgba(26, 26, 26, 0.8) !important;
-  color: #f9fafb !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(26, 26, 26, 0.8);
+  color: #f9fafb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   font-weight: 600 !important;
 }
 
 .dark .ant-table-tbody > tr > td,
 [data-theme='dark'] .ant-table-tbody > tr > td {
-  color: #d1d5db !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #d1d5db;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .dark .ant-table-tbody > tr:hover > td,
 [data-theme='dark'] .ant-table-tbody > tr:hover > td {
-  background: rgba(42, 42, 42, 0.6) !important;
+  background: rgba(42, 42, 42, 0.6);
 }
 
 .dark .ant-table-tbody > tr.ant-table-row-selected > td,
 [data-theme='dark'] .ant-table-tbody > tr.ant-table-row-selected > td {
-  background: rgba(59, 130, 246, 0.15) !important;
+  background: rgba(59, 130, 246, 0.15);
 }
 
 .dark .ant-table-pagination.ant-pagination,
@@ -126,40 +126,40 @@
 
 .dark .ant-pagination-item,
 [data-theme='dark'] .ant-pagination-item {
-  background: rgba(26, 26, 26, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(26, 26, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .dark .ant-pagination-item a,
 [data-theme='dark'] .ant-pagination-item a {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .dark .ant-pagination-item-active,
 [data-theme='dark'] .ant-pagination-item-active {
-  background: rgba(59, 130, 246, 0.3) !important;
-  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
 }
 
 .dark .ant-pagination-item-active a,
 [data-theme='dark'] .ant-pagination-item-active a {
-  color: #60a5fa !important;
-  font-weight: 600 !important;
+  color: #60a5fa;
+  font-weight: 600;
 }
 
 /* ========== CARD - DARK MODE ========== */
 .dark .ant-card,
 [data-theme='dark'] .ant-card {
-  background: rgba(20, 20, 20, 0.7) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #f9fafb !important;
+  background: rgba(20, 20, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
 }
 
 .dark .ant-card-head,
 [data-theme='dark'] .ant-card-head {
-  background: rgba(26, 26, 26, 0.6) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #f9fafb !important;
+  background: rgba(26, 26, 26, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f9fafb;
 }
 
 .dark .ant-card-head-title,
@@ -169,7 +169,7 @@
 
 .dark .ant-card-body,
 [data-theme='dark'] .ant-card-body {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 /* ========== INPUT Y FORMULARIOS - DARK MODE ========== */
@@ -181,9 +181,9 @@
 [data-theme='dark'] .ant-input-number,
 [data-theme='dark'] .ant-input-affix-wrapper,
 [data-theme='dark'] .ant-picker {
-  background: rgba(26, 26, 26, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #f9fafb !important;
+  background: rgba(26, 26, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f9fafb;
 }
 
 .dark .ant-input::placeholder,
@@ -192,7 +192,7 @@
 [data-theme='dark'] .ant-input::placeholder,
 [data-theme='dark'] .ant-input-number::placeholder,
 [data-theme='dark'] .ant-picker-input input::placeholder {
-  color: #6b7280 !important;
+  color: #6b7280;
 }
 
 .dark .ant-input:hover,
@@ -203,8 +203,8 @@
 [data-theme='dark'] .ant-input-number:hover,
 [data-theme='dark'] .ant-input-affix-wrapper:hover,
 [data-theme='dark'] .ant-picker:hover {
-  border-color: rgba(59, 130, 246, 0.5) !important;
-  background: rgba(31, 31, 31, 0.7) !important;
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(31, 31, 31, 0.7);
 }
 
 .dark .ant-input:focus,
@@ -221,9 +221,9 @@
 [data-theme='dark'] .ant-input-affix-wrapper:focus,
 [data-theme='dark'] .ant-input-affix-wrapper-focused,
 [data-theme='dark'] .ant-picker-focused {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-  background: rgba(31, 31, 31, 0.8) !important;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  background: rgba(31, 31, 31, 0.8);
 }
 
 .dark .ant-input-textarea-show-count::after,
@@ -234,16 +234,16 @@
 /* ========== SELECT Y DROPDOWN - DARK MODE ========== */
 .dark .ant-select-selector,
 [data-theme='dark'] .ant-select-selector {
-  background: rgba(26, 26, 26, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #f9fafb !important;
+  background: rgba(26, 26, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f9fafb;
 }
 
 .dark .ant-select-selection-item,
 .dark .ant-select-selection-placeholder,
 [data-theme='dark'] .ant-select-selection-item,
 [data-theme='dark'] .ant-select-selection-placeholder {
-  color: #f9fafb !important;
+  color: #f9fafb;
 }
 
 .dark .ant-select-arrow,
@@ -262,14 +262,14 @@
 
 .dark .ant-select-item,
 [data-theme='dark'] .ant-select-item {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .dark .ant-select-item-option-selected,
 [data-theme='dark'] .ant-select-item-option-selected {
-  background: rgba(59, 130, 246, 0.2) !important;
-  color: #60a5fa !important;
-  font-weight: 600 !important;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  font-weight: 600;
 }
 
 .dark .ant-select-item-option-active,
@@ -311,17 +311,17 @@
 /* ========== DATE PICKER - DARK MODE ========== */
 .dark .ant-picker-panel-container,
 [data-theme='dark'] .ant-picker-panel-container {
-  background: rgba(20, 20, 20, 0.95) !important;
+  background: rgba(20, 20, 20, 0.95);
   backdrop-filter: blur(15px) !important;
   -webkit-backdrop-filter: blur(15px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.6);
 }
 
 .dark .ant-picker-header,
 [data-theme='dark'] .ant-picker-header {
-  color: #f9fafb !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f9fafb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dark .ant-picker-header-view button,
@@ -331,12 +331,12 @@
 
 .dark .ant-picker-content th,
 [data-theme='dark'] .ant-picker-content th {
-  color: #9ca3af !important;
+  color: #9ca3af;
 }
 
 .dark .ant-picker-cell,
 [data-theme='dark'] .ant-picker-cell {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .dark .ant-picker-cell-in-view,
@@ -346,7 +346,7 @@
 
 .dark .ant-picker-cell:hover:not(.ant-picker-cell-selected):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end) .ant-picker-cell-inner,
 [data-theme='dark'] .ant-picker-cell:hover:not(.ant-picker-cell-selected):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end) .ant-picker-cell-inner {
-  background: rgba(42, 42, 42, 0.7) !important;
+  background: rgba(42, 42, 42, 0.7);
 }
 
 .dark .ant-picker-cell-selected .ant-picker-cell-inner,
@@ -357,8 +357,8 @@
 [data-theme='dark'] .ant-picker-cell-range-end .ant-picker-cell-inner {
   /* El azul de marca (#3b82f6) es demasiado claro para texto blanco: 3.68:1.
      Usamos el paso oscuro del token -> 6.6:1 (WCAG AA). */
-  background: var(--color-primary-dark) !important;
-  color: var(--text-on-brand) !important;
+  background: var(--color-primary-dark);
+  color: var(--text-on-brand);
 }
 
 .dark .ant-picker-today-btn,
@@ -381,14 +381,14 @@
 .dark .ant-btn-link .anticon,
 [data-theme='dark'] .ant-btn-text .anticon,
 [data-theme='dark'] .ant-btn-link .anticon {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .dark .ant-btn-text:hover .anticon,
 .dark .ant-btn-link:hover .anticon,
 [data-theme='dark'] .ant-btn-text:hover .anticon,
 [data-theme='dark'] .ant-btn-link:hover .anticon {
-  color: #f9fafb !important;
+  color: #f9fafb;
 }
 
 .dark .ant-table-column-sorter,
@@ -437,29 +437,29 @@
 /* ========== TAG - DARK MODE ========== */
 .dark .ant-tag,
 [data-theme='dark'] .ant-tag {
-  background: rgba(42, 42, 42, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #d1d5db !important;
+  background: rgba(42, 42, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d1d5db;
 }
 
 /* ========== DRAWER - DARK MODE ========== */
 .dark .ant-drawer-content,
 [data-theme='dark'] .ant-drawer-content {
-  background: rgba(15, 15, 15, 0.95) !important;
+  background: rgba(15, 15, 15, 0.95);
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
 }
 
 .dark .ant-drawer-header,
 [data-theme='dark'] .ant-drawer-header {
-  background: rgba(26, 26, 26, 0.8) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #f9fafb !important;
+  background: rgba(26, 26, 26, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f9fafb;
 }
 
 .dark .ant-drawer-title,
 [data-theme='dark'] .ant-drawer-title {
-  color: #f9fafb !important;
+  color: #f9fafb;
 }
 
 .dark .ant-drawer-close,
@@ -547,24 +547,24 @@
 /* ========== DESCRIPTIONS - DARK MODE ========== */
 .dark .ant-descriptions-item-label,
 [data-theme='dark'] .ant-descriptions-item-label {
-  color: #9ca3af !important;
+  color: #9ca3af;
 }
 
 .dark .ant-descriptions-item-content,
 [data-theme='dark'] .ant-descriptions-item-content {
-  color: #f9fafb !important;
+  color: #f9fafb;
 }
 
 .dark .ant-descriptions-bordered .ant-descriptions-item-label,
 [data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-item-label {
-  background: rgba(26, 26, 26, 0.6) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(26, 26, 26, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .dark .ant-descriptions-bordered .ant-descriptions-item-content,
 [data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-item-content {
-  background: rgba(20, 20, 20, 0.4) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(20, 20, 20, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* ========== TIMELINE - DARK MODE ========== */

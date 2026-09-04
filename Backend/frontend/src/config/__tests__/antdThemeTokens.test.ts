@@ -31,6 +31,12 @@ const temaOscuro = getThemeTokens('dark');
 /** Superficies flotantes que antes se pintaban con !important en el CSS. */
 const SUPERFICIES_FLOTANTES = ['Tooltip', 'Notification', 'Popover', 'Message', 'Dropdown'];
 
+/** Componentes de superficie migrados desde theme-dark-fixes.css a tokens. */
+const COMPONENTES_MIGRADOS = [
+  'Input', 'Card', 'Modal', 'Table', 'Select', 'Pagination', 'Tag', 'Drawer',
+  'DatePicker', 'Descriptions', 'Button',
+];
+
 /** Clases CSS de esas superficies, tal como las nombra Ant Design. */
 const CLASES_FLOTANTES = [
   'ant-tooltip-inner',
@@ -39,6 +45,25 @@ const CLASES_FLOTANTES = [
   'ant-message-notice-content',
   'ant-select-dropdown',
   'ant-dropdown-menu',
+];
+
+/** Clases de superficie migradas en la segunda pasada. */
+const CLASES_MIGRADAS = [
+  'ant-input',
+  'ant-card',
+  'ant-card-head',
+  'ant-modal-content',
+  'ant-modal-header',
+  'ant-table-thead',
+  'ant-select-selector',
+  'ant-tag',
+  'ant-drawer-header',
+  'ant-picker-panel-container',
+  'ant-picker-header',
+  'ant-descriptions-bordered',
+  'ant-pagination-item-active',
+  'ant-select-item-option-selected',
+  'ant-btn-text',
 ];
 
 const RUTA_CSS = path.join(__dirname, '..', '..', 'styles', 'theme-dark-fixes.css');
@@ -86,6 +111,24 @@ describe('tokens de Ant Design', () => {
       }
     });
 
+    it.each(COMPONENTES_MIGRADOS)('%s define sus colores como token', (componente) => {
+      // ESPERADO: entrada propia con al menos una propiedad de superficie.
+      // Antes vivian en theme-dark-fixes.css a base de !important.
+      const comps = temaOscuro.components as Record<string, Record<string, unknown>>;
+      expect(comps).toHaveProperty(componente);
+      const props = Object.keys(comps[componente]);
+      const tieneSuperficie = props.some((k) => /^(color|header|footer|content|default|selector|row|border|box)/i.test(k));
+      expect(tieneSuperficie).toBe(true);
+    });
+
+    it('los tokens de Table ya no estan muertos', () => {
+      // Antes decian '#141428' pero el CSS los pisaba con !important, asi que
+      // lo que se veia era rgba(26,26,26,0.8). Ahora coinciden con la pantalla.
+      const table = (temaOscuro.components as Record<string, Record<string, string>>).Table;
+      expect(table.headerBg).toContain('rgba');
+      expect(table.colorBgContainer).toContain('rgba');
+    });
+
     it('el desplegable de Select también', () => {
       const select = (temaOscuro.components as Record<string, Record<string, unknown>>).Select;
       expect(select).toHaveProperty('colorBgElevated');
@@ -97,6 +140,15 @@ describe('tokens de Ant Design', () => {
       // ESPERADO: lista vacía. Fondo, color, borde y sombra los aplica ahora
       // Ant Design desde los tokens.
       expect(importantesDe(clase)).toEqual([]);
+    });
+
+    it.each(CLASES_MIGRADAS)('%s no usa !important en propiedades de superficie', (clase) => {
+      // ESPERADO: ninguna. Fondo, color, borde y sombra los aplica Ant Design
+      // desde los tokens; lo que queda (tipografia, desenfoque, tamanos) no
+      // entra en conflicto con Ant Design.
+      const superficie = /^(background|background-color|color|border|border-color|border-bottom|border-top|box-shadow)\s*:/;
+      const conflictivas = importantesDe(clase).filter((d) => superficie.test(d));
+      expect(conflictivas).toEqual([]);
     });
 
     it('conserva el desenfoque, que es lo que los tokens no pueden dar', () => {

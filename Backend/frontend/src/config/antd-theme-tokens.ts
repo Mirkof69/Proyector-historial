@@ -236,34 +236,95 @@ const darkThemeTokens: ThemeConfig = {
       controlHeight: 36,
       controlHeightLG: 44,
       controlHeightSM: 28,
-    },
-    Card: {
-      borderRadius: 12,
-      borderRadiusLG: 16,
-    },
-    Input: {
-      borderRadius: 8,
-      controlHeight: 36,
+      textHoverBg: 'rgba(255, 255, 255, 0.08)',
+      colorText: '#d1d5db',
     },
     Select: {
       borderRadius: 8,
       controlHeight: 36,
       colorBgElevated: 'rgba(20, 20, 20, 0.95)',
       boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
+      selectorBg: 'rgba(26, 26, 26, 0.6)',
+      colorBorder: 'rgba(255, 255, 255, 0.12)',
+      colorText: '#f9fafb',
+      // Opcion seleccionada dentro del desplegable.
+      optionSelectedBg: 'rgba(59, 130, 246, 0.2)',
+      optionSelectedColor: '#60a5fa',
+      optionSelectedFontWeight: 600,
     },
     Modal: {
       borderRadiusLG: 16,
+      contentBg: 'rgba(20, 20, 20, 0.85)',
+      headerBg: 'rgba(26, 26, 26, 0.6)',
+      footerBg: 'rgba(26, 26, 26, 0.6)',
+      colorText: '#f9fafb',
     },
     Tabs: {
       borderRadius: 8,
     },
+    // Table: los valores de aqui estaban MUERTOS. theme-dark-fixes.css los
+    // pisaba con !important, asi que lo que se veia en pantalla eran los del
+    // CSS (rgba(26,26,26,0.8)), no estos. Se alinean a lo que el usuario ve.
     Table: {
-      colorBgContainer: '#141428',
-      headerBg: '#1a1a3e',
-      headerColor: '#e8e8e8',
-      rowHoverBg: '#1a1a3e',
-      borderColor: '#2a2a4a',
-      colorText: '#e8e8e8',
+      colorBgContainer: 'rgba(20, 20, 20, 0.7)',
+      headerBg: 'rgba(26, 26, 26, 0.8)',
+      headerColor: '#f9fafb',
+      headerSplitColor: 'rgba(255, 255, 255, 0.12)',
+      rowHoverBg: 'rgba(42, 42, 42, 0.5)',
+      borderColor: 'rgba(255, 255, 255, 0.06)',
+      colorText: '#d1d5db',
+    },
+    // Los siguientes tambien salen de theme-dark-fixes.css, donde vivian a
+    // base de !important porque Ant Design 5 inyecta sus estilos DESPUES de
+    // las hojas estaticas y una regla normal no le gana. Como tokens los
+    // aplica el propio Ant Design, sin pelea. Lo unico que se queda en CSS es
+    // `backdrop-filter`, que Ant Design no expone.
+    Input: {
+      borderRadius: 8,
+      controlHeight: 36,
+      colorBgContainer: 'rgba(26, 26, 26, 0.6)',
+      colorBorder: 'rgba(255, 255, 255, 0.12)',
+      colorText: '#f9fafb',
+    },
+    Card: {
+      borderRadius: 12,
+      borderRadiusLG: 16,
+      colorBgContainer: 'rgba(20, 20, 20, 0.7)',
+      colorBorderSecondary: 'rgba(255, 255, 255, 0.1)',
+      colorText: '#f9fafb',
+      headerBg: 'rgba(26, 26, 26, 0.6)',
+    },
+    Pagination: {
+      colorBgContainer: 'rgba(26, 26, 26, 0.6)',
+      colorBorder: 'rgba(255, 255, 255, 0.12)',
+      // Pagina activa: el azul de marca sobre fondo oscuro.
+      itemActiveBg: 'rgba(59, 130, 246, 0.3)',
+      colorPrimary: '#3b82f6',
+      colorPrimaryBorder: '#3b82f6',
+    },
+    Tag: {
+      defaultBg: 'rgba(42, 42, 42, 0.6)',
+      defaultColor: '#d1d5db',
+      colorBorder: 'rgba(255, 255, 255, 0.12)',
+    },
+    Drawer: {
+      colorBgElevated: 'rgba(20, 20, 20, 0.85)',
+      colorText: '#f9fafb',
+      colorSplit: 'rgba(255, 255, 255, 0.08)',
+    },
+    DatePicker: {
+      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
+      colorBorder: 'rgba(255, 255, 255, 0.12)',
+      colorText: '#f9fafb',
+      colorTextHeading: '#f9fafb',
+      colorSplit: 'rgba(255, 255, 255, 0.08)',
+      cellActiveWithRangeBg: 'rgba(42, 42, 42, 0.7)',
+      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
+    },
+    Descriptions: {
+      colorFillAlter: 'rgba(26, 26, 26, 0.6)',
+      colorSplit: 'rgba(255, 255, 255, 0.08)',
+      colorText: '#f9fafb',
     },
     // Superficies flotantes (tooltip, popover, notificaciones, desplegables).
     //
