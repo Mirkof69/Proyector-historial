@@ -54,7 +54,19 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
         ref={canvasRef}
         width={512}
         height={512}
+        // El canvas responde al clic, asi que es un control: necesita nombre
+        // accesible y rol. Sin esto un lector de pantalla solo anuncia
+        // "imagen" y no dice que se puede interactuar con ella.
+        role="button"
+        tabIndex={0}
+        aria-label="Imagen de la ecografia: haga clic para medir sobre ella"
         onClick={handleCanvasClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCanvasClick(e as unknown as React.MouseEvent<HTMLCanvasElement>);
+          }
+        }}
         style={{
           maxWidth: '100%',
           maxHeight: '100%',

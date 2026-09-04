@@ -5,7 +5,7 @@
  * demasiado vieja, etc.), para que el médico lo vea sin recorrer las tabs.
  */
 import React, { useMemo, useState } from 'react';
-import { Card, Col, Progress, Row, Space, Tag, Tooltip, Typography } from 'antd';
+import { Button, Card, Col, Progress, Row, Space, Tag, Tooltip, Typography } from 'antd';
 import {
   CheckCircleOutlined, ClockCircleOutlined, MinusCircleOutlined, RightOutlined,
 } from '@ant-design/icons';
@@ -56,6 +56,35 @@ const masReciente = (fechas: Array<string | undefined>): number | null => {
 /** "· último hace N días" — u omitido si no hay fecha parseable. */
 const sufijoHace = (dias: number | null, etiqueta = 'último'): string =>
   dias === null ? '' : ` · ${etiqueta} hace ${dias} días`;
+
+/** Estilo comun de la tarjeta, use <button> o <div>. */
+const ESTILO_TARJETA: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '8px 12px',
+  borderRadius: 8,
+  background: 'var(--bg-secondary)',
+  border: 'none',
+  width: '100%',
+  textAlign: 'left',
+  font: 'inherit',
+  color: 'inherit',
+};
+
+/** Contenido de la tarjeta, identico en ambas variantes. */
+const contenidoTarjeta = (
+  item: { etiqueta: string; detalle: string },
+  cfg: { color: string; icono: React.ReactNode; texto: string },
+): React.ReactNode => (
+  <>
+    <Tag color={cfg.color} icon={cfg.icono} style={{ margin: 0 }}>{cfg.texto}</Tag>
+    <div style={{ minWidth: 0 }}>
+      <Text strong style={{ display: 'block', fontSize: 13 }}>{item.etiqueta}</Text>
+      <Text type="secondary" style={{ fontSize: 12 }} ellipsis>{item.detalle}</Text>
+    </div>
+  </>
+);
 
 const ResumenCompletitud: React.FC<ResumenCompletitudProps> = ({
   embarazoActivo, controles, ecografias, laboratorios, notas, vacunas,
@@ -163,7 +192,12 @@ const ResumenCompletitud: React.FC<ResumenCompletitudProps> = ({
         </Space>
       }
       extra={
-        <a onClick={() => setColapsado(!colapsado)}>{colapsado ? 'Mostrar' : 'Ocultar'}</a>
+        // Button type="link" en vez de <a> sin href: se ve igual pero es un
+        // control real — enfocable con Tab y accionable con Enter y Espacio.
+        // Un <a> sin href no lo alcanza el teclado.
+        <Button type="link" size="small" onClick={() => setColapsado(!colapsado)}>
+          {colapsado ? 'Mostrar' : 'Ocultar'}
+        </Button>
       }
     >
       {!colapsado && (
@@ -173,23 +207,23 @@ const ResumenCompletitud: React.FC<ResumenCompletitudProps> = ({
             return (
               <Col xs={24} sm={12} md={8} key={item.clave}>
                 <Tooltip title={item.tab ? 'Ir a la sección' : undefined}>
-                  <div
-                    role={item.tab ? 'button' : undefined}
-                    onClick={() => item.tab && onIrATab?.(item.tab)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '8px 12px', borderRadius: 8,
-                      background: 'var(--bg-secondary)',
-                      cursor: item.tab ? 'pointer' : 'default',
-                    }}
-                  >
-                    <Tag color={cfg.color} icon={cfg.icono} style={{ margin: 0 }}>{cfg.texto}</Tag>
-                    <div style={{ minWidth: 0 }}>
-                      <Text strong style={{ display: 'block', fontSize: 13 }}>{item.etiqueta}</Text>
-                      <Text type="secondary" style={{ fontSize: 12 }} ellipsis>{item.detalle}</Text>
-                    </div>
-                    {item.tab && <RightOutlined style={{ marginLeft: 'auto', fontSize: 10, opacity: 0.45 }} />}
-                  </div>
+                  {/* Cuando la tarjeta lleva a una sección se renderiza un
+                      <button> de verdad, no un <div role="button">. El
+                      navegador ya le da foco con Tab, respuesta a Enter y
+                      Espacio, y el anuncio correcto en lector de pantalla,
+                      sin tener que reimplementar nada de eso a mano. */}
+                  {item.tab ? (
+                    <button
+                      type="button"
+                      onClick={() => onIrATab?.(item.tab!)}
+                      style={{ ...ESTILO_TARJETA, cursor: 'pointer' }}
+                    >
+                      {contenidoTarjeta(item, cfg)}
+                      <RightOutlined style={{ marginLeft: 'auto', fontSize: 10, opacity: 0.45 }} />
+                    </button>
+                  ) : (
+                    <div style={ESTILO_TARJETA}>{contenidoTarjeta(item, cfg)}</div>
+                  )}
                 </Tooltip>
               </Col>
             );

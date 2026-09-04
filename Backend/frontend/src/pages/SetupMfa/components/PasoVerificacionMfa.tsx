@@ -43,7 +43,6 @@ const PasoVerificacionMfa: React.FC<PasoVerificacionMfaProps> = ({ form, confirm
           maxLength={6}
           size="large"
           inputMode="numeric"
-          autoFocus={false}
           disabled={confirming}
           style={{
             letterSpacing: '0.05em',
