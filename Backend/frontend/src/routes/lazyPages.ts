@@ -4,6 +4,14 @@
  */
 import { lazy } from 'react';
 
+// Diferidas aunque sean rutas publicas: LandingPage solo la ve quien entra
+// sin sesion, y SetupMfa solo quien configura MFA por primera vez. Ninguna
+// de las dos hace falta para pintar el login, que es la primera pantalla
+// real. Cargarlas de entrada engordaba el bundle de arranque, que en 3G es
+// lo unico que importa.
+export const LandingPage = lazy(() => import('../pages/Dashboard/LandingPage'));
+export const SetupMfa = lazy(() => import('../pages/SetupMfa/SetupMfa'));
+
 export const DashboardHome = lazy(() => import('../pages/Dashboard/DashboardHome'));
 export const DashboardGraficasReales = lazy(() => import('../pages/Dashboard/DashboardGraficasReales'));
 export const Pacientes = lazy(() => import('../pages/Pacientes/Pacientes'));

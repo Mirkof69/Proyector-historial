@@ -7,14 +7,13 @@ import ProtectedRoute from './ProtectedRoute';
 
 // --- PUBLIC PAGES (eager - needed before auth) ---
 import Login from '../pages/Login/Login';
-import LandingPage from '../pages/Dashboard/LandingPage';
-import SetupMfa from '../pages/SetupMfa/SetupMfa';
 import DashboardLayout from '../pages/Dashboard/Dashboard';
 import NotFound from '../pages/NotFound';
 import Unauthorized from '../pages/Unauthorized';
 import PageTransition from '../components/common/PageTransition';
 
 import {
+  LandingPage, SetupMfa,
   DashboardHome, DashboardGraficasReales, Pacientes, DetallePaciente, FormularioPaciente,
   BusquedaAvanzada, GlobalSearch, HistoriaClinica, ListaHistoriasClinicas, Embarazos,
   DetalleEmbarazo, FormularioEmbarazo, Controles, DetalleControl, FormularioControl,
