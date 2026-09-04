@@ -2,7 +2,7 @@
 from datetime import date, datetime, timedelta
 
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,7 +16,9 @@ from antecedentes.serializers import (
     AntecedenteGinecoObstetricoSerializer,
     AntecedentePatologicoSerializer,
 )
+from controles.models import ControlPrenatal
 from core.permissions import FetalMedicalPermission
+from embarazos.models import Embarazo
 from laboratorio.models import ExamenLaboratorio
 from partos.models import Parto
 
@@ -30,6 +32,126 @@ from .serializers import (
 
 # Inicializar servicio PDF
 pdf_service = PDFService()
+
+
+def _clave_fecha(evento):
+    """Fecha comparable de un evento del timeline.
+
+    Los eventos mezclan `date` (controles, ecografías) con `datetime`
+    (laboratorios, partos), y en Python no se pueden comparar entre sí: todo
+    se normaliza a `date`.
+    """
+    valor = evento.get("fecha_evento")
+    if isinstance(valor, datetime):
+        return valor.date()
+    if isinstance(valor, date):
+        return valor
+    return date.min
+
+
+def construir_historia_clinica(paciente):
+    """Timeline y contadores de la historia clínica de una paciente.
+
+    Devuelve `(timeline, estadisticas)`. Está fuera del ViewSet a propósito:
+    es la lógica clínica del informe y se puede probar sin HTTP, sin permisos
+    y sin generar el PDF.
+
+    Sobre los laboratorios
+    ----------------------
+    Se consultan UNA vez para toda la paciente, no dentro del bucle de
+    embarazos. Antes la consulta era
+    `Q(control_prenatal__embarazo=embarazo) | Q(paciente=paciente)` ejecutada
+    por cada embarazo: la segunda mitad del OR trae todos los análisis de la
+    paciente, así que con 3 embarazos cada análisis aparecía 3 veces en el
+    timeline y el contador `total_laboratorios` reportaba el triple. En un
+    documento clínico eso es un dato falso, no una molestia estética.
+    """
+    from controles.serializers import ControlPrenatalSerializer
+    from ecografias.serializers import EcografiaSerializer
+    from embarazos.serializers import EmbarazoSerializer
+    from laboratorio.serializers import ExamenLaboratorioDetailSerializer
+    from partos.serializers import PartoSerializer
+
+    embarazos = list(
+        paciente.embarazos.all()
+        .order_by("-fecha_registro")
+        .prefetch_related("controles", "ecografias"),
+    )
+    ids_embarazos = [e.id for e in embarazos]
+
+    timeline = []
+    total_controles = total_ecografias = 0
+
+    for embarazo in embarazos:
+        embarazo_data = EmbarazoSerializer(embarazo).data
+        embarazo_data["tipo_evento"] = "embarazo"
+        embarazo_data["fecha_evento"] = embarazo.fecha_registro
+        timeline.append(embarazo_data)
+
+        controles = sorted(embarazo.controles.all(), key=lambda c: c.fecha_control or date.min)
+        total_controles += len(controles)
+        for control in controles:
+            control_data = ControlPrenatalSerializer(control).data
+            control_data["tipo_evento"] = "control_prenatal"
+            control_data["fecha_evento"] = control.fecha_control
+            control_data["embarazo_id"] = embarazo.id
+            timeline.append(control_data)
+
+        ecografias = sorted(
+            embarazo.ecografias.all(), key=lambda e: e.fecha_ecografia or date.min,
+        )
+        total_ecografias += len(ecografias)
+        for eco in ecografias:
+            eco_data = EcografiaSerializer(eco).data
+            eco_data["tipo_evento"] = "ecografia"
+            eco_data["fecha_evento"] = eco.fecha_ecografia
+            eco_data["embarazo_id"] = embarazo.id
+            timeline.append(eco_data)
+
+    # Laboratorios: una sola consulta para toda la paciente. Cada análisis se
+    # atribuye al embarazo de su control prenatal cuando lo tiene; si es un
+    # análisis suelto de la paciente, queda sin `embarazo_id` en vez de
+    # repetirse en todos.
+    laboratorios = (
+        ExamenLaboratorio.objects.filter(
+            Q(control_prenatal__embarazo_id__in=ids_embarazos) | Q(paciente=paciente),
+        )
+        .select_related("control_prenatal")
+        .distinct()
+        .order_by("fecha_solicitud")
+    )
+    for lab in laboratorios:
+        lab_data = ExamenLaboratorioDetailSerializer(lab).data
+        lab_data["tipo_evento"] = "laboratorio"
+        lab_data["fecha_evento"] = lab.fecha_solicitud
+        control = getattr(lab, "control_prenatal", None)
+        lab_data["embarazo_id"] = getattr(control, "embarazo_id", None)
+        timeline.append(lab_data)
+
+    partos = (
+        Parto.objects.filter(embarazo_id__in=ids_embarazos)
+        .distinct()
+        .order_by("fecha_parto")
+    )
+    for parto in partos:
+        parto_data = PartoSerializer(parto).data
+        parto_data["tipo_evento"] = "parto"
+        parto_data["fecha_evento"] = parto.fecha_parto
+        parto_data["embarazo_id"] = parto.embarazo_id
+        timeline.append(parto_data)
+
+    timeline.sort(key=_clave_fecha, reverse=True)
+
+    estadisticas = {
+        "total_embarazos": len(embarazos),
+        "embarazos_activos": sum(1 for e in embarazos if e.estado == "activo"),
+        "total_controles": total_controles,
+        "total_ecografias": total_ecografias,
+        "total_laboratorios": len(laboratorios),
+        "total_partos": len(partos),
+        "total_eventos": len(timeline),
+    }
+    return timeline, estadisticas
 
 
 class PacienteViewSet(viewsets.ModelViewSet):
@@ -117,8 +239,30 @@ class PacienteViewSet(viewsets.ModelViewSet):
         """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
+    @staticmethod
+    def optimizar_para_listado(queryset):
+        """Precarga las relaciones que `PacienteListSerializer` recorre.
+
+        El serializer del listado calcula 8 campos obstétricos leyendo
+        `embarazos`, `controles_prenatales` y `partos`. Sin esto cada paciente
+        dispara ~8 consultas: 200 pacientes costaban 1601 consultas y 1717 ms.
+
+        Las relaciones se precargan YA ORDENADAS porque el serializer necesita
+        "el último": así puede tomar el primer elemento de la caché en Python.
+        Un `.order_by()` o un `.filter()` sobre la relación en el serializer
+        anularía esta caché y volvería a disparar una consulta por paciente.
+        """
+        return queryset.prefetch_related(
+            Prefetch("embarazos", queryset=Embarazo.objects.order_by("-fecha_registro")),
+            Prefetch(
+                "controles_prenatales",
+                queryset=ControlPrenatal.objects.order_by("-fecha_control"),
+            ),
+            Prefetch("partos", queryset=Parto.objects.order_by("-fecha_parto")),
+        )
+
     def get_queryset(self):
-        """Filtra el queryset según parámetros y optimiza la carga en detalle."""
+        """Filtra el queryset según parámetros y precarga relaciones."""
         queryset = super().get_queryset()
 
         # Optimización: en el detalle precargar relaciones para evitar N+1
@@ -131,6 +275,8 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 "examenes_laboratorio",
                 "antecedentes_patologicos",
             ).select_related("created_by", "updated_by")
+        elif self.action == "list":
+            queryset = self.optimizar_para_listado(queryset)
 
         # Filtrar solo activos si se especifica
         solo_activos = self.request.query_params.get("solo_activos", None)
@@ -571,104 +717,17 @@ class PacienteViewSet(viewsets.ModelViewSet):
         """
         paciente = self.get_object()
 
-        # Importar serializers necesarios
-        from controles.serializers import ControlPrenatalSerializer
-        from ecografias.serializers import EcografiaSerializer
-        from embarazos.serializers import EmbarazoSerializer
-        from laboratorio.serializers import ExamenLaboratorioDetailSerializer
-        from partos.serializers import PartoSerializer
-
-        # Obtener todos los embarazos del paciente
-        embarazos = paciente.embarazos.all().order_by("-fecha_registro")
-
-        # Construir timeline completa
-        timeline = []
-
-        for embarazo in embarazos:
-            # Datos del embarazo
-            embarazo_data = EmbarazoSerializer(embarazo).data
-            embarazo_data["tipo_evento"] = "embarazo"
-            embarazo_data["fecha_evento"] = embarazo.fecha_registro
-            timeline.append(embarazo_data)
-
-            # Controles prenatales del embarazo
-            controles = embarazo.controles.all().order_by("fecha_control")
-            for control in controles:
-                control_data = ControlPrenatalSerializer(control).data
-                control_data["tipo_evento"] = "control_prenatal"
-                control_data["fecha_evento"] = control.fecha_control
-                control_data["embarazo_id"] = embarazo.id
-                timeline.append(control_data)
-
-            # Ecografías del embarazo
-            ecografias = embarazo.ecografias.all().order_by("fecha_ecografia")
-            for eco in ecografias:
-                eco_data = EcografiaSerializer(eco).data
-                eco_data["tipo_evento"] = "ecografia"
-                eco_data["fecha_evento"] = eco.fecha_ecografia
-                eco_data["embarazo_id"] = embarazo.id
-                timeline.append(eco_data)
-
-            # Laboratorios del embarazo
-            laboratorios = (
-                ExamenLaboratorio.objects.filter(
-                    Q(control_prenatal__embarazo=embarazo) | Q(paciente=paciente),
-                )
-                .distinct()
-                .order_by("fecha_solicitud")
-            )
-            for lab in laboratorios:
-                lab_data = ExamenLaboratorioDetailSerializer(lab).data
-                lab_data["tipo_evento"] = "laboratorio"
-                lab_data["fecha_evento"] = lab.fecha_solicitud
-                lab_data["embarazo_id"] = embarazo.id
-                timeline.append(lab_data)
-
-            # Partos del embarazo
-            partos = Parto.objects.filter(embarazo=embarazo).order_by("fecha_parto")
-            for parto in partos:
-                parto_data = PartoSerializer(parto).data
-                parto_data["tipo_evento"] = "parto"
-                parto_data["fecha_evento"] = parto.fecha_parto
-                parto_data["embarazo_id"] = embarazo.id
-                timeline.append(parto_data)
-
-        # Ordenar timeline por fecha. Los eventos mezclan date (controles/ecos)
-        # y datetime (laboratorios/partos): normalizamos todo a date para que
-        # la comparación no explote (datetime vs date no son comparables).
-        def _clave_fecha(evento):
-            valor = evento.get("fecha_evento")
-            if isinstance(valor, datetime):
-                return valor.date()
-            if isinstance(valor, date):
-                return valor
-            return date.min
-
-        timeline.sort(key=_clave_fecha, reverse=True)
-
-        # Calcular estadísticas
-        estadisticas = {
-            "total_embarazos": embarazos.count(),
-            "embarazos_activos": embarazos.filter(estado="activo").count(),
-            "total_controles": sum(e.controles.count() for e in embarazos),
-            "total_ecografias": sum(e.ecografias.count() for e in embarazos),
-            "total_laboratorios": sum(
-                ExamenLaboratorio.objects.filter(
-                    Q(control_prenatal__embarazo=e) | Q(paciente=paciente),
-                )
-                .distinct()
-                .count()
-                for e in embarazos
-            ),
-            "total_partos": sum(
-                Parto.objects.filter(embarazo=e).count() for e in embarazos
-            ),
-            "total_eventos": len(timeline),
-        }
+        # La construcción del timeline y los contadores vive en
+        # `construir_historia_clinica` para poder probarla sin HTTP ni PDF.
+        timeline, estadisticas = construir_historia_clinica(paciente)
 
         # Generar PDF
+        from embarazos.serializers import EmbarazoSerializer
+
         paciente_data = PacienteSerializer(paciente).data
-        embarazos_data = EmbarazoSerializer(embarazos, many=True).data
+        embarazos_data = EmbarazoSerializer(
+            paciente.embarazos.all().order_by("-fecha_registro"), many=True,
+        ).data
 
         pdf_buffer = pdf_service.generar_historia_clinica(
             paciente_data=paciente_data,

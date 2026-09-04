@@ -8,10 +8,17 @@ from django.utils import timezone as tz
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import (
+    action,
+    api_view,
+    permission_classes,
+    throttle_classes,
+)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from core.throttling import LoginRateThrottle
 
 from .auth_cookies import REFRESH_COOKIE, clear_jwt_cookies, set_jwt_cookies
 from .models import HorarioAtencion, Usuario
@@ -601,6 +608,7 @@ class HorarioAtencionViewSet(viewsets.ModelViewSet):
 )
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
 def login_view(request):
     """Endpoint de login
     POST: email, password
@@ -849,6 +857,7 @@ def current_user_view(request):
 )
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
 def mfa_verify_view(request):
     """Paso 2 del login: verifica el código TOTP y emite JWT definitivo.
 

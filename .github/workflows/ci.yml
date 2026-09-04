@@ -201,6 +201,19 @@ jobs:
           coverage html -d coverage-backend-html
           coverage report --fail-under=40
 
+      # Gate BLOQUEANTE de aislamiento entre clinicas. Sin TEST_CON_TENANTS la
+      # suite corre sobre SQLite con django_tenants desactivado, y estos tests
+      # quedan SKIPPED: el pipeline pasaba en verde sin haber comprobado nunca
+      # que la clinica A no ve pacientes de la clinica B. Es la propiedad mas
+      # critica del sistema, asi que se ejecuta aparte y contra PostgreSQL.
+      - name: Run multi-tenant isolation tests (PostgreSQL)
+        working-directory: Backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          TEST_CON_TENANTS: "true"
+        run: python -m pytest tests/test_aislamiento_tenants.py -v --no-cov
+
       - name: Upload backend coverage report
         uses: actions/upload-artifact@v4
         if: always()

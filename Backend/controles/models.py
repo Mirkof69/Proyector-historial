@@ -758,7 +758,12 @@ class ControlPrenatal(models.Model):
                 )
 
         # ✅ 6. VALIDAR SEMANAS DE GESTACIÓN
-        if self.semanas_gestacion > 42:
+        # Se comprueba None igual que las validaciones de arriba: `full_clean()`
+        # ejecuta `clean()` AUNQUE `clean_fields()` ya haya fallado, así que un
+        # control enviado sin semanas llegaba aquí con None y reventaba con
+        # TypeError. El usuario veía un error 500 en vez del mensaje de "campo
+        # obligatorio" que Django ya tenía preparado.
+        if self.semanas_gestacion is not None and self.semanas_gestacion > 42:
             errors["semanas_gestacion"] = (
                 f"{self.semanas_gestacion} semanas excede el límite normal (42 semanas). Embarazo prolongado."
             )

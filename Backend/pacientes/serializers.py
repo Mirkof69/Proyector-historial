@@ -383,14 +383,37 @@ class PacienteListSerializer(serializers.ModelSerializer):
         return edad
 
     def get_embarazos_activos(self, obj):
-        """Verifica si tiene embarazos activos"""
-        return obj.embarazos.filter(estado="activo").exists()
+        """Verifica si tiene embarazos activos.
+
+        Se recorre `.all()` en Python en vez de hacer `.filter(...)`: un filtro
+        sobre la relación descarta la caché de `prefetch_related` y dispara una
+        consulta por paciente (el N+1 que costaba 1601 consultas por listado).
+        """
+        return any(e.estado == "activo" for e in obj.embarazos.all())
+
+    @staticmethod
+    def _ultimo_por_fecha(registros, campo):
+        """El registro con `campo` más reciente, ordenando en Python.
+
+        Ordenar aquí —y no con `.order_by()` en la relación— es lo que permite
+        aprovechar la precarga. Se ordena igual aunque el queryset ya venga
+        ordenado, para que el resultado sea correcto tambien cuando el
+        serializer se usa sin `prefetch_related`.
+        """
+        con_fecha = [r for r in registros if getattr(r, campo, None)]
+        if not con_fecha:
+            return None
+        return max(con_fecha, key=lambda r: getattr(r, campo))
 
     def _get_ultimo_embarazo(self, obj):
-        """Cache del último embarazo para evitar 4 queries separadas por paciente (N+1)."""
+        """Último embarazo, leído de la caché de la precarga."""
         cache_attr = "_cached_ultimo_embarazo"
         if not hasattr(obj, cache_attr):
-            setattr(obj, cache_attr, obj.embarazos.order_by("-fecha_registro").first())
+            setattr(
+                obj,
+                cache_attr,
+                self._ultimo_por_fecha(obj.embarazos.all(), "fecha_registro"),
+            )
         return getattr(obj, cache_attr)
 
     def get_numero_gesta(self, obj):
@@ -425,7 +448,9 @@ class PacienteListSerializer(serializers.ModelSerializer):
                 elif e.estado == "perdida":
                     eventos.append((e.fecha_registro, "Último: Aborto"))
 
-            ultimo_control = obj.controles_prenatales.order_by("-fecha_control").first()
+            ultimo_control = self._ultimo_por_fecha(
+                obj.controles_prenatales.all(), "fecha_control",
+            )
             if ultimo_control and ultimo_control.fecha_control:
                 eventos.append((
                     datetime.combine(ultimo_control.fecha_control, datetime.min.time()),
@@ -452,15 +477,17 @@ class PacienteListSerializer(serializers.ModelSerializer):
         try:
             fechas: list[datetime] = []
 
-            ultimo_embarazo = obj.embarazos.order_by("-fecha_registro").first()
+            ultimo_embarazo = self._get_ultimo_embarazo(obj)
             if ultimo_embarazo and ultimo_embarazo.fecha_registro:
                 fechas.append(ultimo_embarazo.fecha_registro)
 
-            ultimo_control = obj.controles_prenatales.order_by("-fecha_control").first()
+            ultimo_control = self._ultimo_por_fecha(
+                obj.controles_prenatales.all(), "fecha_control",
+            )
             if ultimo_control and ultimo_control.fecha_control:
                 fechas.append(datetime.combine(ultimo_control.fecha_control, datetime.min.time()))
 
-            ultimo_parto = obj.partos.order_by("-fecha_parto").first()
+            ultimo_parto = self._ultimo_por_fecha(obj.partos.all(), "fecha_parto")
             if ultimo_parto and ultimo_parto.fecha_parto:
                 fechas.append(datetime.combine(ultimo_parto.fecha_parto, datetime.min.time()))
 

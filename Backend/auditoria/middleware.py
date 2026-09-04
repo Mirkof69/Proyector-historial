@@ -17,6 +17,7 @@ usuario autenticado al HttpRequest subyacente.
 =============================================================================
 """
 
+from .acceso import registrar_acceso
 from .signals import set_current_request, verificar_tabla_auditoria_existe
 
 
@@ -44,7 +45,13 @@ class AuditoriaMiddleware:
         except Exception:  # nunca romper un request por la auditoría
             pass
         try:
-            return self.get_response(request)
+            respuesta = self.get_response(request)
+            # Las escrituras las cubren los signals; las LECTURAS de datos
+            # clínicos se registran aquí. Va después de get_response porque
+            # solo entonces DRF ya autenticó al usuario y se conoce el
+            # resultado: no se audita un acceso que terminó en 403 o 404.
+            registrar_acceso(request, respuesta.status_code)
+            return respuesta
         finally:
             # Siempre limpiar: los hilos se reutilizan entre requests
             set_current_request(None)

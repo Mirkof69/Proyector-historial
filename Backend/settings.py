@@ -280,6 +280,15 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
+        # Conexiones persistentes. Con el valor por defecto de Django (0) se
+        # abre y se cierra una conexion en CADA peticion: bajo 100 usuarios
+        # concurrentes se agotaba `max_connections` de PostgreSQL y la API
+        # devolvia HTTP 500 con "lo siento, ya tenemos demasiados clientes".
+        # 60 s reutiliza la conexion sin dejarla colgada indefinidamente.
+        "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=60),
+        # Descarta conexiones que el servidor cerro por su cuenta antes de
+        # usarlas; sin esto, reutilizar una conexion muerta da OperationalError.
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "client_encoding": "UTF8",
             "connect_timeout": 30,
@@ -484,7 +493,24 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ],
     # Paginación
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    # Limite de tasa por IP. El bloqueo de cuenta (5 intentos -> 15 min) ya
+    # frena adivinar UNA contrasena, pero por si solo abre otra puerta: un
+    # atacante puede bloquear a TODO el personal del hospital haciendo 5
+    # intentos fallidos contra cada cuenta. Limitar por IP corta ese ataque
+    # antes de que llegue a bloquear cuentas ajenas.
+    # Sin clase por defecto a proposito: el limite se aplica SOLO donde se
+    # declara (`LoginRateThrottle`), para no arriesgar 429 en pantallas
+    # clinicas legitimas. La tasa se deja generosa: no debe estorbar a una
+    # recepcion que tipea rapido, solo cortar la automatizacion.
+    # Configurable porque un hospital detras de un NAT presenta a TODO el
+    # personal con una sola IP publica: ahi 20/min es demasiado estricto.
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "10000/min" if TESTING else env("LOGIN_THROTTLE_RATE", default="20/min"),
+    },
+    # `PaginacionEstandar` habilita `?page_size=`. La clase de DRF no lo hace:
+    # `page_size_query_param` es atributo de clase, no un ajuste leible desde
+    # aqui, asi que ponerlo en este diccionario no tendria ningun efecto.
+    "DEFAULT_PAGINATION_CLASS": "core.paginacion.PaginacionEstandar",
     "PAGE_SIZE": 200,
     # Manejo de excepciones
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
