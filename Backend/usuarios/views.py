@@ -19,7 +19,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.throttling import LoginRateThrottle
+from core.throttling import LoginRateThrottle, registrar_intento_fallido
 
 from .auth_cookies import REFRESH_COOKIE, clear_jwt_cookies, set_jwt_cookies
 from .models import HorarioAtencion, Usuario
@@ -694,6 +694,9 @@ def login_view(request):
     try:
         usuario = Usuario.objects.get(email=email, activo=True)
     except Usuario.DoesNotExist:
+        # Probar emails que no existen es exactamente el recorrido que el
+        # limite por IP tiene que cortar, asi que gasta cupo.
+        registrar_intento_fallido(request)
         return Response(
             {"error": "Credenciales inválidas"}, status=status.HTTP_401_UNAUTHORIZED,
         )
@@ -708,6 +711,9 @@ def login_view(request):
 
     # Verificar contraseña
     if not usuario.check_password(password):
+        # Gasta cupo de la IP. Un login CORRECTO no llega hasta aqui y por eso
+        # no consume nada: cien personas entrando bien no se estorban.
+        registrar_intento_fallido(request)
         usuario.intentos_fallidos = (usuario.intentos_fallidos or 0) + 1
         if usuario.intentos_fallidos >= 5:
             from datetime import timedelta
@@ -976,6 +982,9 @@ def mfa_verify_view(request):
     try:
         usuario = _decode_temp_token(temp_token)
     except ValueError as exc:
+        # Un temp_token invalido o caducado es un intento fallido como
+        # cualquier otro: gasta cupo de la IP.
+        registrar_intento_fallido(request)
         return Response({"error": str(exc)}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 2. Verificar bloqueo de cuenta
@@ -995,6 +1004,8 @@ def mfa_verify_view(request):
 
     totp = pyotp.TOTP(usuario.mfa_secret)
     if not totp.verify(totp_code, valid_window=1):
+        # Adivinar codigos TOTP tambien gasta cupo de la IP.
+        registrar_intento_fallido(request)
         # Incrementar intentos fallidos MFA
         usuario.intentos_fallidos = (usuario.intentos_fallidos or 0) + 1
         if usuario.intentos_fallidos >= 5:

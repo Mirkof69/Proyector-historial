@@ -1,7 +1,8 @@
 import React from 'react';
 import { Empty, Table, Avatar, Space, Tag, Tooltip, Switch, Button, Popconfirm, Typography } from 'antd';
-import { UserOutlined, MailOutlined, PhoneOutlined, EyeOutlined, EditOutlined, KeyOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined, MedicineBoxOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, PhoneOutlined, EyeOutlined, EditOutlined, KeyOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
 import { Usuario } from '../../../services/usuariosService';
+import { configuracionDeRol } from '../../../config/roles';
 
 const { Text } = Typography;
 
@@ -12,12 +13,6 @@ const keyIcon = <KeyOutlined />;
 const deleteIcon = <DeleteOutlined />;
 const checkCircleIcon = <CheckCircleOutlined />;
 const stopIcon = <StopOutlined />;
-
-const ROLES_CONFIG: Record<string, { nombre: string; color: string; icon: React.ReactNode }> = {
-  medico: { nombre: 'Médico', color: '#3498db', icon: <MedicineBoxOutlined /> },
-  enfermero: { nombre: 'Enfermero', color: '#2ecc71', icon: <MedicineBoxOutlined /> },
-  administrador: { nombre: 'Administrador', color: '#e74c3c', icon: <SafetyCertificateOutlined /> },
-};
 
 interface UsuariosTableProps {
   usuarios: Usuario[];
@@ -45,7 +40,7 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
       key: 'foto_url',
       width: 80,
       render: (foto_url: string | null, record: Usuario) => (
-        <Avatar size={40} src={foto_url} icon={userIcon} style={{ backgroundColor: ROLES_CONFIG[record.rol]?.color || '#666' }} />
+        <Avatar size={40} src={foto_url} icon={userIcon} style={{ backgroundColor: configuracionDeRol(record.rol).color }} />
       ),
     },
     {
@@ -70,8 +65,8 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
       dataIndex: 'rol',
       key: 'rol',
       render: (rol: string) => {
-        const config = ROLES_CONFIG[rol];
-        return (<Tag color={config?.color} icon={config?.icon}>{config?.nombre || rol}</Tag>);
+        const config = configuracionDeRol(rol);
+        return (<Tag color={config.color} icon={config.icono}>{config.nombre}</Tag>);
       },
     },
     {

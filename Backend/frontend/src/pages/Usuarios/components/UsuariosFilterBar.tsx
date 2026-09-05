@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Row, Col, Input, Select, Button, Space } from 'antd';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ROLES, LISTA_ROLES } from '../../../config/roles';
 
 const { Option } = Select;
 
@@ -26,9 +27,12 @@ const UsuariosFilterBar: React.FC<UsuariosFilterBarProps> = ({
       </Col>
       <Col xs={24} sm={12} md={6}>
         <Select placeholder="Filtrar por rol" style={{ width: '100%' }} value={filtroRol} onChange={onFiltroRolChange} allowClear>
-          <Option value="medico">Médico</Option>
-          <Option value="enfermero">Enfermero</Option>
-          <Option value="administrador">Administrador</Option>
+          {/* Los cinco roles del backend, no tres. El valor que se manda es la
+              clave exacta de `Usuario.ROLES`: escribir 'enfermero' donde el
+              backend guarda 'enfermera' devolvia cero resultados siempre. */}
+          {LISTA_ROLES.map((rol) => (
+            <Option key={rol} value={rol}>{ROLES[rol].nombre}</Option>
+          ))}
         </Select>
       </Col>
       <Col xs={24} sm={12} md={6}>

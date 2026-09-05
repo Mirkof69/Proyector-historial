@@ -111,6 +111,14 @@ ignore_errors = true
 DJANGO_SETTINGS_MODULE = "settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 pythonpath = ["."]
+# El microservicio de IA corre con OTRO interprete: el Python 3.12 del sistema,
+# que es el que levanta uvicorn y tiene torch y python-multipart. El venv de
+# Django no los tiene, asi que recolectar esa carpeta desde aqui aborta la
+# suite ENTERA con un error de importacion -- 591 tests sin ejecutar por una
+# dependencia que no le corresponde a este entorno.
+# Sus 10 tests se corren aparte, con su interprete:
+#   cd Microservicio_IA && python -m pytest
+norecursedirs = ["Microservicio_IA", ".venv", "venv", "node_modules", "frontend", "backups"]
 addopts = [
     "-v",
     "--tb=short",

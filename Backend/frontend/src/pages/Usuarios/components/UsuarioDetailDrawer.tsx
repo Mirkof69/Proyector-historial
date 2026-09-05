@@ -1,23 +1,12 @@
 import React from 'react';
 import { Drawer, Avatar, Typography, Divider, Descriptions, Badge, Tag } from 'antd';
-import { UserOutlined, MedicineBoxOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { UserOutlined } from '@ant-design/icons';
 import { Usuario } from '../../../services/usuariosService';
+import { configuracionDeRol } from '../../../config/roles';
 
 const { Title, Text } = Typography;
 
 const userIcon = <UserOutlined />;
-
-interface ROLES_CONFIG_TYPE {
-  nombre: string;
-  color: string;
-  icon: React.ReactNode;
-}
-
-const ROLES_CONFIG: Record<string, ROLES_CONFIG_TYPE> = {
-  medico: { nombre: 'Médico', color: '#3498db', icon: <MedicineBoxOutlined /> },
-  enfermero: { nombre: 'Enfermero', color: '#2ecc71', icon: <MedicineBoxOutlined /> },
-  administrador: { nombre: 'Administrador', color: '#e74c3c', icon: <SafetyCertificateOutlined /> },
-};
 
 interface UsuarioDetailDrawerProps {
   usuario: Usuario | null;
@@ -32,9 +21,15 @@ const UsuarioDetailDrawer: React.FC<UsuarioDetailDrawerProps> = ({ usuario, open
     <Drawer title="Detalles del Usuario" width={600} open={open} onClose={onClose}>
       <div>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <Avatar size={100} src={usuario.foto_url} icon={userIcon} style={{ backgroundColor: ROLES_CONFIG[usuario.rol]?.color }} />
+          <Avatar size={100} src={usuario.foto_url} icon={userIcon} style={{ backgroundColor: configuracionDeRol(usuario.rol).color }} />
           <Title level={4} style={{ marginTop: 16 }}>{usuario.nombre_completo}</Title>
-          <Tag color={ROLES_CONFIG[usuario.rol]?.color}>{ROLES_CONFIG[usuario.rol]?.nombre}</Tag>
+          {/* `configuracionDeRol` siempre devuelve un nombre. Antes esto era
+              `ROLES_CONFIG[rol]?.nombre` sin alternativa, y para enfermera,
+              laboratorista y recepcion pintaba una etiqueta VACIA: parecia que
+              la usuaria no tuviera rol asignado. */}
+          <Tag color={configuracionDeRol(usuario.rol).color} icon={configuracionDeRol(usuario.rol).icono}>
+            {configuracionDeRol(usuario.rol).nombre}
+          </Tag>
         </div>
 
         <Divider>Información Personal</Divider>

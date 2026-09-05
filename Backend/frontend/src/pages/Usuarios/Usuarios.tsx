@@ -1,7 +1,7 @@
 import React, { useReducer, useEffect, useMemo, useCallback } from 'react';
-import { Button, Space, Card, Typography, Badge, Select, Drawer } from 'antd';
+import { Button, Space, Card, Typography, Badge, Drawer } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
-import { PlusOutlined, SearchOutlined, UserOutlined, MedicineBoxOutlined, CheckCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, UserOutlined } from '@ant-design/icons';
 import { usuariosService, Usuario } from '../../services/usuariosService';
 import FormularioUsuario from './FormularioUsuario';
 import ModalCambiarPassword from './ModalCambiarPassword';
@@ -11,22 +11,14 @@ import UsuariosStatsCards from './components/UsuariosStatsCards';
 import UsuariosFilterBar from './components/UsuariosFilterBar';
 import './Usuarios.css';
 import { incluyeTexto } from '../../utils/texto';
+import { contarPorRol } from '../../config/roles';
 
 const { Title } = Typography;
-const { Option } = Select;
 
-const ROLES_CONFIG: Record<string, { nombre: string; color: string }> = {
-  medico: { nombre: 'Médico', color: '#3498db' },
-  enfermero: { nombre: 'Enfermero', color: '#2ecc71' },
-  administrador: { nombre: 'Administrador', color: '#e74c3c' },
-};
-
-const userIcon = <UserOutlined />;
-const reloadIcon = <ReloadOutlined />;
+// El mapa de roles vive ahora en `config/roles`: estaba copiado aqui, en la
+// tabla y en el detalle, y las tres copias se habian quedado atras respecto a
+// los cinco roles del backend.
 const plusIcon = <PlusOutlined />;
-const checkCircleIcon = <CheckCircleOutlined />;
-const medicineBoxIcon = <MedicineBoxOutlined />;
-const searchIcon = <SearchOutlined />;
 
 interface UsuariosState {
   usuarios: Usuario[];
@@ -109,12 +101,13 @@ const Usuarios: React.FC = () => {
 
   useEffect(() => { cargarUsuarios(); }, [cargarUsuarios]);
 
+  // Las cuentas por rol salen del catalogo unico. Antes estaban escritas a
+  // mano y una de ellas comparaba con 'enfermero', que el backend no usa
+  // nunca: la tarjeta de enfermeras marcaba 0 hubiera las que hubiera.
   const estadisticas = useMemo(() => ({
     total: usuarios.length,
     activos: usuarios.filter(u => u.activo).length,
-    medicos: usuarios.filter(u => u.rol === 'medico').length,
-    enfermeros: usuarios.filter(u => u.rol === 'enfermero').length,
-    administradores: usuarios.filter(u => u.rol === 'administrador').length,
+    porRol: contarPorRol(usuarios),
   }), [usuarios]);
 
   const handleNuevoUsuario = useCallback(() => { dispatch({ type: 'OPEN_DRAWER', payload: { usuario: null, modoEdicion: false } }); }, []);

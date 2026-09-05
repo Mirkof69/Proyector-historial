@@ -107,6 +107,69 @@ class LimiteDeLoginPorIPTest(APITestCase):
                 respuesta = self._intento("ClaveCorrecta123!")
                 assert respuesta.status_code != status.HTTP_429_TOO_MANY_REQUESTS
 
+    def test_cien_logins_CORRECTOS_desde_una_IP_entran_todos(self):
+        """ESPERADO: 100 de 100 entran. Ningún 429.
+
+        Es el caso que reventó en la prueba de carga real y el motivo de que
+        el límite cuente solo los fallos. En una clínica todo el personal sale
+        por una sola IP: para Django, el cambio de turno son cien peticiones
+        desde la misma dirección. Contando todos los intentos, entraban veinte
+        y ochenta recibían 429 sin haber hecho nada malo.
+
+        Se usa una tasa DELIBERADAMENTE pequeña —tres— para que, si alguien
+        vuelve a contar los aciertos, este test falle con total seguridad y no
+        por poco.
+        """
+        with tasa("3/min"):
+            codigos = [self._intento("ClaveCorrecta123!").status_code for _ in range(100)]
+
+        cortados = codigos.count(status.HTTP_429_TOO_MANY_REQUESTS)
+        assert cortados == 0, (
+            f"{cortados} de 100 inicios de sesión CORRECTOS recibieron 429. "
+            f"El límite está contando los aciertos: en una clínica detrás de "
+            f"una sola IP eso deja al turno entero fuera del sistema."
+        )
+
+    def test_los_fallos_siguen_gastando_cupo_aunque_haya_aciertos_de_por_medio(self):
+        """ESPERADO: 429 al cuarto fallo, aunque entre medias haya logins buenos.
+
+        Es la otra mitad del contrato. Si los aciertos "limpiaran" el contador,
+        el atacante evadiría el límite intercalando un login válido cualquiera
+        entre sus intentos.
+        """
+        with tasa("3/min"):
+            for _ in range(3):
+                self._intento("claveIncorrecta")
+                self._intento("ClaveCorrecta123!")  # no debe reponer cupo
+            respuesta = self._intento("claveIncorrecta")
+
+        assert respuesta.status_code == status.HTTP_429_TOO_MANY_REQUESTS, (
+            "Un login correcto entre fallos repuso el cupo: el límite por IP "
+            "se puede evadir intercalando credenciales válidas."
+        )
+
+    def test_probar_emails_que_no_existen_tambien_gasta_cupo(self):
+        """ESPERADO: 429 al cuarto intento contra emails inventados.
+
+        Recorrer una lista de correos para ver cuáles existen es el paso previo
+        del ataque. Si esa ruta no gastara cupo, el límite se saltaría sin más
+        que usar emails no registrados.
+        """
+        with tasa("3/min"):
+            for _ in range(3):
+                self.client.post(
+                    self.url,
+                    {"email": "noexiste@ninguna.test", "password": "loquesea"},
+                    format="json",
+                )
+            respuesta = self.client.post(
+                self.url,
+                {"email": "tampoco@ninguna.test", "password": "loquesea"},
+                format="json",
+            )
+
+        assert respuesta.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
     def test_el_bloqueo_de_cuenta_sigue_funcionando(self):
         """El límite por IP no debe haber anulado la protección que ya existía.
 
