@@ -17,6 +17,7 @@ from django.db.models.signals import (
 )
 from django.dispatch import receiver
 
+from .acciones import canonica
 from .models import RegistroAuditoria
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,27 @@ def _get_instance_cache():
     return _thread_locals.instance_cache
 
 
+#: Modelos que NO se auditan automáticamente.
+#:
+#: La auditoría existe para responder «¿quién tocó los datos de esta paciente?».
+#: Todo lo que no ayude a responder eso solo hace la tabla más grande y las
+#: consultas más lentas.
+#:
+#: Medido sobre la base real el 5 de septiembre de 2026, con 41.367 registros
+#: ocupando 36 MB:
+#:
+#:     notificaciones   17.929   43,3%
+#:     paciente          9.046   21,9%
+#:     notificacion      8.835   21,4%
+#:     ...
+#:
+#: **El 64,7% de la auditoría era "se creó una notificación".** El sistema
+#: auditaba sus propios avisos, y como los avisos se generan solos —una alerta
+#: por cada control, por cada paciente registrada— la tabla crecía en círculo:
+#: más notificaciones, más auditoría de notificaciones.
+#:
+#: Que el sistema se mande un aviso a sí mismo no es un hecho que un hospital
+#: necesite poder reconstruir. Que alguien abriera una historia clínica, sí.
 EXCLUIR_MODELOS = [
     "RegistroAuditoria",
     "AccessLog",
@@ -97,6 +119,16 @@ EXCLUIR_MODELOS = [
     "LogEntry",
     "ContentType",
     "Permission",
+    # Avisos del propio sistema: 64,7% de la tabla y cero valor clínico.
+    # Las acciones clínicas que los originan (crear paciente, registrar un
+    # control) se siguen auditando en su propio módulo, que es donde importan.
+    "Notificacion",
+    "HistorialNotificaciones",
+    "ConfiguracionNotificaciones",
+    # Tokens JWT: se crean y rotan en cada login. El login ya se audita como
+    # LOGIN, con usuario, IP y fecha; el token es un detalle de implementación.
+    "OutstandingToken",
+    "BlacklistedToken",
 ]
 
 PII_FIELDS = {
@@ -222,9 +254,16 @@ def auditar_creacion_actualizacion(sender, instance, created, **_kwargs):
         modulo = sender.__name__.lower()
         usuario = get_current_user()
         if created:
+            # `canonica()` porque este signal escribe con `objects.create()`,
+            # que NO pasa por `RegistroAuditoria.registrar()` -- el sitio donde
+            # se normalizan los nombres. Sin esto seguia guardando 'crear' en
+            # minusculas mientras el resto del sistema guarda 'CREAR', y quien
+            # filtrara por el nombre canonico no encontraba estos registros.
+            # Verificado sobre la base real: convivian 12.068 'CREAR' con
+            # 5.199 'crear' para el mismo hecho.
             RegistroAuditoria.objects.create(
                 modulo=modulo,
-                accion="crear",
+                accion=canonica("crear"),
                 registro_id=str(instance.pk),
                 usuario=usuario,
                 datos_nuevos=redactar_pii(serializar_instancia(instance)),
@@ -237,7 +276,11 @@ def auditar_creacion_actualizacion(sender, instance, created, **_kwargs):
             if datos_anteriores and datos_anteriores != datos_nuevos:
                 RegistroAuditoria.objects.create(
                     modulo=modulo,
-                    accion="actualizar",
+                    # 'actualizar' -> 'EDITAR'. Este era el peor de los dos:
+                    # habia 884 ediciones guardadas como 'actualizar' y cero
+                    # como 'EDITAR', asi que filtrar por EDITAR devolvia nada
+                    # y parecia que nunca se hubiera modificado ningun dato.
+                    accion=canonica("actualizar"),
                     registro_id=str(instance.pk),
                     usuario=usuario,
                     datos_anteriores=datos_anteriores,
@@ -256,7 +299,12 @@ def auditar_eliminacion(sender, instance, **_kwargs):
     try:
         RegistroAuditoria.objects.create(
             modulo=sender.__name__.lower(),
-            accion="eliminar",
+            # 'eliminar' -> 'DESACTIVAR', igual que en post_save. Habia 3.390
+            # registros con el nombre legado; dar de baja una paciente se
+            # guardaba unas veces como 'eliminar' y otras como
+            # 'DESACTIVAR_PACIENTE', asi que ninguna consulta las encontraba
+            # todas.
+            accion=canonica("eliminar"),
             registro_id=str(instance.pk),
             usuario=get_current_user(),
             datos_anteriores=redactar_pii(serializar_instancia(instance)),

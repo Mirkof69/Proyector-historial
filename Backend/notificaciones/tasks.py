@@ -248,41 +248,42 @@ def notificar_backup_completado(backup_metadata):
 
 
 @shared_task(name="notificaciones.limpiar_notificaciones_antiguas")
-def limpiar_notificaciones_antiguas(dias=90):
-    """Eliminar notificaciones leídas más antiguas que X días
+def limpiar_notificaciones_antiguas(dias=90):  # noqa: ARG001 - firma publica ya usada por beat
+    """Borra las notificaciones rutinarias que ya no le sirven a nadie.
 
-    Args:
-        dias: Número de días de retención (default: 90)
+    Delega en `mantenimiento.borrar_archivadas_antiguas`. La versión anterior
+    filtraba por `leida=True AND archivada=True` y **borraba cero filas,
+    siempre**: como nada llegaba a archivarse nunca, la segunda condición no se
+    cumplía jamás. Medido sobre 15.698 notificaciones reales: 0 borradas.
 
+    El parámetro `dias` se conserva por compatibilidad con la programación de
+    Celery beat, pero la retención vive ahora en `mantenimiento.DIAS_PARA_BORRAR`,
+    para que sea la misma se llegue por Celery o por `manage.py`.
     """
-    logger.info("Limpiando notificaciones antiguas (%s días)", dias)
+    from .mantenimiento import borrar_archivadas_antiguas
 
-    fecha_corte = timezone.now() - timedelta(days=dias)
-
-    # Eliminar notificaciones leídas y archivadas antiguas
-    notificaciones_eliminadas = Notificacion.objects.filter(
-        leida=True, archivada=True, fecha_creacion__lte=fecha_corte,
-    ).delete()[0]
-
-    logger.info("Notificaciones eliminadas: %s", notificaciones_eliminadas)
-    return {"eliminadas": notificaciones_eliminadas}
+    eliminadas = borrar_archivadas_antiguas()
+    logger.info("Notificaciones eliminadas: %s", eliminadas)
+    return {"eliminadas": eliminadas}
 
 
 @shared_task(name="notificaciones.archivar_notificaciones_expiradas")
 def archivar_notificaciones_expiradas():
-    """Archivar automáticamente notificaciones que han expirado
+    """Archiva las notificaciones demasiado viejas para seguir avisando.
+
+    Delega en `mantenimiento.archivar_por_antiguedad`. La versión anterior
+    archivaba por `fecha_expiracion <= ahora` y **archivaba cero, siempre**:
+    ese campo es opcional y nada lo rellena. Medido: 0 de 15.698 lo tenían
+    puesto.
+
+    Ahora el criterio es la antigüedad, que se cumple sola, con ventanas
+    distintas según la prioridad.
     """
-    logger.info(" Archivando notificaciones expiradas")
+    from .mantenimiento import archivar_por_antiguedad
 
-    ahora = timezone.now()
-
-    # Archivar notificaciones expiradas que no están archivadas
-    notificaciones_archivadas = Notificacion.objects.filter(
-        archivada=False, fecha_expiracion__lte=ahora,
-    ).update(archivada=True)
-
-    logger.info("Notificaciones archivadas: %s", notificaciones_archivadas)
-    return {"archivadas": notificaciones_archivadas}
+    resultado = archivar_por_antiguedad()
+    logger.info("Notificaciones archivadas: %s", resultado["total"])
+    return {"archivadas": resultado["total"], "por_prioridad": resultado}
 
 
 @shared_task(name="notificaciones.recordatorios_controles_prenatales")

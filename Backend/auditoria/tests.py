@@ -33,36 +33,51 @@ class AuditoriaCrudTest(TestCase):
     """El CRUD de registros clínicos se audita automáticamente vía señales."""
 
     def test_crear_paciente_genera_auditoria(self):
+        # "CREAR", no "crear". Este test exigia el nombre antiguo, que era
+        # justamente el fallo: el signal escribia en minusculas saltandose
+        # `canonica()`, y convivian 17.929 'CREAR' con 15.681 'crear' para el
+        # mismo hecho. Quien filtrara por el nombre canonico se dejaba fuera
+        # casi la mitad de los registros.
         p = _paciente()
         reg = RegistroAuditoria.objects.filter(
-            accion="crear", registro_id=str(p.id),
+            accion="CREAR", registro_id=str(p.id),
         ).first()
         self.assertIsNotNone(reg, "Crear un paciente debe generar un registro de auditoría")
         self.assertIsNotNone(reg.fecha)  # cuándo
         self.assertTrue(reg.modulo)      # sobre qué módulo
 
-    def test_editar_paciente_genera_auditoria_actualizar(self):
+    def test_editar_paciente_genera_auditoria_editar(self):
+        # "EDITAR", no "actualizar". Era el peor de los dos nombres legados:
+        # habia 1.123 ediciones guardadas como 'actualizar' y CERO como
+        # 'EDITAR', asi que filtrar por el nombre canonico devolvia nada y
+        # parecia que nunca se hubiera modificado ningun dato de ninguna
+        # paciente.
         p = _paciente("AUD002")
         p.telefono = "77712345"
         p.save()
         self.assertTrue(
-            RegistroAuditoria.objects.filter(accion="actualizar", registro_id=str(p.id)).exists(),
+            RegistroAuditoria.objects.filter(accion="EDITAR", registro_id=str(p.id)).exists(),
         )
 
     def test_eliminar_paciente_genera_auditoria(self):
+        # "DESACTIVAR", no "eliminar". Habia 3.390 registros con el nombre
+        # legado, y dar de baja una paciente se guardaba unas veces como
+        # 'eliminar' y otras como 'DESACTIVAR_PACIENTE': ninguna consulta las
+        # encontraba todas.
         p = _paciente("AUD003")
         pid = p.id
         p.delete()
         self.assertTrue(
-            RegistroAuditoria.objects.filter(accion="eliminar", registro_id=str(pid)).exists(),
+            RegistroAuditoria.objects.filter(accion="DESACTIVAR", registro_id=str(pid)).exists(),
         )
 
     def test_auditoria_registra_accion_semantica_no_get(self):
-        """La acción registrada es semántica (crear/actualizar/eliminar), nunca
-        un verbo HTTP como GET."""
+        """La acción registrada es semántica (CREAR/EDITAR/DESACTIVAR), nunca
+        un verbo HTTP como GET, y siempre con el nombre canónico."""
         _paciente("AUD004")
         acciones = set(RegistroAuditoria.objects.values_list("accion", flat=True))
-        self.assertIn("crear", acciones)
+        self.assertIn("CREAR", acciones)
+        self.assertNotIn("crear", acciones)
         self.assertNotIn("GET", acciones)
         self.assertNotIn("get", acciones)
 
@@ -122,7 +137,7 @@ class AuditoriaPiiTest(TestCase):
 
     def test_pii_redactada_en_datos(self):
         p = _paciente("AUD005")
-        reg = RegistroAuditoria.objects.filter(accion="crear", registro_id=str(p.id)).first()
+        reg = RegistroAuditoria.objects.filter(accion="CREAR", registro_id=str(p.id)).first()
         self.assertIsNotNone(reg)
         datos = reg.datos_nuevos or {}
         # El CI real no debe quedar en claro en la auditoría.

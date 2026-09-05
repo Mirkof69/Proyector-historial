@@ -82,6 +82,38 @@ precisión ≥ 0,70». **Empeoró el sistema:** empujó `polihidramnios` y
 `macrosomia_fetal` a umbrales de 0,91 y 0,88, con precisión 1,000 y recall
 0,02 — detectores que no detectan. La F1 ponderada bajaba de 0,926 a 0,860.
 
+### Calibrar las 14 clases maximizando F1 — probada y **descartada**
+
+La segunda calibración que se prueba, y con el criterio que sí había
+funcionado. Si maximizar F1 arregló `polihidramnios` y `macrosomia_fetal`, la
+pregunta razonable es qué pasa aplicándolo a todas.
+
+Umbral buscado en `valid/` (2.893 imágenes), resultado medido en `test/`
+(2.911), que es la única forma de que la cifra signifique algo.
+
+Once de las catorce clases cambiaban de umbral, algunas mucho:
+`atresia_duodenal` 0,65 → 0,18, `muerte_fetal` 0,45 → 0,10,
+`preeclampsia_signos` 0,65 → 0,49.
+
+| Métrica sobre `test/` | Actual | Las 14 calibradas | Cambio |
+|---|---|---|---|
+| Precisión macro | **0,7417** | 0,7327 | −0,0091 |
+| Recall macro | 0,7343 | **0,7458** | +0,0115 |
+| F1 macro | 0,7368 | 0,7376 | +0,0009 |
+| F1 ponderada | **0,9307** | 0,9294 | −0,0013 |
+
+**No mejora.** La F1 macro sube 0,0009, que es ruido; la precisión macro baja
+casi el doble de lo que sube el recall. Lo que hace la calibración es mover el
+equilibrio entre precisión y recall, no mejorar el modelo — y en una clínica
+mover ese equilibrio hacia el recall significa más alertas falsas.
+
+Nota sobre las cifras: estas macro incluyen las dos clases sin ejemplos en
+`valid/` (`cardiopatia_congenita`, `no_ecografia`), que puntúan cero y tiran de
+la media hacia abajo. Por eso 0,7417 y no el 0,8477 del apartado anterior, que
+se calculó solo sobre las catorce con datos. **No son cifras comparables entre
+sí**; lo que importa aquí es la comparación de las dos columnas, que se
+calcularon igual.
+
 ### Aumento en tiempo de inferencia (TTA) — probado y **descartado**
 
 Promediar la predicción sobre la imagen y su espejo horizontal. Una ecografía

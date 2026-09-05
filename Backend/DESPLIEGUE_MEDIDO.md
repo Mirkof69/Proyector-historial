@@ -38,6 +38,72 @@ intento fallido.
 
 ---
 
+## Entrar desde otro equipo de la clínica
+
+Esto no funcionaba, y fallaba de la peor manera posible: con un **404**, que
+parece una dirección mal escrita en vez de lo que era.
+
+El sistema es multi-tenant. Cada clínica vive en su propio esquema de base de
+datos, y django-tenants decide a cuál entrar **mirando la dirección por la que
+llegó la petición**. Esa correspondencia vive en una tabla, y el 5 de
+septiembre de 2026 esa tabla tenía exactamente dos filas:
+
+    localhost   -> clinica_demo
+    127.0.0.1   -> clinica_demo
+
+Las dos apuntan al mismo ordenador. Es decir, el sistema funcionaba
+**únicamente en la máquina donde corre**. Desde el equipo de recepción o el del
+consultorio, `http://192.168.0.6:8000` devolvía 404 siempre.
+
+### Los tres pasos, y hacen falta los tres
+
+**1. Registrar la dirección como dominio de la clínica**
+
+```
+python manage.py registrar_dominio --detectar-ip --tenant clinica_demo
+```
+
+`--detectar-ip` averigua la IP de este equipo en la red local. Si la red usa
+DHCP y la IP cambia, se vuelve a ejecutar. Para ver lo que hay registrado:
+`python manage.py registrar_dominio --listar`.
+
+**2. Añadir la misma dirección al `.env`**
+
+```
+ALLOWED_HOSTS=localhost,127.0.0.1,192.168.0.6,clinica-demo.localhost,clinica-demo.127.0.0.1
+CORS_ALLOWED_ORIGINS=...,http://192.168.0.6:3000,http://192.168.0.6:3100
+CSRF_TRUSTED_ORIGINS=...,http://192.168.0.6:3000,http://192.168.0.6:3100
+```
+
+Sin esto Django rechaza la petición antes de llegar al enrutador de tenants,
+así que el paso 1 por sí solo no basta.
+
+**3. Escuchar en todas las interfaces**
+
+```
+python -m uvicorn asgi:application --host 0.0.0.0 --port 8000 --workers 8
+```
+
+Con `--host 127.0.0.1` el servidor solo acepta conexiones de la propia máquina,
+por muy bien configurado que esté todo lo demás.
+
+### Verificado
+
+Con los tres pasos aplicados, medido contra el servidor real:
+
+| Dirección | Antes | Ahora |
+|---|---|---|
+| `127.0.0.1:8034` | 401 (correcto, sin sesión) | 401 |
+| `localhost:8034` | 401 | 401 |
+| `192.168.0.6:8034` | **404** | **401** |
+
+Y un inicio de sesión completo por la IP de red: **200 en 1,0 s**.
+
+El 401 es la respuesta correcta: significa «te reconozco, pero no has iniciado
+sesión». El 404 significaba «no sé de qué clínica me hablas».
+
+---
+
 ## El requisito de 150 altas por minuto
 
 Medido aparte, porque el perfil de uso normal no lo prueba: hay que empujar

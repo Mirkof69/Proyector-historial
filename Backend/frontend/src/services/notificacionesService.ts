@@ -30,7 +30,34 @@ function normalizeListResponse<T>(data: any): T[] {
   return [];
 }
 
+/** Lo que la campana del encabezado necesita saber, y nada más. */
+export interface ResumenNotificaciones {
+  /** Cuántas hay pendientes en total. El número del badge. */
+  pendientes: number;
+  /** De ésas, cuántas son urgentes o críticas. */
+  urgentes: number;
+  /** Las últimas, para el desplegable. */
+  ultimas: Notificacion[];
+}
+
 export const notificacionesService = {
+  /**
+   * Resumen para la campana: dos consultas y unos cientos de bytes.
+   *
+   * Antes la campana se refrescaba con `listar()`, que trae la lista completa:
+   * 55 KB y 2,2 s por refresco, cada 30 s y por cada usuaria. Y el contador
+   * salía mal, porque `listar()` viene paginado de 200 en 200 y contar sobre
+   * la página recibida topaba el badge en 200 aunque hubiera miles.
+   */
+  async resumen(): Promise<ResumenNotificaciones> {
+    const response = await api.get<ResumenNotificaciones>('/notificaciones/resumen/');
+    return {
+      pendientes: response.data?.pendientes ?? 0,
+      urgentes: response.data?.urgentes ?? 0,
+      ultimas: Array.isArray(response.data?.ultimas) ? response.data.ultimas : [],
+    };
+  },
+
   async listar(): Promise<Notificacion[]> {
     try {
       const response = await api.get<Notificacion[]>('/notificaciones/');

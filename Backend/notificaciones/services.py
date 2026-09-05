@@ -580,10 +580,31 @@ def resolver_destinatarios(preferido) -> list:
     return admins
 
 
+#: Prioridades cuya notificación deja rastro inmutable en la auditoría.
+#:
+#: El rastro existe por un motivo legal concreto: si una paciente sufre un daño
+#: y hubo un valor crítico que nadie atendió, hay que poder demostrar que el
+#: sistema avisó, a quién y cuándo. Eso vale para una alerta crítica; no vale
+#: para «Paciente Registrada» ni para un recordatorio de control.
+#:
+#: Auditarlas TODAS costaba 17.929 registros —el 43,3% de la tabla de
+#: auditoría, medido el 5 de septiembre de 2026—. De las 15.694 notificaciones
+#: pendientes, 14.612 eran de prioridad normal o baja: puro volumen sin ningún
+#: valor probatorio, enterrando justo las 1.082 que sí lo tenían.
+PRIORIDADES_QUE_DEJAN_RASTRO = ("alta", "urgente", "critica")
+
+
 def _auditar_notificacion(destinatarios, *, tipo, prioridad, titulo,
                           entidad_id, fue_fallback) -> None:
     """Deja rastro inmutable de a quién se avisó y cuándo (exigible ante un valor
-    crítico no atendido a tiempo)."""
+    crítico no atendido a tiempo).
+
+    Solo para las prioridades de `PRIORIDADES_QUE_DEJAN_RASTRO`. Las rutinarias
+    se siguen creando y mostrando igual; simplemente no generan una fila de
+    auditoría que nadie va a consultar nunca.
+    """
+    if str(prioridad) not in PRIORIDADES_QUE_DEJAN_RASTRO:
+        return
     try:
         from auditoria.models import RegistroAuditoria
     except Exception:

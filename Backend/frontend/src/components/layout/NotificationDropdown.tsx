@@ -9,7 +9,8 @@
 import React, { useState } from 'react';
 import { Badge, Dropdown, List, Button, Typography, Space, Tag, Empty, Spin } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
-import { notificacionesService, Notificacion } from '../../services/notificacionesService';
+import { Notificacion } from '../../services/notificacionesService';
+import { useNotifications } from '../../contexts/NotificationsContext';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/es';
@@ -39,51 +40,42 @@ const getTipoIcon = (tipo: string): string => {
   return icons[tipo] || '📢';
 };
 
+/**
+ * La campana del encabezado.
+ *
+ * Antes este componente cargaba las notificaciones SOLO al abrir el
+ * desplegable, y el número del badge salía de contar esa lista. Como la lista
+ * empezaba vacía, **el badge mostraba 0 hasta que alguien hacía clic**: la
+ * campana no avisaba de nada. Había que abrirla para enterarse de que había
+ * una alerta médica esperando, que es justo lo contrario de para lo que sirve.
+ *
+ * Ahora se alimenta del contexto de notificaciones, que ya trae el conteo del
+ * servidor desde que carga la página y lo actualiza por WebSocket en cuanto
+ * llega algo nuevo. El desplegable no pide nada al abrirse: lo que muestra ya
+ * está cargado.
+ */
 const NotificationDropdown: React.FC = () => {
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-
-  const cargarNotificaciones = async () => {
-    setLoading(true);
-    try {
-      const data = await notificacionesService.listar();
-      setNotificaciones(data.slice(0, 10));
-    } catch (error) {
-      console.error('Error cargando notificaciones:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    notifications: notificaciones,
+    unreadCount: noLeidas,
+    urgentCount: urgentes,
+    loading,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    if (nextOpen) {
-      cargarNotificaciones();
-    }
   };
 
   const handleMarcarLeida = async (id: number) => {
-    try {
-      await notificacionesService.marcarLeida(id);
-      setNotificaciones((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
-      );
-    } catch (error) {
-      console.error('Error marcando como leída:', error);
-    }
+    await markAsRead(id);
   };
 
   const handleMarcarTodasLeidas = async () => {
-    try {
-      await notificacionesService.marcarTodasLeidas();
-      setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
-    } catch (error) {
-      console.error('Error marcando todas como leídas:', error);
-    }
+    await markAllAsRead();
   };
-
-  const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
   const menuContent = (
     <div style={{ width: 380, maxHeight: 500, overflow: 'auto' }}>
@@ -163,11 +155,21 @@ const NotificationDropdown: React.FC = () => {
         {noLeidas > 0 && (
           <Badge
             count={noLeidas}
+            // `overflowCount` porque el numero real puede ser de miles: sin
+            // esto el badge escribe "7135" encima del icono y lo deforma.
+            overflowCount={99}
+            // Rojo si hay alguna urgente o critica; naranja si solo hay
+            // pendientes normales. El color dice si hay que mirar AHORA.
+            title={
+              urgentes > 0
+                ? `${noLeidas} pendientes, ${urgentes} urgentes`
+                : `${noLeidas} pendientes`
+            }
             style={{
               position: 'absolute',
               top: -4,
               right: -4,
-              backgroundColor: '#ff4d4f',
+              backgroundColor: urgentes > 0 ? '#ff4d4f' : '#fa8c16',
             }}
           />
         )}

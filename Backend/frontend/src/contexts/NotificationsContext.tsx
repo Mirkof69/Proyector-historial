@@ -31,8 +31,12 @@ const getWebSocketUrl = (): string => {
 };
 
 interface NotificationsContextType {
+    /** Las últimas pendientes, para el desplegable de la campana. */
     notifications: Notificacion[];
+    /** Cuántas hay pendientes EN TOTAL, no cuántas se descargaron. */
     unreadCount: number;
+    /** De ésas, cuántas son urgentes o críticas. */
+    urgentCount: number;
     loading: boolean;
     refreshNotifications: (silent?: boolean) => Promise<void>;
     markAsRead: (id: number) => Promise<void>;
@@ -49,9 +53,29 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
     const [notifications, setNotifications] = useState<Notificacion[]>([]);
     const [loading, setLoading] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [urgentCount, setUrgentCount] = useState(0);
     const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+    /**
+     * Si el WebSocket está vivo, el sondeo sobra: el servidor avisa solo.
+     * Antes ambos corrían a la vez, así que cada usuaria pagaba el sondeo
+     * completo cada 30 s aunque el tiempo real ya estuviera funcionando.
+     */
+    const wsConectado = useRef(false);
     const { isAuthenticated } = useAuth();
 
+    /**
+     * Refresca la campana con el resumen del servidor.
+     *
+     * Antes esto llamaba a `listar()`, la lista completa. Medido contra el
+     * servidor real, con una médica que tenía 7.136 notificaciones acumuladas:
+     * 55 KB y 2,2 s por refresco, cada 30 s y por cada usuaria. Con cien
+     * personas trabajando, unas siete peticiones ocupadas de forma permanente
+     * en pintar un número.
+     *
+     * Y el número salía mal: `listar()` viene paginado de 200 en 200, así que
+     * contar `!leida` sobre lo recibido topaba el badge en 200 aunque hubiera
+     * 7.135 pendientes. El servidor ahora manda el conteo ya hecho.
+     */
     const refreshNotifications = useCallback(async (silent = false) => {
         try {
             // ✅ AUTHENTICATION FIX: Verificar que hay token antes de intentar cargar
@@ -64,18 +88,11 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
                 setLoading(true);
             }
 
-            const data = await notificacionesService.listar();
+            const resumen = await notificacionesService.resumen();
 
-            // Sort by creation date (newest first)
-            const sorted = data.sort((a, b) =>
-                new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime()
-            );
-
-            setNotifications(sorted);
-
-            // Count unread notifications
-            const unread = data.filter(n => !n.leida).length;
-            setUnreadCount(unread);
+            setNotifications(resumen.ultimas);
+            setUnreadCount(resumen.pendientes);
+            setUrgentCount(resumen.urgentes);
         } catch (error: any) {
             // ✅ AUTHENTICATION FIX: Solo mostrar error si NO es 401
             if (error?.response?.status !== 401 && error?.message !== 'No refresh token available') {
@@ -142,6 +159,7 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
 
                 ws.onopen = () => {
                     wsRetryRef.current = 0;
+                    wsConectado.current = true;
                 };
 
                 ws.onmessage = (event) => {
@@ -158,6 +176,8 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
 
                 ws.onclose = (event) => {
                     wsRef.current = null;
+                    // Se cayo el tiempo real: el sondeo vuelve a hacer falta.
+                    wsConectado.current = false;
                     // 4001 = token inválido: no reintentar hasta re-login
                     if (disposed || event.code === 4001) return;
                     // Backoff exponencial con tope de 60s
@@ -195,20 +215,30 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
         // Initial load (con autenticación válida)
         refreshNotifications();
 
-        // ✅ SINGLE POLLING INTERVAL for entire application
-        // Poll every 30 seconds (instead of every 10 seconds to reduce server load)
+        // Sondeo de respaldo, SOLO si el WebSocket no está conectado.
+        //
+        // Antes el sondeo corría siempre, en paralelo al tiempo real, así que
+        // cada usuaria pedía la lista completa cada 30 s aunque el servidor ya
+        // le estuviera avisando de cada novedad. Ahora, con el WS vivo, el
+        // sondeo no hace ninguna petición: el tick comprueba y no llama.
+        //
+        // El intervalo sube a 60 s porque ya no es la vía principal, es la red
+        // de seguridad para cuando el tiempo real no está disponible.
         pollingInterval.current = setInterval(() => {
-            // Verificar autenticación antes de cada polling
-            if (isAuthenticated) {
-                refreshNotifications(true); // Silent refresh
-            } else {
+            if (!isAuthenticated) {
                 // Usuario deslogueado - detener polling
                 if (pollingInterval.current) {
                     clearInterval(pollingInterval.current);
                     pollingInterval.current = null;
                 }
+                return;
             }
-        }, 30000); // 30 segundos
+            if (wsConectado.current) {
+                // El tiempo real ya cubre esto. No pedir nada.
+                return;
+            }
+            refreshNotifications(true); // Silent refresh
+        }, 60000);
 
         // Cleanup on unmount
         return () => {
@@ -222,11 +252,12 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
     const contextValue = useMemo(() => ({
         notifications,
         unreadCount,
+        urgentCount,
         loading,
         refreshNotifications,
         markAsRead,
         markAllAsRead
-    }), [notifications, unreadCount, loading, refreshNotifications, markAsRead, markAllAsRead]);
+    }), [notifications, unreadCount, urgentCount, loading, refreshNotifications, markAsRead, markAllAsRead]);
 
     return (
         <NotificationsContext.Provider
