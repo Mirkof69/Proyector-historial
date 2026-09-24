@@ -83,7 +83,8 @@ def analyze_ultrasound_with_ai(request):
 
     Request:
         - file: Archivo de imagen (DICOM, JPG, PNG)
-        - ecografia_id: ID de la ecografía (opcional)
+        - ecografia_id: ID de la imagen del módulo IA (ia_medica.ImagenEcografica),
+          no de una ecografía clínica; el nombre se mantiene por compatibilidad.
 
     Returns:
         - Análisis completo de IA
@@ -140,24 +141,11 @@ def analyze_ultrasound_with_ai(request):
         if ai_response.status_code == 200:
             ai_results = ai_response.json()
 
-            # Guardar resultados en la imagen ecográfica (si se provee ID)
-            if ecografia_id:
-                try:
-                    from .models import ImagenEcografia
-
-                    imagen = (
-                        ImagenEcografia.objects.filter(ecografia_id=ecografia_id)
-                        .order_by("-fecha_captura")
-                        .first()
-                    )
-                    if imagen:
-                        imagen.analisis_ia = ai_results
-                        imagen.save(update_fields=["analisis_ia"])
-                except Exception as ex:
-                    logger.exception(
-                        "Error al guardar resultados IA en AnalisisCNN para ia_medica.ImagenEcografica id=%s: %s",
-                        ecografia_id, ex,
-                    )
+            # `ecografia_id` es el id de una ia_medica.ImagenEcografica (así lo
+            # envía la pantalla de IA Médica, la única que llama aquí). Antes se
+            # usaba ADEMÁS como id de ecografias.Ecografia para escribir
+            # `analisis_ia` en sus imágenes: con ids coincidentes, el análisis
+            # acababa en la ecografía de otra paciente. Ese guardado se quitó.
 
             # Guardar resultados en ia_medica.ImagenEcografica / AnalisisCNN
             if ecografia_id:
