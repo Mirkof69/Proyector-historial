@@ -66,6 +66,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     created_by_display = serializers.SerializerMethodField()
     updated_by_display = serializers.SerializerMethodField()
+    datacion = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -96,6 +97,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             "updated_by",
             "created_by_display",
             "updated_by_display",
+            "datacion",
             # ✅ ALIAS PARA FRONTEND
             "partos_previos",
             "cesareas_previas",
@@ -284,6 +286,12 @@ class EmbarazoSerializer(serializers.ModelSerializer):
                 "fecha": obj.fecha_registro.isoformat() if obj.fecha_registro else None,
             }
         return None
+
+    def get_datacion(self, obj):
+        """FUM frente a la primera ecografía (regla ACOG de redatación)."""
+        from .datacion import datacion
+
+        return datacion(obj)
 
     def get_updated_by_display(self, obj):
         """✅ TRAZABILIDAD: Información del usuario que actualizó el registro"""

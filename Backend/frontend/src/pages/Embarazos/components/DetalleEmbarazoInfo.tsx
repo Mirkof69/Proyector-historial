@@ -98,6 +98,29 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
         </Space>
       </Descriptions.Item>
 
+      {embarazo.datacion && (
+        <Descriptions.Item label={<><CalendarOutlined /> Datación por ecografía</>}>
+          {embarazo.datacion.redatar ? (
+            <Space direction="vertical" size={0}>
+              <Space>
+                <Tag color="warning">Redatar</Tag>
+                <Text strong>FPP corregida: {dayjs(embarazo.datacion.fpp_corregida).format('DD/MM/YYYY')}</Text>
+              </Space>
+              <Text type="secondary">
+                La ecografía del {dayjs(embarazo.datacion.fecha_ecografia).format('DD/MM/YYYY')} difiere{' '}
+                {Math.abs(embarazo.datacion.diferencia_dias)} días de la FUM (umbral {embarazo.datacion.umbral_dias} días,{' '}
+                {embarazo.datacion.criterio}).
+              </Text>
+            </Space>
+          ) : (
+            <Text type="secondary">
+              Concuerda con la FUM (diferencia {Math.abs(embarazo.datacion.diferencia_dias)} días, umbral{' '}
+              {embarazo.datacion.umbral_dias}).
+            </Text>
+          )}
+        </Descriptions.Item>
+      )}
+
       {/* EDAD GESTACIONAL */}
       <Descriptions.Item label="Edad Gestacional Actual" span="filled">
         <Space size="large">

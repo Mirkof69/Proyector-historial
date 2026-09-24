@@ -66,7 +66,7 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
 
     # ✅ OPTIMIZACIÓN: Solo select_related (sin prefetch que causa error)
     queryset = (
-        Embarazo.objects.select_related("paciente").prefetch_related("partos")
+        Embarazo.objects.select_related("paciente").prefetch_related("partos", "ecografias")
         .all().order_by("-fecha_registro")
     )
 

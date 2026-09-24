@@ -63,7 +63,22 @@ interface MedicoInfo {
   codigo_profesional?: string;
 }
 
+/** FUM frente a la primera ecografía (regla ACOG de redatación). */
+export interface DatacionEmbarazo {
+  ecografia_id: number;
+  fecha_ecografia: string;
+  eg_por_fum_dias: number;
+  eg_por_ecografia_dias: number;
+  diferencia_dias: number;
+  umbral_dias: number;
+  redatar: boolean;
+  fpp_por_fum: string;
+  fpp_corregida: string;
+  criterio: string;
+}
+
 export interface Embarazo {
+  datacion?: DatacionEmbarazo | null;
   // Identificación
   id?: number;
   uuid?: string;
