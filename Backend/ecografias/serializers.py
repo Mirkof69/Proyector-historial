@@ -269,6 +269,35 @@ class ImagenEcografiaSerializer(serializers.ModelSerializer):
         return None
 
 
+def validar_coherencia_ecografia(attrs, instancia=None):
+    """Fecha y paciente coherentes con el embarazo.
+
+    Antes se aceptaba una ecografía con fecha futura, anterior a la FUM, o de
+    una paciente colgada del embarazo de otra (la historia clínica de las dos
+    quedaba mezclada). En ediciones parciales, lo que no llega se toma de la
+    ecografía guardada.
+    """
+    from django.utils import timezone
+
+    def valor(campo):
+        if campo in attrs:
+            return attrs[campo]
+        return getattr(instancia, campo, None) if instancia is not None else None
+
+    fecha, embarazo, paciente = valor("fecha_ecografia"), valor("embarazo"), valor("paciente")
+    errores = {}
+    if fecha and fecha > timezone.localdate():
+        errores["fecha_ecografia"] = "La fecha de la ecografía no puede ser futura."
+    if embarazo is not None:
+        if paciente is not None and embarazo.paciente_id != getattr(paciente, "pk", paciente):
+            errores["paciente"] = "La paciente no es la del embarazo seleccionado."
+        fum = embarazo.fecha_ultima_menstruacion
+        if fecha and fum and fecha < fum:
+            errores["fecha_ecografia"] = "La ecografía no puede ser anterior a la fecha de última menstruación."
+    if errores:
+        raise serializers.ValidationError(errores)
+
+
 class EcografiaSerializer(serializers.ModelSerializer):
     """Serializer completo para Ecografía"""
 
@@ -463,6 +492,7 @@ class EcografiaSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Validaciones adicionales"""
+        validar_coherencia_ecografia(attrs, getattr(self, "instance", None))
         # Validar que el embarazo esté activo
         if "embarazo" in attrs:
             embarazo = attrs["embarazo"]
@@ -687,6 +717,7 @@ class EcografiaCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Validaciones completas"""
+        validar_coherencia_ecografia(attrs, getattr(self, "instance", None))
         # Validar embarazo activo
         if "embarazo" in attrs:
             if attrs["embarazo"].estado != "activo":
