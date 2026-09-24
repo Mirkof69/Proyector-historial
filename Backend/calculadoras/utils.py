@@ -460,81 +460,56 @@ class CalculadorasObstetricas:
 
     @staticmethod
     def calcular_peso_fetal(
-        dbp: Decimal, _cc: Decimal, ca: Decimal, lf: Decimal, semanas_gestacion: int,
+        dbp: Decimal, cc: Decimal, ca: Decimal, lf: Decimal, semanas_gestacion: int,
     ) -> dict:
-        """Estima peso fetal usando fórmula de Hadlock
+        """Estima el peso fetal y su percentil a partir de la biometria.
 
-        Fórmula de Hadlock:
-            pass
-        log10(PF) = 1.335 - 0.0034(CA)(LF) + 0.0316(DBP) + 0.0457(CA) + 0.1623(LF)
+        Todas las medidas en MILIMETROS, que es como las guarda el sistema
+        (`BiometriaFetal`, verbose_name="DBP (mm)") y como las escribe el
+        ecografo. La conversion a centimetros que pide la formula de Hadlock
+        se hace dentro de `ecografias.peso_fetal`.
 
-        Donde:
-            pass
-        - DBP: Diámetro Biparietal (mm)
-        - CA: Circunferencia Abdominal (mm)
-        - LF: Longitud del Fémur (mm)
-        - CC: Circunferencia Cefálica (mm)
+        Usa la formula de 4 parametros si viene la circunferencia cefalica, y
+        la de 3 si no.
 
-        Returns:
-            dict con peso_estimado, percentil, clasificacion
+        Devuelve un dict con `peso_estimado` (gramos), `percentil`,
+        `clasificacion` y `clasificacion_texto`. Si faltan medidas o el
+        resultado no es fisiologico, `peso_estimado` viene a None y
+        `clasificacion` como "desconocido".
 
+        Que cambio y por que
+        --------------------
+        Esta funcion tenia la formula escrita aqui y su docstring decia que
+        las medidas iban en milimetros, cuando en realidad las consumia en
+        CENTIMETROS -- su propio test la alimentaba con 8,5 / 31,0 / 30,0 / 6,5
+        contradiciendo a la documentacion. Nadie la llamaba, asi que el error
+        no se notaba.
+
+        El "percentil" tampoco era un percentil: era una tabla de nueve pesos
+        medios con `.get(semanas, 3000)` por defecto, y una clasificacion por
+        multiplos de 0,9 y 1,1 que solo podia devolver 10, 50 o 90. Ahora sale
+        de los percentiles publicados de Hadlock 1991.
         """
-        dbp_val = float(dbp)
-        ca_val = float(ca)
-        lf_val = float(lf)
-
-        # Fórmula de Hadlock (simplificada)
-        log_peso = (
-            1.335
-            - 0.0034 * ca_val * lf_val
-            + 0.0316 * dbp_val
-            + 0.0457 * ca_val
-            + 0.1623 * lf_val
+        from ecografias.peso_fetal import (
+            clasificar_crecimiento,
+            estimar_peso_fetal,
+            percentil_peso_fetal,
         )
 
-        peso_estimado = 10**log_peso
+        peso_estimado = estimar_peso_fetal(dbp, cc, ca, lf)
+        if peso_estimado is None:
+            return {
+                "peso_estimado": None,
+                "percentil": None,
+                "clasificacion": "desconocido",
+                "clasificacion_texto": "Faltan medidas o no son fisiologicas",
+            }
 
-        # Estimación de percentil basado en tablas de referencia (simplificado)
-        # Peso promedio por semana (aproximado)
-        pesos_referencia = {
-            20: 300,
-            24: 600,
-            28: 1000,
-            30: 1300,
-            32: 1700,
-            34: 2100,
-            36: 2600,
-            38: 3000,
-            40: 3400,
-        }
-
-        # Obtener peso de referencia más cercano
-        peso_ref = pesos_referencia.get(semanas_gestacion, 3000)
-
-        # Calcular percentil aproximado
-        if peso_estimado < peso_ref * 0.9:
-            percentil = 10
-            if peso_estimado < peso_ref * 0.7:
-                clasificacion = "rciu"
-                clasificacion_texto = "Restricción de Crecimiento Intrauterino"
-            else:
-                clasificacion = "peg"
-                clasificacion_texto = "Pequeño para Edad Gestacional"
-        elif peso_estimado > peso_ref * 1.1:
-            percentil = 90
-            if peso_estimado > peso_ref * 1.2 or peso_estimado > 4000:
-                clasificacion = "macrosomia"
-                clasificacion_texto = "Macrosomía Fetal"
-            else:
-                clasificacion = "geg"
-                clasificacion_texto = "Grande para Edad Gestacional"
-        else:
-            percentil = 50
-            clasificacion = "aeg"
-            clasificacion_texto = "Adecuado para Edad Gestacional"
+        percentil = percentil_peso_fetal(peso_estimado, semanas_gestacion)
+        clasificacion, clasificacion_texto = clasificar_crecimiento(percentil)
 
         return {
-            "peso_estimado": round(peso_estimado, 2),
+            "peso_estimado": peso_estimado,
             "percentil": percentil,
             "clasificacion": clasificacion,
             "clasificacion_texto": clasificacion_texto,

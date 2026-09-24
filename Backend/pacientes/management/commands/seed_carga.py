@@ -336,6 +336,11 @@ class Command(BaseCommand):
     def _crear_paciente_completo(self, i: int, completo: bool, etiqueta: str):
         from antecedentes.models import AntecedenteGinecoObstetrico
         from controles.models import ControlPrenatal
+        from core.simulacion.curvas_obstetricas import (
+            simular_biometria,
+            sortear_semanas_al_parto,
+            sortear_z_tamano,
+        )
         from ecografias.models import BiometriaFetal, Ecografia
         from embarazos.models import Embarazo
         from pacientes.models import Paciente
@@ -407,7 +412,26 @@ class Command(BaseCommand):
         )
 
         # ── Embarazo ──
-        semanas_actuales = random.randint(6, 40)
+        #
+        # El desenlace se decide ANTES de fijar la fecha de la ultima
+        # menstruacion, y no despues. Es la unica forma de que la distribucion
+        # de edades gestacionales al parto sea realista.
+        #
+        # Si se sortea primero "por que semana va el embarazo" (uniforme 6-40) y
+        # luego se recorta el parto a esa semana, sale un 59% de prematuros:
+        # un embarazo que va por la semana 30 solo puede parir antes de la 30.
+        # Medido asi, con un 47% de recien nacidos de bajo peso. Irreal.
+        #
+        # Asi que: los embarazos que terminan en parto reciben una edad
+        # gestacional de parto sorteada de la distribucion real (~10% de
+        # pretermino) y su FUM se calcula hacia atras desde ahi. Los que siguen
+        # activos se reparten por todo el embarazo, que es lo que se ve en una
+        # consulta cualquiera.
+        termina_en_parto = completo and random.random() < 0.30
+        if termina_en_parto:
+            semanas_actuales = sortear_semanas_al_parto(random)
+        else:
+            semanas_actuales = random.randint(6, 40)
         fum = hoy - timedelta(weeks=semanas_actuales)
         # gestas ya incluye el embarazo actual
         embarazo = Embarazo.objects.create(
@@ -423,6 +447,12 @@ class Command(BaseCommand):
             medico_responsable=self.medico,
             notas=f"{MARCA_CARGA} {etiqueta}",
         )
+
+        # Un SOLO factor de tamano fetal por embarazo. Es lo que hace que la
+        # biometria de las ecografias y el peso al nacer del MISMO feto esten
+        # correlacionados. Antes eran sorteos independientes y la correlacion
+        # era exactamente cero: ver core/simulacion/curvas_obstetricas.py.
+        z_fetal = sortear_z_tamano(random)
 
         if not completo:
             # Los "editables" quedan aquí: paciente + antecedentes + embarazo.
@@ -488,13 +518,20 @@ class Command(BaseCommand):
                 observaciones=f"{MARCA_CARGA} ecografía {e + 1}",
             )
             if sem_eco >= 12:
+                # Biometria derivada de la edad gestacional y del tamano del
+                # feto, no sorteada suelta. Antes `_rango(20, 95)` podia dar un
+                # DBP de 95 mm a un feto de 12 semanas.
+                medidas = simular_biometria(sem_eco, z_tamano=z_fetal, rng=random)
                 BiometriaFetal.objects.create(
                     ecografia=eco,
-                    diametro_biparietal=_rango(20, 95),
-                    circunferencia_cefalica=_rango(80, 350),
-                    circunferencia_abdominal=_rango(60, 350),
-                    longitud_femur=_rango(10, 75),
-                    peso_fetal_estimado=random.randint(100, 3800),
+                    diametro_biparietal=medidas["dbp"],
+                    circunferencia_cefalica=medidas["cc"],
+                    circunferencia_abdominal=medidas["ca"],
+                    longitud_femur=medidas["lf"],
+                    # peso_fetal_estimado NO se pasa a proposito: lo calcula
+                    # `BiometriaFetal.save()` con Hadlock. Antes se sembraba con
+                    # `random.randint(100, 3800)`, que no tenia relacion con las
+                    # medidas -- error medio de 1.312 g contra la formula.
                 )
 
         # ── Vacunas ──
@@ -534,14 +571,34 @@ class Command(BaseCommand):
                 observaciones=f"{MARCA_CARGA} panel prenatal",
             )
 
-        # ── Desenlace: parto o pérdida (solo si el embarazo está a término) ──
-        if semanas_actuales >= 37 and random.random() < 0.7:
-            self._crear_parto(paciente, embarazo, fum, semanas_actuales)
+        # ── Desenlace: parto o pérdida ──
+        #
+        # Antes esto era `if semanas_actuales >= 37`, asi que TODOS los partos
+        # salian a termino y el dataset no tenia ninguna variacion de edad
+        # gestacional -- que es el predictor mas fuerte del peso al nacer.
+        # Ahora, si el embarazo ya paso de la semana 28, se sortea una edad
+        # gestacional de parto realista (con ~10% de pretermino) que no supere
+        # la semana en la que va el embarazo.
+        if termina_en_parto:
+            self._crear_parto(
+                paciente, embarazo, fum, semanas_actuales, z_fetal=z_fetal,
+            )
         elif semanas_actuales < 20 and random.random() < 0.08:
             embarazo.estado = "perdida"
             embarazo.save(update_fields=["estado"])
 
-    def _crear_parto(self, paciente, embarazo, fum, semanas):
+    def _crear_parto(self, paciente, embarazo, fum, semanas, *, z_fetal=0.0):
+        """Crea el parto y sus recien nacidos, con medidas coherentes.
+
+        `z_fetal` es el factor de tamano del feto, el MISMO que se uso para la
+        biometria de las ecografias de este embarazo. Es lo que liga el peso al
+        nacer con lo que se midio antes por ecografia.
+        """
+        from core.simulacion.curvas_obstetricas import (
+            simular_apgar,
+            simular_peso_nacimiento,
+            simular_talla_y_perimetro,
+        )
         from partos.models import Parto, RecienNacido
 
         self._contador_parto += 1
@@ -563,17 +620,46 @@ class Command(BaseCommand):
             observaciones_parto=f"{MARCA_CARGA}",
         )
         gemelos = 2 if embarazo.tipo_embarazo == "gemelar" else 1
+        es_gemelar = gemelos > 1
+        imc_materna = float(paciente.imc) if paciente.imc else 24.0
+
         for n in range(gemelos):
+            sexo = random.choice(["masculino", "femenino"])
+            # Los gemelos comparten tamano pero no son identicos: se desplaza
+            # ligeramente la z de cada uno.
+            z_este = z_fetal + (0.0 if n == 0 else random.gauss(0, 0.4))
+
+            # El peso sale de la edad gestacional, del tamano del feto y de las
+            # variables maternas. Antes era `random.randint(1800, 4200)` dentro
+            # de esta misma funcion, que YA recibia `semanas` y no la usaba:
+            # la correlacion peso-edad gestacional valia exactamente cero.
+            peso = simular_peso_nacimiento(
+                semanas_parto=semanas,
+                z_tamano=z_este,
+                imc_materno=imc_materna,
+                paridad=embarazo.numero_para,
+                gemelar=es_gemelar,
+                sexo=sexo,
+                rng=random,
+            )
+            # Talla y perimetro derivan del peso; antes eran sorteos aparte y
+            # un bebe de 1.800 g podia medir 54 cm.
+            talla, perimetro = simular_talla_y_perimetro(peso, random)
+            # El Apgar de 5 minutos se deriva del de 1 y nunca es menor.
+            apgar_1, apgar_5 = simular_apgar(
+                semanas_parto=semanas, peso_g=peso, rng=random,
+            )
+
             RecienNacido.objects.create(
                 parto=parto,
                 numero_gemelo=n + 1,
                 fecha_nacimiento=fecha_parto,
-                sexo=random.choice(["masculino", "femenino"]),
-                peso_nacimiento=random.randint(1800, 4200),
-                talla_nacimiento=_rango(42, 54, 1),
-                perimetro_cefalico=_rango(30, 38, 1),
-                apgar_1_minuto=random.choices([9, 8, 7, 6, 4], [50, 25, 15, 7, 3])[0],
-                apgar_5_minutos=random.choices([10, 9, 8, 7], [55, 30, 12, 3])[0],
+                sexo=sexo,
+                peso_nacimiento=peso,
+                talla_nacimiento=talla,
+                perimetro_cefalico=perimetro,
+                apgar_1_minuto=apgar_1,
+                apgar_5_minutos=apgar_5,
                 observaciones_rn=f"{MARCA_CARGA}",
             )
         embarazo.estado = "finalizado"

@@ -206,32 +206,57 @@ class BiometriaFetalModelTest(TestCase):
         self.assertIsNotNone(biometria.relacion_lf_ca)
 
     def test_calcular_peso_fetal_hadlock(self):
-        """Test Hadlock fetal weight calculation."""
-        # The Hadlock formula works with cm values, not mm.
-        # For a ~20 week fetus: BPD~4.8cm, HC~17.7cm, AC~15.4cm, FL~3.3cm
+        """El peso de un feto de ~20 semanas sale en su rango, desde MILIMETROS.
+
+        ESPERADO: entre 250 y 450 g para DBP 48 / CC 177 / CA 154 / LF 33 mm.
+
+        Este test pasaba centimetros (4.8 / 17.7 / 15.4 / 3.3) con un
+        comentario que decia "The Hadlock formula works with cm values, not
+        mm" -- describiendo el fallo como si fuera el diseno. La base guarda
+        milimetros; alguien choco con esto y adapto la prueba en vez de
+        arreglar el codigo.
+
+        Y la asercion era `if peso is not None: assertTrue(peso > 0)`, o sea
+        un test que NO PODIA FALLAR NUNCA: si el peso venia None, no
+        comprobaba nada. Medido sobre las 280 biometrias reales de
+        clinica_demo, la funcion devolvia 0 g en 174 de ellas.
+        """
         biometria = BiometriaFetal.objects.create(
             ecografia=self.ecografia,
-            diametro_biparietal=Decimal("4.8"),
-            circunferencia_cefalica=Decimal("17.7"),
-            circunferencia_abdominal=Decimal("15.4"),
-            longitud_femur=Decimal("3.3"),
+            diametro_biparietal=Decimal("48.0"),
+            circunferencia_cefalica=Decimal("177.0"),
+            circunferencia_abdominal=Decimal("154.0"),
+            longitud_femur=Decimal("33.0"),
         )
+
         peso = biometria.calcular_peso_fetal_hadlock()
-        if peso is not None:
-            self.assertTrue(peso > 0)
+
+        assert peso is not None, "Devolvio None con las cuatro medidas puestas."
+        assert peso != 0, "Volvio el bug de unidades: 0 g."
+        assert 250 <= peso <= 450, (
+            f"Un feto de ~20 semanas pesa unos 330 g; la formula dio {peso} g."
+        )
 
     def test_save_auto_calculates(self):
-        """Test that save auto-calculates relationships and weight."""
-        # The Hadlock formula works with cm values, not mm.
+        """save() rellena las relaciones y el peso, con medidas en MILIMETROS.
+
+        ESPERADO: peso_fetal_estimado no es None tras guardar.
+
+        Fallo que previene: `save()` hacia `if peso_calculado:` y, como la
+        formula rota devolvia 0 --que en Python es falso-- el valor se
+        descartaba y el campo quedaba vacio. En pantalla eso se veia como
+        "no medido", sin ningun error.
+        """
         biometria = BiometriaFetal.objects.create(
             ecografia=self.ecografia,
-            diametro_biparietal=Decimal("4.8"),
-            circunferencia_cefalica=Decimal("17.7"),
-            circunferencia_abdominal=Decimal("15.4"),
-            longitud_femur=Decimal("3.3"),
+            diametro_biparietal=Decimal("48.0"),
+            circunferencia_cefalica=Decimal("177.0"),
+            circunferencia_abdominal=Decimal("154.0"),
+            longitud_femur=Decimal("33.0"),
         )
         self.assertIsNotNone(biometria.relacion_cc_ca)
         self.assertIsNotNone(biometria.peso_fetal_estimado)
+        assert biometria.peso_fetal_estimado > 0
 
     def test_biometria_str(self):
         """Test __str__ method."""

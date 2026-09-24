@@ -432,37 +432,30 @@ class BiometriaFetal(models.Model):
         verbose_name_plural = "Biometrías Fetales"
 
     def calcular_peso_fetal_hadlock(self):
-        """Calcula peso fetal usando fórmula de Hadlock 1985 (4 parámetros).
-        Referencia: Hadlock FP et al. Radiology 1985;150:535-540.
-        log10(EFW) = 1.3596 - 0.00386*AC*FL + 0.0064*HC + 0.00061*BPD*AC + 0.0425*AC + 0.174*FL
-        Todos los valores deben estar en mm. El resultado es en gramos.
-        Error reportado: ±15% (comparable a otras fórmulas biométricas).
+        """Peso fetal estimado en gramos, por Hadlock 1985 de 4 parámetros.
+
+        La fórmula vive en `ecografias/peso_fetal.py`; aquí solo se le pasan
+        las medidas tal como están guardadas, en milímetros.
+
+        Devuelve `None` —nunca 0— si falta alguna medida o si el resultado no
+        es fisiológico.
+
+        Antes esta función tenía la fórmula escrita aquí y no convertía las
+        unidades: los coeficientes de Hadlock están en centímetros y la base
+        guarda milímetros. Medido sobre las 280 biometrías reales del tenant
+        `clinica_demo`, devolvía **0 g en 174 de ellas (62%)** y disparates en
+        el resto: 13.118 g para un feto de doce semanas. Ver el docstring de
+        `ecografias/peso_fetal.py` para el detalle de por qué fallaba al revés
+        de como haría falta.
         """
-        if not all(
-            [
-                self.diametro_biparietal,
-                self.circunferencia_cefalica,
-                self.circunferencia_abdominal,
-                self.longitud_femur,
-            ],
-        ):
-            return None
+        from ecografias.peso_fetal import hadlock_1985_4p
 
-        bpd = float(self.diametro_biparietal) if self.diametro_biparietal is not None else 0.0
-        hc = float(self.circunferencia_cefalica) if self.circunferencia_cefalica is not None else 0.0
-        ac = float(self.circunferencia_abdominal) if self.circunferencia_abdominal is not None else 0.0
-        fl = float(self.longitud_femur) if self.longitud_femur is not None else 0.0
-
-        log_peso = (
-            1.3596
-            - 0.00386 * ac * fl
-            + 0.0064 * hc
-            + 0.00061 * bpd * ac
-            + 0.0425 * ac
-            + 0.174 * fl
+        return hadlock_1985_4p(
+            self.diametro_biparietal,
+            self.circunferencia_cefalica,
+            self.circunferencia_abdominal,
+            self.longitud_femur,
         )
-
-        return int(10**log_peso)
 
     def calcular_relaciones(self):
         """Calcula relaciones biométricas"""
@@ -494,13 +487,41 @@ class BiometriaFetal(models.Model):
         # Calcular relaciones automáticamente
         self.calcular_relaciones()
 
-        # Calcular peso fetal si no está establecido
-        if not self.peso_fetal_estimado:
+        # Calcular peso fetal si no lo escribió el ecografista.
+        #
+        # Los dos `is None` son deliberados. Antes eran `if not ...`, y como la
+        # fórmula rota devolvía 0 —que en Python es falso— el resultado se
+        # descartaba y el campo se quedaba vacío sin que nadie viera un error.
+        # Con `is None` el valor se guarda aunque sea 0, y ahora la fórmula ya
+        # no puede devolver 0: devuelve None o un peso fisiológico.
+        if self.peso_fetal_estimado is None:
             peso_calculado = self.calcular_peso_fetal_hadlock()
-            if peso_calculado:
+            if peso_calculado is not None:
                 self.peso_fetal_estimado = peso_calculado
 
+        # El percentil sale del peso y de la edad gestacional de la ecografía.
+        # Hasta ahora el único que lo rellenaba era el seeder, con un
+        # `random.randint(3, 97)` que no tenía relación con el peso.
+        if self.percentil_peso is None and self.peso_fetal_estimado is not None:
+            self._calcular_percentil()
+
         super().save(*args, **kwargs)
+
+    def _calcular_percentil(self):
+        """Rellena `percentil_peso` si se puede saber la edad gestacional.
+
+        Se comprueba `ecografia_id` antes de tocar `self.ecografia`: acceder a
+        la relación dispara una consulta, y en una biometría que aún no se ha
+        asociado a ninguna ecografía lanzaría `RelatedObjectDoesNotExist`.
+        """
+        from ecografias.peso_fetal import percentil_peso_fetal
+
+        if not self.ecografia_id:
+            return
+        semanas = getattr(self.ecografia, "edad_gestacional_semanas", None)
+        if semanas is None:
+            return
+        self.percentil_peso = percentil_peso_fetal(self.peso_fetal_estimado, semanas)
 
     def __str__(self):
         """Str"""

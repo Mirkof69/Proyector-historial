@@ -61,23 +61,34 @@ class CalculosAvanzadosTestCase(TestCase):
     """Tests para cálculos avanzados"""
 
     def test_peso_fetal_hadlock(self):
-        """El peso fetal por Hadlock cae en un rango fisiológico y trae percentil.
+        """El peso fetal sale en su rango a partir de MILIMETROS.
 
-        La fórmula de Hadlock implementada consume las medidas en cm
-        (DBP≈8.5, CA≈30, FL≈6.5 para ~34 semanas).
+        ESPERADO: 1.800-3.000 g para DBP 85 / CC 310 / CA 300 / LF 65 mm,
+        que es un feto de unas 34 semanas.
+
+        Este test pasaba CENTIMETROS (8.5 / 31.0 / 30.0 / 6.5) y su docstring
+        lo justificaba diciendo que la formula "consume las medidas en cm".
+        Era cierto de la implementacion, pero contradecia al docstring de la
+        propia funcion, que anunciaba milimetros -- y sobre todo contradecia a
+        la base de datos, que guarda milimetros. Ahora la conversion se hace
+        dentro y el contrato es uno solo: milimetros en todo el sistema.
         """
         resultado = CalculadorasObstetricas.calcular_peso_fetal(
-            dbp=Decimal("8.5"),
-            _cc=Decimal("31.0"),
-            ca=Decimal("30.0"),
-            lf=Decimal("6.5"),
+            dbp=Decimal("85.0"),
+            cc=Decimal("310.0"),
+            ca=Decimal("300.0"),
+            lf=Decimal("65.0"),
             semanas_gestacion=34,
         )
+
         self.assertIn("peso_estimado", resultado)
         self.assertIn("percentil", resultado)
-        # Un feto de ~34 semanas pesa aproximadamente 1.8–3.0 kg
-        self.assertGreater(resultado["peso_estimado"], 1000)
-        self.assertLess(resultado["peso_estimado"], 5000)
+        assert resultado["peso_estimado"] is not None, (
+            "Devolvio None con las cuatro medidas puestas."
+        )
+        self.assertGreater(resultado["peso_estimado"], 1800)
+        self.assertLess(resultado["peso_estimado"], 3000)
+        assert 1 <= resultado["percentil"] <= 99
 
     def test_ila_normal(self):
         """4 cuadrantes de 40 mm → 16 cm → interpretación normal."""
