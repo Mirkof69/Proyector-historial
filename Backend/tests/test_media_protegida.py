@@ -67,3 +67,18 @@ class MediaProtegidaTest(TestCase):
         self.assertNotIn("4321", nombre)
         self.assertNotIn("Maria", nombre)
         self.assertRegex(nombre, r"^[0-9a-f]{32}\.jpg$")
+
+
+class NombreArchivoTest(TestCase):
+    def test_el_nombre_lo_decide_upload_to(self):
+        """ESPERADO: ecografias/AAAA/MM/DD/<uuid>.png, sin datos de la paciente.
+
+        Antes se renombraba en save(): si el archivo ya estaba escrito, la base
+        apuntaba a un nombre que no existía en disco.
+        """
+        from core.nombres_archivo import ruta_archivo_ecografia, ruta_imagen_ecografia
+
+        self.assertRegex(ruta_imagen_ecografia(None, "Maria_Perez.PNG"),
+                         r"^ecografias/\d{4}/\d{2}/\d{2}/[0-9a-f]{32}\.png$")
+        self.assertRegex(ruta_archivo_ecografia(None, "informe.pdf"),
+                         r"^ecografias/archivos/\d{4}/\d{2}/\d{2}/[0-9a-f]{32}\.pdf$")

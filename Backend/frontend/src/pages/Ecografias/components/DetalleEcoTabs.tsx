@@ -6,6 +6,7 @@ import {
 import { Ecografia } from '../../../services/ecografiasService';
 import { useAuth } from '../../../hooks/useAuth';
 import PrediccionPesoNacer from './PrediccionPesoNacer';
+import RedesEcografiaReal, { ImagenGuardada } from '../../IaMedica/components/RedesEcografiaReal';
 
 const { Text, Paragraph } = Typography;
 
@@ -17,6 +18,12 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
   const { user } = useAuth();
   // El endpoint solo atiende a médicos y administradores.
   const puedePredecir = user?.rol === 'medico' || user?.rol === 'administrador';
+  const imagenesGuardadas: ImagenGuardada[] = (ecografia.imagenes ?? [])
+    .map((img, i) => ({
+      url: typeof img.imagen === 'string' ? img.imagen : (img.url_imagen ?? ''),
+      nombre: img.titulo || img.descripcion || `Imagen ${i + 1}`,
+    }))
+    .filter((img) => img.url);
   return (
   <Card style={{ marginBottom: 16 }}>
     <Tabs
@@ -224,6 +231,20 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
             </>
           ) : (
             <Empty description="No hay datos de anexos" />
+          ),
+        },
+        {
+          key: 'ia-medida',
+          label: (
+            <span>
+              <MedicineBoxOutlined />
+              IA medida
+            </span>
+          ),
+          children: imagenesGuardadas.length > 0 ? (
+            <RedesEcografiaReal imagenes={imagenesGuardadas} />
+          ) : (
+            <Empty description="Esta ecografía no tiene imágenes guardadas" />
           ),
         },
         {

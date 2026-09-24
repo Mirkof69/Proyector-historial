@@ -1,10 +1,10 @@
 """ECOGRAFÍAS ARCHIVOS - Model Definition
 """
 
-import os
-import uuid
 
 from django.db import models
+
+from core.nombres_archivo import ruta_archivo_ecografia
 
 
 class EcografiaArchivo(models.Model):
@@ -13,7 +13,7 @@ class EcografiaArchivo(models.Model):
     ecografia = models.ForeignKey(
         "ecografias.Ecografia", on_delete=models.CASCADE, related_name="archivos",
     )
-    archivo = models.FileField(upload_to="ecografias/archivos/%Y/%m/%d/")
+    archivo = models.FileField(upload_to=ruta_archivo_ecografia)
     tipo_archivo = models.CharField(
         max_length=20,
         choices=[
@@ -36,14 +36,6 @@ class EcografiaArchivo(models.Model):
         ordering = ["-fecha_subida"]
         verbose_name = "Archivo de Ecografía"
         verbose_name_plural = "Archivos de Ecografías"
-
-    def save(self, *args, **kwargs):
-        if not self.pk and self.archivo:
-            # Nombre aleatorio: antes era «Nombre_Apellido_fecha», que ponía el
-            # nombre de la paciente en la URL y era fácil de adivinar.
-            ext = os.path.splitext(self.archivo.name)[1].lower()
-            self.archivo.name = f"{uuid.uuid4().hex}{ext}"
-        super().save(*args, **kwargs)
 
     def __str__(self):
         """Str"""

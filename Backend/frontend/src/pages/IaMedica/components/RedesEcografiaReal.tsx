@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Button, Card, Col, InputNumber, Progress, Row, Statistic, Tag, Upload } from 'antd';
+import { Alert, Button, Card, Col, InputNumber, Progress, Row, Select, Statistic, Tag, Upload } from 'antd';
 import { ExperimentOutlined, InboxOutlined } from '@ant-design/icons';
 import {
   iaMedicaService, ResultadoCircunferencia, ResultadoPlano,
@@ -55,24 +55,51 @@ const TarjetaCircunferencia: React.FC<{ r: ResultadoCircunferencia }> = ({ r }) 
   </Card>
 );
 
-const RedesEcografiaReal: React.FC = () => {
+/** Una imagen ya guardada (p. ej. de la ficha de una ecografía). */
+export interface ImagenGuardada {
+  url: string;
+  nombre: string;
+}
+
+interface RedesEcografiaRealProps {
+  /** Si se pasan, se analizan estas imágenes en vez de pedir que se suba una. */
+  imagenes?: ImagenGuardada[];
+}
+
+/** Descarga una imagen protegida de /media/ (con la cookie de sesión) como File. */
+const descargarComoArchivo = async (img: ImagenGuardada): Promise<File> => {
+  const respuesta = await fetch(img.url, { credentials: 'include' });
+  if (!respuesta.ok) throw new Error(`No se pudo leer la imagen (HTTP ${respuesta.status})`);
+  const blob = await respuesta.blob();
+  // El nombre del archivo (con su extensión) sale de la URL: el servicio de IA
+  // valida la extensión, y el título de la imagen no la tiene.
+  const archivo = new URL(img.url, window.location.href).pathname.split('/').pop() || 'imagen.png';
+  return new File([blob], archivo, { type: blob.type || 'image/png' });
+};
+
+const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => {
   const [archivo, setArchivo] = useState<File | null>(null);
+  const [elegida, setElegida] = useState(0);
   const [tamanoPixel, setTamanoPixel] = useState<number | null>(null);
   const [plano, setPlano] = useState<ResultadoPlano | null>(null);
   const [circunferencia, setCircunferencia] = useState<ResultadoCircunferencia | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [analizando, setAnalizando] = useState(false);
 
+  const guardadas = imagenes ?? [];
+  const usaGuardadas = guardadas.length > 0;
+
   const analizar = async () => {
-    if (!archivo) return;
+    if (!archivo && !usaGuardadas) return;
     setAnalizando(true);
     setError(null);
     setPlano(null);
     setCircunferencia(null);
     try {
+      const fichero = usaGuardadas ? await descargarComoArchivo(guardadas[elegida]) : (archivo as File);
       const [rPlano, rCirc] = await Promise.all([
-        iaMedicaService.clasificarPlano(archivo),
-        tamanoPixel ? iaMedicaService.medirCircunferencia(archivo, tamanoPixel) : Promise.resolve(null),
+        iaMedicaService.clasificarPlano(fichero),
+        tamanoPixel ? iaMedicaService.medirCircunferencia(fichero, tamanoPixel) : Promise.resolve(null),
       ]);
       setPlano(rPlano);
       setCircunferencia(rCirc);
@@ -92,6 +119,14 @@ const RedesEcografiaReal: React.FC = () => {
     >
       <Row gutter={[16, 16]}>
         <Col xs={24} md={10} style={{ display: 'grid', gap: 12, alignContent: 'start' }}>
+          {usaGuardadas ? (
+            <div>
+              <label htmlFor="imagen-guardada" style={{ display: 'block', marginBottom: 4 }}>Imagen de la ecografía</label>
+              <Select id="imagen-guardada" value={elegida} style={{ width: '100%' }}
+                onChange={(v) => { setElegida(v); setPlano(null); setCircunferencia(null); }}
+                options={guardadas.map((g, i) => ({ value: i, label: g.nombre }))} />
+            </div>
+          ) : (
           <div>
             <Upload.Dragger
               accept=".png,.jpg,.jpeg,.bmp,.tif,.dcm,.dicom"
@@ -104,6 +139,7 @@ const RedesEcografiaReal: React.FC = () => {
               <p className="ant-upload-hint">PNG, JPG o DICOM · máx. 10 MB</p>
             </Upload.Dragger>
           </div>
+          )}
           <div>
             <label htmlFor="tamano-pixel" style={{ display: 'block', marginBottom: 4 }}>
               Tamaño de píxel (mm) — solo para medir la cabeza
@@ -114,7 +150,7 @@ const RedesEcografiaReal: React.FC = () => {
               Lo da el ecógrafo o la cabecera DICOM. Sin él solo se reconoce el plano.
             </p>
           </div>
-          <Button type="primary" block disabled={!archivo}
+          <Button type="primary" block disabled={!archivo && !usaGuardadas}
             loading={analizando} onClick={analizar}>
             Analizar
           </Button>

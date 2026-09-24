@@ -1,12 +1,13 @@
 """Models module."""
 import logging
 import os
-import uuid
 from decimal import Decimal
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
+
+from core.nombres_archivo import ruta_imagen_ecografia
 from PIL import Image
 
 # from embarazos.models import Embarazo  # REMOVED to fix circular import
@@ -817,7 +818,7 @@ class ImagenEcografia(models.Model):
     )
 
     imagen = models.ImageField(
-        upload_to="ecografias/%Y/%m/%d/",
+        upload_to=ruta_imagen_ecografia,
         verbose_name="Imagen",
         help_text="Formatos soportados: JPG, PNG, DICOM",
         null=True,
@@ -1016,13 +1017,7 @@ class ImagenEcografia(models.Model):
             return fallback
 
     def save(self, *args, **kwargs):
-        """Save. Renombra el archivo al nombre del paciente en nuevas imágenes."""
-        if not self.pk and self.imagen:
-            # Nombre aleatorio: antes era «Nombre_Apellido_fecha», que ponía el
-            # nombre de la paciente en la URL y era fácil de adivinar.
-            ext = os.path.splitext(self.imagen.name)[1].lower()
-            self.imagen.name = f"{uuid.uuid4().hex}{ext}"
-
+        """Save. El nombre del archivo lo pone upload_to (core.nombres_archivo)."""
         regenerar_thumb = False
         if self.pk:
             try:
