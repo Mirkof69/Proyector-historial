@@ -932,7 +932,7 @@ const HistoriaClinica: React.FC = () => {
     <Layout style={{ background: 'var(--bg-primary, #fff)', minHeight: '100vh' }} suppressHydrationWarning>
       <div style={{ padding: '20px 40px' }}>
         <Space style={{ marginBottom: 16 }}>
-          <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/pacientes')}>Lista de Pacientes</Button>
+          <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/dashboard/pacientes')}>Lista de Pacientes</Button>
           <Text type="secondary"> / HC: {paciente?.nombre} {paciente?.apellido_paterno || paciente?.apellidos || ''}</Text>
         </Space>
 

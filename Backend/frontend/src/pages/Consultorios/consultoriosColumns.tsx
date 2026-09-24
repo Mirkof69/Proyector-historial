@@ -125,7 +125,7 @@ export const buildConsultoriosColumns = (deps: ConsultoriosColumnsDeps) => {
               type="text"
               size="small"
               icon={eyeIcon}
-              onClick={() => navigate(`/consultorios/${record.id}`)}
+              onClick={() => navigate(`/dashboard/consultorios/${record.id}`)}
             />
           </Tooltip>
           <Tooltip title="Editar en modal">

@@ -49,7 +49,6 @@ import {
     TeamOutlined,
     FilePdfOutlined,
     CalendarOutlined,
-    SyncOutlined,
     BarChartOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -68,7 +67,6 @@ import { buildPacientesColumns } from './pacientesColumns';
 import PacienteWizardModal from './components/PacienteWizardModal';
 import PacienteDrawer from './components/PacienteDrawer';
 import AnalisisDemograficoModal from './components/AnalisisDemograficoModal';
-import ImportExportModal from './components/ImportExportModal';
 import ComparacionModal from './components/ComparacionModal';
 import AgendaDrawer from './components/AgendaDrawer';
 
@@ -83,7 +81,6 @@ const { Option } = Select;
 const FILTER_ICON_2 = <FilterOutlined />;
 const DELETE_ICON_2 = <DeleteOutlined />;
 const BAR_CHART_ICON = <BarChartOutlined />;
-const SYNC_ICON_2 = <SyncOutlined />;
 const TEAM_ICON_2 = <TeamOutlined />;
 const CALENDAR_ICON_5 = <CalendarOutlined />;
 const EXPORT_ICON_3 = <ExportOutlined />;
@@ -126,7 +123,6 @@ const Pacientes: React.FC = () => {
 
     // ✨ NUEVOS ESTADOS PARA MODALES EXTENDIDOS
     const [modalAnalisisDemograficoVisible, setModalAnalisisDemograficoVisible] = useState(false);
-    const [modalImportExportVisible, setModalImportExportVisible] = useState(false);
     const [modalComparacionVisible, setModalComparacionVisible] = useState(false);
     const [drawerAgendaVisible, setDrawerAgendaVisible] = useState(false);
     const [pacientesComparacion, setPacientesComparacion] = useState<{ a: Paciente | null; b: Paciente | null; c: Paciente | null }>({ a: null, b: null, c: null });
@@ -575,9 +571,6 @@ const Pacientes: React.FC = () => {
                         <Button icon={BAR_CHART_ICON} onClick={() => setModalAnalisisDemograficoVisible(true)}>
                             Análisis Demográfico
                         </Button>
-                        <Button icon={SYNC_ICON_2} onClick={() => setModalImportExportVisible(true)}>
-                            Importar/Exportar
-                        </Button>
                         <Button icon={TEAM_ICON_2} onClick={() => setModalComparacionVisible(true)}>
                             Comparar Pacientes
                         </Button>
@@ -692,13 +685,6 @@ const Pacientes: React.FC = () => {
                 onClose={() => setModalAnalisisDemograficoVisible(false)}
                 pacientes={pacientes}
                 stats={stats}
-                token={token}
-            />
-
-            {/* SISTEMA DE IMPORTACIÓN/EXPORTACIÓN MASIVA */}
-            <ImportExportModal
-                visible={modalImportExportVisible}
-                onClose={() => setModalImportExportVisible(false)}
                 token={token}
             />
 

@@ -196,7 +196,9 @@ const DICOMViewer: React.FC<DICOMViewerProps> = ({
       if (rect) {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        dispatch({ type: 'ADD_MEASUREMENT', payload: { type: tool, x, y, value: Math.random() * 50 } });
+        // Se guarda el punto marcado. Antes se añadía `value: Math.random() * 50`
+        // y la lista lo mostraba como milímetros medidos.
+        dispatch({ type: 'ADD_MEASUREMENT', payload: { type: tool, x, y } });
       }
     }
   }, [isDrawing, tool]);

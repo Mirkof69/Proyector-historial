@@ -123,7 +123,7 @@ const DicomToolbar: React.FC<DicomToolbarProps> = ({
       ) : (
         measurements.map((m) => (
           <div key={`${m.type}-${m.x}-${m.y}`}>
-            <Text>{m.type}: {m.value} mm</Text>
+            <Text>{m.type}: {m.value !== undefined ? `${m.value} mm` : `punto (${Math.round(m.x)}, ${Math.round(m.y)})`}</Text>
           </div>
         ))
       )}

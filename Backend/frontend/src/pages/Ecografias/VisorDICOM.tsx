@@ -48,6 +48,8 @@ const VisorDICOM: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const puntoInicial = useRef<{ x: number; y: number } | null>(null);
+  const imagenNatural = useRef<{ ancho: number; alto: number } | null>(null);
   const [state, dispatch] = useReducer(viewerReducer, initialState);
   const {
     loading, ecografia, zoom, rotation, windowLevel, windowWidth,
@@ -56,7 +58,6 @@ const VisorDICOM: React.FC = () => {
     currentImageIndex, totalImages, playingCine,
     settingsVisible, exportModalVisible, showGradCam,
     showMeasurements, showAnnotations,
-    nitidezDetectada, calidadImagen
   } = state;
 
   const hasGradCam = !!(ecografia?.analisis_cnn?.mapa_calor);
@@ -88,6 +89,7 @@ const VisorDICOM: React.FC = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // Draw the image
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        imagenNatural.current = { ancho: img.naturalWidth, alto: img.naturalHeight };
       };
     }
   }, [ecografia, currentImageIndex]);
@@ -108,9 +110,12 @@ const VisorDICOM: React.FC = () => {
         studyDescription: data.tipo_ecografia || 'Ecografía',
         seriesDescription: data.observaciones || 'N/A',
         institutionName: data.institucion || '',
-        rows: data.rows || 512,
-        columns: data.columns || 512,
-        pixelSpacing: data.pixel_spacing || [0.1, 0.1],
+        // Sin valores por defecto: antes se inventaban 512×512 y 0,1 mm/píxel,
+        // y las mediciones en mm salían de ese 0,1. Las filas y columnas se
+        // leen de la imagen al cargarla (imagenNatural).
+        rows: data.rows,
+        columns: data.columns,
+        pixelSpacing: data.pixel_spacing,
         sliceThickness: data.slice_thickness || 1.0,
         manufacturer: data.manufacturer || '',
         model: data.model || ''
@@ -118,17 +123,12 @@ const VisorDICOM: React.FC = () => {
 
       const numImagenesEnSerie = data.series_imagenes || 1;
 
-      const nitidez = data.nitidez || 85;
-      const calidad = data.calidad || 92;
-
       dispatch({
         type: 'SET_ECOGRAFIA',
         payload: {
           ecografia: data,
           metadata,
           totalImages: numImagenesEnSerie,
-          nitidez,
-          calidad
         }
       });
 
@@ -193,16 +193,45 @@ const VisorDICOM: React.FC = () => {
     const y = event.clientY - rect.top;
 
     if (activeTool === 'measure') {
+      // Medición real con dos clics. Antes la longitud era Math.random().
+      if (rotation % 360 !== 0) {
+        message.info('Vuelva la imagen a 0° para medir.');
+        return;
+      }
+      const canvas = canvasRef.current;
+      // Del punto en pantalla al píxel del lienzo (el zoom cambia el tamaño en pantalla).
+      const px = x * (canvas.width / rect.width);
+      const py = y * (canvas.height / rect.height);
+      if (!puntoInicial.current) {
+        puntoInicial.current = { x: px, y: py };
+        message.info('Marque el segundo punto de la medición.');
+        return;
+      }
+      const inicio = puntoInicial.current;
+      puntoInicial.current = null;
+      // Del lienzo a los píxeles reales de la imagen (se dibuja estirada al lienzo).
+      const natural = imagenNatural.current;
+      const sx = natural ? natural.ancho / canvas.width : 1;
+      const sy = natural ? natural.alto / canvas.height : 1;
+      const dx = (px - inicio.x) * sx;
+      const dy = (py - inicio.y) * sy;
+      const pixeles = Math.hypot(dx, dy);
+      // mm solo si el estudio trae el tamaño del píxel ([fila, columna] en DICOM).
+      const espaciado = metadata.pixelSpacing;
+      const mm = espaciado && espaciado.length === 2 ? Math.hypot(dx * espaciado[1], dy * espaciado[0]) : undefined;
       const newMeasurement = {
         id: Date.now(),
-        x: Math.round(x),
-        y: Math.round(y),
-        length: Math.random() * 50 + 10,
+        x: Math.round(inicio.x),
+        y: Math.round(inicio.y),
+        length: mm,
+        lengthPx: pixeles,
         timestamp: new Date().toISOString(),
         type: 'linear'
       };
       dispatch({ type: 'ADD_MEASUREMENT', payload: newMeasurement });
-      message.success(`Medición agregada: ${newMeasurement.length.toFixed(2)}mm`);
+      message.success(mm !== undefined
+        ? `Medición: ${mm.toFixed(1)} mm`
+        : `Medición: ${pixeles.toFixed(0)} píxeles (el estudio no trae el tamaño del píxel; no se puede dar en mm)`);
     } else if (activeTool === 'annotate') {
       const newAnnotation = {
         id: Date.now(),
@@ -261,7 +290,7 @@ const VisorDICOM: React.FC = () => {
         type="error"
         showIcon
         action={
-          <Button onClick={() => navigate('/ecografias')}>
+          <Button onClick={() => navigate('/dashboard/ecografias')}>
             Volver a lista
           </Button>
         }
@@ -277,7 +306,7 @@ const VisorDICOM: React.FC = () => {
         fullscreen={fullscreen}
         dispatch={dispatch}
         toggleFullscreen={toggleFullscreen}
-        onVolver={() => navigate('/ecografias')}
+        onVolver={() => navigate('/dashboard/ecografias')}
       />
 
       {/* Área principal */}
@@ -344,8 +373,6 @@ const VisorDICOM: React.FC = () => {
         contrast={contrast}
         showMeasurements={showMeasurements}
         showAnnotations={showAnnotations}
-        nitidezDetectada={nitidezDetectada}
-        calidadImagen={calidadImagen}
         dispatch={dispatch}
       />
 

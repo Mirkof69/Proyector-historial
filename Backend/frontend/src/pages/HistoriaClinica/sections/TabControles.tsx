@@ -53,7 +53,7 @@ const TabControles: React.FC<TabControlesProps> = ({ controles, embarazoActivo, 
         <Title level={4}>Historial de Controles Prenatales</Title>
         <Space>
           <Button icon={<DownloadOutlined />}>Exportar Excel</Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/controles/nuevo?embarazo=${embarazoActivo?.id}`)}>Nuevo Control</Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/dashboard/controles/nuevo?embarazo=${embarazoActivo?.id}`)}>Nuevo Control</Button>
         </Space>
       </div>
 
@@ -130,7 +130,7 @@ const TabControles: React.FC<TabControlesProps> = ({ controles, embarazoActivo, 
           {
             title: 'Acción', render: (_, r: any) => (
               <Space>
-                <Tooltip title="Ver"><Button size="small" icon={<ScanOutlined />} onClick={() => navigate(`/controles/${r.id}`)} /></Tooltip>
+                <Tooltip title="Ver"><Button size="small" icon={<ScanOutlined />} onClick={() => navigate(`/dashboard/controles/${r.id}`)} /></Tooltip>
                 <Popconfirm title="¿Eliminar registro?" onConfirm={() => message.warning("Requiere permisos de admin")}><Button size="small" danger icon={<DeleteOutlined />} /></Popconfirm>
               </Space>
             )

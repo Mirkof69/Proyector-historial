@@ -64,16 +64,15 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
         },
         {
           key: '3',
-          label: 'Predicción de Complicaciones',
+          label: 'Factores de riesgo',
           children: (
-            <Card title="Algoritmo de Machine Learning (Simulado)">
+            <Card title="Factores de riesgo conocidos">
+              {/* Antes: «Algoritmo de Machine Learning (Simulado) · Precisión
+                  estimada: 87 %». No había ningún modelo: era texto fijo. */}
               <Alert
-                message="Modelo Predictivo"
-                description={`
-                Basado en ${embarazos.length} registros históricos, se identifican patrones de riesgo.
-                Precisión estimada: 87%. Factores clave: edad materna, IMC, antecedentes, riesgo asignado.
-            `}
-                type="success"
+                message="Guía clínica, no una predicción"
+                description="Factores de riesgo descritos en la literatura obstétrica. No es un modelo entrenado con estos datos ni da una probabilidad para cada paciente."
+                type="info"
                 showIcon
               />
               <Divider />

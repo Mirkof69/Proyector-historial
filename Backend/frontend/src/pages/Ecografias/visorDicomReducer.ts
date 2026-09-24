@@ -38,13 +38,11 @@ export interface ViewerState {
   settingsVisible: boolean;
   exportModalVisible: boolean;
   showGradCam: boolean;
-  nitidezDetectada: number;
-  calidadImagen: number;
 }
 
 export type ViewerAction =
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ECOGRAFIA'; payload: { ecografia: any; metadata: DicomMetadata; totalImages: number; nitidez: number; calidad: number } }
+  | { type: 'SET_ECOGRAFIA'; payload: { ecografia: any; metadata: DicomMetadata; totalImages: number } }
   | { type: 'SET_ZOOM'; payload: number }
   | { type: 'SET_ROTATION'; payload: number }
   | { type: 'SET_WINDOW_LEVEL'; payload: number }
@@ -92,8 +90,6 @@ export const initialState: ViewerState = {
   settingsVisible: false,
   exportModalVisible: false,
   showGradCam: false,
-  nitidezDetectada: 85,
-  calidadImagen: 92,
 };
 
 export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerState {
@@ -107,8 +103,6 @@ export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerS
         ecografia: action.payload.ecografia,
         metadata: action.payload.metadata,
         totalImages: action.payload.totalImages,
-        nitidezDetectada: action.payload.nitidez,
-        calidadImagen: action.payload.calidad,
       };
     case 'SET_ZOOM':
       return { ...state, zoom: action.payload };

@@ -32,7 +32,6 @@ import dayjs from 'dayjs';
 import { ecografiasService, Ecografia } from '../../services/ecografiasService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import DICOMViewer from '../../components/DICOMViewer';
-import PDFGenerator from '../../components/PDFGenerator';
 import { useAuth } from '../../hooks/useAuth';
 import apiClient from '../../services/api';
 import './Ecografias.css';
@@ -58,7 +57,6 @@ const Ecografias: React.FC = () => {
   const [drawerVistaRapidaVisible, setDrawerVistaRapidaVisible] = useState(false);
   const [ecografiaSeleccionada, setEcografiaSeleccionada] = useState<Ecografia | null>(null);
   const [dicomViewerVisible, setDicomViewerVisible] = useState(false);
-  const [pdfGeneratorVisible, setPdfGeneratorVisible] = useState(false);
 
 
   const estadisticas = useMemo(() => calcularEstadisticas(ecografias), [ecografias]);
@@ -235,7 +233,13 @@ const Ecografias: React.FC = () => {
   // ==========================================================================
   // COLUMNAS DE LA TABLA
   // ==========================================================================
-  const columns = buildColumnsEcografias({ handleVerVistaRapida, handleEditar, handleEliminar, canChange, canDelete });
+  const columns = buildColumnsEcografias({
+    handleVerVistaRapida, handleEditar, handleEliminar, canChange, canDelete,
+    handleDescargarPdf: (id: number) => {
+      ecografiasService.descargarPdf(id)
+        .catch(() => message.error('No se pudo generar el PDF de la ecografía.'));
+    },
+  });
 
   // ==========================================================================
   // RENDER
@@ -273,11 +277,14 @@ const Ecografias: React.FC = () => {
               🔬 Visor DICOM
             </Button>
             <Button
-              icon={<FileImageOutlined />}
-              onClick={() => setPdfGeneratorVisible(true)}
-              style={{ backgroundColor: '#ff4d4f', color: 'white', borderColor: '#ff4d4f' }}
+              icon={<FileExcelOutlined />}
+              onClick={() => {
+                ecografiasService.exportarExcel()
+                  .then(() => message.success('Excel de ecografías descargado'))
+                  .catch(() => message.error('No se pudo generar el Excel. Inténtelo de nuevo.'));
+              }}
             >
-              📄 Generar PDF
+              Exportar Excel
             </Button>
             {canAdd('ecografia') && (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevo}>
@@ -352,14 +359,6 @@ const Ecografias: React.FC = () => {
         )}
       </Modal>
 
-      {/* ✨ MODAL CON GENERADOR DE PDF */}
-      <PDFGenerator
-        open={pdfGeneratorVisible}
-        onCancel={() => setPdfGeneratorVisible(false)}
-        pacienteData={ecografiaSeleccionada ? { id: ecografiaSeleccionada.paciente } : null}
-        embarazoData={ecografiaSeleccionada ? { id: ecografiaSeleccionada.embarazo } : null}
-        moduloOrigen="ecografias"
-      />
     </div>
   );
 };

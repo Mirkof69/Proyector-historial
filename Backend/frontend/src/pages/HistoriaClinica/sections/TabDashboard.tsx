@@ -105,7 +105,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
               </div>
             ) : (
               <Empty description="No hay embarazos registrados" image={Empty.PRESENTED_IMAGE_SIMPLE}>
-                <Button type="primary" onClick={() => navigate(`/embarazos/nuevo?paciente=${pacienteId}`)}>Iniciar Embarazo</Button>
+                <Button type="primary" onClick={() => navigate(`/dashboard/embarazos/nuevo?paciente=${pacienteId}`)}>Iniciar Embarazo</Button>
               </Empty>
             )}
           </Card>

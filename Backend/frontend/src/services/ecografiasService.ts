@@ -158,7 +158,26 @@ export interface Ecografia {
 // SERVICIO
 // ═══════════════════════════════════════════════════════════════════════════
 
+/** Guarda en el equipo un archivo que devuelve el backend. */
+async function descargar(url: string, nombre: string, params?: Record<string, unknown>): Promise<void> {
+  const respuesta = await api.get(url, { params, responseType: 'blob' });
+  const enlace = document.createElement('a');
+  const href = URL.createObjectURL(respuesta.data as Blob);
+  enlace.href = href;
+  enlace.download = nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  URL.revokeObjectURL(href);
+}
+
 export const ecografiasService = {
+  /** PDF clínico real de una ecografía (reportes/pdf_clinico.py). Queda auditado como EXPORTAR. */
+  descargarPdf: (id: number) => descargar(`/ecografias/${id}/exportar-pdf/`, `ecografia_${id}.pdf`),
+
+  /** Excel de la lista de ecografías, generado en el servidor. */
+  exportarExcel: () => descargar('/ecografias/exportar-excel/', 'ecografias.xlsx'),
+
   /** Lista ecografías de un embarazo */
   getByEmbarazo: async (embarazoId: number) => {
     const response = await api.get('/ecografias/', { params: { embarazo_id: embarazoId } });
@@ -293,4 +312,4 @@ export const ecografiasService = {
     });
     return response.data;
   },
-};
+};

@@ -19,7 +19,7 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
   <div>
     <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
       <Title level={4}>Historial de Partos</Title>
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/partos/nuevo?paciente=${pacienteId}`)}>
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/dashboard/partos/nuevo?paciente=${pacienteId}`)}>
         Registrar Parto
       </Button>
     </div>
@@ -187,7 +187,7 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
               render: (_: any, record: Parto) => (
                 <Space>
                   <Tooltip title="Ver detalles">
-                    <Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/partos/${record.id}`)} />
+                    <Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/dashboard/partos/${record.id}`)} />
                   </Tooltip>
                   <Tooltip title="Descargar reporte">
                     <Button size="small" icon={<DownloadOutlined />} />
@@ -289,7 +289,7 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
       <Card variant="borderless" style={{ textAlign: 'center', padding: '40px 0' }}>
         <WomanOutlined style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }} />
         <p>No se han registrado partos para esta paciente.</p>
-        <Button type="primary" onClick={() => navigate(`/partos/nuevo?paciente=${pacienteId}`)}>
+        <Button type="primary" onClick={() => navigate(`/dashboard/partos/nuevo?paciente=${pacienteId}`)}>
           Registrar Primer Parto
         </Button>
       </Card>

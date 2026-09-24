@@ -509,7 +509,7 @@ const Consultorios: React.FC = () => {
                       </Button>
                       <Button
                         icon={<PlusOutlined />}
-                        onClick={() => navigate('/consultorios/nuevo')}
+                        onClick={() => navigate('/dashboard/consultorios/nuevo')}
                       >
                         Nuevo (Página)
                       </Button>

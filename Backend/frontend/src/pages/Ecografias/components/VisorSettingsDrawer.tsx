@@ -11,14 +11,12 @@ interface VisorSettingsDrawerProps {
   contrast: number;
   showMeasurements: boolean;
   showAnnotations: boolean;
-  nitidezDetectada: number;
-  calidadImagen: number;
   dispatch: React.Dispatch<ViewerAction>;
 }
 
 const VisorSettingsDrawer: React.FC<VisorSettingsDrawerProps> = ({
   settingsVisible, brightness, contrast, showMeasurements, showAnnotations,
-  nitidezDetectada, calidadImagen, dispatch,
+  dispatch,
 }) => (
   <Drawer
     title={<><SettingOutlined /> Configuración del Visor</>}
@@ -134,18 +132,6 @@ const VisorSettingsDrawer: React.FC<VisorSettingsDrawerProps> = ({
             strokeColor={{ from: '#ffd666', to: '#ff4d4f' }}
           />
 
-          <Statistic
-            title="Nitidez Detectada"
-            value={nitidezDetectada}
-
-            suffix="%"
-            valueStyle={{ fontSize: 20 }}
-          />
-          <Progress
-            percent={calidadImagen}
-
-            status="active"
-          />
         </Space>
       </div>
     </Space>

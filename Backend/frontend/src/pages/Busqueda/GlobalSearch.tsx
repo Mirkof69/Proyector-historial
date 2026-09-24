@@ -127,25 +127,25 @@ const GlobalSearch: React.FC = () => {
   const handleViewDetail = (result: SearchResult) => {
     switch (result.tipo) {
       case 'paciente':
-        navigate(`/pacientes/${result.id}`);
+        navigate(`/dashboard/pacientes/${result.id}`);
         break;
       case 'embarazo':
-        navigate(`/embarazos/${result.id}`);
+        navigate(`/dashboard/embarazos/${result.id}`);
         break;
       case 'cita':
-        navigate(`/citas/${result.id}`);
+        navigate(`/dashboard/citas/${result.id}`);
         break;
       case 'ecografia':
-        navigate(`/ecografias/${result.id}`);
+        navigate(`/dashboard/ecografias/${result.id}`);
         break;
       case 'laboratorio':
-        navigate(`/laboratorio/${result.id}`);
+        navigate(`/dashboard/laboratorio/${result.id}`);
         break;
       case 'evolucion':
-        navigate(`/evoluciones/${result.id}`);
+        navigate(`/dashboard/evoluciones/${result.id}`);
         break;
       case 'consultorio':
-        navigate(`/consultorios/${result.id}`);
+        navigate(`/dashboard/consultorios/${result.id}`);
         break;
       default:
         message.info('Detalle no disponible');

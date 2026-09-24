@@ -65,7 +65,7 @@ const DetalleConsultorio: React.FC = () => {
       <div style={{ padding: '24px' }}>
         <Card>
           <Empty description="Consultorio no encontrado" />
-          <Button onClick={() => navigate('/consultorios')}>
+          <Button onClick={() => navigate('/dashboard/consultorios')}>
             Volver al listado
           </Button>
         </Card>
@@ -83,7 +83,7 @@ const DetalleConsultorio: React.FC = () => {
           <Space>
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={() => navigate('/consultorios')}
+              onClick={() => navigate('/dashboard/consultorios')}
             >
               Volver
             </Button>
@@ -102,7 +102,7 @@ const DetalleConsultorio: React.FC = () => {
           <Button
             type="primary"
             icon={<EditOutlined />}
-            onClick={() => navigate(`/consultorios/editar/${consultorio.id}`)}
+            onClick={() => navigate(`/dashboard/consultorios/editar/${consultorio.id}`)}
           >
             Editar
           </Button>

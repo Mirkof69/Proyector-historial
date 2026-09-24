@@ -55,7 +55,9 @@ const VisorMedicionesCard: React.FC<VisorMedicionesCardProps> = ({
               >
                 <List.Item.Meta
                   avatar={<LineChartOutlined style={{ fontSize: 20, color: '#1890ff' }} />}
-                  title={`Medición ${measurement.type}: ${measurement.length.toFixed(2)}mm`}
+                  title={measurement.length !== undefined
+                    ? `Medición: ${measurement.length.toFixed(1)} mm`
+                    : `Medición: ${Math.round(measurement.lengthPx)} píxeles`}
                   description={`Posición: (${measurement.x}, ${measurement.y}) - ${dayjs(measurement.timestamp).format('DD/MM/YYYY HH:mm:ss')}`}
                 />
               </List.Item>
@@ -120,7 +122,9 @@ const VisorMedicionesCard: React.FC<VisorMedicionesCardProps> = ({
             <Col span={24} style={{ marginTop: 16 }}>
               <Alert
                 message="Herramientas de Análisis"
-                description={`Utiliza las herramientas de medición y anotación para marcar áreas de interés en la imagen DICOM. Las mediciones se calculan en tiempo real basándose en el pixel spacing (${metadata.pixelSpacing?.[0]} mm/px).`}
+                description={metadata.pixelSpacing
+                  ? `Con la herramienta de medición, marque dos puntos. Tamaño del píxel del estudio: ${metadata.pixelSpacing[0]} mm.`
+                  : 'Con la herramienta de medición, marque dos puntos. Este estudio no trae el tamaño del píxel, así que la distancia se da en píxeles, no en milímetros.'}
                 type="info"
                 showIcon
               />

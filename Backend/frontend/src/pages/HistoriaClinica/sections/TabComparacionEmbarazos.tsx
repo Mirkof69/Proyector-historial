@@ -34,7 +34,7 @@ const TabComparacionEmbarazos: React.FC<TabComparacionEmbarazosProps> = ({ embar
   if (todosLosEmbarazos.length === 0) {
     return (
       <Empty description="No hay embarazos registrados para mostrar" image={Empty.PRESENTED_IMAGE_SIMPLE}>
-        <Button type="primary" onClick={() => navigate(`/embarazos/nuevo?paciente=${pacienteId}`)}>Registrar Primer Embarazo</Button>
+        <Button type="primary" onClick={() => navigate(`/dashboard/embarazos/nuevo?paciente=${pacienteId}`)}>Registrar Primer Embarazo</Button>
       </Empty>
     );
   }

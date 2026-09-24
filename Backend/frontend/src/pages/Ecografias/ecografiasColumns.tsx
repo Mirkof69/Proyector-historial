@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Space, Tag, Tooltip, Badge, Typography } from 'antd';
 import {
   EyeOutlined, EditOutlined, DeleteOutlined, CalendarOutlined, UserOutlined, RobotOutlined,
+  FilePdfOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Ecografia } from '../../services/ecografiasService';
@@ -12,11 +13,12 @@ interface BuildColumnsArgs {
   handleVerVistaRapida: (ecografia: Ecografia) => void;
   handleEditar: (id: number) => void;
   handleEliminar: (ecografia: any) => void;
+  handleDescargarPdf: (id: number) => void;
   canChange: (perm: string) => boolean;
   canDelete: (perm: string) => boolean;
 }
 
-export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, handleEliminar, canChange, canDelete }: BuildColumnsArgs) => [
+export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, handleEliminar, handleDescargarPdf, canChange, canDelete }: BuildColumnsArgs) => [
   {
     title: 'Paciente',
     key: 'paciente',
@@ -119,7 +121,7 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
     title: 'Acciones',
     key: 'acciones',
     fixed: 'right' as const,
-    width: 150,
+    width: 180,
     render: (_: any, record: Ecografia) => (
       <Space size="small">
         <Tooltip title="Ver detalle">
@@ -127,6 +129,15 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
             type="link"
             icon={<EyeOutlined />}
             onClick={() => handleVerVistaRapida(record)}
+            aria-label="Ver detalle"
+          />
+        </Tooltip>
+        <Tooltip title="Descargar PDF">
+          <Button
+            type="link"
+            icon={<FilePdfOutlined />}
+            onClick={() => handleDescargarPdf(record.id!)}
+            aria-label="Descargar PDF"
           />
         </Tooltip>
         {canChange('ecografia') && (

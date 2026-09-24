@@ -79,7 +79,6 @@ import ReportesModal from './components/ReportesModal';
 import AlertasModal from './components/AlertasModal';
 import PanelControlDrawer from './components/PanelControlDrawer';
 import HistorialModal from './components/HistorialModal';
-import UploadDocsModal from './components/UploadDocsModal';
 import FiltrosAvanzadosDrawer from './components/FiltrosAvanzadosDrawer';
 import { incluyeTexto } from '../../utils/texto';
 
@@ -464,34 +463,6 @@ const Embarazos: React.FC = () => {
     // 5B. NUEVOS HANDLERS PARA FUNCIONALIDADES ADICIONALES
     // =============================================================================
 
-    // ✅ Handler para subir documentos del embarazo (ecografías, análisis)
-    const handleUploadDocuments = useCallback(async (options: any) => {
-        const { file, onSuccess, onError } = options;
-        dispatch({ type: 'SET_UPLOADING_FILES', payload: true });
-
-        try {
-            // Simular subida de archivo (aquí integrarías con tu backend)
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('embarazo_id', state.selectedEmbarazo?.id?.toString() || '');
-            formData.append('tipo_documento', 'ecografia'); // Podría ser 'laboratorio', 'receta', etc.
-
-            // await api.post('/documentos-embarazo/', formData);
-
-            message.success({
-                content: `Documento "${file.name}" subido correctamente`,
-                icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />
-            });
-
-            onSuccess(file);
-            dispatch({ type: 'SET_FILE_LIST', payload: [...state.fileList, file] });
-        } catch (error) {
-            message.error('Error al subir el documento');
-            onError(error);
-        } finally {
-            dispatch({ type: 'SET_UPLOADING_FILES', payload: false });
-        }
-    }, [state.selectedEmbarazo, state.fileList, message]);
 
     // ✅ Handler para exportar datos a Excel/PDF
     const handleExportData = useCallback(async (formato: 'excel' | 'pdf') => {
@@ -601,12 +572,6 @@ const Embarazos: React.FC = () => {
         dispatch({ type: 'SET_HISTORIAL_MODAL_VISIBLE', payload: true });
     }, []);
 
-    // ✅ Handler para abrir modal de documentos
-    const handleOpenUploadModal = useCallback((embarazo: EmbarazoExtendido) => {
-        dispatch({ type: 'SET_SELECTED_EMBARAZO', payload: embarazo });
-        dispatch({ type: 'SET_FILE_LIST', payload: [] });
-        dispatch({ type: 'SET_UPLOAD_MODAL_VISIBLE', payload: true });
-    }, []);
 
     // ✅ Handler para integración API externa
     const handleIntegracionAPI = useCallback(async () => {
@@ -663,9 +628,9 @@ const Embarazos: React.FC = () => {
 
     const columns = useMemo(() => buildEmbarazosColumns({
         navigate, canChange, canDelete, modal, dispatch,
-        handleVerHistorial, handleOpenEdit, handleOpenUploadModal,
+        handleVerHistorial, handleOpenEdit,
         handleFinalizarEmbarazo, handleDelete,
-    }), [navigate, canChange, canDelete, handleVerHistorial, handleOpenEdit, handleOpenUploadModal, handleFinalizarEmbarazo, handleDelete, modal]);
+    }), [navigate, canChange, canDelete, handleVerHistorial, handleOpenEdit, handleFinalizarEmbarazo, handleDelete, modal]);
 
     // =============================================================================
     // 8. RENDERIZADO DE INTERFAZ (JSX)
@@ -959,17 +924,6 @@ const Embarazos: React.FC = () => {
                 selectedEmbarazo={state.selectedEmbarazo}
             />
 
-            {/* MODAL DE SUBIDA DE DOCUMENTOS */}
-            <UploadDocsModal
-                visible={state.uploadModalVisible}
-                onClose={() => dispatch({ type: 'SET_UPLOAD_MODAL_VISIBLE', payload: false })}
-                selectedEmbarazo={state.selectedEmbarazo}
-                uploadingFiles={state.uploadingFiles}
-                fileList={state.fileList}
-                dispatch={dispatch}
-                handleUploadDocuments={handleUploadDocuments}
-                message={message}
-            />
 
             {/* DRAWER DE FILTROS AVANZADOS */}
             <FiltrosAvanzadosDrawer

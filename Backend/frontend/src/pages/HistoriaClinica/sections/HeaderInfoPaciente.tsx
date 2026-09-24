@@ -55,7 +55,7 @@ const HeaderInfoPaciente: React.FC<HeaderInfoPacienteProps> = React.memo(({
       </Col>
       <Col>
         <Space direction="vertical" align="end">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/controles/nuevo?embarazo=${embarazoActivo?.id}`)} disabled={!embarazoActivo}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/dashboard/controles/nuevo?embarazo=${embarazoActivo?.id}`)} disabled={!embarazoActivo}>
             Nuevo Control
           </Button>
           <Dropdown menu={{

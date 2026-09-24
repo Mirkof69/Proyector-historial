@@ -54,7 +54,7 @@ const FormularioConsultorio: React.FC = () => {
         await consultoriosService.create(values);
         message.success('Consultorio creado exitosamente');
       }
-      navigate('/consultorios');
+      navigate('/dashboard/consultorios');
     } catch (error) {
       message.error(esEdicion ? 'Error actualizando consultorio' : 'Error creando consultorio');
     } finally {
@@ -69,7 +69,7 @@ const FormularioConsultorio: React.FC = () => {
           <Space>
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={() => navigate('/consultorios')}
+              onClick={() => navigate('/dashboard/consultorios')}
             />
             {esEdicion ? 'Editar Consultorio' : 'Nuevo Consultorio'}
           </Space>
@@ -277,7 +277,7 @@ const FormularioConsultorio: React.FC = () => {
               >
                 {esEdicion ? 'Actualizar' : 'Crear'} Consultorio
               </Button>
-              <Button onClick={() => navigate('/consultorios')}>
+              <Button onClick={() => navigate('/dashboard/consultorios')}>
                 Cancelar
               </Button>
             </Space>

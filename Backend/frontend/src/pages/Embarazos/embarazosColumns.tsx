@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Space, Tag, Typography, Tooltip, Badge, Progress, Avatar, Dropdown } from 'antd';
 import {
   EditOutlined, DeleteOutlined, EyeOutlined, UserOutlined, MedicineBoxOutlined,
-  HistoryOutlined, ArrowRightOutlined, StopOutlined, CloudUploadOutlined,
+  HistoryOutlined, ArrowRightOutlined, StopOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import {
@@ -25,7 +25,6 @@ export interface EmbarazosColumnsDeps {
   dispatch: React.Dispatch<EmbarazosAction>;
   handleVerHistorial: (embarazo: EmbarazoExtendido) => void;
   handleOpenEdit: (record: EmbarazoExtendido) => void;
-  handleOpenUploadModal: (embarazo: EmbarazoExtendido) => void;
   handleFinalizarEmbarazo: (embarazo: EmbarazoExtendido) => void;
   handleDelete: (id: number) => void;
 }
@@ -33,7 +32,7 @@ export interface EmbarazosColumnsDeps {
 export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
   const {
     navigate, canChange, canDelete, modal, dispatch, handleVerHistorial,
-    handleOpenEdit, handleOpenUploadModal, handleFinalizarEmbarazo, handleDelete,
+    handleOpenEdit, handleFinalizarEmbarazo, handleDelete,
   } = deps;
 
   return [
@@ -169,12 +168,6 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
                   icon: <EditOutlined />,
                   onClick: () => handleOpenEdit(r)
                 }] : []),
-                {
-                  key: 'upload',
-                  label: 'Subir Documentos',
-                  icon: <CloudUploadOutlined />,
-                  onClick: () => handleOpenUploadModal(r)
-                },
                 ...(canChange('embarazo') ? [{
                   key: 'finalizar',
                   label: 'Finalizar Embarazo',

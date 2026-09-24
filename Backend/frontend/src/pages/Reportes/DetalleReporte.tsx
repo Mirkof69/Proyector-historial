@@ -97,7 +97,7 @@ const DetalleReporte: React.FC = () => {
           // Cookie httpOnly + X-CSRFToken (defaults globales de axios)
           await axios.delete(`${API_URL}/reportes/${id}/`);
           message.success("Reporte eliminado");
-          navigate('/reportes');
+          navigate('/dashboard/reportes');
         } catch (e) {
           message.error("No se pudo eliminar el reporte");
         }
@@ -122,7 +122,7 @@ const DetalleReporte: React.FC = () => {
           type="error"
           showIcon
           action={
-            <Button onClick={() => navigate('/reportes')}>Volver a la lista</Button>
+            <Button onClick={() => navigate('/dashboard/reportes')}>Volver a la lista</Button>
           }
         />
       </Card>
@@ -140,7 +140,7 @@ const DetalleReporte: React.FC = () => {
             <Button
               icon={<ArrowLeftOutlined />}
               type="text"
-              onClick={() => navigate('/reportes')}
+              onClick={() => navigate('/dashboard/reportes')}
             />
             <Space direction="vertical" size={0}>
               <Space>

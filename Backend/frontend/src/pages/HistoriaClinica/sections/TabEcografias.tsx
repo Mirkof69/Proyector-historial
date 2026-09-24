@@ -114,7 +114,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                 hoverable
                 cover={<div style={{ height: 150, background: '#333', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ScanOutlined style={{ fontSize: 40 }} /></div>}
                 actions={[
-                  <Tooltip title="Ver Reporte" key="report"><FileTextOutlined onClick={() => navigate(`/ecografias/${eco.id}`)} /></Tooltip>,
+                  <Tooltip title="Ver Reporte" key="report"><FileTextOutlined onClick={() => navigate(`/dashboard/ecografias/${eco.id}`)} /></Tooltip>,
                   <Tooltip title="Editar" key="edit"><EditOutlined /></Tooltip>
                 ]}
               >
@@ -132,7 +132,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
             </Col>
           ))}
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Button type="dashed" block style={{ height: '100%' }} icon={<PlusOutlined style={{ fontSize: 30 }} />} onClick={() => navigate(`/ecografias/nuevo?embarazo=${embarazoActivo?.id || ''}`)}>
+            <Button type="dashed" block style={{ height: '100%' }} icon={<PlusOutlined style={{ fontSize: 30 }} />} onClick={() => navigate(`/dashboard/ecografias/nuevo?embarazo=${embarazoActivo?.id || ''}`)}>
               Nueva Ecografía
             </Button>
           </Col>
@@ -152,7 +152,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
           { title: 'Peso Fetal', dataIndex: 'peso_fetal_estimado', render: (peso) => peso ? `${peso}g` : '-', align: 'center' as const, width: 100 },
           { title: 'Medidas Biométricas', render: (_, r: any) => (<Space size={4} direction="vertical">{r.diametro_biparietal && <Text type="secondary" style={{ fontSize: 12 }}>DBP: {r.diametro_biparietal}mm</Text>}{r.circunferencia_abdominal && <Text type="secondary" style={{ fontSize: 12 }}>CA: {r.circunferencia_abdominal}mm</Text>}{r.longitud_femur && <Text type="secondary" style={{ fontSize: 12 }}>LF: {r.longitud_femur}mm</Text>}</Space>), width: 150 },
           { title: 'Líquido Amniótico', dataIndex: 'liquido_amniotico', render: (la) => { if (!la) return '-'; const colors: any = { NORMAL: 'success', OLIGOHIDRAMNIOS: 'error', POLIHIDRAMNIOS: 'warning' }; return <Tag color={colors[la] || 'default'}>{la}</Tag>; }, align: 'center' as const, width: 130 },
-          { title: 'Acciones', render: (_, r: any) => (<Space><Tooltip title="Ver detalles"><Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/ecografias/${r.id}`)} /></Tooltip></Space>), fixed: 'right' as const, width: 80 },
+          { title: 'Acciones', render: (_, r: any) => (<Space><Tooltip title="Ver detalles"><Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/dashboard/ecografias/${r.id}`)} /></Tooltip></Space>), fixed: 'right' as const, width: 80 },
         ]}
         expandable={{
           expandedRowRender: (record: any) => (
