@@ -1,8 +1,8 @@
 """Views para integración con Microservicio de IA
 
-Incluye:
+Incluye (el antiguo `ai_result_callback`, AllowAny y sin llamador, se eliminó:
+cualquiera en la red podía sobrescribir el análisis de cualquier ecografía):
   - analyze_ultrasound_with_ai:  análisis síncrono (directo al microservicio FastAPI)
-  - ai_result_callback:          endpoint receptor del callback del microservicio IA
 
 El análisis asíncrono NO pasa por RabbitMQ directo: el flujo productivo es
 Celery (tasks en ecografias/) → cnn_service (HTTP con circuit breaker) →
@@ -19,7 +19,7 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
@@ -452,112 +452,6 @@ def ai_service_health(_request):
             {"status": "error", "message": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-
-@extend_schema(
-    request=inline_serializer(
-        "ai_result_callback_request",
-        fields={}
-    ),
-    responses={200: dict}
-)
-@api_view(["POST"])
-@permission_classes([AllowAny])  # Llamado internamente por el microservicio IA (red interna)
-def ai_result_callback(request, ecografia_id):
-    """Endpoint receptor del callback del Microservicio IA tras análisis asíncrono.
-
-    Endpoint: POST /api/ecografias/{ecografia_id}/ai-result/
-
-    Endpoint interno de diagnostico: no debe exponerse fuera de la red de la clinica.
-    El microservicio IA llama a este endpoint con el resultado del análisis CNN.
-
-    Body:
-        status: "completed" | "error"
-        ai_analysis: dict con el resultado completo (si status=completed)
-        error: str con el mensaje de error (si status=error)
-    """
-    payload = request.data
-    result_status = payload.get("status")
-
-    try:
-        from .models import ImagenEcografia
-
-        # Buscar la imagen más reciente de esa ecografía
-        imagen = (
-            ImagenEcografia.objects.filter(ecografia_id=ecografia_id)
-            .order_by("-fecha_captura")
-            .first()
-        )
-        if not imagen:
-            logger.warning(
-                "ai_result_callback: no se encontró ImagenEcografia para ecografia_id=%s",
-                ecografia_id,
-            )
-            return Response({"error": "Ecografía no encontrada"}, status=status.HTTP_404_NOT_FOUND)
-
-        if result_status == "completed":
-            ai_analysis = payload.get("ai_analysis", {})
-            imagen.analisis_ia = ai_analysis
-            imagen.save(update_fields=["analisis_ia"])
-
-            # Registrar en auditoría
-            try:
-                from auditoria.models import RegistroAuditoria
-
-                RegistroAuditoria.registrar(
-                    usuario=None,
-                    accion="ANALISIS_CNN",
-                    modulo="Ecografia",
-                    registro_id=str(ecografia_id),
-                    detalle=(
-                        f"Análisis CNN completado — "
-                        f"modelo: {ai_analysis.get('model_version', 'N/A')} | "
-                        f"tiempo: {ai_analysis.get('inference_time_ms', 'N/A')}ms"
-                    ),
-                    request=None,
-                )
-            except Exception as audit_exc:
-                logger.warning("ai_result_callback: error registrando auditoría — %s", audit_exc)
-
-            # Notificar al médico vía WebSocket (Redis Pub/Sub) si channels está disponible
-            try:
-                from asgiref.sync import async_to_sync
-                from channels.layers import get_channel_layer
-
-                channel_layer = get_channel_layer()
-                if channel_layer:
-                    async_to_sync(channel_layer.group_send)(
-                        f"ecografia_{ecografia_id}",
-                        {
-                            "type": "ai.result",
-                            "ecografia_id": str(ecografia_id),
-                            "status": "completed",
-                            "score_global": ai_analysis.get("score_global"),
-                        },
-                    )
-            except Exception as ws_exc:
-                logger.debug("ai_result_callback: WebSocket notify skipped — %s", ws_exc)
-
-            logger.info(
-                "ai_result_callback: análisis guardado para ecografia_id=%s", ecografia_id
-            )
-            return Response({"status": "ok"}, status=status.HTTP_200_OK)
-
-        # status == "error"
-        error_msg = payload.get("error", "Error desconocido")
-        logger.error(
-            "ai_result_callback: microservicio IA reportó error para ecografia_id=%s — %s",
-            ecografia_id,
-            error_msg,
-        )
-        # Guardar el error en analisis_ia para que el médico vea el estado
-        imagen.analisis_ia = {"estado": "ERROR", "error": error_msg}
-        imagen.save(update_fields=["analisis_ia"])
-        return Response({"status": "error_recorded"}, status=status.HTTP_200_OK)
-
-    except Exception as exc:
-        logger.error("ai_result_callback: error inesperado — %s", exc)
-        return Response({"error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @extend_schema(

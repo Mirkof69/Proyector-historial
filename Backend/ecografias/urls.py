@@ -3,7 +3,6 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .ai_views import (
-    ai_result_callback,
     ai_service_health,
     analyze_ultrasound_with_ai,
     circunferencia_cefalica,
@@ -29,9 +28,6 @@ urlpatterns = [
     # Redes entrenadas con ecografías reales (HC18 y FETAL_PLANES_DB)
     path("plano-anatomico/", plano_anatomico, name="plano-anatomico"),
     path("circunferencia-cefalica/", circunferencia_cefalica, name="circunferencia-cefalica"),
-    # Callback receptor del Microservicio IA (flujo asíncrono via RabbitMQ)
-    # Endpoint interno de diagnostico: no exponer fuera de la red de la clinica
-    path("<str:ecografia_id>/ai-result/", ai_result_callback, name="ai-result-callback"),
     # Router — debe ir DESPUES de los paths fijos para evitar colisión de rutas
     path("", include(router.urls)),
 ]

@@ -71,3 +71,14 @@ class DescargaDeReportesTest(TestCase):
             d = self.cliente.get(self.url + "descargar/")
         self.assertEqual(d.status_code, 200)
         self.assertEqual(b"".join(d.streaming_content), b"contenido")
+
+
+class CallbackIaEliminadoTest(TestCase):
+    """El antiguo POST /api/ecografias/<id>/ai-result/ era AllowAny: cualquiera
+    en la red podía reescribir el análisis de IA de cualquier ecografía. Nadie
+    lo llamaba y se eliminó. ESPERADO: sin sesión, no se acepta nada."""
+
+    def test_sin_sesion_no_se_puede_escribir_un_analisis(self):
+        r = APIClient().post("/api/ecografias/1/ai-result/",
+                             {"status": "completed", "ai_analysis": {"x": 1}}, format="json")
+        self.assertIn(r.status_code, (401, 403, 404, 405))
