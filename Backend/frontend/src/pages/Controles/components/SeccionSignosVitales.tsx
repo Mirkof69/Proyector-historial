@@ -66,8 +66,8 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
           >
             <InputNumber
               style={{ width: '100%' }}
-              min={100}
-              max={220}
+              min={130}
+              max={200}
               placeholder="160"
               size="large"
               onChange={(value) => {
@@ -118,7 +118,7 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             <InputNumber
               style={{ width: '100%' }}
               min={70}
-              max={200}
+              max={220}
               placeholder="120"
               size="large"
             />

@@ -188,7 +188,11 @@ class ControlPrenatal(models.Model):
     frecuencia_cardiaca_fetal = models.IntegerField(
         null=True,
         blank=True,
-        validators=[MinValueValidator(90), MaxValueValidator(180)],
+        # 50-300: solo se rechaza lo fisicamente imposible (un error de tecleo).
+        # Antes 90-180: no se podia registrar una bradicardia ni una
+        # taquicardia fetal, que son justo las alarmas. Fuera de 110-160 se
+        # guarda y alerta (fcf_es_anormal / tiene_alertas_criticas).
+        validators=[MinValueValidator(50), MaxValueValidator(300)],
         verbose_name="Frecuencia Cardíaca Fetal (lpm)",
         help_text="Frecuencia cardíaca fetal en latidos por minuto (normal: 110-160)",
     )
@@ -736,15 +740,10 @@ class ControlPrenatal(models.Model):
                     )
 
         # ✅ 4. VALIDAR FRECUENCIA CARDÍACA FETAL
-        if self.frecuencia_cardiaca_fetal:
-            if self.frecuencia_cardiaca_fetal < 100:
-                errors["frecuencia_cardiaca_fetal"] = (
-                    f"FCF de {self.frecuencia_cardiaca_fetal} lpm es peligrosamente baja. BRADICARDIA SEVERA. Rango normal: 110-160 lpm."
-                )
-            elif self.frecuencia_cardiaca_fetal > 180:
-                errors["frecuencia_cardiaca_fetal"] = (
-                    f"FCF de {self.frecuencia_cardiaca_fetal} lpm es peligrosamente alta. TAQUICARDIA SEVERA. Rango normal: 110-160 lpm."
-                )
+        # Una FCF anormal NO es un error de datos: es un hallazgo que hay que
+        # guardar y alertar. Antes una bradicardia severa (<100) se rechazaba
+        # aquí y el control no se podía registrar. El rango físico lo fija el
+        # validador del campo; la alerta, fcf_es_anormal().
 
         # ✅ 5. VALIDAR TEMPERATURA
         if self.temperatura:

@@ -179,15 +179,23 @@ class ControlPrenatalModelTest(TestCase):
         with self.assertRaises(ValidationError):
             control.clean()
 
-    def test_clean_fcf_too_low(self):
-        """Test validation for very low FCF."""
-        data = {
-            **self.control_data,
-            "frecuencia_cardiaca_fetal": 80,
-        }
+    def test_una_bradicardia_severa_se_guarda_y_alerta(self):
+        """ESPERADO: FCF 80 es válida (se registra) y queda como alerta crítica.
+
+        Antes este test exigía que se RECHAZARA: el sistema no dejaba
+        registrar justo la alarma más urgente."""
+        data = {**self.control_data, "frecuencia_cardiaca_fetal": 80}
         control = ControlPrenatal(**data)
+        control.clean()                       # no lanza
+        self.assertTrue(control.fcf_es_anormal())
+        self.assertTrue(control.tiene_alertas_criticas())
+
+    def test_una_fcf_fisicamente_imposible_se_rechaza(self):
+        """ESPERADO: 40 lpm es casi seguro un error de tecleo -> no valida."""
+        control = ControlPrenatal(**{**self.control_data, "frecuencia_cardiaca_fetal": 40})
         with self.assertRaises(ValidationError):
-            control.clean()
+            control.full_clean(exclude=[f.name for f in ControlPrenatal._meta.fields
+                                        if f.name != "frecuencia_cardiaca_fetal"])
 
 
 class ControlPrenatalAPITest(APITestCase):

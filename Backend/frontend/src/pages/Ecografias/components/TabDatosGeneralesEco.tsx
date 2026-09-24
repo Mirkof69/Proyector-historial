@@ -62,7 +62,7 @@ const TabDatosGeneralesEco: React.FC<TabDatosGeneralesEcoProps> = ({
       <Col xs={24} md={6}><Form.Item name="vitalidad_fetal" label="Vitalidad Fetal" valuePropName="checked"><Checkbox>Presente</Checkbox></Form.Item></Col>
     </Row>
     <Row gutter={24}>
-      <Col xs={24} md={8}><Form.Item name="frecuencia_cardiaca_fetal" label="FCF (latidos/min)" rules={[{ type: 'number', min: 0, max: 250 }]}><InputNumber style={{ width: '100%' }} suffix="lpm" /></Form.Item></Col>
+      <Col xs={24} md={8}><Form.Item name="frecuencia_cardiaca_fetal" label="FCF (latidos/min)" rules={[{ type: 'number', min: 50, max: 300, message: 'FCF entre 50 y 300 lpm (fuera de 110-160 se guarda y alerta)' }]}><InputNumber style={{ width: '100%' }} suffix="lpm" /></Form.Item></Col>
     </Row>
   </Card>
 );

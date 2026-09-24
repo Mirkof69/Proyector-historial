@@ -59,11 +59,14 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
             },
           ]}
         >
+          {/* 50-300: antes min 90 / max 180, y el campo AJUSTABA sin avisar un
+              80 a 90 (una bradicardia guardada como casi normal). Fuera de
+              110-160 se guarda y el sistema alerta. */}
           <InputNumber
             style={{ width: '100%' }}
-            min={90}
-            max={180}
-            placeholder="120-160"
+            min={50}
+            max={300}
+            placeholder="110-160"
             size="large"
           />
         </Form.Item>

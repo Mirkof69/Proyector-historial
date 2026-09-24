@@ -104,7 +104,11 @@ class Ecografia(models.Model):
     frecuencia_cardiaca_fetal = models.IntegerField(
         null=True,
         blank=True,
-        validators=[MinValueValidator(90), MaxValueValidator(180)],
+        # 50-300: solo se rechaza lo fisicamente imposible (un error de tecleo).
+        # Antes 90-180: no se podia registrar una bradicardia ni una
+        # taquicardia fetal, que son justo las alarmas. Fuera de 110-160 se
+        # guarda y alerta (fcf_es_anormal / tiene_alertas_criticas).
+        validators=[MinValueValidator(50), MaxValueValidator(300)],
         verbose_name="FCF (lpm)",
     )
 

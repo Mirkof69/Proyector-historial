@@ -601,9 +601,9 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
                 logger.info("FCF registrada con %s semanas: normalmente no es detectable antes de 6.", semanas)
 
             # Validar rango de FCF solo si se proporciona
-            if fcf and (fcf < 90 or fcf > 180):
+            if fcf and (fcf < 50 or fcf > 300):
                 raise serializers.ValidationError(
-                    {"frecuencia_cardiaca_fetal": "FCF debe estar entre 90 y 180 lpm"},
+                    {"frecuencia_cardiaca_fetal": "FCF fuera del rango físico posible (50-300 lpm): revise el valor."},
                 )
 
         # ✅ VALIDACIÓN INTELIGENTE: Presentación fetal según semanas

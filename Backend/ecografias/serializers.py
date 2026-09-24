@@ -492,9 +492,9 @@ class EcografiaSerializer(serializers.ModelSerializer):
         # Validar FCF
         if attrs.get("frecuencia_cardiaca_fetal"):
             fcf = attrs["frecuencia_cardiaca_fetal"]
-            if fcf < 90 or fcf > 180:
+            if fcf < 50 or fcf > 300:
                 raise serializers.ValidationError(
-                    {"frecuencia_cardiaca_fetal": "FCF debe estar entre 90 y 180 lpm"},
+                    {"frecuencia_cardiaca_fetal": "FCF fuera del rango físico posible (50-300 lpm): revise el valor."},
                 )
 
         # Validar número de fetos
