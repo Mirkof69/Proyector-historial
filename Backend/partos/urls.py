@@ -7,7 +7,6 @@ from . import views
 # Crear router para las APIs REST
 router = DefaultRouter()
 # ✅ FIX: No usar prefijo 'partos' porque ya está en historial/urls.py
-router.register(r"", views.PartoViewSet, basename="parto")
 router.register(r"recien-nacidos", views.RecienNacidoViewSet, basename="recien-nacido")
 router.register(r"partograma", views.PartogramaRegistroViewSet, basename="partograma")
 router.register(
@@ -16,6 +15,10 @@ router.register(
 router.register(
     r"apgar-detallado", views.ApgarScoreDetalladoViewSet, basename="apgar-detallado",
 )
+# El ViewSet de prefijo vacio va AL FINAL: su ruta de detalle
+# ^(?P<pk>[^/.]+)/$ se comia los prefijos registrados despues
+# (p. ej. /recien-nacidos/ se leia como pk='recien-nacidos' -> 404/405).
+router.register(r"", views.PartoViewSet, basename="parto")
 
 urlpatterns = [
     # Las rutas explícitas van ANTES que el router: PartoViewSet está registrado

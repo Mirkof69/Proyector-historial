@@ -73,10 +73,16 @@ function normalizeSingleResponse<T>(data: any): T {
     return data as T;
 }
 
+// El router de la app registra 'evoluciones' dentro de /api/evoluciones/, así que
+// la ruta real es /evoluciones/evoluciones/. Los filtros son los del filterset
+// del backend (paciente, embarazo, tipo_evento): con otros nombres se ignoraban
+// y la ficha de una paciente mostraba las evoluciones de todas.
+const BASE = '/evoluciones/evoluciones';
+
 export const evolucionesService = {
     async listar(): Promise<EvolucionEmbarazo[]> {
         try {
-            const response = await api.get<EvolucionEmbarazo[]>('/evoluciones/');
+            const response = await api.get<EvolucionEmbarazo[]>(`${BASE}/`);
             return normalizeListResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error('❌ Error listando evoluciones:', error);
@@ -90,7 +96,7 @@ export const evolucionesService = {
 
     async obtener(id: number): Promise<EvolucionEmbarazo> {
         try {
-            const response = await api.get<EvolucionEmbarazo>(`/evoluciones/${id}/`);
+            const response = await api.get<EvolucionEmbarazo>(`${BASE}/${id}/`);
             return normalizeSingleResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error(`❌ Error obteniendo evolución ${id}:`, error);
@@ -104,7 +110,7 @@ export const evolucionesService = {
 
     async crear(data: Partial<EvolucionEmbarazo>): Promise<EvolucionEmbarazo> {
         try {
-            const response = await api.post<EvolucionEmbarazo>('/evoluciones/', data);
+            const response = await api.post<EvolucionEmbarazo>(`${BASE}/`, data);
             logger.log('✅ Evolución creada');
             return normalizeSingleResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
@@ -119,7 +125,7 @@ export const evolucionesService = {
 
     async actualizar(id: number, data: Partial<EvolucionEmbarazo>): Promise<EvolucionEmbarazo> {
         try {
-            const response = await api.put<EvolucionEmbarazo>(`/evoluciones/${id}/`, data);
+            const response = await api.put<EvolucionEmbarazo>(`${BASE}/${id}/`, data);
             logger.log(`✅ Evolución ${id} actualizada`);
             return normalizeSingleResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
@@ -134,7 +140,7 @@ export const evolucionesService = {
 
     async eliminar(id: number): Promise<void> {
         try {
-            await api.delete(`/evoluciones/${id}/`);
+            await api.delete(`${BASE}/${id}/`);
             logger.log(`✅ Evolución ${id} eliminada`);
         } catch (error: any) {
             console.error(`❌ Error eliminando evolución ${id}:`, error);
@@ -148,7 +154,7 @@ export const evolucionesService = {
 
     async obtenerPorPaciente(paciente_id: number): Promise<EvolucionEmbarazo[]> {
         try {
-            const response = await api.get<EvolucionEmbarazo[]>(`/evoluciones/?paciente_id=${paciente_id}`);
+            const response = await api.get<EvolucionEmbarazo[]>(`${BASE}/`, { params: { paciente: paciente_id } });
             return normalizeListResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error(`❌ Error obteniendo evoluciones del paciente ${paciente_id}:`, error);
@@ -158,7 +164,7 @@ export const evolucionesService = {
 
     async obtenerPorEmbarazo(embarazo_id: number): Promise<EvolucionEmbarazo[]> {
         try {
-            const response = await api.get<EvolucionEmbarazo[]>(`/evoluciones/?embarazo_id=${embarazo_id}`);
+            const response = await api.get<EvolucionEmbarazo[]>(`${BASE}/`, { params: { embarazo: embarazo_id } });
             return normalizeListResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error(`❌ Error obteniendo evoluciones del embarazo ${embarazo_id}:`, error);
@@ -168,7 +174,7 @@ export const evolucionesService = {
 
     async obtenerPorTipo(tipo: string): Promise<EvolucionEmbarazo[]> {
         try {
-            const response = await api.get<EvolucionEmbarazo[]>(`/evoluciones/?tipo=${tipo}`);
+            const response = await api.get<EvolucionEmbarazo[]>(`${BASE}/`, { params: { tipo_evento: tipo } });
             return normalizeListResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error(`❌ Error obteniendo evoluciones por tipo ${tipo}:`, error);
@@ -178,7 +184,7 @@ export const evolucionesService = {
 
     async obtenerHistorial(paciente_id: number): Promise<EvolucionEmbarazo[]> {
         try {
-            const response = await api.get<EvolucionEmbarazo[]>(`/evoluciones/historial/?paciente_id=${paciente_id}`);
+            const response = await api.get<EvolucionEmbarazo[]>(`${BASE}/`, { params: { paciente: paciente_id, ordering: '-fecha_evento' } });
             return normalizeListResponse<EvolucionEmbarazo>(response.data);
         } catch (error: any) {
             console.error(`❌ Error obteniendo historial del paciente ${paciente_id}:`, error);

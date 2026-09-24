@@ -29,10 +29,11 @@ urlpatterns = [
     ),
     # Modelo supervisado de peso al nacer (ia_medica/ml/servicio_peso.py)
     path("prediccion-peso/", views_prediccion_peso.prediccion_peso, name="prediccion-peso"),
+    # Consulta IA NLP. ANTES del router: si va despues, la ruta de detalle
+    # de ConsultaIAViewSet lo captura con pk="consultar" y el POST da 405.
+    path("consultas/consultar/", views.consultar_ia, name="consultar_ia"),
     # ViewSets CNN + Consultas IA
     path("", include(router.urls)),
-    # Consulta IA NLP — gateway al microservicio (mantener compatibilidad)
-    path("consultas/consultar/", views.consultar_ia, name="consultar_ia"),
     # Webhook Orthanc — recibe eventos DICOM y encola análisis CNN
     path("dicom/webhook/", dicom_webhook, name="dicom_webhook"),
 ]

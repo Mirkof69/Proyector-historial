@@ -7,12 +7,15 @@ from .views import EmbarazoViewSet
 
 # Crear router para registrar el ViewSet
 router = DefaultRouter()
-router.register(r"", EmbarazoViewSet, basename="embarazo")
 router.register(
     r"clasificacion-riesgos",
     ClasificacionRiesgosViewSet,
     basename="clasificacion-riesgos",
 )
+# El ViewSet de prefijo vacio va AL FINAL: su ruta de detalle
+# ^(?P<pk>[^/.]+)/$ se comia los prefijos registrados despues
+# (p. ej. /recien-nacidos/ se leia como pk='recien-nacidos' -> 404/405).
+router.register(r"", EmbarazoViewSet, basename="embarazo")
 
 urlpatterns = [
     path("", include(router.urls)),

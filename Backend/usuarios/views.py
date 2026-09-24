@@ -9,6 +9,7 @@ from django.utils import timezone as tz
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import filters, status, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import (
     action,
     api_view,
@@ -111,6 +112,47 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
     queryset = Usuario.objects.all()
     permission_classes = [IsAuthenticated]
+
+    #: Solo el administrador. Antes el ViewSet entero pedía solo sesión: recepción
+    #: podía crear usuarios, borrarlos, desactivar al administrador o
+    #: ascenderse a superusuario con un PATCH.
+    ACCIONES_SOLO_ADMIN = frozenset({"create", "destroy", "activar", "desactivar"})
+    #: Campos que un usuario no administrador no puede tocar ni en su propio perfil.
+    #: La contraseña se cambia por `cambiar_password`, que pide la actual.
+    CAMPOS_PROTEGIDOS = ("rol", "is_staff", "is_superuser", "activo", "email",
+                         "permisos_ids", "grupos_ids", "password", "password_confirm")
+
+    @staticmethod
+    def _es_admin(usuario) -> bool:
+        return bool(usuario.is_superuser or getattr(usuario, "rol", "") == "administrador")
+
+    def get_permissions(self):
+        permisos = super().get_permissions()
+        usuario = getattr(getattr(self, "request", None), "user", None)
+        if (self.action in self.ACCIONES_SOLO_ADMIN and usuario is not None
+                and usuario.is_authenticated and not self._es_admin(usuario)):
+            raise PermissionDenied("Solo un administrador puede hacer esto.")
+        return permisos
+
+    def update(self, request, *args, **kwargs):
+        """El administrador edita a cualquiera; los demás, solo su perfil.
+
+        La página de perfil envía el usuario completo (con rol, is_staff…), así
+        que para no romperla los campos protegidos se descartan en silencio en
+        vez de rechazar la petición.
+        """
+        if self._es_admin(request.user):
+            return super().update(request, *args, **kwargs)
+        instancia = self.get_object()
+        if instancia.pk != request.user.pk:
+            raise PermissionDenied("Solo puede editar su propio perfil.")
+        datos = request.data.copy()
+        for campo in self.CAMPOS_PROTEGIDOS:
+            datos.pop(campo, None)
+        serializer = self.get_serializer(instancia, data=datos, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,

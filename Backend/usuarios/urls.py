@@ -13,8 +13,11 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r"", UsuarioViewSet, basename="usuario")
 router.register(r"horarios", HorarioAtencionViewSet, basename="horario")
+# El ViewSet de prefijo vacio va AL FINAL: su ruta de detalle
+# ^(?P<pk>[^/.]+)/$ se comia los prefijos registrados despues
+# (p. ej. /recien-nacidos/ se leia como pk='recien-nacidos' -> 404/405).
+router.register(r"", UsuarioViewSet, basename="usuario")
 
 urlpatterns = [
     # Autenticación paso 1 (email + password)
