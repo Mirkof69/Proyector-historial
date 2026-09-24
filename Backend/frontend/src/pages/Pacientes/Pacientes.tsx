@@ -68,6 +68,7 @@ import PacienteWizardModal from './components/PacienteWizardModal';
 import PacienteDrawer from './components/PacienteDrawer';
 import AnalisisDemograficoModal from './components/AnalisisDemograficoModal';
 import ComparacionModal from './components/ComparacionModal';
+import ImportarPacientesModal from './components/ImportarPacientesModal';
 import AgendaDrawer from './components/AgendaDrawer';
 
 // Configuración regional
@@ -124,6 +125,7 @@ const Pacientes: React.FC = () => {
     // ✨ NUEVOS ESTADOS PARA MODALES EXTENDIDOS
     const [modalAnalisisDemograficoVisible, setModalAnalisisDemograficoVisible] = useState(false);
     const [modalComparacionVisible, setModalComparacionVisible] = useState(false);
+    const [modalImportarVisible, setModalImportarVisible] = useState(false);
     const [drawerAgendaVisible, setDrawerAgendaVisible] = useState(false);
     const [pacientesComparacion, setPacientesComparacion] = useState<{ a: Paciente | null; b: Paciente | null; c: Paciente | null }>({ a: null, b: null, c: null });
 
@@ -577,6 +579,7 @@ const Pacientes: React.FC = () => {
                         <Button icon={CALENDAR_ICON_5} onClick={() => setDrawerAgendaVisible(true)}>
                             Agenda
                         </Button>
+                        <Button icon={FILE_EXCEL_ICON_2} onClick={() => setModalImportarVisible(true)}>Importar Excel</Button>
                         <Button icon={EXPORT_ICON_3} onClick={handleExport}>Exportar CSV</Button>
                         <Button icon={FILE_EXCEL_ICON_2} onClick={handleExportExcel} style={{ backgroundColor: token.colorSuccess, color: 'white', borderColor: token.colorSuccess }}>
                             Exportar Excel
@@ -689,6 +692,11 @@ const Pacientes: React.FC = () => {
             />
 
             {/* HERRAMIENTAS DE COMPARACIÓN Y ANÁLISIS */}
+            <ImportarPacientesModal
+                open={modalImportarVisible}
+                onClose={() => setModalImportarVisible(false)}
+                onImportado={loadPacientes}
+            />
             <ComparacionModal
                 visible={modalComparacionVisible}
                 onClose={() => {

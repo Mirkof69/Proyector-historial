@@ -399,6 +399,56 @@ class PacienteViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=["get"], url_path="plantilla-excel")
+    def plantilla_excel(self, _request):
+        """Plantilla .xlsx para importar pacientes, con una hoja de instrucciones."""
+        from .importacion_excel import generar_plantilla
+
+        respuesta = HttpResponse(
+            generar_plantilla(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        respuesta["Content-Disposition"] = 'attachment; filename="plantilla_pacientes.xlsx"'
+        return respuesta
+
+    @action(detail=False, methods=["post"], url_path="importar-excel")
+    def importar_excel(self, request):
+        """Importa pacientes desde la plantilla.
+
+        Sin `confirmar`: solo vista previa (qué filas se crearían y cuáles
+        tienen errores). Con `confirmar=1`: crea las filas válidas.
+        """
+        from .importacion_excel import leer_filas, procesar
+
+        archivo = request.FILES.get("archivo")
+        if not archivo:
+            return Response({"error": "Adjunte el archivo Excel en el campo «archivo»."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if archivo.size > 5 * 1024 * 1024:
+            return Response({"error": "El archivo supera 5 MB."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            filas = leer_filas(archivo)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        if not filas:
+            return Response({"error": "El archivo no tiene filas con datos."}, status=status.HTTP_400_BAD_REQUEST)
+
+        confirmar = str(request.data.get("confirmar", "")).lower() in ("1", "true", "si", "sí")
+        resultado = procesar(filas, {"request": request}, confirmar)
+        if confirmar:
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                RegistroAuditoria.registrar(
+                    usuario=request.user, accion="CREAR", modulo="Paciente",
+                    detalle=f"Importación Excel «{archivo.name}»: {resultado['resumen']['creada']} creadas, "
+                            f"{resultado['resumen']['error']} con error, {resultado['resumen']['duplicada']} duplicadas.",
+                    request=request,
+                )
+            except Exception:
+                logger.exception("No se pudo auditar la importación de pacientes")
+        return Response(resultado)
+
     @action(detail=False, methods=["get"], url_path="buscar")
     @extend_schema(
         summary="Search patients",
