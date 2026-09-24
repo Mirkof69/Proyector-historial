@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 
 # drf-spectacular for API documentation
 from drf_spectacular.views import (
@@ -15,6 +15,7 @@ from drf_spectacular.views import (
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 # JWT via cookies httpOnly + CSRF (migración de seguridad)
+from core.media_protegida import MediaProtegidaView
 from usuarios.auth_cookie_views import CookieTokenRefreshView, csrf_bootstrap_view
 
 urlpatterns = [
@@ -73,7 +74,8 @@ urlpatterns = [
 ]
 
 
-# Configuración para servir archivos media en desarrollo
+# /media/ siempre con sesión (también en producción, donde antes no se servía)
+urlpatterns += [re_path(r"^media/(?P<ruta>.+)$", MediaProtegidaView.as_view(), name="media-protegida")]
+
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

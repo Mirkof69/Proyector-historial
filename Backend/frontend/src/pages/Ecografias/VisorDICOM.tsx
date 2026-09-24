@@ -82,7 +82,7 @@ const VisorDICOM: React.FC = () => {
     const imgUrl = ecografia.imagen;
     if (imgUrl) {
       const img = new Image();
-      img.crossOrigin = "Anonymous";
+      img.crossOrigin = "use-credentials"; // /media/ exige sesión
       img.src = imgUrl;
       img.onload = () => {
         // Clear and draw

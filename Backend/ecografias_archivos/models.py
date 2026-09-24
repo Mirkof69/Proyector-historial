@@ -2,9 +2,9 @@
 """
 
 import os
+import uuid
 
 from django.db import models
-from django.utils import timezone
 
 
 class EcografiaArchivo(models.Model):
@@ -39,13 +39,10 @@ class EcografiaArchivo(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk and self.archivo:
-            nombre_paciente = self.ecografia.paciente.nombre_completo.replace(
-                " ", "_"
-            )
-            ext = os.path.splitext(self.archivo.name)[1]
-            timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-            nuevo_nombre = f"{nombre_paciente}_{timestamp}{ext}"
-            self.archivo.name = nuevo_nombre
+            # Nombre aleatorio: antes era «Nombre_Apellido_fecha», que ponía el
+            # nombre de la paciente en la URL y era fácil de adivinar.
+            ext = os.path.splitext(self.archivo.name)[1].lower()
+            self.archivo.name = f"{uuid.uuid4().hex}{ext}"
         super().save(*args, **kwargs)
 
     def __str__(self):

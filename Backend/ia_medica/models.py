@@ -5,6 +5,8 @@ Modelos para el sistema de IA médico con machine learning
 =============================================================================
 """
 
+import uuid
+
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -405,7 +407,8 @@ def imagen_ecografica_upload_path(instance, filename):
 
     now = timezone.localtime()
     ext = filename.rsplit(".", 1)[-1].lower()
-    return f"ia_medica/imagenes/{now.year}/{now.month:02d}/{now.day:02d}/{instance.paciente_id}_{now.strftime('%H%M%S')}.{ext}"
+    # Nombre aleatorio: antes era «<id de paciente>_<hora>», fácil de adivinar.
+    return f"ia_medica/imagenes/{now.year}/{now.month:02d}/{now.day:02d}/{uuid.uuid4().hex}.{ext}"
 
 
 class ImagenEcografica(models.Model):

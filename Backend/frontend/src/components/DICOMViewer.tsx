@@ -69,7 +69,7 @@ const DICOMViewer: React.FC<DICOMViewerProps> = ({
     if (!ctx) return;
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = 'use-credentials'; // /media/ exige sesión
 
     img.onload = () => {
       canvas.width = img.width;
