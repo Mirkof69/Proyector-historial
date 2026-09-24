@@ -1,0 +1,9 @@
+{
+  "arquitectura": "efficientnet_b0",
+  "lado": 320,
+  "media": 0.485,
+  "desv": 0.229,
+  "salida": "fraccion del lado mayor de la imagen; mm = fraccion * lado_mayor_px * tamano_pixel_mm",
+  "dataset": "HC18 (Zenodo 1327317, CC BY 4.0)",
+  "entrenamiento": 709
+}

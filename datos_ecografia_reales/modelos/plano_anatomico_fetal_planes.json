@@ -1,0 +1,15 @@
+{
+  "arquitectura": "efficientnet_b0",
+  "lado": 224,
+  "media": 0.485,
+  "desv": 0.229,
+  "clases": [
+    "abdomen fetal",
+    "cerebro fetal",
+    "fémur fetal",
+    "tórax fetal",
+    "cuello uterino materno",
+    "otro"
+  ],
+  "dataset": "FETAL_PLANES_DB (Zenodo 3904280, CC BY 4.0)"
+}

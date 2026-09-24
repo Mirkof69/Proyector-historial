@@ -730,3 +730,66 @@ def crear_ecografia_desde_ia(request):
         status=status.HTTP_201_CREATED,
     )
 
+
+
+def _reenviar_a_red_real(request, ruta: str, datos: dict) -> Response:
+    """Pasa la imagen al microservicio y devuelve su respuesta tal cual.
+
+    Los 400 (imagen ilegible, tamaño de píxel absurdo) y el 503 (modelo sin
+    entrenar) se reenvían con su mensaje: son información para quien usa la
+    pantalla, no fallos del servidor.
+    """
+    if "file" not in request.FILES:
+        return Response({"error": "No se proporcionó archivo"}, status=status.HTTP_400_BAD_REQUEST)
+    archivo = request.FILES["file"]
+    try:
+        respuesta = requests.post(
+            f"{obtener_url_ia()}{ruta}",
+            files={"file": (archivo.name, archivo.read(), archivo.content_type)},
+            data=datos,
+            timeout=30,
+        )
+    except requests.RequestException:
+        logger.exception("Microservicio de IA inalcanzable en %s", ruta)
+        return Response(
+            {"error": "El servicio de IA no responde. Compruebe que está en marcha (puerto 8001)."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    try:
+        cuerpo = respuesta.json()
+    except ValueError:
+        cuerpo = {"error": respuesta.text[:300]}
+    if respuesta.status_code != 200 and "detail" in cuerpo:
+        cuerpo = {"error": cuerpo["detail"]}
+    return Response(cuerpo, status=respuesta.status_code)
+
+
+@extend_schema(request=None, responses={200: dict})
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def plano_anatomico(request):
+    """Qué plano muestra la ecografía (red entrenada con FETAL_PLANES_DB real).
+
+    Endpoint: POST /api/ecografias/plano-anatomico/  — file
+    """
+    return _reenviar_a_red_real(request, "/api/plano-anatomico", {})
+
+
+@extend_schema(request=None, responses={200: dict})
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def circunferencia_cefalica(request):
+    """Circunferencia cefálica y edad gestacional (red entrenada con HC18 real).
+
+    Endpoint: POST /api/ecografias/circunferencia-cefalica/  — file, tamano_pixel_mm
+    """
+    tamano = request.data.get("tamano_pixel_mm")
+    if not tamano:
+        return Response(
+            {"error": "Falta tamano_pixel_mm: los milímetros que mide un píxel, "
+                      "los da el ecógrafo o la cabecera DICOM."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    return _reenviar_a_red_real(
+        request, "/api/biometria/circunferencia-cefalica", {"tamano_pixel_mm": tamano},
+    )

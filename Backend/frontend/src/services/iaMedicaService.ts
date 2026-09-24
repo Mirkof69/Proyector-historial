@@ -191,6 +191,30 @@ export interface EstadisticasIA {
   modelos_disponibles: any[];
 }
 
+export interface MetricasPrueba {
+  imagenes_prueba: number;
+  madres_prueba: number;
+  [clave: string]: number;
+}
+
+export interface ResultadoPlano {
+  plano: string;
+  confianza: number;
+  probabilidades: Record<string, number>;
+  avisos: string[];
+  modelo: { archivo: string; dataset: string; metricas_prueba: MetricasPrueba };
+}
+
+export interface ResultadoCircunferencia {
+  circunferencia_cefalica_mm: number;
+  margen_mm: number;
+  edad_gestacional_semanas: number | null;
+  formula_edad: string;
+  plano_detectado: string | null;
+  avisos: string[];
+  modelo: { archivo: string; dataset: string; metricas_prueba: MetricasPrueba };
+}
+
 export const iaMedicaService = {
   // Obtener lista paginada de imágenes
   getImagenes: async (params?: { paciente_id?: number; tipo_imagen?: string; estado?: string }) => {
@@ -323,6 +347,28 @@ export const iaMedicaService = {
     const response = await api.post('/ecografias/crear-desde-ia/', {
       imagen_ia_id: imagenIaId,
       paciente_id: pacienteId,
+    });
+    return response.data;
+  },
+
+  // Redes entrenadas con ecografías reales (HC18 y FETAL_PLANES_DB)
+  clasificarPlano: async (file: File): Promise<ResultadoPlano> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/ecografias/plano-anatomico/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
+  medirCircunferencia: async (file: File, tamanoPixelMm: number): Promise<ResultadoCircunferencia> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('tamano_pixel_mm', String(tamanoPixelMm));
+    const response = await api.post('/ecografias/circunferencia-cefalica/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
     });
     return response.data;
   },

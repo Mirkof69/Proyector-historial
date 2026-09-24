@@ -17,6 +17,7 @@ import GaleriaEcografias from './components/GaleriaEcografias';
 import ModalCnnCompleto from './components/ModalCnnCompleto';
 import ModalVincular from './components/ModalVincular';
 import ModalCnnLegado from './components/ModalCnnLegado';
+import RedesEcografiaReal from './components/RedesEcografiaReal';
 
 const IaMedica: React.FC = () => {
   const { message } = useAntdApp();
@@ -228,6 +229,8 @@ const IaMedica: React.FC = () => {
       {state.estadisticas && (
         <IaMedicaStats estadisticas={state.estadisticas} />
       )}
+
+      <RedesEcografiaReal />
 
       <GaleriaEcografias
         selectedPacienteId={selectedPacienteId}

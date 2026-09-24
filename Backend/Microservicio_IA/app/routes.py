@@ -7,9 +7,11 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
 from .config import CITY_ALTITUDE_M, IMAGE_CONFIG
+from .ecografia_real import redes as redes_reales
 from .models import PATHOLOGY_CLASSES, ModelManager
 from .preprocessing import PILImagePreprocessor as ImagePreprocessor
 
@@ -284,6 +286,60 @@ async def classify_ultrasound(file: UploadFile = File(...)) -> dict:
             "score_global": result["score_global"],
         },
     }
+
+
+async def _leer_imagen(file: UploadFile):
+    """Valida extensión y tamaño y devuelve la imagen como array RGB."""
+    filename = file.filename or ""
+    ext = os.path.splitext(filename)[1].lower()
+    allowed: list = IMAGE_CONFIG["allowed_extensions"]  # type: ignore[assignment]
+    if ext not in allowed:
+        raise HTTPException(status_code=400, detail=f"Extensión no permitida. Use: {allowed}")
+    content = await file.read()
+    max_size: int = IMAGE_CONFIG["max_size"]  # type: ignore[assignment]
+    if len(content) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Archivo muy grande. Máximo: {max_size // 1024 // 1024} MB",
+        )
+    try:
+        return preprocessor.load_image(content, ext)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.post(
+    "/biometria/circunferencia-cefalica",
+    summary="Circunferencia cefálica y edad gestacional (red entrenada con HC18 real)",
+)
+async def medir_circunferencia_cefalica(
+    file: UploadFile = File(...),
+    tamano_pixel_mm: float = Form(..., description="Milímetros por píxel, del ecógrafo o DICOM"),
+) -> dict:
+    """Mide la circunferencia cefálica sobre un corte transtalámico y deriva la
+    edad gestacional con Hadlock 1984. Error medido: 7,0 mm de media sobre 146
+    imágenes de 117 madres que la red no vio (R² 0,978)."""
+    imagen = await _leer_imagen(file)
+    try:
+        return await run_in_threadpool(redes_reales.medir_circunferencia, imagen, tamano_pixel_mm)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+
+
+@router.post(
+    "/plano-anatomico",
+    summary="Plano anatómico de la ecografía (red entrenada con FETAL_PLANES_DB real)",
+)
+async def clasificar_plano_anatomico(file: UploadFile = File(...)) -> dict:
+    """Abdomen, cerebro, fémur, tórax, cuello uterino materno u otro.
+    Exactitud medida: 92,7% sobre 5.271 imágenes de 896 madres no vistas."""
+    imagen = await _leer_imagen(file)
+    try:
+        return await run_in_threadpool(redes_reales.clasificar_plano, imagen)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
 
 
 @router.post("/quality-check", summary="Evaluar calidad de imagen médica")

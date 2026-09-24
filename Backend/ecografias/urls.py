@@ -6,9 +6,11 @@ from .ai_views import (
     ai_result_callback,
     ai_service_health,
     analyze_ultrasound_with_ai,
+    circunferencia_cefalica,
     classify_ultrasound,
     crear_ecografia_desde_ia,
     detect_anomalies,
+    plano_anatomico,
 )
 from .views import EcografiaViewSet
 
@@ -24,6 +26,9 @@ urlpatterns = [
     path("classify/", classify_ultrasound, name="classify-ultrasound"),
     path("detect-anomalies/", detect_anomalies, name="detect-anomalies"),
     path("ai/health/", ai_service_health, name="ai-health"),
+    # Redes entrenadas con ecografías reales (HC18 y FETAL_PLANES_DB)
+    path("plano-anatomico/", plano_anatomico, name="plano-anatomico"),
+    path("circunferencia-cefalica/", circunferencia_cefalica, name="circunferencia-cefalica"),
     # Callback receptor del Microservicio IA (flujo asíncrono via RabbitMQ)
     # Endpoint interno de diagnostico: no exponer fuera de la red de la clinica
     path("<str:ecografia_id>/ai-result/", ai_result_callback, name="ai-result-callback"),
