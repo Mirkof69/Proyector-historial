@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
+from core.exportacion import ExportarExcelMixin
 
 from .models import NotaEvolucion
 from .serializers import (
@@ -21,7 +22,7 @@ from .serializers import (
 )
 
 
-class NotaEvolucionViewSet(viewsets.ModelViewSet):
+class NotaEvolucionViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet completo para CRUD de Notas de Evolución
 
     Incluye:
@@ -32,6 +33,23 @@ class NotaEvolucionViewSet(viewsets.ModelViewSet):
     - Ordenamiento por fecha_consulta
     - Acción personalizada para obtener notas por paciente
     """
+
+    excel_nombre = "notas_evolucion"
+    excel_columnas = [
+        ("Fecha", "fecha_consulta"),
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("Tipo", "tipo_consulta"),
+        ("Médico", "medico.nombre_completo"),
+        ("Motivo", "motivo_consulta"),
+        ("PA sistólica", "presion_arterial_sistolica"),
+        ("PA diastólica", "presion_arterial_diastolica"),
+        ("EG semanas", "edad_gestacional_semanas"),
+        ("FCF", "frecuencia_cardiaca_fetal"),
+        ("Diagnósticos", "diagnosticos"),
+        ("Plan", "plan_tratamiento"),
+    ]
+
 
     queryset = NotaEvolucion.objects.select_related(
         "paciente", "embarazo", "control_prenatal", "medico", "revisado_por",

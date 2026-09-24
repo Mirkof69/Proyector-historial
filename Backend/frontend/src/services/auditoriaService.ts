@@ -132,45 +132,8 @@ class AuditoriaService {
         return response.data;
     }
 
-    /**
-     * Exportar registros de auditoría a CSV
-     */
-    async exportToCSV(filters?: AuditFilters): Promise<Blob> {
-        const params = new URLSearchParams();
-
-        if (filters) {
-            if (filters.modulo) params.append('modulo', filters.modulo);
-            if (filters.accion) params.append('accion', filters.accion);
-            if (filters.usuario_id) params.append('usuario_id', filters.usuario_id.toString());
-            if (filters.fecha_inicio) params.append('fecha_inicio', filters.fecha_inicio);
-            if (filters.fecha_fin) params.append('fecha_fin', filters.fecha_fin);
-        }
-
-        const response = await apiClient.get(`/auditoria/exportar-csv/?${params.toString()}`, {
-            responseType: 'blob'
-        });
-        return response.data;
-    }
-
-    /**
-     * Exportar registros de auditoría a PDF
-     */
-    async exportToPDF(filters?: AuditFilters): Promise<Blob> {
-        const params = new URLSearchParams();
-
-        if (filters) {
-            if (filters.modulo) params.append('modulo', filters.modulo);
-            if (filters.accion) params.append('accion', filters.accion);
-            if (filters.usuario_id) params.append('usuario_id', filters.usuario_id.toString());
-            if (filters.fecha_inicio) params.append('fecha_inicio', filters.fecha_inicio);
-            if (filters.fecha_fin) params.append('fecha_fin', filters.fecha_fin);
-        }
-
-        const response = await apiClient.get(`/auditoria/exportar-pdf/?${params.toString()}`, {
-            responseType: 'blob'
-        });
-        return response.data;
-    }
+    // Exportación: GET /auditoria/exportar-excel/ (ver core/exportacion.py).
+    // Aquí había exportToCSV/exportToPDF contra rutas que nunca existieron.
 
     /**
      * Obtener comparación entre dos versiones de un registro

@@ -19,6 +19,7 @@ from core.filtros import BusquedaClinicaFilter
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
+from core.exportacion import ExportarExcelMixin
 
 from .models import RegistroVacuna, TipoVacuna
 from .serializers import (
@@ -184,7 +185,7 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
 # =============================================================================
 
 
-class RegistroVacunaViewSet(viewsets.ModelViewSet):
+class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet completo para gestionar registros de vacunación
 
     ENDPOINTS:
@@ -204,6 +205,22 @@ class RegistroVacunaViewSet(viewsets.ModelViewSet):
     - reacciones_adversas: Registros con reacciones adversas
     - estadisticas: Estadísticas de vacunación
     """
+
+    excel_nombre = "vacunas"
+    excel_columnas = [
+        ("Fecha aplicación", "fecha_aplicacion"),
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("Vacuna", "tipo_vacuna"),
+        ("Dosis", "numero_dosis"),
+        ("Lote", "lote"),
+        ("Laboratorio", "laboratorio"),
+        ("Vía", "via_administracion"),
+        ("Aplicada por", "aplicado_por"),
+        ("Próxima dosis", "proxima_dosis_fecha"),
+        ("Reacciones adversas", "reacciones_adversas"),
+    ]
+
 
     queryset = RegistroVacuna.objects.all()
     permission_classes = [permissions.IsAuthenticated]

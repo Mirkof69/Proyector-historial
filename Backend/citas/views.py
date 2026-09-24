@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
+from core.exportacion import ExportarExcelMixin
 
 from .models import Cita, Disponibilidad, HistorialCita
 from .serializers import (
@@ -221,7 +222,7 @@ class DisponibilidadViewSet(viewsets.ModelViewSet):
         )
 
 
-class CitaViewSet(viewsets.ModelViewSet):
+class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet completo para gestión de Citas
 
     Endpoints:
@@ -243,6 +244,20 @@ class CitaViewSet(viewsets.ModelViewSet):
     - POST /api/citas/citas/{id}/completar/
     - POST /api/citas/citas/{id}/no-asistio/
     """
+
+    excel_nombre = "citas"
+    excel_columnas = [
+        ("Fecha", "fecha_cita"),
+        ("Hora", "hora_cita"),
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("Médico", "medico.nombre_completo"),
+        ("Consultorio", "consultorio"),
+        ("Tipo", "tipo_cita"),
+        ("Estado", "estado"),
+        ("Motivo", "motivo"),
+    ]
+
 
     queryset = (
         Cita.objects.select_related(

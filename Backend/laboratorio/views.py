@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from core.filtros import BusquedaClinicaFilter
 from core.permissions import EsMedicoOEnfermeraOLaboratorista, FetalMedicalPermission
+from core.exportacion import ExportarExcelMixin
 
 from .models import ExamenLaboratorio, ResultadoLaboratorio, TipoExamen, ValorReferencia
 from .serializers import (
@@ -264,7 +265,7 @@ class ValorReferenciaViewSet(viewsets.ModelViewSet):
         )
 
 
-class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
+class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet completo para gestión de Exámenes de Laboratorio
 
     Endpoints disponibles:
@@ -281,6 +282,21 @@ class ExamenLaboratorioViewSet(viewsets.ModelViewSet):
     - GET /api/laboratorio/examenes/criticos/
     - GET /api/laboratorio/examenes/recientes/dias=7
     """
+
+    excel_nombre = "examenes_laboratorio"
+    excel_columnas = [
+        ("Fecha solicitud", "fecha_solicitud"),
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("Examen", "tipo_examen"),
+        ("Prioridad", "prioridad"),
+        ("Estado", "estado"),
+        ("Fecha muestra", "fecha_muestra"),
+        ("Fecha resultado", "fecha_resultado"),
+        ("Solicitado por", "medico_solicitante.nombre_completo"),
+        ("Indicaciones", "indicaciones"),
+    ]
+
 
     queryset = (
         ExamenLaboratorio.objects.select_related(

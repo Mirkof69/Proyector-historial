@@ -16,6 +16,7 @@ import {
   MedicineBoxOutlined,
   WarningOutlined,
   FileSearchOutlined,
+  FileExcelOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -32,6 +33,7 @@ import VacunasFiltros from './components/VacunasFiltros';
 import VacunasGraficas from './components/VacunasGraficas';
 import CarnetVacunaDrawer from './components/CarnetVacunaDrawer';
 import { incluyeTexto } from '../../utils/texto';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 
 dayjs.extend(relativeTime);
 
@@ -239,6 +241,14 @@ const Vacunas: React.FC = () => {
                   className="btn-success-gradient"
                 >
                   Registrar Vacuna
+                </Button>
+                <Button
+                  size="large"
+                  icon={<FileExcelOutlined />}
+                  onClick={() => descargarArchivo('/vacunas/registros/exportar-excel/', `vacunas_${dayjs().format('YYYYMMDD')}.xlsx`)
+                    .catch(() => message.error('No se pudo exportar el Excel'))}
+                >
+                  Exportar Excel
                 </Button>
                 <Button
                   size="large"

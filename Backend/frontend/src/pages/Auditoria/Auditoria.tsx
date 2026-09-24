@@ -3,9 +3,11 @@ import { Card, Table, Tag, Button, Space, Typography, Spin, Input, Row, Col, Sta
 import {
   SearchOutlined, ReloadOutlined, AuditOutlined,
   FileTextOutlined, ClockCircleOutlined, TeamOutlined, AppstoreOutlined,
+  FileExcelOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 
 const { Text } = Typography;
 
@@ -153,6 +155,11 @@ const Auditoria: React.FC = () => {
                 allowClear
               />
               <Button icon={<ReloadOutlined />} onClick={() => cargarTodo(search)} loading={loading}>Recargar</Button>
+              <Button icon={<FileExcelOutlined />}
+                onClick={() => descargarArchivo(`/auditoria/exportar-excel/${search ? `?search=${encodeURIComponent(search)}` : ''}`,
+                  `auditoria_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`)}>
+                Exportar Excel
+              </Button>
             </Space>
           }
         >

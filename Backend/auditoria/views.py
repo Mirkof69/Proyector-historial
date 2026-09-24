@@ -16,16 +16,32 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from core.permissions import PuedeVerAuditoria
+from core.exportacion import ExportarExcelMixin
 
 from .models import RegistroAuditoria
 from .serializers import RegistroAuditoriaListSerializer, RegistroAuditoriaSerializer
 
 
-class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
+class RegistroAuditoriaViewSet(ExportarExcelMixin, viewsets.ReadOnlyModelViewSet):
     """ViewSet SOLO LECTURA para consultar registros de auditoría.
     Los registros se crean automáticamente mediante signals o el método registrar().
     Acceso restringido: solo médicos y administradores.
     """
+
+    excel_nombre = "auditoria"
+    excel_columnas = [
+        ("Fecha", "fecha"),
+        ("Usuario", "usuario_nombre"),
+        ("Rol", "usuario_rol"),
+        ("Acción", "accion"),
+        ("Módulo", "modulo"),
+        ("Registro", "registro_id"),
+        ("IP", "ip_address"),
+        ("Ruta", "endpoint"),
+        ("Sesión", "sesion_id"),
+        ("Detalle", "detalle"),
+    ]
+
 
     queryset = RegistroAuditoria.objects.select_related("usuario").all()
     permission_classes = [PuedeVerAuditoria]
