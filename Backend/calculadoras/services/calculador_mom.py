@@ -78,6 +78,12 @@ class CalculadorMoM:
             "UTA_PI": CalculadorMoM.UTA_PI_MEDIANAS,
         }
 
+        # Los llamadores usan nombres distintos para el mismo marcador
+        # ("PAPP-A", "PlGF", "free_bhcg"...). Antes no coincidían con las
+        # claves y el registro de marcadores fallaba con TODOS ellos.
+        marcador = str(marcador).upper().replace("-", "_").replace(" ", "_")
+        marcador = {"PAPPA": "PAPP_A", "PLG": "PLGF", "BHCG": "FREE_BHCG",
+                    "UTPI": "UTA_PI", "UTAPI": "UTA_PI"}.get(marcador, marcador)
         if marcador not in tablas:
             raise ValueError(f"Marcador '{marcador}' no reconocido")
 

@@ -123,13 +123,14 @@ class MOMConverterTestCase(TestCase):
 
     def test_mom_marca_resultado_como_no_ajustado(self):
         """Sin referencias poblacionales, el MoM debe declararse no ajustado."""
+        # PAPP-A a las 12 semanas: mediana 1,5 -> un valor de 1,5 es MoM 1,0.
+        # (Antes la mediana era 1,0 para todo y el MoM era el valor crudo.)
         resultado = self.converter.calcular_mom(
             marcador="pappa",
-            valor_crudo=1.0,
+            valor_crudo=1.5,
             edad_gestacional_dias=84,
             peso_kg=65,
         )
-        # Con mediana_base=1.0 y factores neutros, MoM == valor_crudo
         self.assertEqual(resultado["mom"], 1.0)
         self.assertFalse(resultado["ajustado_poblacionalmente"])
         self.assertIsNotNone(resultado["advertencia"])
@@ -138,7 +139,7 @@ class MOMConverterTestCase(TestCase):
         """Un MoM de 1.0 debe interpretarse como normal (semáforo verde)."""
         resultado = self.converter.calcular_mom(
             marcador="pappa",
-            valor_crudo=1.0,
+            valor_crudo=1.5,   # = mediana a las 12 semanas
             edad_gestacional_dias=84,
             peso_kg=65,
         )

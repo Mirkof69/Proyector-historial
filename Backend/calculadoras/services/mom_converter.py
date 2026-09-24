@@ -28,6 +28,13 @@ from django.core.exceptions import ObjectDoesNotExist
 # marca cada resultado con `ajustado_poblacionalmente = False` y una advertencia
 # explícita (ver calcular_mom). NO usar estos MoM para decisiones de cribado sin
 # cargar antes las referencias reales.
+#: Nombre del marcador en la API -> tabla de medianas de CalculadorMoM.
+_MARCADOR_A_TABLA = {
+    "utpi": "UTA_PI", "plgf": "PLGF", "plg": "PLGF",
+    "pappa": "PAPP_A", "bhcg": "FREE_BHCG", "free_bhcg": "FREE_BHCG",
+}
+
+
 class _PlaceholderReferencia:
     """Referencia neutra (factores 1.0) usada hasta que exista ReferenciaMOM real.
 
@@ -38,11 +45,32 @@ class _PlaceholderReferencia:
     es_placeholder = True
 
     def __init__(self, marcador, eg_dias):
-        """Init"""
+        """Init.
+
+        La mediana base sale de las MISMAS tablas por semana que usa la
+        calculadora FMF (CalculadorMoM y MEDIANAS_MAP). Antes era 1.0 para
+        todos los marcadores: el «MoM» era el valor crudo (una PAM de 90 daba
+        MoM 90) y el riesgo calculado con él no tenía sentido. Si el marcador
+        no tiene mediana conocida se lanza ObjectDoesNotExist: mejor no dar
+        MoM que dar uno inventado.
+        """
+        from .calculador_mom import CalculadorMoM
+        from .calculador_riesgos_fmf import MEDIANAS_MAP
+
         self.marcador = marcador
         self.edad_gestacional_dias = eg_dias
-        self.mediana = 1.0          # Placeholder value
-        self.mediana_base = 1.0     # Used by calcular_mom
+        semanas = int(eg_dias) // 7
+        tabla_cm = _MARCADOR_A_TABLA.get(marcador)
+        if marcador == "pam":
+            mediana = MEDIANAS_MAP.get(semanas, 87.0)
+        elif tabla_cm:
+            mediana = CalculadorMoM.obtener_mediana_esperada(tabla_cm, semanas)
+        else:
+            mediana = 0.0
+        if not mediana or mediana <= 0:
+            raise ObjectDoesNotExist(f"Sin mediana de referencia para {marcador}")
+        self.mediana = mediana
+        self.mediana_base = mediana
         self.unidad = "MoM"
         # Correction factors — all 1.0 (no adjustment) until real data is loaded
         self.factor_fumadora = 1.0

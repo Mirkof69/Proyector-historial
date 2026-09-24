@@ -6,6 +6,8 @@ Adaptado para condiciones de altura (La Paz, Bolivia - 3600-4000m)
 =============================================================================
 """
 
+import logging
+
 from django.db.models import Avg, Count
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
@@ -31,6 +33,8 @@ from .serializers import (
 )
 from .services.mom_converter import MOMConverter
 from .services.risk_calculator import RiskCalculator
+
+logger = logging.getLogger(__name__)
 
 
 class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
@@ -153,15 +157,18 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
             biomarcadores_mom["plgf"] = resultado_plgf
 
         if data.get("sflt1_crudo"):
-            resultado_sflt1 = mom_converter.calcular_mom(
-                marcador="sflt1",
-                valor_crudo=float(data["sflt1_crudo"]),
-                edad_gestacional_dias=edad_gestacional_dias_total,
-                peso_kg=float(data["peso_kg"]),
-                etnia=data["etnia"],
-                tabaquismo=data.get("tabaquismo", False),
-            )
-            biomarcadores_mom["sflt1"] = resultado_sflt1
+            # sFlt-1 no tiene mediana de referencia cargada: no se inventa un MoM.
+            try:
+                biomarcadores_mom["sflt1"] = mom_converter.calcular_mom(
+                    marcador="sflt1",
+                    valor_crudo=float(data["sflt1_crudo"]),
+                    edad_gestacional_dias=edad_gestacional_dias_total,
+                    peso_kg=float(data["peso_kg"]),
+                    etnia=data["etnia"],
+                    tabaquismo=data.get("tabaquismo", False),
+                )
+            except ValueError:
+                logger.info("sFlt-1 sin mediana de referencia: MoM no calculado")
 
         if data.get("pappa_crudo"):
             resultado_pappa = mom_converter.calcular_mom(
@@ -876,18 +883,22 @@ class MarcadorEmbarazoViewSet(viewsets.ModelViewSet):
 
         # Calcular MoM para sFlt-1
         if marcador.sflt1:
-            resultado_sflt = calculador_mom.calcular_mom(
-                valor_medido=float(marcador.sflt1),
-                marcador="sFlt-1",
-                semanas=data["semanas_gestacion"],
-                peso_kg=float(data["peso_kg"]),
-                etnia=data.get("etnia", "mestizo"),
-                fumadora=data.get("fumadora", False),
-                diabetes=data.get("diabetes", False),
-                fiv=data.get("fiv", False),
-                altitud_bolivia=data.get("altitud_bolivia", True),
-            )
-            marcador.sflt1_mom = resultado_sflt
+            try:
+                resultado_sflt = calculador_mom.calcular_mom(
+                    valor_medido=float(marcador.sflt1),
+                    marcador="sFlt-1",
+                    semanas=data["semanas_gestacion"],
+                    peso_kg=float(data["peso_kg"]),
+                    etnia=data.get("etnia", "mestizo"),
+                    fumadora=data.get("fumadora", False),
+                    diabetes=data.get("diabetes", False),
+                    fiv=data.get("fiv", False),
+                    altitud_bolivia=data.get("altitud_bolivia", True),
+                )
+                marcador.sflt1_mom = resultado_sflt
+            except ValueError:
+                # Sin mediana de referencia para sFlt-1: MoM vacío, no inventado.
+                marcador.sflt1_mom = None
 
         # Calcular ratio sFlt-1/PlGF
         if marcador.sflt1 and marcador.plgf:

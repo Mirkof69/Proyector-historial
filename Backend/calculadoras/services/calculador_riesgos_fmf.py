@@ -15,6 +15,10 @@ Basado en publicaciones FMF 2023
 
 from .calculador_mom import CalculadorMoM
 
+#: Medianas de presión arterial media (mmHg) por semana. Compartidas con
+#: mom_converter para que las dos calculadoras den el mismo MoM.
+MEDIANAS_MAP = {11: 85.0, 12: 86.0, 13: 87.0, 20: 88.0, 22: 89.0, 24: 90.0}
+
 
 class CalculadorRiesgosFMF:
     """Calculador de riesgos obstétricos según algoritmos FMF
@@ -264,10 +268,7 @@ class CalculadorRiesgosFMF:
     @staticmethod
     def _calcular_map_mom(map_value: float, semanas: int) -> float:
         """Calcula MoM de MAP"""
-        # Medianas esperadas MAP por semana
-        medianas_map = {11: 85.0, 12: 86.0, 13: 87.0, 20: 88.0, 22: 89.0, 24: 90.0}
-
-        mediana = medianas_map.get(semanas, 87.0)
+        mediana = MEDIANAS_MAP.get(semanas, 87.0)
         mom = map_value / mediana
         return round(mom, 3)
 
