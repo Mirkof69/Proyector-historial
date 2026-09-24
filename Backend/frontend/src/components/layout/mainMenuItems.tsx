@@ -15,9 +15,14 @@ const checkPermission = (user: any, itemKey: string): boolean => {
   if (user?.rol === 'administrador') return true;
 
   const routePermissions: Record<string, string> = {
+    // Clínicos: recepción no los ve (el backend también se los niega).
+    '/dashboard/historia-clinica': 'view_controlprenatal',
+    '/dashboard/ia-medica': 'view_imagenecografica',
+    '/dashboard/ia-asistente': 'view_consultaia',
+    '/dashboard/evoluciones': 'view_evolucionembarazo',
     '/dashboard/triaje': 'view_triajeenfermeria',
     '/dashboard/pacientes': 'view_paciente',
-    '/dashboard/antecedentes': 'view_paciente',
+    '/dashboard/antecedentes': 'view_antecedentepatologico',
     '/dashboard/embarazos': 'view_embarazo',
     '/dashboard/controles': 'view_controlprenatal',
     '/dashboard/partos': 'view_parto',
@@ -118,8 +123,8 @@ export const buildMainMenuItems = (user: any, navigate: NavigateFunction): MenuP
     onClick: () => navigate('/ayuda'),
   },
   {
-    key: 'ia-asistente',
-    label: 'IA Assistant',
+    key: '/dashboard/ia-asistente',
+    label: 'Asistente IA',
     icon: <RobotOutlined />,
     onClick: () => navigate('/dashboard/ia-asistente'),
   },

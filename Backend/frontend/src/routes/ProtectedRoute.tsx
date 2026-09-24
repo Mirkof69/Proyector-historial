@@ -21,13 +21,13 @@ const ProtectedRoute = ({ children, requiredPermission, requireAdmin }: Protecte
   // Check Admin role
   if (requireAdmin && currentUser?.rol !== 'administrador') {
     console.warn('⛔ Acceso denegado. Se requiere administrador');
-    return <Navigate to="/dashboard/404" replace />;
+    return <Navigate to="/403" replace />;  // «sin permiso», no «no encontrada»
   }
 
   // Check specific permission
   if (requiredPermission && !hasPermission(requiredPermission)) {
     console.warn(`⛔ Acceso denegado. Falta permiso: ${requiredPermission}`);
-    return <Navigate to="/dashboard/404" replace />;
+    return <Navigate to="/403" replace />;  // «sin permiso», no «no encontrada»
   }
 
   return children;

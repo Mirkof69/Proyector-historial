@@ -51,6 +51,14 @@ PERMISOS_POR_ROL: dict[str, dict[str, tuple[str, ...]]] = {
     },
 }
 
+#: Modelos de configuración que solo toca el administrador, aunque su app esté
+#: en la tabla (la configuración del sistema vive dentro de `reportes`, y la de
+#: los modelos de IA dentro de `ia_medica`).
+SOLO_ADMINISTRADOR = (
+    "sistemaconfiguracion", "auditoriareporte", "configuracionmodeloia",
+    "modelocnnconfig", "datasetentrenamientoia",
+)
+
 PREFIJO_GRUPO = "Rol: "
 
 
@@ -67,7 +75,10 @@ def permisos_del_rol(rol: str):
     for app, acciones in PERMISOS_POR_ROL.get(rol, {}).items():
         for accion in acciones:
             filtro |= Q(content_type__app_label=app, codename__startswith=f"{accion}_")
-    return Permission.objects.filter(filtro)
+    excluir = Q(pk__in=[])
+    for modelo in SOLO_ADMINISTRADOR:
+        excluir |= Q(codename__endswith=f"_{modelo}")
+    return Permission.objects.filter(filtro).exclude(excluir)
 
 
 def sincronizar_grupos() -> dict[str, int]:

@@ -44,6 +44,12 @@ class PermisosPorRolTest(TestCase):
             self.assertIn(p, perms)
         self.assertNotIn("delete_paciente", perms)   # borrar es cosa del administrador
 
+    def test_la_configuracion_del_sistema_es_solo_del_administrador(self):
+        perms = _permisos(self._crear("medico", "m.conf@test.bo"))
+        self.assertNotIn("view_sistemaconfiguracion", perms)
+        self.assertNotIn("change_configuracionmodeloia", perms)
+        self.assertIn("view_reportegenerado", perms)   # el resto de reportes sí
+
     def test_enfermeria_no_tiene_partos_ni_reportes(self):
         """Igual que el backend (FetalMedicalPermission le bloquea /api/partos y /api/reportes)."""
         perms = _permisos(self._crear("enfermera", "e.rol@test.bo"))

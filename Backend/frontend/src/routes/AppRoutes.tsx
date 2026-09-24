@@ -113,8 +113,8 @@ const AppRoutes: React.FC = () => {
           <Route path="access-logs" element={<AccessLogs />} />
 
           {/* MÓDULO: HISTORIA CLÍNICA */}
-          <Route path="historia-clinica" element={<ProtectedRoute requiredPermission="view_paciente"><ListaHistoriasClinicas /></ProtectedRoute>} />
-          <Route path="historia-clinica/:id" element={<ProtectedRoute requiredPermission="view_paciente"><HistoriaClinica /></ProtectedRoute>} />
+          <Route path="historia-clinica" element={<ProtectedRoute requiredPermission="view_controlprenatal"><ListaHistoriasClinicas /></ProtectedRoute>} />
+          <Route path="historia-clinica/:id" element={<ProtectedRoute requiredPermission="view_controlprenatal"><HistoriaClinica /></ProtectedRoute>} />
 
           {/* MÓDULO: EMBARAZOS */}
           <Route path="embarazos" element={<ProtectedRoute requiredPermission="view_embarazo"><Embarazos /></ProtectedRoute>} />
@@ -177,7 +177,7 @@ const AppRoutes: React.FC = () => {
           <Route path="reportes/historial" element={<ProtectedRoute requiredPermission="view_reportegenerado"><Reportes /></ProtectedRoute>} />
 
           {/* MÓDULO: IA MEDICA Y CNN */}
-          <Route path="ia-medica/imagenes" element={<IaMedica />} />
+          <Route path="ia-medica/imagenes" element={<ProtectedRoute requiredPermission="view_imagenecografica"><IaMedica /></ProtectedRoute>} />
 
           {/* MÓDULO: ADMINISTRACIÓN Y SISTEMA */}
           <Route path="usuarios" element={<ProtectedRoute requiredPermission="view_usuario"><Usuarios /></ProtectedRoute>} />
@@ -193,13 +193,13 @@ const AppRoutes: React.FC = () => {
           <Route path="backup" element={<ProtectedRoute requiredPermission="view_sistemaconfiguracion"><DatabaseBackup /></ProtectedRoute>} />
 
           {/* MÓDULO: EVOLUCIONES */}
-          <Route path="evoluciones" element={<Evoluciones />} />
-          <Route path="evoluciones/nuevo" element={<FormularioEvolucion />} />
-          <Route path="evoluciones/:id" element={<DetalleEvolucion />} />
-          <Route path="evoluciones/:id/editar" element={<FormularioEvolucion />} />
+          <Route path="evoluciones" element={<ProtectedRoute requiredPermission="view_evolucionembarazo"><Evoluciones /></ProtectedRoute>} />
+          <Route path="evoluciones/nuevo" element={<ProtectedRoute requiredPermission="add_evolucionembarazo"><FormularioEvolucion /></ProtectedRoute>} />
+          <Route path="evoluciones/:id" element={<ProtectedRoute requiredPermission="view_evolucionembarazo"><DetalleEvolucion /></ProtectedRoute>} />
+          <Route path="evoluciones/:id/editar" element={<ProtectedRoute requiredPermission="change_evolucionembarazo"><FormularioEvolucion /></ProtectedRoute>} />
 
           {/* MÓDULO: ANTECEDENTES */}
-          <Route path="antecedentes" element={<Antecedentes />} />
+          <Route path="antecedentes" element={<ProtectedRoute requiredPermission="view_antecedentepatologico"><Antecedentes /></ProtectedRoute>} />
 
           {/* MÓDULO: CONSULTORIOS */}
           <Route path="consultorios" element={<Consultorios />} />
@@ -276,7 +276,7 @@ const AppRoutes: React.FC = () => {
           <Route path="roles/:id/editar" element={<ProtectedRoute requireAdmin={true}><FormularioRol /></ProtectedRoute>} />
 
           {/* MÓDULO: ASISTENTE IA */}
-          <Route path="ia-asistente" element={<ProtectedRoute><IAAsistenteMedico /></ProtectedRoute>} />
+          <Route path="ia-asistente" element={<ProtectedRoute requiredPermission="view_consultaia"><IAAsistenteMedico /></ProtectedRoute>} />
 
           {/* RUTAS DE ERROR INTERNAS AL DASHBOARD */}
           <Route path="unauthorized" element={<Unauthorized />} />
