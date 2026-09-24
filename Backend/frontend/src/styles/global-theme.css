@@ -222,6 +222,70 @@
 }
 
 /* ==========================================
+   2b. ALIAS DE TOKENS USADOS POR LAS PÁGINAS
+   ==========================================
+   52 variables se usaban sin estar definidas. Las de fondo tenían un valor
+   de respaldo oscuro (var(--bg-elevated, #141414)), así que en modo claro
+   Reportes, Charts y otras 17 hojas pintaban tarjetas negras con texto
+   oscuro encima. Aquí se definen como alias de los tokens del tema: al
+   depender de ellos, cambian solas entre claro y oscuro. */
+:root,
+.dark,
+[data-theme="dark"] {
+  --bg-elevated: var(--bg-card);
+  --color-surface: var(--bg-card);
+  --color-cardBg: var(--bg-card);
+  --bg-gradient-start: var(--bg-secondary);
+  --bg-gradient-end: var(--bg-primary);
+  --border-subtle: var(--border-color-light);
+  --border-hover: var(--border-color-dark);
+  --chart-grid: var(--border-color);
+
+  --success-bg: var(--color-success-light);
+  --error-bg: var(--color-danger-light);
+  --color-error: var(--color-danger);
+  --color-error-light: var(--color-danger-light);
+  --color-error-text: var(--color-danger);
+  --color-error-border: var(--border-error);
+  --color-success-border: var(--border-success);
+  --color-warning-border: var(--color-warning);
+  --color-info-border: var(--color-info);
+  --color-critical: var(--color-danger);
+  --color-high-risk: var(--color-danger);
+  --color-low-risk: var(--color-success);
+  --color-prenatal: var(--color-primary);
+  --color-primary-gradient: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+
+  --border-radius-sm: var(--radius-sm);
+  --border-radius-md: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
+  --border-radius-round: var(--radius-full);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+
+  --font-family: var(--font-family-base);
+  --font-family-display: var(--font-family-base);
+  --font-family-code: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --logo-text-color: var(--text-primary);
+  --logo-font-size: 1.25rem;
+
+  --scrollbar-width: 8px;
+  --scrollbar-track: var(--bg-secondary);
+  --scrollbar-thumb: var(--border-color-dark);
+  --scrollbar-thumb-hover: var(--text-tertiary);
+
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --input-height-lg: 40px;
+  --content-max-width: 1440px;
+  --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --z-maximum: 9999;
+}
+
+/* ==========================================
    3. ESTILOS BASE GLOBALES
    ========================================== */
 

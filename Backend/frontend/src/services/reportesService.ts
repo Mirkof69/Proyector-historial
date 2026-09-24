@@ -531,7 +531,8 @@ export const reportesService = {
    */
   async obtenerDashboardKPIs(): Promise<DashboardKPIs> {
     try {
-      const response = await api.get<DashboardKPIs>('/reportes/dashboard-kpis/');
+      // Indicadores calculados; /dashboard-kpis/ a secas es la tabla de definiciones.
+      const response = await api.get<DashboardKPIs>('/reportes/dashboard-kpis/resumen/');
       return normalizeSingleResponse<DashboardKPIs>(response.data);
     } catch (error: any) {
       console.error('❌ Error obteniendo KPIs del dashboard:', error);

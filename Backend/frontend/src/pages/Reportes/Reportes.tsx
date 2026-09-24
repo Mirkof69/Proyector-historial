@@ -54,7 +54,7 @@ const RenderKPIs: React.FC<{ kpis: DashboardKPIs | null }> = ({ kpis }) => {
   const totalPacientes = kpis.kpis?.pacientes_activos?.valor || 0;
   const totalEmbarazos = kpis.kpis?.embarazos_activos?.valor || 0;
   const citasCompletadas = kpis.kpis?.citas_dia?.completadas || 0;
-  const citasTotal = kpis.kpis?.citas_dia?.valor || 1;
+  const citasTotal = kpis.kpis?.citas_dia?.valor || 0;
   const tasaCompletadas = calcularPorcentaje(citasCompletadas, citasTotal);
 
   return (

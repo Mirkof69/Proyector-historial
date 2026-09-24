@@ -443,6 +443,13 @@ class DashboardKAPIViewSet(viewsets.ModelViewSet):
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"])
+    def resumen(self, _request):
+        """Indicadores calculados con los datos reales (forma DashboardKPIs del frontend)."""
+        from .services.kpis_dashboard import calcular_kpis_dashboard
+
+        return Response(calcular_kpis_dashboard())
+
+    @action(detail=False, methods=["get"])
     def activos(self, _request):
         """Lista KPIs activos (para el dashboard principal).
         """
