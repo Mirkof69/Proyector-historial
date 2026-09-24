@@ -13,6 +13,10 @@ if TYPE_CHECKING:
     from controles.models import ControlPrenatal
 
 
+#: 44 semanas: más allá, un embarazo en curso no es plausible.
+MAX_DIAS_EMBARAZO_EN_CURSO = 44 * 7
+
+
 class Embarazo(models.Model):
     if TYPE_CHECKING:
         controles: ClassVar[QuerySet[ControlPrenatal]]
@@ -138,7 +142,6 @@ class Embarazo(models.Model):
 
     def clean(self):
         """✅ VALIDACIONES CRÍTICAS DEL EMBARAZO"""
-        from datetime import timedelta
 
         from django.core.exceptions import ValidationError
 
@@ -151,11 +154,15 @@ class Embarazo(models.Model):
                     "La Fecha de Última Menstruación no puede estar en el futuro."
                 )
 
-            # Validar que la FUM no sea muy antigua (más de 1 año atrás)
-            hace_un_anio = timezone.localdate() - timedelta(days=365)
-            if self.fecha_ultima_menstruacion < hace_un_anio:
+            # Un embarazo EN CURSO no puede pasar de 44 semanas. Solo se
+            # comprueba al registrar o cambiar la FUM de un embarazo activo:
+            # antes se exigía siempre y un embarazo terminado hace más de un
+            # año no se podía editar ni para corregir una nota.
+            dias = (timezone.localdate() - self.fecha_ultima_menstruacion).days
+            if self.estado == "activo" and dias > MAX_DIAS_EMBARAZO_EN_CURSO and self._fum_es_nueva():
                 errors["fecha_ultima_menstruacion"] = (
-                    "La Fecha de Última Menstruación no puede ser mayor a 1 año atrás."
+                    f"Con esa FUM el embarazo tendría {dias // 7} semanas. Un embarazo en "
+                    "curso no pasa de 44: revise la fecha o regístrelo como finalizado."
                 )
 
         # ✅ 2. VALIDAR G/P - NÚMERO DE PARTOS NO PUEDE SER MAYOR QUE GESTAS
@@ -186,9 +193,10 @@ class Embarazo(models.Model):
         if self.numero_gesta is not None and self.numero_gesta < 1:
             errors["numero_gesta"] = "El número de gestas debe ser al menos 1."
 
-        # ✅ 4. VALIDAR EDAD DE LA PACIENTE
-        if self.paciente:
-            edad = self.paciente.edad
+        # ✅ 4. VALIDAR EDAD DE LA PACIENTE (a la fecha del embarazo, no a hoy)
+        if self.paciente and self.paciente.fecha_nacimiento and self.fecha_ultima_menstruacion:
+            nacimiento, fum = self.paciente.fecha_nacimiento, self.fecha_ultima_menstruacion
+            edad = fum.year - nacimiento.year - ((fum.month, fum.day) < (nacimiento.month, nacimiento.day))
             if edad < 10:
                 errors["paciente"] = (
                     f"La paciente tiene {edad} años. La edad mínima para embarazo es 10 años."
@@ -221,6 +229,16 @@ class Embarazo(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    def _fum_es_nueva(self):
+        """True si la FUM se registra ahora o es distinta de la guardada."""
+        if not self.pk:
+            return True
+        guardada = (
+            type(self).objects.filter(pk=self.pk)
+            .values_list("fecha_ultima_menstruacion", flat=True).first()
+        )
+        return guardada != self.fecha_ultima_menstruacion
 
     def save(self, *args, **kwargs):
         if self.fecha_ultima_menstruacion and not self.fecha_probable_parto:

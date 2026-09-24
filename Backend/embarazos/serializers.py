@@ -329,15 +329,8 @@ class EmbarazoSerializer(serializers.ModelSerializer):
 
         if value > timezone.localdate():
             raise serializers.ValidationError("La FUM no puede ser una fecha futura")
-
-        # Validar que no sea muy antigua (máximo 42 semanas)
-        diferencia_dias = (timezone.localdate() - value).days
-        if diferencia_dias > 294:  # 42 semanas
-            raise serializers.ValidationError(
-                f"La FUM es muy antigua ({diferencia_dias} días). "
-                "Si el embarazo ya finalizó, actualice el estado.",
-            )
-
+        # La antigüedad depende del estado y de si la FUM cambia: la comprueba
+        # Embarazo.clean(), que validate() llama con los datos combinados.
         return value
 
     def validate(self, attrs):
@@ -407,7 +400,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             if k in model_fields:
                 temp_data[k] = v
 
-        temp_data.pop('id', None)
+        # Se conserva el id: clean() lo usa para saber si la FUM cambió.
         temp_data.pop('uuid', None)
 
         temp_instance = Embarazo(**temp_data)

@@ -88,7 +88,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
           label="Fecha Ultima Menstruacion"
           rules={[
             { required: true, message: 'Seleccione la fecha' },
-            () => ({
+            ({ getFieldValue, isFieldTouched }) => ({
               validator(_, value) {
                 if (!value) {
                   return Promise.resolve();
@@ -101,9 +101,12 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
                   return Promise.reject(new Error('La Fecha de Última Menstruación no puede estar en el futuro'));
                 }
 
-                const unAnioAtras = hoy.subtract(1, 'year');
-                if (fumDate.isBefore(unAnioAtras)) {
-                  return Promise.reject(new Error('La Fecha de Última Menstruación no puede ser mayor a 1 año atrás'));
+                // Mismo criterio que el backend: solo un embarazo en curso con
+                // la FUM recién escrita no puede pasar de 44 semanas. Los
+                // embarazos terminados se pueden registrar y editar.
+                const enCurso = (getFieldValue('estado') ?? 'activo') === 'activo';
+                if (enCurso && isFieldTouched('fecha_ultima_menstruacion') && hoy.diff(fumDate, 'day') > 44 * 7) {
+                  return Promise.reject(new Error('Un embarazo en curso no pasa de 44 semanas: revise la fecha o regístrelo como finalizado'));
                 }
 
                 return Promise.resolve();
