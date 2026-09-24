@@ -140,6 +140,14 @@ def analyze_ultrasound_with_ai(request):
 
         if ai_response.status_code == 200:
             ai_results = ai_response.json()
+            if ai_results.get("status") != "success":
+                # Sin modelo cargado no hay análisis: antes se entregaba un
+                # resultado vacío con 200, como si la imagen fuera normal.
+                return Response(
+                    {"success": False,
+                     "error": ai_results.get("advertencia") or "El servicio de IA no tiene el modelo cargado."},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
 
             # `ecografia_id` es el id de una ia_medica.ImagenEcografica (así lo
             # envía la pantalla de IA Médica, la única que llama aquí). Antes se
@@ -155,84 +163,12 @@ def analyze_ultrasound_with_ai(request):
 
                     imagen_ia = IaImagen.objects.get(id=ecografia_id)
 
-                    from ia_medica.services.result_mapping import (
-                        mapear_resultado_microservicio,
-                    )
+                    from ia_medica.services.result_mapping import defaults_analisis_cnn
 
-                    score_global = ai_results.get("score_global", 0)
-
-                    mapeo = mapear_resultado_microservicio(ai_results)
-                    pathologies = mapeo["pathologies"]
-                    resultado = mapeo["resultado"]
-                    confianza = mapeo["confianza"]
-
-                    # "detected" = patologias reales distintas de normal/baja_confianza,
-                    # ya filtradas por el microservicio con los umbrales calibrados por
-                    # clase (no se vuelve a aplicar un umbral plano aqui).
-                    detected = [
-                        p for p in pathologies
-                        if p.get("name") not in ("normal", "baja_confianza")
-                    ]
-
-                    biometry_raw = ai_results.get("biometry", {})
-                    measurements = biometry_raw if isinstance(biometry_raw, dict) else {}
-
-                    preds = [{"clase": p.get("name", ""), "confianza": p.get("probability", 0)} for p in pathologies]
-                    anomalias = [
-                        {"tipo": p.get("name", ""), "confianza": p.get("probability", 0),
-                         "severidad": "alta" if p.get("probability", 0) >= 0.8 else "media"}
-                        for p in detected
-                    ]
-                    alertas = biometry_raw.get("alerts", []) if isinstance(biometry_raw, dict) else []
-                    recs = []
-                    for p in detected:
-                        name = p.get("name", "").replace("_", " ")
-                        prob = p.get("probability", 0)
-                        if prob >= 0.8:
-                            recs.append(f"Remisión urgente: {name} ({prob*100:.0f}%)")
-                        elif prob >= 0.5:
-                            recs.append(f"Evaluar: {name} ({prob*100:.0f}%) - requiere confirmación")
-                    if not recs:
-                        recs.append("Control prenatal de rutina")
-
-                    shap = ai_results.get("shap_risk_scores", {})
-
-                    sugerencia = ai_results.get("sugerencia_diagnostica", {})
-                    sugerencia_val = sugerencia if isinstance(sugerencia, dict) else None
+                    defaults = defaults_analisis_cnn(ai_results, request.user, "efficientnet")
+                    resultado = defaults["resultado"]
                     analisis, _created = AnalisisCNN.objects.update_or_create(
-                        imagen=imagen_ia,
-                        defaults={
-                            "modelo_usado": "efficientnet",
-                            "version_modelo": ai_results.get("modelo_version", "EfficientNet-B4"),
-                            "resultado": resultado,
-                            "confianza": round(float(confianza), 4),
-                            "score_general": round(float(score_global) * 100, 1),
-                            "predicciones": preds,
-                            "clases_detectadas": [p.get("name", "") for p in pathologies],
-                            "estructuras_detectadas": {
-                                p.get("name", ""): {"confianza": p.get("probability", 0)}
-                                for p in pathologies
-                            },
-                            "medidas_estimadas": measurements if measurements else None,
-                            "anomalias_detectadas": anomalias,
-                            "alertas": alertas,
-                            "recomendaciones": recs,
-                            "mapa_calor": ai_results.get("gradcam_base64"),
-                            "bpd_mm": measurements.get("BPD_mm"),
-                            "hc_mm": measurements.get("HC_mm"),
-                            "ac_mm": measurements.get("AC_mm"),
-                            "fl_mm": measurements.get("FL_mm"),
-                            "riesgo_preeclampsia": shap.get("riesgo_preeclampsia"),
-                            "riesgo_parto_prematuro": shap.get("riesgo_parto_prematuro"),
-                            "nivel_riesgo": "ALTO" if score_global >= 0.7
-                                        else "MODERADO" if score_global >= 0.4
-                                        else "BAJO",
-                            "shap_valores": shap if shap else None,
-                            "patologias": [p.get("name", "") for p in detected],
-                            "sugerencia_diagnostica": sugerencia_val,
-                            "tiempo_inferencia_ms": ai_results.get("inference_time_ms"),
-                            "realizado_por": request.user if request.user.is_authenticated else None,
-                        },
+                        imagen=imagen_ia, defaults=defaults,
                     )
 
                     imagen_ia.estado = "analizada"

@@ -106,3 +106,89 @@ def mapear_resultado_microservicio(ai_result: dict) -> dict[str, Any]:
         "pathologies": pathologies,
         "top": top,
     }
+
+
+class IANoDisponible(Exception):
+    """El microservicio respondió sin modelo (fallback): no hay análisis que guardar."""
+
+
+#: Veredicto → nivel de riesgo. Antes salía de score_global, que incluía la
+#: probabilidad de «normal»: una ecografía normal quedaba en riesgo ALTO.
+NIVEL_POR_RESULTADO = {
+    "normal": "BAJO",
+    "requiere_revision": "MODERADO",
+    "anomalia_leve": "MODERADO",
+    "anomalia_moderada": "MODERADO",
+    "anomalia_grave": "ALTO",
+}
+
+
+def defaults_analisis_cnn(ai_result: dict, usuario=None, modelo: str = "efficientnet") -> dict[str, Any]:
+    """Campos de ia_medica.AnalisisCNN a partir de la respuesta del microservicio.
+
+    Única traducción: antes ecografias/ai_views.py e ia_medica/views.py la
+    repetían con diferencias (recomendaciones, patologías, estructuras).
+    Lanza IANoDisponible si el microservicio no tenía modelo: antes se
+    guardaba igual un «análisis» vacío marcado como hecho.
+    """
+    if ai_result.get("status") != "success":
+        raise IANoDisponible(ai_result.get("advertencia") or "El servicio de IA no tiene el modelo cargado.")
+
+    mapeo = mapear_resultado_microservicio(ai_result)
+    pathologies = mapeo["pathologies"]
+    detected = [p for p in pathologies if p.get("name") not in ("normal", "baja_confianza")]
+    biometry = ai_result.get("biometry") if isinstance(ai_result.get("biometry"), dict) else {}
+    medidas = biometry if biometry.get("disponible") else {}
+    shap = ai_result.get("shap_risk_scores") or {}
+    sugerencia = ai_result.get("sugerencia_diagnostica")
+    sugerencia = sugerencia if isinstance(sugerencia, dict) else None
+
+    recomendaciones = []
+    if sugerencia and sugerencia.get("recomendacion"):
+        recomendaciones.append(sugerencia["recomendacion"])
+    for p in detected:
+        nombre, prob = p.get("name", "").replace("_", " "), p.get("probability", 0)
+        if prob >= 0.8:
+            recomendaciones.append(f"Remisión urgente: {nombre} ({prob * 100:.0f}%)")
+        else:
+            recomendaciones.append(f"Evaluar: {nombre} ({prob * 100:.0f}%) - requiere confirmación")
+    if not recomendaciones:
+        recomendaciones.append("Control prenatal de rutina")
+
+    alertas = list(biometry.get("alerts", []))
+    if ai_result.get("advertencia"):
+        alertas.append(ai_result["advertencia"])
+    ms = ai_result.get("inference_time_ms")
+
+    return {
+        "realizado_por": usuario if getattr(usuario, "is_authenticated", False) else None,
+        "modelo_usado": modelo,
+        "version_modelo": ai_result.get("modelo_version", "efficientnet_b4"),
+        "resultado": mapeo["resultado"],
+        "confianza": round(float(mapeo["confianza"]), 4),
+        "score_general": round(float(ai_result.get("score_global", 0)) * 100, 1),
+        "predicciones": [{"clase": p.get("name", ""), "confianza": p.get("probability", 0)} for p in pathologies],
+        "clases_detectadas": [p.get("name", "") for p in pathologies],
+        "estructuras_detectadas": {p.get("name", ""): {"confianza": p.get("probability", 0)} for p in pathologies},
+        "medidas_estimadas": medidas or None,
+        "anomalias_detectadas": [
+            {"tipo": p.get("name", ""), "confianza": p.get("probability", 0),
+             "severidad": "alta" if p.get("probability", 0) >= 0.8 else "media"}
+            for p in detected
+        ],
+        "alertas": alertas,
+        "recomendaciones": recomendaciones,
+        "mapa_calor": ai_result.get("gradcam_base64") or None,
+        "bpd_mm": medidas.get("BPD_mm"),
+        "hc_mm": medidas.get("HC_mm"),
+        "ac_mm": medidas.get("AC_mm"),
+        "fl_mm": medidas.get("FL_mm"),
+        "riesgo_preeclampsia": shap.get("riesgo_preeclampsia"),
+        "riesgo_parto_prematuro": shap.get("riesgo_parto_prematuro"),
+        "nivel_riesgo": NIVEL_POR_RESULTADO.get(mapeo["resultado"], "MODERADO"),
+        "shap_valores": shap or None,
+        "patologias": [p.get("name", "") for p in detected],
+        "sugerencia_diagnostica": sugerencia,
+        "tiempo_inferencia_ms": ms,
+        "tiempo_procesamiento_ms": ms or 0,
+    }

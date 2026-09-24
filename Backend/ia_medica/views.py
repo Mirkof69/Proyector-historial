@@ -260,85 +260,15 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
             ai_result = resp.json()
 
             from .models import AnalisisCNN
-            from .services.result_mapping import mapear_resultado_microservicio
+            from .services.result_mapping import IANoDisponible, defaults_analisis_cnn
 
-            score_global = ai_result.get("score_global", 0)
-            biometry_raw = ai_result.get("biometry", {})
-            measurements = biometry_raw if isinstance(biometry_raw, dict) else {}
-            shap_scores = ai_result.get("shap_risk_scores", {})
-            gradcam_b64 = ai_result.get("gradcam_base64", "")
-            sugerencia = ai_result.get("sugerencia_diagnostica", {})
-            inference_ms = ai_result.get("inference_time_ms", 0)
-
-            mapeo = mapear_resultado_microservicio(ai_result)
-            pathologies = mapeo["pathologies"]
-            resultado_txt = mapeo["resultado"]
-            confianza = mapeo["confianza"]
-
-            # "detected" = patologias reales distintas de normal/baja_confianza,
-            # ya filtradas por el microservicio con los umbrales calibrados por
-            # clase (no se vuelve a aplicar un umbral plano aqui).
-            detected = [
-                p for p in pathologies
-                if p.get("name") not in ("normal", "baja_confianza")
-            ]
-
-            predicciones = [
-                {"clase": p.get("name", ""), "confianza": p.get("probability", 0)}
-                for p in pathologies
-            ]
-            anomalias = [
-                {"tipo": p.get("name", ""), "confianza": p.get("probability", 0),
-                 "severidad": "alta" if p.get("probability", 0) >= 0.8 else "media"}
-                for p in detected
-            ]
-            clases_detectadas = [p.get("name", "") for p in pathologies]
-            alertas_data = biometry_raw.get("alerts", []) if isinstance(biometry_raw, dict) else []
-            recomendaciones = []
-            if isinstance(sugerencia, dict):
-                recom = sugerencia.get("recomendacion", "")
-                if recom:
-                    recomendaciones.append(recom)
-
-            for p in detected:
-                name = p.get("name", "").replace("_", " ")
-                prob = p.get("probability", 0) * 100
-                recomendaciones.append(
-                    f"Se detectó {name} con {prob:.1f}% de probabilidad. "
-                    "Se recomienda evaluación especializada."
-                )
-
-            analisis, created = AnalisisCNN.objects.update_or_create(
-                imagen=instancia,
-                defaults={
-                    "realizado_por": request.user if request.user.is_authenticated else None,
-                        "modelo_usado": modelo,
-                    "version_modelo": ai_result.get("modelo_version", "1.0.0"),
-                    "resultado": resultado_txt,
-                    "confianza": round(float(confianza), 4),
-                    "score_general": round(float(score_global) * 100, 1),
-                    "predicciones": predicciones,
-                    "clases_detectadas": clases_detectadas,
-                    "anomalias_detectadas": anomalias,
-                    "alertas": alertas_data,
-                    "recomendaciones": recomendaciones,
-                    "estructuras_detectadas": {"analizadas": clases_detectadas},
-                    "medidas_estimadas": measurements,
-                    "bpd_mm": measurements.get("BPD_mm"),
-                    "hc_mm": measurements.get("HC_mm"),
-                    "ac_mm": measurements.get("AC_mm"),
-                    "fl_mm": measurements.get("FL_mm"),
-                    "mapa_calor": gradcam_b64,
-                    "riesgo_preeclampsia": shap_scores.get("riesgo_preeclampsia"),
-                    "riesgo_parto_prematuro": shap_scores.get("riesgo_parto_prematuro"),
-                    "nivel_riesgo": "ALTO" if score_global >= 0.7 else "MODERADO" if score_global >= 0.4 else "BAJO",
-                    "shap_valores": shap_scores,
-                    "patologias": [p["name"] for p in pathologies if p.get("name") and p["name"] != "normal"],
-                    "sugerencia_diagnostica": sugerencia if isinstance(sugerencia, dict) else None,
-                    "tiempo_inferencia_ms": inference_ms,
-                    "tiempo_procesamiento_ms": inference_ms,
-                },
-            )
+            try:
+                defaults = defaults_analisis_cnn(ai_result, request.user, modelo)
+            except IANoDisponible as e:
+                instancia.estado = "error"
+                instancia.save(update_fields=["estado"])
+                return Response({"error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            analisis, created = AnalisisCNN.objects.update_or_create(imagen=instancia, defaults=defaults)
 
             instancia.estado = "analizada"
             instancia.save(update_fields=["estado"])

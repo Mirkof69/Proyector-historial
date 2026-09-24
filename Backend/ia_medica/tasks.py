@@ -22,18 +22,24 @@ def analizar_imagen_task(self, imagen_id, modelo, user_id=None):
         modelo,
     )
 
-    try:
-        instancia = ImagenEcografica.objects.select_for_update(skip_locked=True).get(
-            id=imagen_id,
+    # select_for_update solo vale dentro de una transacción: fuera de ella
+    # PostgreSQL lanza TransactionManagementError y la tarea fallaba siempre
+    # en esta línea. Se reserva la imagen y se suelta el bloqueo enseguida.
+    with transaction.atomic():
+        instancia = (
+            ImagenEcografica.objects.select_for_update(skip_locked=True).filter(id=imagen_id).first()
         )
-    except ImagenEcografica.DoesNotExist:
+        if instancia is not None:
+            instancia.estado = "procesando"
+            instancia.save(update_fields=["estado"])
+    if instancia is None:
+        if ImagenEcografica.objects.filter(id=imagen_id).exists():
+            logger.info("Imagen %s ya la está analizando otro worker.", imagen_id)
+            return {"status": "en_curso", "message": "La imagen ya se está analizando"}
         logger.error("Imagen ID %s no encontrada.", imagen_id)
         return {"status": "error", "message": "Imagen no encontrada"}
 
     try:
-        if instancia.estado != "procesando":
-            instancia.estado = "procesando"
-            instancia.save(update_fields=["estado"])
 
         imagen_path = instancia.imagen.path
 
@@ -45,44 +51,10 @@ def analizar_imagen_task(self, imagen_id, modelo, user_id=None):
             User = get_user_model()
             user = User.objects.filter(id=user_id).first() if user_id else None
 
-            analisis, _created = AnalisisCNN.objects.update_or_create(
-                imagen=instancia,
-                defaults={
-                    "realizado_por": user,
-                    "modelo_usado": resultado.get("modelo_usado", modelo),
-                    "version_modelo": resultado.get("version_modelo", "1.0.0"),
-                    "resultado": resultado.get("resultado", "indeterminado"),
-                    "confianza": resultado.get("confianza", 0.0),
-                    "score_general": resultado.get("score_general", 0.0),
-                    "predicciones": resultado.get("predicciones", []),
-                    "clases_detectadas": resultado.get("clases_detectadas", []),
-                    "bounding_boxes": resultado.get("bounding_boxes"),
-                    "estructuras_detectadas": resultado.get(
-                        "estructuras_detectadas", {},
-                    ),
-                    "medidas_estimadas": resultado.get("medidas_estimadas"),
-                    "anomalias_detectadas": resultado.get("anomalias_detectadas", []),
-                    "alertas": resultado.get("alertas", []),
-                    "recomendaciones": resultado.get("recomendaciones", []),
-                    "tiempo_procesamiento_ms": resultado.get(
-                        "tiempo_procesamiento_ms", 0,
-                    ),
-                    "mapa_calor": resultado.get("mapa_calor")
-                    or resultado.get("gradcam_base64", ""),
-                    "bpd_mm": resultado.get("bpd_mm"),
-                    "hc_mm": resultado.get("hc_mm"),
-                    "ac_mm": resultado.get("ac_mm"),
-                    "fl_mm": resultado.get("fl_mm"),
-                    "shap_valores": resultado.get("shap_valores", {}),
-                    "riesgo_preeclampsia": resultado.get("riesgo_preeclampsia", 0.0),
-                    "riesgo_parto_prematuro": resultado.get(
-                        "riesgo_parto_prematuro", 0.0,
-                    ),
-                    "nivel_riesgo": resultado.get("nivel_riesgo", "BAJO"),
-                    "patologias": resultado.get("patologias", []),
-                    "tiempo_inferencia_ms": resultado.get("tiempo_inferencia_ms"),
-                },
-            )
+            campos = {f.name for f in AnalisisCNN._meta.get_fields()}
+            defaults = {k: v for k, v in resultado.items() if k in campos}
+            defaults["realizado_por"] = user
+            analisis, _created = AnalisisCNN.objects.update_or_create(imagen=instancia, defaults=defaults)
 
             if resultado.get("resultado") not in (
                 "indeterminado",
