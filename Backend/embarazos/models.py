@@ -108,6 +108,18 @@ class Embarazo(models.Model):
         db_table = "embarazos"
         ordering = ["-fecha_registro"]
         # managed = False  ← ELIMINADO
+        constraints = [
+            # «Un solo embarazo activo por paciente» se validaba solo en el
+            # serializer: dos peticiones simultáneas (doble clic, dos
+            # pestañas) podían crear dos. Ahora lo garantiza la base.
+            models.UniqueConstraint(
+                fields=["paciente"], condition=models.Q(estado="activo"),
+                name="un_embarazo_activo_por_paciente",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["paciente", "estado"], name="embarazo_paciente_estado"),
+        ]
 
     @property
     def fur(self):
