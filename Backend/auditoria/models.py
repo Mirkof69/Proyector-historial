@@ -29,6 +29,8 @@ def _get_client_ip(request) -> str | None:
     return request.META.get("REMOTE_ADDR")
 
 
+from .sesion import sesion_de  # noqa: E402
+
 class RegistroAuditoria(models.Model):
     """Registro inmutable de todas las acciones del sistema.
     Mantiene compatibilidad con el nombre anterior (RegistroAuditoria).
@@ -61,6 +63,8 @@ class RegistroAuditoria(models.Model):
         ("CAMBIO_ROL", "Cambio de rol de usuario"),
         ("BACKUP", "Respaldo de base de datos"),
         ("DESACTIVAR_PACIENTE", "Desactivación de paciente"),
+        ("ELIMINAR_EMBARAZO", "Borrado de embarazo registrado por error"),
+        ("ACCION_MASIVA_ADMIN", "Acción masiva desde el admin"),
     )
 
     # ── Quién ─────────────────────────────────────────────────────────────────
@@ -96,6 +100,8 @@ class RegistroAuditoria(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
     endpoint = models.CharField(max_length=500, blank=True)
+    # Sesión de login a la que pertenece la acción (claim «sid» del JWT).
+    sesion_id = models.CharField(max_length=32, blank=True, default="", db_index=True)
 
     # ── Integridad ────────────────────────────────────────────────────────────
     checksum = models.CharField(
@@ -232,4 +238,5 @@ class RegistroAuditoria(models.Model):
             ip_address=_get_client_ip(request),
             user_agent=request.META.get("HTTP_USER_AGENT", "") if request else "",
             endpoint=request.path if request else "",
+            sesion_id=sesion_de(request),
         )

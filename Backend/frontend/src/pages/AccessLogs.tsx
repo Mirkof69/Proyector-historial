@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Typography, Spin, Input, Select } from 'antd';
+import { Card, Table, Tag, Button, Space, Typography, Spin, Input, Select, Tabs } from 'antd';
 import { SearchOutlined, ReloadOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../services/api';
+import SesionesAuditoria from './SesionesAuditoria';
 
 const { Text } = Typography;
 
@@ -90,9 +91,17 @@ const AccessLogs: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <Card
-        title={<span><SafetyCertificateOutlined style={{ marginRight: 8 }} />Registro de Accesos</span>}
-        extra={
+      <Card title={<span><SafetyCertificateOutlined style={{ marginRight: 8 }} />Registro de Accesos</span>}>
+        <Tabs
+          defaultActiveKey="sesiones"
+          items={[
+            { key: 'sesiones', label: 'Sesiones', children: <SesionesAuditoria /> },
+            {
+              key: 'eventos',
+              label: 'Eventos de acceso',
+              children: (
+      <>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
           <Space>
             <Select
               placeholder="Tipo de evento"
@@ -115,8 +124,7 @@ const AccessLogs: React.FC = () => {
               Recargar
             </Button>
           </Space>
-        }
-      >
+        </div>
         <Spin spinning={loading}>
           <Table
             columns={columns}
@@ -126,6 +134,11 @@ const AccessLogs: React.FC = () => {
             locale={{ emptyText: 'No hay registros de acceso' }}
           />
         </Spin>
+      </>
+              ),
+            },
+          ]}
+        />
       </Card>
     </div>
   );

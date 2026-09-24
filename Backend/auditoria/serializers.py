@@ -76,5 +76,7 @@ class RegistroAuditoriaListSerializer(serializers.ModelSerializer):
             "registro_id",
             "usuario",
             "fecha",
+            "endpoint",
+            "sesion_id",
         ]
         read_only_fields = ["__all__"]

@@ -7,7 +7,7 @@ ViewSets y endpoints para consultar registros de auditoría en tiempo real.
 
 from datetime import timedelta
 
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Min, OuterRef, Q, Subquery
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -64,6 +64,62 @@ class RegistroAuditoriaViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(usuario_id=usuario_id)
 
         return queryset
+
+    def _solo_admin(self, request):
+        if getattr(request.user, "rol", "") != "administrador" and not request.user.is_superuser:
+            return Response({"detail": "Solo el administrador ve las sesiones."},
+                            status=status.HTTP_403_FORBIDDEN)
+        return None
+
+    @action(detail=False, methods=["get"], url_path="sesiones")
+    def sesiones(self, request):
+        """Una fila por sesión de login: quién, desde dónde, cuándo y cuántas acciones.
+
+        Filtros: usuario_id, desde, hasta (AAAA-MM-DD), abiertas=1.
+        """
+        denegado = self._solo_admin(request)
+        if denegado:
+            return denegado
+        qs = RegistroAuditoria.objects.exclude(sesion_id="")
+        params = request.query_params
+        if params.get("usuario_id"):
+            qs = qs.filter(usuario_id=params["usuario_id"])
+        if params.get("desde"):
+            qs = qs.filter(fecha__date__gte=params["desde"])
+        if params.get("hasta"):
+            qs = qs.filter(fecha__date__lte=params["hasta"])
+        login = RegistroAuditoria.objects.filter(sesion_id=OuterRef("sesion_id"), accion="LOGIN")
+        filas = (
+            qs.values("sesion_id")
+            .annotate(
+                inicio=Min("fecha"), ultima_actividad=Max("fecha"), acciones=Count("id"),
+                cierres=Count("id", filter=Q(accion="LOGOUT")),
+                usuario_id=Max("usuario_id"), usuario_nombre=Max("usuario_nombre"), usuario_rol=Max("usuario_rol"),
+                ip=Subquery(login.values("ip_address")[:1]),
+                navegador=Subquery(login.values("user_agent")[:1]),
+            )
+            .order_by("-inicio")
+        )
+        if params.get("abiertas") == "1":
+            filas = filas.filter(cierres=0)
+        pagina = self.paginate_queryset(filas)
+        datos = [
+            {**f, "cerrada": f.pop("cierres") > 0,
+             "duracion_min": round((f["ultima_actividad"] - f["inicio"]).total_seconds() / 60, 1)}
+            for f in (pagina if pagina is not None else filas)
+        ]
+        return self.get_paginated_response(datos) if pagina is not None else Response(datos)
+
+    @action(detail=False, methods=["get"], url_path=r"sesiones/(?P<sid>[0-9a-f]{32})")
+    def sesion_detalle(self, request, sid=None):
+        """Todas las acciones de una sesión, en orden."""
+        denegado = self._solo_admin(request)
+        if denegado:
+            return denegado
+        registros = RegistroAuditoria.objects.filter(sesion_id=sid).order_by("fecha")
+        if not registros.exists():
+            return Response({"detail": "Sesión no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(RegistroAuditoriaListSerializer(registros, many=True).data)
 
     @action(detail=False, methods=["get"], url_path="estadisticas-modulos")
     def estadisticas_modulos(self, _request):

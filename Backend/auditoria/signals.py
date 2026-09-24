@@ -71,6 +71,20 @@ def get_current_user():
     return None
 
 
+def _contexto_request() -> dict:
+    """Sesión, IP y ruta del request en curso, para los registros automáticos."""
+    from .sesion import sesion_de
+
+    request = getattr(_thread_locals, "request", None)
+    if request is None:
+        return {}
+    try:
+        return {"sesion_id": sesion_de(request), "ip_address": get_client_ip(request),
+                "endpoint": request.path[:500]}
+    except Exception:
+        return {}
+
+
 def set_current_user(user):
     """Set current user (uso explícito fuera de un request HTTP)."""
     _thread_locals.user = user
@@ -266,6 +280,7 @@ def auditar_creacion_actualizacion(sender, instance, created, **_kwargs):
                 accion=canonica("crear"),
                 registro_id=str(instance.pk),
                 usuario=usuario,
+                **_contexto_request(),
                 datos_nuevos=redactar_pii(serializar_instancia(instance)),
             )
         else:
@@ -283,6 +298,7 @@ def auditar_creacion_actualizacion(sender, instance, created, **_kwargs):
                     accion=canonica("actualizar"),
                     registro_id=str(instance.pk),
                     usuario=usuario,
+                    **_contexto_request(),
                     datos_anteriores=datos_anteriores,
                     datos_nuevos=datos_nuevos,
                 )
@@ -307,6 +323,7 @@ def auditar_eliminacion(sender, instance, **_kwargs):
             accion=canonica("eliminar"),
             registro_id=str(instance.pk),
             usuario=get_current_user(),
+            **_contexto_request(),
             datos_anteriores=redactar_pii(serializar_instancia(instance)),
         )
     except Exception as e:

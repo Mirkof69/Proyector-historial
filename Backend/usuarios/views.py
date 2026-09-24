@@ -20,6 +20,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from auditoria.sesion import CLAIM as SID_CLAIM
+from auditoria.sesion import fijar_sesion, nuevo_sid
+
 from core.throttling import LoginRateThrottle, registrar_intento_fallido
 
 from .auth_cookies import REFRESH_COOKIE, clear_jwt_cookies, set_jwt_cookies
@@ -838,6 +841,10 @@ def login_view(request):
     usuario.ultimo_login_ip = ip
     usuario.save(update_fields=["ultimo_login_ip"])
 
+    # Sesión de auditoría: todo lo que haga con este token queda asociado.
+    sid = nuevo_sid()
+    fijar_sesion(request, sid)
+
     # Auditoría: login exitoso
     try:
         from auditoria.models import RegistroAuditoria
@@ -855,6 +862,7 @@ def login_view(request):
 
     # Generar tokens JWT
     refresh = RefreshToken.for_user(usuario)
+    refresh[SID_CLAIM] = sid  # se copia al access y sobrevive a los refresh
 
     # ACCIONES: Obtener TODOS los permisos (directos + grupos)
     permisos_set = set()
@@ -920,6 +928,8 @@ def logout_view(request):
     try:
         if refresh_token:
             token = RefreshToken(refresh_token)
+            if token.get(SID_CLAIM):
+                fijar_sesion(request, token[SID_CLAIM])
             token.blacklist()
     except Exception:
         pass  # token vencido/inválido: igual cerramos la sesión del navegador
@@ -1086,6 +1096,10 @@ def mfa_verify_view(request):
     usuario.ultimo_login_ip = ip
     usuario.save(update_fields=["ultimo_login_ip"])
 
+    # Sesión de auditoría: todo lo que haga con este token queda asociado.
+    sid = nuevo_sid()
+    fijar_sesion(request, sid)
+
     # Auditoría
     try:
         from auditoria.models import RegistroAuditoria
@@ -1102,6 +1116,7 @@ def mfa_verify_view(request):
 
     # Emitir JWT definitivo (sin claim mfa_pending)
     refresh = RefreshToken.for_user(usuario)
+    refresh[SID_CLAIM] = sid
 
     permisos_set = set()
     permisos_set.update(usuario.user_permissions.values_list("codename", flat=True))
