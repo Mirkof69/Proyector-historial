@@ -34,6 +34,10 @@ logger = logging.getLogger(__name__)
 DIAS_MINIMOS = 0
 DIAS_MAXIMOS = 120
 
+#: La ventana de los estudios de peso al nacer por ecografía: la biometría de
+#: la última semana. Se pide con `construir_dataset_peso --max-dias 7`.
+DIAS_ECOGRAFIA_DE_INGRESO = 7
+
 #: Edad gestacional mínima de la ecografía utilizable.
 #: Hadlock está validado desde las 20 semanas; por debajo la biometría no
 #: proyecta peso al término de forma fiable.
@@ -151,7 +155,8 @@ def _antecedentes_personales(paciente_id, cache: dict) -> dict[str, int]:
     })
 
 
-def construir(esquema: str | None = None, *, incluir_multiples: bool = False):
+def construir(esquema: str | None = None, *, incluir_multiples: bool = False,
+              dias_maximos: int = DIAS_MAXIMOS):
     """Construye el dataset de un esquema. Devuelve `(filas, descartes)`.
 
     `filas` es una lista de dicts con las claves de `COLUMNAS_DATASET`.
@@ -256,7 +261,7 @@ def construir(esquema: str | None = None, *, incluir_multiples: bool = False):
             if (eco.edad_gestacional_semanas or 0) < EG_ECO_MINIMA:
                 continue
             dias = (fecha_parto - eco.fecha_ecografia).days
-            if not (DIAS_MINIMOS <= dias <= DIAS_MAXIMOS):
+            if not (DIAS_MINIMOS <= dias <= dias_maximos):
                 continue
             if mejor_dias is None or dias < mejor_dias:
                 mejor_eco, mejor_dias = eco, dias
@@ -286,10 +291,20 @@ def construir(esquema: str | None = None, *, incluir_multiples: bool = False):
 
         # IMC pregestacional; si falta, se deja NaN y el modelo lo maneja.
         imc = None
-        if embarazo.peso_pregestacional and embarazo.talla_materna:
-            talla_m = float(embarazo.talla_materna) / 100.0
+        peso_pre, talla_cm = embarazo.peso_pregestacional, embarazo.talla_materna
+        if not (peso_pre and talla_cm):
+            # Muchas veces el peso previo y la talla se anotan en el primer
+            # control prenatal y no en el embarazo. Antes los controles se
+            # cargaban aquí y no se usaban: el IMC salía vacío en el 100 %.
+            for c in sorted(controles_por_embarazo.get(embarazo.id, []),
+                            key=lambda c: c.fecha_control):
+                if c.peso_pregestacional and c.talla:
+                    peso_pre, talla_cm = c.peso_pregestacional, c.talla
+                    break
+        if peso_pre and talla_cm:
+            talla_m = float(talla_cm) / 100.0
             if talla_m > 0:
-                imc = float(embarazo.peso_pregestacional) / (talla_m**2)
+                imc = float(peso_pre) / (talla_m**2)
 
         antecedentes = _antecedentes_personales(
             paciente.id, antecedentes_por_paciente,
@@ -344,7 +359,8 @@ def construir(esquema: str | None = None, *, incluir_multiples: bool = False):
     return filas, descartes
 
 
-def construir_todos(tenant: str | None = None, *, incluir_multiples: bool = False):
+def construir_todos(tenant: str | None = None, *, incluir_multiples: bool = False,
+                    dias_maximos: int = DIAS_MAXIMOS):
     """Recorre los esquemas y concatena. Devuelve `(filas, {esquema: descartes})`."""
     todas: list[dict] = []
     por_esquema: dict[str, Descartes] = {}
@@ -352,7 +368,7 @@ def construir_todos(tenant: str | None = None, *, incluir_multiples: bool = Fals
     for esquema in esquemas_a_recorrer(tenant):
         with contexto_de_esquema(esquema):
             filas, descartes = construir(
-                esquema, incluir_multiples=incluir_multiples,
+                esquema, incluir_multiples=incluir_multiples, dias_maximos=dias_maximos,
             )
         todas.extend(filas)
         por_esquema[esquema or "unico"] = descartes

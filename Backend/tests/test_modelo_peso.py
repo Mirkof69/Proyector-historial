@@ -273,6 +273,44 @@ class ElDatasetNoFiltraFugasTest(TestCase):
         assert filas[self.familiar.id]["diabetes"] == 0
         assert filas[self.propia.id]["diabetes"] == 1
 
+    def test_la_ventana_de_7_dias_deja_fuera_una_eco_de_3_semanas_antes(self):
+        """ESPERADO: con `dias_maximos=7` la ecografía de 21 días antes no entra.
+
+        La eco es del 9-sep-2020 y el parto del 30-sep: 21 días. Con la ventana
+        por defecto (120) entra; con la de ingreso (7) cuenta como fuera de
+        ventana y no se sustituye por nada.
+        """
+        from ia_medica.ml.dataset_peso import DIAS_ECOGRAFIA_DE_INGRESO, construir
+
+        filas_120, _ = construir(None)
+        filas_7, descartes_7 = construir(None, dias_maximos=DIAS_ECOGRAFIA_DE_INGRESO)
+
+        assert self.normal.id in {f["paciente_id"] for f in filas_120}
+        assert self.normal.id not in {f["paciente_id"] for f in filas_7}
+        assert descartes_7.eco_fuera_de_ventana >= 1
+
+    def test_el_imc_sale_del_control_si_el_embarazo_no_lo_tiene(self):
+        """ESPERADO: 60 kg / 1,60 m² = 23,44, tomado del primer control.
+
+        Fallo que previene: el constructor cargaba los controles y no los usaba;
+        con el peso previo anotado solo en el control, el IMC quedaba vacío en
+        todas las filas y el modelo perdía la variable sin avisar.
+        """
+        from controles.models import ControlPrenatal
+        from embarazos.models import Embarazo
+
+        embarazo = Embarazo.objects.get(paciente=self.normal)
+        Embarazo.objects.filter(pk=embarazo.pk).update(peso_pregestacional=None, talla_materna=None)
+        ControlPrenatal.objects.create(
+            embarazo=embarazo, paciente=self.normal, medico=self.medico,
+            numero_control=1, fecha_control=datetime.date(2020, 3, 1),
+            semanas_gestacion=8, peso_actual=61, peso_pregestacional=60, talla=160,
+            presion_arterial_sistolica=110, presion_arterial_diastolica=70,
+        )
+        filas, _ = self._filas()
+
+        assert filas[self.normal.id]["imc_pregestacional"] == 23.44
+
     def test_hadlock_proyectado_esta_y_es_plausible(self):
         """ESPERADO: entre 2.800 y 4.200 g para un feto medio proyectado a 39 sem."""
         filas, _ = self._filas()

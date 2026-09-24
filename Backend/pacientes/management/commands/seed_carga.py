@@ -39,6 +39,10 @@ from django.utils import timezone
 from django_tenants.utils import schema_context
 
 MARCA_CARGA = "[SEED-CARGA]"
+
+#: Parte de los partos con ecografía de ingreso (0-7 días antes). No todas las
+#: maternidades la hacen; es un supuesto del generador, no un dato publicado.
+PROB_ECOGRAFIA_DE_INGRESO = 0.6
 SCHEMA_POR_DEFECTO = "clinica_demo"
 
 # ── Datos bolivianos reales ────────────────────────────────────────────────
@@ -498,15 +502,17 @@ class Command(BaseCommand):
             # con "empty range in randrange".
             tope = max(6, min(38, semanas_actuales))
             sem_eco = random.randint(6, tope)
+            # Como en el parto: la fecha y la edad escrita llevan los MISMOS días.
+            dias_eco = random.randint(0, 6)
             eco = Ecografia.objects.create(
                 embarazo=embarazo, paciente=paciente, medico=self.medico,
-                fecha_ecografia=fum + timedelta(weeks=sem_eco),
+                fecha_ecografia=fum + timedelta(weeks=sem_eco, days=dias_eco),
                 # "obstetrica" NO es una opcion del modelo; el tipo real
                 # depende del trimestre en que se hace el estudio.
                 tipo_ecografia=_tipo_ecografia(sem_eco),
                 indicacion="control_rutina",
                 edad_gestacional_semanas=sem_eco,
-                edad_gestacional_dias=random.randint(0, 6),
+                edad_gestacional_dias=dias_eco,
                 numero_fetos=2 if embarazo.tipo_embarazo == "gemelar" else 1,
                 frecuencia_cardiaca_fetal=random.randint(120, 165),
                 indice_liquido_amniotico=_rango(4.0, 26.0),
@@ -521,7 +527,7 @@ class Command(BaseCommand):
                 # Biometria derivada de la edad gestacional y del tamano del
                 # feto, no sorteada suelta. Antes `_rango(20, 95)` podia dar un
                 # DBP de 95 mm a un feto de 12 semanas.
-                medidas = simular_biometria(sem_eco, z_tamano=z_fetal, rng=random)
+                medidas = simular_biometria(sem_eco + dias_eco / 7.0, z_tamano=z_fetal, rng=random)
                 BiometriaFetal.objects.create(
                     ecografia=eco,
                     diametro_biparietal=medidas["dbp"],
@@ -580,12 +586,59 @@ class Command(BaseCommand):
         # gestacional de parto realista (con ~10% de pretermino) que no supere
         # la semana en la que va el embarazo.
         if termina_en_parto:
-            self._crear_parto(
+            dias_parto = self._crear_parto(
                 paciente, embarazo, fum, semanas_actuales, z_fetal=z_fetal,
             )
+            if semanas_actuales >= 20 and random.random() < PROB_ECOGRAFIA_DE_INGRESO:
+                self._crear_ecografia_de_ingreso(
+                    paciente, embarazo, fum, semanas_actuales * 7 + dias_parto, z_fetal=z_fetal,
+                )
         elif semanas_actuales < 20 and random.random() < 0.08:
             embarazo.estado = "perdida"
             embarazo.save(update_fields=["estado"])
+
+    def _crear_ecografia_de_ingreso(self, paciente, embarazo, fum, eg_parto_dias, *, z_fetal=0.0):
+        """La ecografía que se hace al ingresar a la maternidad, 0-7 días
+        antes del parto, con la biometría del MISMO feto (`z_fetal`).
+
+        Sin ella, las ecografías del generador caían al azar entre las semanas
+        6 y 38: la mediana quedaba a 7 semanas del parto y solo 11 bebés tenían
+        una en la última semana. Predecir el peso al nacer desde una biometría
+        de hace dos meses es otra pregunta, mucho más difícil. Los estudios
+        reales de peso al nacer usan esta ventana de 7 días (por ejemplo,
+        Instituto Nacional Materno Perinatal de Lima, 3.525 embarazos,
+        Hadlock R² 0,807). No se toca ningún ruido del simulador.
+        """
+        from core.simulacion.curvas_obstetricas import simular_biometria
+        from ecografias.models import BiometriaFetal, Ecografia
+
+        dias_antes = random.randint(0, 7)
+        eg_dias = eg_parto_dias - dias_antes
+        eco = Ecografia.objects.create(
+            embarazo=embarazo, paciente=paciente, medico=self.medico,
+            fecha_ecografia=fum + timedelta(days=eg_dias),
+            tipo_ecografia=_tipo_ecografia(eg_dias // 7),
+            indicacion="control_rutina",
+            edad_gestacional_semanas=eg_dias // 7,
+            edad_gestacional_dias=eg_dias % 7,
+            numero_fetos=2 if embarazo.tipo_embarazo == "gemelar" else 1,
+            frecuencia_cardiaca_fetal=random.randint(120, 160),
+            indice_liquido_amniotico=_rango(6.0, 22.0),
+            bolsillo_maximo=_rango(2.0, 8.0),
+            localizacion_placenta=random.choice(["anterior", "posterior", "fundica"]),
+            calidad_estudio=random.choice(["excelente", "buena", "regular"]),
+            limitaciones_tecnicas="",
+            diagnostico=f"Ecografía de ingreso, {eg_dias // 7} semanas. {MARCA_CARGA}",
+            observaciones=f"{MARCA_CARGA} ecografía de ingreso",
+        )
+        medidas = simular_biometria(eg_dias / 7.0, z_tamano=z_fetal, rng=random)
+        BiometriaFetal.objects.create(
+            ecografia=eco,
+            diametro_biparietal=medidas["dbp"],
+            circunferencia_cefalica=medidas["cc"],
+            circunferencia_abdominal=medidas["ca"],
+            longitud_femur=medidas["lf"],
+        )
 
     def _crear_parto(self, paciente, embarazo, fum, semanas, *, z_fetal=0.0):
         """Crea el parto y sus recien nacidos, con medidas coherentes.
@@ -602,9 +655,14 @@ class Command(BaseCommand):
         from partos.models import Parto, RecienNacido
 
         self._contador_parto += 1
+        # Los días sobre la semana: la fecha del parto, la edad gestacional
+        # escrita y el peso tienen que decir lo mismo. Antes la fecha usaba
+        # semanas enteras y la edad escrita sumaba 0-6 días al azar: al
+        # proyectar Hadlock se inventaban hasta 6 días de crecimiento.
+        dias = random.randint(0, 6)
 
         fecha_parto = timezone.make_aware(
-            datetime.combine(fum + timedelta(weeks=semanas), datetime.min.time()),
+            datetime.combine(fum + timedelta(weeks=semanas, days=dias), datetime.min.time()),
         ) + timedelta(hours=random.randint(0, 23))
         parto = Parto.objects.create(
             paciente=paciente, embarazo=embarazo, medico_responsable=self.medico,
@@ -613,7 +671,7 @@ class Command(BaseCommand):
             fecha_ingreso=fecha_parto - timedelta(hours=random.randint(2, 12)),
             fecha_inicio_trabajo_parto=fecha_parto - timedelta(hours=random.randint(1, 10)),
             fecha_parto=fecha_parto,
-            edad_gestacional_parto=f"{semanas}+{random.randint(0, 6)}",
+            edad_gestacional_parto=f"{semanas}+{dias}",
             tipo_parto=random.choices(
                 ["vaginal_espontaneo", "cesarea_electiva", "cesarea_emergencia", "vaginal_instrumentado"],
                 [62, 18, 15, 5])[0],
@@ -634,7 +692,7 @@ class Command(BaseCommand):
             # de esta misma funcion, que YA recibia `semanas` y no la usaba:
             # la correlacion peso-edad gestacional valia exactamente cero.
             peso = simular_peso_nacimiento(
-                semanas_parto=semanas,
+                semanas_parto=semanas + dias / 7.0,
                 z_tamano=z_este,
                 imc_materno=imc_materna,
                 paridad=embarazo.numero_para,
@@ -647,7 +705,7 @@ class Command(BaseCommand):
             talla, perimetro = simular_talla_y_perimetro(peso, random)
             # El Apgar de 5 minutos se deriva del de 1 y nunca es menor.
             apgar_1, apgar_5 = simular_apgar(
-                semanas_parto=semanas, peso_g=peso, rng=random,
+                semanas_parto=semanas + dias / 7.0, peso_g=peso, rng=random,
             )
 
             RecienNacido.objects.create(
@@ -664,3 +722,4 @@ class Command(BaseCommand):
             )
         embarazo.estado = "finalizado"
         embarazo.save(update_fields=["estado"])
+        return dias

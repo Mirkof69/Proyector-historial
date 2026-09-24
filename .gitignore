@@ -103,3 +103,6 @@ Backend/frontend/diagnostics_*.txt
 Backend/frontend/doctor_verbose*.txt
 Backend/frontend/react-doctor-report.json
 Backend/Microservicio_IA/datasets_pathology_v2/
+
+# modelos entrenados del sistema (pickle): se regeneran con entrenar_modelo_peso
+Backend/ml_modelos/

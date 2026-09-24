@@ -16,7 +16,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 
-from ia_medica.ml.dataset_peso import a_dataframe, construir_todos
+from ia_medica.ml.dataset_peso import DIAS_MAXIMOS, a_dataframe, construir_todos
 
 
 def _correlacion(xs, ys) -> float:
@@ -40,12 +40,16 @@ class Command(BaseCommand):
         parser.add_argument("--tenant", default=None)
         parser.add_argument("--incluir-multiples", action="store_true",
                             help="Incluye gemelares (la biometría es ambigua).")
+        parser.add_argument("--max-dias", type=int, default=None,
+                            help="Días máximos entre la ecografía y el parto "
+                                 "(120 por defecto; 7 = ecografía de ingreso).")
         parser.add_argument("--solo-reales", action="store_true",
                             help="Excluye las filas generadas por el seeder.")
 
     def handle(self, *args, **options):
         filas, descartes = construir_todos(
             options["tenant"], incluir_multiples=options["incluir_multiples"],
+            dias_maximos=options["max_dias"] or DIAS_MAXIMOS,
         )
 
         if options["solo_reales"]:
