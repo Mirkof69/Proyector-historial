@@ -124,7 +124,10 @@ CLASS_THRESHOLDS = {
 # categoria clinica (train_biometry_head.py), no con mediciones reales, porque
 # no existe un dataset de biometria fetal anotado. Da una estimacion
 # orientativa en vez de nada, pero NUNCA debe tratarse como medicion validada.
-BIOMETRY_AVAILABLE = os.environ.get("BIOMETRY_AVAILABLE", "true").lower() == "true"
+# Apagado por defecto: un número sintético con forma de medición (BPD 48 mm)
+# se copia a la historia clínica como si fuera real. La circunferencia cefálica
+# real la da la red de HC18 (/api/biometria/circunferencia-cefalica).
+BIOMETRY_AVAILABLE = os.environ.get("BIOMETRY_AVAILABLE", "false").lower() == "true"
 BIOMETRY_METHOD = "estimacion_sintetica_no_validada"
 
 # Altitud aproximada (msnm) de ciudades bolivianas, usada para el ajuste de
@@ -142,6 +145,15 @@ CITY_ALTITUDE_M = {
     "trinidad": 156,
     "cobija": 235,
 }
+
+# La red de 14 patologías se entrenó con positivos en su mayoría sintéticos
+# y no tiene métricas en una cohorte clínica independiente: se sirve marcada
+# como experimental. Las redes de ecografia_real.py (plano anatómico y
+# circunferencia cefálica) sí están medidas en pacientes no vistas.
+ADVERTENCIA_B4 = (
+    "Detector experimental: entrenado mayormente con imágenes sintéticas y sin validación "
+    "clínica independiente. Sirve como apoyo a la lectura, nunca como diagnóstico."
+)
 
 CORS_ORIGINS = [
     "http://localhost:3000",

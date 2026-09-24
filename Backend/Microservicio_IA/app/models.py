@@ -38,6 +38,7 @@ BIOMETRY_FIELDS = ["BPD_mm", "HC_mm", "AC_mm", "FL_mm", "peso_estimado_g"]
 from .config import (  # noqa: E402
     BIOMETRY_AVAILABLE,
     BIOMETRY_METHOD,
+    ADVERTENCIA_B4,
     CLASS_THRESHOLDS,
     INFERENCE_TEMPERATURE,
     PATHOLOGY_THRESHOLD,
@@ -418,6 +419,7 @@ class ModelManager:
     def __init__(self):
         self.model = None
         self.device = None
+        self.error_carga = None
         self._loaded = False
         self._lock = threading.Lock()
 
@@ -442,6 +444,7 @@ class ModelManager:
 
         model_path = MODEL_PATHS.get("efficientnet_b4", "")
 
+        pesos_ok = False
         if model_path and os.path.exists(model_path):
             try:
                 state_dict = torch.load(
@@ -458,10 +461,19 @@ class ModelManager:
                 if result.unexpected_keys:
                     logger.warning("Claves del checkpoint ignoradas (no existen en el modelo): %s", result.unexpected_keys)
                 logger.info("Pesos HybridEfficientNetB4 cargados: %s", model_path)
+                pesos_ok = True
             except Exception as e:
-                logger.error("Error cargando pesos (%s). Modo demo (modelo completo sin entrenar).", e)
+                logger.error("Error cargando pesos (%s).", e)
         else:
-            logger.warning("Modelo no encontrado: %s. Modo demo activado.", model_path)
+            logger.error("Modelo no encontrado: %s.", model_path)
+
+        if not pesos_ok:
+            # Antes seguía en «modo demo» con pesos aleatorios y devolvía
+            # diagnósticos inventados. Sin pesos no hay análisis: analyze()
+            # responde fallback y /health lo informa.
+            self.model = None
+            self.error_carga = f"Sin pesos entrenados en {model_path}"
+            return False
 
         self.model.to(self.device)
         _set_inference_mode(self.model)
@@ -569,7 +581,12 @@ class ModelManager:
             # clases (excluyendo no_ecografia, que no es una patologia) — NO es
             # una mezcla con confianza de "normal" ni un promedio, es la senal
             # cruda mas alta, documentada como tal para quien la consuma.
-            score_global = max((v for k, v in pathology_probs.items() if k != "no_ecografia"), default=0.0)
+            # Máxima probabilidad entre las clases PATOLÓGICAS. Antes incluía
+            # «normal»: una ecografía normal con 0,95 de «normal» daba
+            # score_global 0,95 y el backend la marcaba como riesgo ALTO.
+            score_global = max(
+                (v for k, v in pathology_probs.items() if k not in ("no_ecografia", "normal")), default=0.0,
+            )
             shap_scores = compute_shap_risk_scores(pathology_probs, altitude_m=altitude_m)
             if shap_scores:
                 shap_scores["riesgo_global"] = round(max(shap_scores.values()), 3)
@@ -618,9 +635,12 @@ class ModelManager:
                     "calidad_suficiente": True,
                     "motivo": "",
                 },
+                # La red no evalúa latido, líquido ni placenta: se informa
+                # «no evaluado». Antes decía actividad_cardiaca False (se lee
+                # como «sin latido») y líquido «normal», ambos fijos.
                 "pregnancy_assessment": {
-                    "feto_presente": True,
-                    "actividad_cardiaca": False,
+                    "feto_presente": None,
+                    "actividad_cardiaca": None,
                     "semanas_gestacion_estimadas": None,
                     "crecimiento_adecuado": None,
                 },
@@ -644,8 +664,14 @@ class ModelManager:
                         "no un modelo individualizado."
                     ) if altitude_m and altitude_m >= 2500 else "",
                 },
-                "liquido_amniotico": {"evaluacion": "normal", "nota": ""},
-                "placenta": {"posicion": "no determinada", "nota": ""},
+                "liquido_amniotico": {"evaluacion": "no evaluado", "nota": "La red no mide el ILA."},
+                "placenta": {"posicion": "no evaluada", "nota": ""},
+                "metodo_riesgos": (
+                    "Heurística: suma ponderada de las probabilidades de la red. Pese al nombre "
+                    "del campo (shap_risk_scores), no son valores SHAP."
+                ),
+                "uso": "experimental",
+                "advertencia": ADVERTENCIA_B4,
                 "clinical_recommendations": {
                     "urgencia": urgencia,
                     "especialista_requerido": especialista,

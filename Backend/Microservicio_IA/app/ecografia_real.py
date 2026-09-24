@@ -100,6 +100,13 @@ class RedesEcografiaReal:
     def disponible(self, nombre: str) -> bool:
         return (self.carpeta / f"{nombre}.pth").exists()
 
+    def estado(self) -> dict:
+        """Qué redes medidas están disponibles, con sus métricas en prueba."""
+        return {
+            nombre: {"disponible": self.disponible(nombre), "metricas_prueba": METRICAS_PRUEBA.get(nombre)}
+            for nombre in (ARCHIVO_PLANO, ARCHIVO_HC)
+        }
+
     def _cargar(self, nombre: str):
         with self._cerrojo:
             if nombre in self._redes:

@@ -183,7 +183,7 @@ async def analyze_ultrasound(
         # (Doppler color, JPEG artifacts) deben llegar al modelo para que
         # decida si hay senial real.
         enhanced = preprocessor.enhance_image(image)
-        result = model_manager.analyze(enhanced, compute_cam=True, altitude_m=resolved_altitude)
+        result = await run_in_threadpool(model_manager.analyze, enhanced, True, resolved_altitude)
         result["filename"] = filename
         result["file_size_kb"] = round(len(content) / 1024, 1)
         result["image_quality"] = quality
@@ -216,7 +216,7 @@ async def detect_pathologies(file: UploadFile = File(...)) -> dict:
         )
     image = preprocessor.load_image(content, ext)
     enhanced = preprocessor.enhance_image(image)
-    result = model_manager.analyze(enhanced, compute_cam=True)
+    result = await run_in_threadpool(model_manager.analyze, enhanced, True)
     return {
         "status": result["status"],
         "filename": filename,
@@ -247,7 +247,7 @@ async def detect_anomalies(file: UploadFile = File(...)) -> dict:
         )
     image = preprocessor.load_image(content, ext)
     enhanced = preprocessor.enhance_image(image)
-    result = model_manager.analyze(enhanced, compute_cam=True)
+    result = await run_in_threadpool(model_manager.analyze, enhanced, True)
     return {
         "status": result["status"],
         "filename": filename3,
@@ -277,7 +277,7 @@ async def classify_ultrasound(file: UploadFile = File(...)) -> dict:
         )
     image = preprocessor.load_image(content, ext)
     enhanced = preprocessor.enhance_image(image)
-    result = model_manager.analyze(enhanced, compute_cam=True)
+    result = await run_in_threadpool(model_manager.analyze, enhanced, True)
     return {
         "status": result["status"],
         "filename": filename4,

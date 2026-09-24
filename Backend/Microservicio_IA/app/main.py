@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import CORS_ORIGINS
@@ -36,9 +36,20 @@ app.include_router(router)
 
 
 @app.get("/health")
-async def health():
+async def health(response: Response):
+    """Estado real: 503 si la red principal no tiene pesos.
+
+    Antes respondía «healthy» siempre, también con pesos aleatorios.
+    """
+    from .ecografia_real import redes
+
+    listo = model_manager._loaded and model_manager.model is not None
+    if not listo:
+        response.status_code = 503
     return {
-        "status": "healthy",
-        "model_loaded": model_manager._loaded,
+        "status": "healthy" if listo else "unavailable",
+        "model_loaded": listo,
+        "error": model_manager.error_carga,
         "device": str(model_manager.device),
+        "redes_reales": redes.estado(),
     }
