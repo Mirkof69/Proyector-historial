@@ -38,6 +38,7 @@ import {
 } from './calculadorasReducer';
 import { buildCalculadorasTabs } from './calculadorasTabs';
 import HistorialDrawer from './components/HistorialDrawer';
+import { clasificarIla } from '../../utils/liquidoAmniotico';
 
 const CalculadorasPage: React.FC = () => {
   const [resultados, dispatchResultado] = useReducer(resultadosReducer, initialResultados);
@@ -301,31 +302,15 @@ const CalculadorasPage: React.FC = () => {
       const { cuadrante1, cuadrante2, cuadrante3, cuadrante4 } = values;
       const ila = cuadrante1 + cuadrante2 + cuadrante3 + cuadrante4;
 
-      let interpretacion = '';
-      let color = '';
-      let conducta = '';
-
-      if (ila < 5) {
-        interpretacion = 'Oligohidramnios';
-        color = 'red';
-        conducta = 'Evaluación fetal urgente, considerar terminación';
-      } else if (ila <= 8) {
-        interpretacion = 'Límite bajo';
-        color = 'orange';
-        conducta = 'Vigilancia fetal estrecha';
-      } else if (ila <= 18) {
-        interpretacion = 'Normal';
-        color = 'green';
-        conducta = 'Seguimiento rutinario';
-      } else if (ila <= 24) {
-        interpretacion = 'Límite alto';
-        color = 'orange';
-        conducta = 'Descartar causas, vigilancia';
-      } else {
-        interpretacion = 'Polihidramnios';
-        color = 'red';
-        conducta = 'Estudio etiológico, vigilancia estrecha';
-      }
+      const clasificacion = clasificarIla(ila);
+      const interpretacion = clasificacion.texto;
+      const color = clasificacion.color;
+      const conducta = {
+        oligohidramnios: 'Evaluación fetal urgente, considerar terminación',
+        limite_bajo: 'Vigilancia fetal estrecha, repetir ILA en una semana',
+        normal: 'Seguimiento rutinario',
+        polihidramnios: 'Estudio etiológico, vigilancia estrecha',
+      }[clasificacion.codigo];
 
       const resultado = {
         ila: ila.toFixed(1),

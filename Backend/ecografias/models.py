@@ -234,28 +234,21 @@ class Ecografia(models.Model):
         ref = referencias_ila[semana_ref]
         ila_valor = float(self.indice_liquido_amniotico)
 
+        # Es un percentil, no un diagnóstico: el diagnóstico lo da
+        # get_estado_liquido_amniotico(). Antes decía «Oligohidramnios» aquí
+        # para ILA que el estado llamaba normales.
         if ila_valor <= ref["p5"]:
-            return "Oligohidramnios (< p5)"
+            return "Bajo para la edad gestacional (< p5)"
         if ila_valor >= ref["p95"]:
-            return "Polihidramnios (> p95)"
-        return "Normal (p5-p95)"
+            return "Alto para la edad gestacional (> p95)"
+        return "Dentro de p5-p95"
 
     def get_estado_liquido_amniotico(self):
         """Evalúa el estado del líquido amniótico"""
-        if not self.indice_liquido_amniotico:
-            return "No evaluado"
+        from .liquido_amniotico import clasificar_ila
 
-        ila = float(self.indice_liquido_amniotico)
-
-        if ila < 5:
-            return " Oligohidramnios severo"
-        if ila < 8:
-            return " Oligohidramnios"
-        if ila > 25:
-            return " Polihidramnios severo"
-        if ila > 20:
-            return " Polihidramnios"
-        return "✅ Normal"
+        clasificacion = clasificar_ila(self.indice_liquido_amniotico)
+        return clasificacion["texto"] if clasificacion else "No evaluado"
 
     def get_evaluacion_fcf(self):
         """Evalúa la frecuencia cardíaca fetal"""

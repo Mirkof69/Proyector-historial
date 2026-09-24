@@ -4,6 +4,7 @@ from django.contrib import admin, messages
 from django.urls import reverse
 from django.utils.html import format_html
 
+from .liquido_amniotico import clasificar_ila
 from .models import (
     AnatomiaFetal,
     AnexosFetales,
@@ -587,12 +588,9 @@ class EcografiaAdmin(admin.ModelAdmin):
     def get_estado_liquido(self, obj):
         """Get estado liquido"""
         estado = obj.get_estado_liquido_amniotico()
-        if "Normal" in estado:
-            color = "#27ae60"
-        elif "severo" in estado:
-            color = "#e74c3c"
-        else:
-            color = "#f39c12"
+        clasificacion = clasificar_ila(obj.indice_liquido_amniotico)
+        severidad = clasificacion["severidad"] if clasificacion else "normal"
+        color = {"normal": "#27ae60", "alerta": "#f39c12", "critica": "#e74c3c"}[severidad]
 
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>', color, estado,
@@ -641,10 +639,9 @@ class EcografiaAdmin(admin.ModelAdmin):
             alertas += 1
 
         # Verificar líquido amniótico
-        if obj.indice_liquido_amniotico:
-            ila = float(obj.indice_liquido_amniotico)
-            if ila < 5 or ila > 25:
-                alertas += 1
+        clasificacion = clasificar_ila(obj.indice_liquido_amniotico)
+        if clasificacion and clasificacion["severidad"] != "normal":
+            alertas += 1
 
         if alertas > 0:
             return format_html(
@@ -823,16 +820,11 @@ class EcografiaAdmin(admin.ModelAdmin):
                 alertas.append("TAQUICARDIA FETAL: FCF > 160 lpm")
 
         # Alertas de líquido amniótico
-        if obj.indice_liquido_amniotico:
-            ila = float(obj.indice_liquido_amniotico)
-            if ila < 5:
-                alertas.append("OLIGOHIDRAMNIOS SEVERO: ILA < 5cm")
-            elif ila > 25:
-                alertas.append("POLIHIDRAMNIOS SEVERO: ILA > 25cm")
-            elif ila < 8:
-                alertas.append("OLIGOHIDRAMNIOS LEVE: ILA < 8cm")
-            elif ila > 20:
-                alertas.append("POLIHIDRAMNIOS LEVE: ILA > 20cm")
+        clasificacion = clasificar_ila(obj.indice_liquido_amniotico)
+        if clasificacion and clasificacion["severidad"] != "normal":
+            alertas.append(
+                f"{clasificacion['texto'].upper()}: ILA {obj.indice_liquido_amniotico} cm",
+            )
 
         # Alertas de anexos
         if hasattr(obj, "anexos") and obj.anexos:
@@ -869,15 +861,14 @@ class EcografiaAdmin(admin.ModelAdmin):
                 recomendaciones.append("Evaluación Doppler materno-fetal")
                 recomendaciones.append("Monitoreo semanal de bienestar fetal")
 
-        if obj.indice_liquido_amniotico:
-            ila = float(obj.indice_liquido_amniotico)
-            if ila < 5 or ila > 25:
-                recomendaciones.append("Control ecográfico semanal")
-                recomendaciones.append("Evaluación de bienestar fetal")
-                if ila < 5:
-                    recomendaciones.append(
-                        "Considerar finalización según edad gestacional",
-                    )
+        clasificacion = clasificar_ila(obj.indice_liquido_amniotico)
+        if clasificacion and clasificacion["severidad"] == "critica":
+            recomendaciones.append("Control ecográfico semanal")
+            recomendaciones.append("Evaluación de bienestar fetal")
+            if clasificacion["codigo"] == "oligohidramnios":
+                recomendaciones.append(
+                    "Considerar finalización según edad gestacional",
+                )
 
         # Recomendaciones estándar por trimestre
         if 6 <= obj.edad_gestacional_semanas <= 14:

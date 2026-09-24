@@ -23,6 +23,7 @@ import dayjs from 'dayjs';
 import './CalculadorasAvanzadas.css';
 import { ResultadoCalculo, guardarResultado } from './calcAvanzadasHelpers';
 import { buildCalcAvanzadasTabs } from './calcAvanzadasTabs';
+import { clasificarIla } from '../../utils/liquidoAmniotico';
 
 const CalculadorasAvanzadas: React.FC = () => {
   const [formEdadGestacional] = Form.useForm();
@@ -470,15 +471,14 @@ const CalculadorasAvanzadas: React.FC = () => {
         (values.cuadrante3 || 0) +
         (values.cuadrante4 || 0);
 
-      let categoria = '';
-      let color = '';
+      const clasificacion = clasificarIla(ila);
+      const categoria = clasificacion.texto;
+      const color = clasificacion.color;
       let interpretacion = '';
       let recomendaciones: string[] = [];
       let alertas: string[] = [];
 
-      if (ila < 5) {
-        categoria = 'Oligohidramnios';
-        color = 'red';
+      if (clasificacion.codigo === 'oligohidramnios') {
         interpretacion = 'Líquido amniótico disminuido';
         alertas.push('ALERTA: Oligohidramnios severo');
         recomendaciones = [
@@ -489,9 +489,7 @@ const CalculadorasAvanzadas: React.FC = () => {
           'Considerar finalización del embarazo si >34 semanas',
           'Hidratación materna',
         ];
-      } else if (ila < 8) {
-        categoria = 'Oligohidramnios leve';
-        color = 'orange';
+      } else if (clasificacion.codigo === 'limite_bajo') {
         interpretacion = 'Líquido amniótico en límite inferior';
         alertas.push('Vigilancia estrecha requerida');
         recomendaciones = [
@@ -500,17 +498,13 @@ const CalculadorasAvanzadas: React.FC = () => {
           'Aumentar hidratación materna',
           'Vigilancia de movimientos fetales',
         ];
-      } else if (ila <= 24) {
-        categoria = 'Normal';
-        color = 'green';
+      } else if (clasificacion.codigo === 'normal') {
         interpretacion = 'Líquido amniótico adecuado';
         recomendaciones = [
           'Continuar controles prenatales rutinarios',
           'ILA normal para la edad gestacional',
         ];
-      } else if (ila <= 30) {
-        categoria = 'Polihidramnios leve';
-        color = 'orange';
+      } else if (clasificacion.grado === 'leve') {
         interpretacion = 'Líquido amniótico aumentado';
         alertas.push('Investigar causa de polihidramnios');
         recomendaciones = [
@@ -520,8 +514,6 @@ const CalculadorasAvanzadas: React.FC = () => {
           'Repetir ILA en 2 semanas',
         ];
       } else {
-        categoria = 'Polihidramnios moderado-severo';
-        color = 'red';
         interpretacion = 'Líquido amniótico muy aumentado';
         alertas.push('ALERTA: Polihidramnios severo');
         recomendaciones = [

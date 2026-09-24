@@ -417,11 +417,8 @@ class CalculadorasObstetricas:
         """Calcula Índice de Líquido Amniótico (ILA)
         Método de 4 cuadrantes
 
-        Interpretación:
-            pass
-        - <5 cm: Oligohidramnios
-        - 5-25 cm: Normal
-        - >25 cm: Polihidramnios
+        Interpretación: la regla única de ecografias.liquido_amniotico
+        (≤5 oligohidramnios, <8 límite bajo, <25 normal, ≥25 polihidramnios).
 
         Returns:
             dict con ila, interpretacion
@@ -437,24 +434,25 @@ class CalculadorasObstetricas:
         # Convertir de mm a cm
         ila_cm = ila / 10
 
-        if ila_cm < 5:
-            interpretacion = "oligohidramnios"
-            interpretacion_texto = "Oligohidramnios - Líquido amniótico disminuido"
-            recomendacion = "Requiere evaluación y seguimiento estrecho"
-        elif ila_cm <= 25:
-            interpretacion = "normal"
-            interpretacion_texto = "Normal - Líquido amniótico adecuado"
-            recomendacion = "Continuar controles rutinarios"
-        else:
-            interpretacion = "polihidramnios"
-            interpretacion_texto = "Polihidramnios - Líquido amniótico aumentado"
-            recomendacion = "Requiere evaluación de causas y seguimiento"
+        from ecografias.liquido_amniotico import clasificar_ila
+
+        clasificacion = clasificar_ila(ila_cm)
+        interpretacion = clasificacion["codigo"]
+        interpretacion_texto = clasificacion["texto"]
+        recomendacion = {
+            "oligohidramnios": "Requiere evaluación y seguimiento estrecho",
+            "limite_bajo": "Repetir ILA en una semana y vigilar bienestar fetal",
+            "normal": "Continuar controles rutinarios",
+            "polihidramnios": "Requiere evaluación de causas y seguimiento",
+        }[interpretacion]
 
         return {
             "ila": round(ila, 2),
             "ila_cm": round(ila_cm, 2),
             "interpretacion": interpretacion,
             "interpretacion_texto": interpretacion_texto,
+            "grado": clasificacion["grado"],
+            "severidad": clasificacion["severidad"],
             "recomendacion": recomendacion,
         }
 

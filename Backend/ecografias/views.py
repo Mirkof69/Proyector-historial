@@ -658,7 +658,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
             pdf.explicacion(
                 f"Índice de líquido amniótico {ila} cm"
                 + (f" — {estado_ila}." if estado_ila else ".")
-                + " Valores <5 cm sugieren oligohidramnios y >24 cm polihidramnios; ambos "
+                + " Valores ≤5 cm indican oligohidramnios y ≥25 cm polihidramnios; ambos "
                 "requieren correlación clínica y seguimiento.",
             )
 
