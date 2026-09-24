@@ -39,7 +39,7 @@ class NotaEvolucion(models.Model):
     # Relaciones
     paciente = models.ForeignKey(
         Paciente,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="notas_evolucion",
         verbose_name="Paciente",
     )

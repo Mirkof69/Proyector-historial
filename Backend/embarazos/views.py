@@ -7,9 +7,11 @@ MÓDULO: EMBARAZOS - VIEWSET V3.0 FINAL CORREGIDO
 """
 
 import contextlib
+import logging
 from datetime import timedelta
 
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import Count, Max
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -28,6 +30,8 @@ from .serializers import (
     EmbarazoListSerializer,
     EmbarazoSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class EmbarazoViewSet(viewsets.ModelViewSet):
@@ -250,9 +254,17 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
         responses={200: OpenApiResponse(description="Pregnancy deleted successfully")},
     )
     def destroy(self, request, *args, **kwargs):
-        """Eliminar embarazo completamente de la base de datos"""
-        # ✅ SEGURIDAD: Solo administradores pueden eliminar
-        if getattr(request.user, 'rol', '') != "administrador":
+        """Borra un embarazo registrado por error, nunca uno con historia clínica.
+
+        Antes se borraba con SQL directo: se saltaba las protecciones del ORM,
+        se llevaba por delante controles y partos y no quedaba rastro. Ahora
+        solo el administrador puede borrar, solo si el embarazo no tiene
+        controles, ecografías ni partos (PROTECT), y queda auditado. Un
+        embarazo con historia se cierra cambiando su estado.
+        """
+        from django.db.models import ProtectedError
+
+        if getattr(request.user, "rol", "") != "administrador":
             return Response(
                 {
                     "error": "Sin permisos para eliminar",
@@ -261,41 +273,37 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        from django.db import connection
-
         instance = self.get_object()
-        embarazo_id = instance.id
-        uuid_str = str(instance.uuid)
+        embarazo_id, uuid_str = instance.id, str(instance.uuid)
         paciente_nombre = f"{instance.paciente.id_clinico} - {instance.paciente.nombre} {instance.paciente.apellido_paterno}"
-        numero_gesta = instance.numero_gesta
-
-        # Eliminar usando SQL directo para evitar problemas de cascada
-        with connection.cursor() as cursor:
-            # 1. Eliminar Controles Prenatales del embarazo
-            cursor.execute(
-                "DELETE FROM controles_prenatales WHERE embarazo_id = %s", [embarazo_id],
+        try:
+            with transaction.atomic():
+                instance.delete()
+        except ProtectedError as e:
+            registros = sorted({o._meta.verbose_name_plural for o in e.protected_objects})
+            return Response(
+                {
+                    "error": "El embarazo tiene historia clínica y no se puede borrar",
+                    "detalle": "Tiene " + ", ".join(str(r) for r in registros)
+                    + ". Para cerrarlo, cambie su estado a Finalizado o Pérdida.",
+                },
+                status=status.HTTP_409_CONFLICT,
             )
-            controles_eliminados = cursor.rowcount
 
-            # 2. Eliminar Partos del embarazo (si existen)
-            cursor.execute("DELETE FROM partos WHERE embarazo_id = %s", [embarazo_id])
-            partos_eliminados = cursor.rowcount
+        try:
+            from auditoria.models import RegistroAuditoria
 
-            # 3. Eliminar el Embarazo
-            cursor.execute("DELETE FROM embarazos WHERE id = %s", [embarazo_id])
+            RegistroAuditoria.registrar(
+                usuario=request.user, accion="ELIMINAR_EMBARAZO", modulo="Embarazo",
+                registro_id=str(embarazo_id),
+                detalle=f"Embarazo G{instance.numero_gesta} de {paciente_nombre} eliminado (sin historia clínica).",
+                request=request,
+            )
+        except Exception:
+            logger.exception("No se pudo auditar el borrado del embarazo %s", embarazo_id)
 
         return Response(
-            {
-                "message": "Embarazo eliminado completamente",
-                "detalles": {
-                    "paciente": paciente_nombre,
-                    "numero_gesta": numero_gesta,
-                    "controles_eliminados": controles_eliminados,
-                    "partos_eliminados": partos_eliminados,
-                },
-                "id": embarazo_id,
-                "uuid": uuid_str,
-            },
+            {"message": "Embarazo eliminado", "id": embarazo_id, "uuid": uuid_str},
             status=status.HTTP_200_OK,
         )
 

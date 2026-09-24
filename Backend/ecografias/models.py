@@ -1,6 +1,7 @@
 """Models module."""
 import logging
 import os
+import uuid
 from decimal import Decimal
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -51,13 +52,13 @@ class Ecografia(models.Model):
     # Relaciones
     embarazo = models.ForeignKey(
         "embarazos.Embarazo",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="ecografias",
         verbose_name="Embarazo",
     )
     paciente = models.ForeignKey(
         Paciente,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="ecografias",
         verbose_name="Paciente",
     )
@@ -1017,13 +1018,10 @@ class ImagenEcografia(models.Model):
     def save(self, *args, **kwargs):
         """Save. Renombra el archivo al nombre del paciente en nuevas imágenes."""
         if not self.pk and self.imagen:
-            nombre_paciente = self.ecografia.paciente.nombre_completo.replace(
-                " ", "_"
-            )
-            ext = os.path.splitext(self.imagen.name)[1]
-            timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-            nuevo_nombre = f"{nombre_paciente}_{timestamp}{ext}"
-            self.imagen.name = nuevo_nombre
+            # Nombre aleatorio: antes era «Nombre_Apellido_fecha», que ponía el
+            # nombre de la paciente en la URL y era fácil de adivinar.
+            ext = os.path.splitext(self.imagen.name)[1].lower()
+            self.imagen.name = f"{uuid.uuid4().hex}{ext}"
 
         regenerar_thumb = False
         if self.pk:

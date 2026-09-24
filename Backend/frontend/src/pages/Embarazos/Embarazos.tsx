@@ -442,7 +442,7 @@ const Embarazos: React.FC = () => {
     const handleDelete = useCallback(async (id: number) => {
         modal.confirm({
             title: '¿Eliminar embarazo?',
-            content: 'Esta acción no se puede deshacer.',
+            content: 'Solo se puede borrar un embarazo registrado por error, sin controles, ecografías ni partos. Esta acción no se puede deshacer.',
             okText: 'Sí, eliminar',
             okType: 'danger',
             cancelText: 'Cancelar',
@@ -452,8 +452,9 @@ const Embarazos: React.FC = () => {
                     message.success("Registro eliminado correctamente");
                     loadEmbarazos(); // Recargar lista
                     if (state.selectedEmbarazo?.id === id) dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false }); // Cerrar drawer si estaba abierto
-                } catch (e) {
-                    message.error("No se pudo eliminar el registro. Puede tener controles asociados.");
+                } catch (e: any) {
+                    const datos = e?.response?.data;
+                    message.error(datos?.detalle || datos?.error || "No se pudo eliminar el embarazo.");
                 }
             }
         });

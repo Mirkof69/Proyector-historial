@@ -52,7 +52,7 @@ class ControlPrenatal(models.Model):
     # ========== RELACIONES ==========
     embarazo = models.ForeignKey(
         "embarazos.Embarazo",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="controles",
         db_column="embarazo_id",
         verbose_name="Embarazo",
@@ -60,7 +60,7 @@ class ControlPrenatal(models.Model):
 
     paciente = models.ForeignKey(
         Paciente,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="controles_prenatales",
         db_column="paciente_id",
         verbose_name="Paciente",

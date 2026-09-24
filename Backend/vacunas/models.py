@@ -175,7 +175,7 @@ class RegistroVacuna(models.Model):
     # Relaciones principales
     paciente = models.ForeignKey(
         Paciente,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="vacunas",
         verbose_name="Paciente",
         help_text="Paciente que recibió la vacuna",

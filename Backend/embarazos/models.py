@@ -44,7 +44,7 @@ class Embarazo(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     paciente = models.ForeignKey(
         Paciente,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         db_column="paciente_id",
         related_name="embarazos",
     )

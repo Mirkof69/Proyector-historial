@@ -18,7 +18,7 @@ class AntecedenteGinecoObstetrico(models.Model):
     # Relación con Paciente
     paciente = models.OneToOneField(
         "pacientes.Paciente",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="antecedente_gineco",
         db_column="paciente_id",
     )
@@ -141,7 +141,7 @@ class AntecedentePatologico(models.Model):
     # Relación con Paciente
     paciente = models.ForeignKey(
         "pacientes.Paciente",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="antecedentes_patologicos",
         db_column="paciente_id",
     )

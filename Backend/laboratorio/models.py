@@ -175,7 +175,7 @@ class ExamenLaboratorio(models.Model):
     # Relaciones
     paciente = models.ForeignKey(
         Paciente,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="examenes_laboratorio",
         verbose_name="Paciente",
     )
