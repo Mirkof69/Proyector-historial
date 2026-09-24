@@ -45,12 +45,12 @@ urlpatterns = [
     ),
     # URLs para reportes específicos
     path(
-        "reportes/parto/<int:parto_id>/",
+        "reportes/parto/<int:pk>/",
         views.PartoViewSet.as_view({"get": "resumen_completo"}),
         name="reporte-parto",
     ),
     path(
-        "reportes/recien-nacido/<int:rn_id>/",
+        "reportes/recien-nacido/<int:pk>/",
         views.RecienNacidoViewSet.as_view({"get": "resumen_completo"}),
         name="reporte-rn",
     ),

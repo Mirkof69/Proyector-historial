@@ -1035,8 +1035,11 @@ class RecienNacido(models.Model):
         super().__init__(*args, **kwargs)
         if self.talla_nacimiento is None and "talla" not in kwargs:
             self.talla_nacimiento = Decimal("50.0")
-        if self.fecha_nacimiento is None:
-            if self.parto is not None and hasattr(self.parto, "fecha_parto") and self.parto.fecha_parto:
+        # `parto_id`, no `parto`: sin parto asignado, `self.parto` lanza
+        # RelatedObjectDoesNotExist (la página «añadir» del admin daba 500), y
+        # con parto hacía una consulta por cada recién nacido cargado.
+        if self.fecha_nacimiento is None and self.parto_id is not None:
+            if self.parto.fecha_parto:
                 self.fecha_nacimiento = self.parto.fecha_parto
 
     SEXO_CHOICES = [

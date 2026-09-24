@@ -579,11 +579,15 @@ class PartoViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=False, methods=["get"], url_path="analizar-paciente")
-    def analizar_paciente(self, request):
+    def analizar_paciente(self, request, paciente_id=None):
         """Analiza el historial de partos de una paciente
         GET /api/partos/analizar-paciente/?paciente_id=123
+        GET /api/partos/analizar-paciente/123/   (la que usa el frontend)
+
+        `paciente_id` llega como kwarg desde la ruta con path: antes el método
+        no lo aceptaba y la ruta del frontend daba TypeError (500).
         """
-        paciente_id = request.query_params.get("paciente_id")
+        paciente_id = paciente_id or request.query_params.get("paciente_id")
         if not paciente_id:
             return Response(
                 {"error": "Debe proporcionar paciente_id"},

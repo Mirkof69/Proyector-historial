@@ -245,7 +245,7 @@ class MarcadorEmbarazoAdmin(admin.ModelAdmin):
         (
             "Marcadores Crudos",
             {
-                "fields": ("beta_hcg", "papp_a", "free_bhcg", "plg", "sflt1"),
+                "fields": ("beta_hcg", "papp_a", "free_bhcg", "plgf", "sflt1"),
                 "description": "Valores medidos en laboratorio",
             },
         ),

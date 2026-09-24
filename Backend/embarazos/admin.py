@@ -50,7 +50,8 @@ class EmbarazoAdmin(admin.ModelAdmin):
         "paciente__apellido_materno",
         "paciente__id_clinico",
         "paciente__ci",
-        "medico_responsable",
+        "medico_responsable__nombre",
+        "medico_responsable__apellido_paterno",
         "notas",
     ]
 
@@ -83,7 +84,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     ("numero_gesta", "numero_para", "numero_cesareas"),
-                    ("numero_abortos", "hijos_vivos"),
+                    "numero_abortos",
                     "tipo_embarazo",
                 ),
             },
@@ -106,7 +107,6 @@ class EmbarazoAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "riesgo_embarazo",
-                    "factores_riesgo",
                 ),
                 "classes": ("wide",),
             },
@@ -116,8 +116,6 @@ class EmbarazoAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "estado",
-                    "resultado_embarazo",
-                    "fecha_finalizacion",
                 ),
             },
         ),
@@ -126,7 +124,6 @@ class EmbarazoAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "notas",
-                    "plan_parto",
                 ),
                 "classes": ("collapse",),
             },
@@ -147,7 +144,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
                 "fields": (
                     "uuid",
                     "fecha_registro",
-                    "fecha_actualizacion",
+                    "fecha_modificacion",
                 ),
                 "classes": ("collapse",),
             },
@@ -543,7 +540,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     def finalizar_embarazo(self, request, queryset):
         """Finalizar embarazo"""
         updated = queryset.filter(estado="activo").update(
-            estado="finalizado", fecha_finalizacion=timezone.localdate(),
+            estado="finalizado",
         )
         self.message_user(request, f"{updated} embarazo(s) finalizado(s) exitosamente.")
 
@@ -551,7 +548,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     def reactivar_embarazo(self, request, queryset):
         """Reactivar embarazo"""
         updated = queryset.exclude(estado="activo").update(
-            estado="activo", fecha_finalizacion=None,
+            estado="activo",
         )
         self.message_user(request, f"{updated} embarazo(s) reactivado(s).")
 

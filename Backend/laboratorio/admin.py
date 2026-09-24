@@ -318,7 +318,7 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
                 "fields": (
                     "estado",
                     "fecha_resultado",
-                    "observaciones_generales",
+                    "observaciones",
                 ),
             },
         ),
@@ -336,7 +336,7 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
         ),
     )
 
-    readonly_fields = ("fecha_creacion", "fecha_actualizacion")
+    readonly_fields = ("fecha_solicitud", "fecha_creacion", "fecha_actualizacion")
 
     inlines = [ResultadoLaboratorioInline]
 
@@ -490,7 +490,6 @@ class ResultadoLaboratorioAdmin(admin.ModelAdmin):
                 "fields": (
                     "valor_numerico",
                     "valor_texto",
-                    "unidad",
                 ),
             },
         ),

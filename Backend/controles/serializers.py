@@ -1,4 +1,6 @@
 """Serializers module."""
+import logging
+
 from datetime import datetime
 
 from django.utils import timezone
@@ -12,6 +14,8 @@ try:
     )
 except ImportError:  # pragma: no cover
     Embarazo = None  # type: ignore[assignment,misc]
+
+logger = logging.getLogger(__name__)
 
 
 class ControlPrenatalListSerializer(serializers.ModelSerializer):
@@ -591,12 +595,10 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
 
             # Si tiene menos de 6 semanas y envía FCF, dar advertencia (pero permitir)
             if fcf and semanas < 6:
-                import warnings
-
-                warnings.warn(
-                    f"FCF detectada con {semanas} semanas. Normalmente no es detectable antes de 6 semanas.",
-                    UserWarning,
-                )
+                # Antes: `import warnings` dentro de este if hacía `warnings`
+                # local de toda la función, y el aviso de presentación de abajo
+                # daba UnboundLocalError (500) si no se entraba aquí.
+                logger.info("FCF registrada con %s semanas: normalmente no es detectable antes de 6.", semanas)
 
             # Validar rango de FCF solo si se proporciona
             if fcf and (fcf < 90 or fcf > 180):
@@ -611,10 +613,8 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
             # Si tiene menos de 12 semanas y envía presentación, dar advertencia
             if presentacion and presentacion != "no_evaluable" and semanas < 12:
 
-                warnings.warn(
-                    f"Presentación fetal registrada con {semanas} semanas. Normalmente no es evaluable antes de 12 semanas.",
-                    UserWarning,
-                )
+                logger.info("Presentación fetal registrada con %s semanas: normalmente no es evaluable antes de 12.",
+                            semanas)
 
         # Validar semanas de gestación
         if "semanas_gestacion" in attrs and (semanas < 0 or semanas > 42):

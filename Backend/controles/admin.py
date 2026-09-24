@@ -49,9 +49,9 @@ class ControlPrenatalAdmin(admin.ModelAdmin):
             "Información del Control",
             {
                 "fields": (
-                    "embarazo_id",
+                    "embarazo",
                     "paciente",
-                    "medico_id",
+                    "medico",
                     "numero_control",
                     "fecha_control",
                 ),
