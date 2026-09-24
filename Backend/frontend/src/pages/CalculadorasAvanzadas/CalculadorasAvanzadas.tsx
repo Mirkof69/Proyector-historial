@@ -24,6 +24,7 @@ import './CalculadorasAvanzadas.css';
 import { ResultadoCalculo, guardarResultado } from './calcAvanzadasHelpers';
 import { buildCalcAvanzadasTabs } from './calcAvanzadasTabs';
 import { clasificarIla } from '../../utils/liquidoAmniotico';
+import { evaluarRiesgoPreeclampsia } from '../../utils/riesgoPreeclampsia';
 
 const CalculadorasAvanzadas: React.FC = () => {
   const [formEdadGestacional] = Form.useForm();
@@ -282,95 +283,27 @@ const CalculadorasAvanzadas: React.FC = () => {
   // ==========================================================================
   const calcularRiesgoPreeclampsia = (values: any) => {
     try {
-      let puntos = 0;
-      const factores: string[] = [];
-
-      // Factores de riesgo alto (2 puntos cada uno)
-      if (values.preeclampsia_previa) {
-        puntos += 2;
-        factores.push('Preeclampsia previa');
-      }
-      if (values.hipertension_cronica) {
-        puntos += 2;
-        factores.push('Hipertensión crónica');
-      }
-      if (values.diabetes_pregestacional) {
-        puntos += 2;
-        factores.push('Diabetes pregestacional');
-      }
-      if (values.enfermedad_renal) {
-        puntos += 2;
-        factores.push('Enfermedad renal');
-      }
-
-      // Factores de riesgo moderado (1 punto cada uno)
-      if (values.edad >= 40) {
-        puntos += 1;
-        factores.push('Edad ≥40 años');
-      }
-      if (values.primiparidad) {
-        puntos += 1;
-        factores.push('Primiparidad');
-      }
-      if (values.obesidad) {
-        puntos += 1;
-        factores.push('Obesidad (IMC ≥30)');
-      }
-      if (values.embarazo_multiple) {
-        puntos += 1;
-        factores.push('Embarazo múltiple');
-      }
-      if (values.intervalo_largo) {
-        puntos += 1;
-        factores.push('Intervalo >10 años entre embarazos');
-      }
-
-      let categoria = '';
-      let color = '';
-      let interpretacion = '';
-      let recomendaciones: string[] = [];
-
-      if (puntos === 0) {
-        categoria = 'Riesgo Bajo';
-        color = 'green';
-        interpretacion = 'Sin factores de riesgo significativos';
-        recomendaciones = [
-          'Control prenatal rutinario',
-          'Vigilancia estándar de presión arterial',
-          'Dieta saludable y ejercicio',
-        ];
-      } else if (puntos <= 2) {
-        categoria = 'Riesgo Moderado';
-        color = 'orange';
-        interpretacion = 'Presencia de factores de riesgo moderados';
-        recomendaciones = [
-          'Considerar aspirina 100-150mg diaria desde las 12 semanas',
-          'Control prenatal cada 3-4 semanas',
-          'Monitoreo de presión arterial en casa',
-          'Vigilancia de síntomas de alarma',
-        ];
-      } else {
-        categoria = 'Riesgo Alto';
-        color = 'red';
-        interpretacion = 'Múltiples factores de riesgo presentes';
-        recomendaciones = [
-          'Aspirina 100-150mg diaria desde las 12 semanas (OBLIGATORIO)',
-          'Control prenatal cada 2-3 semanas',
-          'Monitoreo estricto de presión arterial',
-          'Proteinuria en cada visita',
-          'Ecografía Doppler de arterias uterinas',
-          'Vigilancia de restricción de crecimiento fetal',
-        ];
-      }
-
+      const evaluacion = evaluarRiesgoPreeclampsia({
+        preeclampsiaPrevia: values.preeclampsia_previa,
+        hipertensionCronica: values.hipertension_cronica,
+        diabetesPregestacional: values.diabetes_pregestacional,
+        enfermedadRenal: values.enfermedad_renal,
+        edadMaterna: values.edad,
+        nuliparidad: values.primiparidad,
+        obesidad: values.obesidad,
+        embarazoMultiple: values.embarazo_multiple,
+        intervaloMayor10Anios: values.intervalo_largo,
+      });
+      const factores = [...evaluacion.factoresAltos, ...evaluacion.factoresModerados];
       const resultado: ResultadoCalculo = {
-        valor: `${puntos} puntos`,
-        interpretacion,
-        categoria,
-        color,
+        valor: `${evaluacion.factoresAltos.length} alto(s), ${evaluacion.factoresModerados.length} moderado(s)`,
+        interpretacion: 'Cribado por factores clínicos (ACOG 2021 / USPSTF)',
+        categoria: evaluacion.texto,
+        color: evaluacion.color,
         recomendaciones: [
           `Factores de riesgo identificados: ${factores.length > 0 ? factores.join(', ') : 'Ninguno'}`,
-          ...recomendaciones,
+          evaluacion.aspirina,
+          ...evaluacion.recomendaciones,
         ],
       };
 

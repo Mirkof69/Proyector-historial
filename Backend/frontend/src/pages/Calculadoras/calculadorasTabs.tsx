@@ -321,12 +321,14 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
               {resultadoPreeclampsia ? (
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
                   <Statistic
-                    title="Puntos de Riesgo"
+                    title="Factores de riesgo presentes"
                     value={resultadoPreeclampsia.puntos}
                     valueStyle={{ fontSize: 32, color: '#1890ff' }}
                   />
-                  <Progress percent={(resultadoPreeclampsia.puntos / 15) * 100} status={resultadoPreeclampsia.color === 'green' ? 'success' : resultadoPreeclampsia.color === 'red' ? 'exception' : 'normal'} />
                   <Tag color={resultadoPreeclampsia.color}>{resultadoPreeclampsia.riesgo}</Tag>
+                  {resultadoPreeclampsia.alertaHipertension && (
+                    <Alert type="error" showIcon message="Presión arterial elevada" description={resultadoPreeclampsia.alertaHipertension} />
+                  )}
                   <Alert message="Recomendación" description={resultadoPreeclampsia.recomendacion} type={resultadoPreeclampsia.color === 'green' ? 'success' : resultadoPreeclampsia.color === 'red' ? 'error' : 'warning'} showIcon />
                 </Space>
               ) : (

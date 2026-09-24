@@ -37,6 +37,51 @@ from .services.risk_calculator import RiskCalculator
 logger = logging.getLogger(__name__)
 
 
+def riesgo_preeclampsia_unificado(data):
+    """Adapta los datos de CalculadoraRiesgo al motor FMF único."""
+    from .services.calculador_riesgos_fmf import CalculadorRiesgosFMF
+
+    utpi = data.get("utpi_crudo")
+    if not utpi and data.get("utpi_izquierda") and data.get("utpi_derecha"):
+        utpi = (float(data["utpi_izquierda"]) + float(data["utpi_derecha"])) / 2
+    tipo_diabetes = data.get("diabetes_tipo") or ""
+    r = CalculadorRiesgosFMF.calcular_riesgo_preeclampsia_completo(
+        edad_materna=data["edad_materna"],
+        peso_kg=float(data["peso_kg"]),
+        talla_cm=float(data["talla_cm"]),
+        semanas=data["edad_gestacional_semanas"],
+        metodo_concepcion=data.get("metodo_concepcion", "espontaneo"),
+        fumadora=data.get("tabaquismo", False),
+        hipertension_cronica=data.get("hta_cronica", False),
+        diabetes_tipo1=data.get("diabetes_previa", False) and "1" in tipo_diabetes,
+        diabetes_tipo2=data.get("diabetes_previa", False) and "1" not in tipo_diabetes,
+        lupus=data.get("lupus", False),
+        sindrome_antifosfolipidos=data.get("sindrome_antifosfolipido", False),
+        historia_preeclampsia=data.get("preeclampsia_previa", False),
+        intervalo_embarazo_meses=data.get("intervalo_interembarazo_meses"),
+        pas_mmhg=float(data["pas_mmhg"]) if data.get("pas_mmhg") else None,
+        pad_mmhg=float(data["pad_mmhg"]) if data.get("pad_mmhg") else None,
+        utap_ip_promedio=float(utpi) if utpi else None,
+        plgf_pg_ml=float(data["plgf_crudo"]) if data.get("plgf_crudo") else None,
+    )
+    riesgo = r["riesgo_final"]
+    categoria = {"ALTO": "alto", "INTERMEDIO": "intermedio", "MEDIO": "intermedio"}.get(r["clasificacion_riesgo"], "bajo")
+    return {
+        "riesgo_porcentaje": round(riesgo, 2),
+        "riesgo_ratio": f"1:{max(1, round(100 / riesgo))}" if riesgo > 0 else "1:10000",
+        "categoria_riesgo": categoria,
+        "interpretacion_clinica": (
+            f"Riesgo estimado de preeclampsia {riesgo:.1f} % ({r['clasificacion_riesgo']}). "
+            + r["advertencia"]
+        ),
+        "recomendaciones": r["recomendaciones"],
+        "conducta_sugerida": "Aspirina 150 mg/noche desde antes de las 16 semanas"
+        if r["requiere_aspirina"] else "Control prenatal habitual",
+        "semaforo": {"alto": "rojo", "intermedio": "amarillo"}.get(categoria, "verde"),
+        "likelihood_ratios": {"historia": r["lr_historia"], "biomarcadores": r["lr_biomarcadores"]},
+    }
+
+
 class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
     """ViewSet for obstetric risk calculators based on FMF protocols.
 
@@ -181,35 +226,10 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
             )
             biomarcadores_mom["pappa"] = resultado_pappa
 
-        # 2. Calcular riesgo de preeclampsia
-        risk_calc = RiskCalculator()
-
-        resultado_riesgo = risk_calc.calcular_riesgo_preeclampsia(
-            edad_materna=data["edad_materna"],
-            imc=float(data["peso_kg"]) / (float(data["talla_cm"]) / 100) ** 2,
-            etnia=data["etnia"],
-            hta_cronica=data.get("hta_cronica", False),
-            preeclampsia_previa=data.get("preeclampsia_previa", False),
-            diabetes=data.get("diabetes_previa", False),
-            lupus=data.get("lupus", False),
-            sindrome_antifosfolipido=data.get("sindrome_antifosfolipido", False),
-            madre_con_pe=data.get("madre_con_preeclampsia", False),
-            paridad=data.get("paridad", 0),
-            intervalo_meses=data.get("intervalo_interembarazo_meses"),
-            metodo_concepcion=data.get("metodo_concepcion", "espontaneo"),
-            pam_mom=biomarcadores_mom.get("pam", {}).get("mom", 1.0),
-            utpi_mom=biomarcadores_mom.get("utpi", {}).get("mom", 1.0),
-            plgf_mom=biomarcadores_mom.get("plgf", {}).get("mom")
-            if "plgf" in biomarcadores_mom
-            else None,
-            sflt1_mom=biomarcadores_mom.get("sflt1", {}).get("mom")
-            if "sflt1" in biomarcadores_mom
-            else None,
-            pappa_mom=biomarcadores_mom.get("pappa", {}).get("mom")
-            if "pappa" in biomarcadores_mom
-            else None,
-            edad_gestacional_semanas=data["edad_gestacional_semanas"],
-        )
+        # 2. Calcular riesgo de preeclampsia con el MISMO motor que la pantalla
+        # (/calculadoras-avanzadas/fmf/preeclampsia/). Antes este endpoint usaba
+        # RiskCalculator y la misma paciente salía con 9,9 % aquí y 84 % allí.
+        resultado_riesgo = riesgo_preeclampsia_unificado(data)
 
         # 3. Crear registro de calculadora
         calculadora = CalculadoraRiesgo.objects.create(

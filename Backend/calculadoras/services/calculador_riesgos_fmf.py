@@ -17,6 +17,21 @@ from .calculador_mom import CalculadorMoM
 
 #: Medianas de presión arterial media (mmHg) por semana. Compartidas con
 #: mom_converter para que las dos calculadoras den el mismo MoM.
+
+
+def aplicar_lr(riesgo_pct: float, lr: float) -> float:
+    """Actualiza un riesgo (en %) con un cociente de verosimilitud.
+
+    Bayes se aplica sobre odds, no sobre porcentajes: odds' = odds x LR.
+    Antes se hacía riesgo x LR, así que un riesgo basal del 2 % con LR 40
+    daba 80 % (y con LR mayores se topaba en 99,9 %). Con odds da 45 %, y
+    nunca pasa de 100.
+    """
+    p = min(max(riesgo_pct / 100.0, 0.0), 0.999999)
+    odds = p / (1 - p) * lr
+    return 100.0 * odds / (1 + odds)
+
+
 MEDIANAS_MAP = {11: 85.0, 12: 86.0, 13: 87.0, 20: 88.0, 22: 89.0, 24: 90.0}
 
 
@@ -120,7 +135,7 @@ class CalculadorRiesgosFMF:
             lr_historia *= 0.7
 
         # Riesgo ajustado por historia
-        riesgo_ajustado_historia = riesgo_basal * lr_historia
+        riesgo_ajustado_historia = aplicar_lr(riesgo_basal, lr_historia)
 
         # 3. LIKELIHOOD RATIOS POR BIOMARCADORES
         lr_biomarcadores = 1.0
@@ -173,8 +188,8 @@ class CalculadorRiesgosFMF:
                 lr_biomarcadores *= 3.0
 
         # Riesgo final
-        riesgo_ajustado_biomarcadores = riesgo_ajustado_historia * lr_biomarcadores
-        riesgo_final = min(riesgo_ajustado_biomarcadores, 99.9)  # Cap al 99.9%
+        riesgo_ajustado_biomarcadores = aplicar_lr(riesgo_ajustado_historia, lr_biomarcadores)
+        riesgo_final = riesgo_ajustado_biomarcadores
 
         # 4. CLASIFICACIÓN
         if riesgo_final >= 10:
@@ -238,6 +253,12 @@ class CalculadorRiesgosFMF:
             "mom_pam": mom_values.get("map_mom"),
             "mom_utap": mom_values.get("utap_mom"),
             "mom_plg": mom_values.get("plgf_mom"),
+            "metodo": "Cocientes de verosimilitud simplificados (inspirados en FMF), combinados sobre odds",
+            "advertencia": (
+                "Estimación orientativa: no es el algoritmo de riesgos competitivos de la FMF ni está "
+                "validada en población boliviana. Los factores se combinan como independientes, lo que "
+                "tiende a sobrestimar el riesgo cuando hay varios a la vez."
+            ),
             "lr_historia": round(lr_historia, 2),
             "lr_biomarcadores": round(lr_biomarcadores, 2),
             "imc": round(imc, 1),

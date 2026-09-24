@@ -39,6 +39,7 @@ import {
 import { buildCalculadorasTabs } from './calculadorasTabs';
 import HistorialDrawer from './components/HistorialDrawer';
 import { clasificarIla } from '../../utils/liquidoAmniotico';
+import { evaluarRiesgoPreeclampsia } from '../../utils/riesgoPreeclampsia';
 
 const CalculadorasPage: React.FC = () => {
   const [resultados, dispatchResultado] = useReducer(resultadosReducer, initialResultados);
@@ -239,50 +240,21 @@ const CalculadorasPage: React.FC = () => {
         enfermedad_renal,
       } = values;
 
-      let puntos = 0;
-
-      if (edad > 35) puntos += 2;
-      if (edad < 18) puntos += 1;
-      if (imc > 30) puntos += 2;
-      if (presion_sistolica >= 140) puntos += 3;
-      if (presion_diastolica >= 90) puntos += 3;
-      if (proteinuria) puntos += 3;
-      if (historia_preeclampsia) puntos += 3;
-      if (diabetes) puntos += 2;
-      if (enfermedad_renal) puntos += 2;
-
-      let riesgo = '';
-      let color = '';
-      let recomendacion = '';
-
-      if (puntos <= 3) {
-        riesgo = 'Bajo';
-        color = 'green';
-        recomendacion = 'Controles prenatales rutinarios';
-      } else if (puntos <= 6) {
-        riesgo = 'Moderado';
-        color = 'orange';
-        recomendacion = 'Vigilancia estrecha, considerar aspirina';
-      } else {
-        riesgo = 'Alto';
-        color = 'red';
-        recomendacion = 'Vigilancia intensiva, aspirina, seguimiento especializado';
-      }
-
+      const evaluacion = evaluarRiesgoPreeclampsia({
+        edadMaterna: edad,
+        obesidad: imc > 30,
+        preeclampsiaPrevia: historia_preeclampsia,
+        diabetesPregestacional: diabetes,
+        enfermedadRenal: enfermedad_renal,
+        presionSistolica: presion_sistolica,
+        presionDiastolica: presion_diastolica,
+        proteinuria,
+      });
       const resultado = {
-        puntos,
-        riesgo,
-        color,
-        recomendacion,
-        factores: {
-          edad: edad > 35 || edad < 18,
-          imc: imc > 30,
-          hipertension: presion_sistolica >= 140 || presion_diastolica >= 90,
-          proteinuria,
-          historia_preeclampsia,
-          diabetes,
-          enfermedad_renal,
-        },
+        ...evaluacion,
+        puntos: evaluacion.factoresAltos.length + evaluacion.factoresModerados.length,
+        riesgo: evaluacion.texto,
+        recomendacion: [evaluacion.aspirina, ...evaluacion.recomendaciones].join('. '),
       };
 
       dispatchResultado({ type: 'SET_PREECLAMPSIA', payload: resultado });
