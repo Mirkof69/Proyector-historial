@@ -15,7 +15,7 @@ por paciente, no por imagen.
 
 | Archivo | Qué es |
 |---|---|
-| `redes_ecografia_real.ipynb` | El notebook: qué es Hadlock y los 7 pasos, ejecutado, con las 9 gráficas (curvas ROC, matriz de confusión, Bland-Altman…). |
+| `redes_ecografia_real.ipynb` | El notebook completo en 7 pasos, ejecutado: los **4 modelos** (regresión y clasificación del peso al nacer con 1.000 nacimientos reales, y las dos redes), 16 gráficas con una tabla que explica cada una, comparación con un modelo no supervisado (K-means) y revisión automática de errores y falsos positivos. |
 | `catalogo_imagenes.xlsx` | Una fila por imagen: hojas HC18, Planos, Diccionario y Fuentes. |
 | `preparar_imagenes.py` | Descomprime los zips y construye el catálogo y la carpeta `imagenes/`. |
 | `cnn_ecografia.py` | Carga, aumento de datos, EfficientNet-B0 y entrenamiento de las dos redes. |

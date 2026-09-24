@@ -208,11 +208,22 @@ def entrenar_circunferencia(catalogo: pd.DataFrame, epocas=40, registro=print):
     )
 
     d_p, X_p, _, mayor_p = datos["prueba"]
+    return modelo, historia, _tabla_prueba_hc(modelo, d_p, X_p, mayor_p)
+
+
+def _tabla_prueba_hc(modelo, d_p, X_p, mayor_p) -> pd.DataFrame:
     fraccion = predecir(modelo, X_p, True)
     prueba = d_p.copy()
     prueba["hc_predicha_mm"] = (fraccion * d_p["tamano_pixel_mm"].to_numpy() * mayor_p).round(2)
     prueba["error_mm"] = (prueba["hc_predicha_mm"] - prueba["circunferencia_cefalica_mm"]).round(2)
-    return modelo, historia, prueba
+    return prueba
+
+
+def evaluar_circunferencia(catalogo: pd.DataFrame, modelo) -> pd.DataFrame:
+    """La tabla de prueba de una red ya entrenada (la guardada en modelos/)."""
+    d_p = catalogo[catalogo["particion"] == "prueba"].reset_index(drop=True)
+    X_p, mayor_p = precargar([AQUI / r for r in d_p["ruta"]], LADO_HC)
+    return _tabla_prueba_hc(modelo.to(DISPOSITIVO), d_p, X_p, mayor_p)
 
 
 # ──────────────────────────── 2. plano anatómico ───────────────────────────
@@ -248,13 +259,24 @@ def entrenar_planos(catalogo: pd.DataFrame, epocas=14, registro=print):
         perdida=perdida, es_regresion=False, registro=registro,
     )
 
-    d_p, X_p, y_p = datos["prueba"]
+    d_p, X_p, _ = datos["prueba"]
+    return modelo, historia, _tabla_prueba_planos(modelo, d_p, X_p)
+
+
+def _tabla_prueba_planos(modelo, d_p, X_p) -> pd.DataFrame:
     prob = predecir(modelo, X_p, False)
     prueba = d_p.copy()
     prueba["plano_predicho"] = [PLANOS[i] for i in prob.argmax(1)]
     for i, p in enumerate(PLANOS):
         prueba[f"prob_{p}"] = prob[:, i].round(5)
-    return modelo, historia, prueba
+    return prueba
+
+
+def evaluar_planos(catalogo: pd.DataFrame, modelo) -> pd.DataFrame:
+    """La tabla de prueba de una red ya entrenada (la guardada en modelos/)."""
+    d_p = catalogo[catalogo["particion"] == "prueba"].reset_index(drop=True)
+    X_p, _ = precargar([AQUI / r for r in d_p["ruta"]], LADO_PLANO)
+    return _tabla_prueba_planos(modelo.to(DISPOSITIVO), d_p, X_p)
 
 
 # ─────────────────────────────── guardar ───────────────────────────────────
@@ -267,3 +289,29 @@ def guardar(modelo, nombre: str, meta: dict) -> Path:
     (MODELOS / f"{nombre}.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return ruta
+
+
+def cargar(nombre: str):
+    """(red, ficha) de un modelo guardado con `guardar`."""
+    import timm
+    paquete = torch.load(MODELOS / f"{nombre}.pth", map_location=DISPOSITIVO, weights_only=True)
+    meta = paquete["meta"]
+    salidas = len(meta["clases"]) if "clases" in meta else 1
+    red = timm.create_model(meta["arquitectura"], pretrained=False, num_classes=salidas)
+    red.load_state_dict(paquete["estado"])
+    return red.to(DISPOSITIVO).eval(), meta
+
+
+@torch.no_grad()
+def rasgos_imagenet(rutas: list[Path], lado: int = LADO_PLANO, lote: int = 128) -> np.ndarray:
+    """1.280 rasgos por imagen de una EfficientNet-B0 preentrenada SOLO en
+    ImageNet (fotos generales). No ha visto ninguna etiqueta de ecografía: es
+    la base para probar un modelo NO supervisado sobre estas imágenes."""
+    import timm
+    red = timm.create_model("efficientnet_b0", pretrained=True, num_classes=0).to(DISPOSITIVO).eval()
+    X, _ = precargar(rutas, lado)
+    salida = []
+    for i in range(0, len(X), lote):
+        with torch.autocast("cuda", dtype=torch.float16, enabled=DISPOSITIVO == "cuda"):
+            salida.append(red(a_tensor(X[i:i + lote]).to(DISPOSITIVO)).float().cpu().numpy())
+    return np.concatenate(salida)

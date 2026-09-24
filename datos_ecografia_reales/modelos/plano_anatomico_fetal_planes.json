@@ -11,5 +11,77 @@
     "cuello uterino materno",
     "otro"
   ],
-  "dataset": "FETAL_PLANES_DB (Zenodo 3904280, CC BY 4.0)"
+  "dataset": "FETAL_PLANES_DB (Zenodo 3904280, CC BY 4.0)",
+  "historia": [
+    {
+      "epoca": 1,
+      "perdida_entreno": 1.7420058562497307,
+      "val": 0.8342344760894775
+    },
+    {
+      "epoca": 2,
+      "perdida_entreno": 0.6379080568320084,
+      "val": 0.40123260021209717
+    },
+    {
+      "epoca": 3,
+      "perdida_entreno": 0.4912240813696261,
+      "val": 0.2348136305809021
+    },
+    {
+      "epoca": 4,
+      "perdida_entreno": 0.42283011519951275,
+      "val": 0.22512303292751312
+    },
+    {
+      "epoca": 5,
+      "perdida_entreno": 0.40379166704409825,
+      "val": 0.19122037291526794
+    },
+    {
+      "epoca": 6,
+      "perdida_entreno": 0.3860464997738116,
+      "val": 0.18466271460056305
+    },
+    {
+      "epoca": 7,
+      "perdida_entreno": 0.37042713719787856,
+      "val": 0.1738683432340622
+    },
+    {
+      "epoca": 8,
+      "perdida_entreno": 0.35966988231424313,
+      "val": 0.21589688956737518
+    },
+    {
+      "epoca": 9,
+      "perdida_entreno": 0.3560995704570264,
+      "val": 0.24654804170131683
+    },
+    {
+      "epoca": 10,
+      "perdida_entreno": 0.33933833892222737,
+      "val": 0.2142627090215683
+    },
+    {
+      "epoca": 11,
+      "perdida_entreno": 0.3285717984436653,
+      "val": 0.19606931507587433
+    },
+    {
+      "epoca": 12,
+      "perdida_entreno": 0.3262589184970027,
+      "val": 0.19300641119480133
+    },
+    {
+      "epoca": 13,
+      "perdida_entreno": 0.31917998329636266,
+      "val": 0.21454040706157684
+    },
+    {
+      "epoca": 14,
+      "perdida_entreno": 0.32117168039999977,
+      "val": 0.19688060879707336
+    }
+  ]
 }
