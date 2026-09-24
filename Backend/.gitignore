@@ -79,3 +79,4 @@ docs/*.pdf
 scripts/certs/
 *.key
 *.csr
+datasets/

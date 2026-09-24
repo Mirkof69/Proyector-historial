@@ -260,6 +260,52 @@ def percentil_peso_fetal(peso_g: int | None, semanas: float | None) -> int | Non
     return int(round(50 + 40 * (peso_g - p50) / (p90 - p50)))
 
 
+def _p50(semanas: float) -> float | None:
+    """Mediana de la tabla de Hadlock 1991, interpolando entre semanas."""
+    semanas_tabla = sorted(TABLA_HADLOCK_1991)
+    if not (semanas_tabla[0] <= semanas <= semanas_tabla[-1]):
+        return None
+    inferior = int(semanas)
+    superior = min(inferior + 1, semanas_tabla[-1])
+    a = TABLA_HADLOCK_1991[inferior][1]
+    b = TABLA_HADLOCK_1991[superior][1]
+    return a + (b - a) * (semanas - inferior)
+
+
+def proyectar_peso(
+    peso_actual_g: int | None, semanas_actuales: float | None,
+    semanas_objetivo: float | None,
+) -> int | None:
+    """Proyecta un peso fetal a otra edad gestacional, a tamaño relativo constante.
+
+    Es el método que usa la práctica clínica: si el feto está en el percentil 50
+    hoy, se asume que seguirá en el percentil 50. En la práctica se implementa
+    como el cociente contra la mediana de la tabla:
+
+        peso_objetivo = peso_actual · p50(semanas_objetivo) / p50(semanas_actuales)
+
+    Por qué hace falta
+    ------------------
+    Hadlock estima el peso **el día de la ecografía**. Comparar ese número
+    directamente con el peso al nacer es injusto con la fórmula: si la eco fue a
+    las 30 semanas y el parto a las 39, Hadlock dice ~1.500 g y el bebé pesa
+    ~3.300 g. No está equivocado; responde otra pregunta.
+
+    Medido sobre las 277 filas del dataset: **el MAE de Hadlock sin proyectar
+    era de 1.473 g**. Usarlo como comparador habría hecho que cualquier modelo
+    pareciera un prodigio frente a un adversario de paja. La comparación honesta
+    es contra esta proyección, que es lo que haría una médica con una
+    calculadora.
+    """
+    if None in (peso_actual_g, semanas_actuales, semanas_objetivo):
+        return None
+    mediana_hoy = _p50(float(semanas_actuales))
+    mediana_objetivo = _p50(float(semanas_objetivo))
+    if not mediana_hoy or not mediana_objetivo:
+        return None
+    return int(round(peso_actual_g * mediana_objetivo / mediana_hoy))
+
+
 def clasificar_crecimiento(percentil: int | None) -> tuple[str, str]:
     """Clasificación del crecimiento fetal a partir del percentil.
 

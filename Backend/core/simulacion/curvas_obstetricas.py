@@ -98,6 +98,36 @@ BIOMETRIA_MEDIA_MM: dict[int, dict[str, float]] = {
 #: de Hadlock 1991 (que está en torno al ±25% de la mediana ≈ 1,28 sigma).
 DISPERSION_PESO = 0.11
 
+#: Exponente que liga el tamaño lineal con el peso: peso ∝ longitud^k.
+#:
+#: Medido sobre la propia fórmula de Hadlock 1985: al escalar las cuatro
+#: medidas un 11%, el peso que devuelve sube un 39%, así que k = ln(1,39) /
+#: ln(1,11) ≈ 3,15. Es lo esperable: el peso va con el volumen, y el volumen
+#: con el cubo de la longitud.
+EXPONENTE_PESO_LONGITUD = 3.15
+
+#: Dispersión de las MEDIDAS LINEALES (mm), derivada de la del peso.
+#:
+#: POR QUÉ NO ES LA MISMA QUE LA DEL PESO — y el error que costó descubrirlo.
+#: La primera versión aplicaba el mismo 11% a las medidas y al peso. Como el
+#: peso crece con el cubo de las medidas, un feto con z = +1 salía con una
+#: biometría que, pasada por Hadlock, decía **5.019 g**, y nacía con **3.603 g**.
+#: Medido, mismo feto, eco y parto en la misma semana:
+#:
+#:     z    Hadlock sobre su biometría   peso al nacer   cociente
+#:    −2           1.626 g                 2.532 g         0,64
+#:     0           3.605 g                 3.246 g         1,11
+#:    +1           5.019 g                 3.603 g         1,39
+#:
+#: El generador fabricaba fetos internamente incoherentes. Y eso contaminaba la
+#: comparación del modelo: Hadlock salía con un MAE de 598 g —peor que predecir
+#: siempre la mediana— y el modelo lineal «ganaba por un 71%» sobre todo porque
+#: aprendía a deshacer este error, no porque fuera mejor que la fórmula.
+#:
+#: Para que un feto un 11% más pesado tenga medidas coherentes con ello, las
+#: medidas tienen que variar (1,11)^(1/3,15) − 1 ≈ 3,4%.
+DISPERSION_BIOMETRIA = (1 + DISPERSION_PESO) ** (1 / EXPONENTE_PESO_LONGITUD) - 1
+
 #: Factor que convierte «peso fetal estimado por ecografía» en «peso al nacer».
 #:
 #: La tabla de Hadlock 1991 da peso fetal ESTIMADO IN UTERO, que corre algo por
@@ -178,17 +208,21 @@ def simular_biometria(
 ) -> dict[str, Decimal]:
     """Biometría fetal en milímetros, coherente con la edad gestacional.
 
-    Cada medida es `media(semanas) * (1 + dispersion*z) * (1 + error)`, donde
-    `z` es el mismo para las cuatro (el feto es grande o pequeño en su
+    Cada medida es `media(semanas) * (1 + DISPERSION_BIOMETRIA*z) * (1 + error)`,
+    donde `z` es el mismo para las cuatro (el feto es grande o pequeño en su
     conjunto) y `error` es independiente (el ecografista mide cada plano por
     separado).
+
+    Se usa `DISPERSION_BIOMETRIA` (~3,4%) y **no** `DISPERSION_PESO` (11%):
+    ver la explicación junto a esas constantes. Con el 11% el generador
+    fabricaba fetos cuya biometría decía 5 kg y que nacían con 3,6.
 
     Devuelve `Decimal` porque los campos de `BiometriaFetal` son
     `DecimalField` y pasarles float acarrea avisos de precisión.
     """
     rng = rng or random
     esperada = biometria_esperada(semanas)
-    factor_tamano = 1 + DISPERSION_PESO * z_tamano
+    factor_tamano = 1 + DISPERSION_BIOMETRIA * z_tamano
 
     resultado: dict[str, Decimal] = {}
     for clave, media in esperada.items():

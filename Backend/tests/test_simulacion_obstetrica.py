@@ -202,6 +202,64 @@ class ElPesoAlNacerDependeDeLaEdadGestacionalTest(SimpleTestCase):
         assert statistics.mean(unicos) - statistics.mean(gemelos) > 400
 
 
+class LaBiometriaYElPesoCuentanLaMismaHistoriaTest(SimpleTestCase):
+    """Un feto no puede tener medidas de 5 kg y nacer con 3,6."""
+
+    def test_hadlock_sobre_la_biometria_coincide_con_el_peso_simulado(self):
+        """ESPERADO: cociente Hadlock/peso entre 0,85 y 1,20 para z de −2 a +2.
+
+        Es el test del error que más costó ver. La primera versión aplicaba el
+        mismo 11% de dispersión a las medidas (mm) y al peso (g), pero el peso
+        crece con el CUBO de las medidas. Medido, mismo feto, sin ruido:
+
+            z = −2   Hadlock 1.626 g   nacía con 2.532 g   cociente 0,64
+            z = +1   Hadlock 5.019 g   nacía con 3.603 g   cociente 1,39
+
+        Y eso falseaba la comparación del modelo: Hadlock salía peor que
+        predecir siempre la mediana, y el modelo lineal "ganaba por un 71%"
+        sobre todo porque aprendía a deshacer el error del generador.
+
+        Se prueba sin ruido (un generador que devuelve siempre la media) para
+        aislar la coherencia estructural del azar.
+        """
+        from ecografias.peso_fetal import hadlock_1985_4p
+
+        class SinRuido:
+            def gauss(self, media, _desv):
+                return media
+
+        rng = SinRuido()
+        for z in (-2.0, -1.0, 0.0, 1.0, 2.0):
+            b = simular_biometria(39, z_tamano=z, rng=rng)
+            hadlock = hadlock_1985_4p(b["dbp"], b["cc"], b["ca"], b["lf"])
+            peso = simular_peso_nacimiento(semanas_parto=39, z_tamano=z, rng=rng)
+
+            assert hadlock is not None, f"z={z}: Hadlock fuera de rango."
+            cociente = hadlock / peso
+            assert 0.85 <= cociente <= 1.20, (
+                f"z={z:+}: la biometría dice {hadlock} g y el bebé nace con "
+                f"{peso} g (cociente {cociente:.2f}). El generador vuelve a "
+                f"fabricar fetos incoherentes: revisar DISPERSION_BIOMETRIA."
+            )
+
+    def test_la_dispersion_de_las_medidas_es_menor_que_la_del_peso(self):
+        """ESPERADO: la biometría varía aproximadamente un tercio que el peso.
+
+        Porque el peso va con el volumen, y el volumen con el cubo de la
+        longitud. Si alguien vuelve a igualarlas, este test lo dice.
+        """
+        from core.simulacion.curvas_obstetricas import (
+            DISPERSION_BIOMETRIA,
+            DISPERSION_PESO,
+        )
+
+        assert DISPERSION_BIOMETRIA < DISPERSION_PESO / 2, (
+            f"Biometría {DISPERSION_BIOMETRIA:.3f} frente a peso "
+            f"{DISPERSION_PESO:.3f}: si se parecen, el peso crecería con la "
+            f"longitud y no con su cubo."
+        )
+
+
 class LasMedidasDelRecienNacidoSonCoherentesTest(SimpleTestCase):
     """Talla, perímetro y Apgar tienen que salir del peso, no de un sorteo."""
 
