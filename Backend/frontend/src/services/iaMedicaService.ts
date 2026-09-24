@@ -215,6 +215,17 @@ export interface ResultadoCircunferencia {
   modelo: { archivo: string; dataset: string; metricas_prueba: MetricasPrueba };
 }
 
+export interface PrediccionPeso {
+  peso_previsto_g: number;
+  clase: string;
+  margen_g: number | null;
+  peso_hadlock_proyectado_g: number | null;
+  semanas_objetivo: number;
+  semanas_ecografia: number;
+  modelo: { version: string; algoritmo: string; r2_validacion: number | null; entrenado_con_datos_sinteticos: boolean };
+  advertencias: string[];
+}
+
 export const iaMedicaService = {
   // Obtener lista paginada de imágenes
   getImagenes: async (params?: { paciente_id?: number; tipo_imagen?: string; estado?: string }) => {
@@ -347,6 +358,14 @@ export const iaMedicaService = {
     const response = await api.post('/ecografias/crear-desde-ia/', {
       imagen_ia_id: imagenIaId,
       paciente_id: pacienteId,
+    });
+    return response.data;
+  },
+
+  // Modelo supervisado de peso al nacer (ia_medica/ml/servicio_peso.py)
+  predecirPesoNacer: async (ecografiaId: number, semanasObjetivo: number): Promise<PrediccionPeso> => {
+    const response = await api.post('/ia/prediccion-peso/', {
+      ecografia_id: ecografiaId, semanas_objetivo: semanasObjetivo,
     });
     return response.data;
   },

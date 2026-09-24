@@ -7,7 +7,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from .webhook import dicom_webhook
 
-from . import views_laboratorio
+from . import views_laboratorio, views_prediccion_peso
 
 app_name = "ia_medica"
 
@@ -27,6 +27,8 @@ urlpatterns = [
         views_laboratorio.analizar_laboratorio,
         name="analizar-laboratorio",
     ),
+    # Modelo supervisado de peso al nacer (ia_medica/ml/servicio_peso.py)
+    path("prediccion-peso/", views_prediccion_peso.prediccion_peso, name="prediccion-peso"),
     # ViewSets CNN + Consultas IA
     path("", include(router.urls)),
     # Consulta IA NLP — gateway al microservicio (mantener compatibilidad)

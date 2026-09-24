@@ -4,6 +4,8 @@ import {
   FileImageOutlined, HeartOutlined, InfoCircleOutlined, LineChartOutlined, MedicineBoxOutlined,
 } from '@ant-design/icons';
 import { Ecografia } from '../../../services/ecografiasService';
+import { useAuth } from '../../../hooks/useAuth';
+import PrediccionPesoNacer from './PrediccionPesoNacer';
 
 const { Text, Paragraph } = Typography;
 
@@ -11,7 +13,11 @@ interface DetalleEcoTabsProps {
   ecografia: Ecografia;
 }
 
-const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => (
+const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
+  const { user } = useAuth();
+  // El endpoint solo atiende a médicos y administradores.
+  const puedePredecir = user?.rol === 'medico' || user?.rol === 'administrador';
+  return (
   <Card style={{ marginBottom: 16 }}>
     <Tabs
       defaultActiveKey="biometria"
@@ -97,6 +103,7 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => (
                   style={{ marginTop: 16 }}
                 />
               )}
+              {puedePredecir && ecografia.id && <PrediccionPesoNacer ecografiaId={ecografia.id} />}
             </>
           ) : (
             <Empty description="No hay datos de biometría" />
@@ -213,6 +220,7 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => (
                   style={{ marginTop: 16 }}
                 />
               )}
+              {puedePredecir && ecografia.id && <PrediccionPesoNacer ecografiaId={ecografia.id} />}
             </>
           ) : (
             <Empty description="No hay datos de anexos" />
@@ -258,5 +266,6 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => (
     />
   </Card>
 );
+};
 
 export default DetalleEcoTabs;

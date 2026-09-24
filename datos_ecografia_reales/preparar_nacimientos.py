@@ -1,6 +1,6 @@
 """Descarga los nacimientos reales y los deja en un Excel en español.
 
-    python preparar_datos.py
+    python preparar_nacimientos.py
 
 Escribe `datos/nacimientos_reales_2014.xlsx` con tres hojas:
 

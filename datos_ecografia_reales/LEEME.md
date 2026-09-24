@@ -1,69 +1,82 @@
-# Redes neuronales con ecografías reales
+# Modelos supervisados de Fetal Medical Bolivia
 
-Dos redes convolucionales entrenadas con ecografías **reales**, cada una con la
-anotación de un experto, y ya conectadas al sistema.
+Todo en una carpeta: el notebook, las muestras, el documento para el docente
+y el código de entrenamiento. Los cuatro modelos ya están conectados al sistema.
 
-| Red | Qué hace | Tipo | Resultado en madres que no vio |
-|---|---|---|---|
-| Circunferencia cefálica | Mide la cabeza en mm y da la edad gestacional (Hadlock 1984) | Regresión | **R² 0,978** · error medio 7,0 mm · 0,62 semanas (146 imágenes, 117 madres) |
-| Plano anatómico | Dice si la imagen es abdomen, cerebro, fémur, tórax, cuello uterino u otro | Clasificación, 6 clases | **92,7 % de aciertos** · AUC 0,992 · 4.887 de 5.271 bien (896 madres) |
+| Modelo | Qué hace | Tipo | Datos | Resultado |
+|---|---|---|---|---|
+| 1. Peso al nacer | Gramos al nacer, sin ecografía | Regresión | 1.000 nacimientos **reales** (CDC 2014) | R² 0,322 (el techo sin ecografía) |
+| 1b. Peso al nacer con ecografía de ingreso | Gramos al nacer, con la ecografía de los 7 días previos | Regresión | 513 partos **simulados** del sistema | R² 0,836 (estudio real de Lima: 0,847–0,873) |
+| 2. Bajo peso | Alerta si nacerá con < 2.500 g | Clasificación | 1.000 nacimientos reales | 73 de 85 detectados, 296 falsas alarmas |
+| 3. Red: cabeza | Mide la cabeza en mm y da las semanas (Hadlock 1984) | Regresión con red neuronal | 999 ecografías reales (HC18) | **R² 0,978** · 7,0 mm de error |
+| 4. Red: plano | Abdomen, cerebro, fémur, tórax, cuello uterino u otro | Clasificación con red neuronal | 12.400 ecografías reales | **92,7 %** · AUC 0,992 |
 
-Ninguna madre está a la vez en entrenamiento y en prueba: el reparto se hizo
-por paciente, no por imagen.
+Ninguna madre está a la vez en entrenamiento y en prueba.
 
 ## Qué hay
 
 | Archivo | Qué es |
 |---|---|
-| `redes_ecografia_real.ipynb` | El notebook completo en 7 pasos, ejecutado: los **4 modelos** (regresión y clasificación del peso al nacer con 1.000 nacimientos reales, y las dos redes), 16 gráficas con una tabla que explica cada una, comparación con un modelo no supervisado (K-means) y revisión automática de errores y falsos positivos. |
-| `catalogo_imagenes.xlsx` | Una fila por imagen: hojas HC18, Planos, Diccionario y Fuentes. |
-| `preparar_imagenes.py` | Descomprime los zips y construye el catálogo y la carpeta `imagenes/`. |
+| `redes_ecografia_real.ipynb` | **El notebook completo**, 7 pasos, ejecutado: los 4 modelos, 17 gráficas con una tabla que explica cada una, comparación con un modelo no supervisado (K-means), revisión automática de errores y el R² con ecografía (paso 7.8). |
+| `Guia_notebook_modelos.docx` | El documento para el docente: dónde está cada tema en el notebook, qué predice cada modelo y los resultados. |
+| `datos/nacimientos_reales_2014.xlsx` | Muestra de 1.000 nacimientos reales, en español (hojas Nacimientos, Diccionario, Fuente). |
+| `datos/births14.csv` | Los mismos nacimientos, tal como se descargaron de OpenIntro. |
+| `datos/partos_ecografia_ingreso_simulados.csv` | Muestra de 513 partos simulados del sistema con ecografía de ingreso. Es una copia de `Backend/datasets/peso_nacimiento_ingreso.csv`. |
+| `catalogo_imagenes.xlsx` | Muestra de imágenes: una fila por imagen (hojas HC18, Planos, Diccionario, Fuentes). |
+| `preparar_nacimientos.py` | Vuelve a descargar los nacimientos y a construir su Excel. |
+| `preparar_imagenes.py` | Descomprime los zips de imágenes y construye el catálogo y `imagenes/`. |
 | `cnn_ecografia.py` | Carga, aumento de datos, EfficientNet-B0 y entrenamiento de las dos redes. |
 | `modelos/*.json` | La ficha de cada red. Los `.pth` (16 MB cada uno) no se suben a git: se regeneran con el notebook. |
 | `imagenes/` | 13.399 imágenes, 2,1 GB. No se sube a git: se regenera con `preparar_imagenes.py`. |
 
-## De dónde salen las imágenes
+## De dónde salen los datos
 
-- **HC18** — 999 ecografías de cabeza fetal de 779 madres, con la circunferencia
-  medida por ecografistas del Radboud UMC (Países Bajos). Zenodo 1327317,
-  licencia CC BY 4.0.
-- **FETAL_PLANES_DB** — 12.400 ecografías de 1.792 madres de dos hospitales de
-  Barcelona, con el plano anotado por un médico. Zenodo 3904280, CC BY 4.0.
+- **Nacimientos**: registros de natalidad de EE. UU. 2014 (CDC), muestra `births14` de OpenIntro, libre para docencia.
+- **HC18**: 999 ecografías de cabeza de 779 madres, medidas por ecografistas del Radboud UMC. Zenodo 1327317, CC BY 4.0.
+- **FETAL_PLANES_DB**: 12.400 ecografías de 1.792 madres de Barcelona, con el plano anotado. Zenodo 3904280, CC BY 4.0.
+- **Partos con ecografía de ingreso**: generados por el simulador del sistema (`seed_carga`), calibrado con curvas publicadas. No es una medición clínica.
 
-Los zips van en `../nuveos data seeds/`.
+Los zips de imágenes van en `../nuveos data seeds/`.
 
 ## Cómo reconstruirlo
 
-Con el Python que tiene PyTorch y la GPU:
+Con el Python que tiene PyTorch y la GPU (kernel «Python 3.12 (GPU · Fetal Medical)»):
 
 ```
+python preparar_nacimientos.py
 python preparar_imagenes.py
-jupyter notebook redes_ecografia_real.ipynb      # kernel «fetal-gpu»
+jupyter notebook redes_ecografia_real.ipynb
 copy modelos\*.pth ..\Backend\Microservicio_IA\trained_models\
 copy modelos\*.json ..\Backend\Microservicio_IA\trained_models\
 ```
 
-## Dónde está en el sistema
+El modelo de peso del sistema se entrena desde `Backend/`:
 
-- Microservicio (puerto 8001): `POST /api/plano-anatomico` y
-  `POST /api/biometria/circunferencia-cefalica` — código en
-  `Backend/Microservicio_IA/app/ecografia_real.py`.
-- Django: `POST /api/ecografias/plano-anatomico/` y
-  `/api/ecografias/circunferencia-cefalica/`.
-- Pantalla: **IA Médica → Análisis CNN**, tarjeta «Redes entrenadas con
-  ecografías reales».
-- Tests: `Backend/Microservicio_IA/test_ecografia_real.py` pasa el conjunto de
-  prueba entero por la API y exige el mismo error que el notebook (da 6,98 mm).
+```
+python manage.py construir_dataset_peso --max-dias 7 --salida datasets/peso_nacimiento_ingreso.csv
+python manage.py entrenar_modelo_peso --dataset datasets/peso_nacimiento_ingreso.csv --version-modelo 1.1.0
+```
+
+## Dónde está en el sistema (producción)
+
+| Modelo | Servicio | Pantalla |
+|---|---|---|
+| Peso al nacer | `POST /api/ia/prediccion-peso/` (`Backend/ia_medica/ml/servicio_peso.py`), modelo en `Backend/ml_modelos/peso_nacimiento/<versión>/` | Ecografías → detalle → pestaña **Biometría Fetal** → «Peso al nacer previsto» (médicos) |
+| Red: cabeza | Microservicio `POST /api/biometria/circunferencia-cefalica` → Django `/api/ecografias/circunferencia-cefalica/` | **IA Médica → Análisis CNN** |
+| Red: plano | Microservicio `POST /api/plano-anatomico` → Django `/api/ecografias/plano-anatomico/` | **IA Médica → Análisis CNN** |
+
+Comprobado en vivo: la API de peso da exactamente lo mismo que el modelo sobre la
+fila con la que se entrenó (5 de 5), y la API de la cabeza reproduce el error del
+notebook (6,98 mm). Los modelos (`ml_modelos/`, `trained_models/`) no se suben a
+git: al desplegar hay que copiarlos o volver a entrenarlos.
 
 ## Límites, dichos claramente
 
-- Para medir la cabeza hace falta el **tamaño de píxel** en mm. Lo da el
-  ecógrafo o la cabecera DICOM; una foto de la pantalla no lo trae.
-- La medida solo vale sobre el **corte transtalámico** de la cabeza.
-- El clasificador de planos se entrenó con imágenes de Barcelona de 18 a 40
-  semanas. Sobre las 999 cabezas de HC18 (otro hospital, otros ecógrafos)
-  reconoce la cabeza en el 93 % de los casos, pero antes de la semana 14 solo
-  en el 59 %. La pantalla lo avisa.
-- Las imágenes son de Europa. Antes de usarlo con pacientes en Bolivia hay
-  que comprobarlo con ecografías de aquí.
-- Es apoyo a la decisión, no un diagnóstico.
+- El peso al nacer con ecografía está entrenado con partos **simulados**. La
+  pantalla lo avisa. Para uso clínico hay que reentrenarlo con partos reales,
+  que el sistema ya registra.
+- Para medir la cabeza hace falta el **tamaño de píxel** en mm (ecógrafo o DICOM).
+- El clasificador de planos reconoce el 93 % de las cabezas de otro hospital, y
+  solo el 59 % antes de la semana 14. La pantalla lo avisa.
+- Datos de EE. UU. y Europa: antes de usarlos con pacientes en Bolivia hay que
+  comprobarlos con datos de aquí. Es apoyo a la decisión, no un diagnóstico.

@@ -155,6 +155,76 @@ def _antecedentes_personales(paciente_id, cache: dict) -> dict[str, int]:
     })
 
 
+def imc_pregestacional(embarazo, controles) -> float | None:
+    """IMC antes del embarazo: del embarazo o, si falta, del primer control.
+
+    Muchas veces el peso previo y la talla se anotan en el primer control
+    prenatal y no en el embarazo. Antes los controles se cargaban y no se
+    usaban: el IMC salía vacío en el 100 % de las filas.
+    """
+    peso_pre, talla_cm = embarazo.peso_pregestacional, embarazo.talla_materna
+    if not (peso_pre and talla_cm):
+        for c in sorted(controles, key=lambda c: c.fecha_control):
+            if c.peso_pregestacional and c.talla:
+                peso_pre, talla_cm = c.peso_pregestacional, c.talla
+                break
+    if peso_pre and talla_cm:
+        talla_m = float(talla_cm) / 100.0
+        if talla_m > 0:
+            return float(peso_pre) / (talla_m**2)
+    return None
+
+
+def caracteristicas_de(eco, *, embarazo, paciente, antecedentes: dict,
+                       controles, eg_al_nacer: float) -> dict:
+    """Las 18 características de una ecografía, más el comparador de Hadlock.
+
+    La usan el constructor del dataset (con la edad gestacional REAL del parto)
+    y el servicio de predicción (con la semana que pregunta la médica). Que las
+    dos pasen por aquí es lo que garantiza que el modelo recibe en producción
+    exactamente lo mismo que vio al entrenar: si cada una calculara el IMC o
+    la edad materna a su manera, las predicciones saldrían plausibles y
+    equivocadas sin lanzar ningún error.
+    """
+    from ecografias.peso_fetal import hadlock_1985_4p, proyectar_peso
+
+    b = eco.biometria
+    dbp = float(b.diametro_biparietal)
+    cc = float(b.circunferencia_cefalica)
+    ca = float(b.circunferencia_abdominal)
+    lf = float(b.longitud_femur)
+
+    eg_eco = float(eco.edad_gestacional_semanas or 0) + float(
+        eco.edad_gestacional_dias or 0) / 7.0
+    peso_hadlock = hadlock_1985_4p(dbp, cc, ca, lf)
+    imc = imc_pregestacional(embarazo, controles)
+
+    return {
+        "dbp_mm": dbp,
+        "cc_mm": cc,
+        "ca_mm": ca,
+        "lf_mm": lf,
+        "relacion_cc_ca": round(cc / ca, 4) if ca else None,
+        "relacion_lf_ca": round(lf / ca, 4) if ca else None,
+        "peso_hadlock_g": peso_hadlock,
+
+        "eg_eco_semanas": round(eg_eco, 2),
+        "eg_al_nacer_semanas": round(eg_al_nacer, 2),
+
+        "edad_materna": _edad_a_fecha(paciente.fecha_nacimiento, eco.fecha_ecografia),
+        "imc_pregestacional": round(imc, 2) if imc else None,
+        "numero_para": embarazo.numero_para,
+        "numero_abortos": embarazo.numero_abortos,
+        "numero_cesareas": embarazo.numero_cesareas,
+
+        **antecedentes,
+
+        # El comparador: lo que diría la práctica clínica proyectando Hadlock
+        # desde el día de la eco hasta la semana del parto.
+        "peso_hadlock_proyectado_g": proyectar_peso(peso_hadlock, eg_eco, eg_al_nacer),
+    }
+
+
 def construir(esquema: str | None = None, *, incluir_multiples: bool = False,
               dias_maximos: int = DIAS_MAXIMOS):
     """Construye el dataset de un esquema. Devuelve `(filas, descartes)`.
@@ -164,7 +234,6 @@ def construir(esquema: str | None = None, *, incluir_multiples: bool = False,
     from antecedentes.models import AntecedentePatologico
     from controles.models import ControlPrenatal
     from ecografias.models import Ecografia
-    from ecografias.peso_fetal import hadlock_1985_4p, proyectar_peso
     from partos.models import RecienNacido
 
     from core.simulacion.curvas_obstetricas import clasificar_peso_nacimiento
@@ -276,43 +345,15 @@ def construir(esquema: str | None = None, *, incluir_multiples: bool = False,
                 descartes.sin_biometria += 1
             continue
 
-        b = mejor_eco.biometria
-        dbp = float(b.diametro_biparietal)
-        cc = float(b.circunferencia_cefalica)
-        ca = float(b.circunferencia_abdominal)
-        lf = float(b.longitud_femur)
-
         semanas_parto = _semanas_al_parto(parto)
         if semanas_parto is None:
             descartes.sin_fecha_parto += 1
             continue
 
         paciente = parto.paciente
-
-        # IMC pregestacional; si falta, se deja NaN y el modelo lo maneja.
-        imc = None
-        peso_pre, talla_cm = embarazo.peso_pregestacional, embarazo.talla_materna
-        if not (peso_pre and talla_cm):
-            # Muchas veces el peso previo y la talla se anotan en el primer
-            # control prenatal y no en el embarazo. Antes los controles se
-            # cargaban aquí y no se usaban: el IMC salía vacío en el 100 %.
-            for c in sorted(controles_por_embarazo.get(embarazo.id, []),
-                            key=lambda c: c.fecha_control):
-                if c.peso_pregestacional and c.talla:
-                    peso_pre, talla_cm = c.peso_pregestacional, c.talla
-                    break
-        if peso_pre and talla_cm:
-            talla_m = float(talla_cm) / 100.0
-            if talla_m > 0:
-                imc = float(peso_pre) / (talla_m**2)
-
         antecedentes = _antecedentes_personales(
             paciente.id, antecedentes_por_paciente,
         )
-
-        eg_eco = float(mejor_eco.edad_gestacional_semanas or 0) + float(
-            mejor_eco.edad_gestacional_dias or 0) / 7.0
-        peso_hadlock = hadlock_1985_4p(dbp, cc, ca, lf)
 
         filas.append({
             "tenant": esquema or "unico",
@@ -325,31 +366,11 @@ def construir(esquema: str | None = None, *, incluir_multiples: bool = False,
             "es_sintetico": int("[SEED-CARGA]" in (rn.observaciones_rn or "")),
             "fecha_parto": fecha_parto.isoformat(),
 
-            "dbp_mm": dbp,
-            "cc_mm": cc,
-            "ca_mm": ca,
-            "lf_mm": lf,
-            "relacion_cc_ca": round(cc / ca, 4) if ca else None,
-            "relacion_lf_ca": round(lf / ca, 4) if ca else None,
-            "peso_hadlock_g": peso_hadlock,
-
-            "eg_eco_semanas": round(eg_eco, 2),
-            "eg_al_nacer_semanas": round(semanas_parto, 2),
-
-            "edad_materna": _edad_a_fecha(
-                paciente.fecha_nacimiento, mejor_eco.fecha_ecografia,
-            ),
-            "imc_pregestacional": round(imc, 2) if imc else None,
-            "numero_para": embarazo.numero_para,
-            "numero_abortos": embarazo.numero_abortos,
-            "numero_cesareas": embarazo.numero_cesareas,
-
-            **antecedentes,
-
-            # El comparador: lo que diria la practica clinica proyectando
-            # Hadlock desde el dia de la eco hasta la semana del parto.
-            "peso_hadlock_proyectado_g": proyectar_peso(
-                peso_hadlock, eg_eco, semanas_parto,
+            **caracteristicas_de(
+                mejor_eco, embarazo=embarazo, paciente=paciente,
+                antecedentes=antecedentes,
+                controles=controles_por_embarazo.get(embarazo.id, []),
+                eg_al_nacer=semanas_parto,
             ),
 
             "peso_nacimiento_g": rn.peso_nacimiento,
