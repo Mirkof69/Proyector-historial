@@ -242,6 +242,12 @@ class ReporteGeneradoSerializer(serializers.ModelSerializer):
             "esta_expirado",
         ]
         read_only_fields = [
+            # `estado` y `ruta_archivo` los cambian solo las acciones del
+            # servidor. Si el cliente pudiera escribirlos, un PATCH con
+            # estado=completado y la ruta de cualquier archivo lo dejaba
+            # listo para descargar.
+            "estado",
+            "ruta_archivo",
             "fecha_solicitud",
             "fecha_procesamiento",
             "fecha_completado",

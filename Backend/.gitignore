@@ -80,3 +80,6 @@ scripts/certs/
 *.key
 *.csr
 datasets/
+
+# reportes generados (datos clínicos): no se versionan
+reportes_generados/

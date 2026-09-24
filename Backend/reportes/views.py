@@ -1,7 +1,7 @@
 """Views module."""
 import logging
-import os
 from datetime import timedelta
+from pathlib import Path
 
 from django.core.cache import cache
 from django.db.models import Count
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 from embarazos.models import Embarazo
 from pacientes.models import Paciente
+
 
 from .models import (
     AlertaMedica,
@@ -42,6 +43,37 @@ from .serializers import (
 # ============================================================================
 # VIEWSET: TIPOS DE REPORTE
 # ============================================================================
+
+
+
+def carpeta_reportes() -> Path:
+    """Donde viven los archivos de reportes generados.
+
+    Fuera de `MEDIA_ROOT` a propósito: un reporte lleva datos clínicos y no
+    debe poder servirlo el servidor web como archivo estático.
+    """
+    from django.conf import settings
+
+    return Path(getattr(settings, "REPORTES_DIR", settings.BASE_DIR / "reportes_generados"))
+
+
+def ruta_de_reporte_segura(ruta: str | None) -> Path | None:
+    """La ruta resuelta si está DENTRO de la carpeta de reportes; si no, None.
+
+    Antes `descargar` abría cualquier `ruta_archivo`, y esa ruta la podía
+    escribir el cliente (con `marcar_completado` o con un PATCH): bastaba
+    poner la ruta del `.env` para descargarlo. `resolve()` deshace los `..` y
+    los enlaces antes de comparar.
+    """
+    if not ruta:
+        return None
+    try:
+        destino = Path(ruta).resolve()
+        base = carpeta_reportes().resolve()
+    except (OSError, ValueError):
+        return None
+    return destino if destino.is_relative_to(base) else None
+
 
 
 class TipoReporteViewSet(viewsets.ModelViewSet):
@@ -274,6 +306,11 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
             )
 
         data = request.data or {}
+        if "ruta_archivo" in data and ruta_de_reporte_segura(data.get("ruta_archivo")) is None:
+            return Response(
+                {"error": "La ruta del archivo tiene que estar dentro de la carpeta de reportes."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         reporte.estado = "completado"
         reporte.fecha_completado = timezone.now()
         reporte.ruta_archivo = data.get("ruta_archivo", reporte.ruta_archivo)
@@ -302,17 +339,14 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_409_CONFLICT,
             )
-        if not reporte.ruta_archivo or not os.path.exists(reporte.ruta_archivo):
+        ruta = ruta_de_reporte_segura(reporte.ruta_archivo)
+        if ruta is None or not ruta.is_file():
             raise Http404("El archivo del reporte no se encuentra en el servidor.")
 
         reporte.accesos_descarga = (reporte.accesos_descarga or 0) + 1
         reporte.save(update_fields=["accesos_descarga"])
 
-        return FileResponse(
-            open(reporte.ruta_archivo, "rb"),
-            as_attachment=True,
-            filename=os.path.basename(reporte.ruta_archivo),
-        )
+        return FileResponse(open(ruta, "rb"), as_attachment=True, filename=ruta.name)
 
     @action(detail=True, methods=["post"])
     def marcar_error(self, request, pk=None):

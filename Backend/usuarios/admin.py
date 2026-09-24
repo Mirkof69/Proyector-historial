@@ -17,7 +17,7 @@ class UsuarioAdmin(BaseUserAdmin):
         "especialidad",
         "telefono",
         "activo_badge",
-        "is_stafff_badge",
+        "is_staff_badge",
         "is_superuser_badge",
     ]
 
@@ -91,7 +91,7 @@ class UsuarioAdmin(BaseUserAdmin):
 
     filter_horizontal = ("groups", "user_permissions")
 
-    actions = ["activar_usuarios", "desactivar_usuarios", "hacer_staf"]
+    actions = ["activar_usuarios", "desactivar_usuarios", "hacer_staff"]
 
     # Métodos personalizados para mejorar la visualización
     @admin.display(description="Nombre Completo")
@@ -128,10 +128,10 @@ class UsuarioAdmin(BaseUserAdmin):
         )
 
 
-    @admin.display(description="Staf", ordering="is_stafff")
-    def is_stafff_badge(self, obj):
-        """Is stafff badge"""
-        if obj.is_stafff:
+    @admin.display(description="Staff", ordering="is_staff")
+    def is_staff_badge(self, obj):
+        """Is staff badge"""
+        if obj.is_staff:
             return format_html('<span style="color: green;">✓</span>')
         return format_html('<span style="color: red;">✗</span>')
 
@@ -164,7 +164,7 @@ class UsuarioAdmin(BaseUserAdmin):
     @admin.action(description="Dar acceso al admin (Staff)")
     def hacer_staff(self, request, queryset):
         """Hacer staff"""
-        updated = queryset.update(is_stafff=True)
+        updated = queryset.update(is_staff=True)
         self.message_user(request, f"{updated} usuarios ahora tienen acceso al admin.")
 
 
