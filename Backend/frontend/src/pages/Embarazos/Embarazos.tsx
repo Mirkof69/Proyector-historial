@@ -53,8 +53,7 @@ import {
     DownloadOutlined,
     FilterOutlined,
     ExportOutlined,
-    SyncOutlined,
-    ApiOutlined
+    SyncOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
@@ -67,6 +66,7 @@ import { GlobalLoader } from '../../components/common/GlobalLoader'; // Para bus
 import AnimatedStatistic from '../../components/common/AnimatedStatistic';
 import { usuariosService } from '../../services/usuariosService';
 import { exportarExcel } from '../../utils/excelExport';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import {
     EmbarazoExtendido, initialState, reducer,
     calcularFPP, calcularEdadGestacional, calcularIMC,
@@ -91,7 +91,6 @@ const { Title, Text } = Typography;
 // =============================================================================
 
 const syncIcon = <SyncOutlined />;
-const apiIcon = <ApiOutlined />;
 const downloadIcon2 = <DownloadOutlined />;
 const filterIcon = <FilterOutlined />;
 const lineChartIcon2 = <LineChartOutlined />;
@@ -465,25 +464,16 @@ const Embarazos: React.FC = () => {
     // =============================================================================
 
 
-    // ✅ Handler para exportar datos a Excel/PDF
-    const handleExportData = useCallback(async (formato: 'excel' | 'pdf') => {
+    // Exportación completa desde el servidor (todos los embarazos, no solo la
+    // página cargada). Antes esta opción esperaba 1,5 s y anunciaba «Reporte
+    // generado» sin generar nada.
+    const handleExportServidor = useCallback(async () => {
         dispatch({ type: 'SET_EXPORT_LOADING', payload: true });
         try {
-            message.loading({ content: `Generando reporte ${formato.toUpperCase()}...`, key: 'export' });
-
-            // Simular generación de reporte
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            const nombreArchivo = `embarazos_${dayjs().format('YYYY-MM-DD')}.${formato}`;
-
-            message.success({
-                content: `Reporte generado: ${nombreArchivo}`,
-                key: 'export',
-                icon: <DownloadOutlined style={{ color: '#52c41a' }} />
-            });
-
+            await descargarArchivo('/embarazos/exportar-excel/', `embarazos_${dayjs().format('YYYY-MM-DD')}.xlsx`);
+            message.success('Excel descargado');
         } catch (error) {
-            message.error({ content: 'Error al generar el reporte', key: 'export' });
+            message.error('No se pudo exportar el Excel');
         } finally {
             dispatch({ type: 'SET_EXPORT_LOADING', payload: false });
         }
@@ -574,23 +564,6 @@ const Embarazos: React.FC = () => {
     }, []);
 
 
-    // ✅ Handler para integración API externa
-    const handleIntegracionAPI = useCallback(async () => {
-        try {
-            message.loading({ content: 'Conectando con API externa...', key: 'api' });
-
-            // Simular integración con API (ej: sistema de laboratorio, PACS de ecografías)
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            message.success({
-                content: 'Conexión establecida con sistema externo',
-                key: 'api',
-                icon: <ApiOutlined style={{ color: '#52c41a' }} />
-            });
-        } catch (error) {
-            message.error({ content: 'Error al conectar con API externa', key: 'api' });
-        }
-    }, [message]);
 
     // =============================================================================
     // 6. ESTADÍSTICAS Y FILTROS (MEMOIZED)
@@ -748,22 +721,16 @@ const Embarazos: React.FC = () => {
                                 menu={{
                                     items: [
                                         {
-                                            key: 'excel-new',
-                                            label: 'Exportar a Excel (Nueva)',
+                                            key: 'excel-vista',
+                                            label: 'Excel de la vista actual',
                                             icon: <FileExcelOutlined />,
                                             onClick: handleExportExcel
                                         },
                                         {
-                                            key: 'excel',
-                                            label: 'Exportar a Excel',
+                                            key: 'excel-todos',
+                                            label: 'Excel de todos los embarazos',
                                             icon: <ExportOutlined />,
-                                            onClick: () => handleExportData('excel')
-                                        },
-                                        {
-                                            key: 'pdf',
-                                            label: 'Exportar a PDF',
-                                            icon: <DownloadOutlined />,
-                                            onClick: () => handleExportData('pdf')
+                                            onClick: handleExportServidor
                                         }
                                     ]
                                 }}
@@ -777,13 +744,6 @@ const Embarazos: React.FC = () => {
                                     icon={syncIcon}
                                     onClick={handleSyncData}
                                     loading={state.syncLoading}
-                                />
-                            </Tooltip>
-                            <Tooltip title="Integración API">
-                                <Button
-                                    icon={apiIcon}
-                                    onClick={handleIntegracionAPI}
-                                    type="dashed"
                                 />
                             </Tooltip>
                             <Tooltip title="Análisis de Evolución">
