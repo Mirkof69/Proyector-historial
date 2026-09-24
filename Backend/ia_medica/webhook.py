@@ -38,7 +38,10 @@ WEBHOOK_SECRET = os.environ.get("ORTHANC_WEBHOOK_SECRET", "")
 def _verify_hmac(request) -> bool:
     """Verifica firma HMAC-SHA256 del webhook de Orthanc (opcional)."""
     if not WEBHOOK_SECRET:
-        return True  # Sin secreto configurado, se acepta (solo en red interna)
+        # Sin secreto solo se acepta en desarrollo. En producción, cualquiera
+        # en la red podía encolar análisis de estudios DICOM.
+        from django.conf import settings
+        return bool(settings.DEBUG)
     signature = request.headers.get("X-Orthanc-Signature", "")
     expected = hmac.new(
         WEBHOOK_SECRET.encode(),

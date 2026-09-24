@@ -15,7 +15,9 @@ BASE_DIR = Path(__file__).resolve().parent
 env_file = os.path.join(BASE_DIR, ".env")
 
 env = environ.Env(
-    DEBUG=(bool, True),  # True por defecto para desarrollo
+    # False por defecto: un servidor que arranque sin .env no debe exponer
+    # trazas, CORS abierto ni /media/ sin sesion. El .env de desarrollo pone True.
+    DEBUG=(bool, False),
     SECRET_KEY=(str, ""),  # ¡CRÍTICO: debe definirse en .env o Vault! Ver CLAUDE.md
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1", "clinica-demo.localhost", "clinica-demo.127.0.0.1"]),
     CORS_ALLOWED_ORIGINS=(
@@ -714,7 +716,7 @@ SIMPLE_JWT = {
 }
 
 # En desarrollo: permitir todos los orígenes para evitar bloqueos CORS
-DEBUG_CORS = env.bool("DEBUG", default=True)
+DEBUG_CORS = DEBUG  # antes leia DEBUG por su cuenta con default=True
 if DEBUG_CORS:
     CORS_ALLOW_ALL_ORIGINS = True  # Solo en desarrollo
 else:

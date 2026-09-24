@@ -195,7 +195,16 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         return Response(return_serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        """Eliminar ecografía"""
+        """Eliminar ecografía: solo administración, como controles y partos.
+
+        Antes enfermería o laboratorio podían borrar una ecografía (con su
+        biometría e imágenes) sin dejar más rastro que la auditoría.
+        """
+        if not (request.user.is_superuser or getattr(request.user, "rol", "") == "administrador"):
+            return Response(
+                {"error": "Solo un administrador puede eliminar ecografías del sistema."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         instance = self.get_object()
         ecografia_id = instance.id
         tipo = instance.tipo_ecografia
@@ -249,6 +258,21 @@ class EcografiaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # La extensión no basta: se mira el contenido y el tamaño.
+        from django.core.exceptions import ValidationError as ErrorDjango
+
+        from core.validacion_archivos import IMAGENES, validar_archivo
+
+        try:
+            validar_archivo(imagen_archivo, permitidos=IMAGENES, max_mb=30)
+        except ErrorDjango as e:
+            return Response({"error": e.messages[0]}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            orden = int(request.data.get("orden", 1))
+        except (TypeError, ValueError):
+            return Response({"error": "«orden» tiene que ser un número entero."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         # ✅ Crear imagen con trazabilidad
         imagen = ImagenEcografia.objects.create(
             ecografia=ecografia,
@@ -256,7 +280,7 @@ class EcografiaViewSet(viewsets.ModelViewSet):
             tipo_imagen=request.data.get("tipo_imagen", "general"),
             titulo=request.data.get("titulo", "Imagen sin título"),
             descripcion=request.data.get("descripcion", ""),
-            orden=int(request.data.get("orden", 1)),
+            orden=orden,
             es_imagen_principal=request.data.get("es_imagen_principal", "false").lower()
             == "true",
             created_by=request.user,

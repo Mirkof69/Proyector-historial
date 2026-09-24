@@ -151,6 +151,7 @@ class JWTAuthTest(APITestCase):
             "nombre": "JWT",
             "apellido_paterno": "User",
             "password": "securepass123",
+            "rol": "enfermera",  # sin rol ya no se accede a nada; enfermería no exige MFA
         }
         self.user = Usuario.objects.create_user(**self.user_data)
         self.token_url = reverse("login")
@@ -318,6 +319,7 @@ class JWTTokenBlacklistTest(APITestCase):
             nombre="Blacklist",
             apellido_paterno="Test",
             password="securepass123",
+            rol="enfermera",
         )
         self.token_url = reverse("login")
 

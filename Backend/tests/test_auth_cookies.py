@@ -26,6 +26,7 @@ class CookieAuthFlowTest(APITestCase):
             nombre="Cookie",
             apellido_paterno="User",
             password=self.password,
+            rol="enfermera",  # sin rol no accede a nada; enfermería no exige MFA
         )
         self.login_url = reverse("login")
         self.refresh_url = reverse("token_refresh")

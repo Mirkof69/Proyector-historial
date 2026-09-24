@@ -25,15 +25,15 @@ const checkPermission = (user: any, itemKey: string): boolean => {
     '/dashboard/vacunas': 'view_registrovacuna',
     '/dashboard/ecografias': 'view_ecografia',
     '/dashboard/laboratorios': 'view_examenlaboratorio',
-    '/dashboard/calculadoras': 'view_calculoclinico',
+    '/dashboard/calculadoras': 'view_calculohistorial',
     '/dashboard/citas': 'view_cita',
     '/dashboard/reportes': 'view_reportegenerado',
     '/dashboard/estadisticas': 'view_dashboardkpi',
     '/dashboard/alertas': 'view_alertamedica',
     '/dashboard/consultorios': 'view_consultorio',
-    '/dashboard/roles': 'view_rol',
+    '/dashboard/roles': 'view_catrol',
     '/dashboard/usuarios': 'view_usuario',
-    '/dashboard/access-logs': 'view_accesslog',
+    '/dashboard/access-logs': 'view_registroauditoria',
     '/dashboard/configuracion': 'view_sistemaconfiguracion',
     '/dashboard/backup': 'view_sistemaconfiguracion',
   };
@@ -121,7 +121,7 @@ export const buildMainMenuItems = (user: any, navigate: NavigateFunction): MenuP
     key: 'ia-asistente',
     label: 'IA Assistant',
     icon: <RobotOutlined />,
-    onClick: () => navigate('/ia-asistente'),
+    onClick: () => navigate('/dashboard/ia-asistente'),
   },
 ].filter(item => {
   if (item && (item as any).type === 'group') {

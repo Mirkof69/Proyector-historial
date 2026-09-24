@@ -148,11 +148,11 @@ const AppRoutes: React.FC = () => {
           <Route path="laboratorio/:id/editar" element={<ProtectedRoute requiredPermission="change_examenlaboratorio"><FormularioLaboratorio /></ProtectedRoute>} />
 
           {/* MÓDULO: CALCULADORAS */}
-          <Route path="calculadoras" element={<ProtectedRoute requiredPermission="view_calculoclinico"><Calculadoras /></ProtectedRoute>} />
-          <Route path="calculadoras/:tipo" element={<ProtectedRoute requiredPermission="view_calculoclinico"><Calculadoras /></ProtectedRoute>} />
-          <Route path="calculadoras-avanzadas" element={<ProtectedRoute requiredPermission="view_calculoclinico"><CalculadorasAvanzadas /></ProtectedRoute>} />
-          <Route path="calculadoras-avanzadas/:tipo" element={<ProtectedRoute requiredPermission="view_calculoclinico"><CalculadorasAvanzadas /></ProtectedRoute>} />
-          <Route path="panel-calculadoras" element={<ProtectedRoute requiredPermission="view_calculoclinico"><IndiceCalculadoras /></ProtectedRoute>} />
+          <Route path="calculadoras" element={<ProtectedRoute requiredPermission="view_calculohistorial"><Calculadoras /></ProtectedRoute>} />
+          <Route path="calculadoras/:tipo" element={<ProtectedRoute requiredPermission="view_calculohistorial"><Calculadoras /></ProtectedRoute>} />
+          <Route path="calculadoras-avanzadas" element={<ProtectedRoute requiredPermission="view_calculohistorial"><CalculadorasAvanzadas /></ProtectedRoute>} />
+          <Route path="calculadoras-avanzadas/:tipo" element={<ProtectedRoute requiredPermission="view_calculohistorial"><CalculadorasAvanzadas /></ProtectedRoute>} />
+          <Route path="panel-calculadoras" element={<ProtectedRoute requiredPermission="view_calculohistorial"><IndiceCalculadoras /></ProtectedRoute>} />
 
           {/* MÓDULO: CITAS Y AGENDA */}
           <Route path="citas" element={<ProtectedRoute requiredPermission="view_cita"><Citas /></ProtectedRoute>} />
@@ -234,7 +234,7 @@ const AppRoutes: React.FC = () => {
 
           {/* CALCULADORAS AVANZADAS INDIVIDUALES */}
           <Route path="calculadoras/bishop" element={<ProtectedRoute requiredPermission="view_scorebishop"><ScoreBishop /></ProtectedRoute>} />
-          <Route path="calculadoras/imc-ganancia" element={<ProtectedRoute requiredPermission="view_calculadora"><IMCGananciaPonderal /></ProtectedRoute>} />
+          <Route path="calculadoras/imc-ganancia" element={<ProtectedRoute requiredPermission="view_calculohistorial"><IMCGananciaPonderal /></ProtectedRoute>} />
           <Route path="calculadoras/preeclampsia" element={<ProtectedRoute requiredPermission="view_riesgopreeclampsia"><RiesgoPreeclampsia /></ProtectedRoute>} />
           <Route path="calculadoras/crecimiento-fetal" element={<ProtectedRoute requiredPermission="view_crecimientofetal"><CrecimientoFetal /></ProtectedRoute>} />
           <Route path="calculadoras/riesgo-cromosomico" element={<ProtectedRoute requiredPermission="view_riesgocromosomico"><RiesgoCromosomico /></ProtectedRoute>} />
@@ -243,7 +243,7 @@ const AppRoutes: React.FC = () => {
           <Route path="calculadoras/sufrimiento-fetal" element={<ProtectedRoute requiredPermission="view_sufrimientofetal"><SufrimientoFetal /></ProtectedRoute>} />
 
           {/* MÓDULO: PARTOS EXTENDIDO */}
-          <Route path="partos/:id/partograma" element={<ProtectedRoute requiredPermission="view_registropartograma"><Partograma /></ProtectedRoute>} />
+          <Route path="partos/:id/partograma" element={<ProtectedRoute requiredPermission="view_partogramaregistro"><Partograma /></ProtectedRoute>} />
           <Route path="partos/:id/apgar" element={<ProtectedRoute requiredPermission="view_apgarscoredetallado"><ApgarScore /></ProtectedRoute>} />
           <Route path="partos/:id/complicaciones" element={<ProtectedRoute requiredPermission="view_complicacionparto"><ComplicacionesParto /></ProtectedRoute>} />
           <Route path="partos/:id/recien-nacido" element={<ProtectedRoute requiredPermission="view_reciennacido"><RecienNacidos /></ProtectedRoute>} />
@@ -262,11 +262,11 @@ const AppRoutes: React.FC = () => {
           <Route path="antecedentes/patologicos/:id/editar" element={<ProtectedRoute requiredPermission="change_antecedentepatologico"><FormularioAntecedentePatologico /></ProtectedRoute>} />
 
           {/* MÓDULO: ECOGRAFÍAS EXTENDIDO */}
-          <Route path="ecografias/:id/archivos" element={<ProtectedRoute requiredPermission="view_archivoecografia"><ArchivosEcografia /></ProtectedRoute>} />
+          <Route path="ecografias/:id/archivos" element={<ProtectedRoute requiredPermission="view_ecografiaarchivo"><ArchivosEcografia /></ProtectedRoute>} />
 
           {/* MÓDULO: REPORTES EXTENDIDO */}
-          <Route path="reportes/kpis" element={<ProtectedRoute requiredPermission="view_indicadorkpi"><KPIs /></ProtectedRoute>} />
-          <Route path="reportes/indicadores" element={<ProtectedRoute requiredPermission="view_indicadorkpi"><Indicadores /></ProtectedRoute>} />
+          <Route path="reportes/kpis" element={<ProtectedRoute requiredPermission="view_dashboardkpi"><KPIs /></ProtectedRoute>} />
+          <Route path="reportes/indicadores" element={<ProtectedRoute requiredPermission="view_dashboardkpi"><Indicadores /></ProtectedRoute>} />
           <Route path="reportes/auditoria" element={<ProtectedRoute requiredPermission="view_auditoriareporte"><AuditoriaReportes /></ProtectedRoute>} />
 
           {/* MÓDULO: ROLES Y PERMISOS */}

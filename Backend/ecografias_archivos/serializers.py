@@ -85,7 +85,13 @@ class EcografiaArchivoCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_archivo(self, value):
-        """Validate file size"""
-        if value.size > 50 * 1024 * 1024:  # 50MB
-            raise serializers.ValidationError("El archivo no debe superar los 50MB")
+        """Tamaño y formato REAL (por el contenido, no por la extensión)."""
+        from django.core.exceptions import ValidationError as ErrorDjango
+
+        from core.validacion_archivos import FIRMAS, validar_archivo
+
+        try:
+            validar_archivo(value, permitidos=tuple(FIRMAS), max_mb=50)
+        except ErrorDjango as e:
+            raise serializers.ValidationError(e.messages[0]) from e
         return value

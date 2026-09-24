@@ -50,6 +50,7 @@ class PacienteAPITestCase(APITestCase):
             nombre="Doctor",
             apellido_paterno="Prueba",
             password="testpass123",
+            rol="medico",
         )
         self.client.force_authenticate(user=self.user)
 

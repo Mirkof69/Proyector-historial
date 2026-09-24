@@ -16,7 +16,8 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+
+from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
 
 from .excel_generator import excel_generator
@@ -36,7 +37,7 @@ logger = logging.getLogger(__name__)
 )
 @api_view(["GET"])
 @extend_schema(request=None, responses={200: dict})
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def dashboard_statistics(request):
     """Obtiene estadísticas generales del dashboard
     Query params:
@@ -72,7 +73,7 @@ def dashboard_statistics(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def embarazos_statistics(request):
     """Estadísticas de embarazos"""
     try:
@@ -102,7 +103,7 @@ def embarazos_statistics(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def controles_statistics(request):
     """Estadísticas de controles prenatales"""
     try:
@@ -132,7 +133,7 @@ def controles_statistics(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def citas_statistics(request):
     """Estadísticas de citas"""
     try:
@@ -162,7 +163,7 @@ def citas_statistics(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def partos_statistics(request):
     """Estadísticas de partos"""
     try:
@@ -192,7 +193,7 @@ def partos_statistics(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def all_statistics(request):
     """Obtiene todas las estadísticas del sistema"""
     try:
@@ -229,7 +230,7 @@ def all_statistics(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def download_statistics_pdf(request):
     """Descarga reporte PDF de estadísticas completas"""
     try:
@@ -269,7 +270,7 @@ def download_statistics_pdf(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def download_statistics_pdf_enhanced(request):
     """Descarga reporte PDF mejorado con gráficos embebidos
     Query params:
@@ -323,7 +324,7 @@ def download_statistics_pdf_enhanced(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def download_statistics_excel(request):
     """Descarga reporte Excel con gráficos y múltiples hojas
     Query params:
@@ -380,7 +381,7 @@ def download_statistics_excel(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def statistics_by_period(request):
     """Obtiene estadísticas agrupadas por período
     Query params:
@@ -445,7 +446,7 @@ def statistics_by_period(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def composition_chart(request):
     """Obtiene datos para gráfico de dona (composición porcentual)
     """
@@ -467,7 +468,7 @@ def composition_chart(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def stacked_bar_chart(request):
     """Obtiene datos para gráfico de barras apiladas
     """
@@ -487,7 +488,7 @@ def stacked_bar_chart(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def distribution_chart(_request):
     """Obtiene datos para gráfico de distribución
     """
@@ -508,7 +509,7 @@ def distribution_chart(_request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def pacientes_statistics_view(request):
     return embarazos_statistics(request._request)
 
@@ -519,7 +520,7 @@ def pacientes_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def pacientes_embarazadas_statistics_view(request):
     return embarazos_statistics(request._request)
 
@@ -530,7 +531,7 @@ def pacientes_embarazadas_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def nuevos_pacientes_statistics_view(request):
     return dashboard_statistics(request._request)
 
@@ -541,7 +542,7 @@ def nuevos_pacientes_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def embarazos_alto_riesgo_statistics_view(request):
     return embarazos_statistics(request._request)
 
@@ -552,7 +553,7 @@ def embarazos_alto_riesgo_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def embarazos_trimestre_statistics_view(request):
     return embarazos_statistics(request._request)
 
@@ -563,7 +564,7 @@ def embarazos_trimestre_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def tasa_cesareas_statistics_view(request):
     return partos_statistics(request._request)
 
@@ -574,7 +575,7 @@ def tasa_cesareas_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def complicaciones_partos_statistics_view(request):
     return partos_statistics(request._request)
 
@@ -585,7 +586,7 @@ def complicaciones_partos_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def resultados_neonatales_statistics_view(request):
     return partos_statistics(request._request)
 
@@ -596,7 +597,7 @@ def resultados_neonatales_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def adherencia_controles_statistics_view(request):
     return controles_statistics(request._request)
 
@@ -607,7 +608,7 @@ def adherencia_controles_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def laboratorios_statistics_view(request):
     return all_statistics(request._request)
 
@@ -618,7 +619,7 @@ def laboratorios_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def examenes_pendientes_statistics_view(request):
     return all_statistics(request._request)
 
@@ -629,7 +630,7 @@ def examenes_pendientes_statistics_view(request):
     responses={200: OpenApiTypes.OBJECT}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def resultados_criticos_statistics_view(request):
     return all_statistics(request._request)
 

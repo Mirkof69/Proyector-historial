@@ -101,6 +101,19 @@ _RUTAS_CLINICAS = (
 )
 
 
+#: Acciones de /api/pacientes/<id>/... con datos clínicos. Recepción registra y
+#: busca pacientes, pero antes estas acciones le quedaban abiertas porque el
+#: bloqueo iba solo por prefijo y /api/pacientes/ no es un prefijo clínico.
+_ACCIONES_CLINICAS_DE_PACIENTE = (
+    "/historia-clinica", "/historial-completo", "/antecedentes-", "/examenes-laboratorio",
+    "/evaluar-riesgos", "/estadisticas", "/reporte-pdf", "/exportar-",
+)
+
+
+def _es_accion_clinica_de_paciente(path: str) -> bool:
+    return path.startswith("/api/pacientes/") and any(a in path for a in _ACCIONES_CLINICAS_DE_PACIENTE)
+
+
 class FetalMedicalPermission(BasePermission):
     """
     Permiso base del sistema (política de mínimo privilegio):
@@ -122,6 +135,9 @@ class FetalMedicalPermission(BasePermission):
             return True
         path = request.path
         if rol == "recepcion":
+            if _es_accion_clinica_de_paciente(path):
+                self.message = "Recepción no tiene acceso a la información clínica de la paciente."
+                return False
             for ruta in _RUTAS_CLINICAS:
                 if path.startswith(ruta):
                     self.message = (
@@ -138,4 +154,6 @@ class FetalMedicalPermission(BasePermission):
             return True
         if rol in ("medico", "laboratorista"):
             return True
-        return request.method in ("GET", "HEAD", "OPTIONS")
+        # Rol desconocido o vacío: sin acceso. Antes podía LEER todo el sistema.
+        self.message = "Su usuario no tiene un rol asignado. Pida al administrador que le asigne uno."
+        return False

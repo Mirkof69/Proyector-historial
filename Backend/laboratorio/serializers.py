@@ -234,6 +234,19 @@ class ImagenLaboratorioSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["fecha_digitalizacion", "created_by", "updated_by"]
 
+    def validate_archivo(self, value):
+        """PDF o imagen de verdad, hasta 20 MB. Antes no se validaba nada: se
+        podía subir un HTML con JavaScript llamado «resultado.pdf»."""
+        from django.core.exceptions import ValidationError as ErrorDjango
+
+        from core.validacion_archivos import DOCUMENTOS, validar_archivo
+
+        try:
+            validar_archivo(value, permitidos=DOCUMENTOS, max_mb=20)
+        except ErrorDjango as e:
+            raise serializers.ValidationError(e.messages[0]) from e
+        return value
+
     def get_tamano_archivo(self, obj):
         """Obtener tamaño del archivo"""
         return obj.get_tamano_archivo()

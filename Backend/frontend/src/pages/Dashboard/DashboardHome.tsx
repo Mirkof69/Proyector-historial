@@ -95,11 +95,11 @@ const DashboardHome: React.FC = () => {
     'Controles': 'view_controlprenatal',
     'Agenda de Citas': 'view_cita',
     'Reportes': 'view_reportegenerado',
-    'Calculadoras': 'view_calculoclinico',
+    'Calculadoras': 'view_calculohistorial',
     'Gestión de Usuarios': 'view_usuario',
-    'Triaje': 'view_triaje',
-    'Vacunas': 'view_vacuna',
-    'Evoluciones': 'view_evolucion',
+    'Triaje': 'view_triajeenfermeria',
+    'Vacunas': 'view_registrovacuna',
+    'Evoluciones': 'view_evolucionembarazo',
   }), []);
 
   const handleNavigate = useCallback((path: string, cardTitle: string) => {

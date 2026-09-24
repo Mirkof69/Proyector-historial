@@ -19,7 +19,8 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+
+from core.permissions import FetalMedicalPermission
 from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ def preparar_respuesta_ia(resultado: dict) -> dict:
 )
 @api_view(["POST"])
 @extend_schema(request=None, responses={200: dict})
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def analyze_ultrasound_with_ai(request):
     """Analiza una ecografía usando el microservicio de IA
 
@@ -339,7 +340,7 @@ def analyze_ultrasound_with_ai(request):
     responses={200: dict}
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def classify_ultrasound(request):
     """Clasifica el tipo de ecografía usando IA
 
@@ -378,7 +379,7 @@ def classify_ultrasound(request):
     responses={200: dict}
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def detect_anomalies(request):
     """Detecta anomalías fetales usando IA
 
@@ -417,7 +418,7 @@ def detect_anomalies(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def ai_service_health(_request):
     """Verifica el estado del microservicio de IA
 
@@ -462,7 +463,7 @@ def ai_service_health(_request):
     responses={200: dict}
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def crear_ecografia_desde_ia(request):
     """Crea una Ecografía en el módulo de ecografias desde una imagen del módulo IA.
 
@@ -660,7 +661,7 @@ def _reenviar_a_red_real(request, ruta: str, datos: dict) -> Response:
 
 @extend_schema(request=None, responses={200: dict})
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def plano_anatomico(request):
     """Qué plano muestra la ecografía (red entrenada con FETAL_PLANES_DB real).
 
@@ -671,7 +672,7 @@ def plano_anatomico(request):
 
 @extend_schema(request=None, responses={200: dict})
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([FetalMedicalPermission])
 def circunferencia_cefalica(request):
     """Circunferencia cefálica y edad gestacional (red entrenada con HC18 real).
 
