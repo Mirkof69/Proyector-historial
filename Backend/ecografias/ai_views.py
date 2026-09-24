@@ -15,6 +15,7 @@ import mimetypes
 import os
 
 import requests
+from django.db import transaction
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
@@ -464,6 +465,7 @@ def ai_service_health(_request):
 )
 @api_view(["POST"])
 @permission_classes([FetalMedicalPermission])
+@transaction.atomic
 def crear_ecografia_desde_ia(request):
     """Crea una Ecografía en el módulo de ecografias desde una imagen del módulo IA.
 
@@ -474,8 +476,11 @@ def crear_ecografia_desde_ia(request):
         - paciente_id: ID del paciente
 
     Crea:
-        1. Embarazo (si no hay activo)
-        2. Ecografia con los datos disponibles
+        1. Ecografia con los datos disponibles, en el embarazo ACTIVO de la
+           paciente (si no tiene, responde 409: antes se inventaba uno con
+           FUM = hoy - 280 días, G1P0, y 12 semanas por defecto, lo que
+           descuadraba la edad gestacional y la fecha de parto)
+        2. (ver arriba)
         3. ImagenEcografia (ecografias) con la misma imagen
         4. Copia el análisis IA al campo analisis_ia de la nueva imagen
     """
@@ -516,23 +521,32 @@ def crear_ecografia_desde_ia(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # 1. Buscar o crear embarazo activo
+    # La imagen tiene que ser de esta paciente: si no, el análisis quedaba en
+    # la historia de otra persona.
+    if imagen_ia.paciente_id and imagen_ia.paciente_id != paciente.id:
+        return Response(
+            {"error": "La imagen pertenece a otra paciente."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # 1. El embarazo activo real; nunca uno inventado.
     embarazo = Embarazo.objects.filter(
         paciente=paciente, estado="activo"
     ).first()
     if not embarazo:
-        from datetime import timedelta
-        embarazo = Embarazo.objects.create(
-            paciente=paciente,
-            numero_gesta=1,
-            numero_para=0,
-            numero_abortos=0,
-            numero_cesareas=0,
-            fecha_ultima_menstruacion=timezone.localdate() - timedelta(days=280),
-            estado="activo",
-            created_by=request.user,
-            updated_by=request.user,
+        return Response(
+            {"error": "La paciente no tiene un embarazo activo. Regístrelo primero "
+                      "con su fecha de última menstruación."},
+            status=status.HTTP_409_CONFLICT,
         )
+    fecha_eco = imagen_ia.fecha_captura or timezone.localdate()
+    if hasattr(fecha_eco, "date"):
+        fecha_eco = fecha_eco.date()
+    if imagen_ia.semana_gestacional:
+        semanas, dias = int(imagen_ia.semana_gestacional), 0
+    else:
+        dias_totales = max(0, (fecha_eco - embarazo.fecha_ultima_menstruacion).days)
+        semanas, dias = divmod(dias_totales, 7)
 
     # 2. Crear ecografía
     tipo_eco_map = {
@@ -550,10 +564,10 @@ def crear_ecografia_desde_ia(request):
         embarazo=embarazo,
         paciente=paciente,
         medico=request.user if request.user.rol == "medico" else None,
-        fecha_ecografia=imagen_ia.fecha_captura or timezone.localdate(),
+        fecha_ecografia=fecha_eco,
         tipo_ecografia=tipo_ecografia,
-        edad_gestacional_semanas=imagen_ia.semana_gestacional or 12,
-        edad_gestacional_dias=0,
+        edad_gestacional_semanas=semanas,
+        edad_gestacional_dias=dias,
         diagnostico="Pendiente de diagnóstico",
         created_by=request.user,
         updated_by=request.user,

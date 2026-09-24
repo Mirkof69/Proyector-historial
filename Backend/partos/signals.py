@@ -14,8 +14,16 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=Parto)
 def finalizar_embarazo_al_registrar_parto(sender, instance, created, **kwargs):
-    """Cuando se registra un parto, finaliza automáticamente el embarazo
+    """Cuando el parto TERMINA, finaliza el embarazo.
+
+    Antes bastaba con guardar el parto: registrar un trabajo de parto en curso
+    (`parto_finalizado=False`) ya daba el embarazo por terminado, y dejaba de
+    aparecer entre los activos mientras la paciente seguía en sala de partos.
+    El formulario marca `parto_finalizado` por defecto, así que el registro
+    habitual de un parto ya ocurrido sigue finalizando el embarazo.
     """
+    if not instance.parto_finalizado:
+        return
     if instance.embarazo:
         embarazo = instance.embarazo
 

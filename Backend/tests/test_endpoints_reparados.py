@@ -41,3 +41,41 @@ class ValidacionControlTempranoTest(TestCase):
         attrs = {"semanas_gestacion": 10, "presentacion_fetal": "cefalica"}
         resultado = s.validate(dict(attrs))   # ESPERADO: no lanza nada
         self.assertEqual(resultado["semanas_gestacion"], 10)
+
+
+class PartoYEstadoDelEmbarazoTest(TestCase):
+    """Un parto en curso no finaliza el embarazo; uno terminado sí."""
+
+    def setUp(self):
+        from embarazos.models import Embarazo
+
+        self.medico = Usuario.objects.create_user(
+            email="med.parto2@test.bo", nombre="M", apellido_paterno="P",
+            password="clave-segura-123", rol="medico")
+        paciente = Paciente.objects.create(
+            nombre="Rosa", apellido_paterno="Parto", apellido_materno="Curso",
+            fecha_nacimiento=datetime.date(1991, 2, 2), genero="femenino", ci="7700002")
+        self.embarazo = Embarazo.objects.create(
+            paciente=paciente, numero_gesta=1,
+            fecha_ultima_menstruacion=datetime.date.today() - datetime.timedelta(weeks=39))
+        self.paciente = paciente
+
+    def _parto(self, finalizado, numero):
+        from django.utils import timezone
+
+        from partos.models import Parto
+
+        return Parto.objects.create(
+            paciente=self.paciente, embarazo=self.embarazo, medico_responsable=self.medico,
+            numero_parto=numero, fecha_parto=timezone.now(), edad_gestacional_parto="39+0",
+            parto_finalizado=finalizado)
+
+    def test_trabajo_de_parto_en_curso_deja_el_embarazo_activo(self):
+        self._parto(False, "P-CURSO-1")
+        self.embarazo.refresh_from_db()
+        self.assertEqual(self.embarazo.estado, "activo")
+
+    def test_parto_terminado_finaliza_el_embarazo(self):
+        self._parto(True, "P-FIN-1")
+        self.embarazo.refresh_from_db()
+        self.assertEqual(self.embarazo.estado, "finalizado")
