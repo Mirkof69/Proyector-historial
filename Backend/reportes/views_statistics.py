@@ -252,8 +252,8 @@ def download_statistics_pdf(request):
         pdf_buffer = pdf_generator.generate_statistics_pdf(stats)
 
         # Crear respuesta HTTP
-        response = HttpResponse(pdf_buffer, content_type="application/pd")
-        filename = f"estadisticas_{timezone.now().strftime('%Y%m%d_%H%M%S')}.pd"
+        response = HttpResponse(pdf_buffer, content_type="application/pdf")
+        filename = f"estadisticas_{timezone.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         return response
@@ -302,9 +302,9 @@ def download_statistics_pdf_enhanced(request):
         pdf_buffer = pdf_generator_enhanced.generate_statistics_pdf(stats, params)
 
         # Crear respuesta HTTP
-        response = HttpResponse(pdf_buffer, content_type="application/pd")
+        response = HttpResponse(pdf_buffer, content_type="application/pdf")
         filename = (
-            f"estadisticas_completas_{timezone.now().strftime('%Y%m%d_%H%M%S')}.pd"
+            f"estadisticas_completas_{timezone.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 

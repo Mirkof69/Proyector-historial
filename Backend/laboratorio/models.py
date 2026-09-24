@@ -1110,12 +1110,12 @@ class ImagenLaboratorio(models.Model):
 
     def es_imagen(self):
         """Verifica si el archivo es una imagen"""
-        extensiones_imagen = [".jpg", ".jpeg", ".png", ".tif", ".ti", ".bmp", ".gi"]
+        extensiones_imagen = [".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".gif"]
         return self.get_extension() in extensiones_imagen
 
     def es_pdf(self):
         """Verifica si el archivo es PDF"""
-        return self.get_extension() == ".pd"
+        return self.get_extension() == ".pdf"
 
     def generar_thumbnail(self, size=(300, 300)):
         """Genera miniatura si es imagen"""
@@ -1279,12 +1279,12 @@ class ImagenLaboratorio(models.Model):
         # Detectar formato automáticamente
         extension = self.get_extension()
         formato_map = {
-            ".pd": "pd",
+            ".pdf": "pd",
             ".jpg": "jpg",
             ".jpeg": "jpg",
             ".png": "png",
             ".tif": "tif",
-            ".ti": "tif",
+            ".tiff": "tif",
         }
         if extension in formato_map:
             self.formato = formato_map[extension]

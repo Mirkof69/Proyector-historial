@@ -98,7 +98,7 @@ urlpatterns = [
     path(
         "statistics/download-pdf/",
         download_statistics_pdf,
-        name="download-statistics-pd",
+        name="download-statistics-pdf",
     ),
     path(
         "statistics/download-pdf-enhanced/",
