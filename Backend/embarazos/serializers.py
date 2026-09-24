@@ -17,6 +17,23 @@ from pacientes.models import Paciente
 from .models import Embarazo
 
 
+def fecha_referencia_eg(embarazo):
+    """Hasta qué día se cuenta la edad gestacional.
+
+    Activo: hoy. Terminado: la fecha del parto. Terminado sin parto
+    registrado (pérdida, traslado): None, porque no se sabe. Antes se contaba
+    siempre hasta hoy y un embarazo de hace un año mostraba «85+3 semanas».
+    Usa `partos.all()` para aprovechar el prefetch del ViewSet.
+    """
+    if embarazo.estado == "activo":
+        return timezone.localdate()
+    fechas = [p.fecha_parto for p in embarazo.partos.all() if p.fecha_parto]
+    if not fechas:
+        return None
+    fecha = max(fechas)
+    return fecha.date() if hasattr(fecha, "date") else fecha
+
+
 class EmbarazoSerializer(serializers.ModelSerializer):
     """✅ Serializer completo - SOLO CAMPOS DEL MODELO REAL
     """
@@ -187,8 +204,8 @@ class EmbarazoSerializer(serializers.ModelSerializer):
 
     def get_semanas_gestacion(self, obj):
         """✅ Formato corto semanas+días"""
-        if obj.fecha_ultima_menstruacion:
-            hoy = timezone.localdate()
+        hoy = fecha_referencia_eg(obj)
+        if obj.fecha_ultima_menstruacion and hoy:
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
             dias = diferencia % 7
@@ -220,10 +237,10 @@ class EmbarazoSerializer(serializers.ModelSerializer):
 
     def get_trimestre_actual(self, obj):
         """✅ Número de trimestre (1, 2 o 3)"""
-        if not obj.fecha_ultima_menstruacion:
+        hoy = fecha_referencia_eg(obj)
+        if not obj.fecha_ultima_menstruacion or not hoy:
             return None
 
-        hoy = timezone.localdate()
         diferencia = (hoy - obj.fecha_ultima_menstruacion).days
         semanas = diferencia // 7
 
@@ -514,8 +531,8 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
 
     def get_semanas_gestacion(self, obj):
         """Get semanas gestacion"""
-        if obj.fecha_ultima_menstruacion:
-            hoy = timezone.localdate()
+        hoy = fecha_referencia_eg(obj)
+        if obj.fecha_ultima_menstruacion and hoy:
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
             dias = diferencia % 7
@@ -524,8 +541,8 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
 
     def get_trimestre(self, obj):
         """Get trimestre"""
-        if obj.fecha_ultima_menstruacion:
-            hoy = timezone.localdate()
+        hoy = fecha_referencia_eg(obj)
+        if obj.fecha_ultima_menstruacion and hoy:
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
             semanas = diferencia // 7
 
