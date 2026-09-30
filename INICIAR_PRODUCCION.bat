@@ -32,8 +32,14 @@ timeout /t 2 /nobreak >nul
 :: ── 2. Migraciones ──────────────────────────────────────────────
 echo [2/5] Migraciones...
 cd /d "%~dp0Backend"
-python manage.py migrate --no-input >nul 2>&1
-if %errorlevel% equ 0 (echo     OK al dia) else (echo     AVISO: revisar migraciones)
+:: migrate_schemas (no migrate): cada clinica es un esquema de django-tenants.
+:: Antes usaba el python del sistema y ocultaba los errores con >nul.
+".venv\Scripts\python.exe" manage.py migrate_schemas --no-input > logs\migraciones.log 2>&1
+if %errorlevel% equ 0 (echo     OK al dia) else (
+    echo     ERROR en las migraciones: ver Backend\logs\migraciones.log
+    pause
+    exit /b 1
+)
 
 :: ── 3. Compilar el frontend si hace falta ───────────────────────
 echo [3/5] Build del frontend...
@@ -47,13 +53,27 @@ if not exist "%~dp0Backend\frontend\build\index.html" (
 
 :: ── 4. Backend ──────────────────────────────────────────────────
 echo [4/5] Backend Django ^(puerto 8000^)...
-start "Backend Django" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& python -m uvicorn asgi:application --host 0.0.0.0 --port 8000 --workers 4"
+:: 8 workers: medido el 04/09/2026, con 4 las colas crecian bajo carga.
+:: El python del entorno virtual (.venv), que es donde estan las dependencias.
+start "Backend Django" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 0.0.0.0 --port 8000 --workers 8"
 timeout /t 3 /nobreak >nul
 
 :: ── 5. Microservicio de IA ──────────────────────────────────────
 echo [5/5] Microservicio de IA ^(puerto 8001^) y frontend ^(3000^)...
 start "Microservicio IA" cmd /k "cd /d %~dp0Backend\Microservicio_IA && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
 start "Frontend produccion" cmd /k "cd /d %~dp0Backend\frontend && python servir_produccion.py 3000"
+
+:: ── Comprobacion: que los tres servicios respondan de verdad ─────
+echo.
+echo Comprobando servicios (hasta 60 s)...
+set /a intentos=0
+:esperar
+timeout /t 3 /nobreak >nul
+set /a intentos+=1
+curl -s -o nul -w "%%{http_code}" http://localhost:8000/api/ | findstr /r "200 401 403" >nul || (if %intentos% lss 20 goto esperar)
+curl -s -o nul -w "%%{http_code}" http://localhost:8000/api/ | findstr /r "200 401 403" >nul && (echo     OK backend) || (echo     ERROR: el backend no responde)
+curl -s -o nul -w "%%{http_code}" http://localhost:8001/health | findstr "200" >nul && (echo     OK microservicio de IA con modelo cargado) || (echo     AVISO: IA sin modelo o sin responder, ver http://localhost:8001/health)
+curl -s -o nul http://localhost:3000 && (echo     OK frontend) || (echo     AVISO: el frontend aun no responde)
 
 echo.
 echo ================================================================

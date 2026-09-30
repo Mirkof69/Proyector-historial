@@ -1,0 +1,26 @@
+# Versiones EXACTAS de las dependencias directas con las que pasan los tests
+# y se midieron las redes (30/09/2026). torch: instalar la variante CPU o CUDA
+# que corresponda al equipo antes de este archivo.
+
+fastapi==0.136.1
+uvicorn==0.47.0
+python-multipart==0.0.28
+pydantic==2.13.4
+torch==2.6.0+cu124
+torchvision==0.21.0+cu124
+monai==1.5.2
+timm==1.0.27
+grad-cam==1.5.5
+requests==2.34.2
+opencv-python==4.13.0.92
+Pillow==12.2.0
+pydicom==3.0.2
+numpy==2.4.4
+scipy==1.17.1
+scikit-learn==1.8.0
+scikit-image==0.26.0
+pandas==2.3.3
+matplotlib==3.10.9
+pika==1.4.0
+httpx==0.28.1
+python-dotenv==1.2.2
