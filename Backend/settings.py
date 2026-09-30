@@ -489,6 +489,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # ========== ARCHIVOS MEDIA ==========
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+if TESTING:
+    # Los tests escribían en la carpeta real: dejaron archivos de 12 bytes
+    # mezclados con imágenes de pacientes. Cada corrida usa su propia carpeta.
+    import tempfile as _tempfile
+
+    MEDIA_ROOT = Path(_tempfile.mkdtemp(prefix="fetal_test_media_"))
 
 # ========== CONFIGURACIÓN PARA IMÁGENES MÉDICAS ==========
 # Tamaños máximos de archivos
@@ -802,6 +808,11 @@ if DEBUG:
 # ========== CONFIGURACIÓN DE LOGGING ESTRUCTURADO ==========
 LOG_LEVEL = env("LOG_LEVEL")
 LOG_DIR = BASE_DIR / "logs"
+if TESTING:
+    # Los tests no escriben en los logs de la clínica.
+    import tempfile as _tempfile
+
+    LOG_DIR = Path(_tempfile.gettempdir()) / "fetal_test_logs"
 LOG_DIR.mkdir(exist_ok=True)
 
 # Formato JSON para logging estructurado
