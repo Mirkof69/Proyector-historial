@@ -249,6 +249,7 @@ const FormularioParto: React.FC = () => {
           talla_bebe: values.talla_bebe,
           apgar_1min: values.apgar_1min,
           apgar_5min: values.apgar_5min,
+          otros_recien_nacidos: values.otros_recien_nacidos || [],
         });
       }
 
@@ -297,7 +298,7 @@ const FormularioParto: React.FC = () => {
           {tipoEvento === 'parto' && (
             <>
               <SeccionParto form={form} calcularAlertasYRecomendaciones={calcularAlertasYRecomendaciones} tipoEvento={tipoEvento} />
-              <SeccionRecienNacido tipoEvento={tipoEvento} />
+              <SeccionRecienNacido tipoEvento={tipoEvento} permitirVarios={!modoEdicion} />
             </>
           )}
 

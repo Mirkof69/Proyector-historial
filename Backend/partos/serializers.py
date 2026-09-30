@@ -1,4 +1,6 @@
 """Serializers module."""
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -833,27 +835,51 @@ class PartoSerializer(serializers.ModelSerializer):
             or _initial.get("apgar_5min"),
         }
 
-        # Crear parto (ahora sin los campos del recién nacido)
-        parto = Parto.objects.create(**validated_data)
+        # Parto múltiple: los demás recién nacidos llegan en otros_recien_nacidos
+        # (antes el formulario solo admitía uno y un parto de gemelos quedaba
+        # registrado a medias).
+        otros = _initial.get("otros_recien_nacidos") or []
+        campos_rn = ("sexo", "peso_nacimiento", "talla_nacimiento", "apgar_1_minuto", "apgar_5_minutos")
 
-        # ✅ SOLO crear recién nacido si ES PARTO (tiene tipo_parto) y hay datos del bebé
-        # Si tiene tipo_parto, ES UN PARTO (no importa la edad gestacional)
-        es_parto = bool(parto.tipo_parto)
+        # Todo o nada: si un recién nacido es inválido no queda un parto a medias.
+        with transaction.atomic():
+            parto = Parto.objects.create(**validated_data)
 
-        # Solo crear recién nacido para partos (no abortos)
-        if es_parto and any(rn_data.values()):
-
-            RecienNacido.objects.create(
-                parto=parto,
-                numero_gemelo=1,
-                fecha_nacimiento=parto.fecha_parto or timezone.now(),
-                **{k: v for k, v in rn_data.items() if v is not None},
-            )
+            # Si tiene tipo_parto, ES UN PARTO (no importa la edad gestacional);
+            # los abortos no llevan recién nacido.
+            es_parto = bool(parto.tipo_parto)
+            if es_parto and any(rn_data.values()):
+                bebes = [{k: v for k, v in rn_data.items() if v is not None}]
+                bebes += [
+                    {k: otro.get(k) for k in campos_rn if otro.get(k) not in (None, "")} for otro in otros
+                ]
+                for numero, datos in enumerate(bebes, start=1):
+                    if not datos:
+                        continue
+                    rn = RecienNacido(parto=parto, numero_gemelo=numero,
+                                      fecha_nacimiento=parto.fecha_parto or timezone.now(), **datos)
+                    # objects.create() no aplica los validadores del modelo:
+                    # se guardaba un recién nacido de 50 g. full_clean sí.
+                    try:
+                        rn.full_clean(exclude=["parto"])
+                    except DjangoValidationError as e:
+                        raise serializers.ValidationError(
+                            {"recien_nacidos": {f"bebé {numero}": e.message_dict}},
+                        ) from e
+                    rn.save()
 
         return parto
 
     def update(self, instance, validated_data):
-        """Actualizar parto y recién nacido asociado"""
+        """Actualizar parto y recién nacido asociado, todo o nada.
+
+        Sin la transacción, un recién nacido inválido dejaba el parto ya
+        modificado y el bebé sin cambios.
+        """
+        with transaction.atomic():
+            return self._actualizar(instance, validated_data)
+
+    def _actualizar(self, instance, validated_data):
         #  MAPEO DE CAMPOS FRONTEND → BACKEND
         if "semanas_gestacion" in self.initial_data:
             semanas = self.initial_data.get("semanas_gestacion", 0)
@@ -902,19 +928,18 @@ class PartoSerializer(serializers.ModelSerializer):
         # Solo manejar recién nacido para partos (no abortos)
         if es_parto and any(rn_data.values()):
 
-            rn, created = RecienNacido.objects.get_or_create(
-                parto=instance,
-                numero_gemelo=1,
-                defaults={
-                    "fecha_nacimiento": instance.fecha_parto or timezone.now(),
-                    **{k: v for k, v in rn_data.items() if v is not None},
-                },
+            rn = RecienNacido.objects.filter(parto=instance, numero_gemelo=1).first() or RecienNacido(
+                parto=instance, numero_gemelo=1, fecha_nacimiento=instance.fecha_parto or timezone.now(),
             )
-            if not created:
-                for attr, value in rn_data.items():
-                    if value is not None:
-                        setattr(rn, attr, value)
-                rn.save()
+            for attr, value in rn_data.items():
+                if value is not None:
+                    setattr(rn, attr, value)
+            # Mismos validadores del modelo que en el alta (peso 300-6000 g...).
+            try:
+                rn.full_clean(exclude=["parto"])
+            except DjangoValidationError as e:
+                raise serializers.ValidationError({"recien_nacidos": {"bebé 1": e.message_dict}}) from e
+            rn.save()
 
         return instance
 
