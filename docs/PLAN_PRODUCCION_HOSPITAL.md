@@ -74,14 +74,16 @@ Frontend
 - [x] `on_delete=PROTECT` + baja lógica para no perder historia clínica.
 - [x] Datación ecográfica: FPP corregida por la ecografía del primer trimestre.
 
-### Sprint 3 — IA honesta y útil (HECHO salvo decisión sobre la B4)
-- [~] Marcada «experimental» con advertencia en cada resultado; biometría sintética apagada. **Retirarla o conservarla: decisión pendiente.**  
+### Sprint 3 — IA honesta y útil (HECHO)
+- [x] B4 conservada como «experimental» (decisión del usuario, 30/09) con advertencia en cada resultado; biometría sintética apagada. Checkpoints viejos (2,5 GB) retirados.  
   _Original:_ EfficientNet-B4: fuera de la pantalla clínica (o «experimental, no validado» si se decide conservarla). `BIOMETRY_AVAILABLE=false`.
 - [x] «SHAP risk scores» → «indicador heurístico»; quitar campos fijos (`actividad_cardiaca: False`); una ecografía normal no puede salir «riesgo ALTO».
 - [x] Sin pesos → el microservicio no arranca (hoy responde con pesos aleatorios); `/health` real; inferencia fuera del bucle de eventos.
 - [x] Un solo traductor de resultados del microservicio (hoy hay tres).
 - [x] Integrar las redes reales en la ficha de la ecografía: plano + circunferencia + semanas, guardados y visibles.
 - [x] Registro de modelos: sha256 de los pesos en cada respuesta, en `/health` y en `AnalisisCNN.version_modelo`.
+- [x] **Red nueva de anomalías cerebrales** con imágenes reales (`Microservicio_IA/entrenamiento/patologias_cerebrales/`): 5 pliegues 80/20 agrupados por imagen original, pruebas en otro hospital (HC18) y de estilo; conectada en microservicio → Django → pestaña «IA medida». Resultados y límites en su `INFORME.md`.
+- [x] Datos de IA ordenados en `Microservicio_IA/datos/{crudos,extraidos,legado_b4}` con `CATALOGO.md`; datasets con etiquetas falsas identificados (Ultrasound Fetus = HC18 reetiquetado).
 
 ### Sprint 4 — Reportes, registros y Excel
 - [~] Hecho como submenú «Centro de reportes» (panel en tiempo real, estadísticas por fecha, KPIs, indicadores, generador PDF, auditoría). Falta unificarlo en una sola página con pestañas.  
@@ -210,6 +212,12 @@ verde + commit con explicación del fallo que previene.
   especialistas, separado por paciente.
 - **Las redes que sí pasan del umbral**: plano anatómico 92,7 %; circunferencia
   cefálica R² 0,978. Ambas con datos reales y madres no vistas.
+- **Anomalías cerebrales: la especificidad sí está medida, la sensibilidad no.**
+  0,2 % de falsas alarmas en 999 cabezas normales de otro hospital. Pero en el
+  único dataset público con anomalías, todas las normales vienen de un hospital
+  y todas las anomalías de otras fuentes: el 109/110 detectadas no es la
+  sensibilidad real. Medirla exige ecografías con anomalía confirmada y
+  normales del MISMO hospital (idealmente bolivianas).
 - **El peso al nacer con ecografía** da R² 0,836 con datos simulados, del orden del
   estudio real de Lima (0,847–0,873). Hay que reentrenarlo con partos reales.
 - **La alerta de bajo peso** detecta 86 % de los casos a costa de muchas falsas alarmas;

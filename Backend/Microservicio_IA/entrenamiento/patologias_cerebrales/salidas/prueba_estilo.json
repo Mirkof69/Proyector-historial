@@ -1,0 +1,37 @@
+{
+ "original": {
+  "falsas_alarmas": 0,
+  "n": 300,
+  "tasa": 0.0
+ },
+ "lavada": {
+  "falsas_alarmas": 0,
+  "n": 300,
+  "tasa": 0.0
+ },
+ "fondo_gris": {
+  "falsas_alarmas": 0,
+  "n": 300,
+  "tasa": 0.0
+ },
+ "reescalada": {
+  "falsas_alarmas": 0,
+  "n": 300,
+  "tasa": 0.0
+ },
+ "borrosa": {
+  "falsas_alarmas": 0,
+  "n": 300,
+  "tasa": 0.0
+ },
+ "todo_junto": {
+  "falsas_alarmas": 0,
+  "n": 300,
+  "tasa": 0.0
+ },
+ "foto_de_pantalla": {
+  "falsas_alarmas": 6,
+  "n": 300,
+  "tasa": 0.02
+ }
+}

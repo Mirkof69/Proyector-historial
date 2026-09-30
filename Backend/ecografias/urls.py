@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 
 from .ai_views import (
     ai_service_health,
+    anomalias_cerebrales,
     analyze_ultrasound_with_ai,
     circunferencia_cefalica,
     classify_ultrasound,
@@ -25,9 +26,10 @@ urlpatterns = [
     path("classify/", classify_ultrasound, name="classify-ultrasound"),
     path("detect-anomalies/", detect_anomalies, name="detect-anomalies"),
     path("ai/health/", ai_service_health, name="ai-health"),
-    # Redes entrenadas con ecografías reales (HC18 y FETAL_PLANES_DB)
+    # Redes entrenadas con ecografías reales (HC18, FETAL_PLANES_DB, anomalías cerebrales)
     path("plano-anatomico/", plano_anatomico, name="plano-anatomico"),
     path("circunferencia-cefalica/", circunferencia_cefalica, name="circunferencia-cefalica"),
+    path("anomalias-cerebrales/", anomalias_cerebrales, name="anomalias-cerebrales"),
     # Router — debe ir DESPUES de los paths fijos para evitar colisión de rutas
     path("", include(router.urls)),
 ]

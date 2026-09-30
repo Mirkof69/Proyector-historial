@@ -1,0 +1,914 @@
+{
+ "pliegue_0": [
+  {
+   "epoca": 1,
+   "perdida_entreno": 3.33336441479032,
+   "perdida_val": 1.2465308765233614
+  },
+  {
+   "epoca": 2,
+   "perdida_entreno": 1.4179228355014135,
+   "perdida_val": 1.0387451627780167
+  },
+  {
+   "epoca": 3,
+   "perdida_entreno": 0.8408124754353176,
+   "perdida_val": 0.8248018807617721
+  },
+  {
+   "epoca": 4,
+   "perdida_entreno": 0.6092252750245352,
+   "perdida_val": 0.7574518554142633
+  },
+  {
+   "epoca": 5,
+   "perdida_entreno": 0.499076971932063,
+   "perdida_val": 0.7722228893454657
+  },
+  {
+   "epoca": 6,
+   "perdida_entreno": 0.4204247291125948,
+   "perdida_val": 0.7086629556731249
+  },
+  {
+   "epoca": 7,
+   "perdida_entreno": 0.3748449881871541,
+   "perdida_val": 0.812794432265648
+  },
+  {
+   "epoca": 8,
+   "perdida_entreno": 0.3516115792213924,
+   "perdida_val": 0.6366564838992608
+  },
+  {
+   "epoca": 9,
+   "perdida_entreno": 0.3387713124827733,
+   "perdida_val": 0.6265056058229741
+  },
+  {
+   "epoca": 10,
+   "perdida_entreno": 0.32639217092877343,
+   "perdida_val": 0.6562991369726995
+  },
+  {
+   "epoca": 11,
+   "perdida_entreno": 0.31977842724512495,
+   "perdida_val": 0.6073092451952777
+  },
+  {
+   "epoca": 12,
+   "perdida_entreno": 0.31547463176742435,
+   "perdida_val": 0.647891561050813
+  },
+  {
+   "epoca": 13,
+   "perdida_entreno": 0.30006173300364664,
+   "perdida_val": 0.6753109848062884
+  },
+  {
+   "epoca": 14,
+   "perdida_entreno": 0.2952933283079238,
+   "perdida_val": 0.6262418616725347
+  },
+  {
+   "epoca": 15,
+   "perdida_entreno": 0.2955483704332321,
+   "perdida_val": 0.5821013803708674
+  },
+  {
+   "epoca": 16,
+   "perdida_entreno": 0.2867846678173731,
+   "perdida_val": 0.6606248897302247
+  },
+  {
+   "epoca": 17,
+   "perdida_entreno": 0.2808381011561742,
+   "perdida_val": 0.579648252241859
+  },
+  {
+   "epoca": 18,
+   "perdida_entreno": 0.29149809952766176,
+   "perdida_val": 0.6194841024203154
+  },
+  {
+   "epoca": 19,
+   "perdida_entreno": 0.2866093653535086,
+   "perdida_val": 0.6012523909850918
+  },
+  {
+   "epoca": 20,
+   "perdida_entreno": 0.28443563173687647,
+   "perdida_val": 0.694744239256016
+  },
+  {
+   "epoca": 21,
+   "perdida_entreno": 0.27738315742167213,
+   "perdida_val": 0.6230555452774752
+  },
+  {
+   "epoca": 22,
+   "perdida_entreno": 0.27356371330836465,
+   "perdida_val": 0.6235303400689228
+  },
+  {
+   "epoca": 23,
+   "perdida_entreno": 0.2733856146297758,
+   "perdida_val": 0.6153166912229531
+  },
+  {
+   "epoca": 24,
+   "perdida_entreno": 0.2715721617615412,
+   "perdida_val": 0.6098959569571915
+  },
+  {
+   "epoca": 25,
+   "perdida_entreno": 0.2731387440174345,
+   "perdida_val": 0.6067241247194515
+  },
+  {
+   "epoca": 26,
+   "perdida_entreno": 0.27253610936422196,
+   "perdida_val": 0.6326941001630699
+  },
+  {
+   "epoca": 27,
+   "perdida_entreno": 0.27076914102312116,
+   "perdida_val": 0.6008458658887578
+  },
+  {
+   "epoca": 28,
+   "perdida_entreno": 0.27464599694524494,
+   "perdida_val": 0.643086514397836
+  },
+  {
+   "epoca": 29,
+   "perdida_entreno": 0.26789127976175336,
+   "perdida_val": 0.5989146550372288
+  },
+  {
+   "epoca": 30,
+   "perdida_entreno": 0.2727336751090156,
+   "perdida_val": 0.5893512470480318
+  }
+ ],
+ "pliegue_1": [
+  {
+   "epoca": 1,
+   "perdida_entreno": 3.4203099531512104,
+   "perdida_val": 1.7283403438153968
+  },
+  {
+   "epoca": 2,
+   "perdida_entreno": 1.3816840417923466,
+   "perdida_val": 1.1874938697889816
+  },
+  {
+   "epoca": 3,
+   "perdida_entreno": 0.8787166572386219,
+   "perdida_val": 0.9556096341145408
+  },
+  {
+   "epoca": 4,
+   "perdida_entreno": 0.6308980406292023,
+   "perdida_val": 0.834423415388689
+  },
+  {
+   "epoca": 5,
+   "perdida_entreno": 0.5135831991511006,
+   "perdida_val": 0.7197503660881113
+  },
+  {
+   "epoca": 6,
+   "perdida_entreno": 0.4347872075534636,
+   "perdida_val": 0.7150354264258587
+  },
+  {
+   "epoca": 7,
+   "perdida_entreno": 0.38957248772344283,
+   "perdida_val": 0.7403641541578574
+  },
+  {
+   "epoca": 8,
+   "perdida_entreno": 0.38244673369392274,
+   "perdida_val": 0.7368217323571388
+  },
+  {
+   "epoca": 9,
+   "perdida_entreno": 0.34886338970353525,
+   "perdida_val": 0.7111343310929867
+  },
+  {
+   "epoca": 10,
+   "perdida_entreno": 0.3294013132972102,
+   "perdida_val": 0.7205092551904431
+  },
+  {
+   "epoca": 11,
+   "perdida_entreno": 0.31822191226866936,
+   "perdida_val": 0.6057546742888248
+  },
+  {
+   "epoca": 12,
+   "perdida_entreno": 0.30688282943541006,
+   "perdida_val": 0.683532620004296
+  },
+  {
+   "epoca": 13,
+   "perdida_entreno": 0.30954083511906283,
+   "perdida_val": 0.716883121623951
+  },
+  {
+   "epoca": 14,
+   "perdida_entreno": 0.3073675166214666,
+   "perdida_val": 0.6453190888625038
+  },
+  {
+   "epoca": 15,
+   "perdida_entreno": 0.31064586822063694,
+   "perdida_val": 0.6682253872671786
+  },
+  {
+   "epoca": 16,
+   "perdida_entreno": 0.29694830361873875,
+   "perdida_val": 0.7026460539926911
+  },
+  {
+   "epoca": 17,
+   "perdida_entreno": 0.2940050954780271,
+   "perdida_val": 0.7261379252333905
+  },
+  {
+   "epoca": 18,
+   "perdida_entreno": 0.28745482861995697,
+   "perdida_val": 0.7016170843504907
+  },
+  {
+   "epoca": 19,
+   "perdida_entreno": 0.279234565073444,
+   "perdida_val": 0.693565081989151
+  },
+  {
+   "epoca": 20,
+   "perdida_entreno": 0.28314883670499247,
+   "perdida_val": 0.7092622722163062
+  },
+  {
+   "epoca": 21,
+   "perdida_entreno": 0.2881213474658228,
+   "perdida_val": 0.6434816399400253
+  },
+  {
+   "epoca": 22,
+   "perdida_entreno": 0.28584662752766765,
+   "perdida_val": 0.701266620511747
+  },
+  {
+   "epoca": 23,
+   "perdida_entreno": 0.2804102094904069,
+   "perdida_val": 0.6846186950472469
+  },
+  {
+   "epoca": 24,
+   "perdida_entreno": 0.27611164364122576,
+   "perdida_val": 0.6977846909792541
+  },
+  {
+   "epoca": 25,
+   "perdida_entreno": 0.27843085051544253,
+   "perdida_val": 0.6843043389357802
+  },
+  {
+   "epoca": 26,
+   "perdida_entreno": 0.2788135421372229,
+   "perdida_val": 0.6754908510377438
+  },
+  {
+   "epoca": 27,
+   "perdida_entreno": 0.27547129363782946,
+   "perdida_val": 0.6842322301566135
+  },
+  {
+   "epoca": 28,
+   "perdida_entreno": 0.27643648174501234,
+   "perdida_val": 0.7100665243451089
+  },
+  {
+   "epoca": 29,
+   "perdida_entreno": 0.2764825335433406,
+   "perdida_val": 0.679520885843561
+  },
+  {
+   "epoca": 30,
+   "perdida_entreno": 0.27712098629243914,
+   "perdida_val": 0.6746725828203121
+  }
+ ],
+ "pliegue_2": [
+  {
+   "epoca": 1,
+   "perdida_entreno": 3.4107853155287486,
+   "perdida_val": 1.3890596558887285
+  },
+  {
+   "epoca": 2,
+   "perdida_entreno": 1.3936284969723414,
+   "perdida_val": 1.4711089181921468
+  },
+  {
+   "epoca": 3,
+   "perdida_entreno": 0.80776123773484,
+   "perdida_val": 1.4970632605516703
+  },
+  {
+   "epoca": 4,
+   "perdida_entreno": 0.6174275898744189,
+   "perdida_val": 1.4723612425456933
+  },
+  {
+   "epoca": 5,
+   "perdida_entreno": 0.49800956438458155,
+   "perdida_val": 1.6455925674515552
+  },
+  {
+   "epoca": 6,
+   "perdida_entreno": 0.4272779306722066,
+   "perdida_val": 1.509948219069219
+  },
+  {
+   "epoca": 7,
+   "perdida_entreno": 0.3859690266942221,
+   "perdida_val": 1.5205701047864197
+  },
+  {
+   "epoca": 8,
+   "perdida_entreno": 0.3733967433846186,
+   "perdida_val": 1.520533211592178
+  },
+  {
+   "epoca": 9,
+   "perdida_entreno": 0.33673809303177726,
+   "perdida_val": 1.3209431157992997
+  },
+  {
+   "epoca": 10,
+   "perdida_entreno": 0.34615628113822333,
+   "perdida_val": 1.4657459668768116
+  },
+  {
+   "epoca": 11,
+   "perdida_entreno": 0.3254171292933207,
+   "perdida_val": 1.281444870557305
+  },
+  {
+   "epoca": 12,
+   "perdida_entreno": 0.3218812895199609,
+   "perdida_val": 1.3644148657654198
+  },
+  {
+   "epoca": 13,
+   "perdida_entreno": 0.3136216051994808,
+   "perdida_val": 1.2720738117413908
+  },
+  {
+   "epoca": 14,
+   "perdida_entreno": 0.3216603814609467,
+   "perdida_val": 1.2558374612545735
+  },
+  {
+   "epoca": 15,
+   "perdida_entreno": 0.30422191723944647,
+   "perdida_val": 1.2874393704663598
+  },
+  {
+   "epoca": 16,
+   "perdida_entreno": 0.2974970529949854,
+   "perdida_val": 1.2983949906635466
+  },
+  {
+   "epoca": 17,
+   "perdida_entreno": 0.2835204681706807,
+   "perdida_val": 1.2134176323077925
+  },
+  {
+   "epoca": 18,
+   "perdida_entreno": 0.2834447532419174,
+   "perdida_val": 1.1844744832924596
+  },
+  {
+   "epoca": 19,
+   "perdida_entreno": 0.2860638135009342,
+   "perdida_val": 1.1856863974487482
+  },
+  {
+   "epoca": 20,
+   "perdida_entreno": 0.27973391659676083,
+   "perdida_val": 1.14704080740314
+  },
+  {
+   "epoca": 21,
+   "perdida_entreno": 0.2866511907842424,
+   "perdida_val": 1.156825147322675
+  },
+  {
+   "epoca": 22,
+   "perdida_entreno": 0.27850020877898685,
+   "perdida_val": 1.091242465619587
+  },
+  {
+   "epoca": 23,
+   "perdida_entreno": 0.27493693715050105,
+   "perdida_val": 1.1043470449800328
+  },
+  {
+   "epoca": 24,
+   "perdida_entreno": 0.2724809381696913,
+   "perdida_val": 1.125556437771216
+  },
+  {
+   "epoca": 25,
+   "perdida_entreno": 0.2757047963520837,
+   "perdida_val": 1.0993080602984935
+  },
+  {
+   "epoca": 26,
+   "perdida_entreno": 0.27425467920681784,
+   "perdida_val": 1.1058222122564443
+  },
+  {
+   "epoca": 27,
+   "perdida_entreno": 0.2794997777257647,
+   "perdida_val": 1.109935717142343
+  },
+  {
+   "epoca": 28,
+   "perdida_entreno": 0.27506955133544075,
+   "perdida_val": 1.1094015978905418
+  },
+  {
+   "epoca": 29,
+   "perdida_entreno": 0.27739312393324717,
+   "perdida_val": 1.1270264705819133
+  },
+  {
+   "epoca": 30,
+   "perdida_entreno": 0.27557625183983453,
+   "perdida_val": 1.1345428892086562
+  }
+ ],
+ "pliegue_3": [
+  {
+   "epoca": 1,
+   "perdida_entreno": 3.397700915571119,
+   "perdida_val": 1.383514393765184
+  },
+  {
+   "epoca": 2,
+   "perdida_entreno": 1.3003981181832611,
+   "perdida_val": 1.4417824633532446
+  },
+  {
+   "epoca": 3,
+   "perdida_entreno": 0.8043538771691869,
+   "perdida_val": 1.123404680244048
+  },
+  {
+   "epoca": 4,
+   "perdida_entreno": 0.5849588879796325,
+   "perdida_val": 1.2286359022991464
+  },
+  {
+   "epoca": 5,
+   "perdida_entreno": 0.47223032302543766,
+   "perdida_val": 1.2518340891329636
+  },
+  {
+   "epoca": 6,
+   "perdida_entreno": 0.4029316091146625,
+   "perdida_val": 1.282949861032379
+  },
+  {
+   "epoca": 7,
+   "perdida_entreno": 0.3730800166481831,
+   "perdida_val": 1.2240699385518823
+  },
+  {
+   "epoca": 8,
+   "perdida_entreno": 0.357803289030419,
+   "perdida_val": 1.19417848140112
+  },
+  {
+   "epoca": 9,
+   "perdida_entreno": 0.3462545319658811,
+   "perdida_val": 1.3077483937762264
+  },
+  {
+   "epoca": 10,
+   "perdida_entreno": 0.32177591226140007,
+   "perdida_val": 1.2825844794061783
+  },
+  {
+   "epoca": 11,
+   "perdida_entreno": 0.3088296187705681,
+   "perdida_val": 1.288582552578033
+  },
+  {
+   "epoca": 12,
+   "perdida_entreno": 0.3057280901025553,
+   "perdida_val": 1.3332920540709758
+  },
+  {
+   "epoca": 13,
+   "perdida_entreno": 0.30830494302218076,
+   "perdida_val": 1.2492544263406886
+  },
+  {
+   "epoca": 14,
+   "perdida_entreno": 0.3056989155831884,
+   "perdida_val": 1.2318278561680553
+  },
+  {
+   "epoca": 15,
+   "perdida_entreno": 0.2946221545094349,
+   "perdida_val": 1.1348024434324409
+  },
+  {
+   "epoca": 16,
+   "perdida_entreno": 0.2933431941954816,
+   "perdida_val": 1.1592224779150535
+  },
+  {
+   "epoca": 17,
+   "perdida_entreno": 0.28373287496019584,
+   "perdida_val": 1.1479578840625635
+  },
+  {
+   "epoca": 18,
+   "perdida_entreno": 0.2879332621566585,
+   "perdida_val": 1.1218112954151385
+  },
+  {
+   "epoca": 19,
+   "perdida_entreno": 0.2858980654693041,
+   "perdida_val": 1.19207140527665
+  },
+  {
+   "epoca": 20,
+   "perdida_entreno": 0.2815864166763962,
+   "perdida_val": 1.1118486032689527
+  },
+  {
+   "epoca": 21,
+   "perdida_entreno": 0.2785073298899854,
+   "perdida_val": 1.1495686602147395
+  },
+  {
+   "epoca": 22,
+   "perdida_entreno": 0.2773403515581225,
+   "perdida_val": 1.1752144371578845
+  },
+  {
+   "epoca": 23,
+   "perdida_entreno": 0.2775881862054106,
+   "perdida_val": 1.126844683275651
+  },
+  {
+   "epoca": 24,
+   "perdida_entreno": 0.27208815002050557,
+   "perdida_val": 1.1390643507479008
+  },
+  {
+   "epoca": 25,
+   "perdida_entreno": 0.27732390605035373,
+   "perdida_val": 1.155931828741153
+  },
+  {
+   "epoca": 26,
+   "perdida_entreno": 0.27443127163120956,
+   "perdida_val": 1.1802616762602054
+  },
+  {
+   "epoca": 27,
+   "perdida_entreno": 0.2755562699720508,
+   "perdida_val": 1.106807086633686
+  },
+  {
+   "epoca": 28,
+   "perdida_entreno": 0.2753311141592557,
+   "perdida_val": 1.1203394464749574
+  },
+  {
+   "epoca": 29,
+   "perdida_entreno": 0.2724635151566052,
+   "perdida_val": 1.1126359361391112
+  },
+  {
+   "epoca": 30,
+   "perdida_entreno": 0.27267073852116946,
+   "perdida_val": 1.1345831069267798
+  }
+ ],
+ "pliegue_4": [
+  {
+   "epoca": 1,
+   "perdida_entreno": 3.3500792345693036,
+   "perdida_val": 1.1524862106499403
+  },
+  {
+   "epoca": 2,
+   "perdida_entreno": 1.3537993334954785,
+   "perdida_val": 0.8354491118706626
+  },
+  {
+   "epoca": 3,
+   "perdida_entreno": 0.8816051848473088,
+   "perdida_val": 0.7994925150765713
+  },
+  {
+   "epoca": 4,
+   "perdida_entreno": 0.6037365476931295,
+   "perdida_val": 0.7707289829418569
+  },
+  {
+   "epoca": 5,
+   "perdida_entreno": 0.48163285082386387,
+   "perdida_val": 0.6837823941218957
+  },
+  {
+   "epoca": 6,
+   "perdida_entreno": 0.4235983769739828,
+   "perdida_val": 0.6865721739800521
+  },
+  {
+   "epoca": 7,
+   "perdida_entreno": 0.3905044351854632,
+   "perdida_val": 0.6747010655311821
+  },
+  {
+   "epoca": 8,
+   "perdida_entreno": 0.34999595822826507,
+   "perdida_val": 0.7332425021274678
+  },
+  {
+   "epoca": 9,
+   "perdida_entreno": 0.3375342094129132,
+   "perdida_val": 0.6527610342563779
+  },
+  {
+   "epoca": 10,
+   "perdida_entreno": 0.32383962023642754,
+   "perdida_val": 0.6206905061550042
+  },
+  {
+   "epoca": 11,
+   "perdida_entreno": 0.3077247431201319,
+   "perdida_val": 0.6273509492954569
+  },
+  {
+   "epoca": 12,
+   "perdida_entreno": 0.31076569038052715,
+   "perdida_val": 0.6252115718002873
+  },
+  {
+   "epoca": 13,
+   "perdida_entreno": 0.2939798072461159,
+   "perdida_val": 0.6814961679899716
+  },
+  {
+   "epoca": 14,
+   "perdida_entreno": 0.28771032008432573,
+   "perdida_val": 0.6701008072452501
+  },
+  {
+   "epoca": 15,
+   "perdida_entreno": 0.2884547373940868,
+   "perdida_val": 0.6667339123455599
+  },
+  {
+   "epoca": 16,
+   "perdida_entreno": 0.2803493276719124,
+   "perdida_val": 0.5994952023315723
+  },
+  {
+   "epoca": 17,
+   "perdida_entreno": 0.28902697611239647,
+   "perdida_val": 0.6079495611305611
+  },
+  {
+   "epoca": 18,
+   "perdida_entreno": 0.279593694113916,
+   "perdida_val": 0.6163768186572728
+  },
+  {
+   "epoca": 19,
+   "perdida_entreno": 0.2785837458026025,
+   "perdida_val": 0.598992312124396
+  },
+  {
+   "epoca": 20,
+   "perdida_entreno": 0.2768584691709088,
+   "perdida_val": 0.5681885037368418
+  },
+  {
+   "epoca": 21,
+   "perdida_entreno": 0.2744777072821894,
+   "perdida_val": 0.5766439067939843
+  },
+  {
+   "epoca": 22,
+   "perdida_entreno": 0.2728798360593857,
+   "perdida_val": 0.6016506550915677
+  },
+  {
+   "epoca": 23,
+   "perdida_entreno": 0.26894579731648965,
+   "perdida_val": 0.585424623050034
+  },
+  {
+   "epoca": 24,
+   "perdida_entreno": 0.2727934372040533,
+   "perdida_val": 0.5939733251231862
+  },
+  {
+   "epoca": 25,
+   "perdida_entreno": 0.27414023828121925,
+   "perdida_val": 0.5815382434293702
+  },
+  {
+   "epoca": 26,
+   "perdida_entreno": 0.2676949736572081,
+   "perdida_val": 0.5790885170198058
+  },
+  {
+   "epoca": 27,
+   "perdida_entreno": 0.27001084050824564,
+   "perdida_val": 0.5894160018435911
+  },
+  {
+   "epoca": 28,
+   "perdida_entreno": 0.2683427420354659,
+   "perdida_val": 0.5756576323722836
+  },
+  {
+   "epoca": 29,
+   "perdida_entreno": 0.26640515365908224,
+   "perdida_val": 0.5650503588171266
+  },
+  {
+   "epoca": 30,
+   "perdida_entreno": 0.2706267175174529,
+   "perdida_val": 0.578961514020533
+  }
+ ],
+ "final": [
+  {
+   "epoca": 1,
+   "perdida_entreno": 3.2031101545730194,
+   "perdida_val": 1.3152798855598813
+  },
+  {
+   "epoca": 2,
+   "perdida_entreno": 1.2372291943469604,
+   "perdida_val": 1.302326665867935
+  },
+  {
+   "epoca": 3,
+   "perdida_entreno": 0.8345336016122397,
+   "perdida_val": 1.0710227997458923
+  },
+  {
+   "epoca": 4,
+   "perdida_entreno": 0.5381105387365663,
+   "perdida_val": 1.0815734751311397
+  },
+  {
+   "epoca": 5,
+   "perdida_entreno": 0.4650620280148147,
+   "perdida_val": 1.0923199375052621
+  },
+  {
+   "epoca": 6,
+   "perdida_entreno": 0.41577369593954705,
+   "perdida_val": 1.0487026343121975
+  },
+  {
+   "epoca": 7,
+   "perdida_entreno": 0.3750248299790667,
+   "perdida_val": 1.087756238694926
+  },
+  {
+   "epoca": 8,
+   "perdida_entreno": 0.3539219680544618,
+   "perdida_val": 1.3008112478463998
+  },
+  {
+   "epoca": 9,
+   "perdida_entreno": 0.3455891957530728,
+   "perdida_val": 1.0560007720182798
+  },
+  {
+   "epoca": 10,
+   "perdida_entreno": 0.3309027688069777,
+   "perdida_val": 1.0408258188364872
+  },
+  {
+   "epoca": 11,
+   "perdida_entreno": 0.3191910180952642,
+   "perdida_val": 1.0722359867131206
+  },
+  {
+   "epoca": 12,
+   "perdida_entreno": 0.3142567857519373,
+   "perdida_val": 1.2319607044870895
+  },
+  {
+   "epoca": 13,
+   "perdida_entreno": 0.30184904863308004,
+   "perdida_val": 1.124108100792829
+  },
+  {
+   "epoca": 14,
+   "perdida_entreno": 0.29538361670134905,
+   "perdida_val": 1.0237466884553554
+  },
+  {
+   "epoca": 15,
+   "perdida_entreno": 0.2978237433867021,
+   "perdida_val": 0.9851846902391799
+  },
+  {
+   "epoca": 16,
+   "perdida_entreno": 0.2856001633328277,
+   "perdida_val": 1.0669374978582888
+  },
+  {
+   "epoca": 17,
+   "perdida_entreno": 0.2816494784571908,
+   "perdida_val": 0.9325024932243197
+  },
+  {
+   "epoca": 18,
+   "perdida_entreno": 0.2807249720994528,
+   "perdida_val": 0.9750550481070626
+  },
+  {
+   "epoca": 19,
+   "perdida_entreno": 0.2764569702860597,
+   "perdida_val": 0.9978933263614049
+  },
+  {
+   "epoca": 20,
+   "perdida_entreno": 0.2756662662927206,
+   "perdida_val": 0.9137706621436096
+  },
+  {
+   "epoca": 21,
+   "perdida_entreno": 0.27380544063332796,
+   "perdida_val": 0.944931861118358
+  },
+  {
+   "epoca": 22,
+   "perdida_entreno": 0.2771098277011475,
+   "perdida_val": 0.9016520594314434
+  },
+  {
+   "epoca": 23,
+   "perdida_entreno": 0.274395206531921,
+   "perdida_val": 0.908321170666822
+  },
+  {
+   "epoca": 24,
+   "perdida_entreno": 0.2758651969881801,
+   "perdida_val": 0.8944997203510312
+  },
+  {
+   "epoca": 25,
+   "perdida_entreno": 0.2704483473842794,
+   "perdida_val": 0.9078843926202169
+  },
+  {
+   "epoca": 26,
+   "perdida_entreno": 0.26827626027070084,
+   "perdida_val": 0.8871691509203151
+  },
+  {
+   "epoca": 27,
+   "perdida_entreno": 0.27175599723667293,
+   "perdida_val": 0.8635215518770544
+  },
+  {
+   "epoca": 28,
+   "perdida_entreno": 0.2696681007162317,
+   "perdida_val": 0.8755134815345158
+  },
+  {
+   "epoca": 29,
+   "perdida_entreno": 0.27073647913994725,
+   "perdida_val": 0.9023353109206287
+  },
+  {
+   "epoca": 30,
+   "perdida_entreno": 0.2704309592773388,
+   "perdida_val": 0.8859226944544136
+  }
+ ]
+}

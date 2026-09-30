@@ -115,4 +115,10 @@ Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/modelos/*.pth
 Backend/Microservicio_IA/entrenamiento/legado/training_logs/
 Backend/Microservicio_IA/entrenamiento/legado/*.log
 Backend/Microservicio_IA/entrenamiento/legado/*.err
-Backend/Microservicio_IA/entrenamiento/*/salidas/
+Backend/Microservicio_IA/entrenamiento/*/salidas/*
+# Lo pequeño que permite auditar los resultados sí se versiona
+!Backend/Microservicio_IA/entrenamiento/*/salidas/metricas.json
+!Backend/Microservicio_IA/entrenamiento/*/salidas/manifiesto.csv
+!Backend/Microservicio_IA/entrenamiento/*/salidas/predicciones_*.csv
+!Backend/Microservicio_IA/entrenamiento/*/salidas/historia.json
+!Backend/Microservicio_IA/entrenamiento/*/salidas/prueba_estilo.json

@@ -215,6 +215,32 @@ export interface ResultadoCircunferencia {
   modelo: { archivo: string; dataset: string; metricas_prueba: MetricasPrueba };
 }
 
+interface ValorConIc { valor: number; ic95: [number, number] | null }
+
+/** Métricas medidas de la red de anomalías cerebrales (viajan dentro del modelo). */
+export interface MetricasAnomaliasCerebrales {
+  umbral: number;
+  todas_fuera_de_pliegue: Record<string, ValorConIc | number>;
+  solo_roboflow: Record<string, ValorConIc | number>;
+  externa_falsos_positivos: { valor: number; ic95: [number, number] | null; fp: number; n: number };
+  otro_hospital_hc18?: { valor: number; ic95: [number, number] | null; fp: number; n: number };
+  n: { anomalias: number; normales_roboflow: number; normales_fetal_planes: number; externas: number; pacientes_externos: number };
+}
+
+export interface ResultadoAnomaliasCerebrales {
+  aplicable: boolean;
+  alarma_anomalia?: boolean;
+  probabilidad_anomalia?: number;
+  umbral?: number;
+  familia_sospechada?: string | null;
+  familia_sospechada_nombre?: string | null;
+  probabilidades?: Record<string, number>;
+  plano_detectado: string | null;
+  avisos: string[];
+  uso: string;
+  modelo: { archivo: string; dataset: string; metricas_prueba: MetricasAnomaliasCerebrales };
+}
+
 export interface PrediccionPeso {
   peso_previsto_g: number;
   clase: string;
@@ -370,7 +396,7 @@ export const iaMedicaService = {
     return response.data;
   },
 
-  // Redes entrenadas con ecografías reales (HC18 y FETAL_PLANES_DB)
+  // Redes entrenadas con ecografías reales (HC18, FETAL_PLANES_DB, anomalías cerebrales)
   clasificarPlano: async (file: File): Promise<ResultadoPlano> => {
     const formData = new FormData();
     formData.append('file', file);
@@ -386,6 +412,16 @@ export const iaMedicaService = {
     formData.append('file', file);
     formData.append('tamano_pixel_mm', String(tamanoPixelMm));
     const response = await api.post('/ecografias/circunferencia-cefalica/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
+  detectarAnomaliasCerebrales: async (file: File): Promise<ResultadoAnomaliasCerebrales> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/ecografias/anomalias-cerebrales/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 30000,
     });

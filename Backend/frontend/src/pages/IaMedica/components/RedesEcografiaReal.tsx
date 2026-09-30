@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Alert, Button, Card, Col, InputNumber, Progress, Row, Select, Statistic, Tag, Upload } from 'antd';
 import { ExperimentOutlined, InboxOutlined } from '@ant-design/icons';
 import {
-  iaMedicaService, ResultadoCircunferencia, ResultadoPlano,
+  iaMedicaService, ResultadoAnomaliasCerebrales, ResultadoCircunferencia, ResultadoPlano,
 } from '../../../services/iaMedicaService';
 
 /**
- * Las dos redes entrenadas con ecografías reales anotadas por expertos:
- * plano anatómico (FETAL_PLANES_DB) y circunferencia cefálica (HC18).
- * Cada resultado muestra al lado el error medido en madres que la red no vio.
+ * Las redes entrenadas con ecografías reales anotadas por expertos: plano
+ * anatómico (FETAL_PLANES_DB), circunferencia cefálica (HC18) y cribado de
+ * anomalías cerebrales. Cada resultado muestra al lado el error medido en
+ * imágenes que la red no vio.
  */
 
 const mensajeDeError = (error: any): string =>
@@ -55,6 +56,62 @@ const TarjetaCircunferencia: React.FC<{ r: ResultadoCircunferencia }> = ({ r }) 
   </Card>
 );
 
+const pct = (v: number) => `${(v * 100).toFixed(1).replace('.', ',')} %`;
+
+const NOMBRE_FAMILIA: Record<string, string> = {
+  normal: 'Normal',
+  ventriculomegalia_hidrocefalia: 'Ventriculomegalia / hidrocefalia',
+  fosa_posterior: 'Fosa posterior',
+  encefalocele: 'Encefalocele',
+  lesion_quistica_vascular: 'Lesión quística o vascular',
+};
+
+const TarjetaAnomalias: React.FC<{ r: ResultadoAnomaliasCerebrales }> = ({ r }) => {
+  const m = r.modelo.metricas_prueba;
+  const hc = m.otro_hospital_hc18;
+  return (
+    <Card size="small" title="Cribado de anomalías cerebrales">
+      {!r.aplicable ? (
+        <p style={{ margin: 0 }}>
+          No se analiza: la imagen no parece un corte axial de la cabeza. Si lo es (una malformación
+          grave puede deformarla), la red no pudo evaluarla y el resultado no descarta nada.
+        </p>
+      ) : (
+        <>
+          <Statistic
+            title="Resultado"
+            value={r.alarma_anomalia ? (r.familia_sospechada_nombre ?? 'Posible anomalía') : 'Sin alarma'}
+            valueStyle={{ color: r.alarma_anomalia ? 'var(--color-error, #b42318)' : undefined }}
+            suffix={<Tag color={r.alarma_anomalia ? 'red' : 'default'}>
+              P(anomalía) {pct(r.probabilidad_anomalia ?? 0)}
+            </Tag>}
+          />
+          {!r.alarma_anomalia && (
+            <p style={{ margin: '4px 0 0', fontSize: 12 }}>
+              «Sin alarma» no descarta una anomalía: la sensibilidad en ecografías clínicas aún no está medida.
+            </p>
+          )}
+          <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
+            {Object.entries(r.probabilidades ?? {}).map(([familia, p]) => (
+              <div key={familia} style={{ display: 'grid', gridTemplateColumns: '14rem 1fr', alignItems: 'center', gap: 8 }}>
+                <span>{NOMBRE_FAMILIA[familia] ?? familia}</span>
+                <Progress percent={Math.round(p * 1000) / 10} size="small" showInfo />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      <p style={{ marginTop: 12, marginBottom: 0, fontSize: 12, opacity: 0.75 }}>
+        Falsas alarmas medidas en cabezas normales que la red no vio:{' '}
+        {hc && <>{pct(hc.valor)} en {hc.n.toLocaleString('es-BO')} de otro hospital (HC18) y </>}
+        {pct(m.externa_falsos_positivos.valor)} en {m.externa_falsos_positivos.n.toLocaleString('es-BO')} de
+        FETAL_PLANES. Entrenada con {m.n.anomalias} imágenes de anomalías de una compilación pública;
+        su sensibilidad en ecografías clínicas no se puede medir aún con datos públicos. {r.uso}
+      </p>
+    </Card>
+  );
+};
+
 /** Una imagen ya guardada (p. ej. de la ficha de una ecografía). */
 export interface ImagenGuardada {
   url: string;
@@ -83,6 +140,7 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
   const [tamanoPixel, setTamanoPixel] = useState<number | null>(null);
   const [plano, setPlano] = useState<ResultadoPlano | null>(null);
   const [circunferencia, setCircunferencia] = useState<ResultadoCircunferencia | null>(null);
+  const [anomalias, setAnomalias] = useState<ResultadoAnomaliasCerebrales | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [analizando, setAnalizando] = useState(false);
 
@@ -95,14 +153,18 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
     setError(null);
     setPlano(null);
     setCircunferencia(null);
+    setAnomalias(null);
     try {
       const fichero = usaGuardadas ? await descargarComoArchivo(guardadas[elegida]) : (archivo as File);
-      const [rPlano, rCirc] = await Promise.all([
+      const [rPlano, rCirc, rAnom] = await Promise.all([
         iaMedicaService.clasificarPlano(fichero),
         tamanoPixel ? iaMedicaService.medirCircunferencia(fichero, tamanoPixel) : Promise.resolve(null),
+        // Si la red de anomalías no está instalada (503), el resto sigue valiendo.
+        iaMedicaService.detectarAnomaliasCerebrales(fichero).catch(() => null),
       ]);
       setPlano(rPlano);
       setCircunferencia(rCirc);
+      setAnomalias(rAnom);
     } catch (e: any) {
       setError(mensajeDeError(e));
     } finally {
@@ -110,7 +172,8 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
     }
   };
 
-  const avisos = [...(plano?.avisos ?? []), ...(circunferencia?.avisos ?? [])];
+  const avisos = [...new Set([...(plano?.avisos ?? []), ...(circunferencia?.avisos ?? []),
+    ...(anomalias?.aplicable ? anomalias.avisos : [])])];
 
   return (
     <Card
@@ -123,7 +186,7 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
             <div>
               <label htmlFor="imagen-guardada" style={{ display: 'block', marginBottom: 4 }}>Imagen de la ecografía</label>
               <Select id="imagen-guardada" value={elegida} style={{ width: '100%' }}
-                onChange={(v) => { setElegida(v); setPlano(null); setCircunferencia(null); }}
+                onChange={(v) => { setElegida(v); setPlano(null); setCircunferencia(null); setAnomalias(null); }}
                 options={guardadas.map((g, i) => ({ value: i, label: g.nombre }))} />
             </div>
           ) : (
@@ -132,7 +195,7 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
               accept=".png,.jpg,.jpeg,.bmp,.tif,.dcm,.dicom"
               maxCount={1}
               showUploadList={false}
-              beforeUpload={(f) => { setArchivo(f); setPlano(null); setCircunferencia(null); return false; }}
+              beforeUpload={(f) => { setArchivo(f); setPlano(null); setCircunferencia(null); setAnomalias(null); return false; }}
             >
               <p className="ant-upload-drag-icon"><InboxOutlined /></p>
               <p className="ant-upload-text">{archivo ? archivo.name : 'Arrastre una ecografía o haga clic'}</p>
@@ -159,12 +222,14 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
           {error && <Alert type="error" showIcon message="No se pudo analizar" description={error} />}
           {avisos.map((a) => <Alert key={a} type="warning" showIcon message={a} />)}
           {plano && <TarjetaPlano r={plano} />}
+          {anomalias && <TarjetaAnomalias r={anomalias} />}
           {circunferencia && <TarjetaCircunferencia r={circunferencia} />}
           {!plano && !error && (
             <p style={{ opacity: 0.75, margin: 0 }}>
-              Reconoce el plano (abdomen, cerebro, fémur, tórax, cuello uterino u otro) y,
-              si indica el tamaño de píxel, mide la circunferencia cefálica y calcula la edad
-              gestacional. Es apoyo a la decisión, no un diagnóstico.
+              Reconoce el plano (abdomen, cerebro, fémur, tórax, cuello uterino u otro); en
+              los cortes de la cabeza busca anomalías cerebrales y, si indica el tamaño de
+              píxel, mide la circunferencia cefálica y calcula la edad gestacional. Es apoyo
+              a la decisión, no un diagnóstico.
             </p>
           )}
         </Col>

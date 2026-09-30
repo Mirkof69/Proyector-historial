@@ -1,0 +1,377 @@
+{
+ "umbral": 0.5,
+ "unidad": "imagen original (copias aumentadas promediadas)",
+ "excluidas_por_duplicado": {
+  "pacientes": 31,
+  "imagenes": 0
+ },
+ "todas_fuera_de_pliegue": {
+  "sensibilidad": {
+   "valor": 0.991,
+   "ic95": [
+    0.968,
+    1.0
+   ]
+  },
+  "especificidad": {
+   "valor": 1.0,
+   "ic95": [
+    1.0,
+    1.0
+   ]
+  },
+  "vpp": {
+   "valor": 1.0,
+   "ic95": [
+    1.0,
+    1.0
+   ]
+  },
+  "vpn": {
+   "valor": 0.999,
+   "ic95": [
+    0.997,
+    1.0
+   ]
+  },
+  "tasa_falsos_positivos": {
+   "valor": 0.0,
+   "ic95": [
+    0.0,
+    0.0
+   ]
+  },
+  "exactitud": {
+   "valor": 0.999,
+   "ic95": [
+    0.998,
+    1.0
+   ]
+  },
+  "auc": {
+   "valor": 1.0,
+   "ic95": [
+    1.0,
+    1.0
+   ]
+  },
+  "vp": 109,
+  "fn": 1,
+  "vn": 1222,
+  "fp": 0
+ },
+ "solo_roboflow": {
+  "sensibilidad": {
+   "valor": 0.991,
+   "ic95": [
+    0.97,
+    1.0
+   ]
+  },
+  "especificidad": {
+   "valor": 1.0,
+   "ic95": [
+    1.0,
+    1.0
+   ]
+  },
+  "vpp": {
+   "valor": 1.0,
+   "ic95": [
+    1.0,
+    1.0
+   ]
+  },
+  "vpn": {
+   "valor": 0.99,
+   "ic95": [
+    0.968,
+    1.0
+   ]
+  },
+  "tasa_falsos_positivos": {
+   "valor": 0.0,
+   "ic95": [
+    0.0,
+    0.0
+   ]
+  },
+  "exactitud": {
+   "valor": 0.995,
+   "ic95": [
+    0.986,
+    1.0
+   ]
+  },
+  "auc": {
+   "valor": 1.0,
+   "ic95": [
+    1.0,
+    1.0
+   ]
+  },
+  "vp": 109,
+  "fn": 1,
+  "vn": 102,
+  "fp": 0
+ },
+ "n": {
+  "anomalias": 110,
+  "normales_roboflow": 102,
+  "normales_fetal_planes": 1120,
+  "externas": 1866,
+  "pacientes_externos": 651
+ },
+ "externa_falsos_positivos": {
+  "valor": 0.0005,
+  "ic95": [
+   0.0,
+   0.002
+  ],
+  "fp": 1,
+  "n": 1866,
+  "por_ecografo": {
+   "Aloka": {
+    "fp": 0,
+    "n": 360
+   },
+   "Other": {
+    "fp": 0,
+    "n": 64
+   },
+   "Voluson E6": {
+    "fp": 1,
+    "n": 1289
+   },
+   "Voluson S10": {
+    "fp": 0,
+    "n": 153
+   }
+  }
+ },
+ "familia_entre_anomalias": {
+  "exactitud": 0.673,
+  "ic95": [
+   0.582,
+   0.755
+  ],
+  "sensibilidad_por_familia": {
+   "ventriculomegalia_hidrocefalia": {
+    "aciertos": 47,
+    "n": 56
+   },
+   "fosa_posterior": {
+    "aciertos": 7,
+    "n": 15
+   },
+   "encefalocele": {
+    "aciertos": 6,
+    "n": 12
+   },
+   "lesion_quistica_vascular": {
+    "aciertos": 14,
+    "n": 27
+   }
+  },
+  "matriz_confusion": {
+   "filas_real_columnas_predicha": [
+    "ventriculomegalia_hidrocefalia",
+    "fosa_posterior",
+    "encefalocele",
+    "lesion_quistica_vascular"
+   ],
+   "valores": [
+    [
+     47,
+     3,
+     2,
+     4
+    ],
+    [
+     5,
+     7,
+     0,
+     3
+    ],
+    [
+     2,
+     2,
+     6,
+     2
+    ],
+    [
+     11,
+     1,
+     1,
+     14
+    ]
+   ]
+  }
+ },
+ "deteccion_por_anomalia_fina": {
+  "anold-chiari-malformation": {
+   "detectadas": 4,
+   "n": 4
+  },
+  "arachnoid-cyst": {
+   "detectadas": 9,
+   "n": 9
+  },
+  "cerebellah-hypoplasia": {
+   "detectadas": 8,
+   "n": 8
+  },
+  "colphocephaly": {
+   "detectadas": 5,
+   "n": 6
+  },
+  "encephalocele": {
+   "detectadas": 12,
+   "n": 12
+  },
+  "holoprosencephaly": {
+   "detectadas": 1,
+   "n": 1
+  },
+  "hydracenphaly": {
+   "detectadas": 2,
+   "n": 2
+  },
+  "intracranial-hemorrdge": {
+   "detectadas": 5,
+   "n": 5
+  },
+  "intracranial-tumor": {
+   "detectadas": 1,
+   "n": 1
+  },
+  "m-magna": {
+   "detectadas": 3,
+   "n": 3
+  },
+  "mild-ventriculomegaly": {
+   "detectadas": 21,
+   "n": 21
+  },
+  "moderate-ventriculomegaly": {
+   "detectadas": 19,
+   "n": 19
+  },
+  "polencephaly": {
+   "detectadas": 8,
+   "n": 8
+  },
+  "severe-ventriculomegaly": {
+   "detectadas": 8,
+   "n": 8
+  },
+  "vein-of-galen": {
+   "detectadas": 3,
+   "n": 3
+  }
+ },
+ "auc_por_pliegue": {
+  "0": 1.0,
+  "1": 1.0,
+  "2": 1.0,
+  "3": 1.0,
+  "4": 1.0
+ },
+ "otro_hospital_hc18": {
+  "valor": 0.002,
+  "fp": 2,
+  "n": 999,
+  "ic95": [
+   0.0,
+   0.005
+  ],
+  "por_trimestre": {
+   "primero": {
+    "fp": 1,
+    "n": 153
+   },
+   "segundo": {
+    "fp": 1,
+    "n": 701
+   },
+   "tercero": {
+    "fp": 0,
+    "n": 145
+   }
+  }
+ },
+ "prueba_estilo": {
+  "original": {
+   "falsas_alarmas": 0,
+   "n": 300,
+   "tasa": 0.0
+  },
+  "lavada": {
+   "falsas_alarmas": 0,
+   "n": 300,
+   "tasa": 0.0
+  },
+  "fondo_gris": {
+   "falsas_alarmas": 0,
+   "n": 300,
+   "tasa": 0.0
+  },
+  "reescalada": {
+   "falsas_alarmas": 0,
+   "n": 300,
+   "tasa": 0.0
+  },
+  "borrosa": {
+   "falsas_alarmas": 0,
+   "n": 300,
+   "tasa": 0.0
+  },
+  "todo_junto": {
+   "falsas_alarmas": 0,
+   "n": 300,
+   "tasa": 0.0
+  },
+  "foto_de_pantalla": {
+   "falsas_alarmas": 6,
+   "n": 300,
+   "tasa": 0.02
+  }
+ },
+ "prueba_estilo_v1": {
+  "original": {
+   "falsas_alarmas": 0,
+   "n": 300,
+   "tasa": 0.0
+  },
+  "lavada": {
+   "falsas_alarmas": 1,
+   "n": 300,
+   "tasa": 0.0033
+  },
+  "fondo_gris": {
+   "falsas_alarmas": 1,
+   "n": 300,
+   "tasa": 0.0033
+  },
+  "reescalada": {
+   "falsas_alarmas": 1,
+   "n": 300,
+   "tasa": 0.0033
+  },
+  "borrosa": {
+   "falsas_alarmas": 2,
+   "n": 300,
+   "tasa": 0.0067
+  },
+  "todo_junto": {
+   "falsas_alarmas": 139,
+   "n": 300,
+   "tasa": 0.4633
+  },
+  "foto_de_pantalla": {
+   "falsas_alarmas": 6,
+   "n": 300,
+   "tasa": 0.02
+  }
+ }
+}

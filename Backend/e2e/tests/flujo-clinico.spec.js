@@ -123,6 +123,9 @@ test.describe('Flujo clínico de punta a punta', () => {
     await page.getByRole('button', { name: 'Analizar' }).click();
     await expect(page.getByText('La imagen muestra')).toBeVisible({ timeout: 60000 });
     await expect(page.locator('body')).toContainText('cerebro fetal');
+    // La cabeza de prueba es normal: la red de anomalías no debe alarmar.
+    await expect(page.getByText('Cribado de anomalías cerebrales')).toBeVisible();
+    await expect(page.getByText('Sin alarma', { exact: true })).toBeVisible();
   });
 
   test('6. el parto llega con el embarazo elegido', async () => {

@@ -626,3 +626,14 @@ def circunferencia_cefalica(request):
     return _reenviar_a_red_real(
         request, "/api/biometria/circunferencia-cefalica", {"tamano_pixel_mm": tamano},
     )
+
+
+@extend_schema(request=None, responses={200: dict})
+@api_view(["POST"])
+@permission_classes([FetalMedicalPermission])
+def anomalias_cerebrales(request):
+    """Cribado de anomalías cerebrales fetales (red entrenada con ecografías reales).
+
+    Endpoint: POST /api/ecografias/anomalias-cerebrales/  — file
+    """
+    return _reenviar_a_red_real(request, "/api/anomalias-cerebrales", {})

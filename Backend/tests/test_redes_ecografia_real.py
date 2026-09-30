@@ -1,4 +1,4 @@
-"""El puente Django → microservicio para las dos redes entrenadas con
+"""El puente Django → microservicio para las redes entrenadas con
 ecografías reales. El microservicio se simula: aquí se prueba el reenvío,
 no la red (eso lo prueba Microservicio_IA/test_ecografia_real.py).
 """
@@ -74,6 +74,15 @@ class PuenteRedesReales(TestCase):
         r = self.cliente.post("/api/ecografias/plano-anatomico/", {"file": _png()})
         self.assertEqual(r.status_code, 503)
         self.assertIn("x.pth", r.json()["error"])
+
+    @patch("ecografias.ai_views.requests.post")
+    def test_anomalias_cerebrales_va_a_su_red(self, post):
+        """ESPERADO: 200 con la alarma y a la URL de la red de anomalías."""
+        post.return_value = _respuesta(200, {"aplicable": True, "alarma_anomalia": False})
+        r = self.cliente.post("/api/ecografias/anomalias-cerebrales/", {"file": _png()})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.json()["alarma_anomalia"])
+        self.assertEqual(post.call_args.args[0], "http://ia:8001/api/anomalias-cerebrales")
 
     @patch("ecografias.ai_views.requests.post", side_effect=requests.ConnectionError())
     def test_microservicio_apagado_da_503_claro(self, _post):

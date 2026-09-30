@@ -342,6 +342,22 @@ async def clasificar_plano_anatomico(file: UploadFile = File(...)) -> dict:
         raise HTTPException(status_code=503, detail=str(e)) from e
 
 
+@router.post(
+    "/anomalias-cerebrales",
+    summary="Cribado de anomalías cerebrales fetales (red entrenada con ecografías reales)",
+)
+async def detectar_anomalias_cerebrales(file: UploadFile = File(...)) -> dict:
+    """Normal o ventriculomegalia/hidrocefalia, fosa posterior, encefalocele o
+    lesión quística/vascular, sobre un corte axial de la cabeza. Las métricas
+    medidas (validación cruzada agrupada y prueba externa de falsos positivos)
+    vienen en `modelo.metricas_prueba`."""
+    imagen = await _leer_imagen(file)
+    try:
+        return await run_in_threadpool(redes_reales.detectar_anomalia_cerebral, imagen)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+
+
 @router.post("/quality-check", summary="Evaluar calidad de imagen médica")
 async def check_image_quality(file: UploadFile = File(...)) -> dict:
     """Check image quality"""
