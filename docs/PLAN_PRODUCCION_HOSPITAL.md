@@ -98,7 +98,8 @@ Frontend
 - [x] Historia clínica como centro de la paciente, con acceso directo a cada paso.
 - [x] Formularios con `?paciente=`/`?embarazo=` y selectores con búsqueda en el servidor; flujo completo verificado con Playwright.  
   _Original:_ Formularios que reciben `?paciente=` y `?embarazo=`; tras registrar paciente, ofrecer «crear embarazo».
-- [ ] Detalle del parto con pestañas: recién nacidos (gemelos), Apgar, partograma, complicaciones.
+- [~] Partos múltiples: se registran todos los recién nacidos, validados (antes solo uno y sin validar el peso). Falta el detalle del parto con pestañas.  
+  _Original:_ Detalle del parto con pestañas: recién nacidos (gemelos), Apgar, partograma, complicaciones.
 - [ ] Unificar duplicados: Evoluciones + Notas, calculadoras, alias de laboratorio, dos modelos de imagen.
 - [~] Tokens de tema completados (52 variables sin definir); faltan paginación en servidor en listados grandes y `aria-label` general.  
   _Original:_ Paginación en el servidor; dividir los componentes gigantes; modo oscuro y `aria-label`.
