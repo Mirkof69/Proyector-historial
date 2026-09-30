@@ -772,6 +772,9 @@ class Command(BaseCommand):
                 peso_kg=Decimal(str(peso)),
                 altura_cm=Decimal(str(altura)),
                 observaciones=f"Paciente seed #{i + 1} para pruebas del sistema.",
+                # Ley 164: el alta real exige consentimiento; el seed lo omitía.
+                consentimiento_datos_aceptado=True,
+                consentimiento_datos_fecha=timezone.now(),
                 created_by=admin_user,
             )
 

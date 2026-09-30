@@ -12,6 +12,7 @@ import random
 from datetime import date, datetime, timedelta
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from django_tenants.utils import schema_context
 
 SCHEMA = "clinica_demo"
@@ -145,6 +146,10 @@ class Command(BaseCommand):
                     estado_civil=random.choice(["soltero", "casado", "union_libre"]),
                     activo=True,
                     estado_paciente="activo",
+                    # Ley 164: toda paciente registrada tiene consentimiento. El
+                    # seed crea con save() (sin el serializer) y lo omitía.
+                    consentimiento_datos_aceptado=True,
+                    consentimiento_datos_fecha=timezone.now(),
                 )
                 paciente.save()
                 created = True
