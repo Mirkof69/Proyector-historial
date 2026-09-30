@@ -6,10 +6,10 @@ import { useAntdApp } from '../../hooks/useMessage';
 import {
   SaveOutlined, CloseOutlined, ArrowLeftOutlined, HeartOutlined, WarningOutlined
 } from '@ant-design/icons';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { leerContextoClinico } from '../../components/clinico/SelectoresClinicos';
 import { partosService, Recomendacion, AlertaParto } from '../../services/partosService';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
-import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import dayjs from 'dayjs';
 import { computarAlertasEdadGestacional, computarRecomendacionesPorTrimestre } from './partoUtils';
@@ -29,14 +29,16 @@ const SAVE_ICON_5 = <SaveOutlined />;
 
 const FormularioParto: React.FC = () => {
   const { message } = useAntdApp();
-  const { embarazoId, id } = useParams<{ embarazoId?: string; id?: string }>();
+  const { embarazoId: embarazoRuta, id } = useParams<{ embarazoId?: string; id?: string }>();
+  const [busqueda] = useSearchParams();
+  // El embarazo puede llegar por la ruta o por ?embarazo= (historia clínica).
+  const embarazoId = embarazoRuta ?? (leerContextoClinico(busqueda).embarazoId?.toString());
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const loadingDataRef = useRef(false);
   const embarazoRef = useRef<Embarazo | null>(null);
-  const [embarazos, setEmbarazos] = useState<Embarazo[]>([]);
-  const pacientesRef = useRef<Paciente[]>([]);
+  const [embarazos] = useState<Embarazo[]>([]);
   const [recomendaciones, setRecomendaciones] = useState<Recomendacion[]>([]);
   const [alertas, setAlertas] = useState<AlertaParto[]>([]);
   const [esAborto, setEsAborto] = useState(false);
@@ -164,42 +166,33 @@ const FormularioParto: React.FC = () => {
     }
   }, [form, calcularAlertasYRecomendaciones, message]);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [pacientesData, embarazosData] = await Promise.all([
-        pacientesService.getAll(),
-        embarazosService.getAll()
-      ]);
-      pacientesRef.current = pacientesData;
-      setEmbarazos(embarazosData.filter((e: Embarazo) => e.estado === 'activo'));
-    } catch (error) {
-      message.error('Error al cargar datos iniciales');
-    }
-  }, [message]);
-
+  // Ya no se descargan todas las pacientes y embarazos (solo llegaba la
+  // primera página): el selector busca en el servidor.
   const initializeData = useCallback(async () => {
-    await fetchData();
     if (id) {
       cargarParto(parseInt(id));
     } else if (embarazoId) {
       cargarEmbarazo(parseInt(embarazoId));
+    } else {
+      const { pacienteId } = leerContextoClinico(busqueda);
+      if (pacienteId) {
+        try {
+          const [activo] = await embarazosService.listar({ paciente: pacienteId, estado: 'activo' });
+          if (activo?.id) cargarEmbarazo(activo.id);
+          else message.warning('La paciente no tiene un embarazo activo');
+        } catch {
+          message.error('No se pudo cargar el embarazo de la paciente');
+        }
+      }
     }
-  }, [id, embarazoId, cargarEmbarazo, cargarParto, fetchData]);
+  }, [id, embarazoId, cargarEmbarazo, cargarParto, busqueda, message]);
 
   useEffect(() => {
     initializeData();
   }, [initializeData]);
 
-  const getNombrePaciente = (embId: number): string => {
-    const emb = embarazos.find((e) => e.id === embId);
-    if (!emb) return 'Paciente no encontrado';
-    const pInfo = (emb as any).paciente_info;
-    if (pInfo) return `${pInfo.id_clinico} - ${pInfo.nombre} ${pInfo.apellido_paterno}`;
-    return 'Paciente no encontrado';
-  };
-
-  const handleEmbarazoChange = (embId: number) => {
-    const selected = embarazos.find((e) => e.id === embId);
+  const handleEmbarazoChange = (embId: number, embarazoCargado?: Embarazo) => {
+    const selected = embarazoCargado ?? embarazos.find((e) => e.id === embId);
     embarazoRef.current = selected || null;
     setTipoEventoManual(false);
     if (selected) {
@@ -290,12 +283,10 @@ const FormularioParto: React.FC = () => {
       >
         <Form form={form} layout="vertical" onFinish={handleSave} initialValues={{ tipo_parto: 'vaginal_espontaneo', parto_finalizado: true }}>
           <SeccionEmbarazoEvento
-            embarazos={embarazos}
             embarazoId={embarazoId}
             tipoEvento={tipoEvento}
             setTipoEvento={setTipoEvento}
             setTipoEventoManual={setTipoEventoManual}
-            getNombrePaciente={getNombrePaciente}
             handleEmbarazoChange={handleEmbarazoChange}
             form={form}
           />

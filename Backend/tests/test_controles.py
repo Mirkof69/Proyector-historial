@@ -461,3 +461,29 @@ class ControlPrenatalAPITest(APITestCase):
         url = reverse("controlprenatal-recientes")
         response = self.client.get(url, {"dias": 7})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class TallaOpcionalTest(TestCase):
+    """Un control se guarda aunque no se indique la talla.
+
+    Fallo que previene: la talla era obligatoria en la base pero el formulario
+    la mostraba opcional; si el embarazo no la tenía, el control no se podía
+    guardar («talla: Este campo es requerido»).
+    """
+
+    def test_sin_talla_se_guarda_y_hereda_la_de_la_paciente(self):
+        import datetime
+        from decimal import Decimal
+
+        from controles.models import ControlPrenatal
+        from embarazos.models import Embarazo
+        from pacientes.models import Paciente
+
+        hoy = datetime.date.today()
+        p = Paciente.objects.create(nombre="Tal", apellido_paterno="La", apellido_materno="X", ci="7977701",
+                                    fecha_nacimiento=datetime.date(1993, 1, 1), genero="femenino", altura_cm=Decimal("152"))
+        e = Embarazo.objects.create(paciente=p, numero_gesta=1, fecha_ultima_menstruacion=hoy - datetime.timedelta(weeks=20))
+        c = ControlPrenatal.objects.create(
+            embarazo=e, numero_control=1, fecha_control=hoy, semanas_gestacion=20, peso_actual=Decimal("60"),
+            presion_arterial_sistolica=110, presion_arterial_diastolica=70)
+        self.assertEqual(c.talla, Decimal("152"))

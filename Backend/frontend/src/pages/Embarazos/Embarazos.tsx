@@ -231,13 +231,12 @@ const Embarazos: React.FC = () => {
         try {
             // Filtramos solo mujeres para el select de state.embarazos
             const response = await api.get('/pacientes/', {
-                params: {
-                    search,
-                    genero: 'femenino',
-                    limit: 20 // Limitar resultados para rendimiento
-                }
+                params: { search: search || undefined, genero: 'femenino', page_size: 20 },
             });
-            const results = Array.isArray(response) ? response : (response as any).results || [];
+            // Los datos vienen en response.data: antes se leía response.results,
+            // que no existe, y el buscador devolvía siempre una lista vacía.
+            const datos = response.data;
+            const results = Array.isArray(datos) ? datos : datos?.results || [];
 
             const options = results.map((p: any) => ({
                 id: p.id,

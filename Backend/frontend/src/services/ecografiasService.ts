@@ -189,46 +189,15 @@ export const ecografiasService = {
     return response.data;
   },
 
-  /** Crea ecografía completa con biometría, anatomía, anexos e imágenes */
-  create: async (data: Partial<Ecografia>) => {
-    // Si hay imágenes, usar FormData
-    if (data.imagenes && data.imagenes.length > 0) {
-      const formData = new FormData();
-
-      // Agregar campos principales
-      Object.keys(data).forEach(key => {
-        const value = (data as any)[key];
-        if (key !== 'imagenes' && key !== 'biometria' && key !== 'anatomia' && key !== 'anexos' && value !== undefined && value !== null) {
-          formData.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
-        }
-      });
-
-      // Agregar datos anidados como JSON
-      if (data.biometria) {
-        formData.append('biometria', JSON.stringify(data.biometria));
-      }
-      if (data.anatomia) {
-        formData.append('anatomia', JSON.stringify(data.anatomia));
-      }
-      if (data.anexos) {
-        formData.append('anexos', JSON.stringify(data.anexos));
-      }
-
-      // Agregar imágenes
-      data.imagenes.forEach((img, index) => {
-        if (img.imagen instanceof File) {
-          formData.append(`imagenes[${index}]`, img.imagen);
-          if (img.descripcion) {
-            formData.append(`imagenes_descripcion[${index}]`, img.descripcion);
-          }
-        }
-      });
-
-      return await postFormData('/ecografias/', formData);
-    } else {
-      // Sin imágenes, usar JSON normal
-      return await api.post('/ecografias/', data);
-    }
+  /**
+   * Crea la ecografía (con biometría, anatomía y anexos anidados) y devuelve
+   * la ecografía creada. Las imágenes se suben después con addImagen: el alta
+   * no las recoge, y antes se enviaban aquí dentro de un FormData y se perdían.
+   */
+  create: async (data: Partial<Ecografia>): Promise<Ecografia> => {
+    const { imagenes: _imagenes, ...datos } = data;
+    const response = await api.post<Ecografia>('/ecografias/', datos);
+    return response.data;
   },
 
   /** Actualizar ecografía */

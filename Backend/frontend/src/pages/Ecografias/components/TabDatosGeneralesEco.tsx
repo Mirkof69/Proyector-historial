@@ -1,14 +1,13 @@
 import React from 'react';
 import { Card, Form, Select, DatePicker, InputNumber, Row, Col, Space, Divider, Typography, Checkbox, Alert } from 'antd';
 import dayjs from 'dayjs';
-import { Paciente } from '../../../services/pacientesService';
 import { Embarazo } from '../../../services/embarazosService';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { Option } = Select;
 const { Text } = Typography;
 
 interface TabDatosGeneralesEcoProps {
-  pacientes: Paciente[];
   embarazos: Embarazo[];
   selectedPaciente: number | null;
   selectedEmbarazo: Embarazo | null;
@@ -18,26 +17,26 @@ interface TabDatosGeneralesEcoProps {
 }
 
 const TabDatosGeneralesEco: React.FC<TabDatosGeneralesEcoProps> = ({
-  pacientes, embarazos, selectedPaciente, selectedEmbarazo, isEditing,
+  embarazos, selectedPaciente, selectedEmbarazo, isEditing,
   handlePacienteChange, actualizarEdadGestacional,
 }) => (
   <Card className="shadow-sm">
     <Row gutter={24}>
       <Col xs={24} md={12}>
         <Form.Item name="paciente" label="Paciente" rules={[{ required: true, message: 'Seleccione un paciente' }]}>
-          <Select placeholder="Buscar paciente..." showSearch filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())} onChange={handlePacienteChange} options={pacientes.map((p) => ({ label: `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''} - ${p.id_clinico}`, value: p.id }))} disabled={isEditing} />
+          <PacienteSelect onChange={(v) => handlePacienteChange(v ?? null)} disabled={isEditing} />
         </Form.Item>
       </Col>
       <Col xs={24} md={12}>
         <Form.Item name="embarazo" label="Embarazo Asociado" rules={[{ required: true, message: 'Seleccione un embarazo' }]}>
-          <Select placeholder={selectedPaciente ? 'Seleccione embarazo...' : 'Primero seleccione paciente'} disabled={!selectedPaciente || embarazos.length === 0 || isEditing} onChange={actualizarEdadGestacional} options={embarazos.map((e) => ({ label: `FUM: ${dayjs(e.fecha_ultima_menstruacion).format('DD/MM/YYYY')} - ${(e.estado || 'activo').toUpperCase()}`, value: e.id }))} />
+          <Select placeholder={selectedPaciente ? 'Seleccione embarazo...' : 'Primero seleccione paciente'} disabled={!selectedPaciente || embarazos.length === 0 || isEditing} onChange={(v: number) => actualizarEdadGestacional(v)} options={embarazos.map((e) => ({ label: `FUM: ${dayjs(e.fecha_ultima_menstruacion).format('DD/MM/YYYY')} - ${(e.estado || 'activo').toUpperCase()}`, value: e.id }))} />
         </Form.Item>
       </Col>
     </Row>
     <Row gutter={24}>
       <Col xs={24} md={8}>
         <Form.Item name="fecha_ecografia" label="Fecha del Estudio" rules={[{ required: true, message: 'Requerido' }]}>
-          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" onChange={actualizarEdadGestacional} disabledDate={(d) => d && d.isAfter(dayjs(), 'day')} />
+          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" onChange={() => actualizarEdadGestacional()} disabledDate={(d) => d && d.isAfter(dayjs(), 'day')} />
         </Form.Item>
       </Col>
       <Col xs={24} md={8}>

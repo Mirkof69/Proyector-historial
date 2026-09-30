@@ -1,22 +1,20 @@
 import React from 'react';
-import { Divider, Row, Col, Form, Select, InputNumber, DatePicker, Alert, Card, Typography, Tag } from 'antd';
+import { Divider, Row, Col, Form, InputNumber, DatePicker, Alert, Card, Typography, Tag } from 'antd';
 import type { FormInstance } from 'antd';
 import dayjs from 'dayjs';
-import { Paciente } from '../../../services/pacientesService';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
-const { Option } = Select;
 const { Text } = Typography;
 
 interface SeccionDatosGeneralesEmbarazoProps {
   form: FormInstance;
-  pacientes: Paciente[];
   fppCalculada: string;
   edadGestacional: string;
   trimestreActual: number;
 }
 
 const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps> = ({
-  form, pacientes, fppCalculada, edadGestacional, trimestreActual,
+  form, fppCalculada, edadGestacional, trimestreActual,
 }) => (
   <>
     <Divider orientation="left">Informacion General</Divider>
@@ -28,20 +26,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
           label="Paciente"
           rules={[{ required: true, message: 'Seleccione un paciente' }]}
         >
-          <Select
-            placeholder="Seleccione paciente"
-            optionLabelProp="label"
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-          >
-            {pacientes.map((p) => (
-              <Option key={p.id} value={p.id} label={`${p.nombre} ${p.apellido_paterno}`}>
-                {p.nombre} {p.apellido_paterno} - {p.id_clinico}
-              </Option>
-            ))}
-          </Select>
+          <PacienteSelect />
         </Form.Item>
       </Col>
 
@@ -49,6 +34,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
         <Form.Item
           name="numero_gesta"
           label="Numero de Gesta"
+          tooltip="Se calcula solo: partos + abortos + 1 (este embarazo)"
           rules={[
             { required: true, message: 'Ingrese numero de gesta' },
             { type: 'number', min: 1, message: 'Debe ser numero positivo' },
@@ -74,7 +60,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
           {/* InputNumber (no Input type="number"): el HTML nativo emite STRING
               y la regla type:'number' rechazaba CUALQUIER valor tecleado —
               era imposible crear un embarazo desde este formulario. */}
-          <InputNumber style={{ width: '100%' }} placeholder="1" min={1} />
+          <InputNumber style={{ width: '100%' }} min={1} disabled aria-readonly />
         </Form.Item>
       </Col>
     </Row>

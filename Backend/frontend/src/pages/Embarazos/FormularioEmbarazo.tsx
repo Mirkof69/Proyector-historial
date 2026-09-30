@@ -8,9 +8,9 @@ import {
   HeartOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { leerContextoClinico } from '../../components/clinico/SelectoresClinicos';
 import { embarazosService } from '../../services/embarazosService';
-import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useEmbarazoValidation } from '../../hooks/useFormValidation';
@@ -29,11 +29,11 @@ const SAVE_ICON_3 = <SaveOutlined />;
 const FormularioEmbarazo: React.FC = () => {
   const { modal, message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
+  const [busqueda] = useSearchParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [fppCalculada, setFppCalculada] = useState<string>('');
   const [edadGestacional, setEdadGestacional] = useState<string>('');
   const [trimestreActual, setTrimestreActual] = useState<number>(0);
@@ -103,16 +103,6 @@ const FormularioEmbarazo: React.FC = () => {
     }
   }, [form]);
 
-  const cargarPacientes = useCallback(async () => {
-    try {
-      const data = await pacientesService.getAll();
-      const pacientesFemeninos = data.filter((p) => p.genero === 'femenino');
-      setPacientes(pacientesFemeninos);
-    } catch (error: any) {
-      message.error('Error al cargar lista de pacientes');
-    }
-  }, [message]);
-
   const handleCancel = useCallback(() => {
     navigate(FRONTEND_ROUTES.DASHBOARD.EMBARAZOS);
   }, [navigate]);
@@ -142,13 +132,15 @@ const FormularioEmbarazo: React.FC = () => {
   }, [calcularFPP, calcularIMC, form, handleCancel, message]);
 
   useEffect(() => {
-    cargarPacientes();
     if (isEditing) {
       cargarEmbarazo(parseInt(id!));
     } else {
+      // Desde la ficha de la paciente se llega con ?paciente=: ya elegida.
+      const { pacienteId } = leerContextoClinico(busqueda);
+      if (pacienteId) form.setFieldsValue({ paciente: pacienteId });
       setLoadingData(false);
     }
-  }, [id, isEditing, cargarPacientes, cargarEmbarazo]);
+  }, [id, isEditing, cargarEmbarazo, busqueda, form]);
 
   const handleSave = async (values: any) => {
     setLoading(true);
@@ -248,15 +240,23 @@ const FormularioEmbarazo: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={handleSave}
+          // Valores iniciales: sin ellos «Número de gesta» quedaba vacío (con
+          // un «1» de ejemplo que parecía cargado) y el formulario no guardaba.
+          initialValues={{ numero_gesta: 1, numero_para: 0, numero_abortos: 0, numero_cesareas: 0 }}
           onValuesChange={(changedValues) => {
             if (changedValues.fecha_ultima_menstruacion !== undefined) {
               calcularFPP(changedValues.fecha_ultima_menstruacion);
+            }
+            // El backend exige G = P + A + 1: la gesta se calcula, no se escribe.
+            if (changedValues.numero_para !== undefined || changedValues.numero_abortos !== undefined) {
+              const para = form.getFieldValue('numero_para') || 0;
+              const abortos = form.getFieldValue('numero_abortos') || 0;
+              form.setFieldsValue({ numero_gesta: para + abortos + 1 });
             }
           }}
         >
           <SeccionDatosGeneralesEmbarazo
             form={form}
-            pacientes={pacientes}
             fppCalculada={fppCalculada}
             edadGestacional={edadGestacional}
             trimestreActual={trimestreActual}

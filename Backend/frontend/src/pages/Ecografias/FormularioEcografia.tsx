@@ -37,10 +37,10 @@ import {
   ScanOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { leerContextoClinico } from '../../components/clinico/SelectoresClinicos';
 import dayjs from 'dayjs';
 import { ecografiasService, Ecografia } from '../../services/ecografiasService';
-import { pacientesService, Paciente } from '../../services/pacientesService';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
 import { citasService } from '../../services/citasService';
 import { FRONTEND_ROUTES } from '../../config/routes';
@@ -79,13 +79,13 @@ const FormularioEcografia: React.FC = () => {
   const { message } = useAntdApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [busqueda] = useSearchParams();
   const isEditing = !!id;
   const [form] = Form.useForm();
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [embarazos, setEmbarazos] = useState<Embarazo[]>([]);
   const [selectedPaciente, setSelectedPaciente] = useState<number | null>(null);
   const [selectedEmbarazo, setSelectedEmbarazo] = useState<Embarazo | null>(null);
@@ -97,12 +97,28 @@ const FormularioEcografia: React.FC = () => {
   // ==========================================================================
   // CARGAR DATOS INICIALES
   // ==========================================================================
-  const cargarPacientes = async () => {
+  // Desde la ficha de la paciente o del embarazo se llega con ?paciente= o
+  // ?embarazo=: quedan elegidos y la edad gestacional se calcula sola.
+  const aplicarContextoDeUrl = async () => {
+    const { pacienteId, embarazoId } = leerContextoClinico(busqueda);
     try {
-      const data = await pacientesService.getAll();
-      setPacientes(data);
-    } catch (error) {
-      message.error('Error al cargar lista de pacientes');
+      let paciente = pacienteId;
+      if (embarazoId && !paciente) {
+        const e = await embarazosService.obtener(embarazoId);
+        paciente = typeof e.paciente === 'object' ? (e.paciente as { id: number }).id : e.paciente;
+      }
+      if (!paciente) return;
+      form.setFieldsValue({ paciente });
+      setSelectedPaciente(paciente);
+      const lista = (await embarazosService.getByPaciente(paciente)) as Embarazo[];
+      setEmbarazos(lista);
+      const elegido = embarazoId ?? lista.find((e) => e.estado === 'activo')?.id;
+      if (elegido) {
+        form.setFieldsValue({ embarazo: elegido });
+        actualizarEdadGestacional(elegido, lista);
+      }
+    } catch {
+      message.error('No se pudo cargar la paciente indicada');
     }
   };
 
@@ -160,9 +176,10 @@ const FormularioEcografia: React.FC = () => {
   };
 
   useEffect(() => {
-    cargarPacientes();
     if (isEditing) {
       cargarEcografia(Number(id));
+    } else {
+      aplicarContextoDeUrl();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -177,7 +194,7 @@ const FormularioEcografia: React.FC = () => {
     }
   };
 
-  const actualizarEdadGestacional = (embarazoId?: number) => {
+  const actualizarEdadGestacional = (embarazoId?: number, lista: Embarazo[] = embarazos) => {
     // Obtener valores del formulario
     const idEmbarazo = embarazoId || form.getFieldValue('embarazo');
     let fechaEco = form.getFieldValue('fecha_ecografia');
@@ -186,7 +203,7 @@ const FormularioEcografia: React.FC = () => {
     if (!idEmbarazo) return;
 
     // Buscar el embarazo seleccionado
-    const embarazoSeleccionado = embarazos.find(e => e.id === idEmbarazo);
+    const embarazoSeleccionado = lista.find(e => e.id === idEmbarazo);
     if (!embarazoSeleccionado?.fecha_ultima_menstruacion) {
       message.warning('El embarazo seleccionado no tiene fecha de última menstruación (FUM)');
       return;
@@ -212,6 +229,12 @@ const FormularioEcografia: React.FC = () => {
       edad_gestacional_semanas: semanas,
       edad_gestacional_dias: dias
     });
+    // El tipo por trimestre se sugiere según la EG mientras no se haya tocado
+    // (antes quedaba «Primer trimestre» aunque el embarazo fuera de 20 semanas).
+    if (!form.isFieldTouched('tipo_ecografia')) {
+      const tipo = semanas < 14 ? 'primer_trimestre' : semanas < 28 ? 'segundo_trimestre' : 'tercer_trimestre';
+      form.setFieldsValue({ tipo_ecografia: tipo });
+    }
 
     // Mostrar mensaje de confirmación
     message.success(`✓ Edad gestacional autocompletada: ${semanas}+${dias} semanas`, 3);
@@ -259,8 +282,20 @@ const FormularioEcografia: React.FC = () => {
 
         message.success('Ecografía actualizada correctamente');
       } else {
-        await ecografiasService.create(ecografiaData);
-        message.success('Ecografía registrada correctamente');
+        // El alta no recoge imágenes (antes se enviaban dentro del mismo POST y
+        // se perdían sin aviso): se crea la ecografía y luego se sube cada
+        // imagen por subir_imagen, que además valida el contenido del archivo.
+        const { imagenes: _sinImagenes, ...datos } = ecografiaData;
+        const creada = await ecografiasService.create(datos);
+        const resultados = await Promise.allSettled(
+          nuevasImagenes.map((img) => ecografiasService.addImagen(Number(creada.id), img)),
+        );
+        const fallidas = resultados.filter((r) => r.status === 'rejected').length;
+        if (fallidas) {
+          message.warning(`Ecografía registrada, pero ${fallidas} imagen(es) no se pudieron subir. Revise el formato.`);
+        } else {
+          message.success('Ecografía registrada correctamente');
+        }
       }
 
       navigate(FRONTEND_ROUTES.DASHBOARD.ECOGRAFIAS);
@@ -469,7 +504,6 @@ const FormularioEcografia: React.FC = () => {
                 label: tabDatosGenerales,
                 children: (
                   <TabDatosGeneralesEco
-                    pacientes={pacientes}
                     embarazos={embarazos}
                     selectedPaciente={selectedPaciente}
                     selectedEmbarazo={selectedEmbarazo}

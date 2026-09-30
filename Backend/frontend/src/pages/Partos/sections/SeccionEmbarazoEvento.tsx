@@ -1,28 +1,25 @@
 import React from 'react';
-import { Form, Row, Col, Select, Space, Tag, Alert, Divider } from 'antd';
+import { Form, Row, Col, Select, Space, Alert, Divider } from 'antd';
 import { ExclamationCircleOutlined, WarningOutlined, HeartOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Embarazo } from '../../../services/embarazosService';
+import { EmbarazoSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { Option } = Select;
 
 interface SeccionEmbarazoEventoProps {
-  embarazos: Embarazo[];
   embarazoId?: string;
   tipoEvento: 'aborto' | 'parto' | null;
   setTipoEvento: (tipo: 'aborto' | 'parto' | null) => void;
   setTipoEventoManual: (manual: boolean) => void;
-  getNombrePaciente: (id: number) => string;
-  handleEmbarazoChange: (id: number) => void;
+  handleEmbarazoChange: (id: number, embarazo?: Embarazo) => void;
   form: any;
 }
 
 export const SeccionEmbarazoEvento: React.FC<SeccionEmbarazoEventoProps> = ({
-  embarazos,
   embarazoId,
   tipoEvento,
   setTipoEvento,
   setTipoEventoManual,
-  getNombrePaciente,
   handleEmbarazoChange,
   form,
 }) => {
@@ -38,32 +35,10 @@ export const SeccionEmbarazoEvento: React.FC<SeccionEmbarazoEventoProps> = ({
             rules={[{ required: true, message: 'Seleccione un embarazo' }]}
             tooltip="Seleccione el embarazo para el cual se está registrando el evento"
           >
-            <Select
-              placeholder="Buscar y seleccionar embarazo activo"
-              showSearch
-              size="large"
+            <EmbarazoSelect
               disabled={!!embarazoId}
-              filterOption={(input, option) => {
-                const title = option?.title;
-                if (typeof title === 'string') {
-                  return title.toLowerCase().includes(input.toLowerCase());
-                }
-                return false;
-              }}
-              onChange={handleEmbarazoChange}
-            >
-              {embarazos.map((e) => {
-                const nombrePaciente = getNombrePaciente(e.id!);
-                return (
-                  <Option key={e.id} value={e.id} title={nombrePaciente}>
-                    <Space>
-                      <Tag color="blue">G{e.numero_gesta}P{e.numero_para}</Tag>
-                      {nombrePaciente}
-                    </Space>
-                  </Option>
-                );
-              })}
-            </Select>
+              onChange={(id, embarazo) => { if (id) handleEmbarazoChange(id, embarazo as Embarazo | undefined); }}
+            />
           </Form.Item>
         </Col>
       </Row>

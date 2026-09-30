@@ -46,10 +46,11 @@ import {
   ArrowLeftOutlined,
   MedicineBoxOutlined,
 } from '@ant-design/icons';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { leerContextoClinico } from '../../components/clinico/SelectoresClinicos';
 import { controlesService } from '../../services/controlesService';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
-import { pacientesService, Paciente } from '../../services/pacientesService';
+import { Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import dayjs from 'dayjs';
 import { getNombrePaciente } from './formularioControlUtils';
@@ -67,11 +68,13 @@ const { TextArea } = Input;
 const FormularioControl: React.FC = () => {
   const { modal, message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
+  const [busqueda] = useSearchParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [embarazos, setEmbarazos] = useState<Embarazo[]>([]);
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  // El nombre sale de paciente_info del embarazo; ya no se cargan todas las pacientes.
+  const [pacientes] = useState<Paciente[]>([]);
   const [selectedEmbarazo, setSelectedEmbarazo] = useState<Embarazo | null>(null);
   const [imcCalculado, setImcCalculado] = useState<string>('');
   const [pamCalculada, setPamCalculada] = useState<string>('');
@@ -89,14 +92,18 @@ const FormularioControl: React.FC = () => {
   // ========== Refs para callbacks usados antes de su definición ==========
   const recalcularTodoRef = useRef<() => void>(() => {});
   const handleCancelRef = useRef<() => void>(() => {});
+  const calcularSemanasGestacionRef = useRef<(id: number, e?: Embarazo) => void>(() => {});
 
   const isEditing = !!id;
 
   const loadControl = useCallback(async (controlId: number, currentEmbarazos?: Embarazo[]) => {
     try {
       const data = await controlesService.getById(controlId);
-      const listToSearch = currentEmbarazos || embarazos;
-      const embarazo = listToSearch.find((e) => e.id === data.embarazo);
+      const listToSearch = currentEmbarazos || [];
+      // El embarazo del control puede no estar entre los cargados: se pide.
+      const embarazo = listToSearch.find((e) => e.id === data.embarazo)
+        ?? await embarazosService.obtener(data.embarazo).catch(() => undefined);
+      if (embarazo) setEmbarazos((prev) => (prev.some((e) => e.id === embarazo.id) ? prev : [embarazo, ...prev]));
       setSelectedEmbarazo(embarazo || null);
       const formValues = {
         embarazo: data.embarazo,
@@ -128,32 +135,39 @@ const FormularioControl: React.FC = () => {
       message.error('Error al cargar datos del control');
       handleCancelRef.current();
     }
-  }, [form, embarazos]);
+  }, [form, message]);
 
   useEffect(() => {
+    // Ya no se descargan todas las pacientes y embarazos (solo llegaba la
+    // primera página): el selector busca en el servidor. Desde la historia
+    // clínica se llega con ?embarazo= o ?paciente= y el embarazo queda elegido.
     const cargarTodo = async () => {
       try {
-        const pacientesData = await pacientesService.getAll();
-        setPacientes(pacientesData);
-        const embarazosData = await embarazosService.getAll();
-        const embarazosActivos = embarazosData.filter((e: Embarazo) => e.estado === 'activo');
-        setEmbarazos(embarazosActivos);
-
         if (isEditing && id) {
-          await loadControl(parseInt(id), embarazosActivos);
-        } else {
-          message.success('Datos cargados correctamente');
+          await loadControl(parseInt(id), []);
+          return;
         }
+        const { embarazoId, pacienteId } = leerContextoClinico(busqueda);
+        let embarazo: Embarazo | undefined;
+        if (embarazoId) {
+          embarazo = await embarazosService.obtener(embarazoId);
+        } else if (pacienteId) {
+          [embarazo] = await embarazosService.listar({ paciente: pacienteId, estado: 'activo' });
+        }
+        if (embarazo?.id) calcularSemanasGestacionRef.current(embarazo.id, embarazo);
       } catch (error) {
-        message.error('Error al cargar datos iniciales');
+        message.error('No se pudo cargar el embarazo indicado');
       }
     };
     cargarTodo();
-  }, [id, isEditing, loadControl]);
+  }, [id, isEditing, loadControl, busqueda, message]);
 
   // ========== CALCULAR EDAD GESTACIONAL ==========
-  const calcularSemanasGestacion = (embarazoId: number) => {
-    const embarazo = embarazos.find((e) => e.id === embarazoId);
+  const calcularSemanasGestacion = (embarazoId: number, embarazoCargado?: Embarazo) => {
+    const embarazo = embarazoCargado ?? embarazos.find((e) => e.id === embarazoId);
+    if (embarazoCargado) {
+      setEmbarazos((prev) => (prev.some((e) => e.id === embarazoId) ? prev : [embarazoCargado, ...prev]));
+    }
     setSelectedEmbarazo(embarazo || null);
 
     // ✅ Asegurar que el valor de embarazo se establece en el formulario
@@ -189,6 +203,8 @@ const FormularioControl: React.FC = () => {
     // 🆕 Marcar como modificado
     formModifiedRef.current = true;
   };
+
+  calcularSemanasGestacionRef.current = calcularSemanasGestacion;
 
   // ========== CALCULAR IMC ==========
   const calcularIMC = useCallback(() => {
@@ -512,8 +528,6 @@ const FormularioControl: React.FC = () => {
           onValuesChange={handleValuesChange}
         >
           <SeccionDatosControl
-            embarazos={embarazos}
-            pacientes={pacientes}
             isEditing={isEditing}
             calcularSemanasGestacion={calcularSemanasGestacion}
           />

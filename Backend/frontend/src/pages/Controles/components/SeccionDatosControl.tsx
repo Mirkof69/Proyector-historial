@@ -1,21 +1,16 @@
 import React from 'react';
-import { Form, InputNumber, DatePicker, Row, Col, Select, Divider, Space, Tag } from 'antd';
+import { Form, InputNumber, DatePicker, Row, Col, Divider, Space } from 'antd';
 import { MedicineBoxOutlined } from '@ant-design/icons';
 import { Embarazo } from '../../../services/embarazosService';
-import { Paciente } from '../../../services/pacientesService';
-import { getNombrePaciente } from '../formularioControlUtils';
-
-const { Option } = Select;
+import { EmbarazoSelect } from '../../../components/clinico/SelectoresClinicos';
 
 interface SeccionDatosControlProps {
-  embarazos: Embarazo[];
-  pacientes: Paciente[];
   isEditing: boolean;
-  calcularSemanasGestacion: (embarazoId: number) => void;
+  calcularSemanasGestacion: (embarazoId: number, embarazo?: Embarazo) => void;
 }
 
 const SeccionDatosControl: React.FC<SeccionDatosControlProps> = ({
-  embarazos, pacientes, isEditing, calcularSemanasGestacion,
+  isEditing, calcularSemanasGestacion,
 }) => (
   <>
     {/* ========== DATOS DEL CONTROL ========== */}
@@ -33,32 +28,10 @@ const SeccionDatosControl: React.FC<SeccionDatosControlProps> = ({
           label="Embarazo"
           rules={[{ required: true, message: 'Seleccione un embarazo' }]}
         >
-          <Select
-            placeholder="Seleccionar embarazo activo"
-            showSearch
-            filterOption={(input, option) => {
-              const title = option?.title;
-              if (typeof title === 'string') {
-                return title.toLowerCase().includes(input.toLowerCase());
-              }
-              return false;
-            }}
-            onChange={calcularSemanasGestacion}
+          <EmbarazoSelect
             disabled={isEditing}
-            size="large"
-          >
-            {embarazos.map((e) => {
-              const nombrePaciente = getNombrePaciente(e.id!, embarazos, pacientes);
-              return (
-                <Option key={e.id} value={e.id} title={nombrePaciente}>
-                  <Space>
-                    <Tag color="blue">G{e.numero_gesta}</Tag>
-                    {nombrePaciente}
-                  </Space>
-                </Option>
-              );
-            })}
-          </Select>
+            onChange={(id, embarazo) => { if (id) calcularSemanasGestacion(id, embarazo as Embarazo | undefined); }}
+          />
         </Form.Item>
       </Col>
       <Col span={6}>

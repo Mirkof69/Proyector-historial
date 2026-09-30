@@ -134,7 +134,13 @@ class ControlPrenatal(models.Model):
             MaxValueValidator(Decimal("200.0")),
         ],
         verbose_name="Talla (cm)",
-        help_text="Talla de la gestante en centímetros",
+        help_text="Talla de la gestante en centímetros. Si no se indica se toma "
+                  "del control anterior, del embarazo o de la ficha de la paciente.",
+        # Antes era obligatoria, pero el formulario la mostraba como opcional
+        # (se autocompleta desde el embarazo): si el embarazo no la tenía,
+        # el control no se podía guardar.
+        null=True,
+        blank=True,
     )
 
     # ========== SIGNOS VITALES MATERNOS ==========
@@ -770,12 +776,32 @@ class ControlPrenatal(models.Model):
         if errors:
             raise ValidationError(errors)
 
+    def _talla_conocida(self):
+        """La talla ya registrada: último control, embarazo o ficha de la paciente."""
+        with contextlib.suppress(Exception):
+            anterior = (
+                ControlPrenatal.objects.filter(embarazo_id=self.embarazo_id, talla__isnull=False)
+                .exclude(pk=self.pk).order_by("-fecha_control").values_list("talla", flat=True).first()
+            )
+            if anterior:
+                return anterior
+            if self.embarazo_id and self.embarazo.talla_materna:
+                return self.embarazo.talla_materna
+            if self.paciente_id and self.paciente.altura_cm:
+                return self.paciente.altura_cm
+        return None
+
     def save(self, *args, **kwargs):
         """Override save para validaciones adicionales"""
         # Auto-populate paciente from embarazo before validation so full_clean passes.
         if not getattr(self, 'paciente_id', None) and getattr(self, 'embarazo_id', None):
             with contextlib.suppress(Exception):
                 self.paciente = self.embarazo.paciente
+        if self.talla is None:
+            talla = self._talla_conocida()
+            # Solo se hereda si cumple el rango del control (130-200 cm).
+            if talla is not None and Decimal("130") <= Decimal(str(talla)) <= Decimal("200"):
+                self.talla = talla
 
         # Omitir full_clean en updates parciales (update_fields) para no rechazar
         # registros históricos que serían invalidados por cambios de regla.
