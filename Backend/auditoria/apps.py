@@ -22,3 +22,6 @@ class AuditoriaConfig(AppConfig):
         `ready()` la BD puede no existir todavía (p. ej. durante `migrate`).
         """
         from . import signals  # noqa: F401
+        from .admin_masivo import instalar
+
+        instalar()
