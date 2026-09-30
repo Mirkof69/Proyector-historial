@@ -7,7 +7,7 @@ Endpoints para dashboard de clasificación de riesgos de embarazos
 
 from datetime import timedelta
 
-from django.db.models import Avg, Count
+from django.db.models import Count
 from django.utils import timezone
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
@@ -103,7 +103,10 @@ class ClasificacionRiesgosViewSet(viewsets.ViewSet):
                         "ci": embarazo.paciente.ci,
                         "edad": embarazo.paciente.edad,
                     },
-                    "semanas_gestacion": getattr(embarazo, 'semanas_gestacion', 0),
+                    # El embarazo no guarda las semanas: se calculan desde la FUM
+                    # (antes getattr(..., 0) devolvía siempre 0).
+                    "semanas_gestacion": (timezone.localdate() - embarazo.fecha_ultima_menstruacion).days // 7
+                    if embarazo.fecha_ultima_menstruacion else None,
                     "fecha_ultimo_control": ultimo_control.fecha_control.isoformat()
                     if ultimo_control
                     else None,
@@ -131,14 +134,14 @@ class ClasificacionRiesgosViewSet(viewsets.ViewSet):
         hace_6_meses = timezone.now() - timedelta(days=180)
 
         embarazos_recientes = Embarazo.objects.filter(
-            fecha_creacion__gte=hace_6_meses,
-        ).order_by("fecha_creacion")
+            fecha_registro__gte=hace_6_meses,
+        ).order_by("fecha_registro")
 
         # Agrupar por mes y riesgo
         from django.db.models.functions import TruncMonth
 
         tendencias = (
-            embarazos_recientes.annotate(mes=TruncMonth("fecha_creacion"))
+            embarazos_recientes.annotate(mes=TruncMonth("fecha_registro"))
             .values("mes", "riesgo_embarazo")
             .annotate(total=Count("id"))
             .order_by("mes", "riesgo_embarazo")
@@ -190,13 +193,16 @@ class ClasificacionRiesgosViewSet(viewsets.ViewSet):
                 alto_riesgo_sin_control.append(embarazo.id)
 
         # Promedio de semanas de gestación por nivel de riesgo
-        promedios = embarazos_activos.values("riesgo_embarazo").annotate(
-            promedio_semanas=Avg("semanas_gestacion"),
-        )
-
+        # Promedio de semanas por nivel de riesgo, calculado desde la FUM (el
+        # modelo no tiene un campo de semanas: Avg("semanas_gestacion") daba
+        # FieldError y la ruta respondía 500 siempre).
+        hoy = timezone.localdate()
+        acumulado: dict[str, list[int]] = {}
+        for riesgo, fum in embarazos_activos.values_list("riesgo_embarazo", "fecha_ultima_menstruacion"):
+            if fum:
+                acumulado.setdefault(riesgo, []).append((hoy - fum).days)
         promedios_dict = {
-            item["riesgo_embarazo"]: round(item["promedio_semanas"] or 0, 1)
-            for item in promedios
+            riesgo: round(sum(dias) / len(dias) / 7, 1) for riesgo, dias in acumulado.items()
         }
 
         return Response(
