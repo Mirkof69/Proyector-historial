@@ -79,3 +79,39 @@ class PermisosPorRolTest(TestCase):
         self.assertGreater(len(pedidos), 30)
         existentes = set(Permission.objects.values_list("codename", flat=True))
         self.assertEqual(sorted(pedidos - existentes), [])
+
+
+class SincronizarTrasMigrarTest(TestCase):
+    """Tras re-sembrar la demo (esquema nuevo + migrate), los 4 grupos por rol
+    quedaron con 0 permisos y un médico veía «Acceso restringido» en Pacientes.
+
+    Causa: se sincronizaba en el post_migrate de la app «usuarios», antes de que
+    Django creara los permisos de las apps que van detrás en INSTALLED_APPS.
+    ESPERADO: la sincronización corre con la ÚLTIMA app, cuando ya existen todos.
+    """
+
+    def test_solo_sincroniza_al_terminar_la_ultima_app(self):
+        from unittest.mock import patch
+
+        from django.apps import apps
+
+        from usuarios import signals
+
+        con_modelos = [a for a in apps.get_app_configs() if a.models_module is not None]
+        with patch.object(signals, "sincronizar_grupos") as sincronizar:
+            signals.sincronizar_tras_migrar(sender=apps.get_app_config("usuarios"))
+            sincronizar.assert_not_called()
+            signals.sincronizar_tras_migrar(sender=con_modelos[-1])
+            sincronizar.assert_called_once()
+
+    def test_grupos_vacios_se_reparan_al_migrar(self):
+        from django.apps import apps
+        from django.contrib.auth.models import Group
+
+        from usuarios import signals
+
+        sincronizar_grupos()
+        Group.objects.get(name="Rol: medico").permissions.clear()
+        con_modelos = [a for a in apps.get_app_configs() if a.models_module is not None]
+        signals.sincronizar_tras_migrar(sender=con_modelos[-1])
+        self.assertGreater(Group.objects.get(name="Rol: medico").permissions.count(), 50)

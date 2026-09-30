@@ -18,8 +18,18 @@ def grupo_segun_rol(sender, instance, raw=False, **kwargs):
 
 
 def sincronizar_tras_migrar(sender, **kwargs):
-    """Tras `migrate`, los grupos por rol quedan con los permisos al día."""
-    if sender.name == "usuarios":
+    """Tras `migrate`, los grupos por rol quedan con los permisos al día.
+
+    Django emite post_migrate una vez por app, y crea los permisos de cada app
+    en esa misma emisión. Si se sincroniza con la app «usuarios», los permisos
+    de las apps que van detrás todavía no existen: en una base nueva (p. ej. al
+    re-sembrar la demo) los grupos quedaban con 0 permisos y un médico no veía
+    ni Pacientes. Por eso se espera a la última app con modelos.
+    """
+    from django.apps import apps
+
+    con_modelos = [a for a in apps.get_app_configs() if a.models_module is not None]
+    if con_modelos and sender.name == con_modelos[-1].name:
         sincronizar_grupos()
 
 
