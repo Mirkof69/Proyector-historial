@@ -87,8 +87,8 @@ zip/*.zip
 zip/*.rar
 *.zip
 *.rar
-zip/docs/diagrama uml png/*.png
-zip/material de investigacion/
+docs/referencia/docs/diagrama uml png/*.png
+docs/referencia/material de investigacion/
 
 # ─── Datos locales / workspace (NUNCA commitear) ───
 nuveos data seeds/
@@ -106,3 +106,13 @@ Backend/Microservicio_IA/datasets_pathology_v2/
 
 # modelos entrenados del sistema (pickle): se regeneran con entrenar_modelo_peso
 Backend/ml_modelos/
+
+# Datos de IA (GB de imágenes y zips): fuera de git salvo el catálogo.
+Backend/Microservicio_IA/datos/*
+!Backend/Microservicio_IA/datos/CATALOGO.md
+Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/imagenes/
+Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/modelos/*.pth
+Backend/Microservicio_IA/entrenamiento/legado/training_logs/
+Backend/Microservicio_IA/entrenamiento/legado/*.log
+Backend/Microservicio_IA/entrenamiento/legado/*.err
+Backend/Microservicio_IA/entrenamiento/*/salidas/

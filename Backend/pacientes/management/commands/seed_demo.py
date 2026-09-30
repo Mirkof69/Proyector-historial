@@ -88,6 +88,18 @@ class Command(BaseCommand):
                 "registro_profesional": "",
                 "password": "Demo2026!",
             },
+            {
+                # Sin administrador nadie podía ver auditoría, sesiones ni
+                # configuración en la demo recién sembrada.
+                "email": "admin.demo@fetalmedical.bo",
+                "nombre": "Ana",
+                "apellido_paterno": "Administradora",
+                "apellido_materno": "Demo",
+                "rol": "administrador",
+                "especialidad": "",
+                "registro_profesional": "",
+                "password": "Demo2026!",
+            },
         ]
 
         for u in usuarios:

@@ -35,7 +35,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-BASE = Path(__file__).resolve().parent.parent
+BASE = Path(__file__).resolve().parents[3] / "datos" / "legado_b4"
 ORIGEN = BASE / "datasets_pathology"
 DESTINO = BASE / "datasets_pathology_v2"
 SPLITS_ORIGEN = ["train", "validation", "val"]

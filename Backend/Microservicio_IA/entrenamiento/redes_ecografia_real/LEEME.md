@@ -36,7 +36,7 @@ Ninguna madre está a la vez en entrenamiento y en prueba.
 - **FETAL_PLANES_DB**: 12.400 ecografías de 1.792 madres de Barcelona, con el plano anotado. Zenodo 3904280, CC BY 4.0.
 - **Partos con ecografía de ingreso**: generados por el simulador del sistema (`seed_carga`), calibrado con curvas publicadas. No es una medición clínica.
 
-Los zips de imágenes van en `../nuveos data seeds/`.
+Los zips de imágenes van en `Backend/Microservicio_IA/datos/crudos/` (ver `datos/CATALOGO.md`).
 
 ## Cómo reconstruirlo
 

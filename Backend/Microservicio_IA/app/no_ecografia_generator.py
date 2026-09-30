@@ -87,7 +87,9 @@ def generate_non_ultrasound_dataset(output_dir: str, count_per_type: int = 10):
 
 
 if __name__ == "__main__":
-    base = "C:\\Users\\Miscar\\Desktop\\Nueva carpeta\\historial\\Backend\\Microservicio_IA\\datasets_pathology"
+    # Relativa al microservicio: antes era una ruta absoluta de un solo equipo.
+    base = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "datos", "legado_b4", "datasets_pathology")
     train_noeco = os.path.join(base, "train", "no_ecografia")
     val_noeco = os.path.join(base, "validation", "no_ecografia")
     train_saved = generate_non_ultrasound_dataset(train_noeco, count_per_type=10)

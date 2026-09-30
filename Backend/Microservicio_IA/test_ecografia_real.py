@@ -28,7 +28,7 @@ from app.ecografia_real import (
 )
 from app.main import app
 
-DATOS = Path(__file__).resolve().parents[2] / "datos_ecografia_reales"
+DATOS = Path(__file__).resolve().parent / "entrenamiento" / "redes_ecografia_real"
 CATALOGO = DATOS / "catalogo_imagenes.xlsx"
 
 hay_modelos = pytest.mark.skipif(

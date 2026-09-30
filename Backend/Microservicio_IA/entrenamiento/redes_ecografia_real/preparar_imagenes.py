@@ -57,7 +57,8 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 AQUI = Path(__file__).resolve().parent
-DESCARGAS = AQUI.parent / "nuveos data seeds"
+# Zips tal como se descargaron: Backend/Microservicio_IA/datos/crudos/
+DESCARGAS = AQUI.parents[1] / "datos" / "crudos"
 ZIP_HC18 = DESCARGAS / "cráneos fetales, 999 imágenes.zip"
 ZIP_PLANOS = DESCARGAS / "FETAL_PLANES_ZENODO.zip"
 

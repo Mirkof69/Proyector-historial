@@ -5,7 +5,7 @@
 2. Plano anatómico (clasificación, 6 clases) — FETAL_PLANES_DB, Zenodo
    3904280, CC BY 4.0. 12.400 imágenes de 1.792 madres, Barcelona.
 
-Se entrenan en `historial/datos_ecografia_reales/redes_ecografia_real.ipynb`
+Se entrenan en `Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/redes_ecografia_real.ipynb`
 y los pesos se copian a `trained_models/`. El preprocesado de aquí tiene que
 ser idéntico al del entrenamiento (`cnn_ecografia.py`): gris, relleno a
 cuadrado sin deformar, reducción al lado de la red y normalización ImageNet.
@@ -119,7 +119,7 @@ class RedesEcografiaReal:
             if not ruta.exists():
                 raise FileNotFoundError(
                     f"No está el modelo {ruta.name}. Se genera ejecutando "
-                    "historial/datos_ecografia_reales/redes_ecografia_real.ipynb "
+                    "Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/redes_ecografia_real.ipynb "
                     "y copiando modelos/*.pth a trained_models/."
                 )
             self._dispositivo = "cuda" if torch.cuda.is_available() else "cpu"
