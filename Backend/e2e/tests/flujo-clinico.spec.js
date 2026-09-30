@@ -61,6 +61,9 @@ test.describe('Flujo clínico de punta a punta', () => {
     await modal.locator('input[type=checkbox]').check();
     await modal.getByRole('button', { name: 'Registrar Paciente' }).click();
     await expect(page.getByText('Paciente registrado exitosamente')).toBeVisible();
+    // Tras el alta se ofrece registrar el embarazo con la paciente ya elegida
+    await expect(page.locator('.ant-modal-confirm-title', { hasText: '¿Registrar ahora su embarazo?' })).toBeVisible();
+    await page.getByRole('button', { name: 'Más tarde' }).click();
     const pac = lista(await apiGet(page, `/pacientes/?search=${CI}`))[0];
     expect(pac).toBeTruthy();
     ids.paciente = pac.id;

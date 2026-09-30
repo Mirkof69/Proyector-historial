@@ -361,8 +361,20 @@ const Pacientes: React.FC = () => {
                 await api.put(`/pacientes/${editingPaciente.id}/`, payload);
                 message.success({ content: 'Paciente actualizado correctamente', icon: <CheckCircleOutlined style={{ color: token.colorSuccess }} /> });
             } else {
-                await api.post('/pacientes/', payload);
+                // `api.post` (envoltorio) ya devuelve la paciente creada, no la respuesta de axios.
+                const creada = await api.post<{ id?: number; nombre_completo?: string }>('/pacientes/', payload);
                 message.success({ content: 'Paciente registrado exitosamente', icon: <CheckCircleOutlined style={{ color: token.colorSuccess }} /> });
+                // Siguiente paso natural del flujo: registrar su embarazo, ya con
+                // la paciente elegida.
+                if (creada?.id) {
+                    modal.confirm({
+                        title: '¿Registrar ahora su embarazo?',
+                        content: `${creada.nombre_completo || 'La paciente'} quedó registrada. Puede iniciar su embarazo con ella ya elegida.`,
+                        okText: 'Registrar embarazo',
+                        cancelText: 'Más tarde',
+                        onOk: () => navigate(`/dashboard/embarazos/nuevo?paciente=${creada.id}`),
+                    });
+                }
             }
 
             setModalVisible(false);
@@ -380,7 +392,7 @@ const Pacientes: React.FC = () => {
         } finally {
             setFormLoading(false);
         }
-    }, [form, editingPaciente, message, loadPacientes, token]);
+    }, [form, editingPaciente, message, loadPacientes, token, modal, navigate]);
 
     const handleDelete = useCallback(async (id: number) => {
         try {

@@ -35,6 +35,9 @@ redis>=5.0
 
 # WebSocket & Real-time (Django Channels)
 channels>=4.0
+# Servidor ASGI. [standard] trae websockets: sin él, uvicorn responde 404 en
+# /ws/ y las notificaciones en tiempo real no llegan (visto el 30/09/2026).
+uvicorn[standard]>=0.30
 channels-redis>=4.0
 daphne>=4.0
 

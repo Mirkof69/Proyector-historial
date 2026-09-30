@@ -233,10 +233,9 @@ const Embarazos: React.FC = () => {
             const response = await api.get('/pacientes/', {
                 params: { search: search || undefined, genero: 'femenino', page_size: 20 },
             });
-            // Los datos vienen en response.data: antes se leía response.results,
-            // que no existe, y el buscador devolvía siempre una lista vacía.
-            const datos = response.data;
-            const results = Array.isArray(datos) ? datos : datos?.results || [];
+            // `api` (envoltorio de services/api) ya devuelve los datos, no la
+            // respuesta de axios: por eso se lee .results directamente.
+            const results = Array.isArray(response) ? response : (response as any).results || [];
 
             const options = results.map((p: any) => ({
                 id: p.id,
@@ -656,7 +655,7 @@ const Embarazos: React.FC = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm action-card" style={{ background: '#e6f7ff', cursor: 'pointer' }} onClick={handleOpenCreate} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenCreate(); } }}>
+                        <Card variant="borderless" className="stats-card shadow-sm action-card" style={{ background: '#e6f7ff', cursor: 'pointer' }} onClick={handleOpenCreate} role="button" aria-label="Registrar nuevo embarazo" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenCreate(); } }}>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 80 }}>
                                 <PlusOutlined style={{ fontSize: 24, color: '#1890ff', marginBottom: 8 }} />
                                 <Text strong style={{ color: '#1890ff' }}>Registrar Nuevo Embarazo</Text>
