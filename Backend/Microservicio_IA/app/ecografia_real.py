@@ -23,7 +23,7 @@ import threading
 import numpy as np
 from PIL import Image
 
-from .config import MODELS_DIR
+from .config import MODELS_DIR, huella_sha256
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +103,8 @@ class RedesEcografiaReal:
     def estado(self) -> dict:
         """Qué redes medidas están disponibles, con sus métricas en prueba."""
         return {
-            nombre: {"disponible": self.disponible(nombre), "metricas_prueba": METRICAS_PRUEBA.get(nombre)}
+            nombre: {"disponible": self.disponible(nombre), "metricas_prueba": METRICAS_PRUEBA.get(nombre),
+                     "sha256": huella_sha256(self.carpeta / f"{nombre}.pth")}
             for nombre in (ARCHIVO_PLANO, ARCHIVO_HC)
         }
 
@@ -162,6 +163,7 @@ class RedesEcografiaReal:
             "probabilidades": {clases[i]: round(float(p[i]), 4) for i in orden},
             "avisos": avisos,
             "modelo": {"archivo": ARCHIVO_PLANO, "dataset": meta["dataset"],
+                       "sha256": huella_sha256(self.carpeta / f"{ARCHIVO_PLANO}.pth"),
                        "metricas_prueba": METRICAS_PRUEBA[ARCHIVO_PLANO]},
         }
 
@@ -205,6 +207,7 @@ class RedesEcografiaReal:
             "plano_detectado": plano["plano"] if plano else None,
             "avisos": avisos,
             "modelo": {"archivo": ARCHIVO_HC, "dataset": meta["dataset"],
+                       "sha256": huella_sha256(self.carpeta / f"{ARCHIVO_HC}.pth"),
                        "metricas_prueba": METRICAS_PRUEBA[ARCHIVO_HC]},
         }
 

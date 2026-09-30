@@ -44,3 +44,12 @@ class TraduccionIaTest(SimpleTestCase):
 
     def test_la_advertencia_queda_con_el_resultado(self):
         self.assertIn("Detector experimental", defaults_analisis_cnn(_respuesta("normal", 0.97))["alertas"])
+
+
+class HuellaModeloTest(SimpleTestCase):
+    def test_la_version_lleva_la_huella_de_los_pesos(self):
+        d = defaults_analisis_cnn(_respuesta("normal", 0.97, modelo={"archivo": "b4.pth", "sha256": "ab" * 32}))
+        self.assertEqual(d["version_modelo"], "efficientnet_b4@abababababab")
+        from ia_medica.models import AnalisisCNN
+
+        self.assertLessEqual(len(d["version_modelo"]), AnalisisCNN._meta.get_field("version_modelo").max_length)

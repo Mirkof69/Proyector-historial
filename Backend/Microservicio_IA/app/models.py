@@ -420,6 +420,7 @@ class ModelManager:
         self.model = None
         self.device = None
         self.error_carga = None
+        self.modelo_info = {"archivo": None, "sha256": None}
         self._loaded = False
         self._lock = threading.Lock()
 
@@ -462,6 +463,9 @@ class ModelManager:
                     logger.warning("Claves del checkpoint ignoradas (no existen en el modelo): %s", result.unexpected_keys)
                 logger.info("Pesos HybridEfficientNetB4 cargados: %s", model_path)
                 pesos_ok = True
+                from .config import huella_sha256
+
+                self.modelo_info = {"archivo": os.path.basename(model_path), "sha256": huella_sha256(model_path)}
             except Exception as e:
                 logger.error("Error cargando pesos (%s).", e)
         else:
@@ -629,6 +633,7 @@ class ModelManager:
                 "status": "success",
                 "fuente": "efficientnet_b4",
                 "modelo_version": "efficientnet_b4",
+                "modelo": self.modelo_info,
                 "ultrasound_validation": {
                     "es_ecografia_obstetrica_valida": True,
                     "tipo_ecografia": "obstetrica",

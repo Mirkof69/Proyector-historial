@@ -108,6 +108,12 @@ def mapear_resultado_microservicio(ai_result: dict) -> dict[str, Any]:
     }
 
 
+def _version_con_huella(ai_result: dict) -> str:
+    version = ai_result.get("modelo_version", "efficientnet_b4")
+    huella = (ai_result.get("modelo") or {}).get("sha256")
+    return f"{version}@{huella[:12]}" if huella else version
+
+
 class IANoDisponible(Exception):
     """El microservicio respondió sin modelo (fallback): no hay análisis que guardar."""
 
@@ -163,7 +169,9 @@ def defaults_analisis_cnn(ai_result: dict, usuario=None, modelo: str = "efficien
     return {
         "realizado_por": usuario if getattr(usuario, "is_authenticated", False) else None,
         "modelo_usado": modelo,
-        "version_modelo": ai_result.get("modelo_version", "efficientnet_b4"),
+        # Con la huella de los pesos (12 primeros caracteres del sha256):
+        # identifica exactamente qué modelo produjo este análisis.
+        "version_modelo": _version_con_huella(ai_result),
         "resultado": mapeo["resultado"],
         "confianza": round(float(mapeo["confianza"]), 4),
         "score_general": round(float(ai_result.get("score_global", 0)) * 100, 1),

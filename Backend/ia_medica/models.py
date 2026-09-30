@@ -567,7 +567,8 @@ class AnalisisCNN(models.Model):
     modelo_usado = models.CharField(
         max_length=30, choices=MODELO_CHOICES, default="resnet50",
     )
-    version_modelo = models.CharField(max_length=20, default="1.0.0")
+    # 64: cabe «efficientnet_b4@<12 caracteres del sha256>» (antes 20)
+    version_modelo = models.CharField(max_length=64, default="1.0.0")
 
     # Resultado principal
     resultado = models.CharField(

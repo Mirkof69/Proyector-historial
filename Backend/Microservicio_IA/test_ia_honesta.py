@@ -69,3 +69,15 @@ def test_health_dice_la_verdad_sin_modelo():
     assert r.status_code == 503
     assert r.json()["model_loaded"] is False
     assert "redes_reales" in r.json()
+
+
+def test_la_huella_identifica_el_archivo(tmp_path):
+    """Cada resultado dice qué pesos exactos lo produjeron (auditoría)."""
+    from app.config import huella_sha256
+
+    a, b = tmp_path / "a.pth", tmp_path / "b.pth"
+    a.write_bytes(b"pesos-1")
+    b.write_bytes(b"pesos-2")
+    assert huella_sha256(a) and len(huella_sha256(a)) == 64
+    assert huella_sha256(a) != huella_sha256(b)
+    assert huella_sha256(tmp_path / "no_existe.pth") is None

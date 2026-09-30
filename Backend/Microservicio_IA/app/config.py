@@ -1,6 +1,8 @@
 """Configuración del microservicio de IA
 """
 
+import functools
+import hashlib
 import os
 from pathlib import Path
 
@@ -154,6 +156,25 @@ ADVERTENCIA_B4 = (
     "Detector experimental: entrenado mayormente con imágenes sintéticas y sin validación "
     "clínica independiente. Sirve como apoyo a la lectura, nunca como diagnóstico."
 )
+
+def huella_sha256(ruta) -> str | None:
+    """sha256 del archivo de pesos: identifica EXACTAMENTE qué modelo produjo
+    un resultado (dos .pth con el mismo nombre pueden ser entrenamientos
+    distintos). Se calcula una vez por archivo y fecha de modificación."""
+    ruta = Path(ruta)
+    if not ruta.is_file():
+        return None
+    return _huella(str(ruta), ruta.stat().st_mtime_ns)
+
+
+@functools.lru_cache(maxsize=16)
+def _huella(ruta: str, _mtime: int) -> str:
+    h = hashlib.sha256()
+    with open(ruta, "rb") as f:
+        for bloque in iter(lambda: f.read(1 << 20), b""):
+            h.update(bloque)
+    return h.hexdigest()
+
 
 CORS_ORIGINS = [
     "http://localhost:3000",
