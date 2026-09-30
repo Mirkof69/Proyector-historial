@@ -9,7 +9,7 @@ ViewSets para gestión de vacunas en sistema de atención prenatal
 
 from datetime import timedelta
 
-from django.db.models import Count
+from django.db.models import Count, F, Max
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -183,6 +183,17 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
 # =============================================================================
 # REGISTRO VACUNA VIEWSET
 # =============================================================================
+
+
+def _ultimos_de_esquemas(completos: bool) -> list[int]:
+    """Id del último registro de cada esquema (paciente + vacuna) completo o no."""
+    esquemas = (
+        RegistroVacuna.objects.filter(activo=True)
+        .values("paciente_id", "tipo_vacuna_id", "tipo_vacuna__dosis_requeridas")
+        .annotate(dosis=Max("numero_dosis"), ultimo=Max("id"))
+    )
+    filtro = {"dosis__gte" if completos else "dosis__lt": F("tipo_vacuna__dosis_requeridas")}
+    return [e["ultimo"] for e in esquemas.filter(**filtro)]
 
 
 class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
@@ -372,20 +383,25 @@ class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         """Retorna pacientes con esquemas de vacunación incompletos
         GET /api/vacunas/registros/esquemas_incompletos/
         """
-        # Obtener todos los registros activos
-        assert self.queryset is not None
-        registros = self.queryset.filter(activo=True)
-
-        # Filtrar solo los que no han completado el esquema
-        incompletos = [r for r in registros if not r.esquema_completo]
-
-        serializer = RegistroVacunaSerializer(incompletos, many=True)
-        return Response(
-            {
-                "total_esquemas_incompletos": len(incompletos),
-                "registros": serializer.data,
-            },
+        # Un esquema es de una PACIENTE y una VACUNA: está incompleto si la
+        # dosis más alta aplicada no llega a las requeridas. Antes se evaluaba
+        # cada registro suelto (la dosis 1 de un esquema ya completado salía
+        # como «incompleta») y en Python, con una consulta por registro: 6 s.
+        incompletos = (
+            RegistroVacuna.objects.filter(id__in=_ultimos_de_esquemas(completos=False))
+            .select_related("paciente", "tipo_vacuna", "embarazo", "aplicado_por")
+            .order_by("-fecha_aplicacion")
         )
+        # Paginado (page/page_size, como ya enviaba el frontend): serializar
+        # los ~2.000 esquemas de golpe tardaba 2,6 s.
+        total = incompletos.count()
+        pagina = self.paginate_queryset(incompletos)
+        serializer = RegistroVacunaSerializer(pagina if pagina is not None else incompletos, many=True)
+        datos = {"total_esquemas_incompletos": total, "registros": serializer.data}
+        if pagina is not None:
+            datos.update(count=total, next=self.paginator.get_next_link(),
+                         previous=self.paginator.get_previous_link())
+        return Response(datos)
 
     @action(detail=False, methods=["get"])
     def reacciones_adversas(self, _request):
@@ -411,10 +427,9 @@ class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         total_registros = self.queryset.count()
         activos = self.queryset.filter(activo=True).count()
 
-        # Esquemas completos vs incompletos
-        registros_activos = self.queryset.filter(activo=True)
-        completos = sum(1 for r in registros_activos if r.esquema_completo)
-        incompletos = activos - completos
+        # Esquemas (paciente + vacuna) completos vs incompletos
+        completos = len(_ultimos_de_esquemas(completos=True))
+        incompletos = len(_ultimos_de_esquemas(completos=False))
 
         # Por vía de administración
         por_via = (

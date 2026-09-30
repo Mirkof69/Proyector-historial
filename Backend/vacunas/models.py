@@ -423,11 +423,11 @@ class RegistroVacuna(models.Model):
     def calcular_proxima_dosis_fecha(self):
         """Calcula automáticamente la fecha de próxima dosis"""
         if self.requiere_siguiente_dosis and self.tipo_vacuna.intervalo_dosis_dias:
-            from datetime import timedelta
+            from datetime import datetime, timedelta
 
-            return self.fecha_aplicacion.date() + timedelta(
-                days=self.tipo_vacuna.intervalo_dosis_dias,
-            )
+            fecha = self.fecha_aplicacion
+            base = fecha.date() if isinstance(fecha, datetime) else fecha
+            return base + timedelta(days=self.tipo_vacuna.intervalo_dosis_dias)
         return None
 
     def save(self, *args, **kwargs):
