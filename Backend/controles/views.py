@@ -14,7 +14,7 @@ MÓDULO: CONTROLES PRENATALES - VIEWSET COMPLETO V2.0 CORREGIDO
 import contextlib
 from datetime import timedelta
 
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, OuterRef, Q, Subquery
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
@@ -644,27 +644,33 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
         # Obtener último control de cada embarazo activo
         assert self.queryset is not None
-        controles = (
-            self.queryset.filter(embarazo_id__estado="activo")
-            .order_by("embarazo_id", "-fecha_control")
-            .distinct("embarazo_id")
+        # Último control de cada embarazo con una subconsulta: DISTINCT ON es
+        # solo de PostgreSQL y la ruta fallaba en cualquier otra base.
+        ultimo = (
+            ControlPrenatal.objects.filter(embarazo=OuterRef("pk"))
+            .order_by("-fecha_control", "-id").values("id")[:1]
         )
+        from embarazos.models import Embarazo
 
-        # Filtrar embarazos que necesitan control
-        embarazos_pendientes = []
+        ids_ultimos = (
+            Embarazo.objects.filter(estado="activo").annotate(ultimo=Subquery(ultimo))
+            .exclude(ultimo=None).values("ultimo")
+        )
+        # Se decide con tres columnas y solo se cargan completos los atrasados:
+        # cargar los ~2.000 últimos controles con los datos cifrados de la
+        # paciente tardaba más de 1 s.
         hoy = timezone.localdate()
-
-        for control in controles:
-            dias_desde_ultimo = (hoy - control.fecha_control).days
-
-            # Lógica: controles cada 4 semanas antes de semana 28, luego cada 2 semanas
-            if control.semanas_gestacion and control.semanas_gestacion < 28:
-                intervalo_recomendado = 28  # 4 semanas
-            else:
-                intervalo_recomendado = 14  # 2 semanas
-
-            if dias_desde_ultimo >= intervalo_recomendado:
-                embarazos_pendientes.append(control)
+        atrasados = []
+        for id_control, fecha, semanas in self.queryset.filter(id__in=ids_ultimos).values_list(
+            "id", "fecha_control", "semanas_gestacion",
+        ):
+            # Controles cada 4 semanas antes de la semana 28, luego cada 2
+            intervalo_recomendado = 28 if semanas and semanas < 28 else 14
+            if (hoy - fecha).days >= intervalo_recomendado:
+                atrasados.append(id_control)
+        embarazos_pendientes = list(
+            self.queryset.filter(id__in=atrasados).select_related("embarazo", "paciente").order_by("fecha_control"),
+        )
 
         serializer = ControlPrenatalSerializer(embarazos_pendientes, many=True)
 
