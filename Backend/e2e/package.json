@@ -1,0 +1,12 @@
+{
+  "name": "fetal-medical-e2e",
+  "private": true,
+  "description": "Pruebas de punta a punta del flujo clínico (Playwright)",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

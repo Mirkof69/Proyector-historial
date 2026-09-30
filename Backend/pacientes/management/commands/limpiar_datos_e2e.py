@@ -1,0 +1,44 @@
+"""Borra los datos que crean las pruebas E2E (pacientes con apellido «E2E»).
+
+Uso: python manage.py limpiar_datos_e2e --schema=clinica_demo
+
+Borra en orden (imágenes, ecografías, controles, partos, embarazos,
+pacientes) porque la historia clínica está protegida contra el borrado en
+cascada. Nunca toca pacientes reales: solo las de apellido paterno «E2E».
+"""
+import os
+
+from django.core.management.base import BaseCommand
+from django_tenants.utils import schema_context
+
+
+class Command(BaseCommand):
+    help = "Borra las pacientes de prueba E2E y toda su historia"
+
+    def add_arguments(self, parser):
+        parser.add_argument("--schema", default="clinica_demo")
+
+    def handle(self, *args, **opciones):
+        from controles.models import ControlPrenatal
+        from ecografias.models import Ecografia, ImagenEcografia
+        from embarazos.models import Embarazo
+        from pacientes.models import Paciente
+        from partos.models import Parto
+
+        with schema_context(opciones["schema"]):
+            # El apellido va cifrado: no se puede filtrar en la base, se compara
+            # ya descifrado.
+            ids = [p.id for p in Paciente.objects.only("id", "apellido_paterno") if p.apellido_paterno == "E2E"]
+            for imagen in ImagenEcografia.objects.filter(ecografia__paciente_id__in=ids):
+                ruta = imagen.imagen.path if imagen.imagen else None
+                imagen.delete()
+                if ruta and os.path.exists(ruta):
+                    os.remove(ruta)
+            cuentas = {
+                "ecografías": Ecografia.objects.filter(paciente_id__in=ids).delete()[0],
+                "controles": ControlPrenatal.objects.filter(paciente_id__in=ids).delete()[0],
+                "partos": Parto.objects.filter(paciente_id__in=ids).delete()[0],
+                "embarazos": Embarazo.objects.filter(paciente_id__in=ids).delete()[0],
+                "pacientes": Paciente.objects.filter(id__in=ids).delete()[0],
+            }
+        self.stdout.write(self.style.SUCCESS(f"Datos E2E borrados: {cuentas}"))
