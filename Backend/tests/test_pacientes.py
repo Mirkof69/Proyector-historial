@@ -158,6 +158,7 @@ class PacienteAPITest(APITestCase):
             "email": "maria@test.com",
             "direccion": "Calle 123",
             "ciudad": "La Paz",
+            "consentimiento_datos_aceptado": True,  # Ley 164: sin él no hay alta
         }
         self.list_url = reverse("paciente-list")
 
@@ -423,3 +424,28 @@ class PacienteAPITest(APITestCase):
         )
         response = self.client.get(self.list_url, {"genero": "femenino"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class ConsentimientoObligatorioTest(TestCase):
+    """Ley 164: una paciente no se registra sin consentimiento.
+
+    Fallo que previene: la validación solo corría si el campo llegaba en la
+    petición; el asistente de registro no lo enviaba y las pacientes se creaban
+    con consentimiento_datos_aceptado=False.
+    """
+
+    def test_sin_el_campo_no_se_crea(self):
+        from rest_framework.test import APIClient
+
+        from usuarios.models import Usuario
+
+        c = APIClient()
+        c.force_authenticate(Usuario.objects.create_user(email="rec.consent@test.bo", nombre="R", apellido_paterno="C",
+                                                         password="clave-segura-123", rol="recepcion"))
+        datos = {"nombre": "Sin", "apellido_paterno": "Consent", "ci": "7988877", "fecha_nacimiento": "1995-01-01",
+                 "genero": "femenino"}
+        r = c.post("/api/pacientes/", datos, format="json")
+        self.assertEqual(r.status_code, 400, r.content[:200])
+        self.assertIn("consentimiento_datos_aceptado", str(r.content))
+        r = c.post("/api/pacientes/", {**datos, "consentimiento_datos_aceptado": True}, format="json")
+        self.assertEqual(r.status_code, 201, r.content[:200])

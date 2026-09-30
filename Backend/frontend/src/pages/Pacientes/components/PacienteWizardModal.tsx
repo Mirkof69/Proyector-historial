@@ -8,6 +8,7 @@ import type { FormInstance } from 'antd';
 import dayjs from 'dayjs';
 import locale from 'antd/es/date-picker/locale/es_ES';
 import { Paciente } from '../pacientesTypes';
+import SeccionConsentimientoPaciente from './SeccionConsentimientoPaciente';
 
 const { Option } = Select;
 const { Step } = Steps;
@@ -209,6 +210,8 @@ const PacienteWizardModal: React.FC<PacienteWizardModalProps> = ({
         <Form.Item name="observaciones" label="Observaciones / Antecedentes Breves">
           <Input.TextArea rows={3} />
         </Form.Item>
+        {/* Ley 164: sin esta casilla el alta registraba pacientes sin consentimiento. */}
+        {!editingPaciente && <SeccionConsentimientoPaciente />}
       </div>
     </Form>
 

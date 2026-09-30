@@ -371,7 +371,11 @@ const Pacientes: React.FC = () => {
             // Si es error de validación de form, no hacemos nada (AntD lo muestra)
             // Si es error de API:
             if (error.response) {
-                message.error("Error al guardar. Verifique los datos.");
+                const datos = error.response.data;
+                const detalle = datos && typeof datos === 'object'
+                    ? Object.values(datos).flat().filter((v) => typeof v === 'string').join(' ')
+                    : '';
+                message.error(detalle || 'Error al guardar. Verifique los datos.');
             }
         } finally {
             setFormLoading(false);
@@ -394,7 +398,7 @@ const Pacientes: React.FC = () => {
 
         modal.confirm({
             title: `¿Eliminar ${selectedRowKeys.length} pacientes?`,
-            content: 'Esta acción no se puede deshacer. Se perderán historias clínicas asociadas.',
+            content: 'Se darán de baja (baja lógica). Su historia clínica se conserva.',
             okText: 'Sí, Eliminar Todo',
             okType: 'danger',
             cancelText: 'Cancelar',

@@ -617,6 +617,16 @@ class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Validaciones generales"""
+        # Ley 164: sin consentimiento no hay alta. validate_consentimiento_...
+        # solo corre si el campo llega en la petición; el asistente de registro
+        # no lo enviaba y las pacientes se creaban sin consentimiento.
+        if self.instance is None and not attrs.get("consentimiento_datos_aceptado"):
+            raise serializers.ValidationError({
+                "consentimiento_datos_aceptado": (
+                    "Se requiere el consentimiento expreso de la paciente (o su representante) "
+                    "para el tratamiento de sus datos personales, conforme a la Ley 164."
+                ),
+            })
         # Validar que la fecha de nacimiento no sea null si se está enviando
         if "fecha_nacimiento" in attrs:
             if attrs["fecha_nacimiento"] is None:
