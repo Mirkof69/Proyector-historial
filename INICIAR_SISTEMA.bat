@@ -1,60 +1,41 @@
 @echo off
-title Fetal Medical Bolivia — Inicio del Sistema
+:: ============================================================================
+:: Arranque de DESARROLLO — Fetal Medical Bolivia
+:: (Para el hospital usar INICIAR_PRODUCCION.bat: build real y 8 workers.)
+::
+::   Backend   uvicorn ASGI con recarga (runserver es WSGI: los WebSockets de
+::             notificaciones daban 404 en /ws/)
+::   IA        microservicio FastAPI en 8001 (Python del sistema, con torch)
+::   Frontend  servidor de desarrollo de React en 3000
+:: ============================================================================
+title Fetal Medical Bolivia - DESARROLLO
 color 0A
-echo.
-echo ================================================
-echo    FETAL MEDICAL BOLIVIA — INICIANDO SISTEMA
-echo ================================================
-echo.
 
-:: ── 1. PostgreSQL ────────────────────────────────
-echo [1/5] Iniciando PostgreSQL...
+echo [1/4] PostgreSQL...
 net start postgresql-x64-18 >nul 2>&1
-if %errorlevel% equ 0 (
-    echo     OK PostgreSQL iniciado
-) else (
-    echo     OK PostgreSQL ya estaba corriendo
-)
+if %errorlevel% equ 0 (echo     OK iniciado) else (echo     OK ya estaba corriendo)
 timeout /t 2 /nobreak >nul
 
-:: ── 2. Migrar BD ────────────────────────────────
-echo [2/5] Aplicando migraciones...
+echo [2/4] Migraciones (todas las clinicas)...
 cd /d "%~dp0Backend"
-python manage.py migrate --run-syncdb 2>&1 | findstr /v "^$\|Applying\|Unapplied"
-if %errorlevel% equ 0 echo     OK Migraciones aplicadas
-timeout /t 1 /nobreak >nul
-
-:: ── 3. Django check ─────────────────────────────
-echo [3/5] Verificando Django...
-python manage.py check >nul 2>&1
-if %errorlevel% equ 0 (
-    echo     OK Django check: 0 errores
-) else (
-    echo     ERROR en Django check — ver log
+".venv\Scripts\python.exe" manage.py migrate_schemas --no-input > logs\migraciones.log 2>&1
+if %errorlevel% equ 0 (echo     OK al dia) else (
+    echo     ERROR en las migraciones: ver Backend\logs\migraciones.log
+    pause
+    exit /b 1
 )
 
-:: ── 4. Backend Django ───────────────────────────
-echo [4/5] Iniciando backend Django (puerto 8000)...
-start "Django Backend" cmd /k "cd /d %~dp0Backend && python manage.py runserver 0.0.0.0:8000"
-timeout /t 3 /nobreak >nul
+echo [3/4] Backend (8000) y microservicio de IA (8001)...
+start "Backend Django (ASGI)" cmd /k "cd /d %~dp0Backend && .venv\Scripts\python.exe -m uvicorn asgi:application --host 127.0.0.1 --port 8000 --reload"
+start "Microservicio IA" cmd /k "cd /d %~dp0Backend\Microservicio_IA && python -m uvicorn app.main:app --host 127.0.0.1 --port 8001"
 
-:: ── 5. Frontend React ───────────────────────────
-echo [5/5] Iniciando frontend React (puerto 3000)...
+echo [4/4] Frontend (3000)...
 start "React Frontend" cmd /k "cd /d %~dp0Backend\frontend && npm start"
 
 echo.
-echo ================================================
-echo  Sistema iniciado:
-echo    Backend:  http://localhost:8000
-echo    Frontend: http://localhost:3000
-echo    Admin:    http://localhost:8000/admin
-echo    API Docs: http://localhost:8000/api/docs/
+echo   Frontend       http://localhost:3000
+echo   API            http://localhost:8000/api/
+echo   Salud de IA    http://localhost:8001/health
+echo   Pruebas E2E    cd Backend\e2e ^&^& npx playwright test
 echo.
-echo  Usuarios demo:
-echo    Medico:     dra.garcia@fetalmedical.bo / Demo2026!
-echo    Enfermera:  enf.mamani@fetalmedical.bo / Demo2026!
-echo    Recepcion:  recep.flores@fetalmedical.bo / Demo2026!
-echo ================================================
-echo.
-echo Presiona cualquier tecla para cerrar esta ventana...
-pause >nul
+pause

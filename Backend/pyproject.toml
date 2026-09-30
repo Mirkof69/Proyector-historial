@@ -13,7 +13,9 @@ exclude = [
     "seeders",
     "tests",
     "**/migrations/*.py",
-    "fix_warnings*.py"
+    "fix_warnings*.py",
+    # Notebooks de análisis: estilo exploratorio, no código del sistema.
+    "*.ipynb",
 ]
 
 # Set of rules to enable or ignore

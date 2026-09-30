@@ -62,7 +62,7 @@ class CasoRegistrarPacienteNuevaTest(_ConEquipoClinico):
             "apellido_paterno": "Mamani",
             "apellido_materno": "Choque",
             "fecha_nacimiento": "1995-06-12",
-            "genero": "femenino",
+            "genero": "femenino", "consentimiento_datos_aceptado": True,
             "ci": "9081726",
             "telefono": "70011223",
         }, format="json")
@@ -86,7 +86,7 @@ class CasoRegistrarPacienteNuevaTest(_ConEquipoClinico):
         creada = cliente.post("/api/pacientes/", {
             "nombre": "Fernanda", "apellido_paterno": "Mamani",
             "apellido_materno": "Choque", "fecha_nacimiento": "1995-06-12",
-            "genero": "femenino", "ci": "9081727",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "9081727",
         }, format="json").data
 
         respuesta = cliente.get("/api/pacientes/?search=Mamany")
@@ -237,7 +237,7 @@ class CasoTrazabilidadDeUnTurnoTest(_ConEquipoClinico):
         creada = self.como(self.recepcion).post("/api/pacientes/", {
             "nombre": "Valentina", "apellido_paterno": "Yujra",
             "apellido_materno": "Avila", "fecha_nacimiento": "1994-04-04",
-            "genero": "femenino", "ci": "5041322",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "5041322",
         }, format="json").data
 
         # 2. La médica abre su ficha (pasando por el middleware de auditoría)

@@ -70,7 +70,7 @@ class ContratoDeLaApiDePacientesTest(_ApiComoUsuaria):
         respuesta = self.client.post("/api/pacientes/", {
             "nombre": "Fernanda", "apellido_paterno": "Mamani",
             "apellido_materno": "Choque", "fecha_nacimiento": "1995-06-12",
-            "genero": "femenino", "ci": "4455661",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "4455661",
         }, format="json")
 
         assert respuesta.status_code == 201, respuesta.data
@@ -85,7 +85,7 @@ class ContratoDeLaApiDePacientesTest(_ApiComoUsuaria):
         respuesta = self.client.post("/api/pacientes/", {
             "nombre": "Imposible", "apellido_paterno": "Fecha",
             "apellido_materno": "Futura", "fecha_nacimiento": "2099-01-01",
-            "genero": "femenino", "ci": "4455662",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "4455662",
         }, format="json")
 
         assert respuesta.status_code == 400, (

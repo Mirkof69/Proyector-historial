@@ -45,63 +45,70 @@ hallazgo se verificó en el código; lo que se marca «hecho» tiene commit y te
 | Evoluciones: ruta equivocada y filtros que mostraban las de todas las pacientes | `75682f0` |
 | Zips duplicados (6 GB) a la papelera, conservando un original | — |
 
-### Sprint 1 — Que nada mienta y que nada dé 500
+### Sprint 1 — Que nada mienta y que nada dé 500 (HECHO)
 
 Backend
-- [ ] Permisos por acción, no por prefijo: recepción sin acceso a historia clínica, laboratorio ni exportaciones (`core/permissions.py`).
-- [ ] `ecografias/ai_views.py`: `FetalMedicalPermission`/`EsSoloMedico` en lugar de `IsAuthenticated`.
-- [ ] `ecografias/views.py destroy`: solo administrador y baja lógica.
-- [ ] `partos/urls.py:45,50,56`: kwargs `parto_id/rn_id/paciente_id` que dan 500.
-- [ ] `controles/serializers.py:594`: `import warnings` dentro de un `if` (UnboundLocalError).
-- [ ] `embarazos/admin.py`: campos inexistentes (FieldError).
-- [ ] `calculadoras_avanzadas/urls.py`: alias rotos.
-- [ ] `settings.py`: `DEBUG` falso por defecto; tenant desconocido = 404; webhook Orthanc exige secreto.
-- [ ] Subidas: validar tipo real (bytes mágicos), tamaño y nombre UUID; media servida solo con sesión.
+- [x] Permisos por acción, no por prefijo: recepción sin acceso a historia clínica, laboratorio ni exportaciones (`core/permissions.py`).
+- [x] `ecografias/ai_views.py`: `FetalMedicalPermission`/`EsSoloMedico` en lugar de `IsAuthenticated`.
+- [x] `ecografias/views.py destroy`: solo administrador y baja lógica.
+- [x] `partos/urls.py:45,50,56`: kwargs `parto_id/rn_id/paciente_id` que dan 500.
+- [x] `controles/serializers.py:594`: `import warnings` dentro de un `if` (UnboundLocalError).
+- [x] `embarazos/admin.py`: campos inexistentes (FieldError).
+- [x] `calculadoras_avanzadas/urls.py`: alias rotos.
+- [x] `settings.py`: `DEBUG` falso por defecto; tenant desconocido = 404; webhook Orthanc exige secreto.
+- [x] Subidas: validar tipo real (bytes mágicos), tamaño y nombre UUID; media servida solo con sesión.
 
 Frontend
-- [ ] 33 enlaces sin `/dashboard` que llevan a «no encontrado»; menú «IA Assistant».
-- [ ] Permisos de ruta con codenames inexistentes (calculadoras, partograma, archivos).
-- [ ] Retirar lo que finge: recién nacidos inventados, subida de documentos falsa, PDF falso, medidas DICOM con `Math.random()`, «precisión 87 %», maqueta de importación.
+- [x] 33 enlaces sin `/dashboard` que llevan a «no encontrado»; menú «IA Assistant».
+- [x] Permisos de ruta con codenames inexistentes (calculadoras, partograma, archivos).
+- [x] Retirar lo que finge: recién nacidos inventados, subida de documentos falsa, PDF falso, medidas DICOM con `Math.random()`, «precisión 87 %», maqueta de importación.
 
-### Sprint 2 — Integridad clínica
-- [ ] FCF: aceptar 50–240 lpm y alertar fuera de 110–160 (hoy no se pueden registrar las bradicardias).
-- [ ] El parto finaliza el embarazo solo cuando `parto_finalizado`; embarazo obligatorio.
-- [ ] `crear-desde-ia` no inventa embarazos; `ecografia_id` no mezcla dos tablas.
-- [ ] Ecografía: sin fechas futuras; paciente = paciente del embarazo; EG contrastada con la FUM.
-- [ ] EG de embarazos finalizados calculada a la fecha del parto.
-- [ ] Una sola clasificación de líquido amniótico; una sola capa MoM (FMF) y un solo cálculo de preeclampsia.
-- [ ] Un embarazo activo por paciente como restricción en la base.
-- [ ] `on_delete=PROTECT` + baja lógica para no perder historia clínica.
-- [ ] Datación ecográfica: FPP corregida por la ecografía del primer trimestre.
+### Sprint 2 — Integridad clínica (HECHO)
+- [x] FCF: aceptar 50–240 lpm y alertar fuera de 110–160 (hoy no se pueden registrar las bradicardias).
+- [x] El parto finaliza el embarazo solo cuando `parto_finalizado`; embarazo obligatorio.
+- [x] `crear-desde-ia` no inventa embarazos; `ecografia_id` no mezcla dos tablas.
+- [x] Ecografía: sin fechas futuras; paciente = paciente del embarazo; EG contrastada con la FUM.
+- [x] EG de embarazos finalizados calculada a la fecha del parto.
+- [x] Una sola clasificación de líquido amniótico; una sola capa MoM (FMF) y un solo cálculo de preeclampsia.
+- [x] Un embarazo activo por paciente como restricción en la base.
+- [x] `on_delete=PROTECT` + baja lógica para no perder historia clínica.
+- [x] Datación ecográfica: FPP corregida por la ecografía del primer trimestre.
 
-### Sprint 3 — IA honesta y útil
-- [ ] EfficientNet-B4: fuera de la pantalla clínica (o «experimental, no validado» si se decide conservarla). `BIOMETRY_AVAILABLE=false`.
-- [ ] «SHAP risk scores» → «indicador heurístico»; quitar campos fijos (`actividad_cardiaca: False`); una ecografía normal no puede salir «riesgo ALTO».
-- [ ] Sin pesos → el microservicio no arranca (hoy responde con pesos aleatorios); `/health` real; inferencia fuera del bucle de eventos.
-- [ ] Un solo traductor de resultados del microservicio (hoy hay tres).
-- [ ] Integrar las redes reales en la ficha de la ecografía: plano + circunferencia + semanas, guardados y visibles.
-- [ ] Registro de modelos: versión y sha256 en cada respuesta.
+### Sprint 3 — IA honesta y útil (HECHO salvo decisión sobre la B4)
+- [~] Marcada «experimental» con advertencia en cada resultado; biometría sintética apagada. **Retirarla o conservarla: decisión pendiente.**  
+  _Original:_ EfficientNet-B4: fuera de la pantalla clínica (o «experimental, no validado» si se decide conservarla). `BIOMETRY_AVAILABLE=false`.
+- [x] «SHAP risk scores» → «indicador heurístico»; quitar campos fijos (`actividad_cardiaca: False`); una ecografía normal no puede salir «riesgo ALTO».
+- [x] Sin pesos → el microservicio no arranca (hoy responde con pesos aleatorios); `/health` real; inferencia fuera del bucle de eventos.
+- [x] Un solo traductor de resultados del microservicio (hoy hay tres).
+- [x] Integrar las redes reales en la ficha de la ecografía: plano + circunferencia + semanas, guardados y visibles.
+- [x] Registro de modelos: sha256 de los pesos en cada respuesta, en `/health` y en `AnalisisCNN.version_modelo`.
 
 ### Sprint 4 — Reportes, registros y Excel
-- [ ] **Centro de reportes**: una sección del menú con pestañas (Resumen, Materno-fetal, Partos y neonatos, Laboratorio, Agenda, Vacunación, Indicadores, Generador, Importación, Auditoría), filtro de fechas común, exportación Excel/PDF desde el backend y auditada, actualización automática opcional cada 60 s.
-- [ ] Corregir: contrato de `dashboard-kpis`, PDF `.pd`, fallo con rangos vacíos, último día excluido, gráficas con campos inexistentes, colores por entidad.
-- [ ] Exportación Excel de laboratorio, citas, vacunas y auditoría.
-- [ ] **Importación Excel** de pacientes y resultados de laboratorio: plantilla, validación en seco, vista previa, sin duplicados, confirmación atómica, informe de errores y deshacer por lote.
-- [ ] **Registro por sesión**: `session_key` en cada registro; vista de sesiones (usuario, IP, navegador, inicio, fin, duración); filtros por fecha y usuario; IP también en altas/ediciones; auditar acciones masivas del admin.
-- [ ] Los tests dejan de escribir en `Backend/logs/`.
+- [~] Hecho como submenú «Centro de reportes» (panel en tiempo real, estadísticas por fecha, KPIs, indicadores, generador PDF, auditoría). Falta unificarlo en una sola página con pestañas.  
+  _Original:_ **Centro de reportes**: una sección del menú con pestañas (Resumen, Materno-fetal, Partos y neonatos, Laboratorio, Agenda, Vacunación, Indicadores, Generador, Importación, Auditoría), filtro de fechas común, exportación Excel/PDF desde el backend y auditada, actualización automática opcional cada 60 s.
+- [x] `dashboard-kpis/resumen/` con datos reales, PDF `.pdf`, 50 rutas de estadísticas probadas con la base vacía (2 daban 500 siempre).  
+  _Original:_ Corregir: contrato de `dashboard-kpis`, PDF `.pd`, fallo con rangos vacíos, último día excluido, gráficas con campos inexistentes, colores por entidad.
+- [x] Exportación Excel de laboratorio, citas, vacunas y auditoría.
+- [~] Pacientes: plantilla, vista previa, sin duplicados, confirmación y auditoría. Falta laboratorio y «deshacer por lote».  
+  _Original:_ **Importación Excel** de pacientes y resultados de laboratorio: plantilla, validación en seco, vista previa, sin duplicados, confirmación atómica, informe de errores y deshacer por lote.
+- [x] **Registro por sesión**: `session_key` en cada registro; vista de sesiones (usuario, IP, navegador, inicio, fin, duración); filtros por fecha y usuario; IP también en altas/ediciones; auditar acciones masivas del admin.
+- [x] Los tests dejan de escribir en `Backend/logs/`.
 
 ### Sprint 5 — Flujo guiado y UX
-- [ ] Historia clínica como centro de la paciente, con acceso directo a cada paso.
-- [ ] Formularios que reciben `?paciente=` y `?embarazo=`; tras registrar paciente, ofrecer «crear embarazo».
+- [x] Historia clínica como centro de la paciente, con acceso directo a cada paso.
+- [x] Formularios con `?paciente=`/`?embarazo=` y selectores con búsqueda en el servidor; flujo completo verificado con Playwright.  
+  _Original:_ Formularios que reciben `?paciente=` y `?embarazo=`; tras registrar paciente, ofrecer «crear embarazo».
 - [ ] Detalle del parto con pestañas: recién nacidos (gemelos), Apgar, partograma, complicaciones.
 - [ ] Unificar duplicados: Evoluciones + Notas, calculadoras, alias de laboratorio, dos modelos de imagen.
-- [ ] Paginación en el servidor; dividir los componentes gigantes; modo oscuro y `aria-label`.
+- [~] Tokens de tema completados (52 variables sin definir); faltan paginación en servidor en listados grandes y `aria-label` general.  
+  _Original:_ Paginación en el servidor; dividir los componentes gigantes; modo oscuro y `aria-label`.
 
 ### Sprint 6 — QA, CI y puesta en producción
-- [ ] CI: pytest en vez de `manage.py test`; ruff; tests del microservicio; tests del frontend sin `|| true`; se dispara también en `produccion-hospital`.
-- [ ] E2E con Playwright del flujo completo; carga con Locust.
-- [ ] Reparar los tests que no pueden fallar (lista en la sección 5).
-- [ ] Versiones fijas, respaldo de base de datos, arranque único y documentado.
+- [x] CI: pytest en vez de `manage.py test`; ruff; tests del microservicio; tests del frontend sin `|| true`; se dispara también en `produccion-hospital`.
+- [x] E2E con Playwright del flujo completo; carga con Locust.
+- [~] Reescritos los que codificaban fallos (FCF, MoM, talla, consentimiento). Revisar el resto.  
+  _Original:_ Reparar los tests que no pueden fallar (lista en la sección 5).
+- [x] Versiones fijas (`requirements.lock.txt`), respaldo diario con restauración verificada (`RESPALDO_DIARIO.bat`), arranques de desarrollo y producción corregidos.
 - [ ] Orden del repositorio (sección 6).
 
 ---
@@ -187,10 +194,10 @@ verde + commit con explicación del fallo que previene.
 | Worktrees `.claude/worktrees/infra-conexiones` y `.kilo/worktrees/nervous-timer` | Limpios y ya fusionados: se pueden quitar |
 | `_archive/microservicio_ia_checkpoints` (2,5 GB, 34 épocas del modelo viejo) | Preguntar |
 | `Microservicio_IA/datasets_pathology` (4,1 GB) y `_v2` (2,6 GB) | Preguntar (base del modelo que se retira) |
-| `Microservicio_IA/.venv` roto (apunta a otro usuario) | Borrar |
-| Carpetas vacías `datasets/`, `clinical_training_data/images`, `temp/` | Borrar |
-| Scripts `debug_*.py`, `start_gpu_training.bat` con rutas de otro usuario | Borrar |
-| Scripts de arranque en la raíz (5 `.bat`) | Dejar uno de desarrollo y uno de producción |
+| `Microservicio_IA/.venv` (apunta al Python de Artemis) | Se conserva: es el entorno del equipo de entrenamiento, allí funciona |
+| Carpetas vacías `datasets/`, `temp/` | Se conservan: `app/config.py` las crea al arrancar |
+| Scripts `debug_*.py` (puerto 5000 obsoleto) | ✅ borrados. `start_gpu_training.bat` se conserva: es el lanzador de entrenamiento en Artemis |
+| Scripts de arranque en la raíz | ✅ `INICIAR_SISTEMA.bat` (desarrollo, ASGI + IA), `INICIAR_PRODUCCION.bat` (8 workers, comprobación final), `RESPALDO_DIARIO.bat`; borrados `start_all.bat` y `start_system.bat` (rotos) |
 
 ---
 

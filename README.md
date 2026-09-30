@@ -83,7 +83,7 @@ Para levantar simultáneamente el Frontend (React), el Backend (Django), el Micr
 # Iniciar todos los servicios:
 INICIAR_SISTEMA.bat
 ```
-*(También puedes usar `start_all.bat` o `start_system.bat` según el nivel de depuración requerido).*
+*`INICIAR_SISTEMA.bat` es para desarrollo. Para un hospital usar `INICIAR_PRODUCCION.bat` (build real, 8 workers, comprueba que los servicios respondan) y programar `RESPALDO_DIARIO.bat` (respaldo con pg_dump; instrucciones dentro del archivo).*
 
 ---
 

@@ -231,7 +231,7 @@ class APIEndpointStatusTest(APITestCase):
             "nombre": "API",
             "apellido_paterno": "Test",
             "fecha_nacimiento": "1990-01-01",
-            "genero": "femenino",
+            "genero": "femenino", "consentimiento_datos_aceptado": True,
             "ci": "11111111",
         }
         response = self.client.post(reverse("paciente-list"), data, format="json")
@@ -258,7 +258,7 @@ class APIEndpointStatusTest(APITestCase):
             "nombre": "Updated",
             "apellido_paterno": "Test",
             "fecha_nacimiento": "1990-01-01",
-            "genero": "femenino",
+            "genero": "femenino", "consentimiento_datos_aceptado": True,
             "ci": "12345678",
         }
         response = self.client.put(url, data, format="json")

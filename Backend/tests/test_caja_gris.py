@@ -177,7 +177,7 @@ class LoQueQuedaEscritoDetrasDeUn200Test(_ConDatos):
         respuesta = self.client.post("/api/pacientes/", {
             "nombre": "Valentina", "apellido_paterno": "Yujra",
             "apellido_materno": "Avila", "fecha_nacimiento": "1994-04-04",
-            "genero": "femenino", "ci": "5551122",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "5551122",
         }, format="json")
 
         assert respuesta.status_code == 201
@@ -205,7 +205,7 @@ class LoQueQuedaEscritoDetrasDeUn200Test(_ConDatos):
         respuesta = self.client.post("/api/pacientes/", {
             "nombre": "Teresa", "apellido_paterno": "Huanca",
             "apellido_materno": "Cusi", "fecha_nacimiento": "1990-09-09",
-            "genero": "femenino", "ci": "5551133",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "5551133",
         }, format="json")
 
         registro = (
@@ -235,7 +235,7 @@ class ElDatoSensibleNoSeGuardaEnClaroTest(_ConDatos):
         respuesta = self.client.post("/api/pacientes/", {
             "nombre": "Cifrada", "apellido_paterno": "Prueba",
             "apellido_materno": "Datos", "fecha_nacimiento": "1993-02-02",
-            "genero": "femenino", "ci": "9998887",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "9998887",
         }, format="json")
         assert respuesta.status_code == 201
 
@@ -260,7 +260,7 @@ class ElDatoSensibleNoSeGuardaEnClaroTest(_ConDatos):
         creada = self.client.post("/api/pacientes/", {
             "nombre": "Buscable", "apellido_paterno": "Cifrada",
             "apellido_materno": "Datos", "fecha_nacimiento": "1993-02-02",
-            "genero": "femenino", "ci": "9998886",
+            "genero": "femenino", "consentimiento_datos_aceptado": True, "ci": "9998886",
         }, format="json").data
 
         respuesta = self.client.get("/api/pacientes/?search=9998886")
