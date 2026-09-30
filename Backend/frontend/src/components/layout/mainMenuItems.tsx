@@ -33,6 +33,10 @@ const checkPermission = (user: any, itemKey: string): boolean => {
     '/dashboard/calculadoras': 'view_calculohistorial',
     '/dashboard/citas': 'view_cita',
     '/dashboard/reportes': 'view_reportegenerado',
+    '/dashboard/reportes/generar': 'add_reportegenerado',
+    '/dashboard/reportes/kpis': 'view_dashboardkpi',
+    '/dashboard/reportes/indicadores': 'view_dashboardkpi',
+    '/dashboard/reportes/auditoria': 'view_auditoriareporte',
     '/dashboard/estadisticas': 'view_dashboardkpi',
     '/dashboard/alertas': 'view_alertamedica',
     '/dashboard/consultorios': 'view_consultorio',
@@ -43,7 +47,11 @@ const checkPermission = (user: any, itemKey: string): boolean => {
     '/dashboard/backup': 'view_sistemaconfiguracion',
   };
 
-  const permission = Object.keys(routePermissions).find(route => itemKey.startsWith(route));
+  // La ruta más específica manda: /dashboard/reportes/kpis no hereda el
+  // permiso de /dashboard/reportes.
+  const permission = Object.keys(routePermissions)
+    .filter(route => itemKey.startsWith(route))
+    .sort((a, b) => b.length - a.length)[0];
   if (!permission) return true;
   return authService.hasPermission(routePermissions[permission]);
 };
@@ -100,12 +108,28 @@ export const buildMainMenuItems = (user: any, navigate: NavigateFunction): MenuP
         ],
       },
       { key: '/dashboard/citas', icon: <CalendarOutlined />, label: 'Agenda de Citas' },
-      { key: '/dashboard/reportes', icon: <BarChartOutlined />, label: 'Reportes' },
-      { key: '/dashboard/estadisticas', icon: <LineChartOutlined />, label: 'Estadísticas' },
+      {
+        // Centro de reportes: antes solo «Reportes» y «Estadísticas» estaban en
+        // el menú; KPIs, Indicadores, Generar y Auditoría solo por URL.
+        key: 'sub-reportes',
+        icon: <BarChartOutlined />,
+        label: 'Centro de reportes',
+        children: [
+          { key: '/dashboard/reportes', label: 'Panel en tiempo real' },
+          { key: '/dashboard/estadisticas', icon: <LineChartOutlined />, label: 'Estadísticas por fecha' },
+          { key: '/dashboard/reportes/kpis', label: 'KPIs' },
+          { key: '/dashboard/reportes/indicadores', label: 'Indicadores y metas' },
+          { key: '/dashboard/reportes/generar', label: 'Generar reporte PDF' },
+          { key: '/dashboard/reportes/auditoria', label: 'Reportes de auditoría' },
+        ].filter(item => checkPermission(user, item.key)),
+      },
       { key: '/dashboard/alertas', icon: <AlertOutlined />, label: 'Alertas Médicas' },
     ].filter(item => {
       if (item.key === 'sub-calculadoras') {
         return checkPermission(user, '/dashboard/calculadoras');
+      }
+      if (item.key === 'sub-reportes') {
+        return (item as { children?: unknown[] }).children?.length !== 0;
       }
       return checkPermission(user, item.key as string);
     }),
