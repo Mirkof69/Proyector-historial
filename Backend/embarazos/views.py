@@ -20,6 +20,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.exportacion import ExportarExcelMixin
 from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 from pacientes.models import Paciente
@@ -34,7 +35,7 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
-class EmbarazoViewSet(viewsets.ModelViewSet):
+class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet for comprehensive Pregnancy management.
 
     Manages pregnancy registration, risk assessment, trimester tracking,
@@ -64,9 +65,29 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     **Permissions:** Authenticated users (admin required for delete)
     """
 
+    # Excel del listado con los MISMOS filtros que la pantalla y auditado.
+    # Antes era un openpyxl a mano: exportaba los códigos crudos («alto»,
+    # «activo») y no quedaba registro de quién sacó los datos.
+    excel_nombre = "embarazos"
+    excel_columnas = [
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("Gesta", "numero_gesta"),
+        ("FUM", "fecha_ultima_menstruacion"),
+        ("FPP", "fecha_probable_parto"),
+        ("Tipo", "tipo_embarazo"),
+        ("Riesgo", "riesgo_embarazo"),
+        ("Estado", "estado"),
+        ("Partos previos", "numero_para"),
+        ("Cesáreas previas", "numero_cesareas"),
+        ("Abortos previos", "numero_abortos"),
+        ("Médico responsable", "medico_responsable"),
+        ("Fecha de registro", "fecha_registro"),
+    ]
+
     # ✅ OPTIMIZACIÓN: Solo select_related (sin prefetch que causa error)
     queryset = (
-        Embarazo.objects.select_related("paciente").prefetch_related("partos", "ecografias")
+        Embarazo.objects.select_related("paciente", "medico_responsable").prefetch_related("partos", "ecografias")
         .all().order_by("-fecha_registro")
     )
 
@@ -310,6 +331,61 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # ENDPOINTS PERSONALIZADOS
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, _request):
+        """Cifras de la pantalla de embarazos, con los MISMOS filtros que el listado.
+
+        GET /api/embarazos/resumen/?search=&riesgo_embarazo=&estado=
+
+        Antes la pantalla descargaba TODOS los embarazos y TODAS las pacientes
+        (~34 peticiones con 3.200 pacientes) solo para contar activos, alto
+        riesgo, a término y trimestres en el navegador.
+
+        La edad gestacional se mide en días desde la FUM, igual que la tabla:
+        «a término» = 37 semanas cumplidas (≥ 259 días); 1.er trimestre < 14
+        semanas (< 98 días); 2.º de 14 a 27; 3.º desde 28 (≥ 196 días). Solo
+        cuentan los embarazos ACTIVOS: uno finalizado hace un año no está «a
+        término» hoy.
+        """
+        qs = self.filter_queryset(self.get_queryset()).order_by()
+        hoy = timezone.localdate()
+        activos = qs.filter(estado="activo")
+        fum_37 = hoy - timedelta(days=37 * 7)
+        fum_14 = hoy - timedelta(days=14 * 7)
+        fum_28 = hoy - timedelta(days=28 * 7)
+
+        a_termino = activos.filter(fecha_ultima_menstruacion__lte=fum_37)
+        proximos = (
+            activos.filter(fecha_probable_parto__gte=hoy,
+                           fecha_probable_parto__lte=hoy + timedelta(days=30))
+            .select_related("paciente").order_by("fecha_probable_parto")[:5]
+        )
+        # Las alertas muestran nombres: se acotan para no serializar cientos.
+        alertas = a_termino.select_related("paciente").order_by("fecha_ultima_menstruacion")[:50]
+
+        def _fila(e):
+            dias = (hoy - e.fecha_ultima_menstruacion).days if e.fecha_ultima_menstruacion else None
+            return {
+                "id": e.id,
+                "paciente": e.paciente_id,
+                "paciente_nombre": e.paciente.nombre_completo,
+                "fecha_probable_parto": e.fecha_probable_parto,
+                "semanas": dias // 7 if dias is not None else None,
+            }
+
+        return Response({
+            "total": qs.count(),
+            "activos": activos.count(),
+            "alto_riesgo": activos.filter(riesgo_embarazo="alto").count(),
+            "a_termino": a_termino.count(),
+            "primer_trimestre": activos.filter(fecha_ultima_menstruacion__gt=fum_14).count(),
+            "segundo_trimestre": activos.filter(fecha_ultima_menstruacion__lte=fum_14,
+                                                fecha_ultima_menstruacion__gt=fum_28).count(),
+            "tercer_trimestre": activos.filter(fecha_ultima_menstruacion__lte=fum_28).count(),
+            "proximos_partos": [_fila(e) for e in proximos],
+            "alertas_termino": [_fila(e) for e in alertas],
+        })
 
     @action(detail=False, methods=["get"])
     def activos(self, _request):
@@ -1030,43 +1106,3 @@ class EmbarazoViewSet(viewsets.ModelViewSet):
                  getattr(c, "altura_uterina", None),
              ] for c in controles]},
         ])
-
-    @action(detail=False, methods=["get"], url_path="exportar-excel")
-    def exportar_excel(self, request):
-        """Exportar lista de embarazos a Excel"""
-        try:
-            from io import BytesIO
-
-            import openpyxl
-            from django.http import HttpResponse
-            queryset = self.filter_queryset(self.get_queryset())
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Embarazos"
-            headers = ["ID", "Paciente", "Gesta", "FUM", "FPP", "Tipo", "Riesgo", "Estado"]
-            ws.append(headers)
-            for e in queryset:
-                ws.append([
-                    e.id,
-                    str(e.paciente),
-                    e.numero_gesta,
-                    str(e.fecha_ultima_menstruacion or ""),
-                    str(e.fecha_probable_parto or ""),
-                    e.tipo_embarazo,
-                    e.riesgo_embarazo,
-                    e.estado,
-                ])
-            output = BytesIO()
-            wb.save(output)
-            output.seek(0)
-            response = HttpResponse(
-                output.getvalue(),
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
-            response["Content-Disposition"] = "attachment; filename=embarazos.xlsx"
-            return response
-        except ImportError:
-            return Response(
-                {"error": "openpyxl no instalado. pip install openpyxl"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )

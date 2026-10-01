@@ -2,6 +2,7 @@
 import contextlib
 from datetime import datetime, timedelta
 
+from django.db.models import Count
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
@@ -222,6 +223,27 @@ class DisponibilidadViewSet(viewsets.ModelViewSet):
         )
 
 
+class OrdenFechaHora(filters.OrderingFilter):
+    """Al ordenar por fecha, desempata por hora en el MISMO sentido.
+
+    La tabla de citas ordena por «Fecha y Hora» en una sola columna. Con
+    `?ordering=fecha_cita` a secas, las citas de un mismo día salían en orden
+    arbitrario (y cambiaban de página entre peticiones), porque
+    OrderingFilter reemplaza el orden por defecto del queryset.
+    """
+
+    def get_ordering(self, request, queryset, view):
+        orden = super().get_ordering(request, queryset, view)
+        if not orden or any(c.lstrip("-") == "hora_cita" for c in orden):
+            return orden
+        resultado = []
+        for campo in orden:
+            resultado.append(campo)
+            if campo.lstrip("-") == "fecha_cita":
+                resultado.append("-hora_cita" if campo.startswith("-") else "hora_cita")
+        return resultado
+
+
 class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet completo para gestión de Citas
 
@@ -272,16 +294,20 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     filter_backends = [
         DjangoFilterBackend,
         BusquedaClinicaFilter,
-        filters.OrderingFilter,
+        OrdenFechaHora,
     ]
     filterset_fields = ["paciente", "medico", "estado", "tipo_cita", "fecha_cita"]
     # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
     # identificatorios de Paciente están cifrados y el SearchFilter de DRF
     # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
     busqueda_ruta_paciente = "paciente"
+    # Motivo y observaciones están en claro: la pantalla los buscaba en el
+    # navegador y, al paginar en el servidor, la búsqueda tiene que cubrirlos.
     busqueda_campos_claros = [
         "medico__nombre",
         "medico__apellido_paterno",
+        "motivo",
+        "observaciones",
     ]
     ordering_fields = ["fecha_cita", "hora_cita", "estado"]
 
@@ -564,6 +590,31 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
                 "total_disponibles": len([h for h in horarios if h["disponible"]]),
             },
         )
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, _request):
+        """Cifras de la pantalla de citas, con los MISMOS filtros que el listado.
+
+        GET /api/citas/citas/resumen/?search=&estado=&tipo_cita=&fecha_desde=&fecha_hasta=
+
+        Antes la pantalla descargaba TODAS las citas y TODAS las pacientes en
+        bucle para contar en el navegador. Respeta la restricción por rol de
+        `get_queryset` (un médico solo cuenta sus citas), cosa que el
+        `estadisticas` global no hace.
+        """
+        qs = self.filter_queryset(self.get_queryset()).order_by()
+        hoy = timezone.localdate()
+        por_estado = dict(qs.values_list("estado").annotate(n=Count("id")))
+        return Response({
+            "total": sum(por_estado.values()),
+            **{codigo: por_estado.get(codigo, 0) for codigo, _ in Cita.ESTADO_CHOICES},
+            # Pendientes de atender hoy (las ya cerradas no cuentan).
+            "hoy": qs.filter(fecha_cita=hoy,
+                             estado__in=["agendada", "confirmada", "en_espera", "en_consulta"]).count(),
+            # Fecha pasada y nadie la cerró: la paciente no vino o falta registrarlo.
+            "atrasadas": qs.filter(fecha_cita__lt=hoy, estado__in=["agendada", "confirmada"]).count(),
+            "pendientes_confirmacion": por_estado.get("agendada", 0),
+        })
 
     @action(detail=False, methods=["get"])
     def estadisticas(self, _request):

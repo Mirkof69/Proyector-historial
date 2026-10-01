@@ -18,7 +18,7 @@
  * =============================================================================
  */
 
-import React, { useReducer, useEffect, useMemo, useCallback } from 'react';
+import React, { useReducer, useEffect, useMemo, useCallback, useState } from 'react';
 import {
     Table,
     Button,
@@ -33,6 +33,7 @@ import {
     Tooltip,
     Progress,
     Dropdown,
+    Alert,
     Result as ResultEmpty
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
@@ -61,14 +62,15 @@ import 'dayjs/locale/es';
 
 // Servicios
 import { embarazosService } from '../../services/embarazosService';
+// Envoltorio de services/api: `api.get()` YA devuelve los datos (no la
+// respuesta de axios). El listado usa useListadoServidor, que va por axios.
 import { api } from '../../services/api';
-import { GlobalLoader } from '../../components/common/GlobalLoader'; // Para buscar pacientes
 import AnimatedStatistic from '../../components/common/AnimatedStatistic';
 import { usuariosService } from '../../services/usuariosService';
-import { exportarExcel } from '../../utils/excelExport';
 import { descargarArchivo } from '../../utils/descargarArchivo';
+import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
 import {
-    EmbarazoExtendido, initialState, reducer,
+    EmbarazoExtendido, EmbarazoResumido, initialState, reducer,
     calcularFPP, calcularEdadGestacional, calcularIMC,
 } from './embarazosReducer';
 import { buildEmbarazosColumns } from './embarazosColumns';
@@ -80,7 +82,6 @@ import AlertasModal from './components/AlertasModal';
 import PanelControlDrawer from './components/PanelControlDrawer';
 import HistorialModal from './components/HistorialModal';
 import FiltrosAvanzadosDrawer from './components/FiltrosAvanzadosDrawer';
-import { incluyeTexto } from '../../utils/texto';
 
 dayjs.locale('es');
 const { Option } = Select;
@@ -101,6 +102,51 @@ const databaseOutlinedIcon3 = <DatabaseOutlined />;
 const plusOutlinedIcon9 = <PlusOutlined />;
 const heartOutlinedIcon6 = <HeartOutlined style={{ fontSize: 64, color: '#bfbfbf' }} />;
 
+interface ResumenEmbarazos {
+    total: number;
+    activos: number;
+    alto_riesgo: number;
+    a_termino: number;
+    primer_trimestre: number;
+    segundo_trimestre: number;
+    tercer_trimestre: number;
+    proximos_partos: EmbarazoResumido[];
+    alertas_termino: EmbarazoResumido[];
+}
+
+const RESUMEN_VACIO: ResumenEmbarazos = {
+    total: 0, activos: 0, alto_riesgo: 0, a_termino: 0,
+    primer_trimestre: 0, segundo_trimestre: 0, tercer_trimestre: 0,
+    proximos_partos: [], alertas_termino: [],
+};
+
+/**
+ * Edad gestacional para la barra de progreso de la tabla.
+ *
+ * Se usa `semanas_gestacion` («S+D») del serializer, que cuenta hasta hoy si
+ * el embarazo está activo y hasta el parto si terminó. Antes se recalculaba
+ * SIEMPRE hasta hoy desde la FUM y un embarazo de hace un año aparecía con
+ * «85 semanas».
+ */
+const conEdadGestacional = (emb: EmbarazoExtendido): EmbarazoExtendido => {
+    let semanas = 0;
+    let dias = 0;
+    const eg = (emb as { semanas_gestacion?: unknown }).semanas_gestacion;
+    if (typeof eg === 'string' && eg.includes('+')) {
+        const [s, d] = eg.split('+');
+        semanas = parseInt(s, 10) || 0;
+        dias = parseInt(d, 10) || 0;
+    } else if (emb.estado === 'activo' && emb.fecha_ultima_menstruacion) {
+        const diffDias = dayjs().diff(dayjs(emb.fecha_ultima_menstruacion), 'day');
+        semanas = Math.floor(diffDias / 7);
+        dias = diffDias % 7;
+    }
+    let trimestre = 1;
+    if (semanas >= 14 && semanas < 28) trimestre = 2;
+    if (semanas >= 28) trimestre = 3;
+    return { ...emb, edad_gestacional_semanas_num: semanas, edad_gestacional_dias_num: dias, trimestre_actual: trimestre };
+};
+
 const Embarazos: React.FC = () => {
     const navigate = useNavigate();
     const { message, modal } = useAntdApp();
@@ -113,117 +159,37 @@ const Embarazos: React.FC = () => {
     // 3. LÓGICA DE CARGA Y DATOS
     // =============================================================================
 
-    const loadEmbarazos = useCallback(async () => {
-        dispatch({ type: 'SET_LOADING', payload: true });
+    // Listado paginado, filtrado y ordenado EN EL SERVIDOR. Antes se bajaban
+    // TODOS los embarazos y TODAS las pacientes (~34 peticiones con 3.200
+    // pacientes) para poner un nombre que EmbarazoListSerializer ya trae en
+    // `paciente_nombre`, y se filtraba en el navegador.
+    const filtrosServidor = useMemo(() => ({
+        riesgo_embarazo: state.riskFilter,
+        estado: state.statusFilter,
+    }), [state.riskFilter, state.statusFilter]);
 
+    const listado = useListadoServidor<EmbarazoExtendido>('/embarazos/', {
+        filtros: filtrosServidor, busqueda: state.searchText, tamanoInicial: 10, ordenInicial: '-fecha_registro',
+    });
+    const { parametros, recargar } = listado;
+    const embarazosPagina = useMemo(() => listado.datos.map(conEdadGestacional), [listado.datos]);
+
+    // Cifras de cabecera y paneles con los MISMOS filtros, sobre todos los embarazos.
+    const [resumen, setResumen] = useState<ResumenEmbarazos>(RESUMEN_VACIO);
+    const cargarResumen = useCallback(async () => {
         try {
-
-            // 🚀 PASO 1: Obtener primera página de cada endpoint para saber cuántas páginas hay
-            const [embarazosPage1, pacientesPage1] = await Promise.all([
-                api.get<any>('/embarazos/?page=1&limit=200').catch(err => {
-                    return { count: 0, results: [] };
-                }),
-                api.get<any>('/pacientes/?page=1&limit=200').catch(err => {
-                    return { count: 0, results: [] };
-                })
-            ]);
-
-            const embarazosCount = embarazosPage1.count || 0;
-            const embarazosPages = Math.ceil(embarazosCount / 200);
-            const pacientesCount = pacientesPage1.count || 0;
-            const pacientesPages = Math.ceil(pacientesCount / 200);
-
-
-            // Si no hay datos, salir temprano
-            if (embarazosCount === 0) {
-                dispatch({ type: 'SET_EMBARAZOS', payload: [] });
-                message.info('No hay embarazos registrados. Verifique que esté autenticado correctamente.', 3);
-                dispatch({ type: 'SET_LOADING', payload: false });
-                return;
-            }
-
-            // 🚀 PASO 2: Crear arrays de promesas para TODAS las páginas con manejo de errores
-            const embarazosPromises = Array.from({ length: embarazosPages }, (_, i) =>
-                api.get<any>(`/embarazos/?page=${i + 1}&limit=200`).catch(err => {
-                    return { results: [] };
-                })
-            );
-            const pacientesPromises = Array.from({ length: pacientesPages }, (_, i) =>
-                api.get<any>(`/pacientes/?page=${i + 1}&limit=200`).catch(err => {
-                    return { results: [] };
-                })
-            );
-
-            // 🚀 PASO 3: Ejecutar TODAS las requests en PARALELO (state.embarazos Y pacientes juntos)
-            const [embarazosResponses, pacientesResponses] = await Promise.all([
-                Promise.all(embarazosPromises),
-                Promise.all(pacientesPromises)
-            ]);
-
-            // 🚀 PASO 4: Combinar resultados
-            const allEmbarazos = embarazosResponses.flatMap(res =>
-                Array.isArray(res.results) ? res.results : []
-            );
-
-            const allPacientes = pacientesResponses.flatMap(res =>
-                Array.isArray(res.results) ? res.results : []
-            );
-
-            const pacientesMap = new Map(allPacientes.map((p: any) => [p.id, p]));
-
-            // ✅ Enriquecer datos con cálculos locales + unique keys
-            const listaProcesada = allEmbarazos.map((emb: any, index: number) => {
-                const fum = emb.fecha_ultima_menstruacion ? dayjs(emb.fecha_ultima_menstruacion) : null;
-                let semanas = 0;
-                let dias = 0;
-
-                if (fum) {
-                    const diffDias = dayjs().diff(fum, 'day');
-                    semanas = Math.floor(diffDias / 7);
-                    dias = diffDias % 7;
-                } else if (emb.edad_gestacional_semanas && typeof emb.edad_gestacional_semanas === 'string') {
-                    // Fallback si el backend manda string "20+4"
-                    const parts = emb.edad_gestacional_semanas.split('+');
-                    semanas = parseInt(parts[0]) || 0;
-                    dias = parseInt(parts[1]) || 0;
-                }
-
-                let trimestre = 1;
-                if (semanas >= 14 && semanas < 28) trimestre = 2;
-                if (semanas >= 28) trimestre = 3;
-
-                // Mapear nombre de paciente
-                let nombrePaciente = emb.paciente_nombre;
-                if (!nombrePaciente && emb.paciente) {
-                    const pId = typeof emb.paciente === 'object' ? emb.paciente.id : emb.paciente;
-                    const p = pacientesMap.get(pId) as any;
-                    if (p) {
-                        nombrePaciente = p.nombre_completo || `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''}`.trim();
-                    }
-                }
-
-                return {
-                    ...emb,
-                    paciente_nombre: nombrePaciente,
-                    edad_gestacional_semanas_num: semanas,
-                    edad_gestacional_dias_num: dias,
-                    trimestre_actual: trimestre,
-                    _uniqueRowKey: `embarazo-${emb.id}-${index}-${Date.now()}`
-                };
-            });
-
-            // Ordenar por fecha de creación descendente (más nuevos primero)
-            listaProcesada.sort((a: any, b: any) => {
-                return dayjs(b.fecha_registro).unix() - dayjs(a.fecha_registro).unix();
-            });
-
-            dispatch({ type: 'SET_EMBARAZOS', payload: listaProcesada });
-        } catch (error) {
-            message.error('No se pudo cargar la lista de embarazos. Verifique su conexión.');
-        } finally {
-            dispatch({ type: 'SET_LOADING', payload: false });
+            setResumen(await api.get<ResumenEmbarazos>('/embarazos/resumen/', { params: parametros() }));
+        } catch {
+            // Las cifras no deben impedir usar el listado.
+            setResumen(RESUMEN_VACIO);
         }
-    }, [message]);
+    }, [parametros]);
+    useEffect(() => { cargarResumen(); }, [cargarResumen]);
+
+    const loadEmbarazos = useCallback(() => {
+        recargar();
+        cargarResumen();
+    }, [recargar, cargarResumen]);
 
     // Carga asíncrona de pacientes para el Select (Buscador)
     const loadPacientesOptions = useCallback(async (search = '') => {
@@ -272,10 +238,9 @@ const Embarazos: React.FC = () => {
     }, [message]);
 
     useEffect(() => {
-        loadEmbarazos();
         loadPacientesOptionsCallback('');
         loadMedicos();
-    }, [loadEmbarazos, loadPacientesOptionsCallback, loadMedicos]); // Fix: Added missing loadMedicos dependency
+    }, [loadPacientesOptionsCallback, loadMedicos]);
 
     // =============================================================================
     // 4. CÁLCULOS OBSTÉTRICOS AUTOMÁTICOS
@@ -462,53 +427,21 @@ const Embarazos: React.FC = () => {
     // =============================================================================
 
 
-    // Exportación completa desde el servidor (todos los embarazos, no solo la
-    // página cargada). Antes esta opción esperaba 1,5 s y anunciaba «Reporte
-    // generado» sin generar nada.
-    const handleExportServidor = useCallback(async () => {
+    // Excel armado en el SERVIDOR (auditado). «Con los filtros actuales» manda
+    // búsqueda, riesgo y estado de la pantalla; antes ese Excel se generaba en
+    // el navegador con lo descargado. «Todos» no manda filtros.
+    const handleExportServidor = useCallback(async (conFiltros: boolean) => {
         dispatch({ type: 'SET_EXPORT_LOADING', payload: true });
         try {
-            await descargarArchivo('/embarazos/exportar-excel/', `embarazos_${dayjs().format('YYYY-MM-DD')}.xlsx`);
+            const query = conFiltros ? aQuery(parametros()) : '';
+            await descargarArchivo(`/embarazos/exportar-excel/${query}`, `embarazos_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`);
             message.success('Excel descargado');
         } catch (error) {
             message.error('No se pudo exportar el Excel');
         } finally {
             dispatch({ type: 'SET_EXPORT_LOADING', payload: false });
         }
-    }, [message]);
-
-    // ✅ Handler para exportar datos a Excel
-    const handleExportExcel = useCallback(() => {
-        try {
-            const columnas = {
-                'id': 'ID',
-                'paciente_nombre': 'Paciente',
-                'numero_gesta': 'Gesta',
-                'fecha_ultima_menstruacion': 'FUM',
-                'fecha_probable_parto': 'FPP',
-                'edad_gestacional_actual': 'Edad Gestacional',
-                'riesgo_embarazo': 'Riesgo',
-                'estado': 'Estado',
-                'gestas_previas': 'Gestas Previas',
-                'partos_previos': 'Partos',
-                'cesareas_previas': 'Cesáreas',
-                'abortos_previos': 'Abortos'
-            };
-
-            exportarExcel(
-                state.embarazos,
-                columnas,
-                {
-                    filename: `embarazos_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-                    sheetName: 'Embarazos',
-                    title: `Listado de Embarazos - ${dayjs().format("DD/MM/YYYY")}`
-                }
-            );
-            message.success('Archivo Excel generado exitosamente');
-        } catch (error) {
-            message.error('Error al generar el archivo Excel');
-        }
-    }, [state.embarazos, message]);
+    }, [message, parametros]);
 
     // ✅ Handler para sincronizar datos con servidor
     const handleSyncData = useCallback(async () => {
@@ -517,7 +450,8 @@ const Embarazos: React.FC = () => {
             message.loading({ content: 'Sincronizando con el servidor...', key: 'sync' });
 
             await Promise.all([
-                loadEmbarazos(),
+                recargar(),
+                cargarResumen(),
                 loadPacientesOptionsCallback(''),
                 loadMedicos()
             ]);
@@ -532,7 +466,7 @@ const Embarazos: React.FC = () => {
         } finally {
             dispatch({ type: 'SET_SYNC_LOADING', payload: false });
         }
-    }, [loadEmbarazos, loadPacientesOptionsCallback, loadMedicos, message]);
+    }, [recargar, cargarResumen, loadPacientesOptionsCallback, loadMedicos, message]);
 
     // ✅ Handler para finalizar embarazo
     const handleFinalizarEmbarazo = useCallback(async (embarazo: EmbarazoExtendido) => {
@@ -567,50 +501,29 @@ const Embarazos: React.FC = () => {
     // 6. ESTADÍSTICAS Y FILTROS (MEMOIZED)
     // =============================================================================
 
-    const filteredData = useMemo(() => {
-        return state.embarazos.filter(item => {
-            // Filtro de Texto (Nombre paciente, médico)
-            const matchesSearch = !state.searchText ||
-                (incluyeTexto(item.paciente_nombre, state.searchText)) ||
-                (incluyeTexto(item.observaciones, state.searchText)); // Buscar en notas también
-
-            // Filtro de Riesgo
-            const matchesRisk = !state.riskFilter || item.riesgo_embarazo === state.riskFilter;
-
-            // Filtro de Estado
-            const matchesStatus = !state.statusFilter || item.estado === state.statusFilter;
-
-            return matchesSearch && matchesRisk && matchesStatus;
-        });
-    }, [state.embarazos, state.searchText, state.riskFilter, state.statusFilter]);
-
-    const stats = useMemo(() => {
-        return {
-            total: state.embarazos.length,
-            activos: state.embarazos.filter(e => e.estado === 'activo').length,
-            altoRiesgo: state.embarazos.filter(e => e.riesgo_embarazo === 'alto' && e.estado === 'activo').length,
-            termino: state.embarazos.filter(e => (e.edad_gestacional_semanas_num || 0) >= 37 && e.estado === 'activo').length,
-            primerTrimestre: state.embarazos.filter(e => (e.edad_gestacional_semanas_num || 0) < 14 && e.estado === 'activo').length
-        };
-    }, [state.embarazos]);
+    const stats = {
+        total: resumen.total,
+        activos: resumen.activos,
+        altoRiesgo: resumen.alto_riesgo,
+        termino: resumen.a_termino,
+        primerTrimestre: resumen.primer_trimestre,
+        segundoTrimestre: resumen.segundo_trimestre,
+        tercerTrimestre: resumen.tercer_trimestre,
+    };
 
     // =============================================================================
     // 7. DEFINICIÓN DE COLUMNAS DE TABLA
     // =============================================================================
 
     const columns = useMemo(() => buildEmbarazosColumns({
-        navigate, canChange, canDelete, modal, dispatch,
+        navigate, canChange, canDelete, dispatch,
         handleVerHistorial, handleOpenEdit,
         handleFinalizarEmbarazo, handleDelete,
-    }), [navigate, canChange, canDelete, handleVerHistorial, handleOpenEdit, handleFinalizarEmbarazo, handleDelete, modal]);
+    }), [navigate, canChange, canDelete, handleVerHistorial, handleOpenEdit, handleFinalizarEmbarazo, handleDelete]);
 
     // =============================================================================
     // 8. RENDERIZADO DE INTERFAZ (JSX)
     // =============================================================================
-
-    if (state.loading && state.embarazos.length === 0) {
-        return <GlobalLoader tip="Cargando registros obstétricos…" />;
-    }
 
     return (
         <div className="embarazos-module animate-fade-in">
@@ -720,15 +633,15 @@ const Embarazos: React.FC = () => {
                                     items: [
                                         {
                                             key: 'excel-vista',
-                                            label: 'Excel de la vista actual',
+                                            label: 'Excel con los filtros actuales',
                                             icon: <FileExcelOutlined />,
-                                            onClick: handleExportExcel
+                                            onClick: () => handleExportServidor(true)
                                         },
                                         {
                                             key: 'excel-todos',
                                             label: 'Excel de todos los embarazos',
                                             icon: <ExportOutlined />,
-                                            onClick: handleExportServidor
+                                            onClick: () => handleExportServidor(false)
                                         }
                                     ]
                                 }}
@@ -737,13 +650,13 @@ const Embarazos: React.FC = () => {
                                     Exportar
                                 </Button>
                             </Dropdown>
-                            <Tooltip title="Sincronizar datos">
-                                <Button
-                                    icon={syncIcon}
-                                    onClick={handleSyncData}
-                                    loading={state.syncLoading}
-                                />
-                            </Tooltip>
+                            <Button
+                                icon={syncIcon}
+                                onClick={handleSyncData}
+                                loading={state.syncLoading}
+                                aria-label="Sincronizar datos"
+                                title="Sincronizar datos"
+                            />
                             <Tooltip title="Análisis de Evolución">
                                 <Button
                                     icon={lineChartIcon2}
@@ -777,25 +690,23 @@ const Embarazos: React.FC = () => {
                                     Panel Control
                                 </Button>
                             </Tooltip>
-                            <Button icon={reloadOutlinedIcon4} onClick={loadEmbarazos} loading={state.loading}>
+                            <Button icon={reloadOutlinedIcon4} onClick={loadEmbarazos} loading={listado.cargando}>
                                 Recargar
                             </Button>
                         </Space>
                     </Col>
                 </Row>
 
+                {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
+
                 {/* Tabla */}
                 <Table
-                    dataSource={filteredData}
+                    dataSource={embarazosPagina}
                     columns={columns as any}
-                    rowKey={(record: any) => record._uniqueRowKey || `embarazo-fallback-${record.id}`}
-                    loading={state.loading}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Total ${total} registros`,
-                        pageSizeOptions: ['10', '20', '50', '100'],
-                    }}
+                    rowKey="id"
+                    loading={listado.cargando}
+                    pagination={listado.paginacion}
+                    onChange={listado.onChange as any}
                     scroll={{ x: 1200 }}
                     locale={{
                         emptyText: (
@@ -848,7 +759,7 @@ const Embarazos: React.FC = () => {
             <AnalisisEvolucionModal
                 visible={state.modalAnalisisEvolucionVisible}
                 onClose={() => dispatch({ type: 'SET_MODAL_ANALISIS_EVOLUCION_VISIBLE', payload: false })}
-                embarazos={state.embarazos}
+                total={stats.total}
                 stats={stats}
             />
 
@@ -856,21 +767,21 @@ const Embarazos: React.FC = () => {
             <ReportesModal
                 visible={state.modalReportesVisible}
                 onClose={() => dispatch({ type: 'SET_MODAL_REPORTES_VISIBLE', payload: false })}
-                embarazos={state.embarazos}
             />
 
             {/* SISTEMA DE ALERTAS Y RECORDATORIOS */}
             <AlertasModal
                 visible={state.modalAlertasVisible}
                 onClose={() => dispatch({ type: 'SET_MODAL_ALERTAS_VISIBLE', payload: false })}
-                embarazos={state.embarazos}
+                alertas={resumen.alertas_termino}
+                totalATermino={resumen.a_termino}
             />
 
             {/* PANEL DE CONTROL MÉDICO AVANZADO */}
             <PanelControlDrawer
                 visible={state.drawerPanelControlVisible}
                 onClose={() => dispatch({ type: 'SET_DRAWER_PANEL_CONTROL_VISIBLE', payload: false })}
-                embarazos={state.embarazos}
+                proximosPartos={resumen.proximos_partos}
                 stats={stats}
                 canAdd={canAdd}
                 handleOpenCreate={handleOpenCreate}

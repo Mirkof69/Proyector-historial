@@ -24,10 +24,13 @@ export const buildCitasColumns = ({
 }: BuildColumnsArgs): ColumnsType<Cita> => [
   {
     title: 'Fecha y Hora',
-    key: 'fecha_hora',
+    // Orden en el SERVIDOR (`?ordering=fecha_cita`, que desempata por hora):
+    // antes ordenaba en el navegador solo lo descargado.
+    dataIndex: 'fecha_cita',
+    key: 'fecha_cita',
     width: 180,
-    sorter: (a, b) => dayjs(`${a.fecha_cita} ${a.hora_cita}`).unix() - dayjs(`${b.fecha_cita} ${b.hora_cita}`).unix(),
-    defaultSortOrder: 'ascend',
+    sorter: true,
+    defaultSortOrder: 'descend',
     render: (_, record: Cita) => {
       const atrasada = esAtrasada(record.fecha_cita, record.estado);
       const hoy = esHoy(record.fecha_cita);
@@ -128,35 +131,35 @@ export const buildCitasColumns = ({
     width: 180,
     render: (_, record: Cita) => (
       <Space size="small">
-        <Tooltip title="Ver detalle">
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          aria-label="Ver detalle de la cita"
+          title="Ver detalle"
+          onClick={() => handleVerVistaRapida(record)}
+        />
+        {canChange('cita') && (
           <Button
             type="link"
-            icon={<EyeOutlined />}
-            onClick={() => handleVerVistaRapida(record)}
+            icon={<EditOutlined />}
+            aria-label="Editar cita"
+            title="Editar"
+            onClick={() => handleEditar(record.id!)}
+            disabled={['completada', 'cancelada', 'no_asistio'].includes(record.estado)}
           />
-        </Tooltip>
-        {canChange('cita') && (
-          <Tooltip title="Editar">
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => handleEditar(record.id!)}
-              disabled={['completada', 'cancelada', 'no_asistio'].includes(record.estado)}
-            />
-          </Tooltip>
         )}
         <Dropdown menu={getMenuAcciones(record)} trigger={['click']}>
-          <Button type="link" icon={<MoreOutlined />} />
+          <Button type="link" icon={<MoreOutlined />} aria-label="Más acciones de la cita" title="Más acciones" />
         </Dropdown>
         {canDelete('cita') && (
-          <Tooltip title="Eliminar">
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleEliminar(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
+            aria-label="Eliminar cita"
+            title="Eliminar"
+            onClick={() => handleEliminar(record)}
+          />
         )}
       </Space>
     ),
