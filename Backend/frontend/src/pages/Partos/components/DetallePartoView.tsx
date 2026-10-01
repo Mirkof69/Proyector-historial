@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Card, Descriptions, Space, Tag, Alert, Row, Col, Timeline, Typography,
-  Badge, Statistic, Collapse, Tabs, Empty,
+  Badge, Statistic, Collapse, Tabs, Empty, Button,
 } from 'antd';
 import {
   MedicineBoxOutlined, CalendarOutlined, ClockCircleOutlined, UserOutlined,
@@ -11,13 +12,19 @@ import {
 import dayjs from 'dayjs';
 import { Parto } from '../../../services/partosService';
 import { Paciente } from '../../../services/pacientesService';
+import { Embarazo } from '../../../services/embarazosService';
+import { useAuth } from '../../../hooks/useAuth';
 import { getViaPartoColor, getApgarInterpretacion } from '../detallePartoUtils';
+import PartogramaPanel from './PartogramaPanel';
+import EpicrisisPanel from './EpicrisisPanel';
+import EdadGestacionalRNModal from './EdadGestacionalRNModal';
 
 const { Title, Text, Paragraph } = Typography;
 
 interface DetallePartoViewProps {
   parto: Parto;
   paciente: Paciente | null;
+  embarazo?: Embarazo | null;
   rn: any;
   duracionTP: string | null;
   categoriaEG: { text: string; color: string } | null;
@@ -54,7 +61,15 @@ const textoTipoParto = (tipo?: string) => tipo?.replace(/_/g, ' ').toUpperCase()
 /** «alojamiento_conjunto» → «Alojamiento conjunto». */
 const legible = (valor?: string | null) => (valor ? valor.charAt(0).toUpperCase() + valor.slice(1).replace(/_/g, ' ') : '');
 
-const RecienNacidoCard: React.FC<{ rn: any; indice: number; total: number }> = ({ rn, indice, total }) => (
+const CLASE_EG: Record<string, { texto: string; color: string }> = {
+  pretermino: { texto: 'Pretérmino', color: 'orange' },
+  termino: { texto: 'A término', color: 'green' },
+  postermino: { texto: 'Postérmino', color: 'orange' },
+};
+
+const RecienNacidoCard: React.FC<{ rn: any; indice: number; total: number; onEvaluarEG?: () => void }> = ({
+  rn, indice, total, onEvaluarEG,
+}) => (
   <Card
     title={
       <Space>
@@ -79,6 +94,22 @@ const RecienNacidoCard: React.FC<{ rn: any; indice: number; total: number }> = (
         {rn.malformaciones_congenitas ? <Tag color="red">{rn.descripcion_malformaciones || 'Sí'}</Tag> : 'No'}
       </Descriptions.Item>
       <Descriptions.Item label="Destino">{legible(rn.destino_rn) || '—'}</Descriptions.Item>
+      <Descriptions.Item label="Edad gestacional por examen">
+        {rn.edad_gestacional_examen_semanas ? (
+          <Space wrap>
+            {rn.edad_gestacional_examen_semanas} semanas
+            <Tag>{rn.metodo_edad_gestacional === 'ballard' ? 'Ballard' : 'Capurro'}</Tag>
+            {CLASE_EG[rn.clasificacion_edad_gestacional] && (
+              <Tag color={CLASE_EG[rn.clasificacion_edad_gestacional].color}>{CLASE_EG[rn.clasificacion_edad_gestacional].texto}</Tag>
+            )}
+          </Space>
+        ) : 'No evaluada'}
+        {onEvaluarEG && rn.id && (
+          <Button size="small" type="link" onClick={onEvaluarEG}>
+            {rn.edad_gestacional_examen_semanas ? 'Cambiar' : 'Registrar Capurro / Ballard'}
+          </Button>
+        )}
+      </Descriptions.Item>
     </Descriptions>
     <Row gutter={[16, 16]}>
       <Col xs={24} md={8}><Apgar titulo="Apgar al minuto" valor={rn.apgar_1_minuto} /></Col>
@@ -94,42 +125,38 @@ const RecienNacidoCard: React.FC<{ rn: any; indice: number; total: number }> = (
 );
 
 /**
- * Detalle del parto en pestañas. Antes era una sola página larga que además
- * mostraba solo el PRIMER recién nacido (en un parto gemelar el segundo no
- * aparecía), un Apgar faltante como 0 y el médico como «ID: 5».
+ * Detalle del parto en cinco pestañas, en el orden en que ocurre la atención:
+ * admisión → trabajo de parto (con partograma) → recién nacidos (con Capurro o
+ * Ballard) → alumbramiento y complicaciones → epicrisis (resumen de egreso).
+ * La pestaña abierta queda en la URL (?pestana=), para volver al mismo lugar.
  */
+const PESTANAS = ['admision', 'trabajo-parto', 'recien-nacidos', 'alumbramiento', 'epicrisis'];
+const si = (v?: boolean | null) => (v === true ? 'Sí' : v === false ? 'No' : '—');
+
 const DetallePartoView: React.FC<DetallePartoViewProps> = ({
-  parto, paciente, rn, duracionTP, categoriaEG, apgar5Interpretacion,
+  parto, paciente, embarazo, rn, duracionTP, categoriaEG, apgar5Interpretacion,
 }) => {
-  const recienNacidos: any[] = parto.recien_nacidos?.length ? parto.recien_nacidos : (rn ? [rn] : []);
-  const medico = (parto as any).medico_responsable_info?.nombre;
+  const { user } = useAuth();
+  const puedeEditar = user?.rol === 'medico' || user?.rol === 'administrador';
+  const [params, setParams] = useSearchParams();
+  const pestana = PESTANAS.includes(params.get('pestana') || '') ? (params.get('pestana') as string) : 'admision';
+  const [recienNacidos, setRecienNacidos] = useState<any[]>(
+    parto.recien_nacidos?.length ? parto.recien_nacidos : (rn ? [rn] : []),
+  );
+  useEffect(() => {
+    setRecienNacidos(parto.recien_nacidos?.length ? parto.recien_nacidos : (rn ? [rn] : []));
+  }, [parto, rn]);
+  const [evaluandoRN, setEvaluandoRN] = useState<any | null>(null);
+  const p = parto as any;
+  const medico = p.medico_responsable_info?.nombre;
   const alertas = parto.alertas_parto ?? [];
   const recomendaciones = parto.recomendaciones_por_edad ?? [];
   const complicacionesNeonatales = recienNacidos.filter((r) => r.complicaciones_neonatales);
   const apgar5 = rn?.apgar_5_minutos ?? parto.apgar_5min;
+  const fecha = (v?: string | null) => (v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '—');
 
-  const resumen = (
+  const admision = (
     <>
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="Tipo de parto" value={textoTipoParto(parto.tipo_parto)} valueStyle={{ fontSize: 16 }}
-              prefix={<Tag color={getViaPartoColor(parto.tipo_parto || '')}>{parto.tipo_parto?.split('_')[0].toUpperCase()}</Tag>} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="Presentación" value={parto.presentacion_fetal?.toUpperCase() || '—'} valueStyle={{ fontSize: 16 }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="Duración del trabajo de parto" value={duracionTP || 'No registrado'}
-              valueStyle={{ fontSize: 18 }} prefix={<ClockCircleOutlined />} />
-          </Card>
-        </Col>
-      </Row>
-
       {paciente && (
         <Card title={<Space><UserOutlined />Paciente</Space>} style={{ marginBottom: 16 }}>
           <Descriptions column={{ xs: 1, sm: 3 }} bordered size="small">
@@ -141,34 +168,104 @@ const DetallePartoView: React.FC<DetallePartoViewProps> = ({
           </Descriptions>
         </Card>
       )}
-
-      <Card title={<Space><MedicineBoxOutlined />Datos del parto</Space>}>
+      <Card title={<Space><FileTextOutlined />Antecedentes obstétricos</Space>} style={{ marginBottom: 16 }}>
+        {embarazo ? (
+          <Descriptions column={{ xs: 1, sm: 2, lg: 3 }} bordered size="small">
+            <Descriptions.Item label="Fórmula obstétrica">
+              G{embarazo.numero_gesta} P{embarazo.numero_para ?? 0} A{embarazo.numero_abortos ?? 0} C{embarazo.numero_cesareas ?? 0}
+            </Descriptions.Item>
+            <Descriptions.Item label="FUM">
+              {embarazo.fecha_ultima_menstruacion ? dayjs(embarazo.fecha_ultima_menstruacion).format('DD/MM/YYYY') : '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tipo de embarazo">{legible(embarazo.tipo_embarazo) || '—'}</Descriptions.Item>
+            <Descriptions.Item label="Riesgo">
+              {embarazo.riesgo_embarazo ? (
+                <Tag color={['alto', 'muy_alto'].includes(String(embarazo.riesgo_embarazo)) ? 'red' : 'green'}>
+                  {legible(String(embarazo.riesgo_embarazo))}
+                </Tag>
+              ) : '—'}
+            </Descriptions.Item>
+          </Descriptions>
+        ) : <Text type="secondary">El parto no está vinculado a un embarazo registrado.</Text>}
+      </Card>
+      <Card title={<Space><MedicineBoxOutlined />Ingreso</Space>}>
         <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
-          <Descriptions.Item label="Fecha y hora">
-            <Space><CalendarOutlined />{dayjs(parto.fecha_parto).format('DD/MM/YYYY HH:mm')}</Space>
-          </Descriptions.Item>
+          <Descriptions.Item label="Fecha de ingreso">{fecha(p.fecha_ingreso)}</Descriptions.Item>
           <Descriptions.Item label="Edad gestacional">
             <Space>{parto.edad_gestacional_parto || '—'}{categoriaEG && <Tag color={categoriaEG.color}>{categoriaEG.text}</Tag>}</Space>
           </Descriptions.Item>
+          <Descriptions.Item label="Inicio del trabajo de parto">{fecha(parto.fecha_inicio_trabajo_parto)}</Descriptions.Item>
+          <Descriptions.Item label="Inicio">
+            {p.induccion_parto ? `Inducido${p.metodo_induccion ? ` (${legible(p.metodo_induccion)})` : ''}`
+              : p.trabajo_parto_espontaneo === false ? 'No espontáneo' : 'Espontáneo'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Membranas">{legible(parto.estado_membranas) || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Rotura de membranas">{fecha(p.hora_rotura_membranas)}</Descriptions.Item>
+          <Descriptions.Item label="Líquido amniótico">{parto.caracteristicas_liquido || '—'}</Descriptions.Item>
           <Descriptions.Item label="Médico responsable">{medico || 'No registrado'}</Descriptions.Item>
-          <Descriptions.Item label="N.º de parto">{(parto as any).numero_parto || '—'}</Descriptions.Item>
-          {parto.fecha_inicio_trabajo_parto && (
-            <Descriptions.Item label="Inicio del trabajo de parto">
-              {dayjs(parto.fecha_inicio_trabajo_parto).format('DD/MM/YYYY HH:mm')}
-            </Descriptions.Item>
-          )}
-          {parto.estado_membranas && (
-            <Descriptions.Item label="Membranas">{legible(parto.estado_membranas)}</Descriptions.Item>
-          )}
-          {parto.caracteristicas_liquido && (
-            <Descriptions.Item label="Líquido amniótico">{parto.caracteristicas_liquido}</Descriptions.Item>
-          )}
-          {parto.tipo_alumbramiento && (
-            <Descriptions.Item label="Alumbramiento">{legible(parto.tipo_alumbramiento)}</Descriptions.Item>
-          )}
+          <Descriptions.Item label="N.º de parto">{p.numero_parto || '—'}</Descriptions.Item>
         </Descriptions>
       </Card>
     </>
+  );
+
+  const trabajoDeParto = (
+    <>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={8}>
+          <Card>
+            <Statistic title="Tipo de parto" value={textoTipoParto(parto.tipo_parto)} valueStyle={{ fontSize: 16 }}
+              prefix={<Tag color={getViaPartoColor(parto.tipo_parto || '')}>{parto.tipo_parto?.split('_')[0].toUpperCase()}</Tag>} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card>
+            <Statistic title="Presentación / posición" valueStyle={{ fontSize: 16 }}
+              value={`${parto.presentacion_fetal ? legible(parto.presentacion_fetal) : '—'}${p.posicion_fetal ? ` · ${legible(p.posicion_fetal)}` : ''}`} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card>
+            <Statistic title="Duración del trabajo de parto" value={duracionTP || 'No registrado'}
+              valueStyle={{ fontSize: 18 }} prefix={<ClockCircleOutlined />} />
+          </Card>
+        </Col>
+      </Row>
+      <Card style={{ marginBottom: 16 }}>
+        <Descriptions column={{ xs: 1, sm: 2, lg: 3 }} bordered size="small">
+          <Descriptions.Item label="Fecha y hora del parto"><Space><CalendarOutlined />{fecha(parto.fecha_parto)}</Space></Descriptions.Item>
+          <Descriptions.Item label="Período expulsivo">
+            {p.duracion_periodo_expulsivo_minutos != null ? `${p.duracion_periodo_expulsivo_minutos} min` : '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Monitoreo fetal continuo">{si(p.monitoreo_fetal_continuo)}</Descriptions.Item>
+          <Descriptions.Item label="Analgesia">
+            {p.analgesia_utilizada ? `Sí${p.tipo_analgesia ? ` (${legible(p.tipo_analgesia)})` : ''}` : 'No'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Oxitocina">
+            {p.oxitocina_utilizada ? `Sí${p.dosis_oxitocina ? ` · ${p.dosis_oxitocina}` : ''}` : 'No'}
+          </Descriptions.Item>
+          {p.indicaciones_cesarea && <Descriptions.Item label="Indicación de cesárea">{p.indicaciones_cesarea}</Descriptions.Item>}
+        </Descriptions>
+      </Card>
+      <PartogramaPanel partoId={parto.id as number} inicioTrabajoParto={parto.fecha_inicio_trabajo_parto} puedeEditar={puedeEditar} />
+    </>
+  );
+
+  const alumbramiento = (
+    <Card title="Alumbramiento" style={{ marginBottom: 16 }}>
+      <Descriptions column={{ xs: 1, sm: 2, lg: 3 }} bordered size="small">
+        <Descriptions.Item label="Tipo">{legible(parto.tipo_alumbramiento) || '—'}</Descriptions.Item>
+        <Descriptions.Item label="Placenta completa">{si(p.placenta_completa)}</Descriptions.Item>
+        <Descriptions.Item label="Peso de la placenta">{p.peso_placenta ? `${p.peso_placenta} g` : '—'}</Descriptions.Item>
+        <Descriptions.Item label="Pérdida sanguínea">
+          {p.perdida_sanguinea_estimada != null ? `${p.perdida_sanguinea_estimada} ml` : '—'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Hemorragia posparto">{p.hemorragia_postparto ? <Tag color="red">Sí</Tag> : 'No'}</Descriptions.Item>
+        <Descriptions.Item label="Episiotomía">{p.episiotomia ? `Sí${p.tipo_episiotomia ? ` (${p.tipo_episiotomia})` : ''}` : 'No'}</Descriptions.Item>
+        <Descriptions.Item label="Desgarros">{p.desgarros ? `Sí${p.grado_desgarros ? ` · grado ${p.grado_desgarros}` : ''}` : 'No'}</Descriptions.Item>
+        {p.otros_medicamentos && <Descriptions.Item label="Otros medicamentos">{p.otros_medicamentos}</Descriptions.Item>}
+      </Descriptions>
+    </Card>
   );
 
   const alertasYRecomendaciones = (
@@ -242,33 +339,47 @@ const DetallePartoView: React.FC<DetallePartoViewProps> = ({
     </>
   );
 
+  const cambiarPestana = (clave: string) => {
+    const nuevos = new URLSearchParams(params);
+    nuevos.set('pestana', clave);
+    setParams(nuevos, { replace: true });
+  };
+
   return (
     <Row gutter={[16, 16]}>
       <Col xs={24} lg={16}>
         <Tabs
-          defaultActiveKey="resumen"
+          activeKey={pestana}
+          onChange={cambiarPestana}
           items={[
-            { key: 'resumen', label: 'Resumen', children: resumen },
+            { key: 'admision', label: 'Admisión', children: admision },
+            { key: 'trabajo-parto', label: 'Trabajo de parto', children: trabajoDeParto },
             {
               key: 'recien-nacidos',
               label: `Recién nacido${recienNacidos.length > 1 ? `s (${recienNacidos.length})` : ''}`,
               children: recienNacidos.length
-                ? recienNacidos.map((r, i) => <RecienNacidoCard key={r.id ?? i} rn={r} indice={i} total={recienNacidos.length} />)
+                ? recienNacidos.map((r, i) => (
+                  <RecienNacidoCard key={r.id ?? i} rn={r} indice={i} total={recienNacidos.length}
+                    onEvaluarEG={puedeEditar ? () => setEvaluandoRN(r) : undefined} />
+                ))
                 : <Empty description="No hay recién nacidos registrados en este parto" />,
             },
             {
-              key: 'alertas',
-              label: <Space size={4}>Alertas y recomendaciones{alertas.length > 0 && <Badge count={alertas.length} />}</Space>,
-              children: alertasYRecomendaciones,
+              key: 'alumbramiento',
+              label: (
+                <Space size={4}>Alumbramiento y complicaciones
+                  {(alertas.length > 0 || parto.complicaciones_maternas || complicacionesNeonatales.length > 0) && <Badge status="error" />}
+                </Space>
+              ),
+              children: <>{alumbramiento}{complicaciones}<div style={{ marginTop: 16 }}>{alertasYRecomendaciones}</div></>,
             },
-            {
-              key: 'complicaciones',
-              label: <Space size={4}>Complicaciones y notas
-                {(parto.complicaciones_maternas || complicacionesNeonatales.length > 0) && <Badge status="error" />}</Space>,
-              children: complicaciones,
-            },
+            { key: 'epicrisis', label: 'Epicrisis', children: <EpicrisisPanel partoId={parto.id as number} puedeEditar={puedeEditar} /> },
           ]}
         />
+        {evaluandoRN && (
+          <EdadGestacionalRNModal rn={evaluandoRN} abierto onCerrar={() => setEvaluandoRN(null)}
+            onGuardado={(nuevo) => setRecienNacidos((lista) => lista.map((x) => (x.id === nuevo.id ? { ...x, ...nuevo } : x)))} />
+        )}
       </Col>
 
       <Col xs={24} lg={8}>

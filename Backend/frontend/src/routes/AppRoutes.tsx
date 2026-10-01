@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuth } from '../hooks/useAuth';
 import { logger } from '../utils/logger';
@@ -20,7 +20,7 @@ import {
   Ecografias, DetalleEcografia, FormularioEcografia, VisorDICOM, ArchivosEcografia,
   Laboratorio, DetalleLaboratorio, FormularioLaboratorio, TiposExamen, ResultadosLaboratorio,
   ValoresReferencia, Citas, FormularioCita, DetalleCita, CalendarioCitas, IAAsistenteMedico,
-  IaMedica, Partos, DetalleParto, FormularioParto, Partograma, ApgarScore, ComplicacionesParto,
+  IaMedica, Partos, DetalleParto, FormularioParto, ApgarScore, ComplicacionesParto,
   RecienNacidos, DetalleReporte, CentroReportes,
   Calculadoras, IndiceCalculadoras, ScoreBishop, IMCGananciaPonderal,
   RiesgoPreeclampsia, CrecimientoFetal, RiesgoCromosomico, DosisMedicamentos, HemorragiaObstetrica,
@@ -32,6 +32,12 @@ import {
   AlertasMedicas, DetalleAlerta, ConfiguracionAlertas, SistemaAlertas, NotasEvolucion,
   FormularioNotaEvolucion, DetalleNotaEvolucion, Notificaciones, DatabaseBackup,
 } from './lazyPages';
+
+
+const PartogramaEnDetalle: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/dashboard/partos/${id}?pestana=trabajo-parto`} replace />;
+};
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -245,7 +251,8 @@ const AppRoutes: React.FC = () => {
           <Route path="calculadoras/sufrimiento-fetal" element={<ProtectedRoute requiredPermission="view_sufrimientofetal"><SufrimientoFetal /></ProtectedRoute>} />
 
           {/* MÓDULO: PARTOS EXTENDIDO */}
-          <Route path="partos/:id/partograma" element={<ProtectedRoute requiredPermission="view_partogramaregistro"><Partograma /></ProtectedRoute>} />
+          {/* El partograma vive en la pestaña «Trabajo de parto» del detalle del parto. */}
+          <Route path="partos/:id/partograma" element={<PartogramaEnDetalle />} />
           <Route path="partos/:id/apgar" element={<ProtectedRoute requiredPermission="view_apgarscoredetallado"><ApgarScore /></ProtectedRoute>} />
           <Route path="partos/:id/complicaciones" element={<ProtectedRoute requiredPermission="view_complicacionparto"><ComplicacionesParto /></ProtectedRoute>} />
           <Route path="partos/:id/recien-nacido" element={<ProtectedRoute requiredPermission="view_reciennacido"><RecienNacidos /></ProtectedRoute>} />

@@ -816,23 +816,21 @@ class PartoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         if registros:
             pdf.seccion("Registros")
             pdf.tabla(
-                ["Hora", "Dilatación (cm)", "FCF", "Contracciones/10min"],
+                ["Hora", "Horas de TP", "Dilatación (cm)", "Estación", "Contracciones/10 min", "FCF (lpm)", "PA"],
                 [[
-                    getattr(r, "hora_registro", None),
-                    getattr(r, "dilatacion_cm", None) or getattr(r, "dilatacion", None),
-                    getattr(r, "fcf", None) or getattr(r, "frecuencia_cardiaca_fetal", None),
-                    getattr(r, "contracciones", None) or getattr(r, "contracciones_10min", None),
+                    timezone.localtime(r.hora_registro).strftime("%d/%m %H:%M"),
+                    r.horas_trabajo_parto,
+                    r.dilatacion_cervical,
+                    r.estacion_fetal,
+                    r.contracciones_10min,
+                    r.fcf_baseline if r.fcf_baseline is not None else "—",
+                    r.get_presion_arterial() or "—",
                 ] for r in registros],
             )
-            dilataciones = [
-                float(d) for d in (
-                    getattr(r, "dilatacion_cm", None) or getattr(r, "dilatacion", None)
-                    for r in registros
-                ) if d is not None
-            ]
-            if len(dilataciones) >= 2:
-                etiquetas = [str(getattr(r, "hora_registro", ""))[:5] for r in registros][-len(dilataciones):]
-                pdf.grafico_lineas("Curva de dilatación cervical (cm)", etiquetas[-12:], {"Dilatación": dilataciones[-12:]})
+            if len(registros) >= 2:
+                etiquetas = [timezone.localtime(r.hora_registro).strftime("%H:%M") for r in registros][-12:]
+                pdf.grafico_lineas("Curva de dilatación cervical (cm)", etiquetas,
+                                   {"Dilatación": [float(r.dilatacion_cervical) for r in registros][-12:]})
                 pdf.explicacion(
                     "En fase activa se espera una progresión aproximada de 1 cm/hora "
                     "(curva de alerta de la OMS). Una curva aplanada sostenida sugiere "

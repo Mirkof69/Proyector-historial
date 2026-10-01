@@ -96,6 +96,7 @@ class RecienNacidoSerializer(serializers.ModelSerializer):
     evaluacion_estado_general = serializers.SerializerMethodField()
     resumen_completo = serializers.SerializerMethodField()
     parto_numero = serializers.SerializerMethodField()
+    clasificacion_edad_gestacional = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -122,6 +123,11 @@ class RecienNacidoSerializer(serializers.ModelSerializer):
             "respiracion_espontanea",
             "tono_muscular_normal",
             "observaciones_rn",
+            "metodo_edad_gestacional",
+            "capurro_items",
+            "ballard_puntaje",
+            "edad_gestacional_examen_semanas",
+            "clasificacion_edad_gestacional",
             "fecha_registro",
             "fecha_modificacion",
             # Campos calculados
@@ -135,6 +141,7 @@ class RecienNacidoSerializer(serializers.ModelSerializer):
             "id",
             "fecha_registro",
             "fecha_modificacion",
+            "edad_gestacional_examen_semanas",
         ]
 
     def get_clasificacion_peso(self, obj):
@@ -171,8 +178,16 @@ class RecienNacidoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El Apgar debe estar entre 0 y 10")
         return value
 
+    def get_clasificacion_edad_gestacional(self, obj):
+        """pretermino / termino / postermino según el examen físico (None si no se evaluó)."""
+        from .edad_gestacional_rn import clasificar_por_edad
+
+        return clasificar_por_edad(obj.edad_gestacional_examen_semanas)
+
     def validate(self, attrs):
         """Validaciones generales"""
+        from .edad_gestacional_rn import validar_capurro
+
         apgar_1 = attrs.get("apgar_1_minuto")
         apgar_5 = attrs.get("apgar_5_minutos")
 
@@ -180,6 +195,18 @@ class RecienNacidoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Es inusual que el Apgar a 1 minuto sea mucho mayor que el de 5 minutos",
             )
+
+        def actual(campo):
+            return attrs[campo] if campo in attrs else getattr(self.instance, campo, None)
+
+        metodo = actual("metodo_edad_gestacional") or ""
+        if metodo == "capurro":
+            errores = validar_capurro(actual("capurro_items") or {})
+            if errores:
+                raise serializers.ValidationError({"capurro_items": list(errores.values())})
+        elif metodo == "ballard" and actual("ballard_puntaje") is None:
+            raise serializers.ValidationError(
+                {"ballard_puntaje": "Con el método Ballard hay que registrar el puntaje total (−10 a 50)."})
 
         return attrs
 

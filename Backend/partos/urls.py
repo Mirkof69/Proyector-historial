@@ -2,10 +2,12 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from . import views, views_epicrisis
 
 # Crear router para las APIs REST
 router = DefaultRouter()
+router.register(r"epicrisis", views_epicrisis.EpicrisisViewSet, basename="epicrisis")
+router.register(r"epicrisis-campos", views_epicrisis.CampoAdicionalEpicrisisViewSet, basename="epicrisis-campo")
 # ✅ FIX: No usar prefijo 'partos' porque ya está en historial/urls.py
 router.register(r"recien-nacidos", views.RecienNacidoViewSet, basename="recien-nacido")
 router.register(r"partograma", views.PartogramaRegistroViewSet, basename="partograma")
@@ -38,6 +40,7 @@ urlpatterns = [
         views.RecienNacidoViewSet.as_view({"get": "estadisticas_generales"}),
         name="rn-estadisticas",
     ),
+    path("edad-gestacional-rn/", views_epicrisis.tablas_edad_gestacional_rn, name="edad-gestacional-rn"),
     path(
         "partograma/alertas/",
         views.PartogramaRegistroViewSet.as_view({"get": "con_alertas"}),

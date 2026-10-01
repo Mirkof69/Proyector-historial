@@ -56,7 +56,7 @@ PERMISOS_POR_ROL: dict[str, dict[str, tuple[str, ...]]] = {
 #: los modelos de IA dentro de `ia_medica`).
 SOLO_ADMINISTRADOR = (
     "sistemaconfiguracion", "auditoriareporte", "configuracionmodeloia",
-    "modelocnnconfig", "datasetentrenamientoia",
+    "modelocnnconfig", "datasetentrenamientoia", "campoadicionalepicrisis",
 )
 
 PREFIJO_GRUPO = "Rol: "

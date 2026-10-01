@@ -46,7 +46,6 @@ export const IaMedica = lazy(() => import('../pages/IaMedica/IaMedica'));
 export const Partos = lazy(() => import('../pages/Partos/Partos'));
 export const DetalleParto = lazy(() => import('../pages/Partos/DetalleParto'));
 export const FormularioParto = lazy(() => import('../pages/Partos/FormularioParto'));
-export const Partograma = lazy(() => import('../pages/Partos/Partograma'));
 export const ApgarScore = lazy(() => import('../pages/Partos/ApgarScore'));
 export const ComplicacionesParto = lazy(() => import('../pages/Partos/ComplicacionesParto'));
 export const RecienNacidos = lazy(() => import('../pages/Partos/RecienNacidos'));

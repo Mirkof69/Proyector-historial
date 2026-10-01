@@ -1,0 +1,53 @@
+{
+  "tarea": "cabeza",
+  "dataset": "Large-Scale Fetal Head Biometry (Zenodo 8265464) · FETAL_PLANES_DB",
+  "particion": "por paciente 70/15/15",
+  "imagenes_prueba": 413,
+  "pacientes_prueba": 155,
+  "epoca_elegida": 20,
+  "dice_validacion": 0.8044,
+  "dice_prueba": {
+    "craneo": {
+      "medio": 0.9676,
+      "mediano": 0.9742,
+      "imagenes": 409
+    },
+    "csp": {
+      "medio": 0.7569,
+      "mediano": 0.8414,
+      "imagenes": 164
+    },
+    "ventriculo_lateral": {
+      "medio": 0.7075,
+      "mediano": 0.7701,
+      "imagenes": 129
+    }
+  },
+  "dice_prueba_medio": 0.8107,
+  "medidas_prueba": {
+    "imagenes": 413,
+    "hc_error_medio_mm": 5.3,
+    "hc_error_mediano_mm": 2.95,
+    "hc_error_relativo_medio": 0.0549,
+    "dbp_error_medio_mm": 1.61,
+    "dbp_error_relativo_medio": 0.0643
+  },
+  "prueba_externa_hc18": {
+    "imagenes": 999,
+    "sin_cabeza_detectada": 0,
+    "hc_error_medio_mm": 4.41,
+    "hc_error_mediano_mm": 2.78,
+    "hc_error_relativo_medio": 0.0369,
+    "dentro_de_5_por_ciento": 0.9229,
+    "r2": 0.9818,
+    "por_trimestre_error_medio_mm": {
+      "primero": 8.99,
+      "segundo": 3.38,
+      "tercero": 4.51
+    },
+    "mismas_146_de_prueba_que_la_red_de_regresion": {
+      "imagenes": 146,
+      "hc_error_medio_mm": 4.13
+    }
+  }
+}

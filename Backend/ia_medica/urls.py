@@ -7,7 +7,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from .webhook import dicom_webhook
 
-from . import views_laboratorio, views_prediccion_peso
+from . import views_cardiotocografia, views_laboratorio, views_prediccion_peso
 
 app_name = "ia_medica"
 
@@ -29,6 +29,8 @@ urlpatterns = [
     ),
     # Modelo supervisado de peso al nacer (ia_medica/ml/servicio_peso.py)
     path("prediccion-peso/", views_prediccion_peso.prediccion_peso, name="prediccion-peso"),
+    # Clasificador supervisado de cardiotocografía (ia_medica/ml/cardiotocografia.py)
+    path("cardiotocografia/", views_cardiotocografia.cardiotocografia, name="cardiotocografia"),
     # Consulta IA NLP. ANTES del router: si va despues, la ruta de detalle
     # de ConsultaIAViewSet lo captura con pk="consultar" y el POST da 405.
     path("consultas/consultar/", views.consultar_ia, name="consultar_ia"),

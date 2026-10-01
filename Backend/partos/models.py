@@ -1169,6 +1169,29 @@ class RecienNacido(models.Model):
         default=True, verbose_name="¿Tono muscular normal",
     )
 
+    # Edad gestacional por examen físico (partos/edad_gestacional_rn.py)
+    METODO_EG_CHOICES = [
+        ("", "No evaluada"),
+        ("capurro", "Capurro somático"),
+        ("ballard", "Nuevo Ballard"),
+    ]
+    metodo_edad_gestacional = models.CharField(
+        max_length=10, choices=METODO_EG_CHOICES, blank=True, default="",
+        verbose_name="Método de edad gestacional del RN",
+    )
+    capurro_items = models.JSONField(
+        null=True, blank=True, verbose_name="Capurro: puntos por signo",
+        help_text="textura_piel, forma_oreja, glandula_mamaria, formacion_pezon, pliegues_plantares",
+    )
+    ballard_puntaje = models.IntegerField(
+        null=True, blank=True, validators=[MinValueValidator(-10), MaxValueValidator(50)],
+        verbose_name="Ballard: puntaje total",
+    )
+    edad_gestacional_examen_semanas = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, editable=False,
+        verbose_name="Edad gestacional por examen (semanas)",
+    )
+
     # Observaciones
     observaciones_rn = models.TextField(
         blank=True, verbose_name="Observaciones del Recién Nacido",
@@ -1334,8 +1357,36 @@ class RecienNacido(models.Model):
                     f"Apgar a los 5 min ({self.apgar_5_minutos}) es mucho menor que al 1 min ({self.apgar_1_minuto}). Verificar valores."
                 )
 
+        # 6. EDAD GESTACIONAL POR EXAMEN FÍSICO
+        from .edad_gestacional_rn import validar_capurro
+
+        if self.metodo_edad_gestacional == "capurro":
+            mensajes = list(validar_capurro(self.capurro_items or {}).values())
+            if mensajes:
+                errors["capurro_items"] = mensajes
+        elif self.metodo_edad_gestacional == "ballard" and self.ballard_puntaje is None:
+            errors["ballard_puntaje"] = "Con el método Ballard hay que registrar el puntaje total (−10 a 50)."
+
         if errors:
             raise ValidationError(errors)
+
+    def calcular_edad_gestacional_examen(self):
+        """Semanas por Capurro o Ballard; None si no se evaluó o faltan datos."""
+        from .edad_gestacional_rn import semanas_ballard, semanas_capurro, validar_capurro
+
+        if self.metodo_edad_gestacional == "capurro" and not validar_capurro(self.capurro_items or {}):
+            return semanas_capurro(self.capurro_items)
+        if self.metodo_edad_gestacional == "ballard" and self.ballard_puntaje is not None:
+            return semanas_ballard(self.ballard_puntaje)
+        return None
+
+    def save(self, *args, **kwargs):
+        self.edad_gestacional_examen_semanas = self.calcular_edad_gestacional_examen()
+        if self.metodo_edad_gestacional != "capurro":
+            self.capurro_items = None
+        if self.metodo_edad_gestacional != "ballard":
+            self.ballard_puntaje = None
+        super().save(*args, **kwargs)
 
     @property
     def peso(self):
@@ -1926,3 +1977,6 @@ class ApgarScoreDetallado(models.Model):
     def __str__(self):
         """Str"""
         return f"Apgar {self.minuto_evaluacion}min: {self.score_total}/10 - {self.recien_nacido}"
+
+
+from .models_epicrisis import CampoAdicionalEpicrisis, Epicrisis  # noqa: E402, F401  (modelos de la app)

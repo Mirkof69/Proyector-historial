@@ -352,6 +352,7 @@ const DetalleParto: React.FC = () => {
         <DetallePartoView
           parto={parto}
           paciente={paciente}
+          embarazo={embarazoRef.current}
           rn={rn}
           duracionTP={duracionTP}
           categoriaEG={categoriaEG}
