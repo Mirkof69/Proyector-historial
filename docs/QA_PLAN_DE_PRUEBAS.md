@@ -137,7 +137,7 @@ python quality-assurance/casos_de_prueba.py
 
 | Suite | Resultado |
 |---|---|
-| Backend (pytest) | 920 pasan, 6 omitidas, 0 fallos · cobertura 61 % |
+| Backend (pytest) | 924 pasan, 6 omitidas, 0 fallos · cobertura 61 % |
 | Frontend (Jest) | 107/107 · tsc 0 errores · eslint 0 errores |
 | Microservicio de IA | 32/32 |
 | E2E (Playwright) | 6/6 (21 s) |

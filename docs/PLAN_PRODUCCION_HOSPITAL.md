@@ -85,13 +85,13 @@ Frontend
 - [x] **Red nueva de anomalías cerebrales** con imágenes reales (`Microservicio_IA/entrenamiento/patologias_cerebrales/`): 5 pliegues 80/20 agrupados por imagen original, pruebas en otro hospital (HC18) y de estilo; conectada en microservicio → Django → pestaña «IA medida». Resultados y límites en su `INFORME.md`.
 - [x] Datos de IA ordenados en `Microservicio_IA/datos/{crudos,extraidos,legado_b4}` con `CATALOGO.md`; datasets con etiquetas falsas identificados (Ultrasound Fetus = HC18 reetiquetado).
 
-### Sprint 4 — Reportes, registros y Excel
-- [~] Hecho como submenú «Centro de reportes» (panel en tiempo real, estadísticas por fecha, KPIs, indicadores, generador PDF, auditoría). Falta unificarlo en una sola página con pestañas.  
+### Sprint 4 — Reportes, registros y Excel (HECHO)
+- [x] Centro de reportes en UNA página con pestañas (tiempo real, estadísticas por fecha, KPIs, indicadores, PDF, auditoría), según permisos y con la pestaña en la URL; rutas viejas redirigen. «Del mes» con hora local.  
   _Original:_ **Centro de reportes**: una sección del menú con pestañas (Resumen, Materno-fetal, Partos y neonatos, Laboratorio, Agenda, Vacunación, Indicadores, Generador, Importación, Auditoría), filtro de fechas común, exportación Excel/PDF desde el backend y auditada, actualización automática opcional cada 60 s.
 - [x] `dashboard-kpis/resumen/` con datos reales, PDF `.pdf`, 50 rutas de estadísticas probadas con la base vacía (2 daban 500 siempre).  
   _Original:_ Corregir: contrato de `dashboard-kpis`, PDF `.pd`, fallo con rangos vacíos, último día excluido, gráficas con campos inexistentes, colores por entidad.
 - [x] Exportación Excel de laboratorio, citas, vacunas y auditoría.
-- [~] Pacientes: plantilla, vista previa, sin duplicados, confirmación y auditoría. Falta laboratorio y «deshacer por lote».  
+- [x] Importación Excel de pacientes y de **resultados de laboratorio** (plantilla con catálogo, vista previa, sin duplicados, evaluación contra rangos, auditoría). Exportación Excel desde el servidor en todos los listados. «Deshacer por lote» queda para después.  
   _Original:_ **Importación Excel** de pacientes y resultados de laboratorio: plantilla, validación en seco, vista previa, sin duplicados, confirmación atómica, informe de errores y deshacer por lote.
 - [x] **Registro por sesión**: `session_key` en cada registro; vista de sesiones (usuario, IP, navegador, inicio, fin, duración); filtros por fecha y usuario; IP también en altas/ediciones; auditar acciones masivas del admin.
 - [x] Los tests dejan de escribir en `Backend/logs/`.
@@ -100,10 +100,10 @@ Frontend
 - [x] Historia clínica como centro de la paciente, con acceso directo a cada paso.
 - [x] Formularios con `?paciente=`/`?embarazo=` y selectores con búsqueda en el servidor; flujo completo verificado con Playwright.  
   _Original:_ Formularios que reciben `?paciente=` y `?embarazo=`; tras registrar paciente, ofrecer «crear embarazo».
-- [~] Partos múltiples: se registran todos los recién nacidos, validados (antes solo uno y sin validar el peso). Falta el detalle del parto con pestañas.  
+- [x] Partos múltiples validados y detalle del parto en pestañas (cada recién nacido, Apgar no registrado ≠ 0).  
   _Original:_ Detalle del parto con pestañas: recién nacidos (gemelos), Apgar, partograma, complicaciones.
-- [ ] Unificar duplicados: Evoluciones + Notas, calculadoras, alias de laboratorio, dos modelos de imagen.
-- [~] Tokens de tema completados (52 variables sin definir); faltan paginación en servidor en listados grandes y `aria-label` general.  
+- [x] Duplicados: Evoluciones → Notas (migración sin pérdida); una sola fórmula de peso fetal (las 4 copias estaban rotas); «Calculadoras avanzadas» repetidas eliminadas; catálogo de laboratorio unificado; pantalla huérfana de gráficas eliminada. Los dos modelos de imagen NO eran duplicados (imágenes para IA vs adjuntos); se arregló el de adjuntos, que no funcionaba.
+- [x] Paginación en el servidor en los 10 listados (antes bajaban todo; vacunas y notas ocultaban lo que pasaba de 200) y búsqueda global en el servidor; `aria-label` en los botones de icono tocados.  
   _Original:_ Paginación en el servidor; dividir los componentes gigantes; modo oscuro y `aria-label`.
 
 ### Sprint 6 — QA, CI y puesta en producción
@@ -112,7 +112,7 @@ Frontend
 - [~] Reescritos los que codificaban fallos (FCF, MoM, talla, consentimiento). Revisar el resto.  
   _Original:_ Reparar los tests que no pueden fallar (lista en la sección 5).
 - [x] Versiones fijas (`requirements.lock.txt`), respaldo diario con restauración verificada (`RESPALDO_DIARIO.bat`), arranques de desarrollo y producción corregidos.
-- [ ] Orden del repositorio (sección 6).
+- [x] Orden del repositorio: media/ y respaldos de .env fuera de git, lanzadores reparados (los 3 usaban una opción inexistente) y validados por test, datos de IA en `Microservicio_IA/datos`. Plan de QA y 38 casos de prueba esperado/obtenido en `docs/QA_*.md`.
 
 ---
 
