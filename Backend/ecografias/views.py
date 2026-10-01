@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
+from core.exportacion import ExportarExcelMixin
 from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
@@ -30,7 +31,7 @@ from .serializers import (
 )
 
 
-class EcografiaViewSet(viewsets.ModelViewSet):
+class EcografiaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet for comprehensive Ultrasound management.
 
     Manages ultrasound examinations, fetal biometry, anatomy assessment,
@@ -69,13 +70,16 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
     ]
 
-    filterset_fields = [
-        "embarazo",
-        "paciente",
-        "tipo_ecografia",
-        "medico",
-        "vitalidad_fetal",
-    ]
+    filterset_fields = {
+        "embarazo": ["exact"],
+        "paciente": ["exact"],
+        "tipo_ecografia": ["exact"],
+        "medico": ["exact"],
+        "vitalidad_fetal": ["exact"],
+        # Rango de fechas de la pantalla de ecografías. Antes lo filtraba el
+        # navegador sobre la lista entera descargada página por página.
+        "fecha_ecografia": ["gte", "lte"],
+    }
     # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
     # identificatorios de Paciente están cifrados y el SearchFilter de DRF
     # (icontains en SQL) no encontraba NUNCA nada. Ver core/filtros.py.
@@ -83,8 +87,34 @@ class EcografiaViewSet(viewsets.ModelViewSet):
     busqueda_campos_claros = [
         "diagnostico",
         "observaciones",
+        # La búsqueda que hacía el navegador también miraba el tipo.
+        "tipo_ecografia",
     ]
     ordering_fields = ["fecha_ecografia", "edad_gestacional_semanas", "fecha_registro"]
+
+    # Excel del listado con los MISMOS filtros que la pantalla (y auditado).
+    # Antes había dos botones «Exportar Excel»: uno armaba el archivo en el
+    # navegador con TODAS las ecografías ignorando los filtros y el otro
+    # llamaba a una vista hecha a mano que no quedaba auditada.
+    excel_nombre = "ecografias"
+    excel_columnas = [
+        ("Fecha", "fecha_ecografia"),
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("Tipo", "tipo_ecografia"),
+        ("Semanas", "edad_gestacional_semanas"),
+        ("Días", "edad_gestacional_dias"),
+        ("Peso fetal estimado (g)", "biometria.peso_fetal_estimado"),
+        ("DBP (mm)", "biometria.diametro_biparietal"),
+        ("CC (mm)", "biometria.circunferencia_cefalica"),
+        ("CA (mm)", "biometria.circunferencia_abdominal"),
+        ("LF (mm)", "biometria.longitud_femur"),
+        ("ILA (cm)", "indice_liquido_amniotico"),
+        ("Placenta", "localizacion_placenta"),
+        ("Vitalidad fetal", "vitalidad_fetal"),
+        ("Diagnóstico", "diagnostico"),
+        ("Observaciones", "observaciones"),
+    ]
 
     def get_serializer_class(self):
         """Retorna el serializer apropiado según la acción"""
@@ -131,7 +161,28 @@ class EcografiaViewSet(viewsets.ModelViewSet):
         if solo_activos == "true":
             queryset = queryset.filter(embarazo__estado="activo")
 
-        return queryset.order_by("-fecha_ecografia")
+        # `-id` desempata: con solo la fecha, dos ecografías del mismo día
+        # podían repetirse o saltarse al pasar de página en el servidor.
+        return queryset.order_by("-fecha_ecografia", "-id")
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, request):
+        """Cifras de la pantalla con los MISMOS filtros que el listado.
+
+        GET /api/ecografias/resumen/?search=&tipo_ecografia=&fecha_ecografia__gte=
+
+        Antes la pantalla descargaba TODAS las ecografías (una petición por
+        cada 200) solo para contar trimestres en el navegador.
+        """
+        qs = self.filter_queryset(self.get_queryset()).order_by()
+        return Response({
+            "total": qs.count(),
+            "primer_trimestre": qs.filter(edad_gestacional_semanas__lt=14).count(),
+            "segundo_trimestre": qs.filter(edad_gestacional_semanas__gte=14,
+                                           edad_gestacional_semanas__lt=28).count(),
+            "tercer_trimestre": qs.filter(edad_gestacional_semanas__gte=28).count(),
+            "sin_vitalidad": qs.filter(vitalidad_fetal=False).count(),
+        })
 
     def perform_create(self, serializer):
         """Asignar automáticamente el médico que está logueado
@@ -752,38 +803,3 @@ class EcografiaViewSet(viewsets.ModelViewSet):
             ]
         pares.append(("Observaciones", getattr(ecografia, "observaciones", "")))
         return respuesta_csv(f"ecografia_{ecografia.id}", [{"titulo": "Informe ecográfico", "pares": pares}])
-
-    @action(detail=False, methods=["get"], url_path="exportar-excel")
-    def exportar_excel(self, request):
-        """Exporta lista de ecografías a Excel
-        GET /api/ecografias/exportar-excel/
-        """
-        try:
-            import openpyxl
-            from django.http import HttpResponse
-            from openpyxl.styles import Font
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Ecografias"
-            headers = ["ID", "Paciente", "Fecha", "Tipo", "Edad Gestacional", "Diagnóstico"]
-            for col, h in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col, value=h)
-                cell.font = Font(bold=True)
-            queryset = self.filter_queryset(self.get_queryset())
-            for row, eco in enumerate(queryset, 2):
-                ws.cell(row=row, column=1, value=eco.id)
-                ws.cell(row=row, column=2, value=str(eco.paciente))
-                ws.cell(row=row, column=3, value=str(eco.fecha_ecografia))
-                ws.cell(row=row, column=4, value=eco.tipo_ecografia or "")
-                ws.cell(row=row, column=5, value=eco.edad_gestacional_semanas or "")
-                ws.cell(row=row, column=6, value=eco.diagnostico or "")
-            response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            response["Content-Disposition"] = 'attachment; filename="ecografias.xlsx"'
-            wb.save(response)
-            return response
-        except ImportError:
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(queryset, many=True)
-            return Response({"mensaje": "Excel no disponible. Instale openpyxl", "total": queryset.count(), "datos": serializer.data})
-        except Exception as e:
-            return Response({"error": f"Error generando Excel: {e}"}, status=500)

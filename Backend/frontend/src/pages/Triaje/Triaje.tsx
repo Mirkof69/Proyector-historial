@@ -1,70 +1,57 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { triajeService, TriajeEnfermeria } from '../../services/triajeService';
-import { Empty, Table, Button, Card, Row, Col, Typography, Space } from 'antd';
+import { Alert, Empty, Table, Button, Card, Row, Col, Typography, Space } from 'antd';
 import {
   PlusOutlined, PrinterOutlined, ExportOutlined, MedicineBoxOutlined,
 } from '@ant-design/icons';
 import { useAntdApp } from '../../hooks/useMessage';
-import { exportarExcel } from '../../utils/excelExport';
+import api from '../../services/api';
+import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import dayjs from 'dayjs';
 import es from 'dayjs/locale/es';
 import TriajeStats from './components/TriajeStats';
 import TriajeFiltros from './components/TriajeFiltros';
 import { buildTriajeColumns } from './components/triajeColumns';
-import { incluyeTexto } from '../../utils/texto';
 
 dayjs.locale(es);
 const { Title, Text } = Typography;
+const URL_TRIAJES = '/triaje/triajes/';
+const RESUMEN_VACIO = { total: 0, pendiente: 0, completado: 0, urgente: 0, presion_alta: 0 };
 
 const Triaje: React.FC = () => {
   const navigate = useNavigate();
   const { message, modal } = useAntdApp();
 
-  const [triajes, setTriajes] = useState<TriajeEnfermeria[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [filterState, setFilterState] = useState<string>('');
   const [filterPriority, setFilterPriority] = useState<string>('');
   const [filterDate, setFilterDate] = useState<any>(null);
 
-  const triajesArray = useMemo(() => Array.isArray(triajes) ? triajes : [], [triajes]);
-
-  const stats = useMemo(() => ({
-    total: triajesArray.length,
-    urgente: triajesArray.filter(t => t.prioridad === 'urgente').length,
-    alto: triajesArray.filter(t => t.prioridad === 'alto').length,
-    normal: triajesArray.filter(t => t.prioridad === 'normal').length,
-    bajo: triajesArray.filter(t => t.prioridad === 'bajo').length,
-    pendiente: triajesArray.filter(t => t.estado === 'pendiente').length,
-    completado: triajesArray.filter(t => t.estado === 'completado').length,
-  }), [triajesArray]);
-
-  const presionAlta = useMemo(
-    () => triajesArray.filter(t => t.alerta_presion_alta).length,
-    [triajesArray]
-  );
-
-  const loadTriajes = useCallback(async () => {
-    setLoading(true);
+  // Filtros, búsqueda y cifras en el SERVIDOR. Antes se contaba y filtraba en
+  // el navegador sobre la primera página (200 como mucho).
+  const filtrosServidor = useMemo(() => ({
+    estado: filterState || undefined,
+    prioridad: filterPriority || undefined,
+    fecha_registro__gte: filterDate ? dayjs(filterDate).startOf('day').toISOString() : undefined,
+    fecha_registro__lte: filterDate ? dayjs(filterDate).endOf('day').toISOString() : undefined,
+  }), [filterState, filterPriority, filterDate]);
+  const listado = useListadoServidor<TriajeEnfermeria>(URL_TRIAJES, {
+    filtros: filtrosServidor, busqueda: searchText, tamanoInicial: 10,
+  });
+  const { parametros, recargar } = listado;
+  const [stats, setStats] = useState(RESUMEN_VACIO);
+  const cargarResumen = useCallback(async () => {
     try {
-      const data = await triajeService.listar();
-      if (Array.isArray(data)) {
-        setTriajes(data);
-      } else {
-        setTriajes([]);
-      }
-    } catch (error) {
-      message.error('Error al cargar triajes');
-      setTriajes([]);
-    } finally {
-      setLoading(false);
+      const r = await api.get(`${URL_TRIAJES}resumen/`, { params: parametros() });
+      setStats(r.data);
+    } catch {
+      setStats(RESUMEN_VACIO);
     }
-  }, [message]);
-
-  useEffect(() => {
-    loadTriajes();
-  }, [loadTriajes]);
+  }, [parametros]);
+  useEffect(() => { cargarResumen(); }, [cargarResumen]);
+  const loadTriajes = useCallback(() => { recargar(); cargarResumen(); }, [recargar, cargarResumen]);
 
   const handleDelete = useCallback(async (id: number) => {
     modal.confirm({
@@ -95,60 +82,11 @@ const Triaje: React.FC = () => {
     }
   }, [loadTriajes, message]);
 
-  const filteredTriajes = useMemo(() => {
-    return triajesArray.filter(triaje => {
-      const matchSearch =
-        incluyeTexto(triaje.paciente_info?.nombre_completo, searchText) ||
-        incluyeTexto(triaje.paciente_nombre, searchText) ||
-        incluyeTexto(triaje.motivo_visita, searchText) ||
-        incluyeTexto(triaje.motivo_consulta, searchText);
-      const matchState = !filterState || triaje.estado === filterState;
-      const matchPriority = !filterPriority || triaje.prioridad === filterPriority;
-      const matchDate = !filterDate || dayjs(triaje.fecha_hora || triaje.fecha_registro).isSame(filterDate, 'day');
-      return matchSearch && matchState && matchPriority && matchDate;
-    });
-  }, [triajesArray, searchText, filterState, filterPriority, filterDate]);
-
+  // Excel desde el SERVIDOR con todos los triajes filtrados (y auditado).
   const handleExportExcel = useCallback(() => {
-    try {
-      const datos = filteredTriajes.map(t => ({
-        paciente: t.paciente_info?.nombre_completo || t.paciente_nombre || '-',
-        fecha: dayjs(t.fecha_hora || t.fecha_registro).format('DD/MM/YYYY HH:mm'),
-        prioridad: t.prioridad?.toUpperCase() || '-',
-        estado: t.estado?.toUpperCase() || 'PENDIENTE',
-        motivo: t.motivo_consulta || t.motivo_visita || '-',
-        peso_kg: t.peso_kg ?? t.peso ?? '-',
-        talla_cm: t.talla_cm ?? t.talla ?? '-',
-        presion: t.presion_arterial || (t.presion_sistolica && t.presion_diastolica ? `${t.presion_sistolica}/${t.presion_diastolica}` : '-'),
-        temperatura: t.temperatura ?? '-',
-        frecuencia_cardiaca: t.frecuencia_cardiaca ?? '-',
-      }));
-      const columnas = {
-        paciente: 'Paciente',
-        fecha: 'Fecha/Hora',
-        prioridad: 'Prioridad',
-        estado: 'Estado',
-        motivo: 'Motivo',
-        peso_kg: 'Peso (kg)',
-        talla_cm: 'Talla (cm)',
-        presion: 'Presión Arterial',
-        temperatura: 'Temperatura',
-        frecuencia_cardiaca: 'FC',
-      };
-      exportarExcel(
-        datos,
-        columnas,
-        {
-          filename: `triaje_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-          sheetName: 'Triaje',
-          title: `Registro de Triaje - ${dayjs().format('DD/MM/YYYY')}`,
-        },
-      );
-      message.success('Archivo Excel generado exitosamente');
-    } catch (error) {
-      message.error('Error al generar el archivo Excel');
-    }
-  }, [filteredTriajes, message]);
+    descargarArchivo(`${URL_TRIAJES}exportar-excel/${aQuery(parametros())}`, `triaje_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`)
+      .catch(() => message.error('No se pudo generar el Excel de triaje'));
+  }, [parametros, message]);
 
   const columns = useMemo(
     () => buildTriajeColumns(navigate, handleMarkComplete, handleDelete),
@@ -199,7 +137,7 @@ const Triaje: React.FC = () => {
         pendiente={stats.pendiente}
         completado={stats.completado}
         urgente={stats.urgente}
-        presionAlta={presionAlta}
+        presionAlta={stats.presion_alta}
       />
 
       <TriajeFiltros
@@ -219,18 +157,16 @@ const Triaje: React.FC = () => {
         }}
       />
 
+      {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
       <Table
         columns={columns}
-        dataSource={filteredTriajes}
+        dataSource={listado.datos}
         locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay registros de triaje" /> }}
         rowKey="id"
-        loading={loading}
+        loading={listado.cargando}
         className="shadow-card"
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `Total ${total} registros`
-        }}
+        pagination={listado.paginacion}
+        onChange={listado.onChange}
         scroll={{ x: 1000 }}
         onRow={(record) => ({
           onDoubleClick: () => navigate(`/dashboard/triaje/${record.id}`),

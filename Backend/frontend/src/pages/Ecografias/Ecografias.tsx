@@ -3,9 +3,8 @@
  * ECOGRAFÍAS - LISTA COMPLETA
  * =============================================================================
  * Lista de todas las ecografías registradas en el sistema.
- * - Filtros por tipo, trimestre, fecha
- * - Búsqueda por paciente
- * - Paginación y ordenamiento
+ * - Filtros por tipo y fecha, búsqueda por paciente/diagnóstico
+ * - Paginación, orden, cifras y Excel resueltos EN EL SERVIDOR
  * =============================================================================
  */
 
@@ -13,7 +12,6 @@ import React, { useState, useReducer, useEffect, useCallback, useMemo } from 're
 import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
-import { exportarExcel } from '../../utils/excelExport';
 import {
   Empty,Card,
   Table,
@@ -32,23 +30,30 @@ import dayjs from 'dayjs';
 import { ecografiasService, Ecografia } from '../../services/ecografiasService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import DICOMViewer from '../../components/DICOMViewer';
-import { useAuth } from '../../hooks/useAuth';
-import apiClient from '../../services/api';
+import api from '../../services/api';
+import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import './Ecografias.css';
-import { filtrosEcografiaReducer, calcularEstadisticas } from './ecografiasUtils';
+import { filtrosEcografiaReducer } from './ecografiasUtils';
 import { buildColumnsEcografias } from './ecografiasColumns';
 import EcografiasStats from './components/EcografiasStats';
 import EcografiasFiltros from './components/EcografiasFiltros';
 import EcografiaVistaRapidaDrawer from './components/EcografiaVistaRapidaDrawer';
 
+const URL_ECOGRAFIAS = '/ecografias/';
+
+interface ResumenEcografias {
+  total: number;
+  primer_trimestre: number;
+  segundo_trimestre: number;
+  tercer_trimestre: number;
+}
+const RESUMEN_VACIO: ResumenEcografias = { total: 0, primer_trimestre: 0, segundo_trimestre: 0, tercer_trimestre: 0 };
+
 const Ecografias: React.FC = () => {
   const { message, modal } = useAntdApp();
   const navigate = useNavigate();
   const { canAdd, canChange, canDelete } = usePermissions();
-  const { getToken } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [ecografias, setEcografias] = useState<Ecografia[]>([]);
   const [filtros, dispatchFiltros] = useReducer(filtrosEcografiaReducer, {
     busqueda: '',
     filtroTipo: '',
@@ -58,82 +63,53 @@ const Ecografias: React.FC = () => {
   const [ecografiaSeleccionada, setEcografiaSeleccionada] = useState<Ecografia | null>(null);
   const [dicomViewerVisible, setDicomViewerVisible] = useState(false);
 
-
-  const estadisticas = useMemo(() => calcularEstadisticas(ecografias), [ecografias]);
-
   // ==========================================================================
   // CARGAR DATOS
   // ==========================================================================
-  const cargarEcografias = useCallback(async () => {
-    setLoading(true);
+  // Antes se descargaban TODAS las ecografías (una petición por cada 200) y
+  // se filtraba y contaba en el navegador. Ahora se pide solo la página
+  // visible; filtros, búsqueda (que entiende los nombres cifrados) y orden
+  // los resuelve el servidor. `fecha_ecografia` es un DateField: va como
+  // fecha local YYYY-MM-DD (un ISO en UTC correría al día siguiente el
+  // extremo «hasta»).
+  const filtrosServidor = useMemo(() => ({
+    tipo_ecografia: filtros.filtroTipo || undefined,
+    fecha_ecografia__gte: filtros.filtroFecha?.[0]?.format('YYYY-MM-DD'),
+    fecha_ecografia__lte: filtros.filtroFecha?.[1]?.format('YYYY-MM-DD'),
+  }), [filtros.filtroTipo, filtros.filtroFecha]);
+
+  // Sin `ordenInicial`: el orden por defecto del servidor (fecha desc + id)
+  // desempata y no repite filas entre páginas; `?ordering=` lo reemplazaría.
+  const listado = useListadoServidor<Ecografia>(URL_ECOGRAFIAS, {
+    filtros: filtrosServidor, busqueda: filtros.busqueda, tamanoInicial: 10,
+  });
+  const { parametros, recargar } = listado;
+
+  // Las tarjetas cuentan TODAS las ecografías que cumplen los filtros, no
+  // solo la página visible.
+  const [resumen, setResumen] = useState<ResumenEcografias>(RESUMEN_VACIO);
+  const cargarResumen = useCallback(async () => {
     try {
-
-      // 🚀 PASO 1: Obtener primera página para saber cuántas páginas hay
-      const firstPageResponse = await apiClient.get('/ecografias/', { params: { page: 1, limit: 200 } });
-      const firstPageData = firstPageResponse.data;
-      const totalEcografias = firstPageData.count || 0;
-      const totalPages = Math.ceil(totalEcografias / 200);
-
-
-      // 🚀 PASO 2: Crear array de promesas para TODAS las páginas
-      const ecografiasPromises = Array.from({ length: totalPages }, (_, i) =>
-        apiClient.get('/ecografias/', { params: { page: i + 1, limit: 200 } }).then(res => res.data)
-      );
-
-      // 🚀 PASO 3: Ejecutar TODAS las requests en PARALELO
-      const allResponses = await Promise.all(ecografiasPromises);
-
-      // 🚀 PASO 4: Combinar todos los resultados y agregar _uniqueRowKey
-      const allEcografias: any[] = [];
-      for (const res of allResponses) {
-        for (const item of res.results || []) {
-          allEcografias.push({
-            ...item,
-            _uniqueRowKey: `ecografia-${item.id}-${allEcografias.length}-${Date.now()}`
-          });
-        }
-      }
-
-      setEcografias(allEcografias);
-      setLoadError(null);
-    } catch (error) {
-      setLoadError('No se pudieron cargar las ecografías. Verifique su conexión e intente nuevamente.');
-      setEcografias([]);
-    } finally {
-      setLoading(false);
+      const r = await api.get(`${URL_ECOGRAFIAS}resumen/`, { params: parametros() });
+      setResumen(r.data);
+    } catch {
+      // Las cifras de cabecera no deben impedir usar el listado.
+      setResumen(RESUMEN_VACIO);
     }
-  }, [getToken]);
+  }, [parametros]);
+  useEffect(() => { cargarResumen(); }, [cargarResumen]);
 
-  useEffect(() => {
-    cargarEcografias();
-  }, [cargarEcografias]);
+  const cargarEcografias = useCallback(() => {
+    recargar();
+    cargarResumen();
+  }, [recargar, cargarResumen]);
 
-  const ecografiasFiltradas = useMemo(() => {
-    let resultado = [...ecografias];
-
-    if (filtros.busqueda) {
-      resultado = resultado.filter(
-        (eco) =>
-          eco.tipo_ecografia?.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-          eco.paciente_nombre?.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-          eco.diagnostico?.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-          eco.observaciones?.toLowerCase().includes(filtros.busqueda.toLowerCase())
-      );
-    }
-
-    if (filtros.filtroTipo) {
-      resultado = resultado.filter((eco) => eco.tipo_ecografia === filtros.filtroTipo);
-    }
-
-    if (filtros.filtroFecha) {
-      resultado = resultado.filter((eco) => {
-        const fecha = dayjs(eco.fecha_ecografia);
-        return fecha.isAfter(filtros.filtroFecha![0]) && fecha.isBefore(filtros.filtroFecha![1]);
-      });
-    }
-
-    return resultado;
-  }, [filtros, ecografias]);
+  const estadisticas = {
+    total: resumen.total,
+    primerTrimestre: resumen.primer_trimestre,
+    segundoTrimestre: resumen.segundo_trimestre,
+    tercerTrimestre: resumen.tercer_trimestre,
+  };
 
   const limpiarFiltros = () => {
     dispatchFiltros({ type: 'LIMPIAR' });
@@ -196,37 +172,16 @@ const Ecografias: React.FC = () => {
     });
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    // El Excel lo arma el servidor con TODAS las ecografías que cumplen los
+    // filtros (no solo la página visible) y queda auditado. Antes había dos
+    // botones: uno exportaba en el navegador todo SIN filtros y el otro una
+    // vista sin auditar.
     try {
-      const columnas = {
-        'id': 'ID',
-        'paciente_nombre': 'Paciente',
-        'fecha_ecografia': 'Fecha',
-        'tipo_ecografia': 'Tipo',
-        'edad_gestacional_semanas': 'Semanas',
-        'edad_gestacional_dias': 'Días',
-        'peso_fetal_estimado': 'Peso Est. (g)',
-        'biometria_dbp': 'DBP (mm)',
-        'biometria_cc': 'CC (mm)',
-        'biometria_ca': 'CA (mm)',
-        'biometria_lf': 'LF (mm)',
-        'liquido_amniotico': 'Líquido',
-        'placenta_localizacion': 'Placenta',
-        'observaciones': 'Observaciones'
-      };
-
-      exportarExcel(
-        ecografias,
-        columnas,
-        {
-          filename: `ecografias_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-          sheetName: 'Ecografías',
-          title: `Ecografías Obstétricas - ${dayjs().format('DD/MM/YYYY')}`
-        }
-      );
-      message.success('Archivo Excel generado exitosamente');
-    } catch (error) {
-      message.error('Error al generar el archivo Excel');
+      await descargarArchivo(`${URL_ECOGRAFIAS}exportar-excel/${aQuery(parametros())}`,
+        `ecografias_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`);
+    } catch {
+      message.error('No se pudo generar el Excel de ecografías');
     }
   };
 
@@ -276,16 +231,6 @@ const Ecografias: React.FC = () => {
             >
               🔬 Visor DICOM
             </Button>
-            <Button
-              icon={<FileExcelOutlined />}
-              onClick={() => {
-                ecografiasService.exportarExcel()
-                  .then(() => message.success('Excel de ecografías descargado'))
-                  .catch(() => message.error('No se pudo generar el Excel. Inténtelo de nuevo.'));
-              }}
-            >
-              Exportar Excel
-            </Button>
             {canAdd('ecografia') && (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevo}>
                 Nueva Ecografía
@@ -297,12 +242,12 @@ const Ecografias: React.FC = () => {
         {/* FILTROS */}
         <EcografiasFiltros filtros={filtros} dispatchFiltros={dispatchFiltros} limpiarFiltros={limpiarFiltros} />
 
-        {loadError && (
+        {listado.error && (
           <Alert
             type="error"
             showIcon
             message="Error al cargar las ecografías"
-            description={loadError}
+            description={listado.error}
             action={
               <Button size="small" icon={<ReloadOutlined />} onClick={cargarEcografias}>
                 Reintentar
@@ -314,15 +259,12 @@ const Ecografias: React.FC = () => {
 
         <Table
           columns={columns}
-          dataSource={ecografiasFiltradas}
+          dataSource={listado.datos}
           locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay ecografías registradas" /> }}
-          rowKey={(record: any) => record._uniqueRowKey || `ecografia-fallback-${record.id}`}
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} ecografías`,
-          }}
+          rowKey="id"
+          loading={listado.cargando}
+          pagination={listado.paginacion}
+          onChange={listado.onChange}
           scroll={{ x: 1200 }}
           bordered
         />

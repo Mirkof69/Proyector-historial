@@ -19,6 +19,12 @@ class TriajeEnfermeriaSerializer(serializers.ModelSerializer):
         model = TriajeEnfermeria
         fields = "__all__"
         read_only_fields = [
+            # Los asigna la vista (perform_create/update) con el usuario de la
+            # sesión. `enfermera` era OBLIGATORIO en la entrada y el formulario
+            # no lo envía: registrar un triaje desde la pantalla daba 400.
+            "enfermera",
+            "created_by",
+            "updated_by",
             "fecha_registro",
             "imc",
             "alerta_presion_alta",
@@ -28,8 +34,14 @@ class TriajeEnfermeriaSerializer(serializers.ModelSerializer):
 
     def get_paciente_info(self, obj):
         """Get paciente info"""
+        # `id_clinico`: la tabla de triaje lo muestra bajo el nombre y salía
+        # siempre «-» porque no viajaba.
         return (
-            {"id": obj.paciente.id, "nombre_completo": obj.paciente.nombre_completo}
+            {
+                "id": obj.paciente.id,
+                "nombre_completo": obj.paciente.nombre_completo,
+                "id_clinico": obj.paciente.id_clinico,
+            }
             if obj.paciente
             else None
         )

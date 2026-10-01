@@ -21,6 +21,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.exportacion import ExportarExcelMixin
 from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 from embarazos.models import Embarazo
@@ -33,8 +34,22 @@ from .serializers import (
     ControlPrenatalSerializer,
 )
 
+# Lo mismo que ControlPrenatal.tiene_alertas_criticas(), pero en SQL. Es lo
+# que la tabla muestra como «tiene_alertas»; el filtro «Con/Sin alertas» de la
+# pantalla tiene que usar EXACTAMENTE este criterio. `?con_alertas=true` (más
+# amplio: cuenta trazas de proteinuria y movimientos disminuidos) se deja como
+# estaba porque lo usan otros clientes.
+Q_ALERTA_CRITICA = (
+    Q(presion_arterial_sistolica__isnull=False, presion_arterial_diastolica__isnull=False)
+    & (Q(presion_arterial_sistolica__gte=140) | Q(presion_arterial_diastolica__gte=90))
+) | (
+    Q(frecuencia_cardiaca_fetal__lt=110) | Q(frecuencia_cardiaca_fetal__gt=160)
+) | Q(edema__in=["severo", "generalizado"]) | Q(
+    proteinuria__in=["positiva_1", "positiva_2", "positiva_3", "positiva_4"],
+) | Q(movimientos_fetales="ausentes")
 
-class ControlPrenatalViewSet(viewsets.ModelViewSet):
+
+class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet completo para gestión de Controles Prenatales
 
     Endpoints disponibles:
@@ -71,7 +86,9 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
         )
         .prefetch_related("embarazo__controles")
         .all()
-        .order_by("-fecha_control", "-numero_control")
+        # `-id` desempata: dos controles del mismo día y número (de pacientes
+        # distintas) podían repetirse o saltarse al paginar en el servidor.
+        .order_by("-fecha_control", "-numero_control", "-id")
     )
 
     permission_classes = [FetalMedicalPermission]
@@ -82,23 +99,53 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
     ]
 
     # ✅ CORRECCIÓN: Campos correctos del modelo
-    filterset_fields = [
+    filterset_fields = {
         # El campo del modelo se llama `embarazo` (con db_column="embarazo_id").
         # Solo estaba declarado "embarazo_id", así que ?embarazo=N NO era un
         # filtro válido y django-filter lo IGNORABA en silencio: la historia
         # clínica pedía /controles/?embarazo=660 y recibía los 1328 controles
         # de TODAS las pacientes — mostraba controles ajenos como propios.
         # Se aceptan ambos nombres para no romper a quien ya use embarazo_id.
-        "embarazo",
-        "embarazo_id",
-        "paciente",
-        "semanas_gestacion",
-        "edema",
-        "proteinuria",
-        "numero_control",
-        "medico_id",
-        "presentacion_fetal",
-        "movimientos_fetales",
+        "embarazo": ["exact"],
+        "embarazo_id": ["exact"],
+        "paciente": ["exact"],
+        "semanas_gestacion": ["exact"],
+        "edema": ["exact"],
+        "proteinuria": ["exact"],
+        "numero_control": ["exact"],
+        "medico_id": ["exact"],
+        "presentacion_fetal": ["exact"],
+        "movimientos_fetales": ["exact"],
+        # Rango de fechas de la pantalla de controles (antes en el navegador).
+        # A diferencia de `fecha_desde`, una fecha mal escrita da 400 en vez
+        # de ignorarse en silencio y devolver todo.
+        "fecha_control": ["gte", "lte"],
+    }
+
+    # Excel del listado con los mismos filtros que la pantalla (y auditado).
+    # Antes el botón armaba el archivo en el navegador con TODOS los controles
+    # descargados, sin respetar búsqueda ni filtros, y con columnas
+    # (`presion_sistolica`, `semanas_gestacion`…) que la lista no traía:
+    # salían vacías.
+    excel_nombre = "controles_prenatales"
+    excel_columnas = [
+        ("Fecha", "fecha_control"),
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("N° control", "numero_control"),
+        ("Semanas", "semanas_gestacion"),
+        ("Días", "dias_gestacion"),
+        ("Peso (kg)", "peso_actual"),
+        ("PA sistólica", "presion_arterial_sistolica"),
+        ("PA diastólica", "presion_arterial_diastolica"),
+        ("AU (cm)", "altura_uterina"),
+        ("FCF (lpm)", "frecuencia_cardiaca_fetal"),
+        ("Presentación", "presentacion_fetal"),
+        ("Movimientos fetales", "movimientos_fetales"),
+        ("Edema", "edema"),
+        ("Proteinuria", "proteinuria"),
+        ("Alertas críticas", "tiene_alertas_criticas"),
+        ("Observaciones", "observaciones"),
     ]
 
     # Búsqueda por paciente vía BusquedaClinicaFilter: los datos
@@ -184,6 +231,14 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
                 | ~Q(proteinuria="negativa"),  # ✅ CORRECCIÓN
             )
 
+        # `?alerta_critica=true|false`: el filtro «Con/Sin alertas» de la
+        # pantalla. Antes se aplicaba en el navegador sobre `tiene_alertas`.
+        alerta_critica = params.get("alerta_critica", None)
+        if alerta_critica == "true":
+            queryset = queryset.filter(Q_ALERTA_CRITICA)
+        elif alerta_critica == "false":
+            queryset = queryset.exclude(Q_ALERTA_CRITICA)
+
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # FILTRO POR ESTADO DEL EMBARAZO
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -233,6 +288,29 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
 
         serializer = ControlPrenatalSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, request):
+        """Cifras y panel de alertas de la pantalla, con los MISMOS filtros.
+
+        GET /api/controles/resumen/?search=&fecha_control__gte=&alerta_critica=&trimestre=
+
+        Antes la pantalla descargaba TODOS los controles, embarazos y pacientes
+        (una petición por cada 200 de cada uno) para contar en el navegador
+        cuántos tenían alertas y mostrar los 10 más recientes en el panel.
+        """
+        qs = self.filter_queryset(self.get_queryset())
+        con_alerta = qs.filter(Q_ALERTA_CRITICA)
+        total = qs.order_by().count()
+        total_con_alerta = con_alerta.order_by().count()
+        # Los 10 más recientes con alerta (el panel no muestra más).
+        recientes = con_alerta.order_by("-fecha_control", "-numero_control", "-id")[:10]
+        return Response({
+            "total": total,
+            "con_alertas": total_con_alerta,
+            "sin_alertas": total - total_con_alerta,
+            "alertas_recientes": ControlPrenatalSerializer(recientes, many=True).data,
+        })
 
     def create(self, request, *args, **kwargs):
         """✅ EXTENDIDO: Crear control con validaciones y respuesta completa"""
@@ -997,36 +1075,6 @@ class ControlPrenatalViewSet(viewsets.ModelViewSet):
             return Response(data)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @action(detail=False, methods=["get"], url_path="exportar-excel")
-    def exportar_excel(self, request):
-        """Exportar controles a Excel"""
-        try:
-            from io import BytesIO
-
-            import openpyxl
-            from django.http import HttpResponse
-            queryset = self.filter_queryset(self.get_queryset())
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Controles"
-            ws.append(["ID", "Embarazo", "N° Control", "Fecha", "Semanas", "Peso", "AU", "PA Sist", "PA Diast", "FCF"])
-            for c in queryset:
-                ws.append([
-                    c.id, c.embarazo_id, c.numero_control, str(c.fecha_control),
-                    c.semanas_gestacion, float(c.peso_actual) if c.peso_actual else None,
-                    float(c.altura_uterina) if c.altura_uterina else None,
-                    c.presion_arterial_sistolica, c.presion_arterial_diastolica,
-                    c.frecuencia_cardiaca_fetal,
-                ])
-            output = BytesIO()
-            wb.save(output)
-            output.seek(0)
-            response = HttpResponse(output.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            response["Content-Disposition"] = "attachment; filename=controles.xlsx"
-            return response
-        except ImportError:
-            return Response({"error": "openpyxl no instalado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=["get"], url_path="exportar-pdf")
     def exportar_pdf(self, request, pk=None):

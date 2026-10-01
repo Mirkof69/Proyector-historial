@@ -37,8 +37,8 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
     dataIndex: 'fecha_ecografia',
     key: 'fecha_ecografia',
     width: 120,
-    sorter: (a: Ecografia, b: Ecografia) =>
-      dayjs(a.fecha_ecografia).unix() - dayjs(b.fecha_ecografia).unix(),
+    // Orden en el servidor: ordenar en el navegador solo ordenaba la página.
+    sorter: true,
     render: (fecha: string) => (
       <Space>
         <CalendarOutlined />
@@ -66,8 +66,11 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
   },
   {
     title: 'Edad Gestacional',
-    key: 'edad_gestacional',
+    key: 'edad_gestacional_semanas',
+    // `dataIndex` = campo de `ordering_fields` del backend.
+    dataIndex: 'edad_gestacional_semanas',
     width: 130,
+    sorter: true,
     render: (_: any, record: Ecografia) => (
       <Text>
         {record.edad_gestacional_texto ||
@@ -130,6 +133,7 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
             icon={<EyeOutlined />}
             onClick={() => handleVerVistaRapida(record)}
             aria-label="Ver detalle"
+            title="Ver detalle"
           />
         </Tooltip>
         <Tooltip title="Descargar PDF">
@@ -138,6 +142,7 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
             icon={<FilePdfOutlined />}
             onClick={() => handleDescargarPdf(record.id!)}
             aria-label="Descargar PDF"
+            title="Descargar PDF"
           />
         </Tooltip>
         {canChange('ecografia') && (
@@ -146,16 +151,21 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
               type="link"
               icon={<EditOutlined />}
               onClick={() => handleEditar(record.id!)}
+              aria-label="Editar ecografía"
+              title="Editar ecografía"
             />
           </Tooltip>
         )}
         {canDelete('ecografia') && (
           <Tooltip title="Eliminar">
+            {/* Pide confirmación (modal) antes de borrar: ver handleEliminar. */}
             <Button
               type="link"
               danger
               icon={<DeleteOutlined />}
               onClick={() => handleEliminar(record)}
+              aria-label="Eliminar ecografía"
+              title="Eliminar ecografía"
             />
           </Tooltip>
         )}

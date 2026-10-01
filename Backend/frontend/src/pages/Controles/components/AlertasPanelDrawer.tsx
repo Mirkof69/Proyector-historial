@@ -6,17 +6,29 @@ import { ControlPrenatal } from '../../../services/controlesService';
 
 const { Text } = Typography;
 
+/**
+ * Panel de alertas. Las cifras y los 10 controles con alerta más recientes
+ * llegan del servidor (GET /controles/resumen/) con los filtros actuales.
+ * Antes se calculaban en el navegador sobre la lista ENTERA de controles,
+ * que la pantalla descargaba página por página solo para esto.
+ */
 interface AlertasPanelDrawerProps {
   showAlertasPanel: boolean;
   onClose: () => void;
-  controles: ControlPrenatal[];
+  /** Controles que cumplen los filtros actuales. */
+  total: number;
+  /** Cuántos de ellos tienen alertas críticas. */
+  totalConAlertas: number;
+  /** Los más recientes con alerta (el servidor manda como mucho 10). */
+  controlesConAlertas: ControlPrenatal[];
   detectarAlertas: (values: any) => string[];
   getNombrePaciente: (control: ControlPrenatal) => string;
   handleQuickView: (control: ControlPrenatal) => void;
 }
 
 const AlertasPanelDrawer: React.FC<AlertasPanelDrawerProps> = ({
-  showAlertasPanel, onClose, controles, detectarAlertas, getNombrePaciente, handleQuickView,
+  showAlertasPanel, onClose, total, totalConAlertas, controlesConAlertas,
+  detectarAlertas, getNombrePaciente, handleQuickView,
 }) => (
   <Drawer
     title={
@@ -24,9 +36,7 @@ const AlertasPanelDrawer: React.FC<AlertasPanelDrawerProps> = ({
         <WarningOutlined />
         Panel de Alertas
         <Badge
-          count={
-            controles.filter((c) => c.tiene_alertas).length
-          }
+          count={totalConAlertas}
           style={{ backgroundColor: '#ff4d4f' }}
         />
       </Space>
@@ -39,70 +49,65 @@ const AlertasPanelDrawer: React.FC<AlertasPanelDrawerProps> = ({
     <Space direction="vertical" style={{ width: '100%' }} size="middle">
       <Alert
         message="Resumen de Alertas"
-        description={`Se encontraron ${controles.filter((c) => c.tiene_alertas).length
-          } controles con alertas médicas de un total de ${controles.length} controles.`}
+        description={`Se encontraron ${totalConAlertas} controles con alertas médicas de un total de ${total} controles (con los filtros aplicados).`}
         type="info"
         showIcon
       />
 
       <Divider>Controles con Alertas</Divider>
 
-      {controles
-        .filter((c) => c.tiene_alertas)
-        .slice(0, 10)
-        .map((control) => {
-          const alertas = detectarAlertas(control);
-          return (
-            <Card
-              key={control.id}
-              size="small"
-              title={
-                <Space>
-                  <Badge count={alertas.length} />
-                  <Text strong>{getNombrePaciente(control)}</Text>
-                </Space>
-              }
-              extra={
-                <Button
-                  size="small"
-                  type="link"
-                  onClick={() => {
-                    handleQuickView(control);
-                    onClose();
-                  }}
-                >
-                  Ver
-                </Button>
-              }
-            >
-              <Space direction="vertical" style={{ width: '100%' }} size="small">
-                <Text type="secondary">
-                  Control #{control.numero_control} -{' '}
-                  {dayjs(control.fecha_control).format('DD/MM/YYYY')}
-                </Text>
-                {alertas.slice(0, 2).map((alerta) => (
-                  <Alert
-                    key={`alerta-${alerta}`}
-                    message={alerta}
-                    type="warning"
-                    showIcon
-                    style={{ fontSize: 12 }}
-                  />
-                ))}
-                {alertas.length > 2 && (
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    +{alertas.length - 2} alertas más…
-                  </Text>
-                )}
+      {controlesConAlertas.map((control) => {
+        const alertas = detectarAlertas(control);
+        return (
+          <Card
+            key={control.id}
+            size="small"
+            title={
+              <Space>
+                <Badge count={alertas.length} />
+                <Text strong>{getNombrePaciente(control)}</Text>
               </Space>
-            </Card>
-          );
-        })}
+            }
+            extra={
+              <Button
+                size="small"
+                type="link"
+                onClick={() => {
+                  handleQuickView(control);
+                  onClose();
+                }}
+              >
+                Ver
+              </Button>
+            }
+          >
+            <Space direction="vertical" style={{ width: '100%' }} size="small">
+              <Text type="secondary">
+                Control #{control.numero_control} -{' '}
+                {dayjs(control.fecha_control).format('DD/MM/YYYY')}
+              </Text>
+              {alertas.slice(0, 2).map((alerta) => (
+                <Alert
+                  key={`alerta-${alerta}`}
+                  message={alerta}
+                  type="warning"
+                  showIcon
+                  style={{ fontSize: 12 }}
+                />
+              ))}
+              {alertas.length > 2 && (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  +{alertas.length - 2} alertas más…
+                </Text>
+              )}
+            </Space>
+          </Card>
+        );
+      })}
 
-      {controles.filter((c) => c.tiene_alertas).length > 10 && (
+      {totalConAlertas > controlesConAlertas.length && (
         <Alert
-          message={`Mostrando 10 de ${controles.filter((c) => c.tiene_alertas).length
-            } controles con alertas`}
+          message={`Mostrando ${controlesConAlertas.length} de ${totalConAlertas} controles con alertas. Use el filtro «Con Alertas» para verlos todos en la tabla.`}
           type="info"
         />
       )}
