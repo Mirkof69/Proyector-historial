@@ -142,7 +142,7 @@ const GlobalSearch: React.FC = () => {
         navigate(`/dashboard/laboratorio/${result.id}`);
         break;
       case 'evolucion':
-        navigate(`/dashboard/evoluciones/${result.id}`);
+        navigate(`/dashboard/notas-evolucion/${result.id}`);
         break;
       case 'consultorio':
         navigate(`/dashboard/consultorios/${result.id}`);
@@ -162,7 +162,7 @@ const GlobalSearch: React.FC = () => {
               <SearchOutlined /> Búsqueda Global del Sistema
             </Title>
             <Text type="secondary">
-              Busque en todos los módulos: pacientes, embarazos, citas, ecografías, laboratorio, evoluciones y consultorios
+              Busque en todos los módulos: pacientes, embarazos, citas, ecografías, laboratorio, notas de evolución y consultorios
             </Text>
           </div>
 

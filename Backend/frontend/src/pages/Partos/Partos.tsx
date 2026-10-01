@@ -8,123 +8,64 @@
  * =============================================================================
  */
 
-import React, { useState, useReducer, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useReducer, useEffect, useMemo } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
-import { Table, Card } from "antd";
+import { Alert, Table, Card } from "antd";
 import { WarningOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { partosService, Parto } from '../../services/partosService';
 import { FRONTEND_ROUTES } from '../../config/routes';
-import api from '../../services/api';
 import { usePermissions } from '../../hooks/usePermissions';
-import { exportarExcel } from '../../utils/excelExport';
+import { aQuery, contarEnServidor, limpiarFiltros, useListadoServidor } from '../../hooks/useListadoServidor';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import { filtrosPartosReducer } from './components/partosFiltrosReducer';
 import { buildPartosColumns } from './components/partosColumns';
 import PartosStats from './components/PartosStats';
 import PartosToolbar from './components/PartosToolbar';
 import './Partos.css';
-import { incluyeTexto } from '../../utils/texto';
+
+const CESAREAS = 'cesarea_electiva,cesarea_urgencia,cesarea_emergencia';
+const VAGINALES = 'vaginal_espontaneo,vaginal_instrumentado';
 
 const Partos: React.FC = () => {
   const { message, modal } = useAntdApp();
   const navigate = useNavigate();
   const { canAdd, canChange, canDelete } = usePermissions();
-  const [loading, setLoading] = useState(false);
-  const [partos, setPartos] = useState<Parto[]>([]);
   const [filtros, dispatchFiltros] = useReducer(filtrosPartosReducer, {
     searchText: '',
     dateRange: null,
     tipoPartoFilter: null,
   });
-  const isMounted = useRef(true);
+  const [stats, setStats] = useState({ total: 0, cesareas: 0, vaginales: 0 });
 
-  const filteredPartos = useMemo(() => {
-    let result = partos;
+  // Búsqueda, fechas y tipo los filtra el SERVIDOR: antes se bajaban todos los
+  // partos en bucle y se filtraba en el navegador.
+  const filtrosServidor = useMemo(() => ({
+    tipo_parto: filtros.tipoPartoFilter,
+    fecha_parto__gte: filtros.dateRange?.[0].startOf('day').toISOString(),
+    fecha_parto__lte: filtros.dateRange?.[1].endOf('day').toISOString(),
+  }), [filtros.tipoPartoFilter, filtros.dateRange]);
 
-    if (filtros.searchText) {
-      result = result.filter((p) => {
-        const pacienteNombre = p.paciente_info
-          ? `${p.paciente_info.nombre} ${p.paciente_info.apellido_paterno} ${p.paciente_info.apellido_materno}`
-          : '';
-        return (
-          incluyeTexto(pacienteNombre, filtros.searchText) ||
-          incluyeTexto(p.paciente_info?.cedula_identidad, filtros.searchText) ||
-          incluyeTexto(p.paciente_info?.id_clinico, filtros.searchText)
-        );
-      });
-    }
+  const listado = useListadoServidor<Parto>('/partos/', {
+    filtros: filtrosServidor, busqueda: filtros.searchText, ordenInicial: '-fecha_parto',
+  });
 
-    if (filtros.dateRange) {
-      const [start, end] = filtros.dateRange;
-      result = result.filter((p) => {
-        const fechaParto = dayjs(p.fecha_parto);
-        return fechaParto.isAfter(start.startOf('day')) && fechaParto.isBefore(end.endOf('day'));
-      });
-    }
-
-    if (filtros.tipoPartoFilter) {
-      result = result.filter((p) => p.tipo_parto === filtros.tipoPartoFilter);
-    }
-
-    return result;
-  }, [partos, filtros]);
-
-  useEffect(() => {
-    isMounted.current = true;
-    return () => { isMounted.current = false; };
-  }, []);
-
-  // ==========================================================================
-  // CARGAR DATOS - OPTIMIZADA CON CARGA PARALELA
-  // ==========================================================================
-  const cargarPartos = useCallback(async () => {
-    setLoading(true);
-
+  const cargarStats = async () => {
     try {
-
-      // 🚀 PASO 1: Obtener primera página para saber cuántas páginas hay
-      const firstPage = await api.get('/partos/?page=1&limit=200');
-
-      const totalPartos = firstPage.data.count || 0;
-      const totalPages = Math.ceil(totalPartos / 200);
-
-
-      // 🚀 PASO 2: Crear array de promesas para TODAS las páginas
-      const partosPromises = Array.from({ length: totalPages }, (_, i) =>
-        api.get(`/partos/?page=${i + 1}&limit=200`)
-      );
-
-      // 🚀 PASO 3: Ejecutar TODAS las requests en PARALELO
-      const partosResponses = await Promise.all(partosPromises);
-
-      // 🚀 PASO 4: Combinar todos los resultados y agregar rowKey único
-      const allPartos: any[] = [];
-      for (const res of partosResponses) {
-        for (const item of res.data.results || []) {
-          allPartos.push({
-            ...item,
-            _uniqueRowKey: `parto-${item.id}-${allPartos.length}-${Date.now()}`
-          });
-        }
-      }
-
-      if (isMounted.current) {
-        setPartos(allPartos);
-      }
-    } catch (error) {
-      if (isMounted.current) {
-        message.error('Error al cargar la lista de partos');
-        setPartos([]);
-      }
-    } finally {
-      if (isMounted.current) setLoading(false);
+      const [total, cesareas, vaginales] = await Promise.all([
+        contarEnServidor('/partos/'),
+        contarEnServidor('/partos/', { tipo_parto__in: CESAREAS }),
+        contarEnServidor('/partos/', { tipo_parto__in: VAGINALES }),
+      ]);
+      setStats({ total, cesareas, vaginales });
+    } catch {
+      // Las cifras de cabecera no deben impedir usar el listado.
     }
-  }, []);
+  };
+  useEffect(() => { cargarStats(); }, []);
 
-  useEffect(() => {
-    cargarPartos();
-  }, [cargarPartos]);
+  const recargar = () => { listado.recargar(); cargarStats(); };
 
   // ==========================================================================
   // HANDLERS
@@ -175,7 +116,7 @@ const Partos: React.FC = () => {
         try {
           await partosService.delete(parto.id);
           message.success('Registro eliminado correctamente');
-          cargarPartos();
+          recargar();
         } catch (error) {
           message.error('Error al eliminar el registro');
         }
@@ -183,35 +124,14 @@ const Partos: React.FC = () => {
     });
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    // El Excel lo arma el servidor con TODOS los partos que cumplen los
+    // filtros, no solo la página visible (y queda auditado).
+    const params = { ...limpiarFiltros(filtrosServidor), ...(filtros.searchText ? { search: filtros.searchText } : {}) };
     try {
-      const columnas = {
-        'id': 'ID',
-        'paciente_nombre': 'Paciente',
-        'fecha_parto': 'Fecha Parto',
-        'tipo_parto_display': 'Tipo Parto',
-        'edad_gestacional_semanas': 'Semanas',
-        'presentacion': 'Presentación',
-        'peso_recien_nacido': 'Peso RN (g)',
-        'talla_recien_nacido': 'Talla RN (cm)',
-        'apgar_1min': 'Apgar 1min',
-        'apgar_5min': 'Apgar 5min',
-        'sexo_recien_nacido': 'Sexo RN',
-        'complicaciones': 'Complicaciones'
-      };
-
-      exportarExcel(
-        partos,
-        columnas,
-        {
-          filename: `partos_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-          sheetName: 'Partos',
-          title: `Registro de Partos - ${dayjs().format('DD/MM/YYYY')}`
-        }
-      );
-      message.success('Archivo Excel generado exitosamente');
-    } catch (error) {
-      message.error('Error al generar el archivo Excel');
+      await descargarArchivo(`/partos/exportar-excel/${aQuery(params)}`, `partos_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`);
+    } catch {
+      message.error('No se pudo generar el Excel de partos');
     }
   };
 
@@ -223,17 +143,13 @@ const Partos: React.FC = () => {
   return (
     <div className="partos-container page-container">
       {/* HEADER Y ESTADÍSTICAS */}
-      <PartosStats
-        total={partos.length}
-        cesareas={partos.filter(p => p.tipo_parto?.includes('cesarea')).length}
-        vaginales={partos.filter(p => p.tipo_parto?.includes('vaginal')).length}
-      />
+      <PartosStats total={stats.total} cesareas={stats.cesareas} vaginales={stats.vaginales} />
 
       {/* BARRA DE HERRAMIENTAS */}
       <PartosToolbar
         filtros={filtros}
         dispatchFiltros={dispatchFiltros}
-        onReload={cargarPartos}
+        onReload={recargar}
         onExport={handleExportExcel}
         onNew={handleCreate}
         canAdd={canAdd('parto')}
@@ -241,17 +157,14 @@ const Partos: React.FC = () => {
 
       {/* TABLA PRINCIPAL */}
       <Card className="table-card">
+        {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
         <Table
           columns={columns}
-          dataSource={filteredPartos}
-          rowKey={(record: any) => record._uniqueRowKey || `parto-fallback-${record.id}`}
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} registros`,
-            pageSizeOptions: ['10', '20', '50', '100'],
-          }}
+          dataSource={listado.datos}
+          rowKey="id"
+          loading={listado.cargando}
+          pagination={listado.paginacion}
+          onChange={listado.onChange}
           locale={{
             emptyText: 'No hay registros de partos',
           }}

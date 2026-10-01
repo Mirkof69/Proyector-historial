@@ -16,8 +16,14 @@ from .serializers import (
 )
 
 
-class EvolucionEmbarazoViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing pregnancy evolutions — restringido a médicos y enfermeras"""
+class EvolucionEmbarazoViewSet(viewsets.ReadOnlyModelViewSet):
+    """Evoluciones del embarazo: SOLO LECTURA, histórico.
+
+    Se unificaron con las notas de evolución (migración
+    notas_evolucion/0004): cada evolución se copió a una nota. Esta API queda
+    para consultar lo antiguo; lo nuevo se registra como nota de evolución.
+    Restringido a médicos y enfermeras.
+    """
 
     permission_classes = [IsAuthenticated, EsMedicoOEnfermera]
 

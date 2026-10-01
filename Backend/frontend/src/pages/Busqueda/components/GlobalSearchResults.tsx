@@ -48,7 +48,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
     <Badge count={laboratorioResults.length}><span><ExperimentOutlined /> Laboratorio</span></Badge>
   ), [laboratorioResults.length]);
   const tabEvoluciones = useMemo(() => (
-    <Badge count={evolucionesResults.length}><span><FileTextOutlined /> Evoluciones</span></Badge>
+    <Badge count={evolucionesResults.length}><span><FileTextOutlined /> Notas de evolución</span></Badge>
   ), [evolucionesResults.length]);
   const tabConsultorios = useMemo(() => (
     <Badge count={consultoriosResults.length}><span><HomeOutlined /> Consultorios</span></Badge>
@@ -101,7 +101,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 )}
                 {evolucionesResults.length > 0 && (
                   <div>
-                    <Title level={5}><FileTextOutlined /> Evoluciones ({evolucionesResults.length})</Title>
+                    <Title level={5}><FileTextOutlined /> Notas de evolución ({evolucionesResults.length})</Title>
                     <Table
                       columns={getColumns('evolucion')}
                       dataSource={evolucionesResults.slice(0, 5)}

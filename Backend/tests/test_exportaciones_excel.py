@@ -22,6 +22,7 @@ RUTAS = [
     "/api/vacunas/registros/exportar-excel/",
     "/api/notas-evolucion/exportar-excel/",
     "/api/auditoria/exportar-excel/",
+    "/api/partos/exportar-excel/",
 ]
 
 

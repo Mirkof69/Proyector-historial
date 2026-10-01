@@ -32,8 +32,24 @@ import VacunasStats from './components/VacunasStats';
 import VacunasFiltros from './components/VacunasFiltros';
 import VacunasGraficas from './components/VacunasGraficas';
 import CarnetVacunaDrawer from './components/CarnetVacunaDrawer';
-import { incluyeTexto } from '../../utils/texto';
 import { descargarArchivo } from '../../utils/descargarArchivo';
+import api from '../../services/api';
+import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
+
+interface ResumenVacunas {
+  total: number;
+  con_proxima_dosis: number;
+  con_reacciones: number;
+  este_mes: number;
+  vencidas: number;
+  proxima_semana: number;
+  por_tipo: { name: string; value: number }[];
+  por_mes: { mes: string; cantidad: number }[];
+}
+const RESUMEN_VACIO: ResumenVacunas = {
+  total: 0, con_proxima_dosis: 0, con_reacciones: 0, este_mes: 0, vencidas: 0, proxima_semana: 0,
+  por_tipo: [], por_mes: [],
+};
 
 dayjs.extend(relativeTime);
 
@@ -43,8 +59,6 @@ const Vacunas: React.FC = () => {
   const navigate = useNavigate();
   const { message, modal } = useAntdApp();
 
-  const [vacunas, setVacunas] = useState<RegistroVacunaExtended[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [selectedVacuna, setSelectedVacuna] = useState<RegistroVacunaExtended | null>(null);
 
@@ -55,113 +69,48 @@ const Vacunas: React.FC = () => {
     filtroEstado: 'todas',
   });
 
-  const cargarVacunas = useCallback(async () => {
+  // Filtros, cifras y gráficas los calcula el SERVIDOR sobre todos los
+  // registros. Antes se pedían 1.000, el servidor cortaba en 200 y la pantalla
+  // contaba solo esos 200 sin avisar.
+  const filtrosServidor = useMemo(() => ({
+    vacuna: filtros.filtroVacuna !== 'todas' ? filtros.filtroVacuna : undefined,
+    estado_dosis: filtros.filtroEstado !== 'todas' ? filtros.filtroEstado : undefined,
+    fecha_aplicacion__gte: filtros.dateRange?.[0]?.startOf('day').toISOString(),
+    fecha_aplicacion__lte: filtros.dateRange?.[1]?.endOf('day').toISOString(),
+  }), [filtros.filtroVacuna, filtros.filtroEstado, filtros.dateRange]);
+
+  const listado = useListadoServidor<RegistroVacunaExtended>('/vacunas/registros/', {
+    filtros: filtrosServidor, busqueda: filtros.searchText, tamanoInicial: 10, ordenInicial: '-fecha_aplicacion',
+  });
+  const loading = listado.cargando;
+  const { parametros, recargar } = listado;
+
+  const [resumen, setResumen] = useState<ResumenVacunas>(RESUMEN_VACIO);
+  const cargarResumen = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await vacunasService.getRegistros({ page_size: 1000 });
-      const data = response.results || response;
-
-      if (Array.isArray(data)) {
-        setVacunas(data as RegistroVacunaExtended[]);
-      } else {
-        setVacunas([]);
-      }
-    } catch (error) {
-      message.error('Error al cargar el historial de inmunizaciones');
-      setVacunas([]);
-    } finally {
-      setLoading(false);
+      const r = await api.get('/vacunas/registros/resumen/', { params: parametros() });
+      setResumen(r.data);
+    } catch {
+      setResumen(RESUMEN_VACIO);
     }
-  }, [message]);
+  }, [parametros]);
+  useEffect(() => { cargarResumen(); }, [cargarResumen]);
 
-  useEffect(() => {
-    cargarVacunas();
-  }, [cargarVacunas]);
+  const cargarVacunas = useCallback(() => {
+    recargar();
+    cargarResumen();
+  }, [recargar, cargarResumen]);
 
-  const filteredVacunas = useMemo(() => {
-    let filtered = [...vacunas];
-
-    if (filtros.searchText) {
-      filtered = filtered.filter(v =>
-        incluyeTexto(v.paciente_info?.nombre_completo, filtros.searchText) ||
-        incluyeTexto(v.tipo_vacuna_info?.nombre, filtros.searchText) ||
-        incluyeTexto(v.paciente_nombre, filtros.searchText) ||
-        incluyeTexto(v.tipo_vacuna_nombre, filtros.searchText) ||
-        incluyeTexto(v.lote, filtros.searchText) ||
-        incluyeTexto(v.laboratorio, filtros.searchText)
-      );
-    }
-
-    if (filtros.dateRange && filtros.dateRange[0] && filtros.dateRange[1]) {
-      const [start, end] = filtros.dateRange;
-      filtered = filtered.filter(v => {
-        const fecha = dayjs(v.fecha_aplicacion);
-        return (fecha.isAfter(start.startOf('day')) || fecha.isSame(start.startOf('day'))) &&
-          (fecha.isBefore(end.endOf('day')) || fecha.isSame(end.endOf('day')));
-      });
-    }
-
-    if (filtros.filtroVacuna !== 'todas') {
-      const filtroLower = filtros.filtroVacuna.toLowerCase();
-      filtered = filtered.filter(v =>
-        v.tipo_vacuna_info?.nombre?.toLowerCase().includes(filtroLower) ||
-        v.tipo_vacuna_nombre?.toLowerCase().includes(filtroLower)
-      );
-    }
-
-    if (filtros.filtroEstado !== 'todas') {
-      if (filtros.filtroEstado === 'pendientes') {
-        filtered = filtered.filter(v => v.proxima_dosis_fecha);
-      } else if (filtros.filtroEstado === 'completas') {
-        filtered = filtered.filter(v => !v.proxima_dosis_fecha);
-      } else if (filtros.filtroEstado === 'vencidas') {
-        filtered = filtered.filter(v =>
-          v.proxima_dosis_fecha && dayjs(v.proxima_dosis_fecha).isBefore(dayjs().startOf('day'))
-        );
-      }
-    }
-
-    return filtered;
-  }, [vacunas, filtros]);
-
-  const stats = useMemo(() => {
-    const total = filteredVacunas.length;
-    const conProximaDosis = filteredVacunas.filter(v => v.proxima_dosis_fecha).length;
-    const conReacciones = filteredVacunas.filter(v => v.reacciones_adversas).length;
-    const esteMes = filteredVacunas.filter(v =>
-      dayjs(v.fecha_aplicacion).isSame(dayjs(), 'month')
-    ).length;
-
-    const vencidas = filteredVacunas.filter(v =>
-      v.proxima_dosis_fecha && dayjs(v.proxima_dosis_fecha).isBefore(dayjs().startOf('day'))
-    ).length;
-
-    const proximaSemana = filteredVacunas.filter(v =>
-      v.proxima_dosis_fecha &&
-      dayjs(v.proxima_dosis_fecha).isAfter(dayjs()) &&
-      dayjs(v.proxima_dosis_fecha).isBefore(dayjs().add(7, 'days'))
-    ).length;
-
-    return { total, conProximaDosis, conReacciones, esteMes, vencidas, proximaSemana };
-  }, [filteredVacunas]);
-
-  const graficoPorTipo = useMemo(() => {
-    const conteo: { [key: string]: number } = {};
-    filteredVacunas.forEach(v => {
-      const tipo = v.tipo_vacuna_info?.nombre || v.tipo_vacuna_nombre || 'Desconocido';
-      conteo[tipo] = (conteo[tipo] || 0) + 1;
-    });
-    return Object.entries(conteo).map(([name, value]) => ({ name, value }));
-  }, [filteredVacunas]);
-
-  const graficoPorMes = useMemo(() => {
-    const conteo: { [key: string]: number } = {};
-    filteredVacunas.forEach(v => {
-      const mes = dayjs(v.fecha_aplicacion).format('MMM YYYY');
-      conteo[mes] = (conteo[mes] || 0) + 1;
-    });
-    return Object.entries(conteo).map(([mes, cantidad]) => ({ mes, cantidad }));
-  }, [filteredVacunas]);
+  const stats = {
+    total: resumen.total,
+    conProximaDosis: resumen.con_proxima_dosis,
+    conReacciones: resumen.con_reacciones,
+    esteMes: resumen.este_mes,
+    vencidas: resumen.vencidas,
+    proximaSemana: resumen.proxima_semana,
+  };
+  const graficoPorTipo = resumen.por_tipo;
+  const graficoPorMes = resumen.por_mes.map(m => ({ mes: dayjs(`${m.mes}-01`).format('MMM YYYY'), cantidad: m.cantidad }));
 
   // Handlers
   const handleNuevaVacuna = useCallback(() => {
@@ -245,7 +194,7 @@ const Vacunas: React.FC = () => {
                 <Button
                   size="large"
                   icon={<FileExcelOutlined />}
-                  onClick={() => descargarArchivo('/vacunas/registros/exportar-excel/', `vacunas_${dayjs().format('YYYYMMDD')}.xlsx`)
+                  onClick={() => descargarArchivo(`/vacunas/registros/exportar-excel/${aQuery(listado.parametros())}`, `vacunas_${dayjs().format('YYYYMMDD')}.xlsx`)
                     .catch(() => message.error('No se pudo exportar el Excel'))}
                 >
                   Exportar Excel
@@ -271,16 +220,12 @@ const Vacunas: React.FC = () => {
         {/* TABLE SECTION */}
         <Table
           columns={columns}
-          dataSource={filteredVacunas}
+          dataSource={listado.datos}
           rowKey="id"
           loading={loading}
           scroll={{ x: 1200 }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            className: "custom-pagination",
-            showTotal: (total) => `Total ${total} inmunizaciones`
-          }}
+          pagination={{ ...listado.paginacion, className: 'custom-pagination' }}
+          onChange={listado.onChange}
           className="premium-table"
           locale={{
             emptyText: (

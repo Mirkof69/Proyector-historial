@@ -25,7 +25,7 @@ import {
   Calculadoras, CalculadorasAvanzadas, IndiceCalculadoras, ScoreBishop, IMCGananciaPonderal,
   RiesgoPreeclampsia, CrecimientoFetal, RiesgoCromosomico, DosisMedicamentos, HemorragiaObstetrica,
   SufrimientoFetal, Usuarios, Roles, FormularioRol, DetalleRol, Auditoria, AccessLogs, Statistics,
-  Perfil, Configuracion, Ayuda, Evoluciones, DetalleEvolucion, FormularioEvolucion, Antecedentes,
+  Perfil, Configuracion, Ayuda, Antecedentes,
   AntecedentesGinecoObstetricos, AntecedentesPatologicos, FormularioAntecedenteGineco,
   FormularioAntecedentePatologico, Consultorios, FormularioConsultorio, DetalleConsultorio,
   Triaje, FormularioTriaje, DetalleTriaje, Vacunas, FormularioVacuna, DetalleVacuna, TiposVacuna,
@@ -193,10 +193,8 @@ const AppRoutes: React.FC = () => {
           <Route path="backup" element={<ProtectedRoute requiredPermission="view_sistemaconfiguracion"><DatabaseBackup /></ProtectedRoute>} />
 
           {/* MÓDULO: EVOLUCIONES */}
-          <Route path="evoluciones" element={<ProtectedRoute requiredPermission="view_evolucionembarazo"><Evoluciones /></ProtectedRoute>} />
-          <Route path="evoluciones/nuevo" element={<ProtectedRoute requiredPermission="add_evolucionembarazo"><FormularioEvolucion /></ProtectedRoute>} />
-          <Route path="evoluciones/:id" element={<ProtectedRoute requiredPermission="view_evolucionembarazo"><DetalleEvolucion /></ProtectedRoute>} />
-          <Route path="evoluciones/:id/editar" element={<ProtectedRoute requiredPermission="change_evolucionembarazo"><FormularioEvolucion /></ProtectedRoute>} />
+          {/* «Evoluciones del embarazo» se unificaron en las notas de evolución */}
+          <Route path="evoluciones/*" element={<Navigate to="/dashboard/notas-evolucion" replace />} />
 
           {/* MÓDULO: ANTECEDENTES */}
           <Route path="antecedentes" element={<ProtectedRoute requiredPermission="view_antecedentepatologico"><Antecedentes /></ProtectedRoute>} />

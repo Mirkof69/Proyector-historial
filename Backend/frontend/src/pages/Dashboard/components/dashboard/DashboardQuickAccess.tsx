@@ -52,9 +52,9 @@ const DashboardQuickAccess: React.FC<DashboardQuickAccessProps> = ({ showQuickAc
               <Button block size="large" className="btn-quick blue-accent" icon={<MedicineBoxOutlined />} onClick={() => onNavigate('/dashboard/vacunas', 'Vacunas')}>Vacunas</Button>
             </Col>
           )}
-          {showQuickAccess('Evoluciones') && (
+          {showQuickAccess('Notas de evolución') && (
             <Col span={6} xs={12} sm={6}>
-              <Button block size="large" className="btn-quick green-accent" icon={<FileTextOutlined />} onClick={() => onNavigate('/dashboard/evoluciones', 'Evoluciones')}>Evoluciones</Button>
+              <Button block size="large" className="btn-quick green-accent" icon={<FileTextOutlined />} onClick={() => onNavigate('/dashboard/notas-evolucion', 'Notas de evolución')}>Notas de evolución</Button>
             </Col>
           )}
           <Col span={6} xs={12} sm={6}>

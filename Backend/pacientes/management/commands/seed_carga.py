@@ -90,6 +90,21 @@ def _tipo_ecografia(semanas: int) -> str:
     return random.choices(["tercer_trimestre", "doppler"], [70, 30])[0]
 
 
+def _momento_del_embarazo(fum, fin, hoy, *, desde_semana):
+    """Fecha y hora al azar DENTRO del embarazo y nunca después de ayer.
+
+    Vacunas y laboratorios se fechaban «hace 1-200 días» aunque el embarazo
+    hubiera terminado hace años: quedaban fuera de él.
+    """
+    inicio = fum + timedelta(weeks=desde_semana)
+    final = min(fin, hoy - timedelta(days=1))
+    if final < inicio:
+        inicio = final
+    dia = inicio + timedelta(days=random.randint(0, (final - inicio).days))
+    return timezone.make_aware(datetime.combine(dia, datetime.min.time())) + timedelta(
+        hours=random.randint(8, 17), minutes=random.randint(0, 59))
+
+
 def _rango(a, b, dec=1):
     """Decimal con EXACTAMENTE `dec` decimales.
 
@@ -436,7 +451,15 @@ class Command(BaseCommand):
             semanas_actuales = sortear_semanas_al_parto(random)
         else:
             semanas_actuales = random.randint(6, 40)
-        fum = hoy - timedelta(weeks=semanas_actuales)
+        # Los partos se reparten en los ULTIMOS 3 AÑOS. Antes la FUM era
+        # «hoy - semanas del parto», asi que todos los partos caian en la
+        # ultima semana (510 de 523) y, con los dias sumados al azar, 437
+        # quedaban en el FUTURO: fechas imposibles y reportes por fecha vacios.
+        retroceso = random.randint(7, 3 * 365) if termina_en_parto else 0
+        fum = hoy - timedelta(weeks=semanas_actuales, days=retroceso)
+        # Ultimo dia del embarazo (el parto, o hoy si sigue en curso). Nada de
+        # lo que se genere para este embarazo puede caer despues.
+        fin_embarazo = fum + timedelta(weeks=semanas_actuales)
         # gestas ya incluye el embarazo actual
         embarazo = Embarazo.objects.create(
             paciente=paciente,
@@ -503,7 +526,8 @@ class Command(BaseCommand):
             tope = max(6, min(38, semanas_actuales))
             sem_eco = random.randint(6, tope)
             # Como en el parto: la fecha y la edad escrita llevan los MISMOS días.
-            dias_eco = random.randint(0, 6)
+            # En la semana en curso no se suman dias: caeria en el futuro.
+            dias_eco = random.randint(0, 6) if sem_eco < semanas_actuales else 0
             eco = Ecografia.objects.create(
                 embarazo=embarazo, paciente=paciente, medico=self.medico,
                 fecha_ecografia=fum + timedelta(weeks=sem_eco, days=dias_eco),
@@ -544,15 +568,19 @@ class Command(BaseCommand):
         from vacunas.models import RegistroVacuna
 
         for tv in random.sample(self.tipos_vacuna, k=random.randint(0, 2)):
+            aplicada = _momento_del_embarazo(fum, fin_embarazo, hoy, desde_semana=12)
+            proxima = aplicada.date() + timedelta(days=random.randint(30, 180))
             RegistroVacuna.objects.create(
                 paciente=paciente, embarazo=embarazo, tipo_vacuna=tv,
-                fecha_aplicacion=timezone.now() - timedelta(days=random.randint(1, 120)),
+                fecha_aplicacion=aplicada,
                 numero_dosis=1, lote=f"L{random.randint(10000, 99999)}",
                 laboratorio=random.choice(["Sinopharm", "Pfizer", "Instituto Butantan"]),
                 via_administracion="intramuscular",
                 sitio_aplicacion="deltoides_izquierdo",
                 aplicado_por=self.medico,
-                proxima_dosis_fecha=date.today() + timedelta(days=random.randint(30, 180)),
+                # Una próxima dosis ya vencida de un embarazo de hace años
+                # inflaría «vacunas atrasadas»: solo se agenda si es futura.
+                proxima_dosis_fecha=proxima if proxima > hoy else None,
                 observaciones=f"{MARCA_CARGA}",
             )
 
@@ -560,7 +588,7 @@ class Command(BaseCommand):
         from laboratorio.models import ExamenLaboratorio
 
         for te in random.sample(self.tipos_examen, k=random.randint(1, 4)):
-            solicitud = timezone.now() - timedelta(days=random.randint(5, 200))
+            solicitud = _momento_del_embarazo(fum, fin_embarazo, hoy, desde_semana=6)
             # Mayoría completados; algunos en curso, como en la vida real.
             estado = random.choices(
                 ["completado", "en_proceso", "solicitado"], [75, 15, 10])[0]

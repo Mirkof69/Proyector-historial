@@ -92,7 +92,7 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
     <Col xs={24} sm={12} md={6} lg={3}>
       <Card size="small">
         <Statistic
-          title="Evoluciones"
+          title="Notas de evolución"
           value={evolucionesResults.length}
           prefix={<FileTextOutlined />}
         />

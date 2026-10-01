@@ -172,7 +172,7 @@ const DashboardGraficasCharts: React.FC<DashboardGraficasChartsProps> = ({
       </Col>
 
       <Col xs={24} lg={12}>
-        <Card title="📝 Evoluciones por Semana (Últimas 8 semanas)">
+        <Card title="📝 Notas de evolución por semana (últimas 8)">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={evolucionesPorSemana}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -186,7 +186,7 @@ const DashboardGraficasCharts: React.FC<DashboardGraficasChartsProps> = ({
                 stroke={COLORS.green}
                 strokeWidth={3}
                 dot={{ r: 5 }}
-                name="Evoluciones"
+                name="Notas de evolución"
               />
             </LineChart>
           </ResponsiveContainer>

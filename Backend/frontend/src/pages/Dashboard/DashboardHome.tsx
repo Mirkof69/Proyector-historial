@@ -99,7 +99,7 @@ const DashboardHome: React.FC = () => {
     'Gestión de Usuarios': 'view_usuario',
     'Triaje': 'view_triajeenfermeria',
     'Vacunas': 'view_registrovacuna',
-    'Evoluciones': 'view_evolucionembarazo',
+    'Notas de evolución': 'view_notaevolucion',
   }), []);
 
   const handleNavigate = useCallback((path: string, cardTitle: string) => {
@@ -133,7 +133,6 @@ const DashboardHome: React.FC = () => {
     } else {
       setState(prev => ({ ...prev, error: null }));
     }
-    const startTime = performance.now();
 
     try {
       const [statsBasicas, citasData, logsResponse] = await Promise.all([

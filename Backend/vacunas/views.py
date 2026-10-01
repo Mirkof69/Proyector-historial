@@ -10,6 +10,7 @@ ViewSets para gestión de vacunas en sistema de atención prenatal
 from datetime import timedelta
 
 from django.db.models import Count, F, Max
+from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -269,11 +270,50 @@ class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     ordering = ["-fecha_aplicacion"]
 
     def get_queryset(self):
-        """Optimiza queries con select_related y prefetch_related"""
-        queryset = super().get_queryset()
-        return queryset.select_related(
+        """Optimiza queries y aplica los filtros de la pantalla de vacunas.
+
+        `?vacuna=<texto>` filtra por nombre de vacuna y `?estado_dosis=`
+        pendientes | vencidas | completas. Antes la pantalla los aplicaba en el
+        navegador sobre una lista cortada en 200 registros.
+        """
+        queryset = super().get_queryset().select_related(
             "paciente", "embarazo", "tipo_vacuna", "aplicado_por",
         )
+        params = self.request.query_params
+        if vacuna := (params.get("vacuna") or "").strip():
+            queryset = queryset.filter(tipo_vacuna__nombre__icontains=vacuna)
+        estado = params.get("estado_dosis")
+        hoy = timezone.localdate()
+        if estado == "pendientes":
+            queryset = queryset.filter(proxima_dosis_fecha__isnull=False)
+        elif estado == "vencidas":
+            queryset = queryset.filter(proxima_dosis_fecha__lt=hoy)
+        elif estado == "completas":
+            queryset = queryset.filter(proxima_dosis_fecha__isnull=True)
+        return queryset
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, request):
+        """Cifras y gráficas de la pantalla, con los MISMOS filtros que el listado.
+
+        GET /api/vacunas/registros/resumen/?search=&vacuna=&estado_dosis=&fecha_aplicacion__gte=
+        """
+        qs = self.filter_queryset(self.get_queryset()).order_by()
+        hoy = timezone.localdate()
+        por_tipo = (qs.values("tipo_vacuna__nombre").annotate(n=Count("id")).order_by("-n"))
+        por_mes = (qs.annotate(mes=TruncMonth("fecha_aplicacion")).values("mes")
+                   .annotate(n=Count("id")).order_by("mes"))
+        return Response({
+            "total": qs.count(),
+            "con_proxima_dosis": qs.filter(proxima_dosis_fecha__isnull=False).count(),
+            "con_reacciones": qs.exclude(reacciones_adversas="").count(),
+            "este_mes": qs.filter(fecha_aplicacion__year=hoy.year, fecha_aplicacion__month=hoy.month).count(),
+            "vencidas": qs.filter(proxima_dosis_fecha__lt=hoy).count(),
+            "proxima_semana": qs.filter(proxima_dosis_fecha__gt=hoy,
+                                        proxima_dosis_fecha__lt=hoy + timedelta(days=7)).count(),
+            "por_tipo": [{"name": f["tipo_vacuna__nombre"] or "Desconocido", "value": f["n"]} for f in por_tipo],
+            "por_mes": [{"mes": f["mes"].strftime("%Y-%m"), "cantidad": f["n"]} for f in por_mes if f["mes"]],
+        })
 
     def get_serializer_class(self):
         """Usa serializer apropiado según la acción"""

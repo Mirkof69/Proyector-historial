@@ -341,10 +341,22 @@ class RegistroVacuna(models.Model):
                 },
             )
 
-        # Validar que la fecha de próxima dosis sea futura
         if self.proxima_dosis_fecha:
-
-            if self.proxima_dosis_fecha <= timezone.localdate():
+            # Siempre: la próxima dosis va después de la que se aplicó.
+            aplicada = self.fecha_aplicacion
+            dia_aplicada = None
+            if aplicada:
+                dia_aplicada = timezone.localdate(aplicada) if timezone.is_aware(aplicada) else aplicada.date()
+            if dia_aplicada and self.proxima_dosis_fecha <= dia_aplicada:
+                raise ValidationError(
+                    {"proxima_dosis_fecha": "La próxima dosis tiene que ser posterior a la fecha de aplicación"},
+                )
+            # «Futura» solo al registrarla o cambiarla. Antes se exigía siempre,
+            # así que cuando pasaba la fecha el registro quedaba inválido y no se
+            # podía corregir ni el lote de una vacuna antigua.
+            anterior = (type(self).objects.filter(pk=self.pk).values_list("proxima_dosis_fecha", flat=True).first()
+                        if self.pk else None)
+            if anterior != self.proxima_dosis_fecha and self.proxima_dosis_fecha <= timezone.localdate():
                 raise ValidationError(
                     {"proxima_dosis_fecha": "La fecha de próxima dosis debe ser futura"},
                 )

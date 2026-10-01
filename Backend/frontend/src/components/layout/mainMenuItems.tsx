@@ -19,7 +19,6 @@ const checkPermission = (user: any, itemKey: string): boolean => {
     '/dashboard/historia-clinica': 'view_controlprenatal',
     '/dashboard/ia-medica': 'view_imagenecografica',
     '/dashboard/ia-asistente': 'view_consultaia',
-    '/dashboard/evoluciones': 'view_evolucionembarazo',
     '/dashboard/triaje': 'view_triajeenfermeria',
     '/dashboard/pacientes': 'view_paciente',
     '/dashboard/antecedentes': 'view_antecedentepatologico',

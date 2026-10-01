@@ -1,10 +1,10 @@
+import api from '../../services/api';
 import dayjs from 'dayjs';
 import { pacientesService } from '../../services/pacientesService';
 import { embarazosService } from '../../services/embarazosService';
 import { citasService } from '../../services/citasService';
 import { ecografiasService } from '../../services/ecografiasService';
 import { laboratorioService } from '../../services/laboratorioService';
-import { evolucionesService } from '../../services/evolucionesService';
 import { consultoriosService } from '../../services/consultoriosService';
 
 export interface SearchResult {
@@ -172,32 +172,27 @@ export const searchLaboratorio = async (query: string): Promise<SearchResult[]> 
 };
 
 export const searchEvoluciones = async (query: string): Promise<SearchResult[]> => {
+  // Notas de evolución (las «evoluciones del embarazo» se unificaron en ellas).
+  // Se busca en el servidor: entiende los nombres cifrados de las pacientes.
   try {
-    const data = await evolucionesService.listar() as any[];
-    const results: SearchResult[] = [];
-    for (const e of data) {
-      const _evSearchText = [e.paciente_nombre, e.diagnostico, e.medico_nombre].filter(Boolean).join(' ').toLowerCase();
-      if (_evSearchText.includes(query)) {
-        results.push({
-          id: e.id,
-          tipo: 'evolucion',
-          titulo: `Evolución - ${e.paciente_nombre}`,
-          subtitulo: `Médico: ${e.medico_nombre || 'N/A'}`,
-          descripcion: e.diagnostico || 'Sin diagnóstico',
-          fecha: e.fecha || e.fecha_evento,
-          estado: e.tipo || 'N/A',
-          relevancia: calculateRelevance(query, [e.paciente_nombre, e.diagnostico, e.medico_nombre]),
-          data: e
-        });
-      }
-    }
-    return results.sort((a, b) => b.relevancia - a.relevancia);
-  } catch (error) {
+    const respuesta = await api.get('/notas-evolucion/', { params: { search: query, page_size: 20 } });
+    const data: any[] = respuesta.data?.results ?? respuesta.data ?? [];
+    return data.map((n) => ({
+      id: n.id,
+      tipo: 'evolucion',
+      titulo: `Nota de evolución - ${n.paciente_nombre || ''}`,
+      subtitulo: `Médico: ${n.medico_nombre || 'N/A'}`,
+      descripcion: n.motivo_consulta || n.diagnosticos || '',
+      fecha: n.fecha_consulta,
+      estado: n.tipo_consulta_display || n.tipo_consulta || '',
+      relevancia: calculateRelevance(query, [n.paciente_nombre, n.motivo_consulta, n.medico_nombre]),
+      data: n,
+    }));
+  } catch {
     return [];
   }
 };
 
-// Búsqueda en Consultorios
 export const searchConsultorios = async (query: string): Promise<SearchResult[]> => {
   try {
     const data = await consultoriosService.getAll() as any[];

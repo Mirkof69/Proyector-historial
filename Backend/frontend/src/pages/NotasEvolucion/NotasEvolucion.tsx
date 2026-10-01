@@ -1,109 +1,62 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Empty, Card, Table, Button, Space, Tag, Input, Select, Row, Col, Statistic } from 'antd';
+import { Alert, Empty, Card, Table, Button, Space, Tag, Input, Select, Row, Col, Statistic, Popconfirm } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SearchOutlined, ExportOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { notasEvolucionService, NotaEvolucion } from '../../services/notasEvolucionService';
-import { exportarExcel } from '../../utils/excelExport';
-import { incluyeTexto } from '../../utils/texto';
+import { aQuery, contarEnServidor, useListadoServidor } from '../../hooks/useListadoServidor';
+import { descargarArchivo } from '../../utils/descargarArchivo';
+
+const URL_NOTAS = '/notas-evolucion/';
 
 const NotasEvolucionPage: React.FC = () => {
   const navigate = useNavigate();
   const { message } = useAntdApp();
-  const [notas, setNotas] = useState<NotaEvolucion[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [filterTipo, setFilterTipo] = useState<string>('');
 
-  // Asegurar que notas sea array
-  const notasArray = Array.isArray(notas) ? notas : [];
+  // Búsqueda y tipo los filtra el SERVIDOR. Antes se pedían 1.000 notas, el
+  // servidor cortaba en 200 y las demás no aparecían.
+  const listado = useListadoServidor<NotaEvolucion>(URL_NOTAS, {
+    filtros: { tipo_consulta: filterTipo || undefined }, busqueda: searchText, ordenInicial: '-fecha_consulta',
+  });
+  const { parametros, recargar } = listado;
 
-  const stats = {
-    total: notasArray.length,
-    controles: notasArray.filter(n => n.tipo_consulta === 'control_prenatal').length,
-    urgencias: notasArray.filter(n => n.tipo_consulta === 'urgencia').length,
-    seguimientos: notasArray.filter(n => n.tipo_consulta === 'seguimiento').length,
-  };
-
-
-
-  const cargarNotas = useCallback(async () => {
-    setLoading(true);
+  const [stats, setStats] = useState({ total: 0, controles: 0, urgencias: 0, seguimientos: 0 });
+  const cargarStats = useCallback(async () => {
     try {
-      const response = await notasEvolucionService.getNotas({ page_size: 1000 });
-
-      // FIX: Manejar respuesta paginada correctamente
-      // Siempre priorizar response.results si existe, sino usar array vacío
-      const data = Array.isArray(response) ? response : (response.results || []);
-
-      // Setear las notas (data ya es array garantizado)
-      setNotas(data);
-    } catch (error) {
-      message.error('Error al cargar notas de evolución');
-      setNotas([]); // Asegurar que notas sea array aunque haya error
-    } finally {
-      setLoading(false);
+      const [total, controles, urgencias, seguimientos] = await Promise.all([
+        contarEnServidor(URL_NOTAS),
+        contarEnServidor(URL_NOTAS, { tipo_consulta: 'control_prenatal' }),
+        contarEnServidor(URL_NOTAS, { tipo_consulta: 'urgencia' }),
+        contarEnServidor(URL_NOTAS, { tipo_consulta: 'seguimiento' }),
+      ]);
+      setStats({ total, controles, urgencias, seguimientos });
+    } catch {
+      // Las cifras de cabecera no deben impedir usar el listado.
     }
-  }, [message]);
-
-  useEffect(() => {
-    cargarNotas();
-  }, [cargarNotas]);
+  }, []);
+  useEffect(() => { cargarStats(); }, [cargarStats]);
 
   const handleDelete = async (id: number) => {
     try {
       await notasEvolucionService.eliminarNota(id);
-      message.success('Nota eliminada correctamente');
-      cargarNotas();
-    } catch (error) {
-      message.error('Error al eliminar nota');
+      message.success('Nota eliminada');
+      recargar();
+      cargarStats();
+    } catch (error: any) {
+      // 409: la historia clínica está protegida; el servidor dice por qué.
+      message.error(error?.response?.data?.error || error?.response?.data?.detail || 'No se pudo eliminar la nota');
     }
   };
 
-  const filteredNotas = notasArray.filter(nota => {
-    const matchSearch =
-      incluyeTexto(nota.paciente_nombre, searchText) ||
-      incluyeTexto(nota.medico_nombre, searchText) ||
-      incluyeTexto(nota.motivo_consulta, searchText);
-    const matchTipo = !filterTipo || nota.tipo_consulta === filterTipo;
-    return matchSearch && matchTipo;
-  });
-
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     try {
-      const datos = filteredNotas.map(n => ({
-        fecha: dayjs(n.fecha_consulta).format('DD/MM/YYYY HH:mm'),
-        paciente: n.paciente_nombre || '-',
-        medico: n.medico_nombre || '-',
-        tipo_consulta: n.tipo_consulta,
-        motivo_consulta: n.motivo_consulta || '-',
-        presion_arterial: n.presion_arterial || (n.presion_arterial_sistolica && n.presion_arterial_diastolica ? `${n.presion_arterial_sistolica}/${n.presion_arterial_diastolica}` : '-'),
-        frecuencia_cardiaca: n.frecuencia_cardiaca ?? '-',
-        temperatura: n.temperatura ?? '-',
-      }));
-      const columnas = {
-        fecha: 'Fecha',
-        paciente: 'Paciente',
-        medico: 'Médico',
-        tipo_consulta: 'Tipo de Consulta',
-        motivo_consulta: 'Motivo de Consulta',
-        presion_arterial: 'Presión Arterial',
-        frecuencia_cardiaca: 'FC',
-        temperatura: 'Temperatura',
-      };
-      exportarExcel(
-        datos,
-        columnas,
-        {
-          filename: `notas_evolucion_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-          sheetName: 'Notas de Evolución',
-          title: `Notas de Evolución - ${dayjs().format('DD/MM/YYYY')}`,
-        },
-      );
-      message.success('Archivo Excel generado exitosamente');
-    } catch (error) {
-      message.error('Error al generar el archivo Excel');
+      await descargarArchivo(`${URL_NOTAS}exportar-excel/${aQuery(parametros())}`,
+        `notas_evolucion_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`);
+    } catch {
+      message.error('No se pudo generar el Excel de notas');
     }
   };
 
@@ -111,10 +64,9 @@ const NotasEvolucionPage: React.FC = () => {
     {
       title: 'Fecha',
       dataIndex: 'fecha_consulta',
-      key: 'fecha',
+      key: 'fecha_consulta',
       render: (f: string) => dayjs(f).format('DD/MM/YYYY HH:mm'),
-      sorter: (a: NotaEvolucion, b: NotaEvolucion) =>
-        new Date(a.fecha_consulta).getTime() - new Date(b.fecha_consulta).getTime(),
+      sorter: true,
     },
     {
       title: 'Paciente',
@@ -169,19 +121,27 @@ const NotasEvolucionPage: React.FC = () => {
             size="small"
             type="primary"
             icon={<EyeOutlined />}
+            aria-label="Ver nota"
+            title="Ver nota"
             onClick={() => navigate(`/dashboard/notas-evolucion/${record.id}`)}
           />
           <Button
             size="small"
             icon={<EditOutlined />}
+            aria-label="Editar nota"
+            title="Editar nota"
             onClick={() => navigate(`/dashboard/notas-evolucion/${record.id}/editar`)}
           />
-          <Button
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          />
+          <Popconfirm
+            title="¿Eliminar esta nota de evolución?"
+            description="Es parte de la historia clínica de la paciente."
+            okText="Eliminar"
+            okButtonProps={{ danger: true }}
+            cancelText="Cancelar"
+            onConfirm={() => handleDelete(record.id)}
+          >
+            <Button size="small" danger icon={<DeleteOutlined />} aria-label="Eliminar nota" title="Eliminar nota" />
+          </Popconfirm>
         </Space>
       ),
     },
@@ -237,7 +197,7 @@ const NotasEvolucionPage: React.FC = () => {
             <Select
               placeholder="Tipo de consulta"
               value={filterTipo}
-              onChange={setFilterTipo}
+              onChange={(v) => setFilterTipo(v ?? '')}
               style={{ width: 200 }}
               size="large"
               allowClear
@@ -275,13 +235,15 @@ const NotasEvolucionPage: React.FC = () => {
 
       {/* Tabla de notas */}
       <Card>
+        {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
         <Table
           columns={columns}
-          dataSource={filteredNotas}
+          dataSource={listado.datos}
           locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay notas de evolución registradas" /> }}
-          loading={loading}
+          loading={listado.cargando}
           rowKey="id"
-          pagination={{ pageSize: 20 }}
+          pagination={listado.paginacion}
+          onChange={listado.onChange}
           scroll={{ x: 1200 }}
         />
       </Card>

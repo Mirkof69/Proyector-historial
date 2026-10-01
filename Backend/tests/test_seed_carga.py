@@ -99,3 +99,28 @@ class PacienteGeneradoValidaTest(TestCase):
             generadas.add(f"98{comando._contadores_ci['98']:05d}")
 
         self.assertEqual(len(generadas), 100, "hay CIs repetidas entre los dos lotes")
+
+
+class FechasDelGeneradorTest(SimpleTestCase):
+    """Regresión: la FUM de los embarazos con parto era «hoy - semanas», así que
+    los 523 partos de la demo caían en la última semana y 437 en el FUTURO.
+    Vacunas y laboratorios se fechaban «hace 1-200 días» aunque el embarazo
+    hubiera terminado hace años."""
+
+    def test_vacunas_y_laboratorios_caen_dentro_del_embarazo_y_antes_de_hoy(self):
+        import datetime
+
+        from pacientes.management.commands.seed_carga import _momento_del_embarazo
+
+        hoy = datetime.date(2026, 9, 30)
+        casos = [
+            (datetime.date(2023, 1, 1), datetime.date(2023, 10, 1)),   # parto hace años
+            (datetime.date(2026, 1, 1), hoy),                          # embarazo en curso
+            (hoy - datetime.timedelta(weeks=7), hoy),                  # recién empezado
+        ]
+        for fum, fin in casos:
+            for _ in range(200):
+                m = _momento_del_embarazo(fum, fin, hoy, desde_semana=6).date()
+                self.assertLess(m, hoy, (fum, fin, m))
+                self.assertLessEqual(m, fin)
+                self.assertGreaterEqual(m, min(fum + datetime.timedelta(weeks=6), hoy - datetime.timedelta(days=1)))

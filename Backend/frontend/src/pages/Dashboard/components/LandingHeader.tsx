@@ -1,8 +1,6 @@
 import React from 'react';
 import { Layout, Button, Typography, Space, Divider } from 'antd';
 import { HeartOutlined, LoginOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { FRONTEND_ROUTES } from '../../../config/routes';
 
 const { Header } = Layout;
 const { Title } = Typography;

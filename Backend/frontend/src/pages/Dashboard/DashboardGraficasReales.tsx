@@ -18,7 +18,7 @@ import { partosService } from '../../services/partosService';
 import { citasService } from '../../services/citasService';
 import { ecografiasService } from '../../services/ecografiasService';
 import { laboratorioService } from '../../services/laboratorioService';
-import { evolucionesService } from '../../services/evolucionesService';
+import { notasEvolucionService } from '../../services/notasEvolucionService';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import es from 'dayjs/locale/es';
@@ -74,7 +74,8 @@ const DashboardGraficasReales: React.FC = () => {
         citasService.listar(),
         ecografiasService.listar(),
         laboratorioService.listar(),
-        evolucionesService.listar()
+        notasEvolucionService.getNotas({ page_size: 200, fecha_desde: dayjs().subtract(8, 'week').format('YYYY-MM-DD') })
+          .then((r) => (r.results ?? []).map((n: any) => ({ ...n, fecha: n.fecha_consulta })))
       ]);
 
       setPacientes(pacientesData);

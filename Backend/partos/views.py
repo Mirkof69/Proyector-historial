@@ -20,6 +20,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
+from core.exportacion import ExportarExcelMixin
 from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
@@ -47,7 +48,7 @@ from .serializers import (
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-class PartoViewSet(viewsets.ModelViewSet):
+class PartoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet COMPLETO para gestionar partos con todas las funcionalidades
 
     ENDPOINTS:
@@ -109,6 +110,22 @@ class PartoViewSet(viewsets.ModelViewSet):
         "duracion_trabajo_parto_horas",
     ]
     ordering = ["-fecha_parto"]  # Ordenamiento por defecto
+
+    # GET /partos/exportar-excel/ con los mismos filtros que el listado
+    excel_nombre = "partos"
+    excel_columnas = [
+        ("N.º parto", "numero_parto"),
+        ("Fecha", "fecha_parto"),
+        ("Paciente", "paciente.nombre_completo"),
+        ("ID clínico", "paciente.id_clinico"),
+        ("Edad gestacional", "edad_gestacional_parto"),
+        ("Tipo de parto", "tipo_parto"),
+        ("Presentación", "presentacion_fetal"),
+        ("Pérdida sanguínea (mL)", "perdida_sanguinea_estimada"),
+        ("Hemorragia posparto", "hemorragia_postparto"),
+        ("Finalizado", "parto_finalizado"),
+        ("Médico responsable", "medico_responsable.nombre_completo"),
+    ]
 
     def get_queryset(self):
         """Optimiza queries con select_related y prefetch_related"""
