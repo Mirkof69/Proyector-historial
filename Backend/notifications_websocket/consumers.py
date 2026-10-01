@@ -11,6 +11,8 @@ import logging
 from typing import Any
 
 from channels.db import database_sync_to_async
+
+from .tenencia import en_esquema
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
@@ -375,6 +377,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
+    @en_esquema
     def _db_mark_as_read(self, notification_id: int) -> bool:
         """Mark a notification as read in the database."""
         assert self.user is not None
@@ -400,6 +403,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
+    @en_esquema
     def _db_mark_all_read(self) -> int:
         """Mark all notifications as read for the user."""
         assert self.user is not None
@@ -414,6 +418,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             return 0
 
     @database_sync_to_async
+    @en_esquema
     def _db_archive(self, notification_id: int) -> bool:
         """Archive a notification."""
         assert self.user is not None
@@ -435,6 +440,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
+    @en_esquema
     def _db_get_pending(self) -> list:
         """Get unread notifications for the user."""
         assert self.user is not None
@@ -589,6 +595,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
+    @en_esquema
     def _get_user_role_group(self) -> str:
         """Determine the dashboard group based on user role.
 

@@ -14,6 +14,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
+from .tenencia import esquema_de_host, hay_tenants
+
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
@@ -113,6 +115,7 @@ class JWTAuthMiddleware:
             scope["user"] = await get_user_from_token(token)
         else:
             scope["user"] = AnonymousUser()
+        scope["schema_name"] = await database_sync_to_async(esquema_de_host)(scope)
 
         return await self.app(scope, receive, send)
 
@@ -151,4 +154,10 @@ class JWTAuthMiddlewareStrict(JWTAuthMiddleware):
             return None
 
         scope["user"] = user
+        # La clínica del host, igual que en HTTP (notifications_websocket/tenencia.py).
+        scope["schema_name"] = await database_sync_to_async(esquema_de_host)(scope)
+        if scope["schema_name"] is None and hay_tenants():
+            logger.warning("WebSocket connection rejected: unknown tenant host")
+            await send({"type": "websocket.close", "code": 4004})
+            return None
         return await self.app(scope, receive, send)
