@@ -33,7 +33,6 @@ import {
   SearchOutlined,
   MedicineBoxOutlined,
   WarningOutlined,
-  ReloadOutlined,
   CheckCircleOutlined,
   FilterOutlined,
   ExportOutlined,
@@ -42,13 +41,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { controlesService, ControlPrenatal } from '../../services/controlesService';
-import { Embarazo } from '../../services/embarazosService';
-import { Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import dayjs from 'dayjs';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
-import { exportarExcel } from '../../utils/excelExport';
+import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import {
   filtrosReducer, uiReducer, initialUIState,
 } from './controlesReducers';
@@ -62,10 +58,7 @@ import { buildControlesColumns } from './controlesColumns';
 import FiltrosDrawer from './components/FiltrosDrawer';
 import VistaRapidaModal from './components/VistaRapidaModal';
 import AlertasPanelDrawer from './components/AlertasPanelDrawer';
-import { incluyeTexto } from '../../utils/texto';
 
-dayjs.extend(isSameOrBefore);
-dayjs.extend(isSameOrAfter);
 
 const { Title, Text } = Typography;
 
@@ -74,94 +67,49 @@ const Controles: React.FC = () => {
   const { message, modal, notification } = useAntdApp();
   const { canAdd, canChange, canDelete } = usePermissions();
 
-  const [controles, setControles] = useState<ControlPrenatal[]>([]);
-  const [embarazos, setEmbarazos] = useState<Embarazo[]>([]);
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [loading, setLoading] = useState(false);
   const [ui, dispatchUI] = useReducer(uiReducer, initialUIState);
   const {
     modalVisible, editingControl, searchText, alertasPreview,
-    selectedEmbarazo, pageSize, lastLoaded, filtrosDrawerVisible,
+    selectedEmbarazo, lastLoaded, filtrosDrawerVisible,
     formHasChanges, autoSaveEnabled, showAlertasPanel, controlVistaRapida
   } = ui;
   const [form] = Form.useForm();
 
   const [filtrosAvanzados, dispatchFiltros] = useReducer(filtrosReducer, {});
 
-  // ========== FUNCIÓN DE CARGA DE DATOS - OPTIMIZADA CON CARGA PARALELA ==========
-  const loadData = useCallback(async () => {
-    setLoading(true);
-
+  // Búsqueda, filtros y cifras los resuelve el SERVIDOR. Antes se bajaban
+  // TODOS los controles, embarazos y pacientes (una petición por cada 200 de
+  // cada uno) y se filtraba en el navegador; «Mostrar TODOS» pedía 10.000 filas.
+  const filtrosServidor = useMemo(() => {
+    const t = filtrosAvanzados.trimestre;
+    return {
+      fecha_control__gte: filtrosAvanzados.fechaDesde?.format('YYYY-MM-DD'),
+      fecha_control__lte: filtrosAvanzados.fechaHasta?.format('YYYY-MM-DD'),
+      alerta_critica: filtrosAvanzados.conAlertas === undefined || filtrosAvanzados.conAlertas === null
+        ? undefined : String(filtrosAvanzados.conAlertas),
+      // Mismos cortes que el filtro: 1.º hasta la 13, 2.º 14-27, 3.º desde 28.
+      semanas_min: t === 2 ? 14 : t === 3 ? 28 : undefined,
+      semanas_max: t === 1 ? 13 : t === 2 ? 27 : undefined,
+    };
+  }, [filtrosAvanzados]);
+  const listado = useListadoServidor<ControlPrenatal>('/controles/', {
+    filtros: filtrosServidor, busqueda: searchText, ordenInicial: '-fecha_control',
+  });
+  const { parametros, recargar } = listado;
+  const loading = listado.cargando;
+  const [resumen, setResumen] = useState<{ total: number; con_alertas: number; alertas_recientes: ControlPrenatal[] }>(
+    { total: 0, con_alertas: 0, alertas_recientes: [] });
+  const cargarResumen = useCallback(async () => {
     try {
-
-      // 🚀 PASO 1: Obtener primera página de cada endpoint para saber cuántas páginas hay
-      const [controlesPage1, embarazosPage1, pacientesPage1] = await Promise.all([
-        api.get('/controles/?page=1&limit=200'),
-        api.get('/embarazos/?page=1&limit=200'),
-        api.get('/pacientes/?page=1&limit=200')
-      ]);
-
-      // Calcular total de páginas
-      const controlesTotales = controlesPage1.data.count || 0;
-      const embarazosTotales = embarazosPage1.data.count || 0;
-      const pacientesTotales = pacientesPage1.data.count || 0;
-
-      const controlesPages = Math.ceil(controlesTotales / 200);
-      const embarazosPages = Math.ceil(embarazosTotales / 200);
-      const pacientesPages = Math.ceil(pacientesTotales / 200);
-
-
-      // 🚀 PASO 2: Crear arrays de promesas para TODAS las páginas (en paralelo)
-      const controlesPromises = Array.from({ length: controlesPages }, (_, i) =>
-        api.get(`/controles/?page=${i + 1}&limit=200`)
-      );
-
-      const embarazosPromises = Array.from({ length: embarazosPages }, (_, i) =>
-        api.get(`/embarazos/?page=${i + 1}&limit=200`)
-      );
-
-      const pacientesPromises = Array.from({ length: pacientesPages }, (_, i) =>
-        api.get(`/pacientes/?page=${i + 1}&limit=200`)
-      );
-
-      // 🚀 PASO 3: Ejecutar TODAS las requests en PARALELO
-      const [controlesResponses, embarazosResponses, pacientesResponses] = await Promise.all([
-        Promise.all(controlesPromises),
-        Promise.all(embarazosPromises),
-        Promise.all(pacientesPromises)
-      ]);
-
-      // 🚀 PASO 4: Combinar todos los resultados y agregar rowKey único
-      const allControles: any[] = [];
-      for (const res of controlesResponses) {
-        for (const control of res.data.results || []) {
-          allControles.push({
-            ...control,
-            _uniqueRowKey: `ctrl-${control.id || allControles.length}-${Date.now()}`
-          });
-        }
-      }
-      const allEmbarazos = embarazosResponses.flatMap((res: any) => res.data.results || []);
-      const allPacientes = pacientesResponses.flatMap((res: any) => res.data.results || []);
-
-      setControles(allControles);
-      setEmbarazos(allEmbarazos.filter((e: Embarazo) => e.estado === 'activo'));
-      setPacientes(allPacientes);
+      const r = await api.get('/controles/resumen/', { params: parametros() });
+      setResumen(r.data);
       dispatchUI({ type: 'SET_LAST_LOADED', payload: dayjs().format('DD/MM/YYYY HH:mm:ss') });
-    } catch (error: any) {
-      message.error('Error al cargar datos. Verifique su conexión e intente nuevamente.');
-      setControles([]);
-      setEmbarazos([]);
-      setPacientes([]);
-    } finally {
-      setLoading(false);
+    } catch {
+      setResumen({ total: 0, con_alertas: 0, alertas_recientes: [] });
     }
-  }, [message]);
-
-  // ========== CARGAR DATOS INICIAL ==========
-  useEffect(() => {
-    loadData();
-  }, [message, loadData]); // Fix: Added missing dependency message
+  }, [parametros]);
+  useEffect(() => { cargarResumen(); }, [cargarResumen]);
+  const loadData = useCallback(() => { recargar(); cargarResumen(); }, [recargar, cargarResumen]);
 
   // ========== AUTO-GUARDAR SI ESTÁ HABILITADO ==========
   useEffect(() => {
@@ -192,82 +140,18 @@ const Controles: React.FC = () => {
     []
   );
 
-  /**
-   * ✅ FIX: Obtiene el ID Clínico del paciente desde el backend
-   */
+  // El serializer trae `id_clinico`, `paciente_nombre` y `embarazo_info`.
   const getIdClinicoPaciente = useCallback(
-    (control: ControlPrenatal): string => {
-      // ✅ PRIORIDAD 1: Usar id_clinico directo del control (viene del serializer)
-      if ((control as any).id_clinico) {
-        return (control as any).id_clinico;
-      }
-
-      // ✅ PRIORIDAD 2: Buscar en embarazo_info
-      if ((control as any).embarazo_info?.id_clinico) {
-        return (control as any).embarazo_info.id_clinico;
-      }
-
-      // ✅ FALLBACK: Buscar en arrays locales
-      const embarazoId = (control as any).embarazo_id || (control as any).embarazo;
-      const embarazo = embarazos.find((e) => e.id === embarazoId);
-      if (embarazo) {
-        if (typeof embarazo.paciente === 'object' && embarazo.paciente !== null) {
-          const paciente = embarazo.paciente as Paciente;
-          return paciente.id_clinico || '-';
-        }
-        if (typeof embarazo.paciente === 'number') {
-          const paciente = pacientes.find((p) => p.id === embarazo.paciente);
-          return paciente?.id_clinico || '-';
-        }
-      }
-
-      return '-';
-    },
-    [embarazos, pacientes]
+    (control: ControlPrenatal): string =>
+      (control as any).id_clinico || (control as any).embarazo_info?.id_clinico || '-',
+    [],
   );
-
-  /**
-   * ✅ FIX: Obtiene el nombre completo del paciente desde el backend
-   */
   const getNombrePaciente = useCallback(
-    (control: ControlPrenatal): string => {
-      // ✅ PRIORIDAD 1: Usar paciente_nombre del control (viene del serializer)
-      if ((control as any).paciente_nombre) {
-        return (control as any).paciente_nombre;
-      }
-
-      // ✅ PRIORIDAD 2: Usar embarazo_info.paciente_nombre
-      if ((control as any).embarazo_info?.paciente_nombre) {
-        return (control as any).embarazo_info.paciente_nombre;
-      }
-
-      // ✅ FALLBACK: Buscar en arrays locales
-      const embarazoId = (control as any).embarazo_id || (control as any).embarazo;
-      const embarazo = embarazos.find((e) => e.id === embarazoId);
-      if (!embarazo) {
-        return 'Embarazo no encontrado';
-      }
-
-      if ((embarazo as any).paciente_nombre) {
-        return (embarazo as any).paciente_nombre;
-      }
-
-      if (typeof embarazo.paciente === 'object' && embarazo.paciente !== null) {
-        const paciente = embarazo.paciente as Paciente;
-        const nombre = paciente.nombre || 'Desconocido';
-        const apellido = paciente.apellido_paterno || '';
-        const apellidoMat = paciente.apellido_materno || '';
-        return `${nombre} ${apellido} ${apellidoMat}`.trim();
-      }
-
-      return 'Desconocido';
-    },
-    [embarazos]
+    (control: ControlPrenatal): string =>
+      (control as any).paciente_nombre || (control as any).embarazo_info?.paciente_nombre || 'Paciente no disponible',
+    [],
   );
 
-  /**
-   * ✅ FIX: Obtiene la edad gestacional formateada
-   */
   const getEdadGestacional = useCallback((control: ControlPrenatal): string => {
     // ✅ PRIORIDAD 1: Usar edad_gestacional del control (viene del serializer formateado)
     if ((control as any).edad_gestacional) {
@@ -298,36 +182,10 @@ const Controles: React.FC = () => {
   }, []);
 
   // ========== HANDLERS ==========
+  // Excel desde el SERVIDOR con todos los controles filtrados (y auditado).
   const handleExportExcel = () => {
-    try {
-      const columnas = {
-        'id': 'ID',
-        'paciente_nombre': 'Paciente',
-        'numero_control': 'Nº Control',
-        'fecha_control': 'Fecha',
-        'semanas_gestacion': 'Semanas',
-        'peso_materno': 'Peso (kg)',
-        'presion_sistolica': 'Sistólica',
-        'presion_diastolica': 'Diastólica',
-        'altura_uterina': 'AU (cm)',
-        'frecuencia_cardiaca_fetal': 'FCF',
-        'presentacion_fetal': 'Presentación',
-        'observaciones': 'Observaciones'
-      };
-
-      exportarExcel(
-        controles,
-        columnas,
-        {
-          filename: `controles_prenatales_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-          sheetName: 'Controles',
-          title: `Controles Prenatales - ${dayjs().format('DD/MM/YYYY')}`
-        }
-      );
-      message.success('Archivo Excel generado exitosamente');
-    } catch (error) {
-      message.error('Error al generar el archivo Excel');
-    }
+    descargarArchivo(`/controles/exportar-excel/${aQuery(parametros())}`, `controles_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`)
+      .catch(() => message.error('No se pudo generar el Excel de controles'));
   };
 
   const handleCreate = useCallback(() => {
@@ -398,16 +256,14 @@ const Controles: React.FC = () => {
       dispatchUI({ type: 'SET_CONTROL_VISTA_RAPIDA', payload: control });
       dispatchUI({ type: 'SET_MODAL_VISIBLE', payload: true });
 
-      const embarazoId = (control as any).embarazo_id || (control as any).embarazo;
-      const embarazo = embarazos.find((e) => e.id === embarazoId);
-      dispatchUI({ type: 'SET_SELECTED_EMBARAZO', payload: embarazo || null });
+      dispatchUI({ type: 'SET_SELECTED_EMBARAZO', payload: (control as any).embarazo_info || null });
 
       const alertas = detectarAlertas(control);
       dispatchUI({ type: 'SET_ALERTAS_PREVIEW', payload: alertas });
 
       message.info(`Mostrando vista rápida del control #${control.numero_control}`);
     },
-    [embarazos, detectarAlertas, message]
+    [detectarAlertas, message]
   );
 
   const handleCloseModal = useCallback(() => {
@@ -428,87 +284,6 @@ const Controles: React.FC = () => {
   const handleShowAlertasPanel = useCallback(() => {
     dispatchUI({ type: 'TOGGLE_ALERTAS_PANEL' });
   }, []);
-
-  // ========== APLICAR FILTROS AVANZADOS ==========
-  const aplicarFiltrosAvanzados = useCallback(
-    (controles: ControlPrenatal[]): ControlPrenatal[] => {
-      let resultado = [...controles];
-
-      if (filtrosAvanzados.fechaDesde) {
-        resultado = resultado.filter((c) =>
-          dayjs(c.fecha_control).isSameOrAfter(filtrosAvanzados.fechaDesde, 'day')
-        );
-      }
-      if (filtrosAvanzados.fechaHasta) {
-        resultado = resultado.filter((c) =>
-          dayjs(c.fecha_control).isSameOrBefore(filtrosAvanzados.fechaHasta, 'day')
-        );
-      }
-
-      if (filtrosAvanzados.conAlertas !== undefined) {
-        resultado = resultado.filter((c) => c.tiene_alertas === filtrosAvanzados.conAlertas);
-      }
-
-      if (filtrosAvanzados.trimestre) {
-        resultado = resultado.filter((c) => {
-          const semanas = c.edad_gestacional_semanas || 0;
-          if (filtrosAvanzados.trimestre === 1) return semanas < 13;
-          if (filtrosAvanzados.trimestre === 2) return semanas >= 13 && semanas < 28;
-          if (filtrosAvanzados.trimestre === 3) return semanas >= 28;
-          return true;
-        });
-      }
-
-      if (filtrosAvanzados.rangoPA) {
-        resultado = resultado.filter((c) => {
-          if (!c.presion_arterial_sistolica || !c.presion_arterial_diastolica) return false;
-          const isHipertension =
-            c.presion_arterial_sistolica >= 140 || c.presion_arterial_diastolica >= 90;
-          const isPrehipertension =
-            c.presion_arterial_sistolica >= 120 || c.presion_arterial_diastolica >= 80;
-
-          if (filtrosAvanzados.rangoPA === 'hipertension') return isHipertension;
-          if (filtrosAvanzados.rangoPA === 'prehipertension')
-            return isPrehipertension && !isHipertension;
-          if (filtrosAvanzados.rangoPA === 'normal') return !isPrehipertension;
-          return true;
-        });
-      }
-
-      if (filtrosAvanzados.rangoFCF) {
-        resultado = resultado.filter((c) => {
-          if (!c.frecuencia_cardiaca_fetal) return false;
-          const isAnormal = c.frecuencia_cardiaca_fetal < 110 || c.frecuencia_cardiaca_fetal > 160;
-
-          if (filtrosAvanzados.rangoFCF === 'normal') return !isAnormal;
-          if (filtrosAvanzados.rangoFCF === 'anormal') return isAnormal;
-          return true;
-        });
-      }
-
-      return resultado;
-    },
-    [filtrosAvanzados]
-  );
-
-  // ========== FILTRADO DE DATOS ==========
-  const filteredData = useMemo(() => {
-    let data = controles;
-
-    // Filtro de texto (búsqueda rápida)
-    if (searchText) {
-      data = data.filter((item) => (
-        incluyeTexto(getNombrePaciente(item), searchText) ||
-        incluyeTexto(getIdClinicoPaciente(item), searchText) ||
-        incluyeTexto(item.numero_control.toString(), searchText)
-      ));
-    }
-
-    // Filtros avanzados
-    data = aplicarFiltrosAvanzados(data);
-
-    return data;
-  }, [controles, searchText, getNombrePaciente, getIdClinicoPaciente, aplicarFiltrosAvanzados]);
 
   // ========== COLUMNAS DE LA TABLA ==========
   // ✅ FIX: Memoizado para evitar recreación en cada render (evita loop infinito)
@@ -554,8 +329,9 @@ const Controles: React.FC = () => {
             </Title>
             <Text type="secondary">Gestión y seguimiento de controles</Text>
             <Tag color="blue">
-              Total: {controles.length}
+              Total: {resumen.total.toLocaleString('es-BO')}
             </Tag>
+            {resumen.con_alertas > 0 && <Tag color="red">Con alertas: {resumen.con_alertas.toLocaleString('es-BO')}</Tag>}
             {lastLoaded && (
               <Tag color="geekblue">Última carga: {lastLoaded}</Tag>
             )}
@@ -588,7 +364,7 @@ const Controles: React.FC = () => {
                 <Button
                   icon={<ExportOutlined />}
                   onClick={handleExportExcel}
-                  disabled={controles.length === 0}
+                  disabled={resumen.total === 0}
                 >
                   Exportar Excel
                 </Button>
@@ -603,57 +379,27 @@ const Controles: React.FC = () => {
                 )}
               </Space>
         </div>
-        {/* Aviso si la lista es muy larga */}
-        {controles.length > 500 && (
-          <Alert
-            type="info"
-            showIcon
-            style={{ marginBottom: 12 }}
-            message={`La lista contiene ${controles.length} controles. Usa los filtros para acotar la búsqueda.`}
-          />
-        )}
-        {/* Botón para extender pageSize */}
         <Row style={{ marginBottom: 8 }}>
           <Col span={24}>
-            <Space>
-              <Input
-                placeholder="Buscar por paciente, ID clínico..."
-                prefix={<SearchOutlined />}
-                value={searchText}
-                onChange={(e) => dispatchUI({ type: 'SET_SEARCH_TEXT', payload: e.target.value })}
-                allowClear
-              />
-              <Button
-                icon={<ExportOutlined />}
-                onClick={() => dispatchUI({ type: 'SET_PAGE_SIZE', payload: 10000 })}
-                disabled={pageSize === 10000}
-                type={pageSize === 10000 ? 'primary' : 'default'}
-              >
-                Mostrar TODOS
-              </Button>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => dispatchUI({ type: 'SET_PAGE_SIZE', payload: 50 })}
-                disabled={pageSize === 50}
-              >
-                Paginación (50)
-              </Button>
-            </Space>
+            <Input
+              placeholder="Buscar por paciente (nombre o CI), ID clínico..."
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => dispatchUI({ type: 'SET_SEARCH_TEXT', payload: e.target.value })}
+              allowClear
+              style={{ maxWidth: 420 }}
+            />
           </Col>
         </Row>
+        {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
         <Table
           columns={columns}
-          dataSource={filteredData}
+          dataSource={listado.datos}
           locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay controles prenatales registrados" /> }}
-          rowKey={(record: any) => record._uniqueRowKey || `fallback-${record.id}`}
+          rowKey="id"
           loading={loading}
-          pagination={{
-            pageSize: pageSize,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} controles`,
-            pageSizeOptions: ['10', '20', '50', '100', '500', '1000', '10000'],
-            onShowSizeChange: (_, size) => dispatchUI({ type: 'SET_PAGE_SIZE', payload: size }),
-          }}
+          pagination={listado.paginacion}
+          onChange={listado.onChange}
           scroll={{ x: 1000 }}
         />
       </Card>
@@ -690,7 +436,9 @@ const Controles: React.FC = () => {
       <AlertasPanelDrawer
         showAlertasPanel={showAlertasPanel}
         onClose={handleShowAlertasPanel}
-        controles={controles}
+        total={resumen.total}
+        totalConAlertas={resumen.con_alertas}
+        controlesConAlertas={resumen.alertas_recientes}
         detectarAlertas={detectarAlertas}
         getNombrePaciente={getNombrePaciente}
         handleQuickView={handleQuickView}

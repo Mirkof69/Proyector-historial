@@ -22,10 +22,5 @@ export const filtrosEcografiaReducer = (state: FiltrosEcografiaState, action: Fi
   }
 };
 
-export const calcularEstadisticas = (ecografias: any[]) => ({
-  total: ecografias.length,
-  primerTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) < 14).length,
-  segundoTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) >= 14 && (e.edad_gestacional_semanas || 0) < 28).length,
-  tercerTrimestre: ecografias.filter((e: any) => (e.edad_gestacional_semanas || 0) >= 28).length,
-  conAlertas: ecografias.filter((e: any) => e.alertas && e.alertas.length > 0).length,
-});
+// Las cifras por trimestre las calcula ahora el servidor
+// (GET /ecografias/resumen/) sobre TODAS las ecografías filtradas.

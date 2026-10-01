@@ -55,7 +55,6 @@ export interface UIState {
   searchText: string;
   alertasPreview: string[];
   selectedEmbarazo: Embarazo | null;
-  pageSize: number;
   lastLoaded: string | null;
   filtrosDrawerVisible: boolean;
   formHasChanges: boolean;
@@ -70,7 +69,6 @@ export type UIAction =
   | { type: 'SET_SEARCH_TEXT'; payload: string }
   | { type: 'SET_ALERTAS_PREVIEW'; payload: string[] }
   | { type: 'SET_SELECTED_EMBARAZO'; payload: Embarazo | null }
-  | { type: 'SET_PAGE_SIZE'; payload: number }
   | { type: 'SET_LAST_LOADED'; payload: string | null }
   | { type: 'SET_FILTROS_DRAWER_VISIBLE'; payload: boolean }
   | { type: 'SET_FORM_HAS_CHANGES'; payload: boolean }
@@ -85,7 +83,6 @@ export const initialUIState: UIState = {
   searchText: '',
   alertasPreview: [],
   selectedEmbarazo: null,
-  pageSize: 50,
   lastLoaded: null,
   filtrosDrawerVisible: false,
   formHasChanges: false,
@@ -106,8 +103,6 @@ export function uiReducer(state: UIState, action: UIAction): UIState {
       return { ...state, alertasPreview: action.payload };
     case 'SET_SELECTED_EMBARAZO':
       return { ...state, selectedEmbarazo: action.payload };
-    case 'SET_PAGE_SIZE':
-      return { ...state, pageSize: action.payload };
     case 'SET_LAST_LOADED':
       return { ...state, lastLoaded: action.payload };
     case 'SET_FILTROS_DRAWER_VISIBLE':

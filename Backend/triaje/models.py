@@ -11,6 +11,19 @@ from decimal import Decimal
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+PRIORIDAD_CHOICES = [
+    ("urgente", "Urgente"),
+    ("alto", "Alto"),
+    ("normal", "Normal"),
+    ("bajo", "Bajo"),
+]
+
+ESTADO_CHOICES = [
+    ("pendiente", "Pendiente"),
+    ("completado", "Completado"),
+    ("cancelado", "Cancelado"),
+]
+
 
 class TriajeEnfermeria(models.Model):
     """Triaje de enfermería - Evaluación inicial del paciente
@@ -135,6 +148,31 @@ class TriajeEnfermeria(models.Model):
             ("inconsciente", "Inconsciente"),
         ],
         default="alerta",
+    )
+
+    # ============== PRIORIDAD Y ESTADO ==============
+    # El formulario de triaje PIDE la prioridad (campo obligatorio) y la
+    # pantalla de triaje filtra y cuenta por prioridad y por estado, pero el
+    # modelo no tenía ninguno de los dos: DRF descartaba la prioridad elegida
+    # por la enfermera sin avisar, las tarjetas «Pendientes / Completados /
+    # Urgentes» salían siempre en 0 y el botón «Completar» nunca aparecía.
+    prioridad = models.CharField(
+        max_length=10,
+        choices=PRIORIDAD_CHOICES,
+        # Nulo = triaje registrado antes de existir el campo: no se inventa
+        # una prioridad que la enfermera no llegó a guardar.
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Prioridad de atención asignada por enfermería",
+    )
+
+    estado = models.CharField(
+        max_length=12,
+        choices=ESTADO_CHOICES,
+        default="pendiente",
+        db_index=True,
+        help_text="pendiente = espera al médico; completado = ya atendida",
     )
 
     # ============== OBSERVACIONES ==============

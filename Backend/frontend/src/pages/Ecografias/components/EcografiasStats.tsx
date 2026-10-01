@@ -8,7 +8,6 @@ interface EcografiasStatsProps {
     primerTrimestre: number;
     segundoTrimestre: number;
     tercerTrimestre: number;
-    conAlertas: number;
   };
 }
 

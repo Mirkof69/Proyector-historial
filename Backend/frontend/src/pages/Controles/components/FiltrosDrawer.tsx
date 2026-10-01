@@ -38,47 +38,60 @@ const FiltrosDrawer: React.FC<FiltrosDrawerProps> = ({
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         <div>
           <Text strong>Rango de Fechas</Text>
-          <RangePicker
-            style={{ width: '100%', marginTop: 8 }}
-            onChange={(dates) => {
-              handleFormChange();
-              dispatchFiltros({ type: 'SET_FECHA_DESDE', payload: dates ? dates[0] || undefined : undefined });
-              dispatchFiltros({ type: 'SET_FECHA_HASTA', payload: dates ? dates[1] || undefined : undefined });
-            }}
-          />
+          {/* Dentro de Form.Item para que «Limpiar Filtros» (form.resetFields)
+              también borre lo que se ve; antes quedaba el valor viejo en
+              pantalla aunque el filtro ya no se aplicara. */}
+          <Form.Item name="rangoFechas" noStyle>
+            <RangePicker
+              style={{ width: '100%', marginTop: 8 }}
+              format="DD/MM/YYYY"
+              onChange={(dates) => {
+                handleFormChange();
+                dispatchFiltros({ type: 'SET_FECHA_DESDE', payload: dates ? dates[0] || undefined : undefined });
+                dispatchFiltros({ type: 'SET_FECHA_HASTA', payload: dates ? dates[1] || undefined : undefined });
+              }}
+            />
+          </Form.Item>
         </div>
 
         <div>
           <Text strong>Estado de Alerta</Text>
-          <Select
-            style={{ width: '100%', marginTop: 8 }}
-            placeholder="Todos"
-            allowClear
-            onChange={(val) => {
-              handleFormChange();
-              dispatchFiltros({ type: 'SET_CON_ALERTAS', payload: val });
-            }}
-          >
-            <Option value={true}>Con Alertas</Option>
-            <Option value={false}>Sin Alertas</Option>
-          </Select>
+          <Form.Item name="conAlertas" noStyle>
+            <Select
+              style={{ width: '100%', marginTop: 8 }}
+              placeholder="Todos"
+              allowClear
+              onChange={(val) => {
+                handleFormChange();
+                dispatchFiltros({ type: 'SET_CON_ALERTAS', payload: val });
+              }}
+            >
+              <Option value={true}>Con Alertas</Option>
+              <Option value={false}>Sin Alertas</Option>
+            </Select>
+          </Form.Item>
         </div>
 
         <div>
           <Text strong>Trimestre</Text>
-          <Select
-            style={{ width: '100%', marginTop: 8 }}
-            placeholder="Todos"
-            allowClear
-            onChange={(val) => {
-              handleFormChange();
-              dispatchFiltros({ type: 'SET_TRIMESTRE', payload: val });
-            }}
-          >
-            <Option value={1}>1° Trimestre (&lt;13 sem)</Option>
-            <Option value={2}>2° Trimestre (13-28 sem)</Option>
-            <Option value={3}>3° Trimestre (&gt;28 sem)</Option>
-          </Select>
+          {/* Mismos cortes que el servidor (`?trimestre=`): 1.º hasta la
+              semana 13, 2.º de 14 a 27, 3.º desde 28. Las etiquetas viejas
+              («<13», «13-28», «>28») no coincidían en las semanas 13 y 28. */}
+          <Form.Item name="trimestre" noStyle>
+            <Select
+              style={{ width: '100%', marginTop: 8 }}
+              placeholder="Todos"
+              allowClear
+              onChange={(val) => {
+                handleFormChange();
+                dispatchFiltros({ type: 'SET_TRIMESTRE', payload: val ?? null });
+              }}
+            >
+              <Option value={1}>1° Trimestre (hasta 13 sem)</Option>
+              <Option value={2}>2° Trimestre (14-27 sem)</Option>
+              <Option value={3}>3° Trimestre (28 sem o más)</Option>
+            </Select>
+          </Form.Item>
         </div>
 
         <Button
