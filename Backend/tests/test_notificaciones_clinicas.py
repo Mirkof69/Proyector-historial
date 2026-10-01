@@ -230,3 +230,38 @@ class FechaLocalNoUtcTest(TestCase):
                             estado="agendada", tipo_cita="control", motivo="Control")
         with patch("notificaciones.tasks.timezone.now", return_value=ahora.astimezone(dt.timezone.utc)):
             self.assertEqual(enviar_recordatorios_citas()["enviadas"], 1)
+
+
+class MesLocalNoUtcTest(TestCase):
+    """El 30 de septiembre a las 21:00 de La Paz ya es 1 de octubre en UTC.
+    `timezone.now().month` hacía que el panel contara «controles del mes» de
+    OCTUBRE: salía 0 cada último día del mes desde las 20:00."""
+
+    def test_controles_del_mes_a_las_21_del_ultimo_dia(self):
+        import datetime as dt
+        from unittest.mock import patch
+
+        from django.utils import timezone
+        from rest_framework.test import APIClient
+
+        from controles.models import ControlPrenatal
+        from embarazos.models import Embarazo
+        from pacientes.models import Paciente
+        from usuarios.models import Usuario
+
+        medico = Usuario.objects.create_user(email="mes.utc@test.bo", nombre="Mes", apellido_paterno="Local",
+                                             password="clave-segura-123", rol="medico")
+        p = Paciente.objects.create(nombre="Fin", apellido_paterno="Mes", apellido_materno="X",
+                                    fecha_nacimiento=dt.date(1991, 1, 1), genero="femenino", ci="7877701")
+        e = Embarazo.objects.create(paciente=p, fecha_ultima_menstruacion=dt.date(2026, 5, 1),
+                                    numero_gesta=1, numero_para=0, numero_abortos=0)
+        ControlPrenatal.objects.bulk_create([ControlPrenatal(
+            embarazo=e, paciente=p, medico=medico, numero_control=1, fecha_control=dt.date(2026, 9, 30),
+            semanas_gestacion=21, dias_gestacion=6, peso_actual=60, talla=158,
+            presion_arterial_sistolica=110, presion_arterial_diastolica=70)])
+        ahora_utc = timezone.make_aware(dt.datetime(2026, 9, 30, 21, 0)).astimezone(dt.timezone.utc)
+        c = APIClient()
+        c.force_authenticate(medico)
+        with patch("django.utils.timezone.now", return_value=ahora_utc):
+            datos = c.get("/api/reportes/dashboard/").json()
+        self.assertEqual(datos.get("controles_mes", datos.get("data", {}).get("controles_mes")), 1)

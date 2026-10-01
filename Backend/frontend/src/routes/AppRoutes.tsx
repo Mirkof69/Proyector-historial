@@ -21,10 +21,10 @@ import {
   Laboratorio, DetalleLaboratorio, FormularioLaboratorio, TiposExamen, ResultadosLaboratorio,
   ValoresReferencia, Citas, FormularioCita, DetalleCita, CalendarioCitas, IAAsistenteMedico,
   IaMedica, Partos, DetalleParto, FormularioParto, Partograma, ApgarScore, ComplicacionesParto,
-  RecienNacidos, Reportes, GenerarReporte, DetalleReporte, KPIs, Indicadores, AuditoriaReportes,
+  RecienNacidos, DetalleReporte, CentroReportes,
   Calculadoras, CalculadorasAvanzadas, IndiceCalculadoras, ScoreBishop, IMCGananciaPonderal,
   RiesgoPreeclampsia, CrecimientoFetal, RiesgoCromosomico, DosisMedicamentos, HemorragiaObstetrica,
-  SufrimientoFetal, Usuarios, Roles, FormularioRol, DetalleRol, Auditoria, AccessLogs, Statistics,
+  SufrimientoFetal, Usuarios, Roles, FormularioRol, DetalleRol, Auditoria, AccessLogs,
   Perfil, Configuracion, Ayuda, Antecedentes,
   AntecedentesGinecoObstetricos, AntecedentesPatologicos, FormularioAntecedenteGineco,
   FormularioAntecedentePatologico, Consultorios, FormularioConsultorio, DetalleConsultorio,
@@ -107,7 +107,7 @@ const AppRoutes: React.FC = () => {
           <Route path="pacientes/:id/historia" element={<ProtectedRoute requiredPermission="view_paciente"><HistoriaClinica /></ProtectedRoute>} />
 
           {/* ESTADÍSTICAS */}
-          <Route path="estadisticas" element={<Statistics />} />
+          <Route path="estadisticas" element={<Navigate to="/dashboard/reportes?pestana=estadisticas" replace />} />
 
           {/* LOGS DE ACCESO (SOLO ADMIN O CON PERMISO) */}
           <Route path="access-logs" element={<AccessLogs />} />
@@ -169,12 +169,13 @@ const AppRoutes: React.FC = () => {
           <Route path="partos/:id/editar" element={<ProtectedRoute requiredPermission="change_parto"><FormularioParto /></ProtectedRoute>} />
 
           {/* MÓDULO: REPORTES Y ESTADÍSTICAS */}
-          <Route path="reportes" element={<ProtectedRoute requiredPermission="view_reportegenerado"><Reportes /></ProtectedRoute>} />
-          <Route path="reportes/generar" element={<ProtectedRoute requiredPermission="add_reportegenerado"><GenerarReporte /></ProtectedRoute>} />
-          <Route path="reportes/pdf" element={<Navigate to="/dashboard/reportes/generar" replace />} />
-          <Route path="reportes/pdf-automatico" element={<Navigate to="/dashboard/reportes/generar" replace />} />
+          {/* Centro de reportes: una página con pestañas; las rutas viejas llevan a su pestaña */}
+          <Route path="reportes" element={<CentroReportes />} />
+          <Route path="reportes/generar" element={<Navigate to="/dashboard/reportes?pestana=generar" replace />} />
+          <Route path="reportes/pdf" element={<Navigate to="/dashboard/reportes?pestana=generar" replace />} />
+          <Route path="reportes/pdf-automatico" element={<Navigate to="/dashboard/reportes?pestana=generar" replace />} />
+          <Route path="reportes/historial" element={<Navigate to="/dashboard/reportes?pestana=tiempo-real" replace />} />
           <Route path="reportes/:id" element={<ProtectedRoute requiredPermission="view_reportegenerado"><DetalleReporte /></ProtectedRoute>} />
-          <Route path="reportes/historial" element={<ProtectedRoute requiredPermission="view_reportegenerado"><Reportes /></ProtectedRoute>} />
 
           {/* MÓDULO: IA MEDICA Y CNN */}
           <Route path="ia-medica/imagenes" element={<ProtectedRoute requiredPermission="view_imagenecografica"><IaMedica /></ProtectedRoute>} />
@@ -263,9 +264,9 @@ const AppRoutes: React.FC = () => {
           <Route path="ecografias/:id/archivos" element={<ProtectedRoute requiredPermission="view_ecografiaarchivo"><ArchivosEcografia /></ProtectedRoute>} />
 
           {/* MÓDULO: REPORTES EXTENDIDO */}
-          <Route path="reportes/kpis" element={<ProtectedRoute requiredPermission="view_dashboardkpi"><KPIs /></ProtectedRoute>} />
-          <Route path="reportes/indicadores" element={<ProtectedRoute requiredPermission="view_dashboardkpi"><Indicadores /></ProtectedRoute>} />
-          <Route path="reportes/auditoria" element={<ProtectedRoute requiredPermission="view_auditoriareporte"><AuditoriaReportes /></ProtectedRoute>} />
+          <Route path="reportes/kpis" element={<Navigate to="/dashboard/reportes?pestana=kpis" replace />} />
+          <Route path="reportes/indicadores" element={<Navigate to="/dashboard/reportes?pestana=indicadores" replace />} />
+          <Route path="reportes/auditoria" element={<Navigate to="/dashboard/reportes?pestana=auditoria" replace />} />
 
           {/* MÓDULO: ROLES Y PERMISOS */}
           <Route path="roles" element={<ProtectedRoute requireAdmin={true}><Roles /></ProtectedRoute>} />

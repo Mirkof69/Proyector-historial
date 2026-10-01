@@ -449,7 +449,7 @@ class Parto(models.Model):
         # Generar número de parto automáticamente con transacción atómica
         if not self.numero_parto:
             with transaction.atomic():
-                year = timezone.now().year
+                year = timezone.localtime().year
                 # Usar select_for_update() para evitar race conditions
                 last_parto = (
                     Parto.objects.select_for_update()

@@ -206,7 +206,7 @@ def generar_numero_parto_manual(year=None):
 
     """
     if year is None:
-        year = timezone.now().year
+        year = timezone.localtime().year
 
     # Obtener el último número del año
     last_parto = (

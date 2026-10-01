@@ -57,6 +57,7 @@ export const DetalleReporte = lazy(() => import('../pages/Reportes/DetalleReport
 export const KPIs = lazy(() => import('../pages/Reportes/KPIs'));
 export const Indicadores = lazy(() => import('../pages/Reportes/Indicadores'));
 export const AuditoriaReportes = lazy(() => import('../pages/Reportes/AuditoriaReportes'));
+export const CentroReportes = lazy(() => import('../pages/Reportes/CentroReportes'));
 export const Calculadoras = lazy(() => import('../pages/Calculadoras/Calculadoras'));
 export const CalculadorasAvanzadas = lazy(() => import('../pages/CalculadorasAvanzadas/CalculadorasAvanzadas'));
 export const IndiceCalculadoras = lazy(() => import('../pages/CalculadorasAvanzadas/IndiceCalculadoras'));

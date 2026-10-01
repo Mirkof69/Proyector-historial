@@ -60,8 +60,8 @@ class ReportService:
 
         # Partos del mes
         partos_mes = Parto.objects.filter(
-            fecha_parto__year=timezone.now().year,
-            fecha_parto__month=timezone.now().month,
+            fecha_parto__year=timezone.localtime().year,
+            fecha_parto__month=timezone.localtime().month,
         ).count()
 
         # Controles realizados
@@ -221,7 +221,7 @@ class ReportService:
         if start_date and end_date:
             controles_filter["fecha_control__range"] = (start_date, end_date)
         else:
-            now = timezone.now()
+            now = timezone.localtime()
             controles_filter["fecha_control__month"] = now.month
             controles_filter["fecha_control__year"] = now.year
 
@@ -237,7 +237,7 @@ class ReportService:
         if start_date and end_date:
             partos_filter["fecha_parto__range"] = (start_date, end_date)
         else:
-            now = timezone.now()
+            now = timezone.localtime()
             partos_filter["fecha_parto__month"] = now.month
             partos_filter["fecha_parto__year"] = now.year
         partos_mes = Parto.objects.filter(**partos_filter).count()

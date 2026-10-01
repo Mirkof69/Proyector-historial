@@ -4,7 +4,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import {
   DashboardOutlined, UserOutlined, HeartOutlined, MedicineBoxOutlined, CalculatorOutlined,
   TeamOutlined, SettingOutlined, HistoryOutlined, ExperimentOutlined, CalendarOutlined,
-  BarChartOutlined, LineChartOutlined, SoundOutlined, ApartmentOutlined, QuestionCircleOutlined,
+  BarChartOutlined, SoundOutlined, ApartmentOutlined, QuestionCircleOutlined,
   SafetyCertificateOutlined, FileProtectOutlined, MedicineBoxTwoTone, AlertOutlined, EditOutlined,
   SafetyOutlined, FileTextOutlined, RobotOutlined,
 } from '@ant-design/icons';
@@ -108,27 +108,22 @@ export const buildMainMenuItems = (user: any, navigate: NavigateFunction): MenuP
       },
       { key: '/dashboard/citas', icon: <CalendarOutlined />, label: 'Agenda de Citas' },
       {
-        // Centro de reportes: antes solo «Reportes» y «Estadísticas» estaban en
-        // el menú; KPIs, Indicadores, Generar y Auditoría solo por URL.
-        key: 'sub-reportes',
+        // Centro de reportes: UNA página con pestañas (tiempo real, estadísticas
+        // por fecha, KPIs, indicadores, PDF y auditoría); cada pestaña se
+        // muestra según el permiso del rol (ver pages/Reportes/CentroReportes).
+        key: '/dashboard/reportes',
         icon: <BarChartOutlined />,
         label: 'Centro de reportes',
-        children: [
-          { key: '/dashboard/reportes', label: 'Panel en tiempo real' },
-          { key: '/dashboard/estadisticas', icon: <LineChartOutlined />, label: 'Estadísticas por fecha' },
-          { key: '/dashboard/reportes/kpis', label: 'KPIs' },
-          { key: '/dashboard/reportes/indicadores', label: 'Indicadores y metas' },
-          { key: '/dashboard/reportes/generar', label: 'Generar reporte PDF' },
-          { key: '/dashboard/reportes/auditoria', label: 'Reportes de auditoría' },
-        ].filter(item => checkPermission(user, item.key)),
       },
       { key: '/dashboard/alertas', icon: <AlertOutlined />, label: 'Alertas Médicas' },
     ].filter(item => {
       if (item.key === 'sub-calculadoras') {
         return checkPermission(user, '/dashboard/calculadoras');
       }
-      if (item.key === 'sub-reportes') {
-        return (item as { children?: unknown[] }).children?.length !== 0;
+      if (item.key === '/dashboard/reportes') {
+        // Se ve si el rol puede abrir AL MENOS una pestaña del centro.
+        return ['/dashboard/reportes', '/dashboard/estadisticas', '/dashboard/reportes/kpis',
+          '/dashboard/reportes/generar', '/dashboard/reportes/auditoria'].some((ruta) => checkPermission(user, ruta));
       }
       return checkPermission(user, item.key as string);
     }),

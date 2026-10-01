@@ -37,7 +37,7 @@ def dashboard_stats_view(_request):
     from partos.models import Parto
 
     try:
-        now = timezone.now()
+        now = timezone.localtime()  # mes y año LOCALES (now() es UTC: desde las 20:00 del último día ya era el mes siguiente)
         today = now.date()
 
         stats = {

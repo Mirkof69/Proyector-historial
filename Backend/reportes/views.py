@@ -727,8 +727,8 @@ def dashboard_stats_view(request):
 
     try:
         hoy = timezone.localdate()
-        mes_actual = timezone.now().month
-        anio_actual = timezone.now().year
+        mes_actual = timezone.localtime().month
+        anio_actual = timezone.localtime().year
 
         stats = {
             # Mismo criterio que reportes/stats_views.py: el total es el
