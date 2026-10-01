@@ -22,7 +22,7 @@ import {
   ValoresReferencia, Citas, FormularioCita, DetalleCita, CalendarioCitas, IAAsistenteMedico,
   IaMedica, Partos, DetalleParto, FormularioParto, Partograma, ApgarScore, ComplicacionesParto,
   RecienNacidos, DetalleReporte, CentroReportes,
-  Calculadoras, CalculadorasAvanzadas, IndiceCalculadoras, ScoreBishop, IMCGananciaPonderal,
+  Calculadoras, IndiceCalculadoras, ScoreBishop, IMCGananciaPonderal,
   RiesgoPreeclampsia, CrecimientoFetal, RiesgoCromosomico, DosisMedicamentos, HemorragiaObstetrica,
   SufrimientoFetal, Usuarios, Roles, FormularioRol, DetalleRol, Auditoria, AccessLogs,
   Perfil, Configuracion, Ayuda, Antecedentes,
@@ -150,8 +150,9 @@ const AppRoutes: React.FC = () => {
           {/* MÓDULO: CALCULADORAS */}
           <Route path="calculadoras" element={<ProtectedRoute requiredPermission="view_calculohistorial"><Calculadoras /></ProtectedRoute>} />
           <Route path="calculadoras/:tipo" element={<ProtectedRoute requiredPermission="view_calculohistorial"><Calculadoras /></ProtectedRoute>} />
-          <Route path="calculadoras-avanzadas" element={<ProtectedRoute requiredPermission="view_calculohistorial"><CalculadorasAvanzadas /></ProtectedRoute>} />
-          <Route path="calculadoras-avanzadas/:tipo" element={<ProtectedRoute requiredPermission="view_calculohistorial"><CalculadorasAvanzadas /></ProtectedRoute>} />
+          {/* «Avanzadas» repetía 7 de las rápidas (una con Hadlock mal escrito);
+              su única calculadora propia, diabetes gestacional, está en las rápidas */}
+          <Route path="calculadoras-avanzadas/*" element={<Navigate to="/dashboard/calculadoras" replace />} />
           <Route path="panel-calculadoras" element={<ProtectedRoute requiredPermission="view_calculohistorial"><IndiceCalculadoras /></ProtectedRoute>} />
 
           {/* MÓDULO: CITAS Y AGENDA */}

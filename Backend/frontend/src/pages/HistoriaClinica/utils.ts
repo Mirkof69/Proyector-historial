@@ -1,3 +1,4 @@
+import { hadlock3p } from '../../utils/pesoFetal';
 import dayjs from 'dayjs';
 import { 
   ProtocoloObstetrico, 
@@ -188,10 +189,10 @@ export const calcularRiesgoPreeclampsia = (
   return { nivel, score, recomendaciones };
 };
 
-export const calcularPesoFetalEstimado = (dbt: number, ca: number, lf: number): number => {
-  const logPeso = 1.335 - 0.0034 * ca * lf + 0.0316 * dbt + 0.0457 * ca + 0.1623 * lf;
-  return Math.exp(logPeso);
-};
+/** Hadlock 1985 (DBP, CA, LF en mm). Antes usaba `Math.exp` (e^x, no 10^x)
+ *  y medidas en mm en una fórmula en cm: el resultado no tenía sentido. */
+export const calcularPesoFetalEstimado = (dbt: number, ca: number, lf: number): number =>
+  hadlock3p(dbt, ca, lf) ?? 0;
 
 export const calcularPercentilFetal = (pesoEstimado: number, semanasEG: number): { percentil: number; clasificacion: string } => {
   const tablaPesos: { [key: number]: { p10: number; p50: number; p90: number } } = {

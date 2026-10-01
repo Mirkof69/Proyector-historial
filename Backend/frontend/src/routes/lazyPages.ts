@@ -59,7 +59,6 @@ export const Indicadores = lazy(() => import('../pages/Reportes/Indicadores'));
 export const AuditoriaReportes = lazy(() => import('../pages/Reportes/AuditoriaReportes'));
 export const CentroReportes = lazy(() => import('../pages/Reportes/CentroReportes'));
 export const Calculadoras = lazy(() => import('../pages/Calculadoras/Calculadoras'));
-export const CalculadorasAvanzadas = lazy(() => import('../pages/CalculadorasAvanzadas/CalculadorasAvanzadas'));
 export const IndiceCalculadoras = lazy(() => import('../pages/CalculadorasAvanzadas/IndiceCalculadoras'));
 export const ScoreBishop = lazy(() => import('../pages/CalculadorasAvanzadas/ScoreBishop'));
 export const IMCGananciaPonderal = lazy(() => import('../pages/CalculadorasAvanzadas/IMCGananciaPonderal'));

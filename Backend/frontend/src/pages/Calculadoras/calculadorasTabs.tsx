@@ -425,8 +425,10 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
                     suffix="g"
                     valueStyle={{ fontSize: 32, color: '#1890ff' }}
                   />
-                  <Tag color={resultadoPesoFetal.color}>{resultadoPesoFetal.percentil}</Tag>
-                  <Alert message="Nota" description="Estimado ±10-15% del peso real" type="warning" showIcon />
+                  <Tag>{resultadoPesoFetal.formula}</Tag>
+                  <Alert message="Estimación con un error de ±15 %"
+                    description="Para saber si es adecuado para la edad gestacional (percentil) use la calculadora «Crecimiento fetal»."
+                    type="info" showIcon />
                 </Space>
               ) : (
                 <Alert message="Complete los datos para ver los resultados" type="info" showIcon />

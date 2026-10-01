@@ -107,7 +107,7 @@ def hadlock_1985_4p(dbp_mm, cc_mm, ca_mm, lf_mm) -> int | None:
     Las cuatro medidas se reciben en **milímetros** y se convierten dentro.
 
         log10(peso) = 1,3596 - 0,00386·CA·LF + 0,0064·CC
-                      + 0,00061·DBP·CA + 0,0425·CA + 0,174·LF
+                      + 0,00061·DBP·CA + 0,0424·CA + 0,174·LF
 
     con todas las medidas en centímetros.
 
@@ -124,7 +124,7 @@ def hadlock_1985_4p(dbp_mm, cc_mm, ca_mm, lf_mm) -> int | None:
         - 0.00386 * ca * lf
         + 0.0064 * cc
         + 0.00061 * dbp * ca
-        + 0.0425 * ca
+        + 0.0424 * ca  # Hadlock et al., AJOG 1985;151:333 (0,0424; antes 0,0425 por error)
         + 0.174 * lf
     )
     return _validar_resultado(

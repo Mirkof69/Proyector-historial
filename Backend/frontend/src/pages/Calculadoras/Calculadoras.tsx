@@ -38,8 +38,10 @@ import {
 } from './calculadorasReducer';
 import { buildCalculadorasTabs } from './calculadorasTabs';
 import HistorialDrawer from './components/HistorialDrawer';
+import DiabetesGestacionalTab from './components/DiabetesGestacionalTab';
 import { clasificarIla } from '../../utils/liquidoAmniotico';
 import { evaluarRiesgoPreeclampsia } from '../../utils/riesgoPreeclampsia';
+import { pesoFetalEstimado } from '../../utils/pesoFetal';
 
 const CalculadorasPage: React.FC = () => {
   const [resultados, dispatchResultado] = useReducer(resultadosReducer, initialResultados);
@@ -304,43 +306,23 @@ const CalculadorasPage: React.FC = () => {
 
   // CALCULADORA 6: PESO FETAL ESTIMADO
   const calcularPesoFetal = async (values: any) => {
-    setLoading(true);
-    try {
-      const { dbp, cc, ca, lf } = values;
-
-      // Fórmula de Hadlock
-      const logPeso = 1.335 - 0.0034 * ca * lf + 0.0316 * dbp + 0.0457 * ca + 0.1623 * lf;
-      const peso = Math.pow(10, logPeso);
-
-      let percentil = '';
-      let color = '';
-
-      if (peso < 2500) {
-        percentil = 'Bajo peso';
-        color = 'orange';
-      } else if (peso <= 4000) {
-        percentil = 'Peso adecuado';
-        color = 'green';
-      } else {
-        percentil = 'Macrosomía';
-        color = 'red';
-      }
-
-      const resultado = {
-        peso: peso.toFixed(0),
-        percentil,
-        color,
-        medidas: { dbp, cc, ca, lf },
-      };
-
-      dispatchResultado({ type: 'SET_PESO_FETAL', payload: resultado });
-      guardarEnHistorial('Peso Fetal', values, resultado);
-      message.success('Peso fetal estimado calculado correctamente');
-    } catch (error) {
-      message.error('Error al calcular peso fetal');
-    } finally {
-      setLoading(false);
+    // Hadlock 1985 compartido con el backend (utils/pesoFetal). Antes se metían
+    // milímetros en la fórmula de centímetros y el resultado era ~0 g; y se
+    // clasificaba con los cortes del PESO AL NACER (2.500/4.000 g), que no
+    // sirven antes del parto: un feto sano de 30 semanas salía «bajo peso».
+    const { dbp, cc, ca, lf } = values;
+    const estimado = pesoFetalEstimado({ dbp, cc, ca, lf });
+    if (!estimado) {
+      message.error('Revise las medidas: deben estar en milímetros y corresponder a un feto.');
+      return;
     }
+    const resultado = {
+      peso: String(estimado.peso),
+      formula: estimado.formula,
+      medidas: { dbp, cc, ca, lf },
+    };
+    dispatchResultado({ type: 'SET_PESO_FETAL', payload: resultado });
+    guardarEnHistorial('Peso Fetal', values, resultado);
   };
 
   // CALCULADORA 7: SCORE DE APGAR
@@ -509,7 +491,12 @@ const CalculadorasPage: React.FC = () => {
           style={{ marginBottom: 24 }}
         />
 
-        <Tabs items={tabsItems} />
+        <Tabs items={[
+          ...tabsItems,
+          // La única calculadora original de la antigua página «Avanzadas» (las
+          // otras 7 pestañas repetían estas, una con Hadlock mal escrito).
+          { key: 'diabetes', label: 'Diabetes gestacional', children: <DiabetesGestacionalTab onGuardar={guardarEnHistorial} /> },
+        ]} />
       </Card>
 
       {/* Drawer de Historial */}

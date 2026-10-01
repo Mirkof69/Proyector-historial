@@ -1,3 +1,4 @@
+import { hadlock3p, hadlock4p, hadlockCaLf, hadlockCcCaLf } from '../../utils/pesoFetal';
 // ==========================================================================
 // TIPOS
 // ==========================================================================
@@ -83,33 +84,17 @@ export const formatRatioTooltip = (value: any) => value ? Number(value).toFixed(
 export const renderPercentilLabel = ({ name, value }: { name: string; value: number }) => `${name}: p${(value || 0).toFixed(0)}`;
 export const formatPercentilTooltip = (value: any) => value ? `p${Number(value).toFixed(1)}` : '';
 
-// Fórmulas de Hadlock para EFW
+// Fórmulas de Hadlock para EFW. Las medidas del formulario están en mm y las
+// fórmulas en cm: antes se usaban sin convertir y el peso salía ~0 g.
 export const calcularEFW = (valores: DatosBiometria): number => {
   const { bpd, hc, ac, fl, formula } = valores;
-  let efw = 0;
-
-  switch (formula) {
-    case 'hadlock1':
-      const log_efw1 = 1.3596 + 0.0064 * hc + 0.0424 * ac + 0.174 * fl + 0.00061 * bpd * ac - 0.00386 * ac * fl;
-      efw = Math.pow(10, log_efw1);
-      break;
-    case 'hadlock2':
-      const log_efw2 = 1.304 + 0.05281 * ac + 0.1938 * fl - 0.004 * ac * fl;
-      efw = Math.pow(10, log_efw2);
-      break;
-    case 'hadlock3':
-      const log_efw3 = 1.335 - 0.0034 * ac * fl + 0.0316 * bpd + 0.0457 * ac + 0.1623 * fl;
-      efw = Math.pow(10, log_efw3);
-      break;
-    case 'hadlock4':
-      const log_efw4 = 1.326 - 0.00326 * ac * fl + 0.0107 * hc + 0.0438 * ac + 0.158 * fl;
-      efw = Math.pow(10, log_efw4);
-      break;
-    default:
-      efw = 0;
-  }
-
-  return efw;
+  const porFormula: Record<string, number | null> = {
+    hadlock1: hadlock4p(bpd, hc, ac, fl),
+    hadlock2: hadlockCaLf(ac, fl),
+    hadlock3: hadlock3p(bpd, ac, fl),
+    hadlock4: hadlockCcCaLf(hc, ac, fl),
+  };
+  return porFormula[formula] ?? 0;
 };
 
 // Percentiles de EFW según edad gestacional (basado en curvas Intergrowth-21st)

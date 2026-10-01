@@ -102,8 +102,8 @@ export const buildMainMenuItems = (user: any, navigate: NavigateFunction): MenuP
         icon: <CalculatorOutlined />,
         label: 'Calculadoras',
         children: [
-          { key: '/dashboard/calculadoras', label: 'Básicas (FPP, IMC)' },
-          { key: '/dashboard/calculadoras-avanzadas', label: 'Avanzadas (Doppler)' },
+          { key: '/dashboard/calculadoras', label: 'Calculadoras rápidas' },
+          { key: '/dashboard/panel-calculadoras', label: 'Calculadoras especializadas' },
         ],
       },
       { key: '/dashboard/citas', icon: <CalendarOutlined />, label: 'Agenda de Citas' },
