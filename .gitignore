@@ -122,3 +122,11 @@ Backend/Microservicio_IA/entrenamiento/*/salidas/*
 !Backend/Microservicio_IA/entrenamiento/*/salidas/predicciones_*.csv
 !Backend/Microservicio_IA/entrenamiento/*/salidas/historia.json
 !Backend/Microservicio_IA/entrenamiento/*/salidas/prueba_estilo.json
+
+# Archivos subidos (pueden ser datos de pacientes): nunca al repositorio
+/media/
+Backend/media/
+# Respaldos de .env (llevan secretos) y carpetas de herramientas locales
+.env.respaldo*
+Backend/.env.respaldo*
+.kilo/
