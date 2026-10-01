@@ -202,3 +202,31 @@ class TareasDeRecordatorioTest(TestCase):
 
         # Sin citas cargadas debe devolver 0, no reventar.
         self.assertEqual(enviar_recordatorios_citas(), {"enviadas": 0})
+
+
+class FechaLocalNoUtcTest(TestCase):
+    """Entre las 20:00 y las 24:00 de Bolivia la fecha UTC ya es la de mañana:
+    `timezone.now().date()` hacía que «hoy» fuera mañana (citas de hoy,
+    recordatorios, paneles). Se usa `timezone.localdate()`."""
+
+    def test_recordatorio_de_una_cita_a_las_23_horas_locales(self):
+        import datetime as dt
+        from unittest.mock import patch
+
+        from django.utils import timezone
+
+        from citas.models import Cita
+        from notificaciones.tasks import enviar_recordatorios_citas
+        from pacientes.models import Paciente
+        from usuarios.models import Usuario
+
+        medico = Usuario.objects.create_user(email="med.utc@test.bo", nombre="Utc", apellido_paterno="Local",
+                                             password="clave-segura-123", rol="medico")
+        p = Paciente.objects.create(nombre="Noc", apellido_paterno="Turna", apellido_materno="X",
+                                    fecha_nacimiento=dt.date(1993, 1, 1), genero="femenino", ci="7855501")
+        # 21:00 en La Paz = 01:00 UTC del día siguiente
+        ahora = timezone.make_aware(dt.datetime(2026, 9, 30, 21, 0))
+        Cita.objects.create(paciente=p, medico=medico, fecha_cita=dt.date(2026, 9, 30), hora_cita=dt.time(23, 0),
+                            estado="agendada", tipo_cita="control", motivo="Control")
+        with patch("notificaciones.tasks.timezone.now", return_value=ahora.astimezone(dt.timezone.utc)):
+            self.assertEqual(enviar_recordatorios_citas()["enviadas"], 1)

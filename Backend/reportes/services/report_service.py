@@ -56,7 +56,7 @@ class ReportService:
         embarazos_activos = Embarazo.objects.filter(estado="activo").count()
 
         # Citas del día
-        citas_hoy = Cita.objects.filter(fecha_cita=timezone.now().date()).count()
+        citas_hoy = Cita.objects.filter(fecha_cita=timezone.localdate()).count()
 
         # Partos del mes
         partos_mes = Parto.objects.filter(
@@ -228,7 +228,7 @@ class ReportService:
         controles_mes = ControlPrenatal.objects.filter(**controles_filter).count()
 
         # Citas
-        now_date = timezone.now().date()
+        now_date = timezone.localdate()
         citas_pendientes = Cita.objects.filter(estado="agendada").count()
         citas_hoy = Cita.objects.filter(fecha_cita=now_date).count()
 

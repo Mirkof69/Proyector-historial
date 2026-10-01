@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
                 eg_semanas = random.randint(8, 40)
                 eg_dias = random.randint(0, 6)
-                fecha_eco = timezone.now().date() - timedelta(days=random.randint(0, 90))
+                fecha_eco = timezone.localdate() - timedelta(days=random.randint(0, 90))
 
                 eco = Ecografia.objects.create(
                     embarazo=embarazo,

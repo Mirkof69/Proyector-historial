@@ -384,7 +384,7 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         total = qs.count()
         por_estado = qs.values("estado").annotate(count=Count("id"))
         por_formato = qs.values("formato").annotate(count=Count("id"))
-        hoy = timezone.now().date()
+        hoy = timezone.localdate()
 
         today_reports = qs.filter(fecha_solicitud__date=hoy).count()
         ultima_semana = qs.filter(fecha_solicitud__gte=hoy - timedelta(days=7)).count()
@@ -726,7 +726,7 @@ def dashboard_stats_view(request):
     from partos.models import Parto
 
     try:
-        hoy = timezone.now().date()
+        hoy = timezone.localdate()
         mes_actual = timezone.now().month
         anio_actual = timezone.now().year
 

@@ -685,7 +685,7 @@ class ControlPrenatal(models.Model):
         super().clean()
         errors = {}
         # Fecha de control no debe ser futura
-        if self.fecha_control and self.fecha_control > timezone.now().date():
+        if self.fecha_control and self.fecha_control > timezone.localdate():
             errors["fecha_control"] = "La fecha de control no puede ser futura"
 
         # ✅ 1. VALIDAR PRESIÓN ARTERIAL

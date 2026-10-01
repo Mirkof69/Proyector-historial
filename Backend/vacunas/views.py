@@ -399,7 +399,7 @@ class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         GET /api/vacunas/registros/proximas_dosis/dias={dias}
         """
         dias = int(request.query_params.get("dias", 30))
-        fecha_limite = timezone.now().date() + timedelta(days=dias)
+        fecha_limite = timezone.localdate() + timedelta(days=dias)
 
         assert self.queryset is not None
         registros = self.queryset.filter(
@@ -486,7 +486,7 @@ class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         )
 
         # Próximas dosis en los próximos 30 días
-        fecha_limite = timezone.now().date() + timedelta(days=30)
+        fecha_limite = timezone.localdate() + timedelta(days=30)
         proximas_30_dias = self.queryset.filter(
             proxima_dosis_fecha__isnull=False,
             proxima_dosis_fecha__lte=fecha_limite,

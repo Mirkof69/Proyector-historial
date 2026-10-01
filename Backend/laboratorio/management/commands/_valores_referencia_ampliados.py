@@ -8,42 +8,18 @@ Uso:
 =============================================================================
 """
 
-from django.core.management.base import BaseCommand
 
 from laboratorio.models import TipoExamen, ValorReferencia
 
 
-class Command(BaseCommand):
-    """Command"""
-    help = "Poblar valores de referencia expandidos (hormonas, marcadores, hepaticas, etc.)"
+class ValoresAmpliadosMixin:
+    """Rangos de hormonas reproductivas, marcadores, hepática e infecciosas extra.
 
-    def handle(self, *_args, **_kwargs):
-        """Handle"""
-        self.stdout.write(self.style.SUCCESS("\n" + "=" * 80))
-        self.stdout.write(
-            self.style.SUCCESS("POBLANDO VALORES DE REFERENCIA EXPANDIDOS"),
-        )
-        self.stdout.write(self.style.SUCCESS("=" * 80 + "\n"))
-
-        count = 0
-
-        count += self.crear_valores_hormonas_reproductivas()
-        count += self.crear_valores_prolactina()
-        count += self.crear_valores_amh()
-        count += self.crear_valores_he4()
-        count += self.crear_valores_cea()
-        count += self.crear_valores_funcion_hepatica()
-        count += self.crear_valores_hepatitis_c()
-        count += self.crear_valores_chlamydia_gonorrea()
-        count += self.crear_valores_dimero_d()
-
-        self.stdout.write("\n" + "=" * 80)
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"TOTAL: {count} valores de referencia creados/verificados",
-            ),
-        )
-        self.stdout.write(self.style.SUCCESS("=" * 80 + "\n"))
+    Antes era un comando aparte, y `poblar_valores_referencia` llamaba a estos
+    métodos sobre SÍ MISMO sin tenerlos: se caía con AttributeError antes de
+    cargar nada. Ahora es un mixin que hereda ese comando, el único punto de
+    entrada (el archivo empieza por «_» para que Django no lo liste).
+    """
 
     def crear_valores_hormonas_reproductivas(self):
         """FSH, LH, Estradiol, Progesterona - Fertilidad"""

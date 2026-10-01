@@ -34,7 +34,7 @@ echo [2/5] Migraciones...
 cd /d "%~dp0Backend"
 :: migrate_schemas (no migrate): cada clinica es un esquema de django-tenants.
 :: Antes usaba el python del sistema y ocultaba los errores con >nul.
-".venv\Scripts\python.exe" manage.py migrate_schemas --no-input > logs\migraciones.log 2>&1
+".venv\Scripts\python.exe" manage.py migrate_schemas --noinput > logs\migraciones.log 2>&1
 if %errorlevel% equ 0 (echo     OK al dia) else (
     echo     ERROR en las migraciones: ver Backend\logs\migraciones.log
     pause

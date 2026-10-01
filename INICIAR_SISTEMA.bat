@@ -18,7 +18,7 @@ timeout /t 2 /nobreak >nul
 
 echo [2/4] Migraciones (todas las clinicas)...
 cd /d "%~dp0Backend"
-".venv\Scripts\python.exe" manage.py migrate_schemas --no-input > logs\migraciones.log 2>&1
+".venv\Scripts\python.exe" manage.py migrate_schemas --noinput > logs\migraciones.log 2>&1
 if %errorlevel% equ 0 (echo     OK al dia) else (
     echo     ERROR en las migraciones: ver Backend\logs\migraciones.log
     pause

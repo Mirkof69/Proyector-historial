@@ -18,7 +18,7 @@ if not exist "%PY%" (
 )
 
 echo [1/3] Migraciones (todas las clinicas)...
-"%PY%" manage.py migrate_schemas --no-input
+"%PY%" manage.py migrate_schemas --noinput
 if %errorlevel% neq 0 (echo ERROR en las migraciones & pause & exit /b 1)
 
 echo [2/3] Datos de demostracion en clinica_demo...

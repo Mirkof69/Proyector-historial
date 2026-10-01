@@ -107,11 +107,10 @@ class ValorReferenciaSerializer(serializers.ModelSerializer):
 
     def get_rango_normal(self, obj):
         """Formatear rango normal"""
-        if obj.valor_minimo and obj.valor_maximo:
-            return f"{obj.valor_minimo} - {obj.valor_maximo} {obj.unidad}"
-        if obj.valor_normal:
-            return obj.valor_normal
-        return None
+        texto = obj.rango_texto()
+        if not texto:
+            return None
+        return f"{texto} {obj.unidad}".strip() if obj.valor_minimo is not None or obj.valor_maximo is not None else texto
 
     def get_created_by_nombre(self, obj):
         """Obtener nombre del usuario que creó"""
@@ -171,10 +170,7 @@ class ResultadoLaboratorioSerializer(serializers.ModelSerializer):
 
     def get_rango_referencia(self, obj):
         """Obtener rango de referencia"""
-        ref = obj.valor_referencia
-        if ref.valor_minimo and ref.valor_maximo:
-            return f"{ref.valor_minimo} - {ref.valor_maximo}"
-        return ref.valor_normal
+        return obj.valor_referencia.rango_texto()
 
     def get_estado(self, obj):
         """Determinar estado del resultado"""

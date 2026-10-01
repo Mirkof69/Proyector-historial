@@ -26,7 +26,7 @@ def dashboard_kpis(_request):
     from pacientes.models import Paciente  # Deferred
     from partos.models import Parto  # Deferred
 
-    hoy = timezone.now().date()
+    hoy = timezone.localdate()
     hace_30_dias = hoy - timedelta(days=30)
     hace_7_dias = hoy - timedelta(days=7)
 
@@ -117,7 +117,7 @@ def dashboard_graficas(_request):
     from embarazos.models import Embarazo
     from partos.models import Parto
 
-    hoy = timezone.now().date()
+    hoy = timezone.localdate()
 
     # Última 12 semanas de controles (si no hay, mostrar totales históricos)
     controles_por_semana = []

@@ -27,10 +27,13 @@ Uso:
 
 from django.core.management.base import BaseCommand
 
+from laboratorio.catalogo import asegurar_tipos_examen
 from laboratorio.models import TipoExamen, ValorReferencia
 
+from ._valores_referencia_ampliados import ValoresAmpliadosMixin
 
-class Command(BaseCommand):
+
+class Command(ValoresAmpliadosMixin, BaseCommand):
     """Command"""
     help = "Poblar valores de referencia para exámenes de ginecología y obstetricia (altura)"
 
@@ -44,6 +47,12 @@ class Command(BaseCommand):
             self.style.SUCCESS("Adaptado para ALTA ALTITUD (La Paz, Bolivia)"),
         )
         self.stdout.write(self.style.SUCCESS("=" * 80 + "\\n"))
+
+        # Los rangos cuelgan de tipos de examen que antes nadie creaba: sin
+        # esto el comando no cargaba nada. Ver laboratorio/catalogo.py.
+        nuevos = asegurar_tipos_examen()
+        if nuevos:
+            self.stdout.write(f"  {nuevos} tipos de examen creados en el catálogo")
 
         count = 0
 
@@ -471,34 +480,6 @@ class Command(BaseCommand):
 
         return count
 
-    def crear_valores_hormonas_reproductivas(self):
-        """FSH, LH, Progesterona, Estradiol"""
-        count = 0
-
-        # FSH y LH
-        try:
-            tipo_fsh = TipoExamen.objects.get(codigo="HOR003")
-            _valor, created = ValorReferencia.objects.get_or_create(
-                tipo_examen=tipo_fsh,
-                parametro="FSH",
-                defaults={
-                    "valor_minimo": 3.0,
-                    "valor_maximo": 10.0,
-                    "unidad": "mUI/mL",
-                    "condicion": "Fase folicular",
-                },
-            )
-            if created:
-                count += 1
-                self.stdout.write(f"  ✓ {tipo_fsh.nombre} - FSH")
-        except TipoExamen.DoesNotExist:
-            pass
-
-        return count
-
-    # =========================================================================
-    # MARCADORES TUMORALES
-    # =========================================================================
     def crear_valores_ca125(self):
         """CA-125 - Marcador tumoral ovárico"""
         count = 0

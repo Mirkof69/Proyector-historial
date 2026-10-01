@@ -333,7 +333,7 @@ class Paciente(models.Model):
 
         return (
             getattr(self, 'citas', self.__class__.objects.none()).filter(
-                fecha_cita__gte=timezone.now().date(),
+                fecha_cita__gte=timezone.localdate(),
                 estado__in=["agendada", "confirmada"],
             )
             .order_by("fecha_cita", "hora_cita")

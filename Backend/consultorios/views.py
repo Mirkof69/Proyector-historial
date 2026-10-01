@@ -476,7 +476,7 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
         fecha_inicio = request.query_params.get("fecha_inicio")
         fecha_fin = request.query_params.get("fecha_fin")
 
-        hoy = timezone.now().date()
+        hoy = timezone.localdate()
         if not fecha_fin:
             fecha_fin = hoy.isoformat()
         if not fecha_inicio:
@@ -552,7 +552,7 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
         fecha_fin = request.query_params.get("fecha_fin")
         consultorio_id = request.query_params.get("consultorio")
 
-        hoy = timezone.now().date()
+        hoy = timezone.localdate()
         if not fecha_fin:
             fecha_fin = hoy.isoformat()
         if not fecha_inicio:

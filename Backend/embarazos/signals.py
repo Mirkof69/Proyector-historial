@@ -100,7 +100,7 @@ def recordatorio_fecha_probable_parto(sender, instance, created, **_kwargs):
     """Recuerda la FPP cuando faltan entre 10 y 15 días."""
     if not instance.fecha_probable_parto or instance.estado != "activo":
         return
-    dias_restantes = (instance.fecha_probable_parto - timezone.now().date()).days
+    dias_restantes = (instance.fecha_probable_parto - timezone.localdate()).days
     if not 10 <= dias_restantes <= 15:
         return
     # El anti-fatiga de crear_notificacion_clinica evita que se repita en cada

@@ -25,49 +25,45 @@ def _medico_del_resultado(resultado):
 
 @receiver(post_save, sender=ResultadoLaboratorio)
 def resultado_laboratorio_procesado(sender, instance, created, **kwargs):
-    """Notifica al médico cuando se procesa un resultado (crítico o normal)."""
-    if not (created or instance.estado == "completado"):
-        return
+    """Avisa al médico de inmediato si un resultado NUEVO es crítico.
 
+    Antes: al EDITAR un resultado leía `instance.estado` (el resultado no
+    tiene ese campo) y respondía 500; y por cada parámetro creado mandaba un
+    aviso «resultado disponible» (un hemograma = 10 avisos). El aviso de
+    «examen listo» lo da el examen al completarse (`examen_completado`).
+    """
+    if not created or not verificar_resultado_critico(instance):
+        return
     paciente = getattr(getattr(instance, "examen", None), "paciente", None)
     nombre = getattr(paciente, "nombre_completo", "paciente")
-    parametro = getattr(getattr(instance, "valor_referencia", None), "parametro", "parámetro")
-
-    if verificar_resultado_critico(instance):
-        unidad = getattr(getattr(instance, "valor_referencia", None), "unidad", "")
-        crear_notificacion_clinica(
-            destinatario_preferido=_medico_del_resultado(instance),
-            tipo=TipoNotificacion.EXAMEN_CRITICO,
-            prioridad=PrioridadNotificacion.CRITICA,
-            titulo="⚠️ RESULTADO CRÍTICO DE LABORATORIO",
-            mensaje=f"Resultado CRÍTICO para {nombre}: {parametro} = {instance.valor_numerico} {unidad}. Requiere atención inmediata.",
-            entidad_tipo="resultado_laboratorio",
-            entidad_id=instance.id,
-            url=f"/dashboard/laboratorio/resultados/{instance.id}",
-        )
-    else:
-        crear_notificacion_clinica(
-            destinatario_preferido=_medico_del_resultado(instance),
-            tipo=TipoNotificacion.EXAMEN_LISTO,
-            prioridad=PrioridadNotificacion.NORMAL,
-            titulo="Resultado de Laboratorio Disponible",
-            mensaje=f"Nuevo resultado disponible para {nombre}: {parametro}.",
-            entidad_tipo="resultado_laboratorio",
-            entidad_id=instance.id,
-            url=f"/dashboard/laboratorio/resultados/{instance.id}",
-        )
+    referencia = getattr(instance, "valor_referencia", None)
+    parametro = getattr(referencia, "parametro", "parámetro")
+    unidad = getattr(referencia, "unidad", "")
+    crear_notificacion_clinica(
+        destinatario_preferido=_medico_del_resultado(instance),
+        tipo=TipoNotificacion.EXAMEN_CRITICO,
+        prioridad=PrioridadNotificacion.CRITICA,
+        titulo="⚠️ RESULTADO CRÍTICO DE LABORATORIO",
+        mensaje=f"Resultado CRÍTICO para {nombre}: {parametro} = {instance.valor_numerico} {unidad}. Requiere atención inmediata.",
+        entidad_tipo="resultado_laboratorio",
+        entidad_id=instance.id,
+        url=f"/dashboard/laboratorio/resultados/{instance.id}",
+    )
 
 
 @receiver(pre_save, sender=ResultadoLaboratorio)
 def interpretar_resultado(sender, instance, **kwargs):
     """Interpreta el resultado automáticamente antes de guardar."""
-    if instance.valor_numerico and instance.valor_referencia:
+    # `is not None`: un resultado de 0 también se interpreta.
+    if instance.valor_numerico is not None and instance.valor_referencia_id:
         evaluacion = instance.valor_referencia.evaluar_valor(instance.valor_numerico)
         instance.es_normal = evaluacion["es_normal"]
         instance.es_critico = evaluacion["es_critico"]
-        instance.observaciones = (
-            f"{instance.observaciones}\nInterpretación: {evaluacion['mensaje']}".strip()
-        )
+        # Antes se AÑADÍA en cada guardado: al editar un resultado la línea
+        # «Interpretación: …» se repetía. Se reemplaza la anterior.
+        previas = [linea for linea in (instance.observaciones or "").splitlines()
+                   if not linea.startswith("Interpretación: ")]
+        instance.observaciones = "\n".join([*previas, f"Interpretación: {evaluacion['mensaje']}"]).strip()
 
 
 @receiver(post_save, sender=ExamenLaboratorio)
@@ -88,10 +84,24 @@ def examen_solicitado(sender, instance, created, **kwargs):
     )
 
 
+@receiver(pre_save, sender=ExamenLaboratorio)
+def recordar_estado_anterior(sender, instance, **kwargs):
+    """Guarda el estado previo para avisar solo en el PASO a «completado»."""
+    instance._estado_anterior = (
+        sender.objects.filter(pk=instance.pk).values_list("estado", flat=True).first() if instance.pk else None
+    )
+
+
 @receiver(post_save, sender=ExamenLaboratorio)
 def examen_completado(sender, instance, created, **kwargs):
-    """Notifica cuando un examen se completa (con o sin resultados críticos)."""
+    """Notifica cuando un examen pasa a completado (con o sin críticos).
+
+    Antes avisaba en CADA guardado de un examen ya completado: corregir una
+    observación volvía a mandar «examen completado».
+    """
     if created or instance.estado != "completado":
+        return
+    if getattr(instance, "_estado_anterior", None) == "completado":
         return
     nombre = getattr(getattr(instance, "paciente", None), "nombre_completo", "paciente")
     criticos = instance.resultados.filter(es_critico=True).count()
@@ -121,7 +131,7 @@ def examen_completado(sender, instance, created, **kwargs):
 
 def verificar_resultado_critico(resultado):
     """True si el valor cae 30% fuera del rango de referencia."""
-    if not resultado.valor_numerico or not getattr(resultado, "valor_referencia", None):
+    if resultado.valor_numerico is None or not getattr(resultado, "valor_referencia", None):
         return False
     rango = obtener_rango_referencia(resultado)
     if not rango:

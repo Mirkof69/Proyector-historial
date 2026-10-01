@@ -1,5 +1,6 @@
 """Views module."""
 import contextlib
+import logging
 from datetime import timedelta
 
 from django.db.models import Avg, Count, Exists, OuterRef
@@ -15,6 +16,8 @@ from core.permissions import EsMedicoOEnfermeraOLaboratorista, FetalMedicalPermi
 from core.exportacion import ExportarExcelMixin
 
 from .models import ExamenLaboratorio, ResultadoLaboratorio, TipoExamen, ValorReferencia
+
+logger = logging.getLogger(__name__)
 from .serializers import (
     ExamenLaboratorioCreateUpdateSerializer,
     ExamenLaboratorioDetailSerializer,
@@ -364,6 +367,79 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(tipo_examen__categoria=categoria)
 
         return queryset
+
+    @action(detail=False, methods=["get"], url_path="plantilla-excel")
+    def plantilla_excel(self, _request):
+        """Plantilla .xlsx para importar resultados (con el catálogo de parámetros)."""
+        from django.http import HttpResponse
+
+        from .importacion_excel import generar_plantilla
+
+        respuesta = HttpResponse(
+            generar_plantilla(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        respuesta["Content-Disposition"] = 'attachment; filename="plantilla_resultados_laboratorio.xlsx"'
+        return respuesta
+
+    @action(detail=False, methods=["post"], url_path="importar-excel")
+    def importar_excel(self, request):
+        """Importa resultados desde la plantilla.
+
+        Sin `confirmar`: vista previa (qué se guardaría y qué tiene errores).
+        Con `confirmar=1`: guarda los exámenes válidos (cada uno entero o nada).
+        """
+        from .importacion_excel import leer_filas, procesar
+
+        archivo = request.FILES.get("archivo")
+        if not archivo:
+            return Response({"error": "Adjunte el archivo Excel en el campo «archivo»."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if archivo.size > 5 * 1024 * 1024:
+            return Response({"error": "El archivo supera 5 MB."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            filas = leer_filas(archivo)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        if not filas:
+            return Response({"error": "El archivo no tiene filas con datos."}, status=status.HTTP_400_BAD_REQUEST)
+
+        confirmar = str(request.data.get("confirmar", "")).lower() in ("1", "true", "si", "sí")
+        resultado = procesar(filas, request.user, confirmar)
+        if confirmar:
+            try:
+                from auditoria.models import RegistroAuditoria
+
+                r = resultado["resumen"]
+                RegistroAuditoria.registrar(
+                    usuario=request.user, accion="CREAR", modulo="Laboratorio",
+                    detalle=f"Importación Excel «{archivo.name}»: {r['creada']} resultados en {r['examenes']} "
+                            f"exámenes, {r['error']} con error, {r['duplicada']} duplicados.",
+                    request=request,
+                )
+            except Exception:
+                logger.exception("No se pudo auditar la importación de laboratorio")
+        return Response(resultado)
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, request):
+        """Cifras de la pantalla con los MISMOS filtros que el listado.
+
+        Antes la pantalla las calculaba sobre una lista guardada en un `ref`
+        que no volvía a pintar: salían siempre en 0.
+        """
+        qs = self.filter_queryset(self.get_queryset()).order_by()
+        por_estado = dict(qs.values_list("estado").annotate(n=Count("id")))
+        anormal = ResultadoLaboratorio.objects.filter(examen=OuterRef("pk"), es_normal=False)
+        critico = ResultadoLaboratorio.objects.filter(examen=OuterRef("pk"), es_critico=True)
+        return Response({
+            "total": sum(por_estado.values()),
+            "solicitados": por_estado.get("solicitado", 0),
+            "en_proceso": por_estado.get("en_proceso", 0),
+            "completados": por_estado.get("completado", 0),
+            "con_anormales": qs.filter(Exists(anormal)).count(),
+            "con_criticos": qs.filter(Exists(critico)).count(),
+        })
 
     def perform_create(self, serializer):
         """Asignar created_by para trazabilidad"""

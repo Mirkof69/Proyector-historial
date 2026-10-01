@@ -27,6 +27,7 @@ class TipoExamen(models.Model):
         ("serologia", "Serología"),
         ("hormonal", "Hormonal"),
         ("genetica", "Genética"),
+        ("citologia", "Citología"),
     ]
 
     nombre = models.CharField(
@@ -470,29 +471,33 @@ class ValorReferencia(models.Model):
 
     def get_rango_completo(self):
         """Obtiene el rango completo como string"""
-        if self.valor_minimo and self.valor_maximo:
-            return f"{self.valor_minimo} - {self.valor_maximo} {self.unidad}"
-        if self.valor_normal:
-            return f"{self.valor_normal}"
-        return "Rango no definido"
+        texto = self.rango_texto()
+        if not texto:
+            return "Rango no definido"
+        con_numeros = self.valor_minimo is not None or self.valor_maximo is not None
+        return f"{texto} {self.unidad}".strip() if con_numeros else texto
 
     def evaluar_valor(self, valor_numerico):
-        """Evalúa si un valor está normal, anormal o crítico"""
-        if not valor_numerico:
+        """Evalúa si un valor está normal, anormal o crítico.
+
+        Se compara con `is None`, no por «verdad»: antes un resultado de 0 se
+        trataba como «sin valor», un rango con mínimo 0 (basófilos 0-1 %) se
+        saltaba y cualquier valor salía NORMAL, y un rango de un solo límite
+        («glucosa ≤ 92») también salía siempre normal.
+        """
+        if valor_numerico is None or valor_numerico == "":
             return {"estado": "sin_valor", "mensaje": "Sin valor para evaluar"}
 
         valor = float(valor_numerico)
 
-        # Verificar valores críticos
-        if self.es_critico_bajo and valor < float(self.es_critico_bajo):
+        if self.es_critico_bajo is not None and valor < float(self.es_critico_bajo):
             return {
                 "estado": "critico_bajo",
                 "es_critico": True,
                 "es_normal": False,
                 "mensaje": f"Valor crítico bajo: {valor} < {self.es_critico_bajo}",
             }
-
-        if self.es_critico_alto and valor > float(self.es_critico_alto):
+        if self.es_critico_alto is not None and valor > float(self.es_critico_alto):
             return {
                 "estado": "critico_alto",
                 "es_critico": True,
@@ -500,38 +505,42 @@ class ValorReferencia(models.Model):
                 "mensaje": f"Valor crítico alto: {valor} > {self.es_critico_alto}",
             }
 
-        # Verificar rangos normales
-        if self.valor_minimo and self.valor_maximo:
-            if float(self.valor_minimo) <= valor <= float(self.valor_maximo):
-                return {
-                    "estado": "normal",
-                    "es_critico": False,
-                    "es_normal": True,
-                    "mensaje": f"Valor normal: {self.valor_minimo} ≤ {valor} ≤ {self.valor_maximo}",
-                }
+        minimo, maximo = self.valor_minimo, self.valor_maximo
+        if minimo is None and maximo is None:
+            return {
+                "estado": "sin_rango",
+                "es_critico": False,
+                "es_normal": True,
+                "mensaje": "No hay rangos de referencia definidos",
+            }
+        if (minimo is not None and valor < float(minimo)) or (maximo is not None and valor > float(maximo)):
             return {
                 "estado": "anormal",
                 "es_critico": False,
                 "es_normal": False,
-                "mensaje": f"Valor fuera de rango: {valor} (normal: {self.valor_minimo}-{self.valor_maximo})",
+                "mensaje": f"Valor fuera de rango: {valor} (normal: {self.rango_texto()})",
             }
-
-        # Si no hay rangos definidos, considerar normal
         return {
-            "estado": "sin_rango",
+            "estado": "normal",
             "es_critico": False,
             "es_normal": True,
-            "mensaje": "No hay rangos de referencia definidos",
+            "mensaje": f"Valor normal: {valor} (normal: {self.rango_texto()})",
         }
+
+    def rango_texto(self) -> str:
+        """«12-16», «≤ 92», «≥ 3,5» o el valor cualitativo esperado."""
+        minimo, maximo = self.valor_minimo, self.valor_maximo
+        if minimo is not None and maximo is not None:
+            return f"{minimo}-{maximo}"
+        if maximo is not None:
+            return f"≤ {maximo}"
+        if minimo is not None:
+            return f"≥ {minimo}"
+        return self.valor_normal or ""
 
     def __str__(self):
         """Str"""
-        rango = (
-            f"{self.valor_minimo}-{self.valor_maximo}"
-            if self.valor_minimo and self.valor_maximo
-            else self.valor_normal
-        )
-        return f"{self.tipo_examen.nombre} - {self.parametro}: {rango} {self.unidad}"
+        return f"{self.tipo_examen.nombre} - {self.parametro}: {self.rango_texto()} {self.unidad}"
 
 
 class ResultadoLaboratorio(models.Model):
@@ -608,7 +617,8 @@ class ResultadoLaboratorio(models.Model):
 
     def calcular_estado_automatico(self):
         """Calcula automáticamente si el resultado es normal, anormal o crítico"""
-        if not self.valor_numerico or not self.valor_referencia:
+        # `is None`: un resultado de 0 es un valor, no «sin valor».
+        if self.valor_numerico is None or self.valor_referencia_id is None:
             return False
 
         evaluacion = self.valor_referencia.evaluar_valor(self.valor_numerico)
@@ -618,7 +628,7 @@ class ResultadoLaboratorio(models.Model):
 
     def get_interpretacion_medica(self):
         """Devuelve la interpretación médica del resultado"""
-        if not self.valor_numerico:
+        if self.valor_numerico is None:
             return "Sin valor numérico para interpretar"
 
         valor = float(self.valor_numerico)
@@ -730,7 +740,7 @@ class ResultadoLaboratorio(models.Model):
 
     def get_protocolo_sugerido(self):
         """Devuelve el protocolo médico sugerido"""
-        if not self.valor_numerico:
+        if self.valor_numerico is None:
             return "No se puede determinar protocolo sin valor numérico"
 
         parametro = self.valor_referencia.parametro.lower()

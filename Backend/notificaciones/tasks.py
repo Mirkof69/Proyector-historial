@@ -61,11 +61,14 @@ def enviar_recordatorios_citas():
     # FieldError, o sea que esta tarea fallaba SIEMPRE y no se envió jamás un
     # recordatorio de cita. Se filtra por rango de fechas y luego se afina la
     # hora en Python, que es exacto y no depende del motor de base de datos.
+    # Fechas LOCALES: `fecha_cita` está en hora de Bolivia y `now()` en UTC.
+    # Con `.date()` en UTC, entre las 20:00 y las 24:00 la fecha ya era la de
+    # mañana y las citas de esa noche no recibían recordatorio.
     citas_proximas = [
         cita
         for cita in Cita.objects.filter(
-            fecha_cita__gte=ventana_inicio.date(),
-            fecha_cita__lte=ventana_fin.date(),
+            fecha_cita__gte=timezone.localtime(ventana_inicio).date(),
+            fecha_cita__lte=timezone.localtime(ventana_fin).date(),
             estado__in=["agendada", "confirmada"],
         ).select_related("paciente", "medico")
         if ventana_inicio <= _momento_de_la_cita(cita) <= ventana_fin

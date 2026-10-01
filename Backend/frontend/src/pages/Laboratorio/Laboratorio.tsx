@@ -7,31 +7,35 @@
  * =============================================================================
  */
 
-import React, { useRef, useState, useReducer, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
-import { Empty, Card, Table, Button, Space } from 'antd';
+import { Alert, Empty, Card, Table, Button, Space } from 'antd';
 import {
   PlusOutlined, ReloadOutlined, ExperimentOutlined,
-  ExclamationCircleOutlined, FileExcelOutlined,
+  ExclamationCircleOutlined, FileExcelOutlined, UploadOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { laboratorioService, ExamenLaboratorio } from '../../services/laboratorioService';
 import { FRONTEND_ROUTES } from '../../config/routes';
-import { exportarExcel } from '../../utils/excelExport';
 import { useAntdApp } from '../../hooks/useMessage';
-import { GlobalLoader } from '../../components/common/GlobalLoader';
+import api from '../../services/api';
+import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
+import { descargarArchivo } from '../../utils/descargarArchivo';
 import { filtrosReducer } from './components/laboratorioFiltrosReducer';
 import LaboratorioStats from './components/LaboratorioStats';
 import LaboratorioFiltros from './components/LaboratorioFiltros';
 import { buildLaboratorioColumns } from './components/laboratorioColumns';
+import ImportarLaboratorioModal from './components/ImportarLaboratorioModal';
+
+const URL_EXAMENES = '/laboratorios/examenes/';
+const RESUMEN_VACIO = { total: 0, solicitados: 0, en_proceso: 0, completados: 0, con_anormales: 0, con_criticos: 0 };
 
 const Laboratorio: React.FC = () => {
   const navigate = useNavigate();
   const { message, modal } = useAntdApp();
   const { canAdd, canChange, canDelete } = usePermissions();
-  const [loading, setLoading] = useState(false);
-  const examenesRef = useRef<ExamenLaboratorio[]>([]);
+  const [importando, setImportando] = useState(false);
   const [filtros, dispatchFiltros] = useReducer(filtrosReducer, {
     busqueda: '',
     filtroCategoria: undefined,
@@ -39,102 +43,36 @@ const Laboratorio: React.FC = () => {
     filtroFecha: null,
   });
 
-  // ==========================================================================
-  // CARGAR DATOS
-  // ==========================================================================
+  // Todo lo filtra y cuenta el SERVIDOR. Antes los exámenes se guardaban en
+  // un `ref` que no volvía a pintar: la tabla quedaba vacía y las cifras en 0
+  // hasta tocar un filtro.
+  const filtrosServidor = useMemo(() => ({
+    categoria: filtros.filtroCategoria,
+    estado: filtros.filtroEstado,
+    fecha_desde: filtros.filtroFecha?.[0]?.startOf('day').toISOString(),
+    fecha_hasta: filtros.filtroFecha?.[1]?.endOf('day').toISOString(),
+  }), [filtros.filtroCategoria, filtros.filtroEstado, filtros.filtroFecha]);
 
-  const calcularEstadisticas = useCallback((data: ExamenLaboratorio[]) => {
-    return {
-      total: data.length,
-      solicitados: data.filter((e) => e.estado === 'solicitado').length,
-      en_proceso: data.filter((e) => e.estado === 'en_proceso').length,
-      completados: data.filter((e) => e.estado === 'completado').length,
-      con_anormales: data.filter((e) => e.resultados_anormales && e.resultados_anormales > 0).length,
-      con_criticos: data.filter((e) => e.resumen && e.resumen.criticos > 0).length,
-    };
-  }, []);
+  const listado = useListadoServidor<ExamenLaboratorio>(URL_EXAMENES, {
+    filtros: filtrosServidor, busqueda: filtros.busqueda, tamanoInicial: 10, ordenInicial: '-fecha_solicitud',
+  });
+  const { parametros, recargar } = listado;
 
-  const estadisticas = useMemo(() => calcularEstadisticas(examenesRef.current), [calcularEstadisticas]);
-
-  const cargarExamenes = useCallback(async () => {
-    setLoading(true);
-
+  const [estadisticas, setEstadisticas] = useState(RESUMEN_VACIO);
+  const cargarResumen = useCallback(async () => {
     try {
-
-      // 🚀 PASO 1: Obtener primera página para saber cuántas páginas hay
-      const firstPage = await laboratorioService.api.get('/laboratorios/examenes/?page=1&limit=200');
-
-      const totalCount = firstPage.data.count || 0;
-      const totalPages = Math.ceil(totalCount / 200);
-
-
-      // 🚀 PASO 2: Crear array de promesas para TODAS las páginas
-      const promises = Array.from({ length: totalPages }, (_, i) =>
-        laboratorioService.api.get(`/laboratorios/examenes/?page=${i + 1}&limit=200`)
-      );
-
-      // 🚀 PASO 3: Ejecutar TODAS las requests en PARALELO
-      const responses = await Promise.all(promises);
-
-      // 🚀 PASO 4: Combinar todos los resultados y agregar rowKey único
-      let index = 0;
-      const allExamenes = [];
-      for (const res of responses) {
-        const results = res.data.results || [];
-        for (const item of results) {
-          allExamenes.push({
-            ...item,
-            _uniqueRowKey: `laboratorio-${item.id}-${index}-${Date.now()}`
-          });
-          index++;
-        }
-      }
-
-      examenesRef.current = allExamenes;
-    } catch (error) {
-      message.error('Error al cargar los exámenes de laboratorio');
-      examenesRef.current = [];
-    } finally {
-      setLoading(false);
+      const r = await api.get(`${URL_EXAMENES}resumen/`, { params: parametros() });
+      setEstadisticas(r.data);
+    } catch {
+      setEstadisticas(RESUMEN_VACIO);
     }
-  }, [message]);
+  }, [parametros]);
+  useEffect(() => { cargarResumen(); }, [cargarResumen]);
 
-  useEffect(() => {
-    cargarExamenes();
-  }, [cargarExamenes]);
-
-  // ==========================================================================
-  // FILTROS
-  // ==========================================================================
-  const examenesFiltrados = useMemo(() => {
-    let resultado = [...examenesRef.current];
-
-    if (filtros.busqueda) {
-      resultado = resultado.filter(
-        (examen) =>
-          examen.paciente_nombre?.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-          examen.tipo_examen_nombre?.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-          examen.indicaciones?.toLowerCase().includes(filtros.busqueda.toLowerCase())
-      );
-    }
-
-    if (filtros.filtroCategoria) {
-      resultado = resultado.filter((examen) => examen.categoria === filtros.filtroCategoria);
-    }
-
-    if (filtros.filtroEstado) {
-      resultado = resultado.filter((examen) => examen.estado === filtros.filtroEstado);
-    }
-
-    if (filtros.filtroFecha) {
-      resultado = resultado.filter((examen) => {
-        const fecha = dayjs(examen.fecha_solicitud);
-        return fecha.isAfter(filtros.filtroFecha![0]) && fecha.isBefore(filtros.filtroFecha![1]);
-      });
-    }
-
-    return resultado;
-  }, [filtros]);
+  const cargarExamenes = useCallback(() => {
+    recargar();
+    cargarResumen();
+  }, [recargar, cargarResumen]);
 
   const limpiarFiltros = useCallback(() => {
     dispatchFiltros({ type: 'LIMPIAR' });
@@ -190,38 +128,15 @@ const Laboratorio: React.FC = () => {
     });
   }, [modal, message, cargarExamenes]);
 
-  const handleExportExcel = useCallback(() => {
+  const handleExportExcel = useCallback(async () => {
+    // El servidor arma el Excel con TODOS los exámenes filtrados (auditado).
     try {
-      const columnas = {
-        'id': 'ID',
-        'paciente_nombre': 'Paciente',
-        'tipo_examen_nombre': 'Tipo Examen',
-        'fecha_solicitud': 'Fecha Solicitud',
-        'hemoglobina': 'Hemoglobina',
-        'hematocrito': 'Hematocrito',
-        'glucosa': 'Glucosa',
-        'grupo_sanguineo': 'Grupo Sang.',
-        'factor_rh': 'RH',
-        'vih': 'VIH',
-        'vdrl': 'VDRL',
-        'orina_proteinas': 'Proteínas',
-        'observaciones': 'Observaciones'
-      };
-
-      exportarExcel(
-        examenesFiltrados,
-        columnas,
-        {
-          filename: `laboratorio_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-          sheetName: 'Laboratorio',
-          title: `Exámenes de Laboratorio - ${dayjs().format('DD/MM/YYYY')}`
-        }
-      );
-      message.success('Archivo Excel generado exitosamente');
-    } catch (error) {
-      message.error('Error al generar el archivo Excel');
+      await descargarArchivo(`${URL_EXAMENES}exportar-excel/${aQuery(parametros())}`,
+        `laboratorio_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`);
+    } catch {
+      message.error('No se pudo generar el Excel de laboratorio');
     }
-  }, [examenesFiltrados, message]);
+  }, [parametros, message]);
 
   const columns = useMemo(
     () => buildLaboratorioColumns(canChange, canDelete, handleVer, handleEditar, handleEliminar),
@@ -231,10 +146,6 @@ const Laboratorio: React.FC = () => {
   // ==========================================================================
   // RENDER
   // ==========================================================================
-  if (loading && examenesRef.current.length === 0) {
-    return <GlobalLoader tip="Cargando exámenes de laboratorio…" />;
-  }
-
   return (
     <div className="laboratorio-container animate-fade-in">
       {/* ESTADÍSTICAS */}
@@ -264,6 +175,11 @@ const Laboratorio: React.FC = () => {
               Exportar Excel
             </Button>
             {canAdd('examen') && (
+              <Button icon={<UploadOutlined />} onClick={() => setImportando(true)}>
+                Importar Excel
+              </Button>
+            )}
+            {canAdd('examen') && (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevo}>
                 Nuevo Examen
               </Button>
@@ -278,21 +194,24 @@ const Laboratorio: React.FC = () => {
           onLimpiar={limpiarFiltros}
         />
 
+        {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
         <Table
           columns={columns}
-          dataSource={examenesFiltrados}
+          dataSource={listado.datos}
           locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay exámenes de laboratorio registrados" /> }}
-          rowKey={(record: any) => record._uniqueRowKey || `laboratorio-fallback-${record.id}`}
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} exámenes`,
-          }}
+          rowKey="id"
+          loading={listado.cargando}
+          pagination={listado.paginacion}
+          onChange={listado.onChange}
           scroll={{ x: 1300 }}
           bordered
         />
       </Card>
+      <ImportarLaboratorioModal
+        open={importando}
+        onClose={() => setImportando(false)}
+        onImportado={cargarExamenes}
+      />
     </div>
   );
 };

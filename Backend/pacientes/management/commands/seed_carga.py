@@ -30,6 +30,7 @@ para poder identificarlos y limpiarlos sin tocar datos reales.
 from __future__ import annotations
 
 import random
+from io import StringIO
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
@@ -275,35 +276,17 @@ class Command(BaseCommand):
             )
             self.tipos_vacuna.append(tv)
 
+        from django.core.management import call_command
+
+        from laboratorio.catalogo import PANEL_PRENATAL
         from laboratorio.models import TipoExamen
 
-        # El catálogo de exámenes venía VACÍO en el tenant, así que la lista
-        # quedaba en [] y no se creaba ni un laboratorio: la sección
-        # "Laboratorio" de la historia clínica salía vacía para las 500.
-        # Se siembra el panel prenatal básico del MSP boliviano.
-        examenes_base = [
-            ("Hemograma completo", "HEM-001", "hematologia", 24, "35.00"),
-            ("Glucemia en ayunas", "BIO-001", "bioquimica", 12, "20.00"),
-            ("Grupo sanguíneo y factor Rh", "INM-001", "inmunologia", 24, "40.00"),
-            ("Examen general de orina", "URI-001", "urinalisis", 12, "25.00"),
-            ("VDRL / sífilis", "SER-001", "serologia", 48, "45.00"),
-        ]
-        self.tipos_examen = []
-        for nombre, codigo, categoria, horas, precio in examenes_base:
-            te, _ = TipoExamen.objects.get_or_create(
-                codigo=codigo,
-                defaults={
-                    "nombre": nombre,
-                    "categoria": categoria,
-                    "descripcion": f"{nombre} — control prenatal de rutina",
-                    "preparacion": "Ayuno de 8 horas" if categoria == "bioquimica" else "Sin preparación especial",
-                    "tiempo_resultado": horas,
-                    "precio": Decimal(precio),
-                    "activo": True,
-                    "created_by": self.medico,
-                },
-            )
-            self.tipos_examen.append(te)
+        # Catálogo real (tipos + rangos de referencia, laboratorio/catalogo.py).
+        # Antes se sembraban 5 tipos con otros códigos y SIN rangos: ningún
+        # examen «completado» tenía resultados.
+        call_command("poblar_valores_referencia", stdout=StringIO())
+        self.tipos_examen = list(TipoExamen.objects.filter(codigo__in=PANEL_PRENATAL))
+        self.rangos = {te.pk: list(te.valores_referencia.all()) for te in self.tipos_examen}
 
     # ── Limpieza ───────────────────────────────────────────────────────────
     def _limpiar(self):
@@ -592,18 +575,22 @@ class Command(BaseCommand):
             # Mayoría completados; algunos en curso, como en la vida real.
             estado = random.choices(
                 ["completado", "en_proceso", "solicitado"], [75, 15, 10])[0]
-            ExamenLaboratorio.objects.create(
+            # Nunca después de ahora: una solicitud de ayer + 2 días caía mañana.
+            ahora = timezone.now()
+            examen = ExamenLaboratorio.objects.create(
                 paciente=paciente,
                 tipo_examen=te,
                 medico_solicitante=self.medico,
                 fecha_solicitud=solicitud,
-                fecha_muestra=solicitud + timedelta(days=1) if estado != "solicitado" else None,
-                fecha_resultado=solicitud + timedelta(days=2) if estado == "completado" else None,
+                fecha_muestra=min(solicitud + timedelta(days=1), ahora) if estado != "solicitado" else None,
+                fecha_resultado=min(solicitud + timedelta(days=2), ahora) if estado == "completado" else None,
                 estado=estado,
                 prioridad=random.choices(["normal", "urgente", "stat"], [85, 12, 3])[0],
                 indicaciones=te.preparacion,
                 observaciones=f"{MARCA_CARGA} panel prenatal",
             )
+            if estado == "completado":
+                self._crear_resultados(examen)
 
         # ── Desenlace: parto o pérdida ──
         #
@@ -667,6 +654,28 @@ class Command(BaseCommand):
             circunferencia_abdominal=medidas["ca"],
             longitud_femur=medidas["lf"],
         )
+
+    def _crear_resultados(self, examen):
+        """Un resultado por parámetro del examen, ~90 % dentro del rango.
+
+        `ResultadoLaboratorio.save()` decide si es normal o crítico con el
+        rango de referencia: aquí solo se elige el valor.
+        """
+        from laboratorio.models import ResultadoLaboratorio
+
+        for rango in self.rangos.get(examen.tipo_examen_id, []):
+            resultado = ResultadoLaboratorio(examen=examen, valor_referencia=rango, created_by=self.medico)
+            if rango.valor_minimo is not None and rango.valor_maximo is not None:
+                bajo, alto = float(rango.valor_minimo), float(rango.valor_maximo)
+                ancho = max(alto - bajo, 0.1)
+                if random.random() < 0.9:
+                    valor = random.uniform(bajo, alto)
+                else:
+                    valor = random.choice([bajo - random.uniform(0.05, 0.3) * ancho, alto + random.uniform(0.05, 0.3) * ancho])
+                resultado.valor_numerico = Decimal(f"{max(valor, 0):.2f}")
+            else:
+                resultado.valor_texto = rango.valor_normal or "Normal"
+            resultado.save()
 
     def _crear_parto(self, paciente, embarazo, fum, semanas, *, z_fetal=0.0):
         """Crea el parto y sus recien nacidos, con medidas coherentes.
