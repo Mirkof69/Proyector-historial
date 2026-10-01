@@ -827,6 +827,18 @@ try:
 except ImportError:
     SENTRY_AVAILABLE = False
 
+# Rotación segura entre PROCESOS. Con RotatingFileHandler, varios procesos
+# (los hilos de waitress, los workers del WebSocket, Celery) escriben el mismo
+# archivo y en Windows ninguno puede renombrarlo al rotar: cada petición
+# dejaba un «PermissionError [WinError 32]» en la consola (visto el
+# 01/10/2026). ConcurrentRotatingFileHandler bloquea el archivo antes de rotar.
+try:
+    import concurrent_log_handler  # noqa: F401
+
+    _ROTATIVO = "concurrent_log_handler.ConcurrentRotatingFileHandler"
+except ImportError:
+    _ROTATIVO = "logging.handlers.RotatingFileHandler"
+
 # Build handlers dict conditionally
 _handlers = {
     # Consola para desarrollo
@@ -839,7 +851,7 @@ _handlers = {
     # Archivo principal con rotación
     "file_main": {
         "level": "INFO",
-        "class": "logging.handlers.RotatingFileHandler",
+        "class": _ROTATIVO,
         "filename": LOG_DIR / "django.log",
         "maxBytes": 10 * 1024 * 1024,  # 10MB
         "backupCount": 5,
@@ -849,7 +861,7 @@ _handlers = {
     # Archivo de errores con rotación
     "file_errors": {
         "level": "WARNING",
-        "class": "logging.handlers.RotatingFileHandler",
+        "class": _ROTATIVO,
         "filename": LOG_DIR / "errors.log",
         "maxBytes": 10 * 1024 * 1024,  # 10MB
         "backupCount": 5,
@@ -859,7 +871,7 @@ _handlers = {
     # Archivo de auditoría con rotación
     "file_audit": {
         "level": "INFO",
-        "class": "logging.handlers.RotatingFileHandler",
+        "class": _ROTATIVO,
         "filename": LOG_DIR / "audit.log",
         "maxBytes": 10 * 1024 * 1024,  # 10MB
         "backupCount": 10,
@@ -869,7 +881,7 @@ _handlers = {
     # Archivo de requests con rotación
     "file_requests": {
         "level": "INFO",
-        "class": "logging.handlers.RotatingFileHandler",
+        "class": _ROTATIVO,
         "filename": LOG_DIR / "requests.log",
         "maxBytes": 10 * 1024 * 1024,  # 10MB
         "backupCount": 5,

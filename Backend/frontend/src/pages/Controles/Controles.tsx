@@ -368,7 +368,7 @@ const Controles: React.FC = () => {
                 >
                   Exportar Excel
                 </Button>
-                {canAdd('control') && (
+                {canAdd('controlprenatal') && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}

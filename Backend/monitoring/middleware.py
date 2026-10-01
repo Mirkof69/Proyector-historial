@@ -43,8 +43,9 @@ class RequestMonitoringMiddleware:
         # Capture request start time
         start_time = time.time()
 
-        # Log incoming request
-        request_logger.info(
+        # La entrada va en DEBUG: la línea de SALIDA (con estado y duración) ya
+        # identifica la petición; dos líneas por petición duplicaban el log.
+        request_logger.debug(
             "%s %s",
             request.method,
             path,

@@ -173,7 +173,7 @@ export const buildControlesColumns = (deps: ControlesColumnsDeps) => {
                 onClick={() => handleViewDetails(record)}
               />
             </Tooltip>
-            {canChange('control') && (
+            {canChange('controlprenatal') && (
               <Tooltip title="Editar control">
                 <Button
                   type="primary"
@@ -183,7 +183,7 @@ export const buildControlesColumns = (deps: ControlesColumnsDeps) => {
                 />
               </Tooltip>
             )}
-            {canDelete('control') && (
+            {canDelete('controlprenatal') && (
               <Tooltip title="Eliminar control">
                 <Button
                   danger

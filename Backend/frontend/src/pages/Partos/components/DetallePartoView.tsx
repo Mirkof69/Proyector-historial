@@ -170,7 +170,7 @@ const DetallePartoView: React.FC<DetallePartoViewProps> = ({
       )}
       <Card title={<Space><FileTextOutlined />Antecedentes obstétricos</Space>} style={{ marginBottom: 16 }}>
         {embarazo ? (
-          <Descriptions column={{ xs: 1, sm: 2, lg: 3 }} bordered size="small">
+          <Descriptions column={{ xs: 1, md: 2 }} bordered size="small">
             <Descriptions.Item label="Fórmula obstétrica">
               G{embarazo.numero_gesta} P{embarazo.numero_para ?? 0} A{embarazo.numero_abortos ?? 0} C{embarazo.numero_cesareas ?? 0}
             </Descriptions.Item>
@@ -232,7 +232,7 @@ const DetallePartoView: React.FC<DetallePartoViewProps> = ({
         </Col>
       </Row>
       <Card style={{ marginBottom: 16 }}>
-        <Descriptions column={{ xs: 1, sm: 2, lg: 3 }} bordered size="small">
+        <Descriptions column={{ xs: 1, md: 2 }} bordered size="small">
           <Descriptions.Item label="Fecha y hora del parto"><Space><CalendarOutlined />{fecha(parto.fecha_parto)}</Space></Descriptions.Item>
           <Descriptions.Item label="Período expulsivo">
             {p.duracion_periodo_expulsivo_minutos != null ? `${p.duracion_periodo_expulsivo_minutos} min` : '—'}
@@ -253,7 +253,7 @@ const DetallePartoView: React.FC<DetallePartoViewProps> = ({
 
   const alumbramiento = (
     <Card title="Alumbramiento" style={{ marginBottom: 16 }}>
-      <Descriptions column={{ xs: 1, sm: 2, lg: 3 }} bordered size="small">
+      <Descriptions column={{ xs: 1, md: 2 }} bordered size="small">
         <Descriptions.Item label="Tipo">{legible(parto.tipo_alumbramiento) || '—'}</Descriptions.Item>
         <Descriptions.Item label="Placenta completa">{si(p.placenta_completa)}</Descriptions.Item>
         <Descriptions.Item label="Peso de la placenta">{p.peso_placenta ? `${p.peso_placenta} g` : '—'}</Descriptions.Item>

@@ -174,12 +174,12 @@ const Laboratorio: React.FC = () => {
             <Button icon={<FileExcelOutlined />} onClick={handleExportExcel}>
               Exportar Excel
             </Button>
-            {canAdd('examen') && (
+            {canAdd('examenlaboratorio') && (
               <Button icon={<UploadOutlined />} onClick={() => setImportando(true)}>
-                Importar Excel
+                Importar Excel o CSV
               </Button>
             )}
-            {canAdd('examen') && (
+            {canAdd('examenlaboratorio') && (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevo}>
                 Nuevo Examen
               </Button>

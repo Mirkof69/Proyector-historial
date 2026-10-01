@@ -129,12 +129,12 @@ export const buildLaboratorioColumns = (
         <Tooltip title="Ver detalle">
           <Button type="link" icon={<EyeOutlined />} onClick={() => onVer(record.id!)} />
         </Tooltip>
-        {canChange('examen') && (
+        {canChange('examenlaboratorio') && (
           <Tooltip title="Editar">
             <Button type="link" icon={<EditOutlined />} onClick={() => onEditar(record.id!)} />
           </Tooltip>
         )}
-        {canDelete('examen') && (
+        {canDelete('examenlaboratorio') && (
           <Tooltip title="Eliminar">
             <Button type="link" danger icon={<DeleteOutlined />} onClick={() => onEliminar(record)} />
           </Tooltip>
