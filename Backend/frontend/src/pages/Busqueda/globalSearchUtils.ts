@@ -1,10 +1,5 @@
 import api from '../../services/api';
 import dayjs from 'dayjs';
-import { pacientesService } from '../../services/pacientesService';
-import { embarazosService } from '../../services/embarazosService';
-import { citasService } from '../../services/citasService';
-import { ecografiasService } from '../../services/ecografiasService';
-import { laboratorioService } from '../../services/laboratorioService';
 import { consultoriosService } from '../../services/consultoriosService';
 
 export interface SearchResult {
@@ -39,28 +34,37 @@ export const calculateRelevance = (query: string, fields: (string | undefined)[]
   return score;
 };
 
+/**
+ * Pide al SERVIDOR los resultados de un módulo (`?search=`, 20 como mucho).
+ *
+ * Antes cada búsqueda descargaba TODOS los registros de seis módulos
+ * (miles de pacientes, embarazos, controles…) y filtraba en el navegador con
+ * `includes`, que no encontraba «López» al escribir «lopez». El servidor
+ * entiende los nombres cifrados, las tildes y las variantes (Quispe/Kispe).
+ */
+const buscarEnServidor = async (url: string, query: string): Promise<any[]> => {
+  const respuesta = await api.get(url, { params: { search: query, page_size: 20 } });
+  const datos = respuesta.data;
+  return Array.isArray(datos) ? datos : datos?.results ?? [];
+};
+
+const ordenar = (resultados: SearchResult[]) => resultados.sort((a, b) => b.relevancia - a.relevancia);
+
 // Búsqueda en Pacientes
 export const searchPacientes = async (query: string): Promise<SearchResult[]> => {
   try {
-    const data = await pacientesService.listar() as any[];
-    const results: SearchResult[] = [];
-    for (const p of data) {
-      const _pSearchText = [p.nombre, p.apellido_paterno, p.apellido_materno, p.ci, p.id_clinico].filter(Boolean).join(' ').toLowerCase();
-      if (_pSearchText.includes(query)) {
-        results.push({
-          id: p.id,
-          tipo: 'paciente',
-          titulo: `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''}`.trim(),
-          subtitulo: `CI: ${p.ci || 'N/A'} | ID: ${p.id_clinico || 'N/A'}`,
-          descripcion: `${p.edad || 'N/A'} años | ${p.genero || 'N/A'}`,
-          fecha: p.fecha_registro,
-          estado: p.embarazo_activo ? 'Embarazo Activo' : 'Sin embarazo',
-          relevancia: calculateRelevance(query, [p.nombre, p.apellido_paterno, p.apellido_materno, p.ci, p.id_clinico]),
-          data: p
-        });
-      }
-    }
-    return results.sort((a, b) => b.relevancia - a.relevancia);
+    const data = await buscarEnServidor('/pacientes/', query);
+    return ordenar(data.map((p) => ({
+      id: p.id,
+      tipo: 'paciente',
+      titulo: p.nombre_completo || `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''}`.trim(),
+      subtitulo: `CI: ${p.ci || 'N/A'} | ID: ${p.id_clinico || 'N/A'}`,
+      descripcion: `${p.edad ?? 'N/A'} años`,
+      fecha: p.fecha_registro,
+      estado: p.embarazos_activos || p.embarazo_activo ? 'Embarazo activo' : 'Sin embarazo activo',
+      relevancia: calculateRelevance(query, [p.nombre, p.apellido_paterno, p.apellido_materno, p.ci, p.id_clinico]),
+      data: p,
+    })));
   } catch (error) {
     return [];
   }
@@ -68,26 +72,21 @@ export const searchPacientes = async (query: string): Promise<SearchResult[]> =>
 
 export const searchEmbarazos = async (query: string): Promise<SearchResult[]> => {
   try {
-    const data = await embarazosService.listar() as any[];
-    const results: SearchResult[] = [];
-    for (const e of data) {
-      const pacienteNombre = e.paciente_info?.nombre_completo || e.paciente_info?.nombre || '';
-      const _eSearchText = [pacienteNombre, e.codigo_embarazo].filter(Boolean).join(' ').toLowerCase();
-      if (_eSearchText.includes(query)) {
-        results.push({
-          id: e.id || 0,
-          tipo: 'embarazo',
-          titulo: `Embarazo de ${pacienteNombre || 'N/A'}`,
-          subtitulo: `Código: ${e.codigo_embarazo || 'N/A'}`,
-          descripcion: `${e.semanas_gestacion || 0} semanas | FUM: ${dayjs(e.fecha_ultima_menstruacion).format('DD/MM/YYYY')}`,
-          fecha: e.fecha_registro,
-          estado: e.estado,
-          relevancia: calculateRelevance(query, [pacienteNombre, e.codigo_embarazo]),
-          data: e
-        });
-      }
-    }
-    return results.sort((a, b) => b.relevancia - a.relevancia);
+    const data = await buscarEnServidor('/embarazos/', query);
+    return ordenar(data.map((e) => {
+      const pacienteNombre = e.paciente_nombre || e.paciente_info?.nombre_completo || e.paciente_info?.nombre || '';
+      return {
+        id: e.id || 0,
+        tipo: 'embarazo',
+        titulo: `Embarazo de ${pacienteNombre || 'N/A'}`,
+        subtitulo: `Código: ${e.codigo_embarazo || 'N/A'}`,
+        descripcion: `${e.semanas_gestacion ?? 0} semanas | FUM: ${e.fecha_ultima_menstruacion ? dayjs(e.fecha_ultima_menstruacion).format('DD/MM/YYYY') : '—'}`,
+        fecha: e.fecha_registro,
+        estado: e.estado,
+        relevancia: calculateRelevance(query, [pacienteNombre, e.codigo_embarazo]),
+        data: e,
+      };
+    }));
   } catch (error) {
     return [];
   }
@@ -95,25 +94,18 @@ export const searchEmbarazos = async (query: string): Promise<SearchResult[]> =>
 
 export const searchCitas = async (query: string): Promise<SearchResult[]> => {
   try {
-    const data = await citasService.listar() as any[];
-    const results: SearchResult[] = [];
-    for (const c of data) {
-      const _cSearchText = [c.paciente_nombre, c.medico_nombre, c.motivo].filter(Boolean).join(' ').toLowerCase();
-      if (_cSearchText.includes(query)) {
-        results.push({
-          id: c.id,
-          tipo: 'cita',
-          titulo: `Cita - ${c.paciente_nombre}`,
-          subtitulo: `Médico: ${c.medico_nombre || 'N/A'}`,
-          descripcion: c.motivo || 'Sin motivo',
-          fecha: c.fecha_hora,
-          estado: c.estado,
-          relevancia: calculateRelevance(query, [c.paciente_nombre, c.medico_nombre, c.motivo]),
-          data: c
-        });
-      }
-    }
-    return results.sort((a, b) => b.relevancia - a.relevancia);
+    const data = await buscarEnServidor('/citas/citas/', query);
+    return ordenar(data.map((c) => ({
+      id: c.id,
+      tipo: 'cita',
+      titulo: `Cita - ${c.paciente_nombre || ''}`,
+      subtitulo: `Médico: ${c.medico_nombre || 'N/A'}`,
+      descripcion: c.motivo || 'Sin motivo',
+      fecha: c.fecha_cita || c.fecha_hora,
+      estado: c.estado,
+      relevancia: calculateRelevance(query, [c.paciente_nombre, c.medico_nombre, c.motivo]),
+      data: c,
+    })));
   } catch (error) {
     return [];
   }
@@ -121,25 +113,18 @@ export const searchCitas = async (query: string): Promise<SearchResult[]> => {
 
 export const searchEcografias = async (query: string): Promise<SearchResult[]> => {
   try {
-    const data = await ecografiasService.listar() as any[];
-    const results: SearchResult[] = [];
-    for (const e of data) {
-      const _ecSearchText = [e.paciente_nombre, e.tipo_ecografia, e.observaciones].filter(Boolean).join(' ').toLowerCase();
-      if (_ecSearchText.includes(query)) {
-        results.push({
-          id: e.id,
-          tipo: 'ecografia',
-          titulo: `Ecografía - ${e.paciente_nombre}`,
-          subtitulo: `Tipo: ${e.tipo_ecografia || 'N/A'}`,
-          descripcion: e.observaciones || 'Sin observaciones',
-          fecha: e.fecha,
-          estado: 'Realizada',
-          relevancia: calculateRelevance(query, [e.paciente_nombre, e.tipo_ecografia, e.observaciones]),
-          data: e
-        });
-      }
-    }
-    return results.sort((a, b) => b.relevancia - a.relevancia);
+    const data = await buscarEnServidor('/ecografias/', query);
+    return ordenar(data.map((e) => ({
+      id: e.id,
+      tipo: 'ecografia',
+      titulo: `Ecografía - ${e.paciente_nombre || ''}`,
+      subtitulo: `Tipo: ${e.tipo_ecografia_display || e.tipo_ecografia || 'N/A'}`,
+      descripcion: e.observaciones || e.diagnostico || 'Sin observaciones',
+      fecha: e.fecha_ecografia || e.fecha,
+      estado: 'Realizada',
+      relevancia: calculateRelevance(query, [e.paciente_nombre, e.tipo_ecografia, e.observaciones]),
+      data: e,
+    })));
   } catch (error) {
     return [];
   }
@@ -147,25 +132,18 @@ export const searchEcografias = async (query: string): Promise<SearchResult[]> =
 
 export const searchLaboratorio = async (query: string): Promise<SearchResult[]> => {
   try {
-    const data = await laboratorioService.listar() as any[];
-    const results: SearchResult[] = [];
-    for (const l of data) {
-      const _lSearchText = [l.paciente_nombre, l.tipo_examen, l.nombre_examen].filter(Boolean).join(' ').toLowerCase();
-      if (_lSearchText.includes(query)) {
-        results.push({
-          id: l.id,
-          tipo: 'laboratorio',
-          titulo: `Laboratorio - ${l.paciente_nombre}`,
-          subtitulo: `Examen: ${l.nombre_examen || l.tipo_examen || 'N/A'}`,
-          descripcion: `Resultado: ${l.resultado || 'Pendiente'}`,
-          fecha: l.fecha_solicitud,
-          estado: l.estado,
-          relevancia: calculateRelevance(query, [l.paciente_nombre, l.tipo_examen, l.nombre_examen]),
-          data: l
-        });
-      }
-    }
-    return results.sort((a, b) => b.relevancia - a.relevancia);
+    const data = await buscarEnServidor('/laboratorios/examenes/', query);
+    return ordenar(data.map((l) => ({
+      id: l.id,
+      tipo: 'laboratorio',
+      titulo: `Laboratorio - ${l.paciente_nombre || ''}`,
+      subtitulo: `Examen: ${l.tipo_examen_nombre || l.nombre_examen || l.tipo_examen || 'N/A'}`,
+      descripcion: `Estado: ${l.estado || 'pendiente'}`,
+      fecha: l.fecha_solicitud,
+      estado: l.estado,
+      relevancia: calculateRelevance(query, [l.paciente_nombre, l.tipo_examen_nombre, l.nombre_examen]),
+      data: l,
+    })));
   } catch (error) {
     return [];
   }

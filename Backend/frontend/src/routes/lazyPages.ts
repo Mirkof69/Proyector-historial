@@ -13,7 +13,6 @@ export const LandingPage = lazy(() => import('../pages/Dashboard/LandingPage'));
 export const SetupMfa = lazy(() => import('../pages/SetupMfa/SetupMfa'));
 
 export const DashboardHome = lazy(() => import('../pages/Dashboard/DashboardHome'));
-export const DashboardGraficasReales = lazy(() => import('../pages/Dashboard/DashboardGraficasReales'));
 export const Pacientes = lazy(() => import('../pages/Pacientes/Pacientes'));
 export const DetallePaciente = lazy(() => import('../pages/Pacientes/DetallePaciente'));
 export const FormularioPaciente = lazy(() => import('../pages/Pacientes/FormularioPaciente'));

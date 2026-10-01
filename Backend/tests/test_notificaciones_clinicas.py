@@ -224,9 +224,11 @@ class FechaLocalNoUtcTest(TestCase):
                                              password="clave-segura-123", rol="medico")
         p = Paciente.objects.create(nombre="Noc", apellido_paterno="Turna", apellido_materno="X",
                                     fecha_nacimiento=dt.date(1993, 1, 1), genero="femenino", ci="7855501")
-        # 21:00 en La Paz = 01:00 UTC del día siguiente
-        ahora = timezone.make_aware(dt.datetime(2026, 9, 30, 21, 0))
-        Cita.objects.create(paciente=p, medico=medico, fecha_cita=dt.date(2026, 9, 30), hora_cita=dt.time(23, 0),
+        # 21:00 en La Paz = 01:00 UTC del día siguiente. Fecha relativa (mañana):
+        # una cita en una fecha pasada no se puede crear.
+        dia = timezone.localdate() + dt.timedelta(days=1)
+        ahora = timezone.make_aware(dt.datetime.combine(dia, dt.time(21, 0)))
+        Cita.objects.create(paciente=p, medico=medico, fecha_cita=dia, hora_cita=dt.time(23, 0),
                             estado="agendada", tipo_cita="control", motivo="Control")
         with patch("notificaciones.tasks.timezone.now", return_value=ahora.astimezone(dt.timezone.utc)):
             self.assertEqual(enviar_recordatorios_citas()["enviadas"], 1)

@@ -14,7 +14,7 @@ import PageTransition from '../components/common/PageTransition';
 
 import {
   LandingPage, SetupMfa,
-  DashboardHome, DashboardGraficasReales, Pacientes, DetallePaciente, FormularioPaciente,
+  DashboardHome, Pacientes, DetallePaciente, FormularioPaciente,
   BusquedaAvanzada, GlobalSearch, HistoriaClinica, ListaHistoriasClinicas, Embarazos,
   DetalleEmbarazo, FormularioEmbarazo, Controles, DetalleControl, FormularioControl,
   Ecografias, DetalleEcografia, FormularioEcografia, VisorDICOM, ArchivosEcografia,
@@ -93,8 +93,10 @@ const AppRoutes: React.FC = () => {
           {/* DASHBOARD HOME */}
           <Route index element={<DashboardHome />} />
           <Route path="home" element={<DashboardHome />} />
-          <Route path="graficas" element={<DashboardGraficasReales />} />
-          <Route path="graficas-reales" element={<DashboardGraficasReales />} />
+          {/* Las «gráficas reales» bajaban TODOS los registros de 7 módulos para
+              dibujar en el navegador y repetían el centro de reportes */}
+          <Route path="graficas" element={<Navigate to="/dashboard/reportes?pestana=estadisticas" replace />} />
+          <Route path="graficas-reales" element={<Navigate to="/dashboard/reportes?pestana=estadisticas" replace />} />
 
           {/* MÓDULO: PACIENTES */}
           <Route path="pacientes" element={<ProtectedRoute requiredPermission="view_paciente"><Pacientes /></ProtectedRoute>} />
