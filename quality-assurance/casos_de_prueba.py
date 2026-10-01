@@ -167,6 +167,22 @@ CASOS = [
       "py:test_seed_carga::test_vacunas_y_laboratorios_caen_dentro_del_embarazo_y_antes_de_hoy"]),
     ("CP-104", "Login", "Alto", "Iniciar sesión y abrir el sistema sin errores de JavaScript", "Entra al panel",
      ["e2e:1. registrar la paciente con el asistente"]),
+    ("CP-037", "Ecografía", "Medio", "Adjuntar un archivo a una ecografía",
+     "El tipo se deduce del contenido; un HTML disfrazado de PDF se rechaza; recepción no ve adjuntos",
+     ["py:test_archivos_ecografia::test_subir_un_png_deduce_el_tipo_y_guarda_quien_lo_subio",
+      "py:test_archivos_ecografia::test_un_html_disfrazado_de_pdf_se_rechaza",
+      "py:test_archivos_ecografia::test_recepcion_no_ve_adjuntos_clinicos"]),
+    ("CP-105", "Reportes", "Medio", "Centro de reportes y KPIs", "KPIs con su forma; estadísticas sin error aun con base vacía; «del mes» en hora local",
+     ["py:test_kpis_dashboard::test_forma_y_valores", "py:test_estadisticas_base_vacia::test_ninguna_da_500",
+      "py:test_notificaciones_clinicas::test_controles_del_mes_a_las_21_del_ultimo_dia"]),
+    ("CP-106", "Exportación", "Medio", "Exportar un listado a Excel", "Respeta los filtros, usa etiquetas legibles y queda auditado",
+     ["py:test_exportaciones_excel::test_el_excel_respeta_el_filtro_y_usa_etiquetas",
+      "py:test_controles_listado_servidor::test_excel_respeta_filtros_y_queda_auditado",
+      "py:test_listados_servidor_embarazos_citas_pacientes::test_excel_con_filtros_etiquetas_y_auditado"]),
+    ("CP-110", "Rendimiento", "Alto", "Abrir cada listado con la demo de 3.200 pacientes",
+     "Menos de 5 s y 15 peticiones o menos por pantalla, sin errores JS ni 500",
+     [f"perf:/dashboard/{r}" for r in ("pacientes", "embarazos", "controles", "ecografias", "partos",
+                                       "laboratorio", "citas", "vacunas", "triaje", "notas-evolucion")]),
 ]
 
 
@@ -229,6 +245,21 @@ def resultados_e2e():
     return salida
 
 
+def resultados_rendimiento():
+    """perf:<ruta> → PASA si carga en < 5 s, con ≤ 15 peticiones y sin errores."""
+    _, texto = _ejecutar(["node", "recorrido_listados.js"], E2E)
+    salida = {}
+    for linea in texto.splitlines():
+        partes = linea.split()
+        if not partes or not partes[0].startswith("/dashboard") or "ms" not in partes:
+            continue
+        ruta, ms = partes[0], int(partes[1])
+        peticiones = int(partes[partes.index("API") + 1])
+        ok = linea.rstrip().endswith("ok") and ms < 5000 and peticiones <= 15
+        salida[f"perf:{ruta}"] = ("PASA" if ok else "FALLA", ms / 1000)
+    return salida
+
+
 def buscar(resultados, ref):
     """Coincidencia exacta, o por prefijo del título (Jest/E2E usan frases largas)."""
     if ref in resultados:
@@ -253,9 +284,11 @@ def main():
         print("E2E (Playwright)…", flush=True)
         resultados |= resultados_e2e()
         _ejecutar([str(PY_BACKEND), "manage.py", "limpiar_datos_e2e", "--schema=clinica_demo"], BACKEND)
+        print("Rendimiento de los listados…", flush=True)
+        resultados |= resultados_rendimiento()
 
     filas, cuenta = [], {"PASA": 0, "FALLA": 0, "SIN EJECUTAR": 0}
-    for cid, modulo, riesgo, caso, esperado, refs in CASOS:
+    for cid, modulo, riesgo, caso, esperado, refs in sorted(CASOS, key=lambda c: c[0]):
         estados = []
         for ref in refs:
             r = buscar(resultados, ref)
@@ -264,19 +297,21 @@ def main():
         cuenta[final] += 1
         pruebas = "<br>".join(f"`{r}`" + ("" if e == "PASA" else f" **{e}**") for r, e in zip(refs, estados, strict=True))
         obtenido = {"PASA": "✅ Pasa: obtenido = esperado", "FALLA": "❌ Falla", "SIN EJECUTAR": "⚪ Sin ejecutar"}[final]
-        filas.append(f"| {cid} | {modulo} | {riesgo} | {caso} | {esperado} | {obtenido} | {pruebas} |")
+        filas.append(f"| <a id=\"{cid.lower()}\"></a>{cid} | {modulo} | {riesgo} | {caso} | {esperado} | {obtenido} | {pruebas} |")
 
     fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
     SALIDA.write_text(f"""# Casos de prueba — esperado frente a obtenido
 
 Generado el {fecha} por `quality-assurance/casos_de_prueba.py`, que **ejecuta**
 las pruebas de cada caso. No editar a mano: volver a correr el script.
-Plan de QA y de pruebas: [QA_PLAN_DE_PRUEBAS.md](QA_PLAN_DE_PRUEBAS.md).
+Plan de QA y de pruebas: [QA_PLAN_DE_PRUEBAS.md](QA_PLAN_DE_PRUEBAS.md) ·
+Requisitos, historias de usuario y casos de uso: [sistema/](sistema/README.md).
 
 **Resultado: {cuenta['PASA']} de {len(CASOS)} casos pasan** · {cuenta['FALLA']} fallan · {cuenta['SIN EJECUTAR']} sin ejecutar
-{'' if con_e2e else '(esta corrida se hizo sin E2E)'}
+{'' if con_e2e else '(esta corrida se hizo sin E2E ni rendimiento)'}
 
-Prefijos: `py:` backend (pytest) · `ia:` microservicio de IA (pytest) · `js:` frontend (Jest) · `e2e:` navegador (Playwright).
+Prefijos: `py:` backend (pytest) · `ia:` microservicio de IA (pytest) · `js:` frontend (Jest) ·
+`e2e:` navegador (Playwright) · `perf:` tiempo y peticiones medidos en el navegador.
 
 | ID | Módulo | Riesgo | Caso | Resultado esperado | Obtenido | Pruebas automáticas |
 |---|---|---|---|---|---|---|
