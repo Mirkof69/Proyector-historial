@@ -44,7 +44,7 @@ import { embarazosService, Embarazo } from '../../services/embarazosService';
 import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import './DetalleParto.css';
-import { handleImprimir, getApgarInterpretacion, getClasificacionPeso } from './detallePartoUtils';
+import { handleImprimir, getApgarInterpretacion } from './detallePartoUtils';
 import { descargarArchivo } from '../../utils/descargarArchivo';
 import DetallePartoAbortoView from './components/DetallePartoAbortoView';
 import DetallePartoView from './components/DetallePartoView';
@@ -139,9 +139,6 @@ const DetalleParto: React.FC = () => {
         }
       }
 
-      if (isMounted.current) {
-        message.success('Datos cargados correctamente');
-      }
     } catch (error) {
       if (isMounted.current) {
         message.error('Error al cargar los datos del parto');
@@ -149,7 +146,7 @@ const DetalleParto: React.FC = () => {
     } finally {
       if (isMounted.current) setLoading(false);
     }
-  }, [id]);
+  }, [id, message]);
 
   useEffect(() => {
     if (id) cargarDatos();
@@ -249,12 +246,9 @@ const DetalleParto: React.FC = () => {
   }
 
   const rn = parto.recien_nacidos && parto.recien_nacidos.length > 0 ? parto.recien_nacidos[0] : null;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const apgar1Interpretacion = getApgarInterpretacion(rn?.apgar_1_minuto || parto.apgar_1min || 0);
-  const apgar5Interpretacion = getApgarInterpretacion(rn?.apgar_5_minutos || parto.apgar_5min || 0);
+  // `??` y no `||`: un Apgar de 0 es un dato (y grave); uno faltante no es 0.
+  const apgar5Interpretacion = getApgarInterpretacion(rn?.apgar_5_minutos ?? parto.apgar_5min ?? 0);
   const duracionTP = calcularDuracionTrabajoParto();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const clasificacionPeso = rn?.peso_nacimiento ? getClasificacionPeso(rn.peso_nacimiento) : (parto.peso_bebe ? getClasificacionPeso(parto.peso_bebe) : null);
   const categoriaEG = getEdadGestacionalCategoria();
 
   return (
