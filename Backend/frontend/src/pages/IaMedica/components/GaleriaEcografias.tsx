@@ -3,7 +3,7 @@ import {
   Upload, Button, Tag, Spin, Typography, Row, Col, Empty, Tooltip, Select, Space,
 } from 'antd';
 import {
-  InboxOutlined, RobotOutlined, DownloadOutlined, FileImageOutlined,
+  InboxOutlined, RobotOutlined, FileImageOutlined,
   EyeOutlined, DeleteOutlined, ExperimentOutlined, LinkOutlined, NodeIndexOutlined,
 } from '@ant-design/icons';
 import { ImagenEcografica } from '../../../services/iaMedicaService';
@@ -138,7 +138,7 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
                     Ver Resultado
                   </Button>
                 )}
-                <Tooltip title="Analizar con EfficientNet-B4 + Grad-CAM + SHAP">
+                <Tooltip title="Plano anatómico, segmentación y medidas con redes entrenadas en ecografías reales">
                   <Button
                     type="primary"
                     block
@@ -147,7 +147,7 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
                     onClick={() => handleAnalyzeCNN(img)}
                     style={{ background: '#722ed1', borderColor: '#722ed1', marginBottom: 4 }}
                   >
-                    EffNetB4 + Grad-CAM
+                    Analizar con IA
                   </Button>
                 </Tooltip>
                 {ecografiasVinculadas[img.id] ? (

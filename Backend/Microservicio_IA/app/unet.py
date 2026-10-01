@@ -119,4 +119,5 @@ def elipse(binaria: np.ndarray) -> dict | None:
     a, b = max(d1, d2) / 2, min(d1, d2) / 2
     perimetro = math.pi * (3 * (a + b) - math.sqrt((3 * a + b) * (a + 3 * b)))
     return {"centro": (float(cx), float(cy)), "eje_mayor": 2 * a, "eje_menor": 2 * b,
-            "angulo": float(angulo), "perimetro": perimetro, "area": float(region.sum())}
+            "angulo": float(angulo), "ejes_cv": (float(d1), float(d2)),
+            "perimetro": perimetro, "area": float(region.sum())}

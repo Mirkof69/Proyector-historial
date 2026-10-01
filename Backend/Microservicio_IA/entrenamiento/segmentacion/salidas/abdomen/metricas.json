@@ -1,0 +1,46 @@
+{
+  "tarea": "abdomen",
+  "dataset": "Fetal Abdominal Structures Segmentation (Mendeley Data)",
+  "particion": "por paciente 70/15/15",
+  "imagenes_prueba": 245,
+  "pacientes_prueba": 26,
+  "epoca_elegida": 30,
+  "dice_validacion": 0.7367,
+  "dice_prueba": {
+    "higado": {
+      "medio": 0.8428,
+      "mediano": 0.8851,
+      "imagenes": 245
+    },
+    "estomago": {
+      "medio": 0.7056,
+      "mediano": 0.8218,
+      "imagenes": 238
+    },
+    "vena_umbilical": {
+      "medio": 0.7665,
+      "mediano": 0.8264,
+      "imagenes": 245
+    },
+    "aorta": {
+      "medio": 0.6858,
+      "mediano": 0.8,
+      "imagenes": 243
+    }
+  },
+  "dice_prueba_medio": 0.7502,
+  "marcadores_plano_abdominal": {
+    "estomago": {
+      "sensibilidad": 0.9185,
+      "especificidad": 0.8333,
+      "con_estructura": 233,
+      "sin_estructura": 12
+    },
+    "vena_umbilical": {
+      "sensibilidad": 0.9794,
+      "especificidad": 0.0,
+      "con_estructura": 243,
+      "sin_estructura": 2
+    }
+  }
+}

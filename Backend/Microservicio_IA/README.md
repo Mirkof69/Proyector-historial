@@ -1,141 +1,86 @@
-# 🧠 Microservicio de IA — Fetal Medical
+# Microservicio de IA — Fetal Medical Bolivia
 
-Microservicio **FastAPI** para análisis automático de ecografías fetales mediante
-Deep Learning. Expone un modelo híbrido **EfficientNet-B4 (PyTorch)** entrenado
-para detección multi-etiqueta de patologías obstétricas.
+Servicio **FastAPI + PyTorch** que analiza ecografías fetales con redes
+neuronales convolucionales **entrenadas con ecografías reales y medidas en
+pacientes que no vieron**. Cada respuesta lleva la métrica de la red que la
+produjo y la huella (sha256) de sus pesos.
 
-> ⚠️ **Uso clínico:** las salidas son de apoyo diagnóstico, no sustituyen el
-> juicio médico. Ver [ESTADO_RED_NEURONAL.md](ESTADO_RED_NEURONAL.md) para el
-> rendimiento medido por clase y las limitaciones conocidas.
+> **Uso clínico:** apoyo al diagnóstico. Toda medida y toda alarma la confirma
+> el médico (Ley 3131).
 
----
+## Redes en servicio
 
-## 🏗️ Arquitectura real
+| Red | Arquitectura | Datos | Resultado medido en datos no vistos |
+|---|---|---|---|
+| Plano anatómico (6 planos) | EfficientNet-B0 | FETAL_PLANES_DB, 12.400 imágenes de 1.792 madres | Exactitud 92,7 % en 5.271 imágenes de 896 madres |
+| Segmentación de cabeza | U-Net (codificador EfficientNet-B2) | Large-Scale Fetal Head Biometry, 2.833 imágenes de 1.038 pacientes | Dice cráneo 0,968. **Otro hospital (HC18, 999 imágenes):** circunferencia cefálica con error medio 4,4 mm (3,7 %), 92 % dentro del 5 %, R² 0,982 |
+| Segmentación de tórax y corazón | U-Net | FOCUS, 300 imágenes | Dice 0,93; índice cardiotorácico ±0,02 |
+| Segmentación abdominal | U-Net | Fetal Abdominal Structures, 1.588 imágenes de 169 pacientes | Dice hígado 0,84, vena umbilical 0,77, estómago 0,71, aorta 0,69; estómago visto en el 92 %, vena en el 98 % |
+| Cribado de anomalías cerebrales | EfficientNet-B0 | Fetal Brain Abnormalities + normales de FETAL_PLANES | Falsas alarmas en otro hospital: 1 de 1.866. **Sensibilidad real no medible** con datos públicos |
+| Circunferencia cefálica (regresión) | EfficientNet-B0 | HC18 | R² 0,978; error medio 7,0 mm (superada por la segmentación) |
 
-Un único modelo híbrido (`HybridEfficientNetB4` en [app/models.py](app/models.py)):
+La **EfficientNet-B4 de «14 patologías» se retiró** (01/10/2026): se entrenó
+con etiquetas no verificables (ver [datos/CATALOGO.md](datos/CATALOGO.md)) y
+no tenía ninguna métrica válida. Su historia queda en
+[entrenamiento/b4_retirada/](entrenamiento/b4_retirada/).
 
-- **Frontend de denoising** convolucional (3→64→64→3).
-- **Backbone EfficientNet-B4** (`timm`, `num_classes=0`, pooling promedio).
-- **Pooling por atención Transformer** (1 capa, `d_model=256`, 4 cabezas).
-- **Dos cabezas de salida**:
-  - **Clasificación multi-etiqueta**: 16 salidas (14 patologías + `normal` + `no_ecografia`).
-  - **Biometría** (BPD/HC/AC/FL/peso estimado) — ver advertencia abajo.
+Los modelos supervisados tabulares (cardiotocografía y peso al nacer) viven en
+el backend Django (`ia_medica/ml/`).
 
-Checkpoint: `trained_models/efficientnet_b4_renamed.pth` (PyTorch `state_dict`).
-Entrada: imágenes redimensionadas a **384×384**, normalizadas `/255.0`.
+## Flujo del análisis completo
 
-### Clases detectadas (orden del checkpoint)
+```
+imagen → plano anatómico
+       ├─ cerebro → segmentación de cabeza (HC, DBP, edad gestacional) + cribado cerebral
+       ├─ tórax   → segmentación de tórax y corazón (índice cardiotorácico)
+       ├─ abdomen → segmentación abdominal (¿corte adecuado para medir la CA?)
+       └─ fémur, cuello uterino, otro → solo el plano: no hay red de medida validada
+```
 
-`hidrocefalia`, `anencefalia`, `espina_bifida`, `labio_leporino`,
-`atresia_duodenal`, `cardiopatia_congenita`, `oligohidramnios`, `polihidramnios`,
-`restriccion_crecimiento`, `macrosomia_fetal`, `placenta_previa`,
-`preeclampsia_signos`, `muerte_fetal`, `embarazo_multiple`, `normal`,
-`no_ecografia`.
+Respuesta: informe en JSON con plano, medidas con su margen, estructuras vistas,
+hallazgos, avisos, imagen con las estructuras dibujadas (`superposicion_png`),
+redes usadas con sus métricas e `informe_texto`. Ver
+[app/analisis_ecografia.py](app/analisis_ecografia.py).
 
-Los umbrales de decisión por clase están recalibrados empíricamente contra un
-set de validación real (curva ROC + estadístico de Youden con margen de
-seguridad). Ver `CLASS_THRESHOLDS` en [app/config.py](app/config.py).
+## Endpoints (`/api`)
 
----
+| Método | Ruta | Qué hace |
+|---|---|---|
+| POST | `/analyze` · `/analisis-ecografia` | Análisis completo (con `tamano_pixel_mm` da milímetros) |
+| POST | `/plano-anatomico` | Solo el plano |
+| POST | `/segmentacion/{cabeza\|torax\|abdomen}` | Segmentar una estructura y medir |
+| POST | `/biometria/circunferencia-cefalica` | HC por regresión |
+| POST | `/anomalias-cerebrales` | Cribado cerebral |
+| GET | `/modelos` | Redes disponibles y sus métricas |
+| POST | `/quality-check` · `/consultar` | Calidad de imagen · chatbot obstétrico |
+| GET | `/health` | 503 si falta la red de plano (la puerta de todo análisis) |
 
-## 📦 Instalación
+## Instalar y ejecutar
 
 ```bash
-cd Microservicio_IA
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux/Mac
-source venv/bin/activate
-
-pip install -r requirements.txt
+pip install -r requirements.txt            # servir
+pip install -r requirements-entrenamiento.txt   # entrenar y probar
+uvicorn app.main:app --host 0.0.0.0 --port 8001
 ```
 
-Dependencias clave: `torch`, `timm`, `monai`, `pytorch-grad-cam`, `opencv-python`,
-`pydicom`, `fastapi`, `uvicorn`.
+Versiones exactas probadas: [requirements.lock.txt](requirements.lock.txt). Con
+mTLS: [start_mtls.sh](start_mtls.sh). Los pesos van en `trained_models/` (fuera
+de git).
 
----
+## Entrenar y medir
 
-## 🏃 Ejecutar
+| Red | Scripts | Métricas |
+|---|---|---|
+| Segmentación | `entrenamiento/segmentacion/preparar.py` y `entrenar.py <tarea>` | `entrenamiento/segmentacion/salidas/<tarea>/metricas.json` |
+| Plano y HC | `entrenamiento/redes_ecografia_real/` | `LEEME.md` |
+| Anomalías cerebrales | `entrenamiento/patologias_cerebrales/` | `INFORME.md` |
 
-La aplicación FastAPI vive en `app/main.py` (objeto `app`). Se lanza con Uvicorn:
+Reglas: partición por paciente; la época se elige con validación, nunca con la
+prueba; prueba externa en otro hospital cuando existe; las pruebas comprueban
+que la API reproduce lo medido al entrenar.
+
+## Pruebas
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+python -m pytest -q        # 29 pruebas
 ```
-
-Con mTLS (producción): ver [start_mtls.sh](start_mtls.sh).
-
-Servicio disponible en **http://localhost:8001** · Swagger en **/docs**.
-
-El modelo se carga en el evento `lifespan` de startup vía `ModelManager`.
-
----
-
-## 📚 Endpoints REST (`app/routes.py`, prefijo `/api`)
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| POST | `/api/analyze` | Análisis completo con EfficientNet-B4 (clasificación + biometría). |
-| POST | `/api/detect-pathologies` | Detección de patologías fetales + biometría. |
-| POST | `/api/detect-anomalies` | Detección de anomalías fetales. |
-| POST | `/api/classify` | Clasificación de tipo de ecografía (endpoint legado). |
-| POST | `/api/quality-check` | Evaluación de calidad de imagen médica. |
-| POST | `/api/consultar` | Chatbot médico obstétrico. |
-| GET  | `/health` | Estado del servicio, modelo cargado y device. |
-
-Ejemplo:
-
-```bash
-curl -X POST "http://localhost:8001/api/analyze" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@ecografia.jpg"
-```
-
----
-
-## 🔗 Integración con Django
-
-El flujo productivo **no** es una llamada HTTP directa desde la vista. Es:
-
-```
-Vista Django → tarea Celery → cnn_service (HTTP con circuit breaker + mTLS)
-             → este microservicio FastAPI → callback/persistencia
-```
-
-Ver `ecografias/` (tareas Celery y `cnn_service`) en el backend Django.
-
----
-
-## ⚠️ Limitaciones conocidas (honestidad clínica)
-
-- **Biometría sintética no validada**: el `biometry_head` (BPD/HC/AC/FL/peso) se
-  entrenó con objetivos **sintéticos** por categoría clínica, no con mediciones
-  reales anotadas (`BIOMETRY_METHOD = "estimacion_sintetica_no_validada"` en
-  [app/config.py](app/config.py)). Es orientativo; **nunca** debe tratarse como
-  una medición validada.
-- **`no_ecografia`**: el rechazo de imágenes no médicas se apoya sobre todo en
-  heurística de saturación de color (pocas imágenes de entrenamiento reales para
-  esa clase).
-- **Clases más débiles**: `cardiopatia_congenita` y `polihidramnios` tienen el
-  peor rendimiento medido. Ver [ESTADO_RED_NEURONAL.md](ESTADO_RED_NEURONAL.md).
-- **Autenticación**: el acceso se protege por **mTLS** (ver `start_mtls.sh`) y
-  la restricción de IP interna del gateway Kong. No hay JWT propio del
-  microservicio.
-
----
-
-## 🛠️ Tecnologías
-
-- **FastAPI** + **Uvicorn** — servidor ASGI.
-- **PyTorch** + **timm (EfficientNet-B4)** — modelo.
-- **MONAI** — transforms médicas.
-- **pytorch-grad-cam** — mapas de calor (Grad-CAM) para explicabilidad.
-- **OpenCV** — procesamiento de imágenes.
-- **PyDICOM** — lectura de imágenes DICOM.
-
----
-
-## 📄 Licencia
-
-Parte del sistema **Fetal Medical** — Historia Clínica Obstétrica.

@@ -1,0 +1,29 @@
+{
+  "tarea": "torax",
+  "dataset": "FOCUS (Zenodo 14597550)",
+  "particion": "oficial de FOCUS (sin id de paciente)",
+  "imagenes_prueba": 50,
+  "pacientes_prueba": 50,
+  "epoca_elegida": 64,
+  "dice_validacion": 0.9294,
+  "dice_prueba": {
+    "torax": {
+      "medio": 0.9284,
+      "mediano": 0.9325,
+      "imagenes": 50
+    },
+    "corazon": {
+      "medio": 0.9269,
+      "mediano": 0.9351,
+      "imagenes": 50
+    }
+  },
+  "dice_prueba_medio": 0.9276,
+  "indice_cardiotoracico_prueba": {
+    "ict_circunferencias_error_medio": 0.02,
+    "ict_circunferencias_experto_medio": 0.4898,
+    "ict_areas_error_medio": 0.0191,
+    "ict_areas_experto_medio": 0.2341,
+    "imagenes": 50
+  }
+}

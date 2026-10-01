@@ -7,9 +7,7 @@ from .ai_views import (
     anomalias_cerebrales,
     analyze_ultrasound_with_ai,
     circunferencia_cefalica,
-    classify_ultrasound,
     crear_ecografia_desde_ia,
-    detect_anomalies,
     plano_anatomico,
 )
 from .views import EcografiaViewSet
@@ -19,12 +17,10 @@ router.register(r"", EcografiaViewSet, basename="ecografia")
 
 urlpatterns = [
     # Endpoints de IA — deben ir ANTES del router para evitar que DefaultRouter
-    # capture "analyze-with-ai", "classify", "detect-anomalies", "ai/health"
+    # capture "analyze-with-ai", "crear-desde-ia", "ai/health"
     # como si fueran un {pk} del detail view (lo que causaria 405 en POST).
     path("analyze-with-ai/", analyze_ultrasound_with_ai, name="analyze-with-ai"),
     path("crear-desde-ia/", crear_ecografia_desde_ia, name="crear-desde-ia"),
-    path("classify/", classify_ultrasound, name="classify-ultrasound"),
-    path("detect-anomalies/", detect_anomalies, name="detect-anomalies"),
     path("ai/health/", ai_service_health, name="ai-health"),
     # Redes entrenadas con ecografías reales (HC18, FETAL_PLANES_DB, anomalías cerebrales)
     path("plano-anatomico/", plano_anatomico, name="plano-anatomico"),

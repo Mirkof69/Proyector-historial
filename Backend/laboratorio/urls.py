@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     ExamenLaboratorioViewSet,
+    ImportacionLaboratorioViewSet,
     ResultadoLaboratorioViewSet,
     TipoExamenViewSet,
     ValorReferenciaViewSet,
@@ -14,6 +15,7 @@ router.register(r"tipos-examenes", TipoExamenViewSet, basename="tipo-examen")
 router.register(
     r"valores-referencia", ValorReferenciaViewSet, basename="valor-referencia",
 )
+router.register(r"importaciones", ImportacionLaboratorioViewSet, basename="importacion-laboratorio")
 router.register(r"examenes", ExamenLaboratorioViewSet, basename="examen-laboratorio")
 router.register(
     r"resultados", ResultadoLaboratorioViewSet, basename="resultado-laboratorio",

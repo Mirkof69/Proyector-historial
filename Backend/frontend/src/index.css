@@ -625,8 +625,15 @@ table {
     color: #000;
   }
 
-  .no-print {
+  .no-print,
+  .ant-layout-sider,
+  .ant-layout-header,
+  .ant-tabs-nav {
     display: none !important;
+  }
+
+  .ant-layout-content {
+    margin: 0 !important;
   }
 
   @page {

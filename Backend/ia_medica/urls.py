@@ -29,6 +29,7 @@ urlpatterns = [
     ),
     # Modelo supervisado de peso al nacer (ia_medica/ml/servicio_peso.py)
     path("prediccion-peso/", views_prediccion_peso.prediccion_peso, name="prediccion-peso"),
+    path("prediccion-peso/desempeno/", views_prediccion_peso.desempeno_prediccion_peso, name="prediccion-peso-desempeno"),
     # Clasificador supervisado de cardiotocografía (ia_medica/ml/cardiotocografia.py)
     path("cardiotocografia/", views_cardiotocografia.cardiotocografia, name="cardiotocografia"),
     # Consulta IA NLP. ANTES del router: si va despues, la ruta de detalle

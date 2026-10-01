@@ -1,6 +1,7 @@
 import React, { useReducer, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
-import { Button } from "antd";
+import { Button, Tabs } from "antd";
+import { useSearchParams } from 'react-router-dom';
 import {
   RobotOutlined, DownloadOutlined, ReloadOutlined,
 } from '@ant-design/icons';
@@ -14,7 +15,9 @@ import './IaMedica.css';
 import { initialState, reducer } from './iaMedicaReducer';
 import IaMedicaStats from './components/IaMedicaStats';
 import GaleriaEcografias from './components/GaleriaEcografias';
-import ModalCnnCompleto from './components/ModalCnnCompleto';
+import InformeAnalisisModal from './components/InformeAnalisisModal';
+import CardiotocografiaIA from './components/CardiotocografiaIA';
+import CatalogoModelos from './components/CatalogoModelos';
 import ModalVincular from './components/ModalVincular';
 import ModalCnnLegado from './components/ModalCnnLegado';
 import RedesEcografiaReal from './components/RedesEcografiaReal';
@@ -29,6 +32,9 @@ const IaMedica: React.FC = () => {
   const [imagenAVincular, setImagenAVincular] = React.useState<ImagenEcografica | null>(null);
   const [vinculando, setVinculando] = React.useState(false);
   const [ecografiasVinculadas, setEcografiasVinculadas] = React.useState<Record<number, number>>({});
+  const [params, setParams] = useSearchParams();
+  const pestana = ['ecografia', 'cardiotocografia', 'modelos'].includes(params.get('pestana') || '')
+    ? (params.get('pestana') as string) : 'ecografia';
 
   const fetchData = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -168,7 +174,7 @@ const IaMedica: React.FC = () => {
   };
 
 
-  // Análisis completo EfficientNet-B4 con Grad-CAM + SHAP + biometría
+  // Análisis completo con las redes medidas (plano → segmentación → medidas)
   const handleAnalyzeCNN = async (img: ImagenEcografica) => {
     dispatch({ type: 'SET_ANALYZING_CNN_ID', payload: img.id });
     try {
@@ -179,10 +185,10 @@ const IaMedica: React.FC = () => {
       dispatch({ type: 'SET_CNN_IMAGE_ID', payload: img.id });
       dispatch({ type: 'SET_NARRATIVE_REPORT', payload: null });
       dispatch({ type: 'SET_IS_CNN_MODAL_VISIBLE', payload: true });
-      message.success('Análisis EfficientNet-B4 completado');
+      message.success('Análisis completado');
       fetchData();
     } catch (error: any) {
-      message.error(`Error en análisis CNN: ${error?.message || 'Error desconocido'}`);
+      message.error(error?.response?.data?.error || `No se pudo analizar la imagen: ${error?.message || 'error desconocido'}`);
     } finally {
       dispatch({ type: 'SET_ANALYZING_CNN_ID', payload: null });
     }
@@ -193,7 +199,7 @@ const IaMedica: React.FC = () => {
   // se llama sin haber corrido antes el analisis CNN sobre esta imagen.
   const handleGenerarReporteNarrativo = async () => {
     if (!state.cnnImageId) {
-      message.error('Primero debe completarse el análisis CNN de esta imagen.');
+      message.error('Primero analice la imagen.');
       return;
     }
     dispatch({ type: 'SET_LOADING_NARRATIVE', payload: true });
@@ -212,26 +218,16 @@ const IaMedica: React.FC = () => {
     }
   };
 
-  return (
-    <div className="ia-medica-container page-container">
-      <div className="ia-medica-header">
-        <h1><RobotOutlined /> IA Médica: Análisis de Imágenes CNN</h1>
-        <div>
-          <Button icon={<ReloadOutlined />} onClick={fetchData} style={{ marginRight: 8 }}>
-            Actualizar
-          </Button>
-          <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport}>
-            Exportar Dataset
-          </Button>
-        </div>
-      </div>
+  const cerrarInforme = () => {
+    dispatch({ type: 'SET_IS_CNN_MODAL_VISIBLE', payload: false });
+    dispatch({ type: 'SET_CNN_ANALYSIS', payload: null });
+    dispatch({ type: 'SET_NARRATIVE_REPORT', payload: null });
+    dispatch({ type: 'SET_CNN_IMAGE_ID', payload: null });
+  };
 
-      {state.estadisticas && (
-        <IaMedicaStats estadisticas={state.estadisticas} />
-      )}
-
+  const galeria = (
+    <>
       <RedesEcografiaReal />
-
       <GaleriaEcografias
         selectedPacienteId={selectedPacienteId}
         setSelectedPacienteId={setSelectedPacienteId}
@@ -251,16 +247,48 @@ const IaMedica: React.FC = () => {
         handleVincularClick={handleVincularClick}
         handleDelete={handleDelete}
       />
+    </>
+  );
 
-      {/* ── Modal Análisis EfficientNet-B4 completo (Grad-CAM + SHAP + Biometría) ── */}
-      <ModalCnnCompleto
-        isCnnModalVisible={state.isCnnModalVisible}
-        cnnAnalysis={state.cnnAnalysis}
-        cnnImageUrl={state.cnnImageUrl}
-        narrativeReport={state.narrativeReport}
-        loadingNarrative={state.loadingNarrative}
-        dispatch={dispatch}
-        handleGenerarReporteNarrativo={handleGenerarReporteNarrativo}
+  return (
+    <div className="ia-medica-container page-container">
+      <div className="ia-medica-header">
+        <h1><RobotOutlined /> IA médica</h1>
+        <div>
+          <Button icon={<ReloadOutlined />} onClick={fetchData} style={{ marginRight: 8 }}>
+            Actualizar
+          </Button>
+          <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport}>
+            Exportar dataset
+          </Button>
+        </div>
+      </div>
+
+      {state.estadisticas && (
+        <IaMedicaStats estadisticas={state.estadisticas} />
+      )}
+
+      <Tabs
+        activeKey={pestana}
+        onChange={(clave) => { const n = new URLSearchParams(params); n.set('pestana', clave); setParams(n, { replace: true }); }}
+        items={[
+          { key: 'ecografia', label: 'Ecografía', children: galeria },
+          { key: 'cardiotocografia', label: 'Cardiotocografía', children: <CardiotocografiaIA /> },
+          {
+            key: 'modelos', label: 'Modelos y métricas',
+            children: <CatalogoModelos modelos={state.estadisticas?.modelos_disponibles ?? []} />,
+          },
+        ]}
+      />
+
+      <InformeAnalisisModal
+        abierto={state.isCnnModalVisible}
+        informe={state.cnnAnalysis}
+        imagenUrl={state.cnnImageUrl}
+        reporteNarrativo={state.narrativeReport}
+        generandoNarrativa={state.loadingNarrative}
+        onGenerarNarrativa={handleGenerarReporteNarrativo}
+        onCerrar={cerrarInforme}
       />
 
       {/* Modal Vincular a Ecografía */}

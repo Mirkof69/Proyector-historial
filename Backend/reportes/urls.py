@@ -23,6 +23,7 @@ from .views_config import (
     listar_backups,
     restaurar_backup,
 )
+from .views_natalidad_ia import reporte_ia, reporte_natalidad, reporte_natalidad_excel
 from .views_statistics import (
     adherencia_controles_statistics_view,
     all_statistics,
@@ -65,6 +66,9 @@ router.register(
 
 urlpatterns = [
     # Endpoints simples y estadísticas (Alineados con reportesService.ts)
+    path("natalidad/", reporte_natalidad, name="reporte-natalidad"),
+    path("natalidad/excel/", reporte_natalidad_excel, name="reporte-natalidad-excel"),
+    path("ia/", reporte_ia, name="reporte-ia"),
     path("dashboard/", dashboard_stats_view, name="dashboard-stats"),
     path("general/", general_stats_view, name="general-stats"),
     path("estadisticas-generales/", all_statistics, name="estadisticas-generales"),

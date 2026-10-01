@@ -1,58 +1,14 @@
 import React from 'react';
 import {
-  Tag, Alert, Progress, Table, Descriptions, Divider, Badge, Row, Col, Typography,
+  Tag, Alert, Descriptions, Divider, Row, Col, Typography,
 } from 'antd';
 import {
   CheckCircleOutlined, WarningOutlined, CloseCircleOutlined,
-  DashboardOutlined, ExperimentOutlined, AlertOutlined,
   InfoCircleOutlined, FileTextOutlined, ExclamationCircleOutlined,
 } from '@ant-design/icons';
-import {
-  AnalisisCNNCompleto,
-  ReporteNarrativoIA,
-  Pathology,
-  ShapRiskScores,
-  BiometryResult,
-} from '../../services/iaMedicaService';
-import { BIOMETRY_REFERENCE, SHAP_RISK_LABELS } from './iaMedicaConstants';
+import { ReporteNarrativoIA } from '../../services/iaMedicaService';
 
 // ── Helpers puros de presentación (nivel de módulo: identidad estable) ───────
-export const safeProb = (p: number | undefined | null) => Math.max(0, Math.min(1, p ?? 0));
-
-export const renderShapRiskBars = (shap: ShapRiskScores) => {
-  const entries = Object.entries(shap).filter(([k]) => k in SHAP_RISK_LABELS);
-  return (
-    <div>
-      <Divider orientation="left" style={{ fontSize: 13 }}>
-        <ExperimentOutlined /> SHAP: Scores de Riesgo Materno
-      </Divider>
-      {entries.map(([key, value]) => {
-        const pct = Math.min(Math.round(value * 100), 100);
-        const status = pct >= 70 ? 'exception' : pct >= 40 ? 'normal' : 'success';
-        const color = pct >= 70 ? '#ff4d4f' : pct >= 40 ? '#faad14' : '#52c41a';
-        return (
-          <div key={key} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-              <span>{SHAP_RISK_LABELS[key] || key}</span>
-              <Badge
-                color={color}
-                text={<span style={{ color, fontWeight: 600 }}>{pct}%</span>}
-              />
-            </div>
-            <Progress
-              percent={pct}
-              status={status as any}
-              strokeColor={color}
-              size="small"
-              showInfo={false}
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
 export const renderResultBadge = (resultado: string) => {
   switch (resultado) {
     case 'normal':
@@ -220,119 +176,3 @@ export const renderNarrativeReport = (reporte: ReporteNarrativoIA) => {
   );
 };
 
-export const renderBiometryTable = (biometry: AnalisisCNNCompleto['biometry']) => {
-  if (!biometry) return null;
-
-  if (biometry.disponible === false) {
-    return (
-      <>
-        <Divider orientation="left" style={{ fontSize: 13 }}>
-          <DashboardOutlined /> Biometría Fetal
-        </Divider>
-        <Alert
-          type="info"
-          showIcon
-          message="Biometría no disponible"
-          description={biometry.motivo || 'El módulo de biometría fetal aún no está entrenado con datos reales.'}
-        />
-      </>
-    );
-  }
-
-  const dataSource = (Object.keys(BIOMETRY_REFERENCE) as Array<keyof BiometryResult>)
-    .filter(k => biometry[k] !== undefined && biometry[k] !== null)
-    .map(k => {
-      const ref = BIOMETRY_REFERENCE[k];
-      const val = biometry[k] as number;
-      const inRange = val >= ref.min && val <= ref.max;
-      return {
-        key: k,
-        medida: ref.label,
-        valor: `${val.toFixed(1)} ${ref.unit}`,
-        rango: `${ref.min}–${ref.max} ${ref.unit}`,
-        estado: inRange
-          ? <Tag color="success">Normal</Tag>
-          : <Tag color="error">Fuera de rango</Tag>,
-      };
-    });
-
-  if (dataSource.length === 0) return null;
-
-  const columns = [
-    { title: 'Medida', dataIndex: 'medida', key: 'medida', width: '40%' },
-    { title: 'Valor', dataIndex: 'valor', key: 'valor', width: '20%', align: 'right' as const },
-    { title: 'Rango Normal', dataIndex: 'rango', key: 'rango', width: '25%' },
-    { title: 'Estado', dataIndex: 'estado', key: 'estado', width: '15%' },
-  ];
-
-  return (
-    <>
-      <Divider orientation="left" style={{ fontSize: 13 }}>
-        <DashboardOutlined /> Biometría Fetal
-      </Divider>
-      {biometry.metodo === 'estimacion_sintetica_no_validada' && (
-        <div style={{ fontSize: 11, color: 'var(--ia-text-tertiary)', marginBottom: 6 }}>
-          <InfoCircleOutlined style={{ marginRight: 4 }} />
-          Estimación orientativa, no reemplaza una medición real.
-        </div>
-      )}
-      <Table
-        dataSource={dataSource}
-        columns={columns}
-        size="small"
-        pagination={false}
-        bordered
-      />
-      {biometry.alerts && biometry.alerts.length > 0 && (
-        <Alert
-          type="warning"
-          style={{ marginTop: 8 }}
-          message="Alertas de biometría"
-          description={
-            <ul style={{ margin: 0, paddingLeft: 16 }}>
-              {biometry.alerts.map((a: string) => <li key={`alert-${a}`}>{a}</li>)}
-            </ul>
-          }
-        />
-      )}
-    </>
-  );
-};
-
-export const renderPathologyAlert = (pathologies: Pathology[]) => {
-  const detected = pathologies.filter(p => safeProb(p.confidence) >= 0.50 && p.pathology !== 'normal' && p.pathology !== 'baja_confianza');
-  if (detected.length === 0) return null;
-
-  const hasCritical = detected.some(p => safeProb(p.confidence) >= 0.80);
-  return (
-    <Alert
-      type={hasCritical ? 'error' : 'warning'}
-      icon={<AlertOutlined />}
-      showIcon
-      style={{ marginBottom: 12 }}
-      message={
-        hasCritical
-          ? 'ALERTA MEDICA: Patologías de alto riesgo detectadas'
-          : 'Patologías detectadas, requieren evaluación médica'
-      }
-      description={
-        <div>
-          {detected.map(p => (
-            <div key={p.pathology} style={{ marginBottom: 4 }}>
-              <Tag color={safeProb(p.confidence) >= 0.80 ? 'red' : 'orange'}>
-                {p.pathology.replace(/_/g, ' ').toUpperCase()}
-              </Tag>
-              <span style={{ fontSize: 12 }}>
-                Probabilidad: {(safeProb(p.confidence) * 100).toFixed(1)}%
-                {p.icd10 && <> &nbsp;|&nbsp; ICD-10: <strong>{p.icd10}</strong></>}
-              </span>
-            </div>
-          ))}
-          <div style={{ marginTop: 8, fontSize: 12, color: '#8c8c8c' }}>
-            La IA es herramienta de apoyo. El medico tiene responsabilidad legal del diagnostico (Ley 3131 Bolivia).
-          </div>
-        </div>
-      }
-    />
-  );
-};

@@ -93,12 +93,16 @@ class ImportacionLaboratorioTest(TestCase):
                         format="multipart")
         self.assertEqual(ResultadoLaboratorio.objects.count(), 2)
 
-    def test_archivo_sin_columnas_obligatorias_da_400(self):
+    def test_archivo_sin_columnas_obligatorias_pide_mapeo(self):
+        """ESPERADO: no se guarda nada y se devuelven los encabezados para que el
+        usuario diga qué columna es cada dato."""
         libro = Workbook()
         libro.active.append(["Otra cosa"])
         buf = BytesIO()
         libro.save(buf)
         r = self.c.post(URL + "importar-excel/", {"archivo": SimpleUploadedFile("x.xlsx", buf.getvalue())},
                         format="multipart")
-        self.assertEqual(r.status_code, 400)
+        self.assertTrue(r.json()["requiere_mapeo"])
+        self.assertEqual(r.json()["encabezados"], ["Otra cosa"])
         self.assertIn("Faltan columnas", r.json()["error"])
+        self.assertEqual(ResultadoLaboratorio.objects.count(), 0)

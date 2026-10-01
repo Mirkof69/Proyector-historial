@@ -542,3 +542,29 @@ class ResultadoLaboratorioCreateUpdateSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
+
+
+class ImportacionLaboratorioSerializer(serializers.ModelSerializer):
+    usuario_nombre = serializers.SerializerMethodField()
+    anulada_por_nombre = serializers.SerializerMethodField()
+    resultados = serializers.SerializerMethodField()
+
+    class Meta:
+        from .models import ImportacionLaboratorio
+
+        model = ImportacionLaboratorio
+        fields = ["id", "nombre_archivo", "fecha", "usuario_nombre", "resumen", "resultados", "anulada",
+                  "motivo_anulacion", "anulada_por_nombre", "fecha_anulacion"]
+
+    @staticmethod
+    def _nombre(u):
+        return (u.get_full_name() or u.email) if u else None
+
+    def get_usuario_nombre(self, obj):
+        return self._nombre(obj.usuario)
+
+    def get_anulada_por_nombre(self, obj):
+        return self._nombre(obj.anulada_por)
+
+    def get_resultados(self, obj):
+        return len(obj.resultados_creados or [])

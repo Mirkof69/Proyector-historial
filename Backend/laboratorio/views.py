@@ -384,21 +384,39 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="importar-excel")
     def importar_excel(self, request):
-        """Importa resultados desde la plantilla.
+        """Importa resultados desde Excel (.xlsx) o CSV.
 
         Sin `confirmar`: vista previa (qué se guardaría y qué tiene errores).
-        Con `confirmar=1`: guarda los exámenes válidos (cada uno entero o nada).
+        Con `confirmar=1`: guarda los exámenes válidos (cada uno entero o nada)
+        y registra la importación para poder deshacerla.
+        `mapeo` (JSON {campo: encabezado}) dice qué columna es cada dato cuando
+        el archivo no usa la plantilla. Si no se reconoce alguna columna
+        obligatoria, responde `requiere_mapeo` con los encabezados del archivo.
         """
-        from .importacion_excel import leer_filas, procesar
+        import json
+
+        from .importacion_excel import COLUMNAS, MapeoIncompleto, leer_filas, procesar
+        from .models import ImportacionLaboratorio
 
         archivo = request.FILES.get("archivo")
         if not archivo:
-            return Response({"error": "Adjunte el archivo Excel en el campo «archivo»."},
+            return Response({"error": "Adjunte el archivo Excel o CSV en el campo «archivo»."},
                             status=status.HTTP_400_BAD_REQUEST)
         if archivo.size > 5 * 1024 * 1024:
             return Response({"error": "El archivo supera 5 MB."}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            filas = leer_filas(archivo)
+            mapeo = json.loads(request.data.get("mapeo") or "{}")
+            if not isinstance(mapeo, dict):
+                raise ValueError
+        except ValueError:
+            return Response({"error": "El mapeo de columnas no es válido."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            filas = leer_filas(archivo, archivo.name, mapeo)
+        except MapeoIncompleto as e:
+            return Response({
+                "requiere_mapeo": True, "error": str(e), "encabezados": e.encabezados, "sugerido": e.sugerido,
+                "campos": [{"campo": c, "etiqueta": enc, "obligatorio": oblig} for c, enc, oblig, *_ in COLUMNAS],
+            })
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         if not filas:
@@ -406,14 +424,20 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
         confirmar = str(request.data.get("confirmar", "")).lower() in ("1", "true", "si", "sí")
         resultado = procesar(filas, request.user, confirmar)
+        creados = resultado.pop("creados")
         if confirmar:
+            r = resultado["resumen"]
+            if creados["resultados"]:
+                importacion = ImportacionLaboratorio.objects.create(
+                    nombre_archivo=archivo.name[:255], usuario=request.user, resumen=r,
+                    resultados_creados=creados["resultados"], examenes_creados=creados["examenes"])
+                resultado["importacion_id"] = importacion.pk
             try:
                 from auditoria.models import RegistroAuditoria
 
-                r = resultado["resumen"]
                 RegistroAuditoria.registrar(
                     usuario=request.user, accion="CREAR", modulo="Laboratorio",
-                    detalle=f"Importación Excel «{archivo.name}»: {r['creada']} resultados en {r['examenes']} "
+                    detalle=f"Importación «{archivo.name}»: {r['creada']} resultados en {r['examenes']} "
                             f"exámenes, {r['error']} con error, {r['duplicada']} duplicados.",
                     request=request,
                 )
@@ -1169,3 +1193,53 @@ class ResultadoLaboratorioViewSet(viewsets.ModelViewSet):
         return Response(
             {"total_criticos": resultados.count(), "resultados": serializer.data},
         )
+
+
+class ImportacionLaboratorioViewSet(viewsets.ReadOnlyModelViewSet):
+    """Importaciones de resultados: listado y «deshacer lote».
+
+    GET  /api/laboratorios/importaciones/
+    POST /api/laboratorios/importaciones/{id}/deshacer/  {motivo}
+    """
+
+    permission_classes = [IsAuthenticated, EsMedicoOEnfermeraOLaboratorista]
+
+    def get_queryset(self):
+        from .models import ImportacionLaboratorio
+
+        return ImportacionLaboratorio.objects.select_related("usuario", "anulada_por")
+
+    def get_serializer_class(self):
+        from .serializers import ImportacionLaboratorioSerializer
+
+        return ImportacionLaboratorioSerializer
+
+    @action(detail=True, methods=["post"])
+    def deshacer(self, request, pk=None):
+        from .importacion_excel import deshacer
+
+        if getattr(request.user, "rol", "") not in ("laboratorista", "administrador", "medico"):
+            return Response({"error": "Solo laboratorio, médicos o administración anulan importaciones."},
+                            status=status.HTTP_403_FORBIDDEN)
+        motivo = str(request.data.get("motivo", "")).strip()
+        if len(motivo) < 10:
+            return Response({"motivo": "Explique por qué se anula (al menos 10 caracteres)."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        importacion = self.get_object()
+        try:
+            resultado = deshacer(importacion, request.user, motivo)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_409_CONFLICT)
+        try:
+            from auditoria.models import RegistroAuditoria
+
+            RegistroAuditoria.registrar(
+                usuario=request.user, accion="ELIMINAR", modulo="Laboratorio",
+                detalle=f"Importación {importacion.pk} «{importacion.nombre_archivo}» anulada: "
+                        f"{resultado['resultados_borrados']} resultados y {resultado['examenes_borrados']} "
+                        f"exámenes borrados. Motivo: {motivo}",
+                request=request,
+            )
+        except Exception:
+            logger.exception("No se pudo auditar la anulación de la importación")
+        return Response(resultado | {"importacion": self.get_serializer(importacion).data})

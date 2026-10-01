@@ -225,19 +225,10 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        modelo = request.data.get("modelo", "resnet50")
-        modelos_validos = (
-            "resnet50",
-            "unet",
-            "efficientnet",
-            "yolo_fetal",
-            "custom_cnn",
-        )
-        if modelo not in modelos_validos:
-            return Response(
-                {"error": f"Modelo no válido. Opciones: {', '.join(modelos_validos)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # Hay un solo análisis real: las redes medidas (plano → segmentación →
+        # medidas). El parámetro «modelo» de la petición se ignora; antes
+        # dejaba elegir «ResNet-50», «U-Net» o «YOLO» que nunca existieron.
+        modelo = "redes_medidas"
 
         instancia.estado = "procesando"
         instancia.save(update_fields=["estado"])
@@ -289,7 +280,7 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="reporte-narrativo")
     def reporte_narrativo(self, request, pk=None):
         """Genera el reporte narrativo de IA local (LLM con visión, Ollama),
-        siempre grounded en el resultado real del CNN EfficientNet-B4 — ver
+        siempre grounded en el resultado real de las redes medidas — ver
         ia_medica/services/llm_narrative_service.py para el diseño completo
         (el LLM nunca tiene autoridad sobre el diagnóstico, solo lo narra y
         puede agregar hallazgos visuales complementarios marcados aparte)."""

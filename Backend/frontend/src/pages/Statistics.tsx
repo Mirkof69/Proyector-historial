@@ -12,6 +12,7 @@ import {
 import dayjs, { Dayjs } from 'dayjs';
 import statisticsService from '../services/statisticsService';
 import { useAntdApp } from '../hooks/useMessage';
+import { useRangoReportes } from './Reportes/rangoReportes';
 
 const { RangePicker } = DatePicker;
 
@@ -54,7 +55,13 @@ const Statistics: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [rango, setRango] = useState<[Dayjs, Dayjs] | null>(null);
+  const [rangoPropio, setRango] = useState<[Dayjs, Dayjs] | null>(null);
+  // Dentro del centro de reportes manda el período común; suelta, su propio selector.
+  const rangoCentro = useRangoReportes();
+  const rango = React.useMemo<[Dayjs, Dayjs] | null>(
+    () => (rangoCentro ? [rangoCentro.desde, rangoCentro.hasta] : rangoPropio),
+    [rangoCentro?.params.desde, rangoCentro?.params.hasta, rangoPropio], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const filtrosActuales = rango
     ? { start_date: rango[0].format('YYYY-MM-DD'), end_date: rango[1].format('YYYY-MM-DD') }
@@ -116,11 +123,11 @@ const Statistics: React.FC = () => {
       <Space style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <h2 style={{ margin: 0 }}>Estadísticas del Sistema</h2>
         <Space>
-          <RangePicker
+          {!rangoCentro && <RangePicker
             value={rango}
             onChange={(v) => setRango(v as [Dayjs, Dayjs] | null)}
             placeholder={['Desde', 'Hasta']}
-          />
+          />}
           <Button icon={<FilePdfOutlined />} onClick={() => descargar('pdf')} loading={exporting}>PDF</Button>
           <Button icon={<FileExcelOutlined />} onClick={() => descargar('excel')} loading={exporting}>Excel</Button>
           <Button icon={<ReloadOutlined />} onClick={cargar} loading={loading}>Recargar</Button>

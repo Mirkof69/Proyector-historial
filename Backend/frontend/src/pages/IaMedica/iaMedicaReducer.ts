@@ -1,7 +1,7 @@
 import {
   ImagenEcografica,
   AnalisisCNN,
-  AnalisisCNNCompleto,
+  InformeRedesMedidas,
   ReporteNarrativoIA,
   EstadisticasIA,
 } from '../../services/iaMedicaService';
@@ -15,7 +15,7 @@ export interface IaMedicaState {
   isModalVisible: boolean;
   selectedAnalysis: {imagen?: ImagenEcografica, analisis: AnalisisCNN} | null;
   isCnnModalVisible: boolean;
-  cnnAnalysis: AnalisisCNNCompleto | null;
+  cnnAnalysis: InformeRedesMedidas | null;
   cnnImageUrl: string;
   cnnImageId: number | null;
   analyzingCnnId: number | null;
@@ -32,7 +32,7 @@ export type IaMedicaAction =
   | { type: 'SET_IS_MODAL_VISIBLE'; payload: boolean }
   | { type: 'SET_SELECTED_ANALYSIS'; payload: {imagen?: ImagenEcografica, analisis: AnalisisCNN} | null }
   | { type: 'SET_IS_CNN_MODAL_VISIBLE'; payload: boolean }
-  | { type: 'SET_CNN_ANALYSIS'; payload: AnalisisCNNCompleto | null }
+  | { type: 'SET_CNN_ANALYSIS'; payload: InformeRedesMedidas | null }
   | { type: 'SET_CNN_IMAGE_URL'; payload: string }
   | { type: 'SET_CNN_IMAGE_ID'; payload: number | null }
   | { type: 'SET_ANALYZING_CNN_ID'; payload: number | null }

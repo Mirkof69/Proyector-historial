@@ -7,6 +7,7 @@ Modelos para el sistema de IA médico con machine learning
 
 import uuid
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -534,7 +535,8 @@ class AnalisisCNN(models.Model):
     MODELO_CHOICES = [
         ("resnet50", "ResNet-50 (Clasificación)"),
         ("unet", "U-Net (Segmentación)"),
-        ("efficientnet", "EfficientNet-B4 (Alta Precisión)"),
+        ("redes_medidas", "Redes medidas: plano + segmentación + anomalías cerebrales"),
+        ("efficientnet", "EfficientNet-B4 (retirada; solo análisis antiguos)"),
         ("yolo_fetal", "YOLO Fetal (Detección)"),
         ("custom_cnn", "CNN Personalizada"),
     ]
@@ -842,3 +844,54 @@ class AlertaCNNAnalisis(models.Model):
 
     def __str__(self):
         return f"[{self.severidad}] {self.mensaje[:60]}"
+
+
+class PrediccionPesoNacimiento(models.Model):
+    """Cada predicción del modelo de peso al nacer, para medirla contra el bebé real.
+
+    Cuando nace el bebé (se registra el RecienNacido de ese embarazo) la
+    predicción se cierra sola con el peso real y el error del modelo y de
+    Hadlock (ia_medica/signals.py). Es la única métrica del modelo medida con
+    nacimientos reales del hospital: la del entrenamiento sale de partos
+    simulados.
+    """
+
+    ecografia = models.ForeignKey("ecografias.Ecografia", on_delete=models.CASCADE, related_name="predicciones_peso")
+    embarazo = models.ForeignKey("embarazos.Embarazo", on_delete=models.CASCADE, null=True, related_name="predicciones_peso")
+    semanas_objetivo = models.FloatField()
+    peso_previsto_g = models.IntegerField()
+    clase_prevista = models.CharField(max_length=30, blank=True)
+    peso_hadlock_proyectado_g = models.IntegerField(null=True, blank=True)
+    modelo_version = models.CharField(max_length=30, blank=True)
+    entrenado_con_datos_sinteticos = models.BooleanField(default=True)
+    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+")
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    # Cierre con el nacimiento real
+    recien_nacido = models.ForeignKey("partos.RecienNacido", on_delete=models.SET_NULL, null=True, blank=True,
+                                      related_name="predicciones_peso")
+    peso_real_g = models.IntegerField(null=True, blank=True)
+    error_modelo_g = models.IntegerField(null=True, blank=True, help_text="previsto − real")
+    error_hadlock_g = models.IntegerField(null=True, blank=True, help_text="Hadlock proyectado − real")
+    fecha_cierre = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ia_medica_prediccion_peso"
+        ordering = ["-fecha"]
+        verbose_name = "Predicción de peso al nacer"
+        verbose_name_plural = "Predicciones de peso al nacer"
+
+    def __str__(self):
+        return f"{self.peso_previsto_g} g (ecografía {self.ecografia_id})"
+
+    def cerrar(self, recien_nacido) -> None:
+        self.recien_nacido = recien_nacido
+        self.peso_real_g = recien_nacido.peso_nacimiento
+        self.error_modelo_g = self.peso_previsto_g - recien_nacido.peso_nacimiento
+        if self.peso_hadlock_proyectado_g:
+            self.error_hadlock_g = self.peso_hadlock_proyectado_g - recien_nacido.peso_nacimiento
+        from django.utils import timezone
+
+        self.fecha_cierre = timezone.now()
+        self.save()

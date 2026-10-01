@@ -56,6 +56,8 @@ class RegistroAuditoria(models.Model):
         ("DESACTIVAR", "Desactivación (soft delete)"),
         ("ACTIVAR", "Reactivación de registro"),
         ("EXPORTAR", "Exportación de datos"),
+        ("FIRMAR", "Firma de un documento clínico"),
+        ("REABRIR", "Reapertura de un documento firmado"),
         # IA
         ("CONSULTA_IA", "Consulta al chatbot IA"),
         ("ANALISIS_CNN", "Análisis de imagen con CNN"),

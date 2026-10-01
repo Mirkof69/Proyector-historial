@@ -1314,3 +1314,32 @@ class ImagenLaboratorio(models.Model):
     def __str__(self):
         """Str"""
         return f"{self.titulo} - {self.examen.paciente.nombre_completo}"
+
+
+class ImportacionLaboratorio(models.Model):
+    """Un archivo de resultados importado: qué creó, para poder deshacerlo entero.
+
+    Si el laboratorio sube el archivo equivocado (otro día, otra planilla), se
+    anula el lote completo: se borran los resultados que creó y los exámenes que
+    quedaron vacíos. Queda registrado quién lo anuló y por qué.
+    """
+
+    nombre_archivo = models.CharField(max_length=255)
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, related_name="importaciones_laboratorio")
+    fecha = models.DateTimeField(auto_now_add=True)
+    resumen = models.JSONField(default=dict)
+    resultados_creados = models.JSONField(default=list, help_text="ids de ResultadoLaboratorio")
+    examenes_creados = models.JSONField(default=list, help_text="ids de ExamenLaboratorio creados por el lote")
+    anulada = models.BooleanField(default=False)
+    motivo_anulacion = models.TextField(blank=True)
+    anulada_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    fecha_anulacion = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "laboratorio_importaciones"
+        ordering = ["-fecha"]
+        verbose_name = "Importación de laboratorio"
+        verbose_name_plural = "Importaciones de laboratorio"
+
+    def __str__(self):
+        return f"{self.nombre_archivo} ({self.fecha:%d/%m/%Y %H:%M})"

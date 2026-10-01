@@ -1,5 +1,9 @@
 """Reporte narrativo de IA local (LLM con visión, Ollama) grounded en el
-resultado real del CNN EfficientNet-B4.
+resultado real de las redes medidas (plano anatómico, segmentación y cribado
+de anomalías cerebrales; Microservicio_IA/app/analisis_ecografia.py).
+
+El informe nuevo se adapta al formato interno con `_adaptar_informe_medido`;
+el resto del módulo no cambió. La EfficientNet-B4 se retiró.
 
 Diseño no negociable: los campos diagnósticos (clasificacion_clinica,
 tipo_embarazo, patologias_detectadas, biometria) SIEMPRE vienen del CNN ya
@@ -30,7 +34,39 @@ CLASES_CNN = {
     "polihidramnios", "restriccion_crecimiento", "macrosomia_fetal",
     "placenta_previa", "preeclampsia_signos", "muerte_fetal",
     "embarazo_multiple", "normal",
+    # Familias del cribado cerebral de las redes medidas
+    "ventriculomegalia_hidrocefalia", "fosa_posterior", "encefalocele", "lesion_quistica_vascular",
 }
+
+
+def _adaptar_informe_medido(informe: dict) -> dict:
+    """El informe de las redes medidas en el formato que usa este módulo.
+
+    Solo se afirma lo que las redes evaluaron: una alarma del cribado cerebral
+    es la única «patología»; sin alarma y con cribado aplicado, «normal»; si el
+    índice cardiotorácico sale del rango o el plano es dudoso, «baja_confianza»
+    (requiere seguimiento). La biometría es la medida sobre la imagen.
+    """
+    anomalias = informe.get("anomalias_cerebrales") or {}
+    medidas = informe.get("medidas") or {}
+    plano = informe.get("plano") or {}
+    referencia = (medidas.get("referencia_areas") or [0, 0.35])[1]
+    if anomalias.get("alarma_anomalia"):
+        patologias = [{"pathology": anomalias.get("familia_sospechada"), "confidence": anomalias.get("probabilidad_anomalia"),
+                       "severity": "media-alta"}]
+    elif informe.get("requiere_revision") or (medidas.get("indice_cardiotoracico_areas") or 0) > referencia:
+        patologias = [{"pathology": "baja_confianza", "confidence": plano.get("confianza", 0)}]
+    else:
+        patologias = [{"pathology": "normal", "confidence": 1 - float(anomalias.get("probabilidad_anomalia") or 0)
+                       if anomalias else plano.get("confianza", 0)}]
+    foto = any("fotografía" in a for a in informe.get("avisos", []))
+    return {
+        "ultrasound_validation": {"es_ecografia_obstetrica_valida": not foto,
+                                  "motivo_validez": "La imagen parece una fotografía." if foto else None},
+        "pathology_detection": {"pathologies": patologias,
+                                "all_probabilities": anomalias.get("probabilidades") or plano.get("probabilidades", {})},
+        "biometry": {"BPD_mm": medidas.get("diametro_biparietal_mm"), "HC_mm": medidas.get("circunferencia_cefalica_mm")},
+    }
 
 
 class BiometriaNarrativa(BaseModel):
@@ -114,7 +150,7 @@ def _construir_prompt(cnn_result: dict) -> str:
         },
     }, ensure_ascii=False, indent=2)
 
-    return f"""Eres un médico especialista en ginecología y obstetricia con 20 años de experiencia en diagnóstico ecográfico, trabajando como asistente de un sistema que YA tiene un diagnóstico confirmado por una red neuronal convolucional (EfficientNet-B4) verificada clínicamente. Tu trabajo NO es diagnosticar desde cero — es:
+    return f"""Eres un médico especialista en ginecología y obstetricia con 20 años de experiencia en diagnóstico ecográfico, trabajando como asistente de un sistema que YA tiene un resultado de redes neuronales convolucionales entrenadas con ecografías reales y medidas en pacientes no vistas (plano anatómico, segmentación y cribado cerebral). Tu trabajo NO es diagnosticar desde cero — es:
 
 1. Describir técnicamente lo que observas en la imagen (estructuras visibles, plano de corte, calidad).
 2. Redactar en lenguaje médico formal los hallazgos, basándote ÚNICAMENTE en el resultado YA CONFIRMADO por el CNN (abajo) — NO agregues detalles anatómicos nuevos (ej. corionicidad, número de membranas, septos, posición placentaria específica) que no estén ya en "patologias_confirmadas_por_cnn" o "biometria_real_cnn".
@@ -239,6 +275,8 @@ def generar_reporte_narrativo(imagen, cnn_result: dict) -> dict:
     """Genera el reporte narrativo completo para una ImagenEcografica ya
     analizada por el CNN. `cnn_result` es la respuesta cruda del
     microservicio /api/analyze (no la del ViewSet de Django)."""
+    if "version_flujo" in cnn_result:
+        cnn_result = _adaptar_informe_medido(cnn_result)
     campos_honestos = _campos_honestos_desde_cnn(cnn_result)
     validation = cnn_result.get("ultrasound_validation", {}) or {}
 

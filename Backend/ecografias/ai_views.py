@@ -62,7 +62,13 @@ def preparar_respuesta_ia(resultado: dict) -> dict:
 
     salida = dict(resultado)
     base64_gradcam = salida.pop("gradcam_base64", "")
-    salida["gradcam_url"] = guardar_gradcam(base64_gradcam, prefijo="eco")
+    if base64_gradcam:
+        salida["gradcam_url"] = guardar_gradcam(base64_gradcam, prefijo="eco")
+    # Análisis con las redes medidas: la imagen con las estructuras dibujadas
+    # viaja igual, como archivo aparte.
+    superposicion = salida.pop("superposicion_png", "")
+    if superposicion:
+        salida["superposicion_url"] = guardar_gradcam(superposicion, prefijo="seg")
     return salida
 
 
@@ -132,6 +138,9 @@ def analyze_ultrasound_with_ai(request):
         # app/models.py ALTITUDE_PREECLAMPSIA_FACTOR): se resuelve por la
         # ciudad del paciente cuando esta disponible.
         data = {"ciudad": ciudad_paciente} if ciudad_paciente else {}
+        # Con el tamaño del píxel (del ecógrafo o del DICOM) la red da HC y DBP en mm.
+        if request.data.get("tamano_pixel_mm"):
+            data["tamano_pixel_mm"] = request.data["tamano_pixel_mm"]
 
         # Llamar al microservicio de IA
         ai_response = requests.post(
@@ -255,84 +264,6 @@ def analyze_ultrasound_with_ai(request):
             {"error": "Error inesperado", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-
-@extend_schema(
-    request=inline_serializer(
-        "classify_ultrasound_request",
-        fields={}
-    ),
-    responses={200: dict}
-)
-@api_view(["POST"])
-@permission_classes([FetalMedicalPermission])
-def classify_ultrasound(request):
-    """Clasifica el tipo de ecografía usando IA
-
-    Endpoint: POST /api/ecografias/classify/
-    """
-    try:
-        if "file" not in request.FILES:
-            return Response(
-                {"error": "No se proporcionó archivo"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        image_file = request.FILES["file"]
-        files = {"file": (image_file.name, image_file.read(), image_file.content_type)}
-
-        ai_response = requests.post(
-            f"{obtener_url_ia()}/api/classify", files=files, timeout=15,
-        )
-
-        if ai_response.status_code == 200:
-            return Response(ai_response.json(), status=status.HTTP_200_OK)
-        return Response(
-            {"error": "Error en clasificación"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@extend_schema(
-    request=inline_serializer(
-        "detect_anomalies_request",
-        fields={}
-    ),
-    responses={200: dict}
-)
-@api_view(["POST"])
-@permission_classes([FetalMedicalPermission])
-def detect_anomalies(request):
-    """Detecta anomalías fetales usando IA
-
-    Endpoint: POST /api/ecografias/detect-anomalies/
-    """
-    try:
-        if "file" not in request.FILES:
-            return Response(
-                {"error": "No se proporcionó archivo"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        image_file = request.FILES["file"]
-        files = {"file": (image_file.name, image_file.read(), image_file.content_type)}
-
-        ai_response = requests.post(
-            f"{obtener_url_ia()}/api/detect-anomalies", files=files, timeout=15,
-        )
-
-        if ai_response.status_code == 200:
-            return Response(ai_response.json(), status=status.HTTP_200_OK)
-        return Response(
-            {"error": "Error en detección de anomalías"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @extend_schema(

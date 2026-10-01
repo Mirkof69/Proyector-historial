@@ -1,0 +1,8 @@
+# Además de requirements.txt, para entrenar y medir las redes (entrenamiento/)
+# y correr las pruebas.
+-r requirements.txt
+pandas>=2.2
+openpyxl>=3.1
+scikit-learn>=1.4
+pytest>=8.0
+httpx>=0.27

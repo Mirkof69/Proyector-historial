@@ -5,7 +5,7 @@ Flujo:
   Orthanc recibe DICOM → HTTP POST a /api/dicom/webhook/ →
   Django encola tarea Celery → esta función procesa → CNN analiza → guarda en BD
 
-Cada nueva serie DICOM queda automáticamente analizada por EfficientNet-B4
+Cada nueva serie DICOM queda automáticamente analizada por las redes medidas
 sin intervención manual del médico.
 """
 
@@ -31,7 +31,7 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
     Pasos:
     1. Descarga la imagen desde Orthanc REST API
     2. Crea ImagenEcografica en BD
-    3. Dispara analizar_imagen_task (CNN EfficientNet-B4)
+    3. Dispara analizar_imagen_task (redes medidas: plano + segmentación)
     4. Registra en auditoría
 
     Args:
@@ -105,7 +105,7 @@ def procesar_estudio_dicom(self, orthanc_instance_id: str, paciente_id: int | No
         # ── 4. Encolar análisis CNN ─────────────────────────────────────────
         analizar_imagen_task.delay(
             imagen_id=getattr(imagen_obj, 'id', None),
-            modelo="efficientnet_b4",
+            modelo="redes_medidas",
             user_id=usuario_id,
         )
 

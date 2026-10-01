@@ -1,27 +1,13 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import CORS_ORIGINS
-from .models import ModelManager
 from .routes import router
-
-model_manager = ModelManager()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    model_manager.load_models()
-    import app.routes
-    app.routes.model_manager = model_manager
-    yield
-
 
 app = FastAPI(
     title="Fetal Medical IA Service",
-    version="2.0.0",
-    lifespan=lifespan,
+    version="3.0.0",
+    description="Redes entrenadas con ecografías reales y medidas en pacientes no vistas.",
 )
 
 app.add_middleware(
@@ -37,19 +23,19 @@ app.include_router(router)
 
 @app.get("/health")
 async def health(response: Response):
-    """Estado real: 503 si la red principal no tiene pesos.
+    """Listo solo si está la red de plano anatómico, la puerta de todo análisis.
 
-    Antes respondía «healthy» siempre, también con pesos aleatorios.
+    Cada red se informa con su disponibilidad, su métrica medida y la huella
+    sha256 de sus pesos.
     """
-    from .ecografia_real import redes
+    from .ecografia_real import ARCHIVO_PLANO, redes
+    from .segmentacion import segmentacion
 
-    listo = model_manager._loaded and model_manager.model is not None
+    listo = redes.disponible(ARCHIVO_PLANO)
     if not listo:
         response.status_code = 503
     return {
         "status": "healthy" if listo else "unavailable",
         "model_loaded": listo,
-        "error": model_manager.error_carga,
-        "device": str(model_manager.device),
-        "redes_reales": redes.estado(),
+        "redes": redes.estado() | segmentacion.estado(),
     }

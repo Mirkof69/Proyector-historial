@@ -58,54 +58,6 @@ export interface AnalisisCNN {
 }
 
 // ── Tipos del Microservicio IA (EfficientNet-B4 FastAPI) ──────────────────────
-
-export interface Pathology {
-  pathology: string;
-  confidence: number;
-  icd10?: string;
-  description?: string;
-  severity?: string;
-  requires_specialist?: boolean;
-  recommendation?: string;
-  ultrasound_type?: string;
-  gestational_weeks?: string;
-  ultrasound_markers?: string;
-}
-
-export interface BiometryResult {
-  BPD_mm?: number;
-  HC_mm?: number;
-  AC_mm?: number;
-  FL_mm?: number;
-  peso_estimado_g?: number;
-}
-
-export interface ShapRiskScores {
-  riesgo_preeclampsia?: number;
-  riesgo_parto_prematuro?: number;
-  riesgo_hemorragia?: number;
-  riesgo_diabetes_gestacional?: number;
-  riesgo_mortalidad_perinatal?: number;
-  riesgo_global?: number;
-  [key: string]: number | undefined;
-}
-
-export interface PathologyDetection {
-  pathologies: Pathology[];
-  total_detected: number;
-  requires_specialist?: boolean;
-  all_probabilities?: Record<string, number>;
-  mensaje?: string;
-}
-
-// La API devuelve la biometría en formato plano: { BPD_mm, HC_mm, ..., disponible, motivo? }
-export interface BiometryAssessment extends BiometryResult {
-  disponible: boolean;
-  metodo?: string;
-  motivo?: string;
-  alerts?: string[];
-}
-
 export interface ReporteNarrativoIA {
   clasificacion_clinica: string;
   tipo_embarazo: string;
@@ -139,44 +91,38 @@ export interface ReporteNarrativoIA {
   _error_llm?: string;
 }
 
-export interface UltrasoundValidation {
-  es_ecografia_obstetrica_valida: boolean;
-  tipo_ecografia?: string;
-  calidad_suficiente?: boolean;
-  sharpness?: number;
-  contrast?: number;
-  motivo?: string;
-  motivo_calidad?: string;
-  motivo_validez?: string;
-  mensaje?: string;
-  saturacion_media?: number;
-}
-
-export interface ClinicalRecommendations {
-  urgencia: string;
-  especialista_requerido: string;
-  tiempo_recomendado: string;
-  estudios_adicionales: string[];
-}
-
-export interface AnalisisCNNCompleto {
+/** Informe del análisis con las redes medidas (Microservicio_IA/app/analisis_ecografia.py). */
+export interface InformeRedesMedidas {
   status: string;
   fuente: string;
-  modelo_version: string;
-  score_global: number;
-  gradcam_base64?: string;
-  shap_risk_scores?: ShapRiskScores;
-  ultrasound_validation?: UltrasoundValidation;
-  pregnancy_assessment?: Record<string, any>;
-  pathology_detection: PathologyDetection;
-  biometry: BiometryAssessment;
-  liquido_amniotico?: Record<string, any>;
-  placenta?: Record<string, any>;
-  clinical_recommendations?: ClinicalRecommendations;
-  riesgo_preeclampsia?: number;
-  riesgo_parto_prematuro?: number;
+  version_flujo: string;
   filename?: string;
-  ecografia_id?: string;
+  plano: { plano: string; confianza: number; probabilidades: Record<string, number>; avisos: string[] };
+  medidas: Record<string, any>;
+  estructuras_vistas: Record<string, boolean>;
+  anomalias_cerebrales?: {
+    aplicable: boolean; alarma_anomalia: boolean; probabilidad_anomalia: number; umbral: number;
+    familia_sospechada: string | null; familia_sospechada_nombre: string | null;
+  };
+  hallazgos: string[];
+  avisos: string[];
+  requiere_revision: boolean;
+  superposicion_url?: string;
+  modelos_usados: { archivo: string; dataset: string; sha256?: string; metricas_prueba?: Record<string, any> }[];
+  informe_texto: string;
+  tiempo_ms: number;
+}
+
+export interface ModeloCatalogo {
+  codigo: string;
+  nombre: string;
+  tipo: string;
+  origen: 'microservicio' | 'backend';
+  disponible: boolean;
+  metrica_principal: string | null;
+  datos_reales: boolean;
+  version?: string;
+  huella?: string | null;
 }
 
 export interface EstadisticasIA {
@@ -188,7 +134,7 @@ export interface EstadisticasIA {
   por_tipo_imagen: Record<string, number>;
   por_estado: Record<string, number>;
   por_resultado_cnn: Record<string, number>;
-  modelos_disponibles: any[];
+  modelos_disponibles: ModeloCatalogo[];
 }
 
 export interface MetricasPrueba {
@@ -316,7 +262,7 @@ export const iaMedicaService = {
   analyzeWithAI: async (
     file?: File,
     ecografiaId?: string,
-  ): Promise<{ status: string; ai_analysis: AnalisisCNNCompleto; message: string }> => {
+  ): Promise<{ status: string; ai_analysis: InformeRedesMedidas; message: string }> => {
     const formData = new FormData();
     if (file) {
       formData.append('file', file);

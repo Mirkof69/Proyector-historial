@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Alert, Button, Modal, Result, Space, Statistic, Steps, Table, Tag, Typography, Upload } from 'antd';
+import { Alert, Button, Collapse, Col, Modal, Result, Row, Select, Space, Statistic, Steps, Table, Tag, Typography, Upload } from 'antd';
 import { DownloadOutlined, InboxOutlined } from '@ant-design/icons';
 import api from '../../../services/api';
 import { descargarArchivo } from '../../../utils/descargarArchivo';
+import HistorialImportaciones from './HistorialImportaciones';
 
 const { Text, Paragraph } = Typography;
 
@@ -24,6 +25,13 @@ interface ResultadoImportacion {
     examenes: number; confirmado: boolean;
   };
   filas: FilaImportacion[];
+  importacion_id?: number;
+}
+
+interface PedidoMapeo {
+  encabezados: string[];
+  sugerido: Record<string, string>;
+  campos: { campo: string; etiqueta: string; obligatorio: boolean }[];
 }
 
 const ETIQUETA: Record<EstadoFila, { color: string; texto: string }> = {
@@ -51,11 +59,13 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
   const [final, setFinal] = useState<ResultadoImportacion | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pedidoMapeo, setPedidoMapeo] = useState<PedidoMapeo | null>(null);
+  const [mapeo, setMapeo] = useState<Record<string, string>>({});
 
   const paso = final ? 2 : previa ? 1 : 0;
 
   const reiniciar = () => {
-    setArchivo(null); setPrevia(null); setFinal(null); setError(null);
+    setArchivo(null); setPrevia(null); setFinal(null); setError(null); setPedidoMapeo(null); setMapeo({});
   };
 
   const cerrar = () => {
@@ -72,9 +82,18 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
       const datos = new FormData();
       datos.append('archivo', archivo);
       if (confirmar) datos.append('confirmar', '1');
-      const r = await api.post<ResultadoImportacion>('/laboratorios/examenes/importar-excel/', datos, {
-        headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000,
-      });
+      if (Object.keys(mapeo).length) datos.append('mapeo', JSON.stringify(mapeo));
+      const r = await api.post<ResultadoImportacion & Partial<PedidoMapeo> & { requiere_mapeo?: boolean; error?: string }>(
+        '/laboratorios/examenes/importar-excel/', datos, {
+          headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000,
+        });
+      if (r.data.requiere_mapeo) {
+        // El archivo no usa la plantilla: el usuario dice qué columna es cada dato.
+        setPedidoMapeo({ encabezados: r.data.encabezados ?? [], sugerido: r.data.sugerido ?? {}, campos: r.data.campos ?? [] });
+        setMapeo(r.data.sugerido ?? {});
+        setError('No se reconocieron todas las columnas: indique cuál es cada dato y vuelva a revisar.');
+        return;
+      }
       if (confirmar) setFinal(r.data); else setPrevia(r.data);
     } catch (e: any) {
       setError(e?.response?.data?.error || 'No se pudo leer el archivo.');
@@ -108,7 +127,7 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
     <Modal
       open={open}
       onCancel={cerrar}
-      title="Importar resultados de laboratorio desde Excel"
+      title="Importar resultados de laboratorio (Excel o CSV)"
       width={980}
       destroyOnClose
       footer={
@@ -147,18 +166,38 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
             Descargar plantilla
           </Button>
           <Upload.Dragger
-            accept=".xlsx"
+            accept=".xlsx,.csv,.txt"
             maxCount={1}
-            beforeUpload={(f) => { setArchivo(f); setError(null); return false; }}
-            onRemove={() => setArchivo(null)}
+            beforeUpload={(f) => { setArchivo(f); setError(null); setPedidoMapeo(null); setMapeo({}); return false; }}
+            onRemove={() => { setArchivo(null); setPedidoMapeo(null); setMapeo({}); }}
             fileList={archivo ? [{ uid: '1', name: archivo.name, status: 'done' }] : []}
           >
             <p className="ant-upload-drag-icon"><InboxOutlined /></p>
-            <p className="ant-upload-text">Arrastre el Excel aquí o haga clic para elegirlo</p>
-            <p className="ant-upload-hint">Solo .xlsx · hasta 5.000 filas · 5 MB</p>
+            <p className="ant-upload-text">Arrastre el archivo aquí o haga clic para elegirlo</p>
+            <p className="ant-upload-hint">Excel (.xlsx) o CSV (coma, punto y coma o tabulador) · hasta 5.000 filas · 5 MB.
+              Si no usa la plantilla, se le pedirá qué columna es cada dato.</p>
           </Upload.Dragger>
+          {pedidoMapeo && (
+            <Row gutter={[12, 8]}>
+              {pedidoMapeo.campos.map((c) => (
+                <Col xs={24} sm={12} key={c.campo}>
+                  <Text strong>{c.etiqueta}{c.obligatorio ? ' *' : ''}</Text>
+                  <Select
+                    style={{ width: '100%' }}
+                    allowClear={!c.obligatorio}
+                    placeholder="Columna del archivo"
+                    value={mapeo[c.campo]}
+                    onChange={(v) => setMapeo((m) => ({ ...m, [c.campo]: v }))}
+                    options={pedidoMapeo.encabezados.map((e) => ({ value: e, label: e }))}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
           <Alert type="info" showIcon message="Cada valor se evalúa contra su rango de referencia"
             description="Los resultados fuera de rango quedan marcados como anormales o críticos, igual que al cargarlos a mano." />
+          <Collapse items={[{ key: 'historial', label: 'Importaciones anteriores (deshacer un lote)',
+            children: <HistorialImportaciones onCambio={onImportado} /> }]} />
         </Space>
       )}
 
@@ -170,7 +209,7 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
               title={resumen.creada
                 ? `Se guardaron ${resumen.creada} resultados en ${resumen.examenes} exámenes`
                 : 'No se guardó ningún resultado'}
-              subTitle="Las filas con errores o ya cargadas no se guardaron. Puede corregirlas y volver a importarlas."
+              subTitle="Las filas con errores o ya cargadas no se guardaron. Puede corregirlas y volver a importarlas. Si subió el archivo equivocado, deshágalo desde «Importaciones anteriores»."
               style={{ padding: '8px 0 16px' }}
             />
           )}

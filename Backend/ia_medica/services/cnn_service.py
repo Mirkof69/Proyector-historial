@@ -123,44 +123,6 @@ class CNNFetalService:
         "polihidramnios",
     ]
 
-    MODELOS_CONFIG = {
-        "resnet50": {
-            "nombre": "ResNet-50",
-            "accuracy_base": 92.4,
-            "tiempo_base_ms": 850,
-            "capas": 50,
-            "tipo": "clasificacion",
-        },
-        "unet": {
-            "nombre": "U-Net",
-            "accuracy_base": 88.7,
-            "tiempo_base_ms": 1200,
-            "capas": 23,
-            "tipo": "segmentacion",
-        },
-        "efficientnet": {
-            "nombre": "EfficientNet-B4",
-            "accuracy_base": 94.1,
-            "tiempo_base_ms": 1500,
-            "capas": 74,
-            "tipo": "clasificacion",
-        },
-        "yolo_fetal": {
-            "nombre": "YOLO Fetal",
-            "accuracy_base": 89.3,
-            "tiempo_base_ms": 400,
-            "capas": 75,
-            "tipo": "deteccion",
-        },
-        "custom_cnn": {
-            "nombre": "CNN Personalizada",
-            "accuracy_base": 87.5,
-            "tiempo_base_ms": 600,
-            "capas": 35,
-            "tipo": "clasificacion",
-        },
-    }
-
     # -------------------------------------------------------------------------
     # PUNTO DE ENTRADA PRINCIPAL — Circuit Breaker
     # -------------------------------------------------------------------------
@@ -168,7 +130,7 @@ class CNNFetalService:
     def analizar_imagen(
         self, imagen_path: str, modelo: str = "efficientnet_b4",
     ) -> dict[str, Any]:
-        """Analiza imagen ecográfica con EfficientNet-B4 via microservicio FastAPI.
+        """Analiza la imagen con las redes medidas del microservicio (POST /api/analyze).
         Retorna error explícito si el microservicio no está disponible.
 
         SEGURIDAD CLÍNICA: Sin fallback con datos sintéticos. Un falso negativo
@@ -201,7 +163,7 @@ class CNNFetalService:
     def _analizar_con_microservicio(
         self, imagen_path: str, modelo: str = "efficientnet_b4",
     ) -> dict | None:
-        """Llama al microservicio FastAPI EfficientNet-B4.
+        """Llama al análisis completo del microservicio (plano → segmentación → medidas).
         Retorna None si el servicio no está disponible (ConnectionError/Timeout).
         """
         try:
@@ -242,7 +204,7 @@ class CNNFetalService:
                 logger.warning("Microservicio ML sin modelo: %s", e)
                 return None
             traducido.pop("realizado_por", None)
-            return {**traducido, "fuente": ms_data.get("fuente", "efficientnet_b4")}
+            return {**traducido, "fuente": ms_data.get("fuente", "redes_medidas")}
 
         except requests.exceptions.ConnectionError:
             logger.warning("Microservicio ML no disponible (ConnectionError)")
@@ -295,19 +257,10 @@ class CNNFetalService:
     # -------------------------------------------------------------------------
 
     def obtener_modelos_disponibles(self) -> list[dict]:
-        """Obtener modelos disponibles"""
-        return [
-            {
-                "codigo": codigo,
-                "nombre": config["nombre"],
-                "accuracy": config["accuracy_base"],
-                "tipo": config["tipo"],
-                "capas": config["capas"],
-                "tiempo_estimado_ms": config["tiempo_base_ms"],
-                "disponible": True,
-            }
-            for codigo, config in self.MODELOS_CONFIG.items()
-        ]
+        """Modelos reales con su métrica medida (ver services/catalogo_modelos.py)."""
+        from .catalogo_modelos import catalogo
+
+        return catalogo()
 
     def estadisticas_servicio(self) -> dict[str, Any]:
         """Estadisticas servicio"""
@@ -341,7 +294,7 @@ class CNNFetalService:
                 "analisis_normales": stats_cnn["normales"] or 0,
                 "analisis_anomalias": total_analisis - (stats_cnn["normales"] or 0),
                 "confianza_promedio": confianza_promedio,
-                "modelos_disponibles": len(self.MODELOS_CONFIG),
+                "modelos_disponibles": sum(m["disponible"] for m in self.obtener_modelos_disponibles()),
                 "servicio_activo": True,
             }
         except Exception as e:

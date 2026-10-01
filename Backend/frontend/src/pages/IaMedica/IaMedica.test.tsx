@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import IaMedica from './IaMedica';
 import { iaMedicaService } from '../../services/iaMedicaService';
 
@@ -34,41 +35,46 @@ const imagenMock = {
   tiene_analisis: false,
 };
 
-describe('IaMedica - Análisis CNN', () => {
+const informe = (extra: Record<string, unknown>) => ({
+  status: 'success', message: 'ok',
+  ai_analysis: {
+    status: 'success', fuente: 'redes_medidas', version_flujo: '2.0', filename: 'eco1.jpg',
+    plano: { plano: 'cerebro fetal', confianza: 0.97, probabilidades: { 'cerebro fetal': 0.97 }, avisos: [] },
+    medidas: {}, estructuras_vistas: {}, hallazgos: [], avisos: [], requiere_revision: false,
+    modelos_usados: [{ archivo: 'plano_anatomico_fetal_planes', dataset: 'FETAL_PLANES_DB' }],
+    informe_texto: 'Plano detectado: cerebro fetal.', tiempo_ms: 80,
+    ...extra,
+  },
+});
+
+const renderPagina = () => render(<MemoryRouter><IaMedica /></MemoryRouter>);
+
+describe('IaMedica - análisis con redes medidas', () => {
   beforeEach(() => {
     (iaMedicaService.getImagenes as jest.Mock).mockResolvedValue({ results: [imagenMock] });
     (iaMedicaService.getEstadisticas as jest.Mock).mockResolvedValue({});
   });
 
-  it('no inventa una biometría: muestra el mensaje real de "no disponible" cuando el backend lo marca así', async () => {
-    (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue({
-      status: 'ok',
-      message: 'Análisis completado',
-      ai_analysis: {
-        status: 'ok',
-        fuente: 'efficientnet_b4',
-        modelo_version: 'v1',
-        score_global: 0.1,
-        pathology_detection: { pathologies: [], total_detected: 0 },
-        biometry: {
-          disponible: false,
-          motivo: 'El módulo de biometría fetal aún no está entrenado con datos reales.',
-        },
-        shap_risk_scores: {},
-      },
-    });
+  it('muestra la medida con su margen medido y la red que la produjo', async () => {
+    (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
+      medidas: { circunferencia_cefalica_mm: 251.3, margen_hc_mm: 4.41, diametro_biparietal_mm: 66.2, margen_dbp_mm: 1.61 },
+      superposicion_url: '/media/gradcams/seg_1.png',
+    }));
+    renderPagina();
+    await userEvent.click(await screen.findByText('Analizar con IA'));
+    await waitFor(() => expect(screen.getByText('251.3 mm ± 4.41')).toBeInTheDocument());
+    expect(screen.getByText('66.2 mm ± 1.61')).toBeInTheDocument();
+    expect(screen.getByText('plano_anatomico_fetal_planes')).toBeInTheDocument();
+  });
 
-    render(<IaMedica />);
-
-    const botonAnalizar = await screen.findByText('EffNetB4 + Grad-CAM');
-    await userEvent.click(botonAnalizar);
-
-    await waitFor(() => {
-      expect(screen.getByText('Biometría no disponible')).toBeInTheDocument();
-    });
-
-    // No debe renderizar ningún valor numérico fabricado de biometría
-    // (BPD/HC/AC/FL/peso) cuando el backend indica disponible: false.
-    expect(screen.queryByText(/BPD/i)).not.toBeInTheDocument();
+  it('no inventa medidas para un plano sin red de medida', async () => {
+    (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
+      plano: { plano: 'fémur fetal', confianza: 0.95, probabilidades: { 'fémur fetal': 0.95 }, avisos: [] },
+      hallazgos: ['Para el plano «fémur fetal» no hay una red de medida validada: solo se informa el plano.'],
+    }));
+    renderPagina();
+    await userEvent.click(await screen.findByText('Analizar con IA'));
+    await waitFor(() => expect(screen.getByText('Sin medidas para este plano')).toBeInTheDocument());
+    expect(screen.queryByText(/mm ±/)).not.toBeInTheDocument();
   });
 });

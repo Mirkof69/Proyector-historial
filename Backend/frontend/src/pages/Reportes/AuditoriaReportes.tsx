@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Tag, Button, Space, Typography, Spin, Input, Modal, Descriptions } from 'antd';
 import { SearchOutlined, ReloadOutlined, AuditOutlined, EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { useRangoReportes } from './rangoReportes';
 import api from '../../services/api';
 
 const { Text } = Typography;
@@ -48,6 +49,7 @@ const accionColors: Record<string, string> = {
 };
 
 const AuditoriaReportes: React.FC = () => {
+  const rango = useRangoReportes();
   const [entries, setEntries] = useState<AuditoriaEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -58,7 +60,11 @@ const AuditoriaReportes: React.FC = () => {
     setLoading(true);
     try {
       const response = await api.get('/auditoria/', {
-        params: busqueda ? { search: busqueda } : undefined,
+        params: {
+          ...(busqueda ? { search: busqueda } : {}),
+          // El período del centro de reportes, incluido el último día completo.
+          ...(rango ? { fecha_inicio: rango.params.desde, fecha_fin: `${rango.params.hasta} 23:59:59` } : {}),
+        },
       });
       const data = response.data;
       const lista = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
@@ -68,7 +74,7 @@ const AuditoriaReportes: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [rango?.params.desde, rango?.params.hasta]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     cargarAuditoria();

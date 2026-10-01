@@ -139,6 +139,8 @@ def defaults_analisis_cnn(ai_result: dict, usuario=None, modelo: str = "efficien
     """
     if ai_result.get("status") != "success":
         raise IANoDisponible(ai_result.get("advertencia") or "El servicio de IA no tiene el modelo cargado.")
+    if "version_flujo" in ai_result:
+        return defaults_analisis_medido(ai_result, usuario)
 
     mapeo = mapear_resultado_microservicio(ai_result)
     pathologies = mapeo["pathologies"]
@@ -199,4 +201,74 @@ def defaults_analisis_cnn(ai_result: dict, usuario=None, modelo: str = "efficien
         "sugerencia_diagnostica": sugerencia,
         "tiempo_inferencia_ms": ms,
         "tiempo_procesamiento_ms": ms or 0,
+    }
+
+
+def resultado_del_informe(informe: dict) -> str:
+    """Veredicto del análisis con las redes medidas.
+
+    - alarma del cribado cerebral → «anomalia_moderada» (cribado positivo: lo
+      confirma un especialista; no se gradúa una sospecha como «grave»);
+    - índice cardiotorácico sobre el rango, plano dudoso o corte no adecuado
+      → «requiere_revision»;
+    - en otro caso → «normal»: sin hallazgos EN LO QUE SE EVALUÓ (el informe
+      dice qué se evaluó y qué no).
+    """
+    anomalias = informe.get("anomalias_cerebrales") or {}
+    if anomalias.get("alarma_anomalia"):
+        return "anomalia_moderada"
+    medidas = informe.get("medidas") or {}
+    ict = medidas.get("indice_cardiotoracico_areas")
+    referencia = medidas.get("referencia_areas") or [0, 0.35]
+    if (ict is not None and ict > referencia[1]) or informe.get("requiere_revision")             or medidas.get("plano_adecuado_para_ca") is False:
+        return "requiere_revision"
+    return "normal"
+
+
+def defaults_analisis_medido(informe: dict, usuario=None) -> dict[str, Any]:
+    """Campos de AnalisisCNN a partir del informe de las redes medidas
+    (Microservicio_IA/app/analisis_ecografia.py)."""
+    plano = informe.get("plano") or {}
+    medidas = informe.get("medidas") or {}
+    anomalias = informe.get("anomalias_cerebrales") or {}
+    resultado = resultado_del_informe(informe)
+    alarma = bool(anomalias.get("alarma_anomalia"))
+    huella = next((m.get("sha256") for m in informe.get("modelos_usados", []) if m.get("sha256")), None)
+    recomendaciones = list(informe.get("hallazgos") or [])
+    if resultado == "requiere_revision":
+        recomendaciones.append("Revisar la imagen y repetir el corte si hace falta.")
+    if not recomendaciones:
+        recomendaciones.append("Sin hallazgos en lo evaluado: control prenatal de rutina.")
+    vistas = informe.get("estructuras_vistas") or {}
+    return {
+        "realizado_por": usuario if getattr(usuario, "is_authenticated", False) else None,
+        "modelo_usado": "redes_medidas",
+        "version_modelo": f"flujo {informe.get('version_flujo')}" + (f"@{huella[:12]}" if huella else ""),
+        "resultado": resultado,
+        "confianza": round(float(anomalias.get("probabilidad_anomalia") if alarma else plano.get("confianza", 0)), 4),
+        "score_general": round(float(plano.get("confianza", 0)) * 100, 1),
+        "predicciones": [{"clase": k, "confianza": v} for k, v in (plano.get("probabilidades") or {}).items()],
+        "clases_detectadas": [plano.get("plano")] if plano.get("plano") else [],
+        "estructuras_detectadas": {k: {"vista": v} for k, v in vistas.items()},
+        "medidas_estimadas": medidas or None,
+        "anomalias_detectadas": [{"tipo": anomalias.get("familia_sospechada"),
+                                  "nombre": anomalias.get("familia_sospechada_nombre"),
+                                  "confianza": anomalias.get("probabilidad_anomalia"), "severidad": "media"}] if alarma else [],
+        "alertas": list(informe.get("avisos") or []),
+        "recomendaciones": recomendaciones,
+        "mapa_calor": informe.get("superposicion_png") or None,
+        "bpd_mm": medidas.get("diametro_biparietal_mm"),
+        "hc_mm": medidas.get("circunferencia_cefalica_mm"),
+        "ac_mm": None,
+        "fl_mm": None,
+        "riesgo_preeclampsia": None,
+        "riesgo_parto_prematuro": None,
+        "nivel_riesgo": NIVEL_POR_RESULTADO.get(resultado, "MODERADO"),
+        "shap_valores": None,
+        "patologias": [anomalias.get("familia_sospechada")] if alarma else [],
+        "sugerencia_diagnostica": {"informe": informe.get("informe_texto"),
+                                   "modelos": [{"archivo": m.get("archivo"), "dataset": m.get("dataset")}
+                                               for m in informe.get("modelos_usados", [])]},
+        "tiempo_inferencia_ms": informe.get("tiempo_ms"),
+        "tiempo_procesamiento_ms": informe.get("tiempo_ms") or 0,
     }
