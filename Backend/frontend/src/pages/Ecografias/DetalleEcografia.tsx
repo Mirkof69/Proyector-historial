@@ -29,6 +29,7 @@ import {
   DeleteOutlined,
   FileImageOutlined,
   ExclamationCircleOutlined,
+  PaperClipOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -178,6 +179,9 @@ const DetalleEcografia: React.FC = () => {
                   .catch(() => message.error('No se pudo generar el PDF'))}
               >
                 PDF
+              </Button>
+              <Button icon={<PaperClipOutlined />} onClick={() => navigate(`/dashboard/ecografias/${id}/archivos`)}>
+                Archivos adjuntos
               </Button>
               <Button
                 icon={<FileExcelOutlined />}

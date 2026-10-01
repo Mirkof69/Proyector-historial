@@ -20,7 +20,7 @@ class EcografiaArchivo(models.Model):
             ("imagen", "Imagen"),
             ("video", "Video"),
             ("dicom", "DICOM"),
-            ("pd", "PDF"),
+            ("pdf", "PDF"),
         ],
     )
     nombre_archivo = models.CharField(max_length=200)

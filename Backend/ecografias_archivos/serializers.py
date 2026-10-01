@@ -51,6 +51,7 @@ class EcografiaArchivoListSerializer(serializers.ModelSerializer):
         model = EcografiaArchivo
         fields = [
             "id",
+            "archivo",  # URL (protegida: /media/ exige sesión); sin ella no se podía ver ni bajar
             "nombre_archivo",
             "tipo_archivo",
             "tamano_bytes",
@@ -61,28 +62,26 @@ class EcografiaArchivoListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+#: Formato detectado por el contenido → tipo guardado.
+TIPO_POR_FORMATO = {"PNG": "imagen", "JPG": "imagen", "BMP": "imagen", "TIFF": "imagen",
+                    "DICOM": "dicom", "PDF": "pdf", "MP4": "video", "AVI": "video"}
+
+
 class EcografiaArchivoCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating new files"""
+    """Alta de un adjunto. El TIPO se deduce del contenido del archivo.
+
+    Antes era imposible crear un adjunto: el modelo aceptaba «imagen/video/
+    dicom/pd» y este serializer exigía «DICOM/JPG/PNG/PDF/VIDEO» en
+    mayúsculas, así que ningún valor cumplía las dos reglas. Además el tipo lo
+    declaraba el cliente; ahora sale de los primeros bytes del archivo.
+    """
 
     class Meta:
         """Meta"""
         model = EcografiaArchivo
-        fields = [
-            "ecografia",
-            "archivo",
-            "nombre_archivo",
-            "tipo_archivo",
-            "descripcion",
-        ]
-
-    def validate_tipo_archivo(self, value):
-        """Validate file type"""
-        allowed_types = ["DICOM", "JPG", "PNG", "PDF", "VIDEO"]
-        if value not in allowed_types:
-            raise serializers.ValidationError(
-                f"Tipo de archivo no válido. Permitidos: {', '.join(allowed_types)}",
-            )
-        return value
+        fields = ["id", "ecografia", "archivo", "nombre_archivo", "tipo_archivo", "descripcion"]
+        read_only_fields = ["id", "tipo_archivo"]
+        extra_kwargs = {"nombre_archivo": {"required": False}}
 
     def validate_archivo(self, value):
         """Tamaño y formato REAL (por el contenido, no por la extensión)."""
@@ -91,7 +90,15 @@ class EcografiaArchivoCreateSerializer(serializers.ModelSerializer):
         from core.validacion_archivos import FIRMAS, validar_archivo
 
         try:
-            validar_archivo(value, permitidos=tuple(FIRMAS), max_mb=50)
+            self._formato = validar_archivo(value, permitidos=tuple(FIRMAS), max_mb=50)
         except ErrorDjango as e:
             raise serializers.ValidationError(e.messages[0]) from e
         return value
+
+    def validate(self, attrs):
+        archivo = attrs["archivo"]
+        attrs["tipo_archivo"] = TIPO_POR_FORMATO[self._formato]
+        attrs["tamano_bytes"] = archivo.size
+        if not attrs.get("nombre_archivo"):
+            attrs["nombre_archivo"] = (getattr(archivo, "name", "") or "archivo")[:200]
+        return attrs
