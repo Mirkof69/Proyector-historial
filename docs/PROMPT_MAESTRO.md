@@ -203,8 +203,10 @@ Tareas:
   decisión. Reescribir solo si arreglar cuesta más que rehacer, y siempre con
   pruebas que fijen el comportamiento actual antes de cambiarlo.
 - Elimina código muerto, archivos temporales, carpetas vacías y duplicados.
-  Los `.zip` de datasets se descomprimen en `Backend/Microservicio_IA/datos/`
-  según `datos/CATALOGO.md`, sin duplicar imágenes, y luego se borran.
+  Los `.zip` de datasets **no se borran**: son la copia original
+  (`Backend/Microservicio_IA/datos/crudos/`, fuera de git). Cada uno se
+  extrae una sola vez en `datos/extraidos/` y queda registrado en
+  `datos/CATALOGO.md`, sin duplicar imágenes.
 - Antes de borrar, comprueba con búsqueda que nada lo usa; después, la suite
   completa.
 - Contratos claros entre servicios: el backend habla con el microservicio solo
