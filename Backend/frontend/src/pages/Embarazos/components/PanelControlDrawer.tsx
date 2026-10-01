@@ -6,7 +6,7 @@ import {
   BookOutlined, SafetyCertificateOutlined, DatabaseOutlined, TeamOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { EmbarazoExtendido } from '../embarazosReducer';
+import { EmbarazoResumido } from '../embarazosReducer';
 
 const { Text } = Typography;
 
@@ -20,14 +20,16 @@ const questionCircleOutlinedIcon3 = <QuestionCircleOutlined />;
 interface PanelControlDrawerProps {
   visible: boolean;
   onClose: () => void;
-  embarazos: EmbarazoExtendido[];
-  stats: { primerTrimestre: number };
+  /** Los 5 partos más cercanos (30 días), calculados en el servidor sobre todos los activos. */
+  proximosPartos: EmbarazoResumido[];
+  /** Trimestres de los embarazos ACTIVOS, contados en el servidor (no sobre una página). */
+  stats: { primerTrimestre: number; segundoTrimestre: number; tercerTrimestre: number };
   canAdd: (perm: string) => boolean;
   handleOpenCreate: () => void;
 }
 
 const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
-  visible, onClose, embarazos, stats, canAdd, handleOpenCreate,
+  visible, onClose, proximosPartos, stats, canAdd, handleOpenCreate,
 }) => (
   <Drawer
     title="Panel de Control Obstétrico"
@@ -72,12 +74,12 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
               </Col>
               <Col span={8}>
                 <Card size="small" style={{ textAlign: 'center', background: '#f0f5ff' }}>
-                  <Statistic title="2T" value={embarazos.filter(e => e.trimestre_actual === 2 && e.estado === 'activo').length} valueStyle={{ fontSize: 24 }} />
+                  <Statistic title="2T" value={stats.segundoTrimestre} valueStyle={{ fontSize: 24 }} />
                 </Card>
               </Col>
               <Col span={8}>
                 <Card size="small" style={{ textAlign: 'center', background: '#fff7e6' }}>
-                  <Statistic title="3T" value={embarazos.filter(e => e.trimestre_actual === 3 && e.estado === 'activo').length} valueStyle={{ fontSize: 24 }} />
+                  <Statistic title="3T" value={stats.tercerTrimestre} valueStyle={{ fontSize: 24 }} />
                 </Card>
               </Col>
             </Row>
@@ -88,12 +90,8 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
           <Text strong>Próximos Partos Estimados (30 días):</Text>
           <List
             size="small"
-            dataSource={
-              embarazos
-                .filter(e => e.fecha_probable_parto && dayjs(e.fecha_probable_parto).diff(dayjs(), 'day') <= 30 && dayjs(e.fecha_probable_parto).diff(dayjs(), 'day') >= 0)
-                .slice(0, 5)
-            }
-            renderItem={(item: any) => (
+            dataSource={proximosPartos}
+            renderItem={(item: EmbarazoResumido) => (
               <List.Item key={`fpp-${item.id}`}>
                 <Text>{item.paciente_nombre}</Text>
                 <Text type="secondary">{dayjs(item.fecha_probable_parto).format('DD/MM')}</Text>

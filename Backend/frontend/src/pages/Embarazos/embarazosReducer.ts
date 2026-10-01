@@ -15,6 +15,15 @@ export interface EmbarazoExtendido extends Embarazo {
     trimestre_actual?: number;       // Calculado frontend
 }
 
+/** Fila de `GET /embarazos/resumen/` (próximos partos y alertas de término). */
+export interface EmbarazoResumido {
+    id: number;
+    paciente: number;
+    paciente_nombre: string;
+    fecha_probable_parto: string | null;
+    semanas: number | null;
+}
+
 export interface PacienteOption {
     id: number;
     nombre_completo: string;

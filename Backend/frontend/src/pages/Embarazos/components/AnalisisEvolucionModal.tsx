@@ -1,19 +1,18 @@
 import React from 'react';
 import { Modal, Space, Tabs, Card, Alert, Row, Col, Statistic, Divider, Table, Tag, Typography } from 'antd';
 import { LineChartOutlined } from '@ant-design/icons';
-import { EmbarazoExtendido } from '../embarazosReducer';
-
 const { Text } = Typography;
 
 interface AnalisisEvolucionModalProps {
   visible: boolean;
   onClose: () => void;
-  embarazos: EmbarazoExtendido[];
+  /** Total del resumen del servidor (con los filtros de la pantalla), no de una página. */
+  total: number;
   stats: { altoRiesgo: number; activos: number; termino: number };
 }
 
 const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
-  visible, onClose, embarazos, stats,
+  visible, onClose, total, stats,
 }) => (
   <Modal
     title={<Space><LineChartOutlined /> Análisis de Evolución de Embarazos</Space>}
@@ -32,7 +31,7 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
               <Alert
                 message="Distribución de Riesgo Obstétrico"
                 description={`
-                Análisis de ${embarazos.length} embarazos registrados.
+                Análisis de ${total} embarazos registrados.
                 Alto riesgo: ${stats.altoRiesgo} casos, requieren seguimiento especializado.
             `}
                 type="info"

@@ -1,10 +1,70 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, Alert, Row, Col, Card, Select, Divider, Descriptions, Empty, Table, Button } from 'antd';
 import { FilePdfOutlined } from '@ant-design/icons';
+// Cliente axios: la respuesta trae los datos en `.data`.
+import apiClient from '../../../services/api';
 import { Paciente, getEstadoCivilConGenero } from '../pacientesTypes';
 
-const { Option } = Select;
 const FILE_PDF_ICON_4 = <FilePdfOutlined />;
+
+/**
+ * Selector de paciente que busca EN EL SERVIDOR (`?search=`, que entiende los
+ * nombres cifrados). Antes listaba las pacientes que la pantalla había bajado
+ * en bucle; ahora la pantalla solo tiene la página visible.
+ */
+const SelectorPaciente: React.FC<{
+  valor: Paciente | null;
+  onElegir: (paciente: Paciente | null) => void;
+}> = ({ valor, onElegir }) => {
+  const [opciones, setOpciones] = useState<Paciente[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const ultima = useRef(0);
+  const espera = useRef<ReturnType<typeof setTimeout>>();
+
+  const buscar = useCallback(async (termino: string) => {
+    const id = ++ultima.current;
+    setCargando(true);
+    try {
+      const r = await apiClient.get('/pacientes/', {
+        params: { search: termino.trim() || undefined, page_size: 20 },
+      });
+      if (id === ultima.current) setOpciones(r.data?.results ?? []);
+    } catch {
+      if (id === ultima.current) setOpciones([]);
+    } finally {
+      if (id === ultima.current) setCargando(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    buscar('');
+    return () => clearTimeout(espera.current);
+  }, [buscar]);
+
+  // Espera a que se deje de escribir: cada búsqueda descifra nombres en el servidor.
+  const alEscribir = (termino: string) => {
+    clearTimeout(espera.current);
+    espera.current = setTimeout(() => buscar(termino), 350);
+  };
+
+  const lista = valor && !opciones.some(o => o.id === valor.id) ? [valor, ...opciones] : opciones;
+
+  return (
+    <Select
+      placeholder="Buscar paciente por nombre, CI o ID..."
+      style={{ width: '100%' }}
+      showSearch
+      allowClear
+      filterOption={false}
+      onSearch={alEscribir}
+      loading={cargando}
+      notFoundContent={cargando ? 'Buscando…' : 'Sin resultados'}
+      value={valor?.id}
+      onChange={(id) => onElegir(lista.find(p => p.id === id) ?? null)}
+      options={lista.map(p => ({ value: p.id, label: p.nombre_completo }))}
+    />
+  );
+};
 
 interface ComparacionState {
   a: Paciente | null;
@@ -15,13 +75,12 @@ interface ComparacionState {
 interface ComparacionModalProps {
   visible: boolean;
   onClose: () => void;
-  pacientes: Paciente[];
   pacientesComparacion: ComparacionState;
   setPacientesComparacion: React.Dispatch<React.SetStateAction<ComparacionState>>;
 }
 
 const ComparacionModal: React.FC<ComparacionModalProps> = ({
-  visible, onClose, pacientes, pacientesComparacion, setPacientesComparacion,
+  visible, onClose, pacientesComparacion, setPacientesComparacion,
 }) => (
   <Modal
     title="Comparación de Pacientes"
@@ -41,21 +100,10 @@ const ComparacionModal: React.FC<ComparacionModalProps> = ({
     <Row gutter={16}>
       <Col span={8}>
         <Card title="Paciente A" size="small">
-          <Select
-            placeholder="Seleccionar paciente..."
-            style={{ width: '100%' }}
-            showSearch
-            optionFilterProp="children"
-            value={pacientesComparacion.a?.id}
-            onChange={(id) => {
-              const pac = pacientes.find(p => p.id === id);
-              setPacientesComparacion(prev => ({ ...prev, a: pac || null }));
-            }}
-          >
-            {pacientes.map(p => (
-              <Option key={p.id} value={p.id}>{p.nombre_completo}</Option>
-            ))}
-          </Select>
+          <SelectorPaciente
+            valor={pacientesComparacion.a}
+            onElegir={(pac) => setPacientesComparacion(prev => ({ ...prev, a: pac }))}
+          />
           <Divider />
           {pacientesComparacion.a ? (
             <Descriptions size="small" column={1} bordered>
@@ -70,21 +118,10 @@ const ComparacionModal: React.FC<ComparacionModalProps> = ({
       </Col>
       <Col span={8}>
         <Card title="Paciente B" size="small">
-          <Select
-            placeholder="Seleccionar paciente..."
-            style={{ width: '100%' }}
-            showSearch
-            optionFilterProp="children"
-            value={pacientesComparacion.b?.id}
-            onChange={(id) => {
-              const pac = pacientes.find(p => p.id === id);
-              setPacientesComparacion(prev => ({ ...prev, b: pac || null }));
-            }}
-          >
-            {pacientes.map(p => (
-              <Option key={p.id} value={p.id}>{p.nombre_completo}</Option>
-            ))}
-          </Select>
+          <SelectorPaciente
+            valor={pacientesComparacion.b}
+            onElegir={(pac) => setPacientesComparacion(prev => ({ ...prev, b: pac }))}
+          />
           <Divider />
           {pacientesComparacion.b ? (
             <Descriptions size="small" column={1} bordered>
@@ -99,21 +136,10 @@ const ComparacionModal: React.FC<ComparacionModalProps> = ({
       </Col>
       <Col span={8}>
         <Card title="Paciente C" size="small">
-          <Select
-            placeholder="Seleccionar paciente..."
-            style={{ width: '100%' }}
-            showSearch
-            optionFilterProp="children"
-            value={pacientesComparacion.c?.id}
-            onChange={(id) => {
-              const pac = pacientes.find(p => p.id === id);
-              setPacientesComparacion(prev => ({ ...prev, c: pac || null }));
-            }}
-          >
-            {pacientes.map(p => (
-              <Option key={p.id} value={p.id}>{p.nombre_completo}</Option>
-            ))}
-          </Select>
+          <SelectorPaciente
+            valor={pacientesComparacion.c}
+            onElegir={(pac) => setPacientesComparacion(prev => ({ ...prev, c: pac }))}
+          />
           <Divider />
           {pacientesComparacion.c ? (
             <Descriptions size="small" column={1} bordered>

@@ -2,17 +2,22 @@ import React from 'react';
 import { Modal, Space, Tabs, List, Button, Alert, Form, Switch, Checkbox, Table, Tag, Typography } from 'antd';
 import { BellOutlined, WarningOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { EmbarazoExtendido } from '../embarazosReducer';
+import { EmbarazoResumido } from '../embarazosReducer';
 
 const { Text } = Typography;
 
 interface AlertasModalProps {
   visible: boolean;
   onClose: () => void;
-  embarazos: EmbarazoExtendido[];
+  /**
+   * Embarazos ACTIVOS de 37 semanas o más, calculados en el servidor sobre
+   * todos los registros (antes, sobre lo que la pantalla había descargado).
+   */
+  alertas: EmbarazoResumido[];
+  totalATermino: number;
 }
 
-const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, embarazos }) => (
+const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, alertas, totalATermino }) => (
   <Modal
     title={<Space><BellOutlined /> Sistema de Alertas Inteligentes</Space>}
     open={visible}
@@ -26,22 +31,24 @@ const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, embarazos
           key: '1',
           label: 'Alertas Activas',
           children: (
+            <>
+            {totalATermino > alertas.length && (
+              <Alert
+                type="info"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={`Se muestran las ${alertas.length} de mayor edad gestacional de ${totalATermino} embarazos a término.`}
+              />
+            )}
             <List
               itemLayout="horizontal"
-                dataSource={
-                  embarazos.reduce((acc, e) => {
-                    if (e.estado === 'activo' && (e.edad_gestacional_semanas_num || 0) >= 37) {
-                      acc.push({
-                        id: e.id,
-                        tipo: 'TÉRMINO',
-                        mensaje: `${e.paciente_nombre} - ${e.edad_gestacional_semanas_num} semanas. Próximo a término.`,
-                        prioridad: 'media',
-                        fecha: dayjs().format('DD/MM/YYYY')
-                      });
-                    }
-                    return acc;
-                  }, [] as any[])
-                }
+                dataSource={alertas.map(e => ({
+                  id: e.id,
+                  tipo: 'TÉRMINO',
+                  mensaje: `${e.paciente_nombre} - ${e.semanas} semanas. Próximo a término.`,
+                  prioridad: 'media',
+                  fecha: dayjs().format('DD/MM/YYYY'),
+                }))}
               renderItem={(item: any) => (
                 <List.Item
                   actions={[
@@ -57,6 +64,7 @@ const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, embarazos
                 </List.Item>
               )}
             />
+            </>
           ),
         },
         {

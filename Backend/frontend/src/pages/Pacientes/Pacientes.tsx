@@ -18,6 +18,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Alert } from 'antd';
 import {
   Empty,
     Table,
@@ -59,10 +60,10 @@ import 'dayjs/locale/es';
 // Importamos el motor API robusto creado anteriormente
 import { api } from '../../services/api';
 import pdfService from '../../services/pdfService';
-import { exportarExcel } from '../../utils/excelExport';
-import { GlobalLoader } from '../../components/common/GlobalLoader';
 import AnimatedStatistic from '../../components/common/AnimatedStatistic';
-import { Paciente, AdvancedFilters, PacienteStats } from './pacientesTypes';
+import { Paciente, AdvancedFilters, ResumenPacientes, RESUMEN_PACIENTES_VACIO } from './pacientesTypes';
+import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
+import apiAxios from '../../services/api';
 import { buildPacientesColumns } from './pacientesColumns';
 import PacienteWizardModal from './components/PacienteWizardModal';
 import PacienteDrawer from './components/PacienteDrawer';
@@ -90,10 +91,6 @@ const FILE_PDF_ICON_4 = <FilePdfOutlined />;
 const RELOAD_ICON_2 = <ReloadOutlined />;
 const PLUS_ICON_5 = <PlusOutlined />;
 
-/** Minusculas y sin tildes, para buscar "López" escribiendo "lopez". */
-const normalizarTexto = (texto?: string | null): string =>
-    (texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-
 const Pacientes: React.FC = () => {
     const navigate = useNavigate();
     const { message, modal } = useAntdApp();
@@ -101,19 +98,43 @@ const Pacientes: React.FC = () => {
     const { token } = theme.useToken();
     const { canAdd, canChange, canDelete } = usePermissions();
 
-    // --- ESTADOS GLOBALES ---
-    const [pacientes, setPacientes] = useState<Paciente[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [stats, setStats] = useState<PacienteStats>({ total: 0, activos: 0, nuevosMes: 0, embarazadas: 0, promedioEdad: 0 });
-    // --- ESTADOS DE PAGINACIÓN ---
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(100);
-    const [totalPacientes, setTotalPacientes] = useState(0);
-
     // --- ESTADOS DE INTERFAZ ---
     const [searchText, setSearchText] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState<AdvancedFilters>({});
+    const [estadoObstetrico, setEstadoObstetrico] = useState<string | undefined>();
+
+    // Búsqueda (nombres cifrados), filtros y cifras los resuelve el SERVIDOR.
+    // Antes se bajaban las ~3.200 pacientes en 17 peticiones y se filtraba en
+    // el navegador.
+    const filtrosServidor = useMemo(() => ({
+        ciudad: filters.ciudad,
+        activo: filters.estado ? filters.estado === 'activo' : undefined,
+        con_embarazo_activo: filters.tieneEmbarazo ? 'true' : undefined,
+        edad_min: filters.edadMin,
+        edad_max: filters.edadMax,
+        estado_obstetrico: estadoObstetrico,
+    }), [filters, estadoObstetrico]);
+    const listado = useListadoServidor<Paciente>('/pacientes/', {
+        filtros: filtrosServidor, busqueda: searchText, ordenInicial: '-fecha_registro',
+    });
+    const { parametros, recargar } = listado;
+    const loading = listado.cargando;
+    const [resumen, setResumen] = useState<ResumenPacientes>(RESUMEN_PACIENTES_VACIO);
+    const cargarResumen = useCallback(async () => {
+        try {
+            const r = await apiAxios.get('/pacientes/resumen/', { params: parametros() });
+            setResumen(r.data);
+        } catch {
+            setResumen(RESUMEN_PACIENTES_VACIO);
+        }
+    }, [parametros]);
+    useEffect(() => { cargarResumen(); }, [cargarResumen]);
+    const loadPacientes = useCallback(() => {
+        recargar();
+        cargarResumen();
+        setSelectedRowKeys([]);
+    }, [recargar, cargarResumen]);
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
     // --- ESTADOS DE MODALES/DRAWERS ---
@@ -184,141 +205,11 @@ const Pacientes: React.FC = () => {
                     observaciones: editingPaciente.observaciones,
                 });
 
-
-                // Verificar los valores después de un momento
-                setTimeout(() => {
-                    const valores = form.getFieldsValue();
-                }, 200);
             }, 600); // Aumentado a 600ms
 
             return () => clearTimeout(timer);
         }
     }, [editingPaciente, modalVisible, form]);
-
-    /**
-     * ✅ OPTIMIZACIÓN: Carga inicial de datos PARALELA desde el Backend
-     * Obtiene TODOS los pacientes cargando TODAS las páginas en paralelo (Promise.all)
-     */
-    const loadPacientes = useCallback(async () => {
-        setLoading(true);
-
-        try {
-
-            // 🚀 PASO 1: Obtener primera página para saber cuántas páginas hay
-            const firstPageResponse = await api.get<any>('/pacientes/?page=1&limit=200');
-            const totalCount = firstPageResponse.count || 0;
-            const totalPages = Math.ceil(totalCount / 200);
-
-
-            // 🚀 PASO 2: Crear arrays de promesas para TODAS las páginas
-            const promises = Array.from({ length: totalPages }, (_, i) =>
-                api.get<any>(`/pacientes/?page=${i + 1}&limit=200`)
-            );
-
-            // 🚀 PASO 3: Ejecutar TODAS las requests en PARALELO
-            const responses = await Promise.all(promises);
-
-            // 🚀 PASO 4: Combinar todos los resultados y agregar rowKey único
-            const allPacientes: Paciente[] = [];
-            for (const res of responses) {
-                const results = Array.isArray(res) ? res : res.results || [];
-                for (const paciente of results) {
-                    allPacientes.push({
-                        ...paciente,
-                        _uniqueRowKey: `paciente-${paciente.id}-${allPacientes.length}-${Date.now()}`
-                    });
-                }
-            }
-
-            setPacientes(allPacientes);
-            setTotalPacientes(allPacientes.length);
-            calcularEstadisticas(allPacientes);
-
-            // Limpiar selecciones
-            setSelectedRowKeys([]);
-        } catch (error) {
-            message.error("Error al sincronizar datos con el servidor");
-        } finally {
-            setLoading(false);
-        }
-    }, [message]);
-
-    // ✅ OPTIMIZACIÓN: useEffect con dependencia explícita en loadPacientes
-    useEffect(() => {
-        loadPacientes();
-    }, [loadPacientes]);
-
-    /**
-     * Calcula estadísticas en tiempo real basadas en la lista cargada
-     */
-    const calcularEstadisticas = (lista: Paciente[]) => {
-        const total = lista.length;
-        const activos = lista.filter(p => p.activo).length;
-        const embarazadas = lista.filter(p => p.embarazos_activos).length;
-
-        // Nuevos este mes
-        const currentMonth = dayjs().month();
-        const currentYear = dayjs().year();
-        const nuevosMes = lista.filter(p => {
-            if (!p.fecha_registro) return false;
-            const date = dayjs(p.fecha_registro);
-            return date.month() === currentMonth && date.year() === currentYear;
-        }).length;
-
-        // Promedio edad
-        const sumaEdades = lista.reduce((acc, curr) => acc + (curr.edad || 0), 0);
-        const promedioEdad = total > 0 ? Math.round(sumaEdades / total) : 0;
-
-        setStats({ total, activos, nuevosMes, embarazadas, promedioEdad });
-    };
-
-    // =============================================================================
-    // 4. LÓGICA DE FILTRADO AVANZADO (MEMOIZED)
-    // =============================================================================
-
-    const filteredData = useMemo(() => {
-        let data = [...pacientes];
-
-        // 1. Búsqueda de Texto
-        if (searchText) {
-            // Sin tildes: el backend ya devuelve "López" cuando se busca
-            // "lopez", pero este filtro del cliente volvia a descartarlo
-            // porque comparaba con acentos y dejaba la tabla en 0 filas.
-            // En Bolivia los apellidos se escriben con y sin tilde
-            // indistintamente (Lopez/López, Cusi/Cusí, Suarez/Suárez).
-            const lower = normalizarTexto(searchText);
-            data = data.filter(p =>
-                (normalizarTexto(p.nombre_completo).includes(lower)) ||
-                (normalizarTexto(p.nombre).includes(lower)) ||
-                (normalizarTexto(p.apellido_paterno).includes(lower)) ||
-                (normalizarTexto(p.ci).includes(lower)) ||
-                (normalizarTexto(p.id_clinico).includes(lower))
-            );
-        }
-
-        // 2. Filtros Avanzados
-        if (filters.genero) {
-            data = data.filter(p => p.genero === filters.genero);
-        }
-        if (filters.ciudad) {
-            data = data.filter(p => p.ciudad?.toLowerCase().includes(filters.ciudad!.toLowerCase()));
-        }
-        if (filters.estado) {
-            const isActive = filters.estado === 'activo';
-            data = data.filter(p => p.activo === isActive);
-        }
-        if (filters.tieneEmbarazo) {
-            data = data.filter(p => p.embarazos_activos);
-        }
-        if (filters.edadMin !== undefined) {
-            data = data.filter(p => (p.edad || 0) >= filters.edadMin!);
-        }
-        if (filters.edadMax !== undefined) {
-            data = data.filter(p => (p.edad || 0) <= filters.edadMax!);
-        }
-
-        return data;
-    }, [pacientes, searchText, filters]);
 
     // =============================================================================
     // 5. HANDLERS DE ACCIONES (CRUD)
@@ -444,14 +335,18 @@ const Pacientes: React.FC = () => {
     }, [message]);
 
     // ✨ GENERAR PDF DE LISTADO DE PACIENTES
-    const handleExportPDF = useCallback(() => {
+    const handleExportPDF = useCallback(async () => {
+        // El PDF es un listado para imprimir: hasta 200 pacientes con los
+        // filtros actuales (para todas, el Excel del servidor).
         try {
-            pdfService.generarListadoPacientes(filteredData);
-            message.success('PDF generado exitosamente');
+            const r = await apiAxios.get('/pacientes/', { params: { ...parametros(), page_size: 200 } });
+            pdfService.generarListadoPacientes(r.data?.results ?? []);
+            if ((r.data?.count ?? 0) > 200) message.info('El PDF lleva las primeras 200 pacientes; use Excel para el listado completo.');
+            else message.success('PDF generado');
         } catch (error) {
             message.error('Error al generar el PDF');
         }
-    }, [filteredData, message]);
+    }, [parametros, message]);
 
     // ✨ GENERAR PDF DE PACIENTE INDIVIDUAL
     const handleExportPacientePDF = useCallback((paciente: Paciente) => {
@@ -463,42 +358,12 @@ const Pacientes: React.FC = () => {
         }
     }, [message]);
 
-    // ✨ EXPORTAR A EXCEL
+    // Excel desde el SERVIDOR con todas las pacientes filtradas (auditado).
     const handleExportExcel = useCallback(() => {
-        try {
-            const columnas = {
-                'id_clinico': 'ID Clínico',
-                'nombre': 'Nombre',
-                'apellido_paterno': 'Apellido Paterno',
-                'apellido_materno': 'Apellido Materno',
-                'ci': 'CI',
-                'fecha_nacimiento': 'Fecha Nacimiento',
-                'edad': 'Edad',
-                'genero': 'Género',
-                'telefono': 'Teléfono',
-                'email': 'Email',
-                'direccion': 'Dirección',
-                'ciudad': 'Ciudad',
-                'estado_civil': 'Estado Civil',
-                'ocupacion': 'Ocupación',
-                'grupo_sanguineo': 'Grupo Sanguíneo',
-                'rh': 'RH'
-            };
-
-            exportarExcel(
-                filteredData,
-                columnas,
-                {
-                    filename: `pacientes_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`,
-                    sheetName: 'Pacientes',
-                    title: `Listado de Pacientes - ${dayjs().format('DD/MM/YYYY')}`
-                }
-            );
-            message.success('Archivo Excel generado exitosamente');
-        } catch (error) {
-            message.error('Error al generar el archivo Excel');
-        }
-    }, [filteredData, message]);
+        descargarArchivo(`/pacientes/exportar-excel/${aQuery(parametros())}`, `pacientes_${dayjs().format('YYYYMMDD_HHmm')}.xlsx`)
+            .then(() => message.success('Excel descargado'))
+            .catch(() => message.error('No se pudo generar el Excel'));
+    }, [parametros, message]);
 
     // =============================================================================
     // 6. DEFINICIÓN DE COLUMNAS DE TABLA
@@ -521,10 +386,6 @@ const Pacientes: React.FC = () => {
     // 7. RENDERIZADO DE INTERFAZ (JSX)
     // =============================================================================
 
-    if (loading && pacientes.length === 0) {
-        return <GlobalLoader tip="Cargando directorio de pacientes…" />;
-    }
-
     return (
         <div className="pacientes-module animate-fade-in">
 
@@ -533,25 +394,25 @@ const Pacientes: React.FC = () => {
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Total Pacientes" value={stats.total} prefix={<TeamOutlined />} />
+                            <AnimatedStatistic title="Total Pacientes" value={resumen.total} prefix={<TeamOutlined />} />
                             <Progress percent={100} showInfo={false} strokeColor={token.colorPrimary} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Embarazos Activos" value={stats.embarazadas} prefix={<HeartOutlined style={{ color: token.colorError }} />} valueStyle={{ color: token.colorError }} />
-                            <Progress percent={(stats.embarazadas / stats.total) * 100} showInfo={false} strokeColor={token.colorError} size="small" />
+                            <AnimatedStatistic title="Embarazos Activos" value={resumen.embarazadas} prefix={<HeartOutlined style={{ color: token.colorError }} />} valueStyle={{ color: token.colorError }} />
+                            <Progress percent={resumen.total ? (resumen.embarazadas / resumen.total) * 100 : 0} showInfo={false} strokeColor={token.colorError} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Nuevos este Mes" value={stats.nuevosMes} prefix={<PlusOutlined style={{ color: token.colorSuccess }} />} valueStyle={{ color: token.colorSuccess }} />
-                            <Progress percent={stats.nuevosMes > 0 ? 100 : 0} showInfo={false} strokeColor={token.colorSuccess} size="small" />
+                            <AnimatedStatistic title="Nuevos este Mes" value={resumen.nuevos_mes} prefix={<PlusOutlined style={{ color: token.colorSuccess }} />} valueStyle={{ color: token.colorSuccess }} />
+                            <Progress percent={resumen.nuevos_mes > 0 ? 100 : 0} showInfo={false} strokeColor={token.colorSuccess} size="small" />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Promedio Edad" value={stats.promedioEdad} suffix="años" prefix={<InfoCircleOutlined style={{ color: token.colorWarning }} />} />
+                            <AnimatedStatistic title="Promedio Edad" value={resumen.promedio_edad} suffix="años" prefix={<InfoCircleOutlined style={{ color: token.colorWarning }} />} />
                         </Card>
                     </Col>
                 </Row>
@@ -647,9 +508,10 @@ const Pacientes: React.FC = () => {
 
             {/* --- TABLA DE DATOS --- */}
             <Card variant="borderless" className="shadow-card" styles={{ body: { padding: 0 } }}>
+                {listado.error && <Alert type="error" showIcon message={listado.error} style={{ margin: 12 }} />}
                 <Table
-                    rowKey={(record: any) => record._uniqueRowKey || `paciente-fallback-${record.id}`}
-                    dataSource={filteredData}
+                    rowKey="id"
+                    dataSource={listado.datos}
                     locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay pacientes registrados" /> }}
                     columns={columns as any}
                     loading={loading}
@@ -657,21 +519,12 @@ const Pacientes: React.FC = () => {
                         selectedRowKeys,
                         onChange: (keys) => setSelectedRowKeys(keys)
                     }}
-                    pagination={{
-                        current: currentPage,
-                        pageSize: pageSize,
-                        total: totalPacientes,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} pacientes (Total en base de datos: ${totalPacientes})`,
-                        pageSizeOptions: ['10', '20', '50', '100', '200'],
-                    }}
-                    onChange={(pagination) => {
-                        if (pagination.current !== currentPage) setCurrentPage(pagination.current!);
-                        if (pagination.pageSize !== pageSize) {
-                            setPageSize(pagination.pageSize!);
-                            setCurrentPage(1);
-                        }
+                    pagination={{ ...listado.paginacion, showQuickJumper: true }}
+                    onChange={(paginacion, filtrosTabla, sorter) => {
+                        // El filtro de «Estado obstétrico» de la columna lo aplica el servidor.
+                        const estado = (filtrosTabla as Record<string, unknown[] | null>).estado_obstetrico?.[0];
+                        setEstadoObstetrico(typeof estado === 'string' ? estado : undefined);
+                        listado.onChange(paginacion, filtrosTabla, sorter as any);
                     }}
                     scroll={{ x: 1000 }}
                 />
@@ -702,8 +555,7 @@ const Pacientes: React.FC = () => {
             <AnalisisDemograficoModal
                 visible={modalAnalisisDemograficoVisible}
                 onClose={() => setModalAnalisisDemograficoVisible(false)}
-                pacientes={pacientes}
-                stats={stats}
+                resumen={resumen}
                 token={token}
             />
 
@@ -719,7 +571,6 @@ const Pacientes: React.FC = () => {
                     setModalComparacionVisible(false);
                     setPacientesComparacion({ a: null, b: null, c: null });
                 }}
-                pacientes={pacientes}
                 pacientesComparacion={pacientesComparacion}
                 setPacientesComparacion={setPacientesComparacion}
             />
@@ -728,7 +579,6 @@ const Pacientes: React.FC = () => {
             <AgendaDrawer
                 visible={drawerAgendaVisible}
                 onClose={() => setDrawerAgendaVisible(false)}
-                pacientes={pacientes}
             />
 
         </div>

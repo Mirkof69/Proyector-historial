@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Space, Tag, Typography, Tooltip, Badge, Avatar, Dropdown } from 'antd';
+import { Button, Space, Tag, Typography, Badge, Avatar, Dropdown } from 'antd';
 import {
   EditOutlined, DeleteOutlined, SearchOutlined, UserOutlined,
   FolderOpenOutlined, PhoneOutlined, IdcardOutlined, HomeOutlined,
@@ -40,6 +40,8 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
     {
       title: 'ID / Registro',
       dataIndex: 'id_clinico',
+      // Orden en el SERVIDOR (`?ordering=id_clinico`), sobre todas las pacientes.
+      sorter: true,
       width: 120,
       render: (text: string, record: Paciente) => (
         <div>
@@ -54,7 +56,8 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
       title: 'Paciente',
       key: 'paciente',
       width: 250,
-      sorter: (a: Paciente, b: Paciente) => a.nombre.localeCompare(b.nombre),
+      // Sin orden por nombre: está cifrado en la base y ordenar una sola
+      // página en el navegador daría un orden falso entre páginas.
       render: (_: any, record: Paciente) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -88,17 +91,14 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
       title: 'Estado Obstétrico',
       key: 'estado_obstetrico',
       width: 160,
+      // Filtro resuelto en el SERVIDOR (`?estado_obstetrico=`): con `onFilter`
+      // solo filtraba la página visible. Pacientes.tsx lee el valor en onChange.
       filters: [
         { text: 'Gestando', value: 'gestando' },
         { text: 'Sin Embarazo', value: 'sin_embarazo' },
         { text: 'Con Historial', value: 'con_historial' },
       ],
-      onFilter: (value: any, record: Paciente) => {
-        if (value === 'gestando') return !!record.embarazos_activos;
-        if (value === 'sin_embarazo') return !record.embarazos_activos && !(record as any).numero_gesta;
-        if (value === 'con_historial') return !record.embarazos_activos && !!(record as any).numero_gesta;
-        return true;
-      },
+      filterMultiple: false,
       render: (_: any, record: Paciente) => {
         const pacienteExtendido = record as any;
         const tieneEmbarazoActivo = record.embarazos_activos;
@@ -284,21 +284,21 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
       width: 140,
       render: (_: any, record: Paciente) => (
         <Space>
-          <Tooltip title="Historia Clínica">
-            <Button
-              type="primary"
-              shape="circle"
-              icon={FOLDER_OPEN_ICON}
-              onClick={() => navigate(`/dashboard/pacientes/${record.id}/historia`)}
-            />
-          </Tooltip>
-          <Tooltip title="Ver Detalles">
-            <Button
-              shape="circle"
-              icon={SEARCH_ICON_2}
-              onClick={() => { setSelectedPaciente(record); setDrawerVisible(true); }}
-            />
-          </Tooltip>
+          <Button
+            type="primary"
+            shape="circle"
+            icon={FOLDER_OPEN_ICON}
+            aria-label={`Historia clínica de ${record.nombre_completo || 'la paciente'}`}
+            title="Historia clínica"
+            onClick={() => navigate(`/dashboard/pacientes/${record.id}/historia`)}
+          />
+          <Button
+            shape="circle"
+            icon={SEARCH_ICON_2}
+            aria-label={`Ver detalles de ${record.nombre_completo || 'la paciente'}`}
+            title="Ver detalles"
+            onClick={() => { setSelectedPaciente(record); setDrawerVisible(true); }}
+          />
           <Dropdown menu={{
             items: [
               // Editar - solo si tiene permiso
@@ -347,31 +347,28 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
                 label: 'Eliminar Paciente',
                 onClick: () => {
                   modal.confirm({
-                    title: '⚠️ ¿Confirmar eliminación permanente del paciente?',
+                    // El backend hace BAJA LÓGICA (DS 1793/2013: la historia
+                    // clínica se conserva 10 años). Antes este diálogo
+                    // anunciaba un borrado permanente de toda la historia.
+                    title: '¿Dar de baja a la paciente?',
                     content: (
                       <div>
-                        <p><strong>Se eliminará el paciente:</strong></p>
+                        <p><strong>Se dará de baja a la paciente:</strong></p>
                         <ul style={{ marginLeft: 20 }}>
                           <li>Nombre: {record.nombre_completo}</li>
                           <li>ID Clínico: {record.id_clinico}</li>
                           <li>CI: {record.ci}</li>
                         </ul>
                         <p style={{ color: token.colorError, fontWeight: 'bold', marginTop: 16 }}>
-                          ⚠️ ADVERTENCIA: Esta acción eliminará PERMANENTEMENTE:
+                          Dejará de figurar como activa en el sistema.
                         </p>
-                        <ul style={{ marginLeft: 20, color: token.colorError }}>
-                          <li>Toda la historia clínica del paciente</li>
-                          <li>Todos los embarazos registrados</li>
-                          <li>Todos los controles prenatales</li>
-                          <li>Todos los partos y recién nacidos</li>
-                          <li>Documentos, citas y seguimientos</li>
-                        </ul>
                         <p style={{ marginTop: 16 }}>
-                          <strong>Esta acción NO se puede deshacer. ¿Está completamente seguro?</strong>
+                          Su historia clínica (embarazos, controles, partos y documentos) se conserva
+                          y un administrador puede reactivarla.
                         </p>
                       </div>
                     ),
-                    okText: 'Sí, eliminar permanentemente',
+                    okText: 'Sí, dar de baja',
                     cancelText: 'Cancelar',
                     okButtonProps: { danger: true },
                     width: 650,
@@ -381,7 +378,7 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
               }] : [])
             ]
           }} trigger={['click']}>
-            <Button type="text" icon={MORE_ICON} />
+            <Button type="text" icon={MORE_ICON} aria-label="Más acciones de la paciente" title="Más acciones" />
           </Dropdown>
         </Space>
       ),

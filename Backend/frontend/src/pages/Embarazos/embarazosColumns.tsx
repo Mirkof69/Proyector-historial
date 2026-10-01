@@ -21,7 +21,6 @@ export interface EmbarazosColumnsDeps {
   navigate: (path: string) => void;
   canChange: (perm: string) => boolean;
   canDelete: (perm: string) => boolean;
-  modal: any;
   dispatch: React.Dispatch<EmbarazosAction>;
   handleVerHistorial: (embarazo: EmbarazoExtendido) => void;
   handleOpenEdit: (record: EmbarazoExtendido) => void;
@@ -31,7 +30,7 @@ export interface EmbarazosColumnsDeps {
 
 export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
   const {
-    navigate, canChange, canDelete, modal, dispatch, handleVerHistorial,
+    navigate, canChange, canDelete, dispatch, handleVerHistorial,
     handleOpenEdit, handleFinalizarEmbarazo, handleDelete,
   } = deps;
 
@@ -54,7 +53,10 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
     },
     {
       title: 'Calendario Obstétrico',
-      key: 'fechas',
+      // Ordena el SERVIDOR por FPP (`?ordering=fecha_probable_parto`).
+      dataIndex: 'fecha_probable_parto',
+      key: 'fecha_probable_parto',
+      sorter: true,
       width: 200,
       render: (_: any, r: EmbarazoExtendido) => (
         <div style={{ fontSize: 12 }}>
@@ -135,29 +137,29 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
       width: 220,
       render: (_: any, r: EmbarazoExtendido) => (
         <Space size={4}>
-          <Tooltip title="Ver Controles e Historia">
-            <Button
-              type="primary"
-              ghost
-              shape="circle"
-              icon={medicineBoxOutlinedIcon6}
-              onClick={() => navigate(`/dashboard/pacientes/${r.paciente}/historia`)}
-            />
-          </Tooltip>
-          <Tooltip title="Detalle Rápido">
-            <Button
-              shape="circle"
-              icon={eyeOutlinedIcon4}
-              onClick={() => { dispatch({ type: 'SET_SELECTED_EMBARAZO', payload: r }); dispatch({ type: 'SET_DRAWER_VISIBLE', payload: true }); }}
-            />
-          </Tooltip>
-          <Tooltip title="Historial Completo">
-            <Button
-              shape="circle"
-              icon={historyIcon3}
-              onClick={() => handleVerHistorial(r)}
-            />
-          </Tooltip>
+          <Button
+            type="primary"
+            ghost
+            shape="circle"
+            icon={medicineBoxOutlinedIcon6}
+            aria-label={`Ver controles e historia de ${r.paciente_nombre || 'la paciente'}`}
+            title="Ver controles e historia"
+            onClick={() => navigate(`/dashboard/pacientes/${r.paciente}/historia`)}
+          />
+          <Button
+            shape="circle"
+            icon={eyeOutlinedIcon4}
+            aria-label="Detalle rápido del embarazo"
+            title="Detalle rápido"
+            onClick={() => { dispatch({ type: 'SET_SELECTED_EMBARAZO', payload: r }); dispatch({ type: 'SET_DRAWER_VISIBLE', payload: true }); }}
+          />
+          <Button
+            shape="circle"
+            icon={historyIcon3}
+            aria-label="Historial completo del embarazo"
+            title="Historial completo"
+            onClick={() => handleVerHistorial(r)}
+          />
           <Dropdown
             menu={{
               items: [
@@ -179,49 +181,21 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
                 ...(canDelete('embarazo') ? [{
                   type: 'divider' as const
                 }] : []),
-                // Eliminar - solo si tiene permiso
+                // Eliminar: `handleDelete` ya pide confirmación. Antes aquí se
+                // abría OTRA confirmación antes (doble diálogo) que además
+                // anunciaba borrar controles y partos, cuando el backend
+                // rechaza borrar un embarazo que los tenga.
                 ...(canDelete('embarazo') ? [{
                   key: 'delete',
                   label: 'Eliminar',
                   icon: <DeleteOutlined />,
                   danger: true,
-                  onClick: () => {
-                    modal.confirm({
-                      title: '⚠️ ¿Confirmar eliminación permanente?',
-                      content: (
-                        <div>
-                          <p><strong>Se eliminará el embarazo:</strong></p>
-                          <ul style={{ marginLeft: 20 }}>
-                            <li>Paciente: {r.paciente_nombre}</li>
-                            <li>Gesta #{r.numero_gesta}</li>
-                            <li>FUM: {r.fecha_ultima_menstruacion}</li>
-                          </ul>
-                          <p style={{ color: '#ff4d4f', fontWeight: 'bold', marginTop: 16 }}>
-                            ⚠️ ADVERTENCIA: Esta acción eliminará permanentemente:
-                          </p>
-                          <ul style={{ marginLeft: 20, color: '#ff4d4f' }}>
-                            <li>Todos los controles prenatales asociados</li>
-                            <li>Todos los partos registrados</li>
-                            <li>Información de recién nacidos</li>
-                            <li>Registros de partograma y complicaciones</li>
-                          </ul>
-                          <p style={{ marginTop: 16 }}>
-                            <strong>Esta acción NO se puede deshacer.</strong>
-                          </p>
-                        </div>
-                      ),
-                      okText: 'Sí, eliminar permanentemente',
-                      cancelText: 'Cancelar',
-                      okButtonProps: { danger: true },
-                      width: 600,
-                      onOk: () => handleDelete(r.id!)
-                    });
-                  }
+                  onClick: () => handleDelete(r.id!)
                 }] : [])
               ]
             }}
           >
-            <Button icon={arrowRightOutlinedIcon} />
+            <Button icon={arrowRightOutlinedIcon} aria-label="Más acciones del embarazo" title="Más acciones" />
           </Dropdown>
         </Space>
       )

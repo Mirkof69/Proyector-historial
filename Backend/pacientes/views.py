@@ -3,7 +3,8 @@ import logging
 from datetime import date, datetime, timedelta
 
 from django.core.cache import cache
-from django.db.models import Prefetch, Q
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q
+from django.db.models.functions import ExtractMonth
 from django.http import HttpResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -18,6 +19,7 @@ from antecedentes.serializers import (
     AntecedentePatologicoSerializer,
 )
 from controles.models import ControlPrenatal
+from core.exportacion import ExportarExcelMixin
 from core.permissions import FetalMedicalPermission
 from embarazos.models import Embarazo
 from laboratorio.models import ExamenLaboratorio
@@ -157,7 +159,7 @@ def construir_historia_clinica(paciente):
     return timeline, estadisticas
 
 
-class PacienteViewSet(viewsets.ModelViewSet):
+class PacienteViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     """ViewSet for comprehensive Patient management.
 
     Manages patient registration, clinical history, advanced search,
@@ -194,7 +196,31 @@ class PacienteViewSet(viewsets.ModelViewSet):
     ]
     # Sin filtro por genero: todas las pacientes son femeninas.
     filterset_fields = ["activo"]
-    ordering_fields = ["fecha_registro", "nombre", "apellido_paterno"]
+    # Sin «nombre» ni «apellido_paterno»: están cifrados con IV aleatorio y
+    # ordenar por ellos en SQL ordenaba por el texto CIFRADO (un orden
+    # aleatorio que además cambiaba de página entre peticiones).
+    ordering_fields = ["fecha_registro", "id_clinico", "fecha_nacimiento"]
+
+    # Excel del listado con los MISMOS filtros que la pantalla y auditado.
+    # Antes era un openpyxl a mano sin auditoría, y la pantalla armaba otro
+    # Excel en el navegador con solo lo que había descargado.
+    excel_nombre = "pacientes"
+    excel_columnas = [
+        ("ID clínico", "id_clinico"),
+        ("Nombre completo", "nombre_completo"),
+        ("CI", "ci"),
+        ("Fecha de nacimiento", "fecha_nacimiento"),
+        ("Edad", "edad"),
+        ("Teléfono", "telefono"),
+        ("Email", "email"),
+        ("Dirección", "direccion"),
+        ("Ciudad", "ciudad"),
+        ("Estado civil", "estado_civil"),
+        ("Ocupación", "ocupacion"),
+        ("Grupo sanguíneo", "tipo_sangre"),
+        ("Activa", "activo"),
+        ("Fecha de registro", "fecha_registro"),
+    ]
 
     @extend_schema(
         summary="List all patients",
@@ -301,8 +327,38 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 fecha_max = today - timedelta(days=int(edad_min) * 365.25)
                 queryset = queryset.filter(fecha_nacimiento__lte=fecha_max)
 
+        queryset = self._filtrar_por_filtros_de_pantalla(queryset)
         queryset = self._filtrar_por_busqueda(queryset)
 
+        return queryset
+
+    def _filtrar_por_filtros_de_pantalla(self, queryset):
+        """Filtros del listado de pacientes que antes se aplicaban en el navegador.
+
+        La pantalla descargaba TODAS las pacientes (17 peticiones para 3.200)
+        para filtrar por ciudad / embarazo activo / estado obstétrico en el
+        cliente. Ahora se resuelven aquí y la tabla pide solo la página visible.
+
+        - `?ciudad=` : contiene, sin distinguir mayúsculas (ciudad NO está cifrada).
+        - `?con_embarazo_activo=true`
+        - `?estado_obstetrico=gestando|sin_embarazo|con_historial`
+        """
+        params = self.request.query_params
+        if ciudad := (params.get("ciudad") or "").strip():
+            queryset = queryset.filter(ciudad__icontains=ciudad)
+
+        activo = Embarazo.objects.filter(paciente=OuterRef("pk"), estado="activo")
+        cualquiera = Embarazo.objects.filter(paciente=OuterRef("pk"))
+        if params.get("con_embarazo_activo") == "true":
+            queryset = queryset.filter(Exists(activo))
+
+        estado_obstetrico = params.get("estado_obstetrico")
+        if estado_obstetrico == "gestando":
+            queryset = queryset.filter(Exists(activo))
+        elif estado_obstetrico == "sin_embarazo":
+            queryset = queryset.filter(~Exists(cualquiera))
+        elif estado_obstetrico == "con_historial":
+            queryset = queryset.filter(Exists(cualquiera)).exclude(Exists(activo))
         return queryset
 
     def _filtrar_por_busqueda(self, queryset):
@@ -558,6 +614,63 @@ class PacienteViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Paciente no encontrado"}, status=status.HTTP_404_NOT_FOUND,
             )
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, _request):
+        """Cifras de la pantalla de pacientes, con los MISMOS filtros que el listado.
+
+        GET /api/pacientes/resumen/?search=&ciudad=&activo=&con_embarazo_activo=
+
+        Antes la pantalla bajaba todas las pacientes para calcular total,
+        activas, nuevas del mes, embarazadas y edad promedio en el navegador.
+        La edad sale de `fecha_nacimiento`, que NO está cifrada, así que el
+        promedio y la distribución por edades se calculan sobre todas las
+        pacientes filtradas y no sobre una página.
+        """
+        qs = self.filter_queryset(self.get_queryset()).order_by()
+        hoy = timezone.localdate()
+        con_embarazo = Exists(Embarazo.objects.filter(paciente=OuterRef("pk"), estado="activo"))
+
+        rangos = {"<15": 0, "15-19": 0, "20-24": 0, "25-29": 0, "30-34": 0, "35-39": 0, ">=40": 0}
+        suma_edades = 0
+        con_edad = 0
+        anosas_gestando = 0
+        for nacimiento, gestando in qs.annotate(gestando=con_embarazo).values_list("fecha_nacimiento", "gestando"):
+            if not nacimiento:
+                continue
+            edad = hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
+            suma_edades += edad
+            con_edad += 1
+            if gestando and edad >= 35:
+                anosas_gestando += 1
+            if edad < 15:
+                rangos["<15"] += 1
+            elif edad >= 40:
+                rangos[">=40"] += 1
+            else:
+                inicio = 15 if edad < 20 else edad - edad % 5
+                rangos[f"{inicio}-{inicio + 4}"] += 1
+
+        por_mes = dict(
+            qs.filter(fecha_registro__year=hoy.year)
+            .annotate(mes=ExtractMonth("fecha_registro")).values_list("mes")
+            .annotate(n=Count("id")),
+        )
+        por_ciudad = (
+            qs.exclude(ciudad__isnull=True).exclude(ciudad="")
+            .values("ciudad").annotate(n=Count("id")).order_by("-n")
+        )
+        return Response({
+            "total": qs.count(),
+            "activos": qs.filter(activo=True).count(),
+            "nuevos_mes": qs.filter(fecha_registro__year=hoy.year, fecha_registro__month=hoy.month).count(),
+            "embarazadas": qs.filter(con_embarazo).count(),
+            "promedio_edad": round(suma_edades / con_edad) if con_edad else 0,
+            "rangos_edad": rangos,
+            "anosas_gestando": anosas_gestando,
+            "registros_por_mes": [por_mes.get(m, 0) for m in range(1, 13)],
+            "por_ciudad": [{"ciudad": c["ciudad"], "total": c["n"]} for c in por_ciudad],
+        })
 
     @action(detail=False, methods=["get"])
     @extend_schema(
@@ -1034,29 +1147,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
             output.seek(0)
             response = HttpResponse(output.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             response["Content-Disposition"] = f"attachment; filename=paciente_{paciente.id}.xlsx"
-            return response
-        except ImportError:
-            return Response({"error": "openpyxl no instalado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @action(detail=False, methods=["get"], url_path="exportar-excel")
-    def exportar_lista_excel(self, request):
-        try:
-            from io import BytesIO
-
-            import openpyxl
-            from django.http import HttpResponse
-            queryset = self.filter_queryset(self.get_queryset())
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Pacientes"
-            ws.append(["ID", "ID Clínico", "Nombre", "CI", "Teléfono", "Email"])
-            for p in queryset:
-                ws.append([p.id, p.id_clinico, p.nombre_completo, p.ci, p.telefono, p.email])
-            output = BytesIO()
-            wb.save(output)
-            output.seek(0)
-            response = HttpResponse(output.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            response["Content-Disposition"] = "attachment; filename=pacientes.xlsx"
             return response
         except ImportError:
             return Response({"error": "openpyxl no instalado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
