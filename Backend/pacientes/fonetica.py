@@ -129,3 +129,22 @@ def coincide(termino: str | None, nombre_completo: str | None) -> float:
         puntajes.append(mejor)
 
     return sum(puntajes) / len(puntajes)
+
+
+def coincide_claves(claves_termino: list[str], claves_nombre: list[str]) -> float:
+    """Igual que `coincide`, pero con las claves fonéticas ya calculadas.
+
+    La búsqueda de pacientes calcula una vez las claves de cada nombre y las
+    reutiliza en cada consulta (pacientes/busqueda.py): con 3.200 pacientes,
+    recalcularlas en cada búsqueda era la mitad del tiempo de respuesta.
+    """
+    if not claves_termino or not claves_nombre:
+        return 0.0
+    puntajes = []
+    for kt in claves_termino:
+        mejor = max((SequenceMatcher(None, kt, kn).ratio() for kn in claves_nombre if kt and kn and kt[0] == kn[0]),
+                    default=0.0)
+        if mejor < UMBRAL_SIMILITUD:
+            return 0.0
+        puntajes.append(mejor)
+    return sum(puntajes) / len(puntajes)

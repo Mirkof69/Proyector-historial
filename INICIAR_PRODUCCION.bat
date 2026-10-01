@@ -52,10 +52,15 @@ if not exist "%~dp0Backend\frontend\build\index.html" (
 )
 
 :: ── 4. Backend ──────────────────────────────────────────────────
-echo [4/5] Backend Django ^(puerto 8000^)...
-:: 8 workers: medido el 04/09/2026, con 4 las colas crecian bajo carga.
+echo [4/5] Backend Django: API ^(8000^) y notificaciones en tiempo real ^(8010^)...
+:: La API la sirve waitress (WSGI): medido el 01/10/2026 con la demo de 3.200
+:: pacientes, 5-53 ms de mediana y menos de 60 ms en el 95 %% de las peticiones.
+:: Con uvicorn (ASGI) en Windows cada peticion sumaba 50-100 ms de puente entre
+:: hilos: 100-250 ms. Uvicorn queda solo para los WebSockets (puerto 8010), que
+:: el frontend de produccion busca ahi solo.
 :: El python del entorno virtual (.venv), que es donde estan las dependencias.
-start "Backend Django" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 0.0.0.0 --port 8000 --workers 8"
+start "Backend API (WSGI)" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& .venv\Scripts\python.exe -m waitress --host=0.0.0.0 --port=8000 --threads=32 wsgi:application"
+start "Backend WebSockets (ASGI)" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 0.0.0.0 --port 8010 --workers 2"
 timeout /t 3 /nobreak >nul
 
 :: ── 5. Microservicio de IA ──────────────────────────────────────
@@ -81,6 +86,7 @@ echo   LISTO
 echo.
 echo     Frontend        http://localhost:3000
 echo     API             http://localhost:8000/api/
+echo     Notificaciones  ws://localhost:8010/ws/notifications/
 echo     Microservicio   http://localhost:8001/health
 echo.
 echo   Para servir a otros equipos de la clinica, ver

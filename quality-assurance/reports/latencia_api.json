@@ -1,0 +1,139 @@
+{
+  "fecha": "2026-10-01 11:55",
+  "base": "http://127.0.0.1:8003",
+  "repeticiones": 60,
+  "meta_p95_ms": 200,
+  "cumplen": 16,
+  "total": 16,
+  "errores": [],
+  "endpoints": [
+    {
+      "endpoint": "Pacientes",
+      "ruta": "/api/pacientes/?page=1&page_size=20",
+      "mediana_ms": 28.5,
+      "p95_ms": 33.8,
+      "max_ms": 35.7,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Pacientes · resumen",
+      "ruta": "/api/pacientes/resumen/",
+      "mediana_ms": 31.0,
+      "p95_ms": 32.4,
+      "max_ms": 32.9,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Pacientes · búsqueda",
+      "ruta": "/api/pacientes/?search=quispe&page=1&page_size=20",
+      "mediana_ms": 33.0,
+      "p95_ms": 38.1,
+      "max_ms": 43.5,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Embarazos",
+      "ruta": "/api/embarazos/?page=1&page_size=20",
+      "mediana_ms": 36.4,
+      "p95_ms": 41.1,
+      "max_ms": 219.2,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Embarazos · resumen",
+      "ruta": "/api/embarazos/resumen/",
+      "mediana_ms": 53.2,
+      "p95_ms": 59.6,
+      "max_ms": 63.0,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Controles",
+      "ruta": "/api/controles/?page=1&page_size=20",
+      "mediana_ms": 46.3,
+      "p95_ms": 55.3,
+      "max_ms": 228.3,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Ecografías",
+      "ruta": "/api/ecografias/?page=1&page_size=20",
+      "mediana_ms": 33.9,
+      "p95_ms": 38.5,
+      "max_ms": 51.5,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Laboratorio",
+      "ruta": "/api/laboratorios/examenes/?page=1&page_size=20",
+      "mediana_ms": 50.0,
+      "p95_ms": 54.0,
+      "max_ms": 224.7,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Laboratorio · resumen",
+      "ruta": "/api/laboratorios/examenes/resumen/",
+      "mediana_ms": 13.8,
+      "p95_ms": 15.9,
+      "max_ms": 20.5,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Vacunas",
+      "ruta": "/api/vacunas/registros/?page=1&page_size=20",
+      "mediana_ms": 21.2,
+      "p95_ms": 24.8,
+      "max_ms": 26.8,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Citas",
+      "ruta": "/api/citas/?page=1&page_size=20",
+      "mediana_ms": 6.0,
+      "p95_ms": 7.0,
+      "max_ms": 7.6,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Partos",
+      "ruta": "/api/partos/?page=1&page_size=20",
+      "mediana_ms": 47.1,
+      "p95_ms": 56.2,
+      "max_ms": 225.9,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Notas de evolución",
+      "ruta": "/api/notas-evolucion/?page=1&page_size=20",
+      "mediana_ms": 21.4,
+      "p95_ms": 26.1,
+      "max_ms": 37.0,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Triaje",
+      "ruta": "/api/triaje/?page=1&page_size=20",
+      "mediana_ms": 5.9,
+      "p95_ms": 6.6,
+      "max_ms": 8.2,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Dashboard KPIs",
+      "ruta": "/api/reportes/dashboard-kpis/",
+      "mediana_ms": 8.3,
+      "p95_ms": 9.7,
+      "max_ms": 63.7,
+      "cumple_meta": true
+    },
+    {
+      "endpoint": "Reporte natalidad (mes)",
+      "ruta": "/api/reportes/natalidad/",
+      "mediana_ms": 26.4,
+      "p95_ms": 99.9,
+      "max_ms": 200.6,
+      "cumple_meta": true
+    }
+  ]
+}

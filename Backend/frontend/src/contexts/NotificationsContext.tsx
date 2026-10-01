@@ -16,12 +16,27 @@ import { API_URL } from '../services/api';
  * URL del WebSocket de notificaciones (ws/notifications/ del backend Channels).
  * El backend autentica vía la cookie httpOnly `access_token`, que el
  * navegador envía automáticamente en el handshake (mismo host).
+ *
+ * En PRODUCCIÓN la API la sirve un servidor WSGI en el 8000 (waitress: 5–50 ms
+ * por petición, medido el 01/10/2026; con uvicorn eran 100–250 ms en Windows)
+ * y los WebSockets un uvicorn aparte en el 8010 (INICIAR_PRODUCCION.bat). En
+ * desarrollo un solo uvicorn en el 8000 atiende las dos cosas.
+ * `REACT_APP_WS_URL` fija la dirección a mano si el despliegue es otro.
  */
-const getWebSocketUrl = (): string => {
+export const PUERTO_WS_PRODUCCION = '8010';
+
+export const getWebSocketUrl = (
+    apiUrl: string = API_URL,
+    entorno: string | undefined = process.env.NODE_ENV,
+    fija: string | undefined = process.env.REACT_APP_WS_URL,
+): string => {
+    if (fija) return fija;
     let base: string;
-    if (API_URL.startsWith('http')) {
-        // http://host:8000/api -> ws://host:8000
-        base = API_URL.replace(/^http/, 'ws').replace(/\/api\/?$/, '');
+    if (apiUrl.startsWith('http')) {
+        const url = new URL(apiUrl);
+        const proto = url.protocol === 'https:' ? 'wss' : 'ws';
+        const puerto = entorno === 'production' && url.port === '8000' ? PUERTO_WS_PRODUCCION : url.port;
+        base = `${proto}://${url.hostname}${puerto ? `:${puerto}` : ''}`;
     } else {
         // API relativa (túnel https) -> wss sobre el mismo host
         const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';

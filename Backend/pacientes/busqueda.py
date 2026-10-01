@@ -23,28 +23,58 @@ Estrategia, sin debilitar el cifrado:
     formas distintas, y buscar una grafía no encontraba las otras. Los
     resultados aproximados salen ordenados por parecido.
 
-Costo y límite conocido
------------------------
-El filtro por nombre es O(n) sobre los pacientes del tenant, porque no hay
-forma de hacer LIKE sobre texto cifrado. Es aceptable en el orden de
-magnitud de una clínica (cientos o miles de pacientes) y se midió en
-~190-380 ms sobre 450 pacientes. Para volumen mayor la solución correcta es
-una columna de tokens de búsqueda normalizados (sin tildes, en minúsculas)
-que permita LIKE en SQL sin exponer el dato clínico; está documentado como
-pendiente de diseño, no improvisado aquí.
+Costo
+-----
+No hay LIKE posible sobre texto cifrado, así que la comparación es en Python.
+Para no descifrar los miles de nombres en CADA búsqueda (367 ms con 3.200
+pacientes, medido el 01/10/2026), cada proceso guarda en memoria los nombres
+ya normalizados y sus claves fonéticas, por esquema (clínica). Se reconstruye
+solo cuando cambia la cantidad de pacientes o la última fecha de
+actualización (una consulta agregada barata por búsqueda).
+
+Los nombres descifrados viven en la memoria del proceso del servidor, que ya
+los descifraba en cada búsqueda; no se escriben en disco ni en ningún caché
+compartido.
 """
 from __future__ import annotations
 
+import threading
 import unicodedata
 
-from .fonetica import coincide
+from .fonetica import clave_fonetica, coincide_claves
 from .models import Paciente
+
+_cache: dict[str, tuple[tuple, list[tuple[int, str, list[str]]]]] = {}
+_cerrojo = threading.Lock()
 
 
 def normalizar(texto: str | None) -> str:
     """Minúsculas y sin tildes: "López" se encuentra escribiendo "lopez"."""
     descompuesto = unicodedata.normalize("NFKD", str(texto or ""))
     return "".join(c for c in descompuesto if not unicodedata.combining(c)).lower()
+
+
+def _indice_nombres() -> list[tuple[int, str, list[str]]]:
+    """[(id, nombre normalizado, claves fonéticas de cada palabra)] del esquema actual."""
+    from django.db import connection
+    from django.db.models import Count, Max
+
+    esquema = getattr(connection, "schema_name", "public")
+    agregado = Paciente.objects.aggregate(n=Count("id"), ultima=Max("fecha_actualizacion"), mayor=Max("id"))
+    version = (agregado["n"], agregado["ultima"], agregado["mayor"])
+    guardado = _cache.get(esquema)
+    if guardado and guardado[0] == version:
+        return guardado[1]
+    with _cerrojo:
+        guardado = _cache.get(esquema)
+        if guardado and guardado[0] == version:
+            return guardado[1]
+        indice = []
+        for p in Paciente.objects.only("id", "nombre", "apellido_paterno", "apellido_materno"):
+            completo = normalizar(f"{p.nombre} {p.apellido_paterno} {p.apellido_materno}")
+            indice.append((p.pk, completo, [clave_fonetica(palabra) for palabra in completo.split()]))
+        _cache[esquema] = (version, indice)
+        return indice
 
 
 def ids_pacientes_que_coinciden(termino: str) -> list[int]:
@@ -92,25 +122,15 @@ def ids_pacientes_que_coinciden(termino: str) -> list[int]:
     # El orden importa: si hay coincidencia exacta no se abre la búsqueda
     # aproximada, para no mezclar resultados seguros con parecidos.
     objetivo = normalizar(termino)
-    aproximados: list[tuple[float, int]] = []
-
-    for paciente in Paciente.objects.only(
-        "id", "nombre", "apellido_paterno", "apellido_materno",
-    ):
-        nombre_completo = (
-            f"{paciente.nombre} {paciente.apellido_paterno} {paciente.apellido_materno}"
-        )
-        if objetivo in normalizar(nombre_completo):
-            ids.add(paciente.pk)
-            continue
-        puntaje = coincide(termino, nombre_completo)
-        if puntaje:
-            aproximados.append((puntaje, paciente.pk))
-
+    indice = _indice_nombres()
+    ids |= {pk for pk, completo, _ in indice if objetivo in completo}
     if ids:
         return list(ids)
 
     # Solo aproximados: se devuelven ordenados de más a menos parecido, para
     # que la paciente más probable salga primero en pantalla.
+    claves_termino = [clave_fonetica(palabra) for palabra in objetivo.split()]
+    aproximados = [(puntaje, pk) for pk, _, claves in indice
+                   if (puntaje := coincide_claves(claves_termino, claves))]
     aproximados.sort(reverse=True)
     return [pk for _, pk in aproximados]
