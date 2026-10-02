@@ -33,6 +33,7 @@ class PartogramaRegistroSerializer(serializers.ModelSerializer):
             "horas_trabajo_parto",
             "dilatacion_cervical",
             "borramiento_cervical",
+            "angulo_progresion",
             "estacion_fetal",
             "contracciones_10min",
             "duracion_contracciones",

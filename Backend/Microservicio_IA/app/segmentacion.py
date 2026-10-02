@@ -32,18 +32,20 @@ from .unet import a_cuadrado, a_original, a_tensor, elipse, mayor_componente
 
 logger = logging.getLogger(__name__)
 
-TAREAS = ("cabeza", "torax", "abdomen")
+TAREAS = ("cabeza", "torax", "abdomen", "intraparto")
 
 #: color RGB por estructura en la superposición
 COLORES = {
     "craneo": (59, 130, 246), "csp": (234, 179, 8), "ventriculo_lateral": (239, 68, 68),
     "torax": (59, 130, 246), "corazon": (239, 68, 68),
+    "sinfisis_pubis": (234, 179, 8), "cabeza_fetal": (59, 130, 246),
     "higado": (168, 85, 247), "estomago": (34, 197, 94), "vena_umbilical": (234, 179, 8), "aorta": (239, 68, 68),
 }
 NOMBRES = {
     "craneo": "Cráneo", "csp": "Cavum del septum pellucidum", "ventriculo_lateral": "Ventrículo lateral",
     "torax": "Tórax", "corazon": "Corazón", "higado": "Hígado", "estomago": "Estómago",
     "vena_umbilical": "Vena umbilical", "aorta": "Aorta",
+    "sinfisis_pubis": "Sínfisis del pubis", "cabeza_fetal": "Cabeza fetal",
 }
 #: Una estructura cuenta como vista si ocupa al menos esta fracción de la imagen
 #: (el mismo umbral con el que se midió la detección en el entrenamiento).
@@ -219,6 +221,45 @@ class RedesSegmentacion:
         return {"tarea": "abdomen", "estructuras_vistas": {NOMBRES[k]: v for k, v in vistas.items()},
                 "medidas": {"plano_adecuado_para_ca": plano_ok}, "avisos": avisos,
                 "superposicion_png": superposicion(gris, m, clases), "modelo": self._modelo("abdomen", meta)}
+
+
+    def medir_intraparto(self, imagen) -> dict:
+        """Ángulo de progresión (AoP) en una ecografía intraparto transperineal.
+
+        Red entrenada con IUGC 2024; medida en 300 imágenes de 240 exámenes de
+        otros años: error medio 6,7° (piso del método 3,4°). Se informa como
+        MEDIDA con su margen, no como decisión: con corte en 120° la
+        sensibilidad fue 65 % (15 de 23) y la especificidad 96 %.
+        """
+        import cv2
+
+        from .angulo_progresion import angulo_progresion, interpretar
+
+        gris, m, meta = self.segmentar("intraparto", imagen)
+        clases = meta["clases"]
+        vistas = self._vistas(m, clases)
+        resultado = angulo_progresion(m)
+        avisos, medidas = [], {}
+        overlay = superposicion(gris, m, clases)
+        if resultado is None:
+            avisos.append("No se encontraron a la vez la sínfisis del pubis y la cabeza fetal: no se mide el ángulo.")
+        else:
+            met = meta["metricas"]["angulo_progresion_prueba"]
+            medidas = {"angulo_progresion_grados": round(resultado["aop"], 1),
+                       "margen_grados": met["aop_error_medio_grados"],
+                       "interpretacion": interpretar(resultado["aop"])}
+            # Dibujo del ángulo: eje de la sínfisis y tangente a la cabeza.
+            lienzo = np.array(Image.open(BytesIO(base64.b64decode(overlay))))
+            vi = tuple(int(v) for v in resultado["extremo_inferior"])
+            cv2.line(lienzo, vi, tuple(int(v) for v in resultado["extremo_superior"]), (255, 255, 255), 2)
+            cv2.line(lienzo, vi, tuple(int(v) for v in resultado["tangente"]), (255, 255, 255), 2)
+            cv2.circle(lienzo, vi, 4, (239, 68, 68), -1)
+            overlay = _png_base64(lienzo)
+            avisos.append("La imagen tiene que estar en la orientación estándar (pubis a la izquierda, transductor "
+                          "arriba): si el ecógrafo la muestra espejada, el ángulo no es válido.")
+        return {"tarea": "intraparto", "estructuras_vistas": {NOMBRES[k]: v for k, v in vistas.items()},
+                "medidas": medidas, "avisos": avisos, "superposicion_png": overlay,
+                "modelo": self._modelo("intraparto", meta)}
 
 
 segmentacion = RedesSegmentacion()

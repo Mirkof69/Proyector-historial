@@ -8,7 +8,7 @@ medidas en pacientes que no vieron (las métricas viajan en cada respuesta):
     POST /api/plano-anatomico              solo el plano
     POST /api/biometria/circunferencia-cefalica
     POST /api/anomalias-cerebrales
-    POST /api/segmentacion/{cabeza|torax|abdomen}
+    POST /api/segmentacion/{cabeza|torax|abdomen|intraparto}   (intraparto: ángulo de progresión)
     POST /api/quality-check · POST /api/consultar (chatbot) · GET /api/modelos
 
 La EfficientNet-B4 de «14 patologías» se retiró: se había entrenado con
@@ -93,6 +93,8 @@ async def segmentar(tarea: str, file: UploadFile = File(...), tamano_pixel_mm: f
             return await run_in_threadpool(segmentacion.medir_cabeza, imagen, tamano_pixel_mm)
         if tarea == "torax":
             return await run_in_threadpool(segmentacion.medir_torax, imagen)
+        if tarea == "intraparto":
+            return await run_in_threadpool(segmentacion.medir_intraparto, imagen)
         return await run_in_threadpool(segmentacion.analizar_abdomen, imagen)
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=str(e)) from e

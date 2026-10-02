@@ -1,0 +1,35 @@
+{
+  "tarea": "intraparto",
+  "dataset": "IUGC MICCAI 2024 (ecografía intraparto transperineal)",
+  "particion": "prueba oficial del desafío (otros años y exámenes); validación por examen",
+  "imagenes_prueba": 300,
+  "pacientes_prueba": 240,
+  "epoca_elegida": 26,
+  "dice_validacion": 0.9004,
+  "dice_prueba": {
+    "sinfisis_pubis": {
+      "medio": 0.8414,
+      "mediano": 0.8622,
+      "imagenes": 300
+    },
+    "cabeza_fetal": {
+      "medio": 0.9278,
+      "mediano": 0.9334,
+      "imagenes": 300
+    }
+  },
+  "dice_prueba_medio": 0.8846,
+  "angulo_progresion_prueba": {
+    "imagenes": 300,
+    "sin_estructuras": 0,
+    "aop_error_medio_grados": 6.7,
+    "aop_error_mediano_grados": 4.73,
+    "aop_dentro_de_5_grados": 0.5367,
+    "aop_dentro_de_10_grados": 0.7733,
+    "piso_del_metodo_mascara_experto_error_medio": 3.38,
+    "acuerdo_corte_120_grados": 0.94,
+    "casos_aop_120_o_mas": 23,
+    "sensibilidad_aop_120": 0.6522,
+    "especificidad_aop_120": 0.9639
+  }
+}

@@ -13,6 +13,7 @@ export interface RegistroPartograma {
   horas_trabajo_parto: number;
   dilatacion_cervical: number;
   borramiento_cervical?: number | null;
+  angulo_progresion?: string | number | null;
   estacion_fetal: string;
   contracciones_10min: number;
   duracion_contracciones?: number | null;
@@ -77,6 +78,13 @@ export interface CampoAdicionalEpicrisis {
   activo: boolean;
 }
 
+export interface MedidaAnguloProgresion {
+  medidas: { angulo_progresion_grados?: number; margen_grados?: number; interpretacion?: string };
+  avisos: string[];
+  superposicion_url?: string;
+  modelo: { metricas_prueba?: { angulo_progresion_prueba?: { sensibilidad_aop_120?: number; especificidad_aop_120?: number } } };
+}
+
 export interface OpcionEscala { puntos: number; descripcion: string }
 export interface TablasEdadGestacional {
   capurro: Record<string, { etiqueta: string; opciones: OpcionEscala[] }>;
@@ -93,6 +101,15 @@ export const partoDetalleService = {
   },
   async crearRegistroPartograma(datos: Partial<RegistroPartograma>): Promise<RegistroPartograma> {
     return (await api.post('/partos/partograma/', datos)).data;
+  },
+
+  /** Ángulo de progresión medido por la red de IUGC sobre una ecografía intraparto. */
+  async medirAnguloProgresion(archivo: File): Promise<MedidaAnguloProgresion> {
+    const datos = new FormData();
+    datos.append('file', archivo);
+    return (await api.post('/partos/angulo-progresion/', datos, {
+      headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000,
+    })).data;
   },
 
   async tablasEdadGestacional(): Promise<TablasEdadGestacional> {

@@ -140,4 +140,27 @@ def test_un_plano_sin_red_no_inventa_medidas():
 
 def test_health_lista_todas_las_redes():
     d = cliente.get("/health").json()
-    assert {"segmentacion_cabeza", "segmentacion_torax", "segmentacion_abdomen", "plano_anatomico_fetal_planes"} <= set(d["redes"])
+    assert {"segmentacion_cabeza", "segmentacion_torax", "segmentacion_abdomen", "segmentacion_intraparto",
+            "plano_anatomico_fetal_planes"} <= set(d["redes"])
+
+
+INTRAPARTO = AQUI / "entrenamiento" / "segmentacion" / "salidas" / "intraparto" / "prueba_medidas.csv"
+
+
+@pytest.mark.skipif(not segmentacion.disponible("intraparto") or not INTRAPARTO.exists(),
+                    reason="falta la red intraparto o su prueba")
+def test_angulo_de_progresion_igual_que_el_entrenamiento():
+    """20 imágenes de prueba de IUGC (otros años): el AoP por la API coincide con el
+    del entrenamiento (±0,5°) y el error contra el experto queda en el orden medido."""
+    medidas = pd.read_csv(INTRAPARTO).dropna().sample(20, random_state=3)
+    difs, errores = [], []
+    for _, fila in medidas.iterrows():
+        with open(AQUI / fila["imagen"], "rb") as f:
+            r = cliente.post("/api/segmentacion/intraparto", files={"file": ("i.png", f.read(), "image/png")})
+        assert r.status_code == 200
+        aop = r.json()["medidas"]["angulo_progresion_grados"]
+        difs.append(abs(aop - fila["aop_red"]))
+        errores.append(abs(aop - fila["aop_experto"]))
+    assert max(difs) < 0.5, f"la API se desvía del entrenamiento hasta {max(difs):.2f}°"
+    assert np.mean(errores) < 12
+    assert r.json()["modelo"]["metricas_prueba"]["angulo_progresion_prueba"]["sensibilidad_aop_120"] is not None

@@ -47,7 +47,12 @@ CONFIG = {
     "cabeza": {"lado": 384, "epocas": 45, "lote": 16, "lr": 6e-4, "codificador": "efficientnet_b2"},
     "abdomen": {"lado": 384, "epocas": 60, "lote": 16, "lr": 6e-4, "codificador": "efficientnet_b2"},
     "torax": {"lado": 384, "epocas": 120, "lote": 12, "lr": 5e-4, "codificador": "efficientnet_b2"},
+    "intraparto": {"lado": 384, "epocas": 50, "lote": 16, "lr": 6e-4, "codificador": "efficientnet_b2"},
 }
+CLASES = CLASES | {"intraparto": ["fondo", "sinfisis_pubis", "cabeza_fetal"]}
+#: catálogo de cada tarea (intraparto lo arma entrenamiento/intraparto/preparar.py)
+CATALOGO = {t: AQUI / "catalogos" / f"{t}.csv" for t in ("cabeza", "abdomen", "torax")} | {
+    "intraparto": AQUI.parent / "intraparto" / "catalogo.csv"}
 
 
 def fijar_semilla() -> None:
@@ -141,7 +146,9 @@ def entrenar(tarea: str) -> None:
         registro.flush()
 
     fijar_semilla()
-    cat = pd.read_csv(AQUI / "catalogos" / f"{tarea}.csv")
+    cat = pd.read_csv(CATALOGO[tarea])
+    if "paciente" not in cat:  # intraparto agrupa por examen (los clips de un mismo examen)
+        cat["paciente"] = cat["examen"]
     partes = {p: cat[cat["particion"] == p].reset_index(drop=True)
               for p in ("entrenamiento", "validacion", "prueba")}
     datos = {p: cargar(d, cfg["lado"]) for p, d in partes.items()}
@@ -198,8 +205,11 @@ def entrenar(tarea: str) -> None:
         "tarea": tarea,
         "dataset": {"cabeza": "Large-Scale Fetal Head Biometry (Zenodo 8265464) · FETAL_PLANES_DB",
                     "abdomen": "Fetal Abdominal Structures Segmentation (Mendeley Data)",
-                    "torax": "FOCUS (Zenodo 14597550)"}[tarea],
-        "particion": "por paciente 70/15/15" if tarea != "torax" else "oficial de FOCUS (sin id de paciente)",
+                    "torax": "FOCUS (Zenodo 14597550)",
+                    "intraparto": "IUGC MICCAI 2024 (ecografía intraparto transperineal)"}[tarea],
+        "particion": {"torax": "oficial de FOCUS (sin id de paciente)",
+                      "intraparto": "prueba oficial del desafío (otros años y exámenes); validación por examen"}.get(
+            tarea, "por paciente 70/15/15"),
         "imagenes_prueba": len(prueba),
         "pacientes_prueba": int(prueba["paciente"].nunique()),
         "epoca_elegida": epoca_elegida,
@@ -209,7 +219,8 @@ def entrenar(tarea: str) -> None:
                                     "imagenes": len(v)} for c, v in dp.items() if v},
     }
     metricas["dice_prueba_medio"] = round(float(np.mean([v["medio"] for v in metricas["dice_prueba"].values()])), 4)
-    metricas |= {"cabeza": medir_cabeza, "torax": medir_torax, "abdomen": medir_abdomen}[tarea](
+    metricas |= {"cabeza": medir_cabeza, "torax": medir_torax, "abdomen": medir_abdomen,
+                 "intraparto": medir_intraparto}[tarea](
         red, prueba, pred_p, Y_p, cfg, log)
 
     torch.save({"estado": red.state_dict(), "meta": {
@@ -325,6 +336,44 @@ def medir_abdomen(red, prueba, pred_p, Y_p, cfg, log) -> dict:
                        "con_estructura": int(real.sum()), "sin_estructura": int((~real).sum())}
     log(f"Detección de marcadores del plano abdominal: {res}")
     return {"marcadores_plano_abdominal": res}
+
+
+def medir_intraparto(red, prueba, pred_p, Y_p, cfg, log) -> dict:
+    """Ángulo de progresión de la red frente al medido por el experto (IUGC).
+
+    Se informa también el error del MISMO cálculo sobre la máscara del experto:
+    es el piso del método (dónde pone el experto los puntos frente a los
+    extremos del eje de la sínfisis), para separar el error de la red del del
+    método."""
+    from app.angulo_progresion import angulo_progresion
+
+    filas = []
+    for (_, r), pc in zip(prueba.iterrows(), pred_p):
+        real = np.array(Image.open(RAIZ / r["mascara"]))
+        pred = _en_original(pc, real.shape, cfg["lado"])
+        a_red, a_mascara = angulo_progresion(pred), angulo_progresion(real)
+        filas.append({"imagen": r["imagen"], "aop_experto": r["aop"],
+                      "aop_red": a_red["aop"] if a_red else np.nan,
+                      "aop_mascara_experto": a_mascara["aop"] if a_mascara else np.nan})
+    t = pd.DataFrame(filas)
+    t.to_csv(AQUI / "salidas" / "intraparto" / "prueba_medidas.csv", index=False)
+    e = (t["aop_red"] - t["aop_experto"]).abs()
+    piso = (t["aop_mascara_experto"] - t["aop_experto"]).abs()
+    corte = 120
+    clase_real, clase_red = t["aop_experto"] >= corte, t["aop_red"] >= corte
+    validas = t["aop_red"].notna()
+    res = {"imagenes": int(validas.sum()), "sin_estructuras": int((~validas).sum()),
+           "aop_error_medio_grados": round(float(e.mean()), 2), "aop_error_mediano_grados": round(float(e.median()), 2),
+           "aop_dentro_de_5_grados": round(float((e <= 5).mean()), 4),
+           "aop_dentro_de_10_grados": round(float((e <= 10).mean()), 4),
+           "piso_del_metodo_mascara_experto_error_medio": round(float(piso.mean()), 2),
+           "acuerdo_corte_120_grados": round(float((clase_real[validas] == clase_red[validas]).mean()), 4),
+           "casos_aop_120_o_mas": int(clase_real.sum()),
+           # El acuerdo global lo dominan los < 120°: se informan por separado.
+           "sensibilidad_aop_120": round(float((clase_red & clase_real).sum() / max(1, clase_real.sum())), 4),
+           "especificidad_aop_120": round(float((~clase_red & ~clase_real).sum() / max(1, (~clase_real).sum())), 4)}
+    log(f"Ángulo de progresión: {res}")
+    return {"angulo_progresion_prueba": res}
 
 
 if __name__ == "__main__":

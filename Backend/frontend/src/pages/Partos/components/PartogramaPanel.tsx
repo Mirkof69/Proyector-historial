@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert, Button, Card, Col, DatePicker, Empty, Form, Input, InputNumber, Modal, Row, Select, Space, Table, Tag, Typography,
+  Alert, Button, Card, Col, DatePicker, Empty, Form, Image, Input, InputNumber, Modal, Row, Select, Space, Table, Tag,
+  Typography, Upload,
 } from 'antd';
-import { PlusOutlined, ReloadOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, FilePdfOutlined, ScanOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import {
   CartesianGrid, Legend, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { partoDetalleService, RegistroPartograma, mensajeDeError } from '../../../services/partoDetalleService';
+import {
+  partoDetalleService, RegistroPartograma, MedidaAnguloProgresion, mensajeDeError,
+} from '../../../services/partoDetalleService';
+import { API_URL } from '../../../services/api';
 import { curvaPartograma } from '../partogramaUtils';
 import { descargarArchivo } from '../../../utils/descargarArchivo';
 import { useAntdApp } from '../../../hooks/useMessage';
@@ -24,6 +28,7 @@ interface Formulario {
   hora_registro: Dayjs;
   dilatacion_cervical: number;
   borramiento_cervical?: number;
+  angulo_progresion?: number;
   estacion_fetal: string;
   contracciones_10min: number;
   duracion_contracciones?: number;
@@ -55,6 +60,23 @@ const PartogramaPanel: React.FC<Props> = ({ partoId, inicioTrabajoParto, puedeEd
   const [abierto, setAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form] = Form.useForm<Formulario>();
+  const [midiendo, setMidiendo] = useState(false);
+  const [medida, setMedida] = useState<MedidaAnguloProgresion | null>(null);
+
+  const medirAngulo = async (archivo: File) => {
+    setMidiendo(true);
+    setMedida(null);
+    try {
+      const m = await partoDetalleService.medirAnguloProgresion(archivo);
+      setMedida(m);
+      if (m.medidas.angulo_progresion_grados) form.setFieldValue('angulo_progresion', m.medidas.angulo_progresion_grados);
+    } catch (e) {
+      message.error(mensajeDeError(e, 'No se pudo medir el ángulo'));
+    } finally {
+      setMidiendo(false);
+    }
+    return false;
+  };
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -84,6 +106,7 @@ const PartogramaPanel: React.FC<Props> = ({ partoId, inicioTrabajoParto, puedeEd
       } as Partial<RegistroPartograma>);
       message.success('Tacto registrado');
       setAbierto(false);
+      setMedida(null);
       form.resetFields();
       cargar();
     } catch (e) {
@@ -100,6 +123,10 @@ const PartogramaPanel: React.FC<Props> = ({ partoId, inicioTrabajoParto, puedeEd
     { title: 'Estación', dataIndex: 'estacion_fetal' },
     { title: 'Contracciones / 10 min', dataIndex: 'contracciones_10min' },
     { title: 'FCF', dataIndex: 'fcf_baseline', render: (v?: number | null) => (v == null ? '—' : `${v} lpm`) },
+    {
+      title: 'AoP', dataIndex: 'angulo_progresion',
+      render: (v?: string | number | null) => (v == null ? '—' : <Tag color={Number(v) >= 120 ? 'green' : 'default'}>{v}°</Tag>),
+    },
     {
       title: 'PA', key: 'pa',
       render: (_: unknown, r: RegistroPartograma) => (r.presion_arterial_sistolica
@@ -194,7 +221,7 @@ const PartogramaPanel: React.FC<Props> = ({ partoId, inicioTrabajoParto, puedeEd
         </>
       )}
 
-      <Modal title="Registrar tacto" open={abierto} onCancel={() => setAbierto(false)} okText="Guardar"
+      <Modal title="Registrar tacto" open={abierto} onCancel={() => { setAbierto(false); setMedida(null); }} okText="Guardar"
         onOk={() => form.submit()} confirmLoading={guardando} width={720} destroyOnClose>
         <Form form={form} layout="vertical" onFinish={guardar}
           initialValues={{ hora_registro: dayjs(), estacion_fetal: '0', contracciones_10min: 3 }}>
@@ -277,6 +304,44 @@ const PartogramaPanel: React.FC<Props> = ({ partoId, inicioTrabajoParto, puedeEd
                 <Input maxLength={50} />
               </Form.Item>
             </Col>
+            <Col xs={24} sm={8}>
+              <Form.Item name="angulo_progresion" label="Ángulo de progresión (°)"
+                extra="Ecografía intraparto transperineal. ≥ 120° se asocia a parto vaginal espontáneo.">
+                <InputNumber min={60} max={180} step={0.1} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={16}>
+              <Form.Item label="Medir con la ecografía">
+                <Upload accept="image/*" showUploadList={false} beforeUpload={medirAngulo}>
+                  <Button icon={<ScanOutlined />} loading={midiendo}>Subir imagen y medir</Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+            {medida && (
+              <Col span={24}>
+                <Alert
+                  style={{ marginBottom: 12 }}
+                  type={medida.medidas.angulo_progresion_grados ? 'info' : 'warning'}
+                  showIcon
+                  message={medida.medidas.angulo_progresion_grados
+                    ? `${medida.medidas.angulo_progresion_grados}° ± ${medida.medidas.margen_grados}° (red entrenada con IUGC 2024)`
+                    : 'No se pudo medir'}
+                  description={(
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      {medida.medidas.interpretacion && <Text>{medida.medidas.interpretacion}</Text>}
+                      {medida.avisos.map((a) => <Text key={a} type="secondary">{a}</Text>)}
+                      <Text type="secondary">
+                        Revise el dibujo antes de guardar: es una medida de apoyo, no una decisión.
+                      </Text>
+                      {medida.superposicion_url && (
+                        <Image width={260} src={`${API_URL.replace(/\/api\/?$/, '')}${medida.superposicion_url}`}
+                          alt="Ángulo de progresión dibujado" />
+                      )}
+                    </Space>
+                  )}
+                />
+              </Col>
+            )}
             <Col span={24}>
               <Form.Item name="observaciones" label="Observaciones">
                 <Input.TextArea rows={2} />

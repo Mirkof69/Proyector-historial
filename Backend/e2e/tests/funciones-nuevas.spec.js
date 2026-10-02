@@ -12,6 +12,11 @@ const API = process.env.E2E_API || 'http://localhost:8000/api';
 const EMAIL = process.env.E2E_EMAIL || 'dra.garcia@fetalmedical.bo';
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo2026!';
 const CI = String(8000000 + (Date.now() % 900000));
+// Una imagen de prueba de IUGC 2024 extraída localmente (no se versiona: su licencia no lo permite claramente).
+const CARPETA_IUGC = path.join(__dirname, '..', '..', 'Microservicio_IA', 'datos', 'extraidos', 'intraparto', 'imagenes');
+const IMAGEN_INTRAPARTO = fs.existsSync(CARPETA_IUGC)
+  ? path.join(CARPETA_IUGC, fs.readdirSync(CARPETA_IUGC).find((f) => /^\d{12,}I\d+_\d+\.png$/.test(f)) || '')
+  : null;
 
 /** POST/GET a la API desde la página (misma cookie y token CSRF que el frontend). */
 const api = (page, metodo, ruta, cuerpo) => page.evaluate(async ([base, m, r, c]) => {
@@ -80,9 +85,16 @@ test.describe('Funciones nuevas en uso', () => {
     const modal = page.locator('.ant-modal:visible');
     await modal.locator('#dilatacion_cervical').fill('6');
     await modal.locator('#fcf_baseline').fill('142');
+    if (IMAGEN_INTRAPARTO && fs.existsSync(IMAGEN_INTRAPARTO)) {
+      // Ángulo de progresión medido por la red sobre una ecografía intraparto real.
+      await modal.locator('input[type=file]').setInputFiles(IMAGEN_INTRAPARTO);
+      await expect(modal).toContainText('(red entrenada con IUGC 2024)', { timeout: 60000 });
+      await expect(modal.locator('#angulo_progresion')).not.toHaveValue('');
+    }
     await modal.getByRole('button', { name: 'Guardar' }).click();
     await expect(page.locator('.ant-table-row').first()).toContainText('6 cm');
     await expect(page.locator('.ant-table-row').first()).toContainText('142 lpm');
+    if (IMAGEN_INTRAPARTO) await expect(page.locator('.ant-table-row').first()).toContainText('°');
   });
 
   test('2. Capurro del recién nacido: 39,7 semanas, a término', async () => {

@@ -179,6 +179,74 @@ CASOS = [
      ["py:test_exportaciones_excel::test_el_excel_respeta_el_filtro_y_usa_etiquetas",
       "py:test_controles_listado_servidor::test_excel_respeta_filtros_y_queda_auditado",
       "py:test_listados_servidor_embarazos_citas_pacientes::test_excel_con_filtros_etiquetas_y_auditado"]),
+    ("CP-038", "IA (imagen)", "Alto", "Segmentación de cabeza: la API mide igual que el entrenamiento",
+     "En 40 cabezas de otro hospital (HC18) la HC por la API coincide con el entrenamiento (±0,5 mm) y el error es < 5 %",
+     ["ia:test_segmentacion::test_la_api_mide_igual_que_el_entrenamiento_en_hc18",
+      "ia:test_segmentacion::test_sin_tamano_de_pixel_no_da_milimetros",
+      "ia:test_segmentacion::test_torax_de_prueba_da_indice_en_rango_y_metricas"]),
+    ("CP-039", "IA (imagen)", "Alto", "Análisis completo con las redes medidas (reemplazo de la B4)",
+     "Plano → red de su plano → medidas con margen; un plano sin red no inventa medidas; las rutas de la B4 no existen",
+     ["ia:test_segmentacion::test_analisis_completo_de_una_cabeza",
+      "ia:test_segmentacion::test_un_plano_sin_red_no_inventa_medidas",
+      "ia:test_segmentacion::test_las_rutas_de_la_b4_ya_no_existen",
+      "py:test_informe_redes_medidas::test_alarma_cerebral_no_queda_como_normal",
+      "py:test_informe_redes_medidas::test_indice_cardiotoracico_alto_pide_revision"]),
+    ("CP-042", "Partos", "Alto", "Epicrisis: redactar, validar y firmar",
+     "CIE-10 válido, egreso posterior al parto; firmada no se edita ni se borra; reabrir solo el administrador, auditado",
+     ["py:test_epicrisis_y_capurro::test_firmar_bloquea_edicion_y_reabrir_solo_admin",
+      "py:test_epicrisis_y_capurro::test_cie10_invalido_y_egreso_antes_del_parto",
+      "py:test_epicrisis_y_capurro::test_campos_propios_del_hospital",
+      "py:test_epicrisis_y_capurro::test_pdf",
+      "e2e:3. epicrisis: redactar con la sugerencia y firmar"]),
+    ("CP-043", "Partos", "Medio", "Edad gestacional del recién nacido (Capurro / Ballard)",
+     "Capurro 204 + puntos = 39,7 s; Ballard −10 → 20 s y 50 → 44 s; puntos inexistentes se rechazan",
+     ["py:test_epicrisis_y_capurro::test_capurro_formula", "py:test_epicrisis_y_capurro::test_ballard_extremos",
+      "py:test_epicrisis_y_capurro::test_capurro_incompleto_400",
+      "e2e:2. Capurro del recién nacido: 39,7 semanas, a término"]),
+    ("CP-044", "Partos", "Alto", "Partograma con líneas de alerta y acción de la OMS",
+     "Fase activa desde 4 cm; cruza alerta con < 1 cm/h y acción 4 h después; el tacto registrado aparece en la tabla y el PDF",
+     ["js:partogramaUtils::", "py:test_epicrisis_y_capurro::test_pdf_con_los_campos_reales",
+      "e2e:1. partograma: registrar un tacto y verlo en la tabla"]),
+    ("CP-045", "Partos", "Medio", "Ángulo de progresión con ecografía intraparto (IUGC 2024)",
+     "La API mide igual que el entrenamiento (±0,5°); error medio ≈ 7° frente al experto; ángulo imposible no se guarda; IA caída → 503",
+     ["ia:test_segmentacion::test_angulo_de_progresion_igual_que_el_entrenamiento",
+      "py:test_angulo_progresion::test_devuelve_la_medida_y_queda_auditado",
+      "py:test_angulo_progresion::test_microservicio_caido_503_con_mensaje",
+      "py:test_angulo_progresion::test_partograma_rechaza_un_angulo_imposible",
+      "e2e:1. partograma: registrar un tacto y verlo en la tabla"]),
+    ("CP-054", "Laboratorio", "Medio", "Importar resultados desde CSV con otros encabezados",
+     "CSV con punto y coma en Latin-1 se reconoce por sinónimos; si no, pide el mapeo y luego importa",
+     ["py:test_importacion_laboratorio_csv::test_csv_punto_y_coma_latin1_con_sinonimos",
+      "py:test_importacion_laboratorio_csv::test_encabezados_desconocidos_piden_mapeo_y_luego_importan",
+      "py:test_importacion_laboratorio_csv::test_archivo_binario_no_valido_400"]),
+    ("CP-055", "Laboratorio", "Medio", "Deshacer una importación completa",
+     "Borra lo que creó el lote (y no lo cargado aparte), pide motivo, queda auditado y no se anula dos veces",
+     ["py:test_importacion_laboratorio_csv::test_deshacer_lote_borra_todo_lo_que_creo",
+      "py:test_importacion_laboratorio_csv::test_deshacer_no_borra_resultados_cargados_aparte",
+      "e2e:4. laboratorio: importar un CSV con otros encabezados y deshacerlo"]),
+    ("CP-083", "IA (supervisado)", "Alto", "Cardiotocografía: normal, sospechosa o patológica",
+     "Exactitud ≥ 90 % y sensibilidad patológica ≥ 85 % en 423 registros reales no vistos; faltan datos → 409 sin clase",
+     ["py:test_cardiotocografia::test_metricas_reales_en_prueba",
+      "py:test_cardiotocografia::test_clasifica_un_registro_normal",
+      "py:test_cardiotocografia::test_faltan_datos_409_sin_clase",
+      "e2e:5. cardiotocografía: un trazado normal se clasifica «Normal»"]),
+    ("CP-084", "IA (supervisado)", "Medio", "Peso al nacer medido contra el bebé real",
+     "La predicción se cierra sola con el peso real (error del modelo y de Hadlock); con gemelos no se cierra",
+     ["py:test_cierre_prediccion_peso::test_se_cierra_con_el_peso_real",
+      "py:test_cierre_prediccion_peso::test_gemelos_no_se_cierra",
+      "py:test_cierre_prediccion_peso::test_desempeno_con_nacimientos_reales"]),
+    ("CP-093", "Seguridad", "Alto", "Todo permiso que pide la pantalla existe",
+     "Ningún botón ni ruta pide un permiso inexistente (antes médicos y enfermeras no veían «Nuevo examen» ni «Nuevo control»)",
+     ["py:test_permisos_frontend_existen::test_cada_permiso_pedido_existe"]),
+    ("CP-107", "Reportes", "Medio", "Natalidad, morbilidad e IA con el período elegido",
+     "Cifras reales del período (cesáreas, bajo peso, pretérmino, Apgar < 7); período sin partos → ceros, no ejemplos; Excel",
+     ["py:test_reportes_natalidad_ia::test_cifras_del_periodo",
+      "py:test_reportes_natalidad_ia::test_periodo_sin_partos_da_ceros_no_inventa",
+      "py:test_reportes_natalidad_ia::test_excel", "py:test_reportes_natalidad_ia::test_reporte_ia_sin_microservicio",
+      "js:rangoReportes::"]),
+    ("CP-111", "Rendimiento", "Alto", "Latencia de la API con la configuración de producción",
+     "Percentil 95 < 200 ms en los 16 listados y reportes (waitress, demo de 3.200 pacientes)",
+     ["lat:"]),
     ("CP-110", "Rendimiento", "Alto", "Abrir cada listado con la demo de 3.200 pacientes",
      "Menos de 5 s y 15 peticiones o menos por pantalla, sin errores JS ni 500",
      [f"perf:/dashboard/{r}" for r in ("pacientes", "embarazos", "controles", "ecografias", "partos",
@@ -260,6 +328,18 @@ def resultados_rendimiento():
     return salida
 
 
+def resultados_latencia():
+    """lat: → el último informe de medir_latencia_api.py con la configuración de
+    producción (waitress). No se vuelve a medir aquí: el servidor de esta corrida
+    es el de desarrollo. PASA si todos los endpoints tienen p95 < 200 ms."""
+    informe = Path(__file__).resolve().parent / "reports" / "latencia_api.json"
+    if not informe.exists():
+        return {}
+    d = json.loads(informe.read_text(encoding="utf-8"))
+    ok = d.get("total") and d["cumplen"] == d["total"] and not d.get("errores")
+    return {f"lat:{d.get('fecha')} {d['cumplen']}/{d['total']}": ("PASA" if ok else "FALLA", 0.0)}
+
+
 def buscar(resultados, ref):
     """Coincidencia exacta, o por prefijo del título (Jest/E2E usan frases largas)."""
     if ref in resultados:
@@ -286,6 +366,7 @@ def main():
         _ejecutar([str(PY_BACKEND), "manage.py", "limpiar_datos_e2e", "--schema=clinica_demo"], BACKEND)
         print("Rendimiento de los listados…", flush=True)
         resultados |= resultados_rendimiento()
+    resultados |= resultados_latencia()
 
     filas, cuenta = [], {"PASA": 0, "FALLA": 0, "SIN EJECUTAR": 0}
     for cid, modulo, riesgo, caso, esperado, refs in sorted(CASOS, key=lambda c: c[0]):
@@ -311,7 +392,8 @@ Requisitos, historias de usuario y casos de uso: [sistema/](sistema/README.md).
 {'' if con_e2e else '(esta corrida se hizo sin E2E ni rendimiento)'}
 
 Prefijos: `py:` backend (pytest) · `ia:` microservicio de IA (pytest) · `js:` frontend (Jest) ·
-`e2e:` navegador (Playwright) · `perf:` tiempo y peticiones medidos en el navegador.
+`e2e:` navegador (Playwright) · `perf:` tiempo y peticiones medidos en el navegador ·
+`lat:` último informe de latencia de la API (`medir_latencia_api.py`, configuración de producción).
 
 | ID | Módulo | Riesgo | Caso | Resultado esperado | Obtenido | Pruebas automáticas |
 |---|---|---|---|---|---|---|

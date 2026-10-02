@@ -1551,6 +1551,15 @@ class PartogramaRegistro(models.Model):
         verbose_name="Pulso Materno (lpm)",
     )
 
+    # Ecografía intraparto: ángulo de progresión (medido a mano o por la red de
+    # IUGC, Microservicio_IA/app/angulo_progresion.py). ≥ 120° se asocia a parto
+    # vaginal espontáneo.
+    angulo_progresion = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(Decimal("60")), MaxValueValidator(Decimal("180"))],
+        verbose_name="Ángulo de progresión (°)",
+    )
+
     # Medicamentos
     oxitocina_dosis = models.CharField(
         max_length=50, blank=True, verbose_name="Dosis de Oxitocina", help_text="mU/min",

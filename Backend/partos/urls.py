@@ -2,7 +2,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from . import views, views_epicrisis
+from . import views, views_epicrisis, views_intraparto
 
 # Crear router para las APIs REST
 router = DefaultRouter()
@@ -41,6 +41,7 @@ urlpatterns = [
         name="rn-estadisticas",
     ),
     path("edad-gestacional-rn/", views_epicrisis.tablas_edad_gestacional_rn, name="edad-gestacional-rn"),
+    path("angulo-progresion/", views_intraparto.angulo_progresion, name="angulo-progresion"),
     path(
         "partograma/alertas/",
         views.PartogramaRegistroViewSet.as_view({"get": "con_alertas"}),

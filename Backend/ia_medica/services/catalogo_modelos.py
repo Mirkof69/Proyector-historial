@@ -31,6 +31,10 @@ REDES_IMAGEN = {
     "segmentacion_abdomen": ("Segmentación abdominal (U-Net)", "segmentación",
                              lambda m: f"Dice {m['dice_prueba_medio']:.3f}; estómago visto en el "
                                        f"{m['marcadores_plano_abdominal']['estomago']['sensibilidad']:.0%}"),
+    "segmentacion_intraparto": ("Ángulo de progresión intraparto (U-Net, IUGC 2024)", "segmentación y medida",
+                                lambda m: f"Error medio {m['angulo_progresion_prueba']['aop_error_medio_grados']}° en "
+                                          f"{m['angulo_progresion_prueba']['imagenes']} imágenes de otros años; "
+                                          f"AoP ≥ 120°: sensibilidad {m['angulo_progresion_prueba']['sensibilidad_aop_120']:.0%}"),
     "anomalias_cerebrales_fetales": ("Cribado de anomalías cerebrales (EfficientNet-B0)", "cribado",
                                      lambda m: f"Falsas alarmas en otro hospital: {m['externa_falsos_positivos']['fp']} de "
                                                f"{m['externa_falsos_positivos']['n']}. Sensibilidad real no medible con datos públicos"),
