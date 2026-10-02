@@ -58,9 +58,10 @@ Verifica cada punto antes de cambiarlo; si ya cumple, déjalo y dilo.
 | Detalle del parto con pestañas | Hecho con 5 pestañas, partograma, Capurro/Ballard, ángulo de progresión y epicrisis | — |
 | Centro de reportes en una página | Hecho: 8 pestañas con período común, natalidad, IA e impresión | Envío por correo (falta el servidor de correo) |
 | Importación de laboratorio | Hecho: Excel y CSV, mapeo de columnas, vista previa, deshacer por lote | — |
+| Otros funcionarios (abierto a ampliar) | Hecho: cargos del hospital sobre un rol con sus módulos, aplicados en el menú y en la API; campos propios en la epicrisis | Roles con permisos nuevos que no deriven de los cinco base requieren programar |
 | Paginación en el servidor | Hecha en los 10 listados; API medida: p95 < 200 ms en 16/16 rutas con waitress | Repetir la medición en el servidor del hospital |
-| Plan de QA y casos de prueba | Hecho: 42/42 pasan; backend ~925 pruebas, Jest 107, IA 32, E2E 6/6 | Prueba de aceptación con personal del hospital |
-| Documentación y diagramas | Hecho: `docs/sistema/` con 27 diagramas | Mantenerla al día con cada cambio |
+| Plan de QA y casos de prueba | Hecho: 57/57 pasan; backend 999 pruebas, Jest 124, IA 30, E2E 13/13 | Prueba de aceptación con personal del hospital |
+| Documentación y diagramas | Hecho: `docs/sistema/` con 28 diagramas | Mantenerla al día con cada cambio |
 
 ## 4. Reglas de trabajo obligatorias
 

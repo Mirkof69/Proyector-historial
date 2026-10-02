@@ -187,3 +187,11 @@ Requisitos: RF-21, RF-22 · Pruebas: CP-090, CP-091, CP-092
 - Si el período no tiene partos, se dice; no se dibujan ceros como si fueran datos.
 
 Requisitos: RF-18, RF-27 · Pruebas: CP-042, CP-107
+
+### HU-25 · Otros funcionarios del hospital
+**Como** administradora, **quiero** crear cargos como «Obstetriz» o «Nutricionista» y elegir qué módulos usa cada uno, **para** sumar personal nuevo sin pedir cambios al sistema.
+- Elijo el rol en que se basa el cargo y desmarco los módulos que no usa; pacientes y notificaciones quedan siempre.
+- Quien tiene el cargo no ve los módulos quitados, y si entra por la dirección o la API, se le rechaza con un mensaje que nombra su cargo.
+- No puedo dar a un cargo más de lo que permite su rol; un cargo que alguien tiene no se borra, se desactiva.
+
+Requisitos: RF-30 · Pruebas: CP-112

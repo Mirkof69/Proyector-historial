@@ -217,8 +217,8 @@ flowchart LR
 | Actores | Administrador/a |
 | Precondición | Sesión de administrador |
 | Postcondición | Accesos según rol y trazabilidad completa |
-| Requisitos | RF-21, RF-22 |
-| Casos de prueba | CP-090, CP-091, CP-092 |
+| Requisitos | RF-21, RF-22, RF-30 |
+| Casos de prueba | CP-090, CP-091, CP-092, CP-112 |
 
 **Flujo principal**
 1. Crea un usuario y le asigna un rol.
@@ -227,4 +227,5 @@ flowchart LR
 
 **Flujos alternativos**
 - 1a. Cambia el rol de un usuario: cambian sus permisos.
+- 1b. Para otro funcionario (obstetriz, nutricionista…) crea un cargo sobre un rol, desmarca los módulos que no usa y se lo asigna al usuario: el rol lo pone el cargo y los módulos quitados desaparecen del menú y la API los rechaza.
 - 3a. Un usuario con historial de auditoría no se borra: se desactiva.

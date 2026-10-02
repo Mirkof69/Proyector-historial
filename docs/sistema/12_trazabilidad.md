@@ -40,6 +40,7 @@ para regenerarlo: `python quality-assurance/casos_de_prueba.py`.
 | RF-27 Campos propios del establecimiento | HU-24 | CU-08 | CP-042 | ✅ Verificado |
 | RF-28 Ángulo de progresión intraparto | HU-19 | CU-05 | CP-045 | ✅ Verificado |
 | RF-29 Cardiotocografía con IA | HU-22 | CU-03 | CP-083 | ✅ Verificado |
+| RF-30 Cargos del hospital (otros funcionarios) | HU-25 | CU-08 | CP-112 | ✅ Verificado |
 
 ## Requisitos no funcionales
 

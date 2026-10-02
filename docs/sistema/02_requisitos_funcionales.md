@@ -53,3 +53,4 @@ resultado está en [QA_CASOS_DE_PRUEBA.md](../QA_CASOS_DE_PRUEBA.md).
 | RF-19 | Exportar cada listado a Excel con los mismos filtros de la pantalla; la exportación queda auditada. | Media | CP-106 |
 | RF-21 | Controlar el acceso por rol: cada rol ve y hace solo lo suyo, en la pantalla y en la API; todo permiso que pide la pantalla existe en el sistema. | Alta | CP-090, CP-091, CP-093 |
 | RF-22 | Auditar sesiones (inicio, fin, IP, navegador), exportaciones y acciones sobre datos clínicos. | Alta | CP-092 |
+| RF-30 | Cargos del hospital sin programar: el administrador crea un cargo (obstetriz, nutricionista…) sobre un rol y elige qué módulos de ese rol usa. Solo puede quitar módulos, nunca agregar; lo quitado desaparece del menú y la API lo rechaza (403). Cada alta, cambio y baja queda auditada; un cargo con usuarios no se borra. | Media | CP-112 |

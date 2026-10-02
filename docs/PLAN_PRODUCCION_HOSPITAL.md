@@ -123,7 +123,8 @@ Frontend
 - [x] Laboratorio: CSV, mapeo de columnas y **deshacer por lote**.
 - [x] Reportes: período común, natalidad y morbilidad, IA, impresión.
 - [x] Rendimiento: API en waitress (p95 < 200 ms en 16/16 rutas), búsqueda 367 → 31 ms, 40 usuarios simultáneos sin errores; redes de IA precargadas al arrancar.
-- [x] Notificaciones en vivo en producción: Redis entre la API (waitress) y los WebSockets (uvicorn, 1 worker); sin él las alertas no llegaban nunca (CP-108). QA 56/56.
+- [x] Notificaciones en vivo en producción: Redis entre la API (waitress) y los WebSockets (uvicorn, 1 worker); sin él las alertas no llegaban nunca (CP-108).
+- [x] **Cargos del hospital** (otros funcionarios sin programar): el administrador crea «Obstetriz», «Nutricionista»… sobre un rol y elige sus módulos; solo puede quitar, nunca agregar, y la API lo aplica (CP-112). Reemplaza la pantalla «Roles y permisos», que guardaba permisos que ningún código leía.
 - [x] Fallos encontrados en el navegador y corregidos: permisos `examen`/`control` inexistentes (médicos sin «Nuevo examen» ni «Nuevo control»), WebSocket sin clínica (las notificaciones pendientes nunca llegaban), logs que no rotaban en Windows.
 
 ---
