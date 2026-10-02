@@ -54,6 +54,7 @@ Verifica cada punto antes de cambiarlo; si ya cumple, déjalo y dilo.
 |---|---|---|
 | Unificar Evoluciones y Notas | Hecho: una sola fuente (notas de evolución); la ruta vieja redirige | — |
 | Unificar calculadoras | Hecho: peso fetal (Hadlock) con una única fórmula en `ecografias/peso_fetal.py` ↔ `frontend/src/utils/pesoFetal.ts`; diabetes gestacional con criterio IADPSG | Revisar que no quede ninguna otra copia |
+| Biometría y patologías obstétricas con IA | Hecho: fémur y circunferencia abdominal desde la imagen; catálogo de modelos por enfermedad con su confiabilidad; acidemia y parto prematuro evaluados y descartados con su métrica | Cardiopatías congénitas y longitud cervical: pedir Heartbeat/CARDIUM e ISBI 2025 con formulario institucional |
 | Ginecología con IA | Hecho: lesión ovárica (contorno, tipo, alarma), mioma y ovario poliquístico con datos reales; tablas de cáncer cervicouterino y riesgo materno descartadas con su métrica | Más datos ginecológicos reales (la alarma de carcinoma detecta 7 de 13: no sirve como tamizaje) |
 | Unificar los modelos de imagen | Hecho: un solo flujo medido (plano → segmentación → anomalías); la B4 se retiró | — |
 | Detalle del parto con pestañas | Hecho con 5 pestañas, partograma, Capurro/Ballard, ángulo de progresión y epicrisis | — |
@@ -61,7 +62,7 @@ Verifica cada punto antes de cambiarlo; si ya cumple, déjalo y dilo.
 | Importación de laboratorio | Hecho: Excel y CSV, mapeo de columnas, vista previa, deshacer por lote | — |
 | Otros funcionarios (abierto a ampliar) | Hecho: cargos del hospital sobre un rol con sus módulos, aplicados en el menú y en la API; campos propios en la epicrisis | Roles con permisos nuevos que no deriven de los cinco base requieren programar |
 | Paginación en el servidor | Hecha en los 10 listados; API medida: p95 < 200 ms en 16/16 rutas con waitress | Repetir la medición en el servidor del hospital |
-| Plan de QA y casos de prueba | Hecho: 60/60 pasan; backend 1.005 pruebas, Jest 126, IA 37, E2E 15/15 | Prueba de aceptación con personal del hospital |
+| Plan de QA y casos de prueba | Hecho: 61/61 pasan; backend 1.005 pruebas, Jest 127, IA 43, E2E 15/15 | Prueba de aceptación con personal del hospital |
 | Documentación y diagramas | Hecho: `docs/sistema/` con 28 diagramas | Mantenerla al día con cada cambio |
 
 ## 4. Reglas de trabajo obligatorias

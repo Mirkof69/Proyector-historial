@@ -28,6 +28,32 @@ Los scripts de entrenamiento están en `../entrenamiento/`.
 | FOCUS | `crudos/FOCUS-dataset.zip` · `extraidos/segmentacion/torax` | 300 | Máscaras de tórax y corazón (todos **normales**) | **Segmentación de tórax** (Dice 0,93; índice cardiotorácico ±0,02). Mide; no puede validar la detección de cardiomegalia | Zenodo 14597550 · CC BY 4.0 |
 | HC18 variante Kaggle | `crudos/training_set.zip`, `crudos/test_set.zip` | 999 + 335 | Duplicado de HC18 renombrado y re-codificado | No se usa (se usa la oficial) | — |
 
+## Obstetricia, segunda tanda (añadido el 02/10/2026)
+
+En `crudos/obstetricia/` (zips originales con checksum verificado) y `extraidos/obstetricia/`.
+
+| Dataset | Registros | Qué etiqueta | Uso y resultado en pacientes no vistas | Licencia / cita |
+|---|---|---|---|---|
+| Multicentre Fetal Biometry 2026 | 4.513 imágenes de 1.904 pacientes, 4 hospitales, 7 ecógrafos | Extremos de DBP, DOF, diámetros abdominales y fémur marcados por expertos, con mm por píxel | **Longitud del fémur**: error medio 1,3 mm, 92 % dentro del 5 % (353 imágenes, 271 pacientes). **Circunferencia abdominal**: 2,9 % de error relativo, 89 % dentro del 5 % | UCL RDR 10.5522/04/30819911 · **CC BY-NC-SA 4.0 (uso no comercial)** |
+| CTU-UHB Intrapartum CTG | 552 monitoreos (Brno) con gasometría umbilical | pH, déficit de base, Apgar | Evaluado y **descartado**: acidemia (pH < 7,15) AUC 0,73 (IC 0,60–0,84), especificidad 33 % para 90 % de sensibilidad; grave (< 7,05) AUC 0,64, peor que 3 rasgos clásicos | PhysioNet · ODC-By 1.0 |
+| Term-Preterm EHG Database | 300 electrohisterogramas (Ljubljana), 38 prematuros | Semana del parto | Evaluado y **descartado**: sin sobremuestreo antes de partir, AUC 0,42–0,45 en validación cruzada y 0,61 (IC 0,32–0,87) en prueba: no predice | PhysioNet · ODC-By 1.0 |
+
+Lo que encontró la revisión:
+- **Biometría**: el README promete partición por paciente, pero 4 pacientes de
+  UCLH (fémur) y 5 (abdomen) aparecen en entrenamiento y prueba: sus 9 y 21
+  imágenes de prueba se quitan. Las coordenadas se verificaron dibujándolas.
+- **Parto prematuro**: los trabajos que informan 95–99 % con TPEHG sobremuestrean
+  (SMOTE/ADASYN) antes de partir; las copias sintéticas de un mismo caso quedan
+  a ambos lados. Medido sin esa fuga, no hay señal.
+
+Pedidos que necesitan un formulario de la institución (no se pueden descargar libremente):
+
+| Dataset | Para qué serviría | Cómo pedirlo |
+|---|---|---|
+| Heartbeat (1.475 pacientes, ecocardiografía fetal) y CARDIUM (1.103) | Cardiopatías congénitas | Formulario de acceso de BCV-Uniandes (verifica afiliación académica) |
+| Fetal Ultrasound Grand Challenge ISBI 2025 (cuello uterino) | Longitud cervical → riesgo de parto prematuro | Acuerdo de uso de datos en Zenodo 14305302 |
+| Dataset for Fetus Framework (Shenzhen, translucencia nucal) | Calidad del plano de TN para el tamizaje de Down | Mendeley n2rbrb9t4f (CC BY 4.0; solo calidad del plano, sin diagnóstico) |
+
 ## Ginecología (añadido el 02/10/2026)
 
 En `crudos/ginecologia/` (zips originales, ver `crudos/LEEME_ZIPS.md`) y

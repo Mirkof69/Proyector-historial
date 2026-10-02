@@ -149,6 +149,14 @@ Requisitos: RF-29 · Pruebas: CP-083
 
 Requisitos: RF-31 · Pruebas: CP-085, CP-086, CP-087
 
+### HU-27 · Fémur y abdomen medidos por la IA
+**Como** ecografista, **quiero** que la IA mida la longitud del fémur y la circunferencia abdominal en la imagen, **para** completar la biometría y el peso fetal estimado con una segunda medida.
+- Veo los calibres dibujados sobre la imagen y la medida con su margen medido (fémur ±1,3 mm; CA ±2,9 %).
+- Si no indico los milímetros por píxel, la medida sale en píxeles y el sistema me lo avisa.
+- Cuando la imagen es de fémur, el análisis completo ya no dice «sin red de medida».
+
+Requisitos: RF-32 · Pruebas: CP-088
+
 ## Laboratorio
 
 ### HU-10 · Carga de resultados por Excel

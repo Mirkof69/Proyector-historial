@@ -21,6 +21,7 @@ flowchart LR
         SA[Segmentación abdominal<br/>U-Net]
         SI[Segmentación intraparto<br/>U-Net]
         AN[Anomalías cerebrales<br/>EfficientNet-B0]
+        BF[Fémur y abdomen<br/>U-Net de puntos]
         GO[Lesión ovárica<br/>U-Net + ensamble B0]
         GM[Mioma uterino<br/>U-Net]
         GP[Ovario poliquístico<br/>EfficientNet-B0]
@@ -34,11 +35,12 @@ flowchart LR
     D7[(Fetal Brain Abnormalities)]
     D8[(CTG SisPorto<br/>2.126 registros)]
     D9[(Partos del sistema)]
+    D13[(Biometría multicéntrica<br/>4.513 · 4 hospitales)]
     D10[(MMOTU<br/>1.469 ovario)]
     D11[(Miomas Mendeley<br/>862)]
     D12[(Ovario Borna 2025<br/>295)]
 
-    PUENTE --> PL & SC & ST & SA & SI & AN & GO & GM & GP
+    PUENTE --> PL & SC & ST & SA & SI & AN & BF & GO & GM & GP
     D1 -. entrena .-> PL
     D3 -. entrena .-> SC
     D2 -. prueba externa .-> SC
@@ -48,6 +50,7 @@ flowchart LR
     D7 -. entrena .-> AN
     D8 -. entrena .-> CTG
     D9 -. entrena .-> SUP
+    D13 -. entrena .-> BF
     D10 -. entrena .-> GO
     D11 -. entrena .-> GM
     D12 -. entrena .-> GP
@@ -60,9 +63,10 @@ flowchart LR
     IMG[Imagen] --> P{Plano anatómico}
     P -- cerebro --> C[Segmentación de cabeza<br/>HC, DBP, edad gestacional]
     P -- tórax --> T[Segmentación de tórax<br/>índice cardiotorácico]
-    P -- abdomen --> A[Segmentación abdominal<br/>¿corte adecuado para la CA?]
-    P -- fémur, cérvix, otro --> N[Solo el plano:<br/>sin red de medida validada]
-    C & T & A & N --> X[Cribado de anomalías cerebrales<br/>si la imagen es una cabeza]
+    P -- abdomen --> A[Segmentación abdominal<br/>¿corte adecuado para la CA?<br/>+ circunferencia abdominal · red de puntos]
+    P -- fémur --> F[Longitud del fémur<br/>red de puntos]
+    P -- cérvix, otro --> N[Solo el plano:<br/>sin red de medida validada]
+    C & T & A & F & N --> X[Cribado de anomalías cerebrales<br/>si la imagen es una cabeza]
     X --> I[Informe JSON + imagen con las estructuras<br/>+ métricas de cada red usada]
 ```
 
@@ -79,6 +83,9 @@ flowchart LR
 | Circunferencia cefálica (regresión) | HC en mm | HC18 | R² 0,978; error 7,0 mm (la segmentación la supera: 4,1 mm en las mismas imágenes) | Disponible |
 | Cardiotocografía (supervisado) | Normal / sospechosa / patológica | 2.126 CTG reales, consenso de 3 obstetras | 96,0 % de exactitud (IC95 94,1–97,6 %) en 423 registros; patológica detectada en el 94,3 % | En uso |
 | Peso al nacer (supervisado) | Regresión (g) + clase | Partos simulados del sistema | Error 183 g frente a 297 g de Hadlock; cada predicción se cierra con el peso real | Demostración: hay que reentrenarlo con partos reales |
+| Longitud del fémur (U-Net de puntos) | Extremos del fémur → LF | Multicentre Fetal Biometry 2026 (Barcelona, Londres) | Error medio 1,3 mm (mediana 0,6), 92 % dentro del 5 % en 353 imágenes de 271 pacientes | En servicio |
+| Circunferencia abdominal (U-Net de puntos) | Diámetros transverso y anteroposterior → CA | ídem | Error relativo 2,9 % (mediana 2,9 mm), 89 % dentro del 5 % en 134 imágenes | En servicio |
+| ~~Acidemia fetal desde el monitoreo~~ · ~~Parto prematuro desde el EHG~~ | Señales PhysioNet (CTU-UHB, TPEHG) | — | AUC 0,73 (especificidad 33 % para 90 % de sensibilidad) · sin señal (AUC 0,42–0,45 en validación) | **Evaluados y descartados** |
 | Lesión ovárica (U-Net) | Contorno de la masa anexial | MMOTU (Beijing Shijitan Hospital, anatomía patológica) | Dice 0,85; lesión encontrada en el 88 % de 436 imágenes de la prueba por paciente | En servicio |
 | Tipo de lesión ovárica | 8 clases + alarma de carcinoma seroso de alto grado | MMOTU | 68,6 % (IC 64–73), AUC 0,91; carcinoma: AUC 0,87, detecta 7 de 13 con 97,6 % de especificidad | En servicio como orientación; **sin alarma no descarta** |
 | Mioma uterino (U-Net) | Ubicación del mioma | Mendeley n2zcmcypgb (788 pacientes) | Encontrado en el 96,9 % de 128 imágenes de 118 pacientes (IoU 0,78) | En servicio; no descarta |
@@ -96,6 +103,41 @@ Detalles: `Backend/Microservicio_IA/README.md`, `datos/CATALOGO.md`,
 - **Elección sin mirar la prueba**: la variante del clasificador de ovario (imagen entera, recorte de la lesión, red más grande o ensamble) se eligió con la validación; en la prueba se informan todas las candidatas (`metricas_ronda2.json`). La red más grande no mejoró; el ensamble quedó igual que la primera: el límite son los datos (842 imágenes para 8 clases).
 - **La API reproduce el entrenamiento**: `test_ginecologia.py` comprueba sobre 40 imágenes de prueba el mismo tipo y las mismas probabilidades (±0,02), y la misma caja del mioma (IoU ±0,02).
 - **Lo que no se promete**: la alarma de carcinoma detectó 7 de 13 (no sirve como tamizaje: sin alarma no descarta); la red de miomas solo vio úteros con mioma; el SOP no se diagnostica por imagen. Los modelos en tabla de cáncer cervicouterino y riesgo materno no superaron la referencia y no se usan.
+
+## Modelos por enfermedad (CIE-10)
+
+Qué hace el sistema ante cada patología, con qué tipo de modelo y cuánto acierta
+en pacientes que no vio. «Confiable» = medido contra el experto en datos no vistos
+con un error clínicamente aceptable; «orientación» = útil como segunda opinión,
+no para decidir; «no validado» = no hay datos públicos para medirlo.
+
+### Obstetricia
+
+| Enfermedad o situación | CIE-10 | Modelo y tipo | Confiabilidad medida | Estado |
+|---|---|---|---|---|
+| Edad gestacional (datación) | Z36 | U-Net de cabeza (CNN de segmentación) → CC y DBP → Hadlock | CC con 4,4 mm de error en otro hospital; 92 % dentro del 5 % | Confiable |
+| Restricción del crecimiento / macrosomía | O36.5 · O36.6 | U-Net de cabeza + **U-Net de puntos** (fémur, abdomen) → peso fetal estimado con la fórmula de Hadlock y su percentil | Cada medida validada (CC 4,4 mm; LF 1,3 mm; CA 2,9 %). El peso estimado de punta a punta contra el peso al nacer real **no** está validado | Confiable por medida; el diagnóstico lo da el percentil clínico |
+| Peso al nacer | — | Regresión supervisada (Ridge) | Entrenado con datos simulados: sin cifra clínica. Se valida solo con los partos reales del hospital | No validado |
+| Malformaciones del sistema nervioso central | Q00–Q07 · O35.0 | Clasificador CNN (EfficientNet-B0) | Casi sin falsas alarmas (1 de 1.866); cuántas detecta **no se puede medir** con datos públicos | Orientación |
+| Cardiomegalia / cardiopatía | Q20–Q28 | U-Net de tórax (índice cardiotorácico) | La medida ±0,02; la detección de la enfermedad no validada (solo corazones normales). Heartbeat y CARDIUM exigen solicitud institucional | Medida confiable; detección no validada |
+| Sufrimiento fetal (monitoreo) | O68 · O36.3 | Gradient boosting supervisado sobre la cardiotocografía | 96,0 % (IC 94,1–97,6); 94 % de las patológicas detectadas | Confiable como segunda lectura |
+| Acidemia al nacer desde la señal del monitoreo | P20 | Modelos supervisados sobre CTU-UHB | AUC 0,73: demasiadas falsas alarmas | **Descartado** |
+| Trabajo de parto que no progresa | O62–O64 | U-Net intraparto → ángulo de progresión | 6,7° de error medio; con corte en 120° detecta el 65 % | Medida confiable; orientación para decidir |
+| Parto prematuro | O60 | Modelos supervisados sobre el electrohisterograma (TPEHG) | Sin señal medida sin fugas | **Descartado**; la longitud cervical (ISBI 2025) exige acuerdo de datos |
+| Preeclampsia · diabetes gestacional · trisomías | O14 · O24 · Q90 | Calculadoras clínicas (FMF, IADPSG): fórmulas, no IA | Las de la literatura | En uso (no es IA) |
+| Calidad del plano anatómico | — | Clasificador CNN (EfficientNet-B0) | 92,7 % | Confiable |
+
+### Ginecología
+
+| Enfermedad | CIE-10 | Modelo y tipo | Confiabilidad medida | Estado |
+|---|---|---|---|---|
+| Masa anexial (contorno) | N83 · D27 · C56 | U-Net de segmentación | Lesión encontrada en el 88 %, Dice 0,85 | Confiable |
+| Tipo de lesión ovárica (8 clases) | N83 · D27 | Ensamble de 2 CNN EfficientNet-B0 | 68,6 % (IC 64–73), AUC 0,91 | Orientación |
+| Cáncer de ovario (carcinoma seroso de alto grado) | C56 | El mismo ensamble, alarma P ≥ 0,25 | Detecta 7 de 13 (54 %), especificidad 97,6 % | Orientación; **sin alarma no descarta** |
+| Mioma uterino | D25 | U-Net de segmentación (cajas) | Ubicado en el 96,9 % | Confiable para ubicar; no para descartar |
+| Ovario poliquístico | E28.2 | CNN EfficientNet-B0 | 80,0 % (IC 75–84) | Orientación (SOP = criterios de Rotterdam) |
+| Cáncer cervicouterino por factores de riesgo | C53 | Modelos supervisados (UCI 383) | AUC 0,60; con tamizaje no supera la regla «alguna prueba positiva» | **Descartado** |
+| Riesgo materno general | — | Modelos supervisados (UCI 863) | 71 % balanceada, etiqueta sin criterio | **Descartado** |
 
 ## Entrenamiento honesto
 

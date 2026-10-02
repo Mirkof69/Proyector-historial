@@ -1,11 +1,11 @@
 # Casos de prueba — esperado frente a obtenido
 
-Generado el 02/10/2026 15:28 por `quality-assurance/casos_de_prueba.py`, que **ejecuta**
+Generado el 02/10/2026 17:30 por `quality-assurance/casos_de_prueba.py`, que **ejecuta**
 las pruebas de cada caso. No editar a mano: volver a correr el script.
 Plan de QA y de pruebas: [QA_PLAN_DE_PRUEBAS.md](QA_PLAN_DE_PRUEBAS.md) ·
 Requisitos, historias de usuario y casos de uso: [sistema/](sistema/README.md).
 
-**Resultado: 60 de 60 casos pasan** · 0 fallan · 0 sin ejecutar
+**Resultado: 61 de 61 casos pasan** · 0 fallan · 0 sin ejecutar
 
 
 Prefijos: `py:` backend (pytest) · `ia:` microservicio de IA (pytest) · `js:` frontend (Jest) ·
@@ -58,6 +58,7 @@ Prefijos: `py:` backend (pytest) · `ia:` microservicio de IA (pytest) · `js:` 
 | <a id="cp-085"></a>CP-085 | IA ginecología | Alto | Masa ovárica: contorno, tipo (8 clases) y alarma de malignidad | La API clasifica igual que el entrenamiento en pacientes no vistas de MMOTU; la alarma respeta el umbral y trae su sensibilidad medida; sin modelo, 503; la imagen vuelve como archivo y el análisis queda auditado | ✅ Pasa: obtenido = esperado | `ia:test_ginecologia::test_la_api_clasifica_igual_que_el_entrenamiento`<br>`ia:test_ginecologia::test_la_alarma_respeta_el_umbral_y_trae_su_sensibilidad_medida`<br>`ia:test_ginecologia::test_sin_modelo_responde_503`<br>`py:test_ginecologia_ia::test_lesion_ovarica_con_alarma_queda_auditada_y_la_imagen_viaja_como_archivo`<br>`py:test_ginecologia_ia::test_microservicio_caido_503_con_mensaje`<br>`py:test_ginecologia_ia::test_enfermeria_y_recepcion_no_analizan`<br>`js:EcografiaGinecologica::`<br>`e2e:1. masa ovárica: dibuja la lesión, da el tipo probable y la alarma de malignidad` |
 | <a id="cp-086"></a>CP-086 | IA ginecología | Medio | Mioma uterino: ubicación | Lo ubica igual que al medir la red (IoU ±0,02); avisa que no sirve para descartarlo | ✅ Pasa: obtenido = esperado | `ia:test_ginecologia::test_el_mioma_se_ubica_igual_que_al_medir_la_red`<br>`e2e:2. mioma: lo ubica y avisa que no sirve para descartarlo` |
 | <a id="cp-087"></a>CP-087 | IA ginecología | Medio | Ovario normal, folículo dominante o poliquístico | Tres categorías con probabilidades que suman 1 y el aviso de los criterios de Rotterdam | ✅ Pasa: obtenido = esperado | `ia:test_ginecologia::test_ovario_pco_da_las_tres_categorias_y_el_aviso_de_rotterdam`<br>`ia:test_ginecologia::test_modelos_lista_las_redes_ginecologicas` |
+| <a id="cp-088"></a>CP-088 | IA obstetricia | Alto | Longitud del fémur y circunferencia abdominal desde la imagen | La API mide igual que el entrenamiento (±0,5 mm) y con error < 5 % frente al experto en pacientes no vistas; el análisis completo mide el fémur cuando reconoce ese plano; sin escala, en píxeles y con aviso | ✅ Pasa: obtenido = esperado | `ia:test_biometria::test_la_api_mide_igual_que_el_entrenamiento`<br>`ia:test_biometria::test_el_analisis_completo_mide_el_femur`<br>`ia:test_biometria::test_sin_escala_la_medida_queda_en_pixeles_con_aviso`<br>`ia:test_biometria::test_sin_modelo_503`<br>`ia:test_biometria::test_la_ruta_de_la_cabeza_sigue_existiendo` |
 | <a id="cp-090"></a>CP-090 | Permisos | Alto | Médico nuevo y base recién creada | Ve lo clínico sin asignar nada a mano; grupos con permisos tras migrar | ✅ Pasa: obtenido = esperado | `py:test_permisos_por_rol::test_un_medico_nuevo_ve_lo_clinico_sin_asignar_nada_a_mano`<br>`py:test_permisos_por_rol::test_grupos_vacios_se_reparan_al_migrar` |
 | <a id="cp-091"></a>CP-091 | Permisos | Alto | Recepción y enfermería | Recepción solo pacientes y citas; enfermería sin partos ni reportes | ✅ Pasa: obtenido = esperado | `py:test_permisos_por_rol::test_recepcion_solo_pacientes_y_citas`<br>`py:test_permisos_por_rol::test_enfermeria_no_tiene_partos_ni_reportes` |
 | <a id="cp-092"></a>CP-092 | Auditoría | Alto | Sesiones y exportaciones auditadas | Login/logout en la misma sesión; cada Excel queda auditado | ✅ Pasa: obtenido = esperado | `py:test_sesiones_auditoria::test_login_y_logout_comparten_sesion`<br>`py:test_exportaciones_excel::test_la_exportacion_queda_auditada`<br>`py:test_admin_masivo_auditado::test_la_accion_masiva_se_audita` |

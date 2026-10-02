@@ -20,6 +20,16 @@ produjo y la huella (sha256) de sus pesos.
 | Cribado de anomalías cerebrales | EfficientNet-B0 | Fetal Brain Abnormalities + normales de FETAL_PLANES | Falsas alarmas en otro hospital: 1 de 1.866. **Sensibilidad real no medible** con datos públicos |
 | Circunferencia cefálica (regresión) | EfficientNet-B0 | HC18 | R² 0,978; error medio 7,0 mm (superada por la segmentación) |
 
+**Biometría obstétrica desde la imagen** (02/10/2026, `app/biometria.py`, `entrenamiento/biometria/`):
+
+| Red | Arquitectura | Datos | Resultado medido en pacientes no vistas |
+|---|---|---|---|
+| Longitud del fémur | U-Net de puntos (mapas de calor, EfficientNet-B2) | Multicentre Fetal Biometry 2026: Barcelona y Londres | Error medio 1,3 mm (mediana 0,6), 92 % dentro del 5 % en 353 imágenes de 271 pacientes |
+| Circunferencia abdominal (diámetros transverso y anteroposterior) | U-Net de puntos | ídem | Error relativo 2,9 % (mediana 2,9 mm), 89 % dentro del 5 % en 134 imágenes con escala |
+
+Con estas dos y la cabeza, el sistema tiene las cuatro medidas de Hadlock
+(DBP, CC, CA, LF) para el peso fetal estimado y su percentil.
+
 **Ginecología** (02/10/2026, `app/ginecologia.py`, `entrenamiento/ginecologia/`):
 
 | Red | Arquitectura | Datos | Resultado medido en pacientes no vistas |
@@ -48,7 +58,9 @@ imagen → plano anatómico
        ├─ cerebro → segmentación de cabeza (HC, DBP, edad gestacional) + cribado cerebral
        ├─ tórax   → segmentación de tórax y corazón (índice cardiotorácico)
        ├─ abdomen → segmentación abdominal (¿corte adecuado para medir la CA?)
-       └─ fémur, cuello uterino, otro → solo el plano: no hay red de medida validada
+       ├─ abdomen → (además) circunferencia abdominal con la red de puntos
+       ├─ fémur   → longitud del fémur (red de puntos)
+       └─ cuello uterino, otro → solo el plano: no hay red de medida validada
 ```
 
 Respuesta: informe en JSON con plano, medidas con su margen, estructuras vistas,
@@ -63,6 +75,7 @@ redes usadas con sus métricas e `informe_texto`. Ver
 | POST | `/analyze` · `/analisis-ecografia` | Análisis completo (con `tamano_pixel_mm` da milímetros) |
 | POST | `/plano-anatomico` | Solo el plano |
 | POST | `/segmentacion/{cabeza\|torax\|abdomen\|intraparto}` | Segmentar y medir (intraparto: ángulo de progresión) |
+| POST | `/biometria/longitud-femur` · `/biometria/circunferencia-abdominal` | Longitud del fémur · circunferencia abdominal (red de puntos) |
 | POST | `/ginecologia/{ovario\|mioma\|ovario-pco}` | Lesión ovárica (contorno, tipo, alarma) · mioma · ovario poliquístico |
 | POST | `/biometria/circunferencia-cefalica` | HC por regresión |
 | POST | `/anomalias-cerebrales` | Cribado cerebral |
@@ -78,7 +91,7 @@ pip install -r requirements-entrenamiento.txt   # entrenar y probar
 uvicorn app.main:app --host 0.0.0.0 --port 8001
 ```
 
-Al arrancar se precargan las 11 redes en la GPU (≈ 7 s): sin eso la primera
+Al arrancar se precargan las 13 redes en la GPU (≈ 8 s): sin eso la primera
 consulta tras cada reinicio superaba los 30 s.
 
 Versiones exactas probadas: [requirements.lock.txt](requirements.lock.txt). Con
@@ -93,6 +106,8 @@ de git).
 | Intraparto | `entrenamiento/intraparto/preparar.py`, `segmentacion/entrenar.py intraparto`, `intraparto/evaluar.py` | `salidas/intraparto/metricas.json` |
 | Plano y HC | `entrenamiento/redes_ecografia_real/` | `LEEME.md` |
 | Anomalías cerebrales | `entrenamiento/patologias_cerebrales/` | `INFORME.md` |
+| Biometría (fémur, abdomen) | `entrenamiento/biometria/entrenar.py femur\|abdomen`, `exportar.py` | `entrenamiento/biometria/salidas/*/metricas.json` |
+| Señales (evaluadas) | `entrenamiento/senales/ctu_acidosis.py`, `tpehg_prematuro.py` | `entrenamiento/senales/salidas/*/metricas.json` |
 | Ginecología | `entrenamiento/ginecologia/`: `auditar.py`, `preparar.py`, `segmentacion/entrenar.py ovario\|mioma`, `clasificar.py`, `mejorar_ovario.py`, `tablas.py`, `exportar.py` | `entrenamiento/ginecologia/salidas/*/metricas.json` |
 
 Reglas: partición por paciente; la época se elige con validación, nunca con la
@@ -102,5 +117,5 @@ que la API reproduce lo medido al entrenar.
 ## Pruebas
 
 ```bash
-python -m pytest -q        # 37 pruebas
+python -m pytest -q        # 43 pruebas
 ```
