@@ -140,6 +140,15 @@ Requisitos: RF-26, RF-27 · Pruebas: CP-042
 
 Requisitos: RF-29 · Pruebas: CP-083
 
+### HU-26 · Ecografía ginecológica con IA
+**Como** ginecóloga, **quiero** subir la ecografía de una masa ovárica, de un útero con mioma o de un ovario, **para** tener una segunda lectura con la lesión dibujada.
+- Veo el tipo probable de la lesión, las tres opciones más probables y si hay alarma de malignidad, con cuántos carcinomas detectó la red en pacientes que no vio.
+- Si no hay alarma, el sistema me recuerda que eso no la descarta.
+- Con los milímetros por píxel del ecógrafo, las medidas salen en mm.
+- Enfermería y recepción no pueden pedir el análisis; cada análisis queda en la auditoría.
+
+Requisitos: RF-31 · Pruebas: CP-085, CP-086, CP-087
+
 ## Laboratorio
 
 ### HU-10 · Carga de resultados por Excel

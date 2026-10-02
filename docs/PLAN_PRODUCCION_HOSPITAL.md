@@ -125,6 +125,7 @@ Frontend
 - [x] Rendimiento: API en waitress (p95 < 200 ms en 16/16 rutas), búsqueda 367 → 31 ms, 40 usuarios simultáneos sin errores; redes de IA precargadas al arrancar.
 - [x] Notificaciones en vivo en producción: Redis entre la API (waitress) y los WebSockets (uvicorn, 1 worker); sin él las alertas no llegaban nunca (CP-108).
 - [x] **Cargos del hospital** (otros funcionarios sin programar): el administrador crea «Obstetriz», «Nutricionista»… sobre un rol y elige sus módulos; solo puede quitar, nunca agregar, y la API lo aplica (CP-112). Reemplaza la pantalla «Roles y permisos», que guardaba permisos que ningún código leía.
+- [x] **Ecografía ginecológica con IA** (datos reales, medida en pacientes no vistas): lesión ovárica (contorno Dice 0,85; tipo en 8 clases 68,6 %; alarma de carcinoma con AUC 0,87 que detecta 7 de 13 → orientación, no tamizaje), mioma uterino (ubicado en el 96,9 %) y ovario poliquístico (80,0 %). Modelos en tabla de cáncer cervicouterino y riesgo materno evaluados y descartados por no superar la referencia (CP-085..087).
 - [x] Fallos encontrados en el navegador y corregidos: permisos `examen`/`control` inexistentes (médicos sin «Nuevo examen» ni «Nuevo control»), WebSocket sin clínica (las notificaciones pendientes nunca llegaban), logs que no rotaban en Windows.
 
 ---

@@ -44,6 +44,7 @@ resultado está en [QA_CASOS_DE_PRUEBA.md](../QA_CASOS_DE_PRUEBA.md).
 | RF-17 | Calculadoras clínicas: edad gestacional, IMC, Bishop, preeclampsia (odds × LR), ILA, peso fetal, Apgar, Capurro, Silverman, Ballard, diabetes gestacional (IADPSG) y calculadoras especializadas. | Alta | CP-030, CP-080, CP-081, CP-082 |
 | RF-20 | Enviar recordatorios de citas y alertas clínicas (alto riesgo, resultado crítico) al médico responsable, por WebSocket, dentro de la clínica que corresponde al dominio. | Media | CP-100 |
 | RF-29 | Clasificar una cardiotocografía (normal, sospechosa, patológica) con el modelo supervisado entrenado con 2.126 registros reales, mostrando su fiabilidad medida y sus límites. | Media | CP-083 |
+| RF-31 | Ecografía ginecológica con IA: (a) masa ovárica → contorno de la lesión, tipo probable entre 8 (con informe de anatomía patológica) y alarma de carcinoma seroso de alto grado; (b) mioma uterino → ubicación; (c) ovario normal, folículo dominante o poliquístico. Cada resultado muestra su fiabilidad medida y sus límites (una alarma ausente no descarta malignidad; la ubicación del mioma no descarta su presencia; SOP requiere los criterios de Rotterdam) y queda auditado. | Media | CP-085, CP-086, CP-087 |
 
 ## Gestión
 

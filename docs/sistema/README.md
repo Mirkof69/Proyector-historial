@@ -18,9 +18,9 @@ mermaid-cli; ver el encabezado del script).
 | Documento | Qué contiene |
 |---|---|
 | [01 · Visión general](01_vision_general.md) | Propósito, alcance, roles, módulos y glosario |
-| [02 · Requisitos funcionales](02_requisitos_funcionales.md) | RF-01 a RF-30, con prioridad y cómo se verifica cada uno |
+| [02 · Requisitos funcionales](02_requisitos_funcionales.md) | RF-01 a RF-31, con prioridad y cómo se verifica cada uno |
 | [03 · Requisitos no funcionales](03_requisitos_no_funcionales.md) | RNF-01 a RNF-16 con criterio medible y valor medido |
-| [04 · Historias de usuario](04_historias_de_usuario.md) | HU-01 a HU-25 por rol, con criterios de aceptación |
+| [04 · Historias de usuario](04_historias_de_usuario.md) | HU-01 a HU-26 por rol, con criterios de aceptación |
 | [05 · Casos de uso](05_casos_de_uso.md) | Diagrama de casos de uso y CU-01 a CU-08 detallados |
 | [06 · Arquitectura](06_arquitectura.md) | Microservicios, componentes, multi-clínica, tecnologías |
 | [07 · Modelo de datos](07_modelo_de_datos.md) | Diagrama entidad-relación de las entidades clínicas |

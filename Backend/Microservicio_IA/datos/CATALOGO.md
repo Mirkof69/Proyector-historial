@@ -8,6 +8,7 @@ datos/
 ├── crudos/      tal como se descargaron (zips, xlsx). No se tocan.
 ├── extraidos/   descomprimidos, listos para leer.
 ├── extraidos/segmentacion/   imágenes y máscaras preparadas por entrenamiento/segmentacion/preparar.py
+├── crudos/ginecologia/ · extraidos/ginecologia/   MMOTU, miomas, ovario poliquístico, tablas UCI
 └── legado_b4/   base de la EfficientNet-B4 RETIRADA. Etiquetas NO fiables (ver abajo).
 ```
 
@@ -26,6 +27,39 @@ Los scripts de entrenamiento están en `../entrenamiento/`.
 | IUGC MICCAI 2024 | `crudos/IUGC MICCAI 2024.zip` | 5.490 imágenes + 774 vídeos | Ecografía intraparto (sínfisis del pubis, cabeza fetal, ángulo de progresión) | **Segmentación intraparto y ángulo de progresión** (`entrenamiento/intraparto/`): error medio 6,7° en la prueba oficial | MICCAI 2024 challenge (uso para investigación; no se versionan sus imágenes) |
 | FOCUS | `crudos/FOCUS-dataset.zip` · `extraidos/segmentacion/torax` | 300 | Máscaras de tórax y corazón (todos **normales**) | **Segmentación de tórax** (Dice 0,93; índice cardiotorácico ±0,02). Mide; no puede validar la detección de cardiomegalia | Zenodo 14597550 · CC BY 4.0 |
 | HC18 variante Kaggle | `crudos/training_set.zip`, `crudos/test_set.zip` | 999 + 335 | Duplicado de HC18 renombrado y re-codificado | No se usa (se usa la oficial) | — |
+
+## Ginecología (añadido el 02/10/2026)
+
+En `crudos/ginecologia/` (zips originales, ver `crudos/LEEME_ZIPS.md`) y
+`extraidos/ginecologia/`. Auditoría de copias y fugas antes de entrenar:
+`../entrenamiento/ginecologia/auditar.py` → `salidas/auditoria.json`.
+
+| Dataset | Imágenes | Qué etiqueta | Uso y resultado en pacientes no vistas | Licencia / cita |
+|---|---|---|---|---|
+| MMOTU OTU_2d | 1.469 de 247 pacientes (Beijing Shijitan Hospital) | Contorno de la lesión y tipo en 8 clases, con informe de anatomía patológica (27 especialistas) | **U-Net de lesión ovárica**: Dice 0,85, lesión encontrada en el 88 %. **Clasificador** (ensamble de 2 EfficientNet-B0): 68,6 % en 8 clases (IC 64–73), AUC 0,91; carcinoma seroso de alto grado: AUC 0,87, detecta 7 de 13 (54 %) con 97,6 % de especificidad | Zhao et al., arXiv 2207.06799 · Zenodo 21128657 / Figshare 25058690 · CC BY 4.0 |
+| Uterine fibroid ultrasound images | 862 con caja de 788 pacientes | Caja del mioma | **Ubicación del mioma**: encontrado en el 96,9 % (IoU de la caja 0,78). Solo hay úteros CON mioma: no sirve para descartarlo | Mendeley Data n2zcmcypgb v2 · CC BY 4.0 |
+| Ovarian ultrasound (Borna et al. 2025) | 295 únicas de pacientes distintas | Normal / folículo dominante / poliquístico (una ginecobstetra) | **Clasificador**: 80,0 % (IC 75–84) con 5 pliegues; poliquístico detectado en el 83 % | Frontiers in Physiology 2025 · GitHub HananSaadat · CC BY 4.0 |
+
+Lo que encontró la auditoría:
+- **MMOTU** promete una partición por paciente, pero 37 pares de casi copias la
+  cruzan (p. ej. 1290–1291–1292 en entrenamiento y prueba) y 5 pares de casi
+  copias tienen **diagnósticos distintos** (716 teratoma / 718 quiste
+  endometriósico; 85 quiste / 88 ovario normal): las 10 contradictorias se
+  excluyen y de la prueba se quitan 30 casi copias de entrenamiento. La versión
+  de Figshare trae solo 1.202 imágenes y máscaras sin tipo: se usa la de Zenodo
+  con las etiquetas oficiales del Google Drive de los autores.
+- **Miomas**: el XML de cada imagen trae en `<folder>` el **nombre de la
+  paciente** (en chino). Se usa solo para agrupar, convertido a un código
+  (sha256 truncado); el texto no se guarda en ningún archivo del proyecto.
+- **Ovario poliquístico**: 2 copias exactas y 4 casi copias dentro de la misma
+  clase; se deja una de cada grupo.
+
+Modelos en tabla evaluados y **descartados** (`../entrenamiento/ginecologia/tablas.py`):
+
+| Dataset | Resultado | Por qué no se usa |
+|---|---|---|
+| UCI 383 Cáncer cervicouterino (858 pacientes, Caracas) | Solo factores de riesgo: AUC 0,60 (IC 0,38–0,81). Con colposcopía, Schiller y citología: AUC 0,87 | El primero no distingue; el segundo pierde contra la regla «alguna prueba positiva» (sensibilidad 91 %, especificidad 92 %) |
+| UCI 863 Riesgo materno (Bangladés) | 1.014 filas, 562 duplicadas y 71 contradictorias; 71 % de exactitud balanceada | Etiqueta sin criterio documentado y riesgo medio mal separado |
 
 Datos tabulares (no son imágenes):
 

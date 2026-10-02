@@ -137,8 +137,8 @@ flowchart LR
 | Actores | Médico/a, Sistema, Microservicio de IA |
 | Precondición | Embarazo activo |
 | Postcondición | Ecografía con biometría, imágenes, adjuntos y análisis guardados |
-| Requisitos | RF-07, RF-08, RF-09, RF-10 |
-| Casos de prueba | CP-030, CP-032, CP-033, CP-036, CP-037 |
+| Requisitos | RF-07, RF-08, RF-09, RF-10, RF-31 |
+| Casos de prueba | CP-030, CP-032, CP-033, CP-036, CP-037, CP-085, CP-086, CP-087 |
 
 **Flujo principal**
 1. Registra la ecografía con su biometría (el tipo se sugiere según la EG).
@@ -151,6 +151,7 @@ flowchart LR
 - 2a. Falta una medida: el peso no se estima (nunca se muestra 0).
 - 4a. La imagen no parece una cabeza: la red de anomalías no la clasifica y lo explica.
 - 5a. Sin modelo entrenado, embarazo múltiple o menos de 20 semanas: se explica por qué no hay predicción.
+- 4b. Ecografía ginecológica (RF-31): en IA médica › Ecografía ginecológica elige masa ovárica, mioma u ovario poliquístico, sube la imagen y recibe el resultado con la lesión dibujada y su fiabilidad medida.
 
 ## CU-05 · Registrar un parto
 
