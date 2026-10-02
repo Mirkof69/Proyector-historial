@@ -15,6 +15,21 @@ API va a rechazar, ni esconder lo que la API permite.
 
 El grupo de cada usuario se asigna solo al crearlo o cambiarle el rol
 (`usuarios/signals.py`), y los grupos se sincronizan tras cada migración.
+
+Cargos (`roles.Cargo`)
+----------------------
+Para otros funcionarios (obstetriz, nutricionista, trabajadora social…) el
+administrador crea un cargo sobre uno de estos roles y elige qué módulos usa.
+Un cargo solo puede QUITAR módulos al rol, nunca agregar: lo que la API deja
+hacer sigue siendo lo del rol base, menos lo que el cargo excluye
+(`roles/acceso.py`). Así un cargo nuevo no abre ningún hueco de seguridad.
+
+Quien tiene cargo sigue en el grupo de su rol; el cargo se aplica filtrando
+los permisos que recibe el frontend (`permisos_de_usuario`). No se crean
+grupos por cargo: los usuarios viven en el esquema `public` y los grupos en el
+de cada clínica, enlazados por id. Los grupos por rol coinciden en todos los
+esquemas porque se crean en el mismo orden; uno creado desde una clínica no
+existía en `public` y el alta del usuario fallaba (visto el 02/10/2026).
 """
 from __future__ import annotations
 
@@ -61,18 +76,68 @@ SOLO_ADMINISTRADOR = (
 
 PREFIJO_GRUPO = "Rol: "
 
+#: Nombre de cada módulo tal como lo ve el administrador al armar un cargo.
+NOMBRES_MODULO = {
+    "pacientes": "Pacientes", "embarazos": "Embarazos", "controles": "Controles prenatales",
+    "ecografias": "Ecografías", "ecografias_archivos": "Archivos de ecografía",
+    "partos": "Partos y recién nacidos", "laboratorio": "Laboratorio", "citas": "Citas",
+    "triaje": "Triaje", "antecedentes": "Antecedentes", "evoluciones": "Evoluciones",
+    "notas_evolucion": "Notas de evolución", "vacunas": "Vacunas", "calculadoras": "Calculadoras",
+    "calculadoras_avanzadas": "Calculadoras avanzadas", "reportes": "Reportes",
+    "ia_medica": "Inteligencia artificial", "consultorios": "Consultorios",
+    "notificaciones": "Notificaciones",
+}
+
+#: Todo cargo los conserva: sin pacientes no se puede elegir a quién se atiende,
+#: y sin notificaciones no llegan las alertas.
+MODULOS_OBLIGATORIOS = ("pacientes", "notificaciones")
+
 
 def nombre_grupo(rol: str) -> str:
     return f"{PREFIJO_GRUPO}{rol}"
 
 
-def permisos_del_rol(rol: str):
-    """QuerySet de `Permission` que corresponde al rol (vacío si no está en la tabla)."""
+def modulos_del_rol(rol: str) -> list[str]:
+    return list(PERMISOS_POR_ROL.get(rol, {}))
+
+
+def modulos_elegibles(rol: str) -> list[dict]:
+    """Módulos que un cargo sobre `rol` puede incluir, con su nombre y si son fijos."""
+    return [{"modulo": m, "nombre": NOMBRES_MODULO.get(m, m), "obligatorio": m in MODULOS_OBLIGATORIOS,
+             "acciones": list(PERMISOS_POR_ROL[rol][m])} for m in modulos_del_rol(rol)]
+
+
+def validar_cargo(rol_base: str, modulos) -> dict[str, str]:
+    """Errores {campo: mensaje} de un cargo; vacío si es válido."""
+    if rol_base not in PERMISOS_POR_ROL:
+        return {"rol_base": "Elija el rol en que se basa el cargo (médico, enfermería, laboratorio o recepción)."}
+    if not isinstance(modulos, list) or not all(isinstance(m, str) for m in modulos):
+        return {"modulos": "Los módulos deben ser una lista."}
+    ajenos = sorted(set(modulos) - set(modulos_del_rol(rol_base)))
+    if ajenos:
+        nombres = ", ".join(NOMBRES_MODULO.get(m, m) for m in ajenos)
+        return {"modulos": f"El rol base no incluye: {nombres}. Un cargo solo puede quitar módulos a su rol."}
+    return {}
+
+
+def modulos_del_cargo(rol_base: str, modulos) -> list[str]:
+    """Los módulos elegidos más los obligatorios, en el orden de la tabla."""
+    elegidos = set(modulos or []) | set(MODULOS_OBLIGATORIOS)
+    return [m for m in modulos_del_rol(rol_base) if m in elegidos]
+
+
+def permisos_del_rol(rol: str, modulos=None):
+    """QuerySet de `Permission` que corresponde al rol (vacío si no está en la tabla).
+
+    Con `modulos`, solo los de esos módulos (los de un cargo).
+    """
     from django.contrib.auth.models import Permission
     from django.db.models import Q
 
     filtro = Q(pk__in=[])
     for app, acciones in PERMISOS_POR_ROL.get(rol, {}).items():
+        if modulos is not None and app not in modulos:
+            continue
         for accion in acciones:
             filtro |= Q(content_type__app_label=app, codename__startswith=f"{accion}_")
     excluir = Q(pk__in=[])
@@ -108,3 +173,24 @@ def asignar_grupo_de_rol(usuario) -> None:
         sincronizar_grupos()
         grupo = Group.objects.get(name=nombre_grupo(usuario.rol))
     usuario.groups.add(grupo)
+
+
+def modulos_excluidos(usuario) -> set[str]:
+    """Módulos del rol que el cargo del usuario quita (vacío sin cargo)."""
+    if not getattr(usuario, "cargo_id", None):
+        return set()
+    cargo = usuario.cargo
+    return set(modulos_del_rol(cargo.rol_base)) - set(cargo.modulos)
+
+
+def permisos_de_usuario(usuario) -> list[str]:
+    """Codenames que recibe el frontend: directos y de grupos, menos los del
+    cargo. Una sola definición para el login y la verificación MFA."""
+    from django.contrib.auth.models import Permission
+    from django.db.models import Q
+
+    permisos = Permission.objects.filter(Q(usuario=usuario) | Q(group__usuario=usuario))
+    excluidos = modulos_excluidos(usuario)
+    if excluidos:
+        permisos = permisos.exclude(content_type__app_label__in=excluidos)
+    return sorted(set(permisos.values_list("codename", flat=True)))

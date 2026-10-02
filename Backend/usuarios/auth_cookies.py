@@ -105,4 +105,9 @@ class CookieJWTAuthentication(JWTAuthentication):
             # Autenticación por cookie → proteger contra CSRF
             enforce_csrf(request)
 
-        return self.get_user(validated_token), validated_token
+        usuario = self.get_user(validated_token)
+        # Un cargo puede quitar módulos al rol: ver roles/acceso.py.
+        from roles.acceso import comprobar_cargo
+
+        comprobar_cargo(usuario, (getattr(request, "parser_context", None) or {}).get("view"))
+        return usuario, validated_token

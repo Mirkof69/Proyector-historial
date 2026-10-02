@@ -1,38 +1,56 @@
-"""CAT_ROLES - MODELS"""
+"""Cargos del hospital: otros funcionarios sin programar.
 
+Antes este módulo tenía `CatRol`, un catálogo de los cinco roles con un campo
+«permisos» que ningún código leía: el administrador marcaba permisos
+(«recetar», «gestionar_roles»…) y no cambiaba nada. Ni siquiera dejaba crear un
+nombre nuevo, porque el nombre estaba atado a los cinco roles fijos.
+
+Un `Cargo` sí se aplica: se apoya en un rol del sistema (que decide lo que la
+API permite) y elige qué módulos de ese rol usa. Ver usuarios/permisos_por_rol.py.
+"""
+from django.core.exceptions import ValidationError
 from django.db import models
 
+from usuarios.permisos_por_rol import NOMBRES_MODULO, modulos_del_cargo, validar_cargo
 
-class CatRol(models.Model):
-    """Catálogo de roles del sistema"""
+ROLES_BASE = [
+    ("medico", "Médico"),
+    ("enfermera", "Enfermería"),
+    ("laboratorista", "Laboratorio"),
+    ("recepcion", "Recepción"),
+]
 
-    # Debe coincidir con usuarios.models.Usuario.ROLES (la fuente real de
-    # roles que se asignan a cada usuario). Antes este catalogo tenia un
-    # conjunto distinto e incompleto ("administrativo" no es un rol real;
-    # faltaban laboratorista, administrador y recepcion).
-    ROLES = [
-        ("medico", "Médico"),
-        ("enfermera", "Enfermera"),
-        ("laboratorista", "Laboratorista"),
-        ("administrador", "Administrador"),
-        ("recepcion", "Recepción"),
-    ]
 
-    nombre = models.CharField(max_length=30, unique=True, choices=ROLES)
-    descripcion = models.TextField()
-    permisos = models.JSONField(
-        default=dict, help_text="Permisos específicos del rol en formato JSON",
-    )
-    activo = models.BooleanField(default=True)
+class Cargo(models.Model):
+    """Un cargo (obstetriz, nutricionista…) sobre uno de los roles del sistema."""
+
+    nombre = models.CharField(max_length=80, unique=True, verbose_name="Nombre del cargo")
+    descripcion = models.TextField(blank=True, default="", verbose_name="Descripción")
+    rol_base = models.CharField(max_length=20, choices=ROLES_BASE, verbose_name="Rol en que se basa")
+    modulos = models.JSONField(default=list, blank=True, verbose_name="Módulos que usa")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Meta"""
-        db_table = "cat_roles"
-        verbose_name = "Rol"
-        verbose_name_plural = "Roles"
+        db_table = "cargos"
+        verbose_name = "Cargo"
+        verbose_name_plural = "Cargos"
+        ordering = ["nombre"]
 
     def __str__(self):
-        """Str"""
-        return getattr(self, 'get_nombre_display')()
+        return self.nombre
+
+    def clean(self):
+        errores = validar_cargo(self.rol_base, self.modulos)
+        if errores:
+            raise ValidationError(errores)
+        self.modulos = modulos_del_cargo(self.rol_base, self.modulos)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    @property
+    def nombres_modulos(self) -> list[str]:
+        return [NOMBRES_MODULO.get(m, m) for m in self.modulos]

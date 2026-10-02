@@ -64,9 +64,14 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
       title: 'Rol',
       dataIndex: 'rol',
       key: 'rol',
-      render: (rol: string) => {
+      render: (rol: string, record: Usuario) => {
         const config = configuracionDeRol(rol);
-        return (<Tag color={config.color} icon={config.icono}>{config.nombre}</Tag>);
+        return (
+          <Space direction="vertical" size={2}>
+            <Tag color={config.color} icon={config.icono}>{config.nombre}</Tag>
+            {record.cargo_nombre && <Text type="secondary">{record.cargo_nombre}</Text>}
+          </Space>
+        );
       },
     },
     {

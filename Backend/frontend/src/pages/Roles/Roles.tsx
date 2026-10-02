@@ -1,130 +1,153 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Switch, Popconfirm, Empty } from 'antd';
+import { Card, Table, Button, Space, Tag, Switch, Popconfirm, Empty, Alert, Typography } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import rolesService from '../../services/rolesService';
+import cargosService, { Cargo } from '../../services/cargosService';
+import { configuracionDeRol } from '../../config/roles';
+import { mensajeDeError } from '../../services/partoDetalleService';
 
-interface Rol {
-  id: number;
-  nombre: string;
-  descripcion?: string;
-  permisos: string[];
-  activo: boolean;
-}
+const { Text } = Typography;
 
+/**
+ * Cargos del hospital. Antes esta pantalla editaba «permisos» que ningún código
+ * leía; ahora cada cargo se aplica en el menú y en la API.
+ */
 const Roles: React.FC = () => {
   const navigate = useNavigate();
   const { message } = useAntdApp();
-  const [roles, setRoles] = useState<Rol[]>([]);
+  const [cargos, setCargos] = useState<Cargo[]>([]);
   const [loading, setLoading] = useState(false);
 
-
-
-  const cargarRoles = useCallback(async () => {
+  const cargar = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await rolesService.listar();
-      setRoles(data);
+      setCargos(await cargosService.listar());
     } catch (error) {
-      message.error('Error al cargar roles');
+      message.error(mensajeDeError(error, 'No se pudieron cargar los cargos'));
     } finally {
       setLoading(false);
     }
   }, [message]);
 
   useEffect(() => {
-    cargarRoles();
-  }, [cargarRoles]);
+    cargar();
+  }, [cargar]);
 
-  const handleEliminarRol = async (id: number) => {
+  const eliminar = async (cargo: Cargo) => {
     try {
-      await rolesService.eliminar(id);
-      message.success('Rol eliminado correctamente');
-      cargarRoles();
+      await cargosService.eliminar(cargo.id);
+      message.success(`Cargo «${cargo.nombre}» eliminado`);
+      cargar();
     } catch (error) {
-      message.error('Error al eliminar el rol');
+      message.error(mensajeDeError(error, 'No se pudo eliminar el cargo'));
     }
   };
 
-  const handleToggleActivo = async (record: Rol, activo: boolean) => {
+  const cambiarActivo = async (cargo: Cargo, activo: boolean) => {
     try {
-      // El endpoint usa PUT (reemplazo completo), no PATCH: hay que mandar
-      // el registro completo, no solo el campo que cambió.
-      await rolesService.actualizar(record.id, { ...record, activo });
-      setRoles(prev => prev.map(r => r.id === record.id ? { ...r, activo } : r));
-      message.success(`Rol ${activo ? 'activado' : 'desactivado'} correctamente`);
+      await cargosService.actualizar(cargo.id, { activo });
+      setCargos(prev => prev.map(c => (c.id === cargo.id ? { ...c, activo } : c)));
+      message.success(`Cargo «${cargo.nombre}» ${activo ? 'activado' : 'desactivado'}`);
     } catch (error) {
-      message.error('Error al actualizar el estado del rol');
+      message.error(mensajeDeError(error, 'No se pudo cambiar el estado del cargo'));
     }
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     {
-      title: 'Nombre',
+      title: 'Cargo',
       dataIndex: 'nombre',
       key: 'nombre',
-      render: (nombre: string) => (
-        <Space>
-          <SafetyOutlined />
-          <strong>{nombre}</strong>
+      render: (nombre: string, cargo: Cargo) => (
+        <Space direction="vertical" size={0}>
+          <Text strong>{nombre}</Text>
+          {cargo.descripcion && <Text type="secondary">{cargo.descripcion}</Text>}
         </Space>
-      )
+      ),
     },
-    { title: 'Descripción', dataIndex: 'descripcion', key: 'descripcion' },
     {
-      title: 'Permisos',
-      dataIndex: 'permisos',
-      key: 'permisos',
-      render: (permisos: string[]) => (
-        <Space wrap>
-          {permisos.slice(0, 3).map(p => (
-            <Tag key={p} color="blue">{p}</Tag>
-          ))}
-          {permisos.length > 3 && <Tag>+{permisos.length - 3} más</Tag>}
-        </Space>
-      )
+      title: 'Rol en que se basa',
+      dataIndex: 'rol_base',
+      key: 'rol_base',
+      render: (rol: string) => {
+        const config = configuracionDeRol(rol);
+        return <Tag color={config.color} icon={config.icono}>{config.nombre}</Tag>;
+      },
     },
+    {
+      title: 'Módulos',
+      dataIndex: 'nombres_modulos',
+      key: 'modulos',
+      render: (nombres: string[]) => (
+        <Space wrap size={[4, 4]}>
+          {nombres.slice(0, 4).map(n => <Tag key={n}>{n}</Tag>)}
+          {nombres.length > 4 && <Tag>+{nombres.length - 4} más</Tag>}
+        </Space>
+      ),
+    },
+    { title: 'Usuarios', dataIndex: 'usuarios_count', key: 'usuarios', width: 100 },
     {
       title: 'Activo',
       dataIndex: 'activo',
       key: 'activo',
-      render: (activo: boolean, record: Rol) => (
-        <Switch checked={activo} onChange={(checked) => handleToggleActivo(record, checked)} />
-      )
+      width: 90,
+      render: (activo: boolean, cargo: Cargo) => (
+        <Switch checked={activo} aria-label={`Activar o desactivar ${cargo.nombre}`}
+          onChange={(checked) => cambiarActivo(cargo, checked)} />
+      ),
     },
     {
       title: 'Acciones',
       key: 'acciones',
-      render: (_: any, record: Rol) => (
+      width: 130,
+      render: (_: unknown, cargo: Cargo) => (
         <Space>
-          <Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/dashboard/roles/${record.id}`)} />
-          <Button size="small" icon={<EditOutlined />} onClick={() => navigate(`/dashboard/roles/${record.id}/editar`)} />
+          <Button size="small" icon={<EyeOutlined />} aria-label={`Ver ${cargo.nombre}`}
+            onClick={() => navigate(`/dashboard/roles/${cargo.id}`)} />
+          <Button size="small" icon={<EditOutlined />} aria-label={`Editar ${cargo.nombre}`}
+            onClick={() => navigate(`/dashboard/roles/${cargo.id}/editar`)} />
           <Popconfirm
-            title="¿Eliminar este rol?"
-            description="Esta acción no se puede deshacer."
+            title={`¿Eliminar el cargo «${cargo.nombre}»?`}
+            description={cargo.usuarios_count > 0
+              ? `Lo tienen ${cargo.usuarios_count} usuario(s): no se podrá borrar. Desactívelo en su lugar.`
+              : 'Esta acción no se puede deshacer.'}
             okText="Sí, eliminar"
             cancelText="Cancelar"
-            onConfirm={() => handleEliminarRol(record.id)}
+            onConfirm={() => eliminar(cargo)}
           >
-            <Button size="small" danger icon={<DeleteOutlined />} />
+            <Button size="small" danger icon={<DeleteOutlined />} aria-label={`Eliminar ${cargo.nombre}`} />
           </Popconfirm>
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="page-container" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h1><SafetyOutlined /> Roles y Permisos</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
+        <h1 style={{ margin: 0 }}><SafetyOutlined /> Cargos y permisos</h1>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/roles/nuevo')}>
-          Nuevo Rol
+          Nuevo cargo
         </Button>
       </div>
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message="Para otros funcionarios del hospital (obstetriz, nutricionista, trabajo social…)"
+        description="Cada cargo se basa en un rol del sistema y elige qué módulos de ese rol usa. Puede quitar módulos, nunca agregar: lo que el sistema deja hacer sigue siendo lo del rol base."
+      />
       <Card>
-        <Table columns={columns} dataSource={roles} loading={loading} rowKey="id" locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay roles configurados" /> }} />
+        <Table
+          columns={columns}
+          dataSource={cargos}
+          loading={loading}
+          rowKey="id"
+          pagination={false}
+          scroll={{ x: 900 }}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Todavía no hay cargos. Los usuarios usan su rol completo." /> }}
+        />
       </Card>
     </div>
   );

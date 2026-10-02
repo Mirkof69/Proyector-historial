@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from .models import HorarioAtencion, Usuario
+from .permisos_por_rol import modulos_excluidos
 
 # ======================================================================================
 # HORARIO SERIALIZERS
@@ -70,6 +71,7 @@ class UsuarioListSerializer(serializers.ModelSerializer):
 
     nombre_completo = serializers.ReadOnlyField()
     rol_display = serializers.CharField(source="get_rol_display", read_only=True)
+    cargo_nombre = serializers.CharField(source="cargo.nombre", read_only=True, default=None)
     foto_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -84,6 +86,8 @@ class UsuarioListSerializer(serializers.ModelSerializer):
             "nombre_completo",
             "rol",
             "rol_display",
+            "cargo",
+            "cargo_nombre",
             "especialidad",
             "telefono",
             "foto",
@@ -110,6 +114,7 @@ class UsuarioDetailSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.ReadOnlyField()
     iniciales = serializers.ReadOnlyField()
     rol_display = serializers.CharField(source="get_rol_display", read_only=True)
+    cargo_nombre = serializers.CharField(source="cargo.nombre", read_only=True, default=None)
     foto_url = serializers.SerializerMethodField()
     horarios_atencion = HorarioAtencionSerializer(many=True, read_only=True)
     permisos = serializers.SerializerMethodField()
@@ -129,6 +134,8 @@ class UsuarioDetailSerializer(serializers.ModelSerializer):
             "iniciales",
             "rol",
             "rol_display",
+            "cargo",
+            "cargo_nombre",
             "especialidad",
             "telefono",
             "foto",
@@ -171,6 +178,10 @@ class UsuarioDetailSerializer(serializers.ModelSerializer):
         permisos = Permission.objects.filter(
             Q(usuario=obj) | Q(group__usuario=obj),
         ).distinct()
+        # El cargo quita módulos: ver usuarios/permisos_por_rol.py.
+        excluidos = modulos_excluidos(obj)
+        if excluidos:
+            permisos = permisos.exclude(content_type__app_label__in=excluidos)
         return PermissionSerializer(permisos, many=True).data
 
     def get_grupos(self, obj):
@@ -215,6 +226,7 @@ class UsuarioCreateUpdateSerializer(serializers.ModelSerializer):
             "apellido_paterno",
             "apellido_materno",
             "rol",
+            "cargo",
             "especialidad",
             "telefono",
             "foto",
@@ -226,6 +238,8 @@ class UsuarioCreateUpdateSerializer(serializers.ModelSerializer):
             "grupos_ids",
         ]
         read_only_fields = ["id"]
+        # Con cargo no hace falta mandar el rol: lo pone el cargo (ver validate).
+        extra_kwargs = {"rol": {"required": False}}
 
     def validate(self, attrs):
         """Validaciones personalizadas"""
@@ -241,6 +255,16 @@ class UsuarioCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"password_confirm": "Las contraseñas no coinciden"},
                 )
+
+        # Con cargo, el rol lo pone el cargo. Un cargo desactivado no se
+        # asigna a nadie más (quien ya lo tiene lo conserva).
+        cargo = attrs.get("cargo")
+        if cargo is not None:
+            if not cargo.activo and getattr(self.instance, "cargo_id", None) != cargo.pk:
+                raise serializers.ValidationError({"cargo": f"El cargo «{cargo.nombre}» está desactivado."})
+            attrs["rol"] = cargo.rol_base
+        elif not self.instance and not attrs.get("rol"):
+            raise serializers.ValidationError({"rol": "Elija un rol o un cargo."})
 
         return attrs
 

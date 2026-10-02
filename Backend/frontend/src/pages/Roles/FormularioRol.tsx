@@ -1,95 +1,146 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Form, Input, Button, Switch, Select, Typography, Space, message, Spin } from 'antd';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, Form, Input, Button, Switch, Select, Space, Spin, Checkbox, Alert, Typography } from 'antd';
 import { SaveOutlined, CloseOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
-import rolesService from '../../services/rolesService';
+import { useAntdApp } from '../../hooks/useMessage';
+import cargosService, { CargoEntrada, ModuloElegible, ModulosPorRol, RolBase } from '../../services/cargosService';
+import { mensajeDeError } from '../../services/partoDetalleService';
 
-const { Title } = Typography;
-const { Option } = Select;
 const { TextArea } = Input;
+const { Text } = Typography;
 
-const permisosDisponibles = [
-  'ver_pacientes', 'crear_pacientes', 'editar_pacientes', 'eliminar_pacientes',
-  'ver_embarazos', 'crear_embarazos', 'editar_embarazos', 'eliminar_embarazos',
-  'ver_partos', 'crear_partos', 'editar_partos', 'eliminar_partos',
-  'ver_laboratorio', 'crear_laboratorio', 'editar_laboratorio', 'eliminar_laboratorio',
-  'ver_alertas', 'crear_alertas', 'resolver_alertas',
-  'ver_reportes', 'generar_reportes', 'exportar_reportes',
-  'gestionar_usuarios', 'gestionar_roles', 'ver_auditoria',
-];
+interface SelectorModulosProps {
+  modulos: ModuloElegible[];
+  value?: string[];
+  onChange?: (valor: string[]) => void;
+}
 
+/** Casillas de módulos, controladas por el Form.Item; los obligatorios quedan fijos. */
+const SelectorModulos: React.FC<SelectorModulosProps> = ({ modulos, value = [], onChange }) => (
+  <div role="group" aria-label="Módulos que usa"
+    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
+    {modulos.map(m => (
+      <Checkbox
+        key={m.modulo}
+        checked={m.obligatorio || value.includes(m.modulo)}
+        disabled={m.obligatorio}
+        onChange={(e) => onChange?.(e.target.checked
+          ? [...value, m.modulo]
+          : value.filter(v => v !== m.modulo))}
+      >
+        {m.nombre}
+        {m.obligatorio && <Text type="secondary"> (siempre)</Text>}
+        {!m.acciones.includes('add') && <Text type="secondary"> · solo ver</Text>}
+      </Checkbox>
+    ))}
+  </div>
+);
+
+/** Formulario de un cargo: rol base y los módulos de ese rol que usa. */
 const FormularioRol: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
+  const { message } = useAntdApp();
+  const [form] = Form.useForm<CargoEntrada>();
+  const [catalogo, setCatalogo] = useState<ModulosPorRol[]>([]);
+  const [inicial, setInicial] = useState<Partial<CargoEntrada> | null>(null);
+  const [saving, setSaving] = useState(false);
   const isEditing = !!id;
-
-  const cargarRol = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const data = await rolesService.obtener(Number(id));
-      form.setFieldsValue(data);
-    } catch {
-      message.error('Error al cargar el rol');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, form]);
+  const rolBase = Form.useWatch('rol_base', form) as RolBase | undefined;
 
   useEffect(() => {
-    if (isEditing) cargarRol();
-  }, [cargarRol, isEditing]);
-
-  const handleFinish = async (values: any) => {
-    setLoading(true);
-    try {
-      if (isEditing) {
-        await rolesService.actualizar(Number(id), values);
-        message.success('Rol actualizado correctamente');
-      } else {
-        await rolesService.crear(values);
-        message.success('Rol creado correctamente');
+    let vigente = true;
+    (async () => {
+      try {
+        const [modulos, cargo] = await Promise.all([
+          cargosService.modulos(),
+          id ? cargosService.obtener(Number(id)) : Promise.resolve(null),
+        ]);
+        if (!vigente) return;
+        setCatalogo(modulos);
+        // El formulario se muestra recién con los datos: antes se podía
+        // escribir en él mientras cargaba y lo cargado lo pisaba.
+        setInicial(cargo ?? { activo: true, modulos: [] });
+      } catch (error) {
+        if (vigente) message.error(mensajeDeError(error, 'No se pudo cargar el cargo'));
       }
+    })();
+    return () => { vigente = false; };
+  }, [id, message]);
+
+  const modulosDelRol = useMemo(
+    () => catalogo.find(r => r.rol === rolBase)?.modulos ?? [],
+    [catalogo, rolBase],
+  );
+
+  // Al cambiar el rol base, se marcan todos sus módulos: el administrador quita
+  // los que el cargo no usa (lo más común es quitar uno o dos).
+  const cambiarRol = (rol: RolBase) => {
+    const modulos = catalogo.find(r => r.rol === rol)?.modulos ?? [];
+    form.setFieldsValue({ modulos: modulos.map(m => m.modulo) });
+  };
+
+  const guardar = async (values: CargoEntrada) => {
+    setSaving(true);
+    try {
+      const datos = { ...values, descripcion: values.descripcion ?? '' };
+      if (isEditing) await cargosService.actualizar(Number(id), datos);
+      else await cargosService.crear(datos);
+      message.success(isEditing ? 'Cargo actualizado' : 'Cargo creado');
       navigate('/dashboard/roles');
-    } catch {
-      message.error('Error al guardar el rol');
+    } catch (error) {
+      message.error(mensajeDeError(error, 'No se pudo guardar el cargo'));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   return (
     <div>
       <Button icon={<CloseOutlined />} onClick={() => navigate('/dashboard/roles')} style={{ marginBottom: 16 }}>Cancelar</Button>
-      <Card title={<span><SafetyOutlined style={{ marginRight: 8 }} />{isEditing ? 'Editar' : 'Nuevo'} Rol</span>}>
-        <Spin spinning={loading}>
-          <Form form={form} layout="vertical" onFinish={handleFinish} style={{ maxWidth: 600 }}>
-            <Form.Item name="nombre" label="Nombre del Rol" rules={[{ required: true, message: 'Ingrese el nombre del rol' }]}>
-              <Input placeholder="Ej: Médico, Enfermero, Administrador" />
+      <Card title={<span><SafetyOutlined style={{ marginRight: 8 }} />{isEditing ? 'Editar cargo' : 'Nuevo cargo'}</span>}>
+        {!inicial ? <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div> : (
+          <Form form={form} layout="vertical" onFinish={guardar} initialValues={inicial} style={{ maxWidth: 680 }}>
+            <Form.Item name="nombre" label="Nombre del cargo" rules={[{ required: true, whitespace: true, message: 'Escriba el nombre del cargo' }]}>
+              <Input placeholder="Ej.: Obstetriz, Nutricionista, Trabajo social" maxLength={80} />
             </Form.Item>
             <Form.Item name="descripcion" label="Descripción">
-              <TextArea rows={3} placeholder="Descripción del rol y sus responsabilidades" />
+              <TextArea rows={2} placeholder="Qué hace este funcionario (opcional)" />
             </Form.Item>
-            <Form.Item name="activo" label="Activo" valuePropName="checked">
-              <Switch defaultChecked />
+            <Form.Item
+              name="rol_base"
+              label="Rol en que se basa"
+              extra="Decide lo que el sistema le deja hacer en cada módulo (ver, registrar, editar)."
+              rules={[{ required: true, message: 'Elija el rol en que se basa el cargo' }]}
+            >
+              <Select
+                placeholder="Elija un rol"
+                onChange={cambiarRol}
+                options={catalogo.map(r => ({ value: r.rol, label: r.nombre }))}
+              />
             </Form.Item>
-            <Form.Item name="permisos" label="Permisos" rules={[{ required: true, message: 'Seleccione al menos un permiso' }]}>
-              <Select mode="multiple" placeholder="Seleccione los permisos">
-                {permisosDisponibles.map(p => (
-                  <Option key={p} value={p}>{p.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Option>
-                ))}
-              </Select>
+            {/* Siempre registrado (oculto sin rol): si se monta recién al elegir
+                el rol, los módulos que marca `cambiarRol` se perdían al guardar. */}
+            <Form.Item name="modulos" label="Módulos que usa" hidden={!rolBase}>
+                <SelectorModulos modulos={modulosDelRol} />
+            </Form.Item>
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginBottom: 16 }}
+              message="Un cargo solo puede quitar módulos a su rol, nunca agregar. Lo que no marque desaparece del menú y la API lo rechaza."
+            />
+            <Form.Item name="activo" label="Activo" valuePropName="checked" extra="Un cargo inactivo no se puede asignar a usuarios nuevos; quien ya lo tiene lo conserva.">
+              <Switch />
             </Form.Item>
             <Form.Item>
               <Space>
-                <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>Guardar</Button>
+                <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={saving}>Guardar</Button>
                 <Button onClick={() => navigate('/dashboard/roles')}>Cancelar</Button>
               </Space>
             </Form.Item>
           </Form>
-        </Spin>
+        )}
       </Card>
     </div>
   );

@@ -1,87 +1,31 @@
-"""Roles Serializers"""
-
+"""Serializadores de cargos."""
 from rest_framework import serializers
 
-from .models import CatRol
+from usuarios.permisos_por_rol import modulos_del_cargo, validar_cargo
+
+from .models import Cargo
 
 
-class CatRolSerializer(serializers.ModelSerializer):
-    """Serializer for CatRol model"""
-
-    nombre_display = serializers.CharField(source="get_nombre_display", read_only=True)
-    permisos_count = serializers.SerializerMethodField()
-
-    class Meta:
-        """Meta"""
-        model = CatRol
-        fields = "__all__"
-        read_only_fields = ("fecha_creacion", "fecha_modificacion")
-
-    def get_permisos_count(self, obj):
-        """Count permissions"""
-        if obj.permisos:
-            return len(obj.permisos)
-        return 0
-
-
-class CatRolListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for listing"""
-
-    nombre_display = serializers.CharField(source="get_nombre_display", read_only=True)
-
-    class Meta:
-        """Meta"""
-        model = CatRol
-        fields = ["id", "nombre", "nombre_display", "descripcion", "activo"]
-        read_only_fields = fields
-
-
-class CatRolDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer with permissions"""
-
-    nombre_display = serializers.CharField(source="get_nombre_display", read_only=True)
-    permisos_formatted = serializers.SerializerMethodField()
+class CargoSerializer(serializers.ModelSerializer):
+    rol_base_display = serializers.CharField(source="get_rol_base_display", read_only=True)
+    nombres_modulos = serializers.ListField(child=serializers.CharField(), read_only=True)
     usuarios_count = serializers.SerializerMethodField()
 
     class Meta:
-        """Meta"""
-        model = CatRol
-        fields = "__all__"
+        model = Cargo
+        fields = ["id", "nombre", "descripcion", "rol_base", "rol_base_display", "modulos", "nombres_modulos",
+                  "activo", "usuarios_count", "fecha_creacion", "fecha_modificacion"]
+        read_only_fields = ["fecha_creacion", "fecha_modificacion"]
 
-    def get_permisos_formatted(self, obj):
-        """Format permissions for display"""
-        if obj.permisos:
-            return {"total": len(obj.permisos), "permisos": obj.permisos}
-        return {"total": 0, "permisos": {}}
+    def get_usuarios_count(self, obj) -> int:
+        n = getattr(obj, "n_usuarios", None)
+        return n if n is not None else obj.usuarios.count()
 
-    def get_usuarios_count(self, obj):
-        """Count users with this role"""
-        # This assumes Usuario model has a 'rol' field
-        try:
-            return obj.usuario_set.count()
-        except Exception:
-            return 0
-
-
-class CatRolCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating roles"""
-
-    class Meta:
-        """Meta"""
-        model = CatRol
-        fields = ["nombre", "descripcion", "permisos", "activo"]
-
-    def validate_nombre(self, value):
-        """Validate role name is from allowed choices"""
-        allowed_roles = dict(CatRol.ROLES).keys()
-        if value not in allowed_roles:
-            raise serializers.ValidationError(
-                f"Rol no válido. Permitidos: {', '.join(allowed_roles)}",
-            )
-        return value
-
-    def validate_permisos(self, value):
-        """Validate permissions structure"""
-        if not isinstance(value, dict):
-            raise serializers.ValidationError("Los permisos deben ser un objeto JSON")
-        return value
+    def validate(self, attrs):
+        rol_base = attrs.get("rol_base", getattr(self.instance, "rol_base", None))
+        modulos = attrs.get("modulos", getattr(self.instance, "modulos", []))
+        errores = validar_cargo(rol_base, modulos)
+        if errores:
+            raise serializers.ValidationError(errores)
+        attrs["modulos"] = modulos_del_cargo(rol_base, modulos)
+        return attrs

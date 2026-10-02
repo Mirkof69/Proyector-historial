@@ -49,6 +49,9 @@ export interface Usuario {
   iniciales?: string;
   rol: 'medico' | 'enfermero' | 'enfermera' | 'administrador' | 'paciente' | 'recepcion' | 'laboratorista';
   rol_display?: string;
+  /** Cargo del hospital (obstetriz, nutricionista…); con cargo, el rol es el del cargo. */
+  cargo?: number | null;
+  cargo_nombre?: string | null;
   especialidad?: string;
   telefono?: string;
   foto?: File | string | null;
@@ -74,7 +77,8 @@ export interface UsuarioCreate {
   nombre: string;
   apellido_paterno: string;
   apellido_materno?: string;
-  rol: 'medico' | 'enfermero' | 'enfermera' | 'administrador' | 'paciente' | 'recepcion' | 'laboratorista';
+  rol?: 'medico' | 'enfermero' | 'enfermera' | 'administrador' | 'paciente' | 'recepcion' | 'laboratorista';
+  cargo?: number | null;
   especialidad?: string;
   telefono?: string;
   foto?: File | null;
@@ -94,6 +98,7 @@ export interface UsuarioUpdate {
   apellido_paterno?: string;
   apellido_materno?: string;
   rol?: 'medico' | 'enfermero' | 'enfermera' | 'administrador' | 'paciente' | 'recepcion' | 'laboratorista';
+  cargo?: number | null;
   especialidad?: string;
   telefono?: string;
   foto?: File | null;

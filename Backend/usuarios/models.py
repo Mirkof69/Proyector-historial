@@ -74,6 +74,12 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     # Rol y especialidad
     rol = models.CharField(max_length=20, choices=ROLES, verbose_name="Rol")
+    # Cargo del hospital (obstetriz, nutricionista…). Con cargo, el rol es el
+    # rol base del cargo y el usuario solo ve los módulos del cargo.
+    cargo = models.ForeignKey(
+        "roles.Cargo", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="usuarios", verbose_name="Cargo",
+    )
     especialidad = models.CharField(
         max_length=150, blank=True, null=True, verbose_name="Especialidad",
     )
@@ -165,6 +171,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         En DEBUG=True se omite para facilitar el desarrollo/demo.
         """
         from django.conf import settings
+        if self.cargo_id:
+            self.rol = self.cargo.rol_base
         if self.rol in ("medico", "administrador") and not settings.DEBUG:
             self.mfa_obligatorio = True
         super().save(*args, **kwargs)

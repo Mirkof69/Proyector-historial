@@ -9,7 +9,7 @@ Usage:
 
 Modules seeded:
     1.  Usuarios (Users with roles)
-    2.  Roles (CatRoles)
+    2.  (Roles: ya no se siembran; los cargos los crea el administrador)
     3.  Consultorios (Clinics/Offices)
     4.  Pacientes (Patients)
     5.  Antecedentes (Medical History)
@@ -315,7 +315,6 @@ class Command(BaseCommand):
         self.consultorios = []
         self.tipos_examenes = []
         self.tipos_vacunas = []
-        self.cat_roles = {}
 
     def log(self, msg):
         """Log"""
@@ -339,7 +338,6 @@ class Command(BaseCommand):
             self.log_section("FLUSHING EXISTING DATA")
             self._flush_data()
 
-        self._seed_roles()
         self._seed_users()
         self._seed_consultorios()
         self._seed_pacientes()
@@ -402,7 +400,6 @@ class Command(BaseCommand):
             "consultorios.Consultorio",
             "usuarios.HorarioAtencion",
             "usuarios.Usuario",
-            "roles.CatRol",
             "ia_medica.ConsultaIA",
             "ia_medica.AnalisisLaboratorioML",
             "ia_medica.DatasetEntrenamientoIA",
@@ -425,53 +422,6 @@ class Command(BaseCommand):
                 pass
 
         self.log(f"Deleted {count} existing records.")
-
-    # =============================================================================
-    # 1. ROLES
-    # =============================================================================
-
-    def _seed_roles(self):
-        """Seed roles"""
-        from roles.models import CatRol
-
-        if CatRol.objects.exists():
-            self.log("Roles already exist, skipping.")
-            return
-
-        self.log_section("1. SEEDING ROLES")
-
-        roles_data = [
-            (
-                "medico",
-                "Medico especialista en ginecologia y obstetricia",
-                {
-                    "crear_pacientes": True,
-                    "ver_historial": True,
-                    "recetar": True,
-                    "agendar": True,
-                },
-            ),
-            (
-                "enfermera",
-                "Enfermera de soporte y triaje",
-                {"crear_pacientes": True, "triaje": True, "ver_historial": True},
-            ),
-            (
-                "administrativo",
-                "Personal administrativo de la clinica",
-                {"agendar": True, "crear_pacientes": True, "ver_historial": False},
-            ),
-        ]
-
-        for nombre, desc, perms in roles_data:
-            rol, created = CatRol.objects.get_or_create(
-                nombre=nombre,
-                defaults={"descripcion": desc, "permisos": perms, "activo": True},
-            )
-            if created:
-                self.log(f"  Created role: {nombre}")
-                self.stats["roles"] = self.stats.get("roles", 0) + 1
-            self.cat_roles[nombre] = rol
 
     # =============================================================================
     # 2. USERS

@@ -6,7 +6,7 @@
  * =============================================================================
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import {Form,
   Input,
@@ -27,6 +27,9 @@ import {
   LockOutlined,
 } from '@ant-design/icons';
 import { usuariosService, Usuario, UsuarioCreate, UsuarioUpdate } from '../../services/usuariosService';
+import cargosService, { Cargo } from '../../services/cargosService';
+import { ROLES as CATALOGO_ROLES, LISTA_ROLES } from '../../config/roles';
+import { mensajeDeError } from '../../services/partoDetalleService';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -36,14 +39,9 @@ interface FormularioUsuarioProps {
   onClose: (reload?: boolean) => void;
 }
 
-const ROLES = [
-  { value: 'medico', label: 'Médico' },
-  { value: 'enfermero', label: 'Enfermero' },
-  { value: 'enfermera', label: 'Enfermera' },
-  { value: 'administrador', label: 'Administrador' },
-  { value: 'recepcion', label: 'Recepción' },
-  { value: 'laboratorista', label: 'Laboratorista' },
-];
+// Del catálogo único (config/roles): aquí había otra copia con «enfermero»,
+// un rol que el backend no tiene (crear con él daba error 400).
+const ROLES = LISTA_ROLES.map((value) => ({ value, label: CATALOGO_ROLES[value].nombre }));
 
 const ESPECIALIDADES = [
   'Medicina General',
@@ -80,6 +78,27 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
   }
 
   const isEditing = !!usuario;
+  const [cargos, setCargos] = useState<Cargo[]>([]);
+  const cargoElegido = Form.useWatch('cargo', form) as number | null | undefined;
+
+  // Solo el administrador ve los cargos; si la petición falla, el formulario
+  // sigue funcionando con el rol solo.
+  useEffect(() => {
+    let vigente = true;
+    cargosService.listar().then((lista) => { if (vigente) setCargos(lista); }).catch(() => undefined);
+    return () => { vigente = false; };
+  }, []);
+
+  // Los cargos desactivados no se ofrecen, salvo el que el usuario ya tiene.
+  const cargosElegibles = useMemo(
+    () => cargos.filter((c) => c.activo || c.id === usuario?.cargo),
+    [cargos, usuario?.cargo],
+  );
+
+  const elegirCargo = (id: number | undefined) => {
+    const cargo = cargos.find((c) => c.id === id);
+    if (cargo) form.setFieldsValue({ rol: cargo.rol_base });
+  };
 
   // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change
   useEffect(() => {
@@ -90,6 +109,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
         apellido_materno: usuario.apellido_materno,
         email: usuario.email,
         rol: usuario.rol,
+        cargo: usuario.cargo ?? undefined,
         especialidad: usuario.especialidad,
         telefono: usuario.telefono,
         descripcion: usuario.descripcion,
@@ -112,6 +132,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
           apellido_materno: values.apellido_materno,
           email: values.email,
           rol: values.rol,
+          cargo: values.cargo ?? null,
           especialidad: values.especialidad,
           telefono: values.telefono,
           descripcion: values.descripcion,
@@ -129,6 +150,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
           password: values.password,
           password_confirm: values.password_confirm,
           rol: values.rol,
+          cargo: values.cargo ?? null,
           especialidad: values.especialidad,
           telefono: values.telefono,
           descripcion: values.descripcion,
@@ -140,8 +162,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
       }
       onClose(true);
     } catch (error: any) {
-      const errorMsg = error?.response?.data?.message || error?.response?.data?.error || 'Error al guardar el usuario';
-      message.error(errorMsg);
+      message.error(error?.response?.data?.message || mensajeDeError(error, 'Error al guardar el usuario'));
     } finally {
       setSaving(false);
     }
@@ -255,12 +276,28 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
 
       <Divider orientation="left">Información Profesional</Divider>
 
+      {cargosElegibles.length > 0 && (
+        <Form.Item
+          label="Cargo"
+          name="cargo"
+          extra="Opcional. Para otros funcionarios (obstetriz, nutricionista…): el rol lo pone el cargo y solo verá sus módulos."
+        >
+          <Select
+            allowClear
+            placeholder="Sin cargo: usa el rol completo"
+            onChange={elegirCargo}
+            options={cargosElegibles.map((c) => ({ value: c.id, label: `${c.nombre} (${c.rol_base_display})` }))}
+          />
+        </Form.Item>
+      )}
+
       <Form.Item
         label="Rol"
         name="rol"
+        extra={cargoElegido ? 'Lo define el cargo elegido.' : undefined}
         rules={[{ required: true, message: 'Seleccione el rol' }]}
       >
-        <Select prefix={<SafetyOutlined />} placeholder="Seleccione un rol">
+        <Select prefix={<SafetyOutlined />} placeholder="Seleccione un rol" disabled={!!cargoElegido}>
           {ROLES.map((rol) => (
             <Option key={rol.value} value={rol.value}>
               {rol.label}

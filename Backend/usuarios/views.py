@@ -27,6 +27,7 @@ from core.throttling import LoginRateThrottle, registrar_intento_fallido
 
 from .auth_cookies import REFRESH_COOKIE, clear_jwt_cookies, set_jwt_cookies
 from .models import HorarioAtencion, Usuario
+from .permisos_por_rol import permisos_de_usuario
 from .serializers import (
     AdminChangePasswordSerializer,
     ChangePasswordSerializer,
@@ -864,18 +865,8 @@ def login_view(request):
     refresh = RefreshToken.for_user(usuario)
     refresh[SID_CLAIM] = sid  # se copia al access y sobrevive a los refresh
 
-    # ACCIONES: Obtener TODOS los permisos (directos + grupos)
-    permisos_set = set()
-
-    # 1. Permisos directos
-    permisos_set.update(usuario.user_permissions.values_list("codename", flat=True))
-
-    # 2. Permisos de grupos
-    for group in usuario.groups.all():
-        permisos_set.update(group.permissions.values_list("codename", flat=True))
-
-    # Convertir a lista
-    permisos = list(permisos_set)
+    # Directos y de grupos, menos los módulos que quita el cargo.
+    permisos = permisos_de_usuario(usuario)
 
     # SEGURIDAD: los JWT viajan SOLO como cookies httpOnly (nunca en el body,
     # nunca a localStorage). Se incluye la cookie csrftoken para el
@@ -1118,10 +1109,6 @@ def mfa_verify_view(request):
     refresh = RefreshToken.for_user(usuario)
     refresh[SID_CLAIM] = sid
 
-    permisos_set = set()
-    permisos_set.update(usuario.user_permissions.values_list("codename", flat=True))
-    for group in usuario.groups.all():
-        permisos_set.update(group.permissions.values_list("codename", flat=True))
 
     # SEGURIDAD: igual que login_view — JWT solo en cookies httpOnly
     response = Response(
@@ -1137,7 +1124,7 @@ def mfa_verify_view(request):
                 ),
                 "is_staff": usuario.is_staff,
                 "is_superuser": usuario.is_superuser,
-                "permisos": list(permisos_set),
+                "permisos": permisos_de_usuario(usuario),
             },
         },
         status=status.HTTP_200_OK,
