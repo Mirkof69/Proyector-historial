@@ -3,6 +3,8 @@
     python entrenamiento/segmentacion/entrenar.py cabeza
     python entrenamiento/segmentacion/entrenar.py abdomen
     python entrenamiento/segmentacion/entrenar.py torax
+    python entrenamiento/segmentacion/entrenar.py ovario   # ginecología: lesión ovárica (MMOTU)
+    python entrenamiento/segmentacion/entrenar.py mioma    # ginecología: mioma uterino (caja)
 
 Antes: `preparar.py`. Deja en `salidas/<tarea>/` el modelo, la historia, las
 predicciones de prueba y `metricas.json`; `exportar.py` lo copia al
@@ -20,6 +22,9 @@ Cómo se mide (y por qué así)
 - Abdomen: si detecta el estómago y la vena umbilical (los dos marcadores del
   plano correcto para medir la circunferencia abdominal) cuando el experto los
   marcó.
+- Ovario: Dice de la lesión y en cuántas imágenes la encuentra (IoU >= 0,5).
+- Mioma: el experto marcó una caja, no un contorno; se compara la caja de la
+  red (la del mayor componente) con la del experto: IoU y detección (IoU >= 0,5).
 """
 from __future__ import annotations
 
@@ -48,11 +53,16 @@ CONFIG = {
     "abdomen": {"lado": 384, "epocas": 60, "lote": 16, "lr": 6e-4, "codificador": "efficientnet_b2"},
     "torax": {"lado": 384, "epocas": 120, "lote": 12, "lr": 5e-4, "codificador": "efficientnet_b2"},
     "intraparto": {"lado": 384, "epocas": 50, "lote": 16, "lr": 6e-4, "codificador": "efficientnet_b2"},
+    "ovario": {"lado": 384, "epocas": 60, "lote": 16, "lr": 6e-4, "codificador": "efficientnet_b2"},
+    "mioma": {"lado": 384, "epocas": 60, "lote": 16, "lr": 6e-4, "codificador": "efficientnet_b2"},
 }
-CLASES = CLASES | {"intraparto": ["fondo", "sinfisis_pubis", "cabeza_fetal"]}
+CLASES = CLASES | {"intraparto": ["fondo", "sinfisis_pubis", "cabeza_fetal"],
+                   "ovario": ["fondo", "lesion_ovarica"], "mioma": ["fondo", "mioma"]}
 #: catálogo de cada tarea (intraparto lo arma entrenamiento/intraparto/preparar.py)
 CATALOGO = {t: AQUI / "catalogos" / f"{t}.csv" for t in ("cabeza", "abdomen", "torax")} | {
-    "intraparto": AQUI.parent / "intraparto" / "catalogo.csv"}
+    "intraparto": AQUI.parent / "intraparto" / "catalogo.csv",
+    "ovario": AQUI.parent / "ginecologia" / "catalogos" / "ovario.csv",
+    "mioma": AQUI.parent / "ginecologia" / "catalogos" / "mioma.csv"}
 
 
 def fijar_semilla() -> None:
@@ -69,7 +79,8 @@ def cargar(cat: pd.DataFrame, lado: int) -> tuple[np.ndarray, np.ndarray]:
 
     X, Y = [], []
     for img, msk in zip(cat["imagen"], cat["mascara"]):
-        X.append(a_cuadrado(np.array(Image.open(RAIZ / img)), lado)[0])
+        # En gris, como en el servicio (MMOTU y miomas vienen en RGB)
+        X.append(a_cuadrado(np.array(Image.open(RAIZ / img).convert("L")), lado)[0])
         Y.append(a_cuadrado(np.array(Image.open(RAIZ / msk)), lado, cv2.INTER_NEAREST)[0])
     return np.stack(X), np.stack(Y)
 
@@ -206,9 +217,14 @@ def entrenar(tarea: str) -> None:
         "dataset": {"cabeza": "Large-Scale Fetal Head Biometry (Zenodo 8265464) · FETAL_PLANES_DB",
                     "abdomen": "Fetal Abdominal Structures Segmentation (Mendeley Data)",
                     "torax": "FOCUS (Zenodo 14597550)",
-                    "intraparto": "IUGC MICCAI 2024 (ecografía intraparto transperineal)"}[tarea],
+                    "intraparto": "IUGC MICCAI 2024 (ecografía intraparto transperineal)",
+                    "ovario": "MMOTU OTU_2d (Beijing Shijitan Hospital; Figshare 25058690 / Zenodo 21128657)",
+                    "mioma": "Uterine fibroid ultrasound images (Mendeley Data n2zcmcypgb v2)"}[tarea],
         "particion": {"torax": "oficial de FOCUS (sin id de paciente)",
-                      "intraparto": "prueba oficial del desafío (otros años y exámenes); validación por examen"}.get(
+                      "intraparto": "prueba oficial del desafío (otros años y exámenes); validación por examen",
+                      "ovario": "prueba oficial por paciente, sin las casi copias de entrenamiento ni las de "
+                                "diagnóstico contradictorio; validación 15 % de los grupos de entrenamiento",
+                      "mioma": "por paciente 70/15/15 (paciente anonimizada)"}.get(
             tarea, "por paciente 70/15/15"),
         "imagenes_prueba": len(prueba),
         "pacientes_prueba": int(prueba["paciente"].nunique()),
@@ -220,7 +236,7 @@ def entrenar(tarea: str) -> None:
     }
     metricas["dice_prueba_medio"] = round(float(np.mean([v["medio"] for v in metricas["dice_prueba"].values()])), 4)
     metricas |= {"cabeza": medir_cabeza, "torax": medir_torax, "abdomen": medir_abdomen,
-                 "intraparto": medir_intraparto}[tarea](
+                 "intraparto": medir_intraparto, "ovario": medir_ovario, "mioma": medir_mioma}[tarea](
         red, prueba, pred_p, Y_p, cfg, log)
 
     torch.save({"estado": red.state_dict(), "meta": {
@@ -374,6 +390,62 @@ def medir_intraparto(red, prueba, pred_p, Y_p, cfg, log) -> dict:
            "especificidad_aop_120": round(float((~clase_red & ~clase_real).sum() / max(1, (~clase_real).sum())), 4)}
     log(f"Ángulo de progresión: {res}")
     return {"angulo_progresion_prueba": res}
+
+
+def _caja(m: np.ndarray):
+    ys, xs = np.nonzero(m)
+    return (xs.min(), ys.min(), xs.max(), ys.max()) if len(xs) else None
+
+
+def _iou(a, b) -> float:
+    if a is None or b is None:
+        return 0.0
+    ix = max(0, min(a[2], b[2]) - max(a[0], b[0]) + 1)
+    iy = max(0, min(a[3], b[3]) - max(a[1], b[1]) + 1)
+    inter = ix * iy
+    area = lambda c: (c[2] - c[0] + 1) * (c[3] - c[1] + 1)  # noqa: E731
+    return inter / (area(a) + area(b) - inter)
+
+
+def medir_ovario(red, prueba, pred_p, Y_p, cfg, log) -> dict:
+    """En la imagen original: IoU de la lesión de la red (mayor componente)
+    frente a la del experto; encontrada si IoU >= 0,5."""
+    filas = []
+    for (_, r), pc in zip(prueba.iterrows(), pred_p):
+        real = np.array(Image.open(RAIZ / r["mascara"])) > 0
+        pred = mayor_componente(_en_original(pc, real.shape, cfg["lado"]) > 0)
+        inter, union = (real & pred).sum(), (real | pred).sum()
+        filas.append({"imagen": r["imagen"], "clase": r["clase_nombre"], "iou": inter / union if union else 0.0,
+                      "area_experto": int(real.sum()), "area_red": int(pred.sum())})
+    t = pd.DataFrame(filas)
+    t.to_csv(AQUI / "salidas" / "ovario" / "prueba_medidas.csv", index=False)
+    res = {"imagenes": len(t), "iou_medio": round(float(t["iou"].mean()), 4),
+           "lesion_encontrada_iou_0_5": round(float((t["iou"] >= 0.5).mean()), 4),
+           "por_clase_encontrada": {k: round(float(v), 4) for k, v in
+                                    t.groupby("clase")["iou"].apply(lambda s: (s >= 0.5).mean()).items()}}
+    log(f"Lesión ovárica: {res}")
+    return {"lesion_ovarica_prueba": res}
+
+
+def medir_mioma(red, prueba, pred_p, Y_p, cfg, log) -> dict:
+    """Caja del mayor componente de la red frente a la caja del experto (la
+    mayor, si hay varias)."""
+    filas = []
+    for (_, r), pc in zip(prueba.iterrows(), pred_p):
+        real = np.array(Image.open(RAIZ / r["mascara"])) > 0
+        pred = mayor_componente(_en_original(pc, real.shape, cfg["lado"]) > 0)
+        cajas = [tuple(map(int, c.split(","))) for c in str(r["cajas"]).split(";")]
+        mayor = max(cajas, key=lambda c: (c[2] - c[0]) * (c[3] - c[1]))
+        filas.append({"imagen": r["imagen"], "iou_caja": _iou(_caja(pred), mayor),
+                      "ancho_experto_px": mayor[2] - mayor[0], "alto_experto_px": mayor[3] - mayor[1]})
+    t = pd.DataFrame(filas)
+    t.to_csv(AQUI / "salidas" / "mioma" / "prueba_medidas.csv", index=False)
+    res = {"imagenes": len(t), "iou_caja_medio": round(float(t["iou_caja"].mean()), 4),
+           "iou_caja_mediano": round(float(t["iou_caja"].median()), 4),
+           "mioma_encontrado_iou_0_5": round(float((t["iou_caja"] >= 0.5).mean()), 4),
+           "mioma_encontrado_iou_0_3": round(float((t["iou_caja"] >= 0.3).mean()), 4)}
+    log(f"Mioma: {res}")
+    return {"mioma_prueba": res}
 
 
 if __name__ == "__main__":

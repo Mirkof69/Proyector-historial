@@ -1,0 +1,248 @@
+{
+ "mmotu": {
+  "imagenes": 1469,
+  "copias_exactas_grupos": 0,
+  "copias_exactas_ejemplos": [],
+  "casi_copias_pares": 28,
+  "casi_copias_ejemplos": [
+   [
+    "11.JPG",
+    "9.JPG",
+    4
+   ],
+   [
+    "1198.JPG",
+    "1202.JPG",
+    0
+   ],
+   [
+    "120.JPG",
+    "122.JPG",
+    0
+   ],
+   [
+    "1249.JPG",
+    "1250.JPG",
+    2
+   ],
+   [
+    "1290.JPG",
+    "1291.JPG",
+    3
+   ],
+   [
+    "1290.JPG",
+    "1292.JPG",
+    2
+   ],
+   [
+    "1291.JPG",
+    "1292.JPG",
+    3
+   ],
+   [
+    "144.JPG",
+    "146.JPG",
+    3
+   ]
+  ],
+  "tamanos_mas_comunes": [
+   [
+    "958x534",
+    26
+   ],
+   [
+    "958x533",
+    20
+   ],
+   [
+    "958x535",
+    20
+   ],
+   [
+    "959x535",
+    19
+   ],
+   [
+    "958x532",
+    17
+   ]
+  ],
+  "casi_copias_entre_particiones": 11,
+  "casi_copias_entre_particiones_ejemplos": [
+   [
+    "1290.JPG",
+    "1291.JPG",
+    3
+   ],
+   [
+    "1291.JPG",
+    "1292.JPG",
+    3
+   ],
+   [
+    "144.JPG",
+    "146.JPG",
+    3
+   ],
+   [
+    "252.JPG",
+    "253.JPG",
+    4
+   ],
+   [
+    "357.JPG",
+    "358.JPG",
+    4
+   ],
+   [
+    "716.JPG",
+    "718.JPG",
+    3
+   ],
+   [
+    "82.JPG",
+    "84.JPG",
+    4
+   ],
+   [
+    "85.JPG",
+    "88.JPG",
+    2
+   ]
+  ]
+ },
+ "ovario_pco": {
+  "imagenes": 301,
+  "copias_exactas_grupos": 2,
+  "copias_exactas_ejemplos": [
+   [
+    "Dominant_Follicle_1.jpg",
+    "Dominant_Follicle_128.jpg"
+   ],
+   [
+    "Dominant_Follicle_85.jpg",
+    "Dominant_Follicle_86.jpg"
+   ]
+  ],
+  "casi_copias_pares": 4,
+  "casi_copias_ejemplos": [
+   [
+    "Dominant_Follicle_1.jpg",
+    "Dominant_Follicle_128.jpg",
+    0
+   ],
+   [
+    "Dominant_Follicle_60.jpg",
+    "Dominant_Follicle_61.jpg",
+    1
+   ],
+   [
+    "Dominant_Follicle_85.jpg",
+    "Dominant_Follicle_86.jpg",
+    0
+   ],
+   [
+    "PCO_1.jpg",
+    "PCO_55.jpg",
+    3
+   ]
+  ],
+  "tamanos_mas_comunes": [
+   [
+    "512x728",
+    57
+   ],
+   [
+    "513x728",
+    53
+   ],
+   [
+    "515x728",
+    48
+   ],
+   [
+    "509x728",
+    30
+   ],
+   [
+    "517x728",
+    20
+   ]
+  ],
+  "por_clase": {
+   "Dominant_Follicle": 144,
+   "Normal": 41,
+   "PCO": 116
+  }
+ },
+ "miomas": {
+  "imagenes": 871,
+  "copias_exactas_grupos": 1,
+  "copias_exactas_ejemplos": [
+   [
+    "1.2.826.0.1.3680043.2.461.11899374.3915671908.jpg",
+    "1.2.826.0.1.3680043.2.461.11899374.664449416.jpg"
+   ]
+  ],
+  "casi_copias_pares": 5,
+  "casi_copias_ejemplos": [
+   [
+    "1.2.826.0.1.3680043.2.461.11229794.1004631681.jpg",
+    "1.2.826.0.1.3680043.2.461.11229794.550378630.jpg",
+    0
+   ],
+   [
+    "1.2.826.0.1.3680043.2.461.11522581.1547459044.jpg",
+    "1.2.826.0.1.3680043.2.461.11522581.1739265486.jpg",
+    0
+   ],
+   [
+    "1.2.826.0.1.3680043.2.461.11645570.2909309273.jpg",
+    "1.2.826.0.1.3680043.2.461.11645570.3562124435.jpg",
+    0
+   ],
+   [
+    "1.2.826.0.1.3680043.2.461.11680241.2314399355.jpg",
+    "1.2.826.0.1.3680043.2.461.11680241.3955300770.jpg",
+    0
+   ],
+   [
+    "1.2.826.0.1.3680043.2.461.11899374.3915671908.jpg",
+    "1.2.826.0.1.3680043.2.461.11899374.664449416.jpg",
+    0
+   ]
+  ],
+  "tamanos_mas_comunes": [
+   [
+    "1024x768",
+    822
+   ],
+   [
+    "1020x772",
+    16
+   ],
+   [
+    "768x576",
+    11
+   ],
+   [
+    "720x576",
+    6
+   ],
+   [
+    "1136x852",
+    3
+   ]
+  ],
+  "casi_copias_entre_particiones": 0,
+  "casi_copias_entre_particiones_ejemplos": [],
+  "pacientes_distintas": 788,
+  "miomas_por_imagen": {
+   "0": 9,
+   "1": 861,
+   "2": 1
+  },
+  "nota": "casi_copias_entre_particiones aquí = casi copias entre pacientes distintas (posible error de agrupación o imagen repetida)"
+ }
+}

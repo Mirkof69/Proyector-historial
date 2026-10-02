@@ -1,0 +1,661 @@
+{
+  "tarea": "ovario",
+  "ronda": 2,
+  "candidatas": {
+    "A": "roi_b0",
+    "B": "roi_b2",
+    "C": "roi_b0+imagen_b0",
+    "D": "roi_b2+imagen_b0"
+  },
+  "validacion_exactitud_balanceada": {
+    "A": 0.7114,
+    "B": 0.6572,
+    "C": 0.741,
+    "D": 0.7431
+  },
+  "elegida": "C",
+  "prueba_A": {
+    "imagenes": 436,
+    "exactitud": 0.6881,
+    "exactitud_balanceada": 0.613,
+    "f1_macro": 0.61,
+    "auc_macro_ovr": 0.8851,
+    "exactitud_ic95": [
+      0.6468,
+      0.7294
+    ],
+    "exactitud_balanceada_ic95": [
+      0.552,
+      0.6711
+    ],
+    "por_clase": {
+      "quiste_endometriosico": {
+        "casos": 102,
+        "sensibilidad": 0.7451,
+        "valor_predictivo_positivo": 0.8352
+      },
+      "cistoadenoma_seroso": {
+        "casos": 63,
+        "sensibilidad": 0.6508,
+        "valor_predictivo_positivo": 0.5125
+      },
+      "teratoma": {
+        "casos": 100,
+        "sensibilidad": 0.78,
+        "valor_predictivo_positivo": 0.8764
+      },
+      "tumor_celulas_teca": {
+        "casos": 30,
+        "sensibilidad": 0.4333,
+        "valor_predictivo_positivo": 0.65
+      },
+      "quiste_simple": {
+        "casos": 19,
+        "sensibilidad": 0.5263,
+        "valor_predictivo_positivo": 0.5882
+      },
+      "ovario_normal": {
+        "casos": 77,
+        "sensibilidad": 0.7922,
+        "valor_predictivo_positivo": 0.7093
+      },
+      "cistoadenoma_mucinoso": {
+        "casos": 32,
+        "sensibilidad": 0.4375,
+        "valor_predictivo_positivo": 0.4
+      },
+      "carcinoma_seroso_alto_grado": {
+        "casos": 13,
+        "sensibilidad": 0.5385,
+        "valor_predictivo_positivo": 0.3889
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "quiste_endometriosico",
+        "cistoadenoma_seroso",
+        "teratoma",
+        "tumor_celulas_teca",
+        "quiste_simple",
+        "ovario_normal",
+        "cistoadenoma_mucinoso",
+        "carcinoma_seroso_alto_grado"
+      ],
+      "valores": [
+        [
+          76,
+          5,
+          3,
+          1,
+          3,
+          7,
+          5,
+          2
+        ],
+        [
+          2,
+          41,
+          4,
+          3,
+          1,
+          4,
+          7,
+          1
+        ],
+        [
+          2,
+          11,
+          78,
+          1,
+          1,
+          5,
+          0,
+          2
+        ],
+        [
+          2,
+          2,
+          1,
+          13,
+          0,
+          5,
+          5,
+          2
+        ],
+        [
+          0,
+          5,
+          1,
+          0,
+          10,
+          2,
+          1,
+          0
+        ],
+        [
+          5,
+          2,
+          2,
+          1,
+          2,
+          61,
+          1,
+          3
+        ],
+        [
+          3,
+          13,
+          0,
+          1,
+          0,
+          0,
+          14,
+          1
+        ],
+        [
+          1,
+          1,
+          0,
+          0,
+          0,
+          2,
+          2,
+          7
+        ]
+      ]
+    },
+    "malignidad": {
+      "casos_malignos": 13,
+      "casos_no_malignos": 423,
+      "auc": 0.8114,
+      "umbral_fijado_de_antemano": 0.25,
+      "sensibilidad": 0.5385,
+      "especificidad": 0.9716,
+      "alarmas": 19,
+      "falsas_alarmas": 12
+    }
+  },
+  "prueba_B": {
+    "imagenes": 436,
+    "exactitud": 0.6606,
+    "exactitud_balanceada": 0.5596,
+    "f1_macro": 0.5806,
+    "auc_macro_ovr": 0.8819,
+    "exactitud_ic95": [
+      0.6147,
+      0.7041
+    ],
+    "exactitud_balanceada_ic95": [
+      0.5019,
+      0.6156
+    ],
+    "por_clase": {
+      "quiste_endometriosico": {
+        "casos": 102,
+        "sensibilidad": 0.8529,
+        "valor_predictivo_positivo": 0.6591
+      },
+      "cistoadenoma_seroso": {
+        "casos": 63,
+        "sensibilidad": 0.746,
+        "valor_predictivo_positivo": 0.5802
+      },
+      "teratoma": {
+        "casos": 100,
+        "sensibilidad": 0.7,
+        "valor_predictivo_positivo": 0.7609
+      },
+      "tumor_celulas_teca": {
+        "casos": 30,
+        "sensibilidad": 0.4333,
+        "valor_predictivo_positivo": 0.65
+      },
+      "quiste_simple": {
+        "casos": 19,
+        "sensibilidad": 0.4737,
+        "valor_predictivo_positivo": 0.6429
+      },
+      "ovario_normal": {
+        "casos": 77,
+        "sensibilidad": 0.5714,
+        "valor_predictivo_positivo": 0.6984
+      },
+      "cistoadenoma_mucinoso": {
+        "casos": 32,
+        "sensibilidad": 0.4688,
+        "valor_predictivo_positivo": 0.5172
+      },
+      "carcinoma_seroso_alto_grado": {
+        "casos": 13,
+        "sensibilidad": 0.2308,
+        "valor_predictivo_positivo": 0.6
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "quiste_endometriosico",
+        "cistoadenoma_seroso",
+        "teratoma",
+        "tumor_celulas_teca",
+        "quiste_simple",
+        "ovario_normal",
+        "cistoadenoma_mucinoso",
+        "carcinoma_seroso_alto_grado"
+      ],
+      "valores": [
+        [
+          87,
+          2,
+          3,
+          1,
+          0,
+          5,
+          3,
+          1
+        ],
+        [
+          4,
+          47,
+          2,
+          1,
+          2,
+          3,
+          4,
+          0
+        ],
+        [
+          11,
+          9,
+          70,
+          1,
+          1,
+          5,
+          3,
+          0
+        ],
+        [
+          4,
+          4,
+          5,
+          13,
+          0,
+          2,
+          2,
+          0
+        ],
+        [
+          4,
+          4,
+          0,
+          0,
+          9,
+          1,
+          0,
+          1
+        ],
+        [
+          19,
+          2,
+          5,
+          4,
+          2,
+          44,
+          1,
+          0
+        ],
+        [
+          2,
+          11,
+          4,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          1,
+          2,
+          3,
+          0,
+          0,
+          3,
+          1,
+          3
+        ]
+      ]
+    },
+    "malignidad": {
+      "casos_malignos": 13,
+      "casos_no_malignos": 423,
+      "auc": 0.8007,
+      "umbral_fijado_de_antemano": 0.25,
+      "sensibilidad": 0.3077,
+      "especificidad": 0.9953,
+      "alarmas": 6,
+      "falsas_alarmas": 2
+    }
+  },
+  "prueba_C": {
+    "imagenes": 436,
+    "exactitud": 0.6858,
+    "exactitud_balanceada": 0.6044,
+    "f1_macro": 0.618,
+    "auc_macro_ovr": 0.9099,
+    "exactitud_ic95": [
+      0.6422,
+      0.7271
+    ],
+    "exactitud_balanceada_ic95": [
+      0.5444,
+      0.6633
+    ],
+    "por_clase": {
+      "quiste_endometriosico": {
+        "casos": 102,
+        "sensibilidad": 0.8039,
+        "valor_predictivo_positivo": 0.7593
+      },
+      "cistoadenoma_seroso": {
+        "casos": 63,
+        "sensibilidad": 0.619,
+        "valor_predictivo_positivo": 0.5571
+      },
+      "teratoma": {
+        "casos": 100,
+        "sensibilidad": 0.72,
+        "valor_predictivo_positivo": 0.7742
+      },
+      "tumor_celulas_teca": {
+        "casos": 30,
+        "sensibilidad": 0.4333,
+        "valor_predictivo_positivo": 0.619
+      },
+      "quiste_simple": {
+        "casos": 19,
+        "sensibilidad": 0.4737,
+        "valor_predictivo_positivo": 0.6923
+      },
+      "ovario_normal": {
+        "casos": 77,
+        "sensibilidad": 0.7922,
+        "valor_predictivo_positivo": 0.7262
+      },
+      "cistoadenoma_mucinoso": {
+        "casos": 32,
+        "sensibilidad": 0.5312,
+        "valor_predictivo_positivo": 0.4722
+      },
+      "carcinoma_seroso_alto_grado": {
+        "casos": 13,
+        "sensibilidad": 0.4615,
+        "valor_predictivo_positivo": 0.5455
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "quiste_endometriosico",
+        "cistoadenoma_seroso",
+        "teratoma",
+        "tumor_celulas_teca",
+        "quiste_simple",
+        "ovario_normal",
+        "cistoadenoma_mucinoso",
+        "carcinoma_seroso_alto_grado"
+      ],
+      "valores": [
+        [
+          82,
+          3,
+          6,
+          1,
+          1,
+          5,
+          2,
+          2
+        ],
+        [
+          5,
+          39,
+          4,
+          3,
+          1,
+          3,
+          8,
+          0
+        ],
+        [
+          7,
+          11,
+          72,
+          1,
+          0,
+          7,
+          1,
+          1
+        ],
+        [
+          3,
+          1,
+          3,
+          13,
+          0,
+          4,
+          4,
+          2
+        ],
+        [
+          0,
+          4,
+          2,
+          1,
+          9,
+          2,
+          1,
+          0
+        ],
+        [
+          5,
+          2,
+          4,
+          2,
+          2,
+          61,
+          1,
+          0
+        ],
+        [
+          5,
+          9,
+          1,
+          0,
+          0,
+          0,
+          17,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          0,
+          0,
+          2,
+          2,
+          6
+        ]
+      ]
+    },
+    "malignidad": {
+      "casos_malignos": 13,
+      "casos_no_malignos": 423,
+      "auc": 0.8652,
+      "umbral_fijado_de_antemano": 0.25,
+      "sensibilidad": 0.5385,
+      "especificidad": 0.9764,
+      "alarmas": 17,
+      "falsas_alarmas": 10
+    }
+  },
+  "prueba_D": {
+    "imagenes": 436,
+    "exactitud": 0.7087,
+    "exactitud_balanceada": 0.6209,
+    "f1_macro": 0.6478,
+    "auc_macro_ovr": 0.9213,
+    "exactitud_ic95": [
+      0.6651,
+      0.7477
+    ],
+    "exactitud_balanceada_ic95": [
+      0.5637,
+      0.6771
+    ],
+    "por_clase": {
+      "quiste_endometriosico": {
+        "casos": 102,
+        "sensibilidad": 0.8725,
+        "valor_predictivo_positivo": 0.7417
+      },
+      "cistoadenoma_seroso": {
+        "casos": 63,
+        "sensibilidad": 0.6825,
+        "valor_predictivo_positivo": 0.589
+      },
+      "teratoma": {
+        "casos": 100,
+        "sensibilidad": 0.7,
+        "valor_predictivo_positivo": 0.7692
+      },
+      "tumor_celulas_teca": {
+        "casos": 30,
+        "sensibilidad": 0.5,
+        "valor_predictivo_positivo": 0.6522
+      },
+      "quiste_simple": {
+        "casos": 19,
+        "sensibilidad": 0.5263,
+        "valor_predictivo_positivo": 0.9091
+      },
+      "ovario_normal": {
+        "casos": 77,
+        "sensibilidad": 0.7532,
+        "valor_predictivo_positivo": 0.7632
+      },
+      "cistoadenoma_mucinoso": {
+        "casos": 32,
+        "sensibilidad": 0.625,
+        "valor_predictivo_positivo": 0.5405
+      },
+      "carcinoma_seroso_alto_grado": {
+        "casos": 13,
+        "sensibilidad": 0.3077,
+        "valor_predictivo_positivo": 0.8
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "quiste_endometriosico",
+        "cistoadenoma_seroso",
+        "teratoma",
+        "tumor_celulas_teca",
+        "quiste_simple",
+        "ovario_normal",
+        "cistoadenoma_mucinoso",
+        "carcinoma_seroso_alto_grado"
+      ],
+      "valores": [
+        [
+          89,
+          2,
+          4,
+          2,
+          0,
+          3,
+          2,
+          0
+        ],
+        [
+          6,
+          43,
+          3,
+          2,
+          0,
+          3,
+          6,
+          0
+        ],
+        [
+          10,
+          10,
+          70,
+          2,
+          0,
+          5,
+          3,
+          0
+        ],
+        [
+          3,
+          2,
+          4,
+          15,
+          0,
+          2,
+          3,
+          1
+        ],
+        [
+          0,
+          6,
+          0,
+          0,
+          10,
+          2,
+          1,
+          0
+        ],
+        [
+          7,
+          3,
+          5,
+          2,
+          1,
+          58,
+          1,
+          0
+        ],
+        [
+          4,
+          7,
+          1,
+          0,
+          0,
+          0,
+          20,
+          0
+        ],
+        [
+          1,
+          0,
+          4,
+          0,
+          0,
+          3,
+          1,
+          4
+        ]
+      ]
+    },
+    "malignidad": {
+      "casos_malignos": 13,
+      "casos_no_malignos": 423,
+      "auc": 0.8743,
+      "umbral_fijado_de_antemano": 0.25,
+      "sensibilidad": 0.3846,
+      "especificidad": 0.9929,
+      "alarmas": 8,
+      "falsas_alarmas": 3
+    }
+  }
+}

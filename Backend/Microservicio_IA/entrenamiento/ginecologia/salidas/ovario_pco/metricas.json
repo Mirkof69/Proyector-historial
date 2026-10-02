@@ -1,0 +1,61 @@
+{
+  "tarea": "ovario_pco",
+  "dataset": "Borna et al. 2025 (Frontiers in Physiology): 301 ecografías transvaginales de pacientes distintas, una ginecobstetra",
+  "particion": "5 pliegues estratificados; métricas fuera de pliegue (cada imagen predicha por un modelo que no la vio)",
+  "prueba": {
+    "imagenes": 295,
+    "exactitud": 0.8,
+    "exactitud_balanceada": 0.809,
+    "f1_macro": 0.8041,
+    "auc_macro_ovr": 0.9114,
+    "exactitud_ic95": [
+      0.7525,
+      0.8441
+    ],
+    "exactitud_balanceada_ic95": [
+      0.7567,
+      0.8585
+    ],
+    "por_clase": {
+      "normal": {
+        "casos": 41,
+        "sensibilidad": 0.8293,
+        "valor_predictivo_positivo": 0.8095
+      },
+      "foliculo_dominante": {
+        "casos": 141,
+        "sensibilidad": 0.766,
+        "valor_predictivo_positivo": 0.8438
+      },
+      "poliquistico": {
+        "casos": 113,
+        "sensibilidad": 0.8319,
+        "valor_predictivo_positivo": 0.752
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "normal",
+        "foliculo_dominante",
+        "poliquistico"
+      ],
+      "valores": [
+        [
+          34,
+          3,
+          4
+        ],
+        [
+          6,
+          108,
+          27
+        ],
+        [
+          2,
+          17,
+          94
+        ]
+      ]
+    }
+  }
+}

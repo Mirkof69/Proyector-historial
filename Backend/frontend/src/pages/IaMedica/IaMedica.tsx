@@ -17,6 +17,7 @@ import IaMedicaStats from './components/IaMedicaStats';
 import GaleriaEcografias from './components/GaleriaEcografias';
 import InformeAnalisisModal from './components/InformeAnalisisModal';
 import CardiotocografiaIA from './components/CardiotocografiaIA';
+import EcografiaGinecologica from './components/EcografiaGinecologica';
 import CatalogoModelos from './components/CatalogoModelos';
 import ModalVincular from './components/ModalVincular';
 import ModalCnnLegado from './components/ModalCnnLegado';
@@ -33,7 +34,7 @@ const IaMedica: React.FC = () => {
   const [vinculando, setVinculando] = React.useState(false);
   const [ecografiasVinculadas, setEcografiasVinculadas] = React.useState<Record<number, number>>({});
   const [params, setParams] = useSearchParams();
-  const pestana = ['ecografia', 'cardiotocografia', 'modelos'].includes(params.get('pestana') || '')
+  const pestana = ['ecografia', 'ginecologia', 'cardiotocografia', 'modelos'].includes(params.get('pestana') || '')
     ? (params.get('pestana') as string) : 'ecografia';
 
   const fetchData = async () => {
@@ -273,6 +274,7 @@ const IaMedica: React.FC = () => {
         onChange={(clave) => { const n = new URLSearchParams(params); n.set('pestana', clave); setParams(n, { replace: true }); }}
         items={[
           { key: 'ecografia', label: 'Ecografía', children: galeria },
+          { key: 'ginecologia', label: 'Ecografía ginecológica', children: <EcografiaGinecologica /> },
           { key: 'cardiotocografia', label: 'Cardiotocografía', children: <CardiotocografiaIA /> },
           {
             key: 'modelos', label: 'Modelos y métricas',

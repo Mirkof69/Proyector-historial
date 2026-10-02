@@ -3,6 +3,7 @@ import time
 from contextlib import asynccontextmanager
 
 import numpy as np
+from PIL import Image
 from fastapi import FastAPI, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +23,7 @@ def precalentar() -> dict:
     01/10/2026; después del arranque cada análisis tarda 20–50 ms.
     """
     from .ecografia_real import ARCHIVO_CEREBRO, ARCHIVO_HC, ARCHIVO_PLANO, redes
+    from .ginecologia import CLASIFICADORES, ginecologia
     from .segmentacion import TAREAS, segmentacion
 
     imagen = np.zeros((256, 256), dtype=np.uint8)
@@ -35,6 +37,10 @@ def precalentar() -> dict:
         if segmentacion.disponible(tarea):
             segmentacion.segmentar(tarea, imagen)
             cargadas.append(f"segmentacion_{tarea}")
+    for nombre in CLASIFICADORES:
+        if ginecologia.disponible(nombre):
+            ginecologia.probabilidades(nombre, Image.fromarray(imagen))
+            cargadas.append(f"clasificador_{nombre}")
     segundos = round(time.perf_counter() - t0, 1)
     logger.info("Redes precalentadas en %s s: %s", segundos, ", ".join(cargadas))
     return {"redes": cargadas, "segundos": segundos}
@@ -76,6 +82,7 @@ async def health(response: Response):
     sha256 de sus pesos.
     """
     from .ecografia_real import ARCHIVO_PLANO, redes
+    from .ginecologia import ginecologia
     from .segmentacion import segmentacion
 
     listo = redes.disponible(ARCHIVO_PLANO)
@@ -85,5 +92,5 @@ async def health(response: Response):
         "status": "healthy" if listo else "unavailable",
         "model_loaded": listo,
         "precalentado": getattr(app.state, "precalentado", None),
-        "redes": redes.estado() | segmentacion.estado(),
+        "redes": redes.estado() | segmentacion.estado() | ginecologia.estado(),
     }

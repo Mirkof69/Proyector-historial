@@ -137,3 +137,10 @@ Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/*
 !Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/historia.json
 !Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/prueba_medidas.csv
 !Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/externa_hc18.csv
+# Ginecología: igual que segmentación (métricas, predicciones y auditoría de datos sí; pesos y matrices no).
+!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/
+Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/*
+!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/auditoria.json
+!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/metricas*.json
+!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/historia.json
+!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/predicciones_*.csv

@@ -32,13 +32,16 @@ from .unet import a_cuadrado, a_original, a_tensor, elipse, mayor_componente
 
 logger = logging.getLogger(__name__)
 
-TAREAS = ("cabeza", "torax", "abdomen", "intraparto")
+#: obstetricia y ginecología (ovario y mioma se analizan en app/ginecologia.py)
+TAREAS = ("cabeza", "torax", "abdomen", "intraparto", "ovario", "mioma")
+TAREAS_OBSTETRICAS = ("cabeza", "torax", "abdomen", "intraparto")
 
 #: color RGB por estructura en la superposición
 COLORES = {
     "craneo": (59, 130, 246), "csp": (234, 179, 8), "ventriculo_lateral": (239, 68, 68),
     "torax": (59, 130, 246), "corazon": (239, 68, 68),
     "sinfisis_pubis": (234, 179, 8), "cabeza_fetal": (59, 130, 246),
+    "lesion_ovarica": (234, 88, 12), "mioma": (234, 88, 12),
     "higado": (168, 85, 247), "estomago": (34, 197, 94), "vena_umbilical": (234, 179, 8), "aorta": (239, 68, 68),
 }
 NOMBRES = {
@@ -46,6 +49,7 @@ NOMBRES = {
     "torax": "Tórax", "corazon": "Corazón", "higado": "Hígado", "estomago": "Estómago",
     "vena_umbilical": "Vena umbilical", "aorta": "Aorta",
     "sinfisis_pubis": "Sínfisis del pubis", "cabeza_fetal": "Cabeza fetal",
+    "lesion_ovarica": "Lesión ovárica", "mioma": "Mioma",
 }
 #: Una estructura cuenta como vista si ocupa al menos esta fracción de la imagen
 #: (el mismo umbral con el que se midió la detección en el entrenamiento).

@@ -1,0 +1,302 @@
+[
+ {
+  "epoca": 1,
+  "perdida": 1.5561495411474973,
+  "dice_validacion": 0.1365580509643078
+ },
+ {
+  "epoca": 2,
+  "perdida": 1.450806309845274,
+  "dice_validacion": 0.3355186732504132
+ },
+ {
+  "epoca": 3,
+  "perdida": 1.3076024071270267,
+  "dice_validacion": 0.6101065062972593
+ },
+ {
+  "epoca": 4,
+  "perdida": 1.2139583241860599,
+  "dice_validacion": 0.7623504350257998
+ },
+ {
+  "epoca": 5,
+  "perdida": 1.1362382647217504,
+  "dice_validacion": 0.7017162907119011
+ },
+ {
+  "epoca": 6,
+  "perdida": 1.051975388400602,
+  "dice_validacion": 0.7617823226697796
+ },
+ {
+  "epoca": 7,
+  "perdida": 0.9581775791597682,
+  "dice_validacion": 0.76630888842166
+ },
+ {
+  "epoca": 8,
+  "perdida": 0.8601240081502902,
+  "dice_validacion": 0.7631016047122482
+ },
+ {
+  "epoca": 9,
+  "perdida": 0.7469316701225887,
+  "dice_validacion": 0.7991421777687386
+ },
+ {
+  "epoca": 10,
+  "perdida": 0.6311858233237109,
+  "dice_validacion": 0.7267081598777028
+ },
+ {
+  "epoca": 11,
+  "perdida": 0.5320204141124195,
+  "dice_validacion": 0.7824800740367437
+ },
+ {
+  "epoca": 12,
+  "perdida": 0.4027759614369727,
+  "dice_validacion": 0.8537755350974576
+ },
+ {
+  "epoca": 13,
+  "perdida": 0.3385155297667775,
+  "dice_validacion": 0.8508087183796605
+ },
+ {
+  "epoca": 14,
+  "perdida": 0.3025549198223266,
+  "dice_validacion": 0.8474794914038545
+ },
+ {
+  "epoca": 15,
+  "perdida": 0.25476738810539246,
+  "dice_validacion": 0.8641236411863926
+ },
+ {
+  "epoca": 16,
+  "perdida": 0.217767495291912,
+  "dice_validacion": 0.8740694408452366
+ },
+ {
+  "epoca": 17,
+  "perdida": 0.1947900221639911,
+  "dice_validacion": 0.8781037934532758
+ },
+ {
+  "epoca": 18,
+  "perdida": 0.18235999523409155,
+  "dice_validacion": 0.8561479375543196
+ },
+ {
+  "epoca": 19,
+  "perdida": 0.16214829525410734,
+  "dice_validacion": 0.8671479786608682
+ },
+ {
+  "epoca": 20,
+  "perdida": 0.16144664111911067,
+  "dice_validacion": 0.872221438207312
+ },
+ {
+  "epoca": 21,
+  "perdida": 0.15558207952818334,
+  "dice_validacion": 0.8766096538584006
+ },
+ {
+  "epoca": 22,
+  "perdida": 0.14836376254132252,
+  "dice_validacion": 0.8822836054895709
+ },
+ {
+  "epoca": 23,
+  "perdida": 0.1363853792481075,
+  "dice_validacion": 0.8826339476950957
+ },
+ {
+  "epoca": 24,
+  "perdida": 0.15456710647273536,
+  "dice_validacion": 0.840429404418327
+ },
+ {
+  "epoca": 25,
+  "perdida": 0.1571009706779821,
+  "dice_validacion": 0.8656054835026593
+ },
+ {
+  "epoca": 26,
+  "perdida": 0.1472591260904508,
+  "dice_validacion": 0.8656497661769558
+ },
+ {
+  "epoca": 27,
+  "perdida": 0.1357406181412817,
+  "dice_validacion": 0.8786156469291286
+ },
+ {
+  "epoca": 28,
+  "perdida": 0.12426994987670949,
+  "dice_validacion": 0.8790738837942079
+ },
+ {
+  "epoca": 29,
+  "perdida": 0.12293157188702893,
+  "dice_validacion": 0.8787851690819753
+ },
+ {
+  "epoca": 30,
+  "perdida": 0.11694694344965828,
+  "dice_validacion": 0.8684045058199823
+ },
+ {
+  "epoca": 31,
+  "perdida": 0.12321567037050297,
+  "dice_validacion": 0.8737098820563912
+ },
+ {
+  "epoca": 32,
+  "perdida": 0.11999958043066872,
+  "dice_validacion": 0.877727432270575
+ },
+ {
+  "epoca": 33,
+  "perdida": 0.11218025481069324,
+  "dice_validacion": 0.8697810312950661
+ },
+ {
+  "epoca": 34,
+  "perdida": 0.11175753595615855,
+  "dice_validacion": 0.8708452349335104
+ },
+ {
+  "epoca": 35,
+  "perdida": 0.1039178329982505,
+  "dice_validacion": 0.8762907128133879
+ },
+ {
+  "epoca": 36,
+  "perdida": 0.10218938657187468,
+  "dice_validacion": 0.8816209719132319
+ },
+ {
+  "epoca": 37,
+  "perdida": 0.09857691696148045,
+  "dice_validacion": 0.8844414065395347
+ },
+ {
+  "epoca": 38,
+  "perdida": 0.09846485672604958,
+  "dice_validacion": 0.8768625866310132
+ },
+ {
+  "epoca": 39,
+  "perdida": 0.09516848490530291,
+  "dice_validacion": 0.8813251263981591
+ },
+ {
+  "epoca": 40,
+  "perdida": 0.09256532171506755,
+  "dice_validacion": 0.8779754418469944
+ },
+ {
+  "epoca": 41,
+  "perdida": 0.09285831944831949,
+  "dice_validacion": 0.881297214319014
+ },
+ {
+  "epoca": 42,
+  "perdida": 0.08959995935492168,
+  "dice_validacion": 0.8813734543531612
+ },
+ {
+  "epoca": 43,
+  "perdida": 0.0905000762335512,
+  "dice_validacion": 0.8842465782061468
+ },
+ {
+  "epoca": 44,
+  "perdida": 0.08729202971355804,
+  "dice_validacion": 0.8819657665065593
+ },
+ {
+  "epoca": 45,
+  "perdida": 0.08802342607288172,
+  "dice_validacion": 0.8832134988479855
+ },
+ {
+  "epoca": 46,
+  "perdida": 0.08387640172874691,
+  "dice_validacion": 0.8832469148193896
+ },
+ {
+  "epoca": 47,
+  "perdida": 0.0859496866334353,
+  "dice_validacion": 0.8819760867689074
+ },
+ {
+  "epoca": 48,
+  "perdida": 0.08318141981071195,
+  "dice_validacion": 0.8838488701556158
+ },
+ {
+  "epoca": 49,
+  "perdida": 0.08799667952471221,
+  "dice_validacion": 0.8748689734241119
+ },
+ {
+  "epoca": 50,
+  "perdida": 0.07984912400411455,
+  "dice_validacion": 0.8832999922813993
+ },
+ {
+  "epoca": 51,
+  "perdida": 0.0800032846580278,
+  "dice_validacion": 0.8822152261342536
+ },
+ {
+  "epoca": 52,
+  "perdida": 0.08181604165707203,
+  "dice_validacion": 0.8810096077284056
+ },
+ {
+  "epoca": 53,
+  "perdida": 0.07899487122202552,
+  "dice_validacion": 0.8823723290926079
+ },
+ {
+  "epoca": 54,
+  "perdida": 0.07885526184806761,
+  "dice_validacion": 0.8826517205381271
+ },
+ {
+  "epoca": 55,
+  "perdida": 0.07806701824957171,
+  "dice_validacion": 0.8834347335477764
+ },
+ {
+  "epoca": 56,
+  "perdida": 0.07822653537751822,
+  "dice_validacion": 0.8834229915030996
+ },
+ {
+  "epoca": 57,
+  "perdida": 0.07749945068398849,
+  "dice_validacion": 0.8828408424867267
+ },
+ {
+  "epoca": 58,
+  "perdida": 0.0796604800401934,
+  "dice_validacion": 0.8830053930464662
+ },
+ {
+  "epoca": 59,
+  "perdida": 0.07812524537574377,
+  "dice_validacion": 0.8828729698102141
+ },
+ {
+  "epoca": 60,
+  "perdida": 0.07747980384834555,
+  "dice_validacion": 0.8834320072805777
+ }
+]

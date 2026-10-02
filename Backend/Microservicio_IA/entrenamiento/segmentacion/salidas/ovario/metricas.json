@@ -1,0 +1,32 @@
+{
+  "tarea": "ovario",
+  "dataset": "MMOTU OTU_2d (Beijing Shijitan Hospital; Figshare 25058690 / Zenodo 21128657)",
+  "particion": "prueba oficial por paciente, sin las casi copias de entrenamiento ni las de diagnóstico contradictorio; validación 15 % de los grupos de entrenamiento",
+  "imagenes_prueba": 436,
+  "pacientes_prueba": 434,
+  "epoca_elegida": 59,
+  "dice_validacion": 0.8712,
+  "dice_prueba": {
+    "lesion_ovarica": {
+      "medio": 0.8457,
+      "mediano": 0.9233,
+      "imagenes": 436
+    }
+  },
+  "dice_prueba_medio": 0.8457,
+  "lesion_ovarica_prueba": {
+    "imagenes": 436,
+    "iou_medio": 0.7678,
+    "lesion_encontrada_iou_0_5": 0.8807,
+    "por_clase_encontrada": {
+      "carcinoma_seroso_alto_grado": 0.6923,
+      "cistoadenoma_mucinoso": 0.9688,
+      "cistoadenoma_seroso": 0.9524,
+      "ovario_normal": 0.7143,
+      "quiste_endometriosico": 0.9118,
+      "quiste_simple": 0.9474,
+      "teratoma": 0.92,
+      "tumor_celulas_teca": 0.8667
+    }
+  }
+}

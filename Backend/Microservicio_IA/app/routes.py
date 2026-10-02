@@ -9,6 +9,7 @@ medidas en pacientes que no vieron (las métricas viajan en cada respuesta):
     POST /api/biometria/circunferencia-cefalica
     POST /api/anomalias-cerebrales
     POST /api/segmentacion/{cabeza|torax|abdomen|intraparto}   (intraparto: ángulo de progresión)
+    POST /api/ginecologia/{ovario|mioma|ovario-pco}            ecografía ginecológica
     POST /api/quality-check · POST /api/consultar (chatbot) · GET /api/modelos
 
 La EfficientNet-B4 de «14 patologías» se retiró: se había entrenado con
@@ -27,7 +28,8 @@ from pydantic import BaseModel
 from .config import IMAGE_CONFIG
 from .ecografia_real import redes as redes_reales
 from .preprocessing import PILImagePreprocessor as ImagePreprocessor
-from .segmentacion import TAREAS, segmentacion
+from .ginecologia import ginecologia
+from .segmentacion import TAREAS_OBSTETRICAS, segmentacion
 
 router = APIRouter(prefix="/api", tags=["AI Analysis"])
 
@@ -85,8 +87,9 @@ async def analisis_ecografia(
 
 @router.post("/segmentacion/{tarea}", summary="Segmentar cabeza, tórax o abdomen y medir")
 async def segmentar(tarea: str, file: UploadFile = File(...), tamano_pixel_mm: float | None = Form(None)) -> dict:
-    if tarea not in TAREAS:
-        raise HTTPException(status_code=404, detail=f"Tarea desconocida. Use una de: {', '.join(TAREAS)}")
+    if tarea not in TAREAS_OBSTETRICAS:
+        raise HTTPException(status_code=404,
+                            detail=f"Tarea desconocida. Use una de: {', '.join(TAREAS_OBSTETRICAS)}")
     imagen = await _leer_imagen(file)
     try:
         if tarea == "cabeza":
@@ -100,9 +103,32 @@ async def segmentar(tarea: str, file: UploadFile = File(...), tamano_pixel_mm: f
         raise HTTPException(status_code=503, detail=str(e)) from e
 
 
+GINECOLOGIA = {"ovario": "analizar_ovario", "mioma": "ubicar_mioma", "ovario-pco": "clasificar_ovario_pco"}
+
+
+@router.post("/ginecologia/{tarea}", summary="Ecografía ginecológica: lesión ovárica, mioma u ovario poliquístico")
+async def analizar_ginecologia(tarea: str, file: UploadFile = File(...),
+                               tamano_pixel_mm: float | None = Form(None)) -> dict:
+    """ovario: contorno, tipo (8 clases) y alarma de malignidad · mioma: ubicación ·
+    ovario-pco: normal / folículo dominante / poliquístico. Cada respuesta trae
+    las métricas medidas de las redes que la produjeron."""
+    if tarea not in GINECOLOGIA:
+        raise HTTPException(status_code=404, detail=f"Tarea desconocida. Use una de: {', '.join(GINECOLOGIA)}")
+    if tamano_pixel_mm is not None and not (0.01 <= tamano_pixel_mm <= 2.0):
+        raise HTTPException(status_code=400, detail="tamano_pixel_mm fuera de rango (0,01–2,0 mm por píxel).")
+    imagen = await _leer_imagen(file)
+    funcion = getattr(ginecologia, GINECOLOGIA[tarea])
+    try:
+        if tarea == "ovario-pco":
+            return await run_in_threadpool(funcion, imagen)
+        return await run_in_threadpool(funcion, imagen, tamano_pixel_mm)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+
+
 @router.get("/modelos", summary="Redes disponibles y sus métricas medidas")
 async def modelos() -> dict:
-    return redes_reales.estado() | segmentacion.estado()
+    return redes_reales.estado() | segmentacion.estado() | ginecologia.estado()
 
 
 async def _leer_imagen(file: UploadFile):

@@ -1,0 +1,24 @@
+{
+  "tarea": "mioma",
+  "dataset": "Uterine fibroid ultrasound images (Mendeley Data n2zcmcypgb v2)",
+  "particion": "por paciente 70/15/15 (paciente anonimizada)",
+  "imagenes_prueba": 128,
+  "pacientes_prueba": 118,
+  "epoca_elegida": 37,
+  "dice_validacion": 0.8844,
+  "dice_prueba": {
+    "mioma": {
+      "medio": 0.876,
+      "mediano": 0.8946,
+      "imagenes": 128
+    }
+  },
+  "dice_prueba_medio": 0.876,
+  "mioma_prueba": {
+    "imagenes": 128,
+    "iou_caja_medio": 0.7755,
+    "iou_caja_mediano": 0.8088,
+    "mioma_encontrado_iou_0_5": 0.9688,
+    "mioma_encontrado_iou_0_3": 0.9922
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "cancer_cervicouterino": {
+    "dataset": "UCI 383 Cervical cancer (Risk Factors) · Hospital Universitario de Caracas",
+    "pacientes_unicas": 835,
+    "biopsias_positivas": 54,
+    "A_solo_factores_de_riesgo": {
+      "variables": [
+        "Age",
+        "Number of sexual partners",
+        "First sexual intercourse",
+        "Num of pregnancies",
+        "Smokes",
+        "Smokes (years)",
+        "Smokes (packs/year)",
+        "Hormonal Contraceptives",
+        "Hormonal Contraceptives (years)",
+        "IUD",
+        "IUD (years)",
+        "STDs",
+        "STDs (number)",
+        "STDs:condylomatosis",
+        "STDs:cervical condylomatosis",
+        "STDs:vaginal condylomatosis",
+        "STDs:vulvo-perineal condylomatosis",
+        "STDs:syphilis",
+        "STDs:pelvic inflammatory disease",
+        "STDs:genital herpes",
+        "STDs:molluscum contagiosum",
+        "STDs:AIDS",
+        "STDs:HIV",
+        "STDs:Hepatitis B",
+        "STDs:HPV",
+        "STDs: Number of diagnosis"
+      ],
+      "auc_validacion_cruzada": {
+        "logistica": 0.5709,
+        "bosque_aleatorio": 0.5828,
+        "gradient_boosting": 0.6535
+      },
+      "modelo_elegido": "gradient_boosting",
+      "prueba": {
+        "casos_positivos": 11,
+        "casos_negativos": 156,
+        "auc": 0.5997,
+        "auc_ic95": [
+          0.3777,
+          0.811
+        ],
+        "auc_pr": 0.1452,
+        "umbral": 0.0001,
+        "sensibilidad": 0.8182,
+        "especificidad": 0.2115,
+        "vpp": 0.0682,
+        "verdaderos_positivos": 9,
+        "falsos_negativos": 2,
+        "falsos_positivos": 123
+      }
+    },
+    "B_con_pruebas_de_tamizaje": {
+      "variables": [
+        "Age",
+        "Number of sexual partners",
+        "First sexual intercourse",
+        "Num of pregnancies",
+        "Smokes",
+        "Smokes (years)",
+        "Smokes (packs/year)",
+        "Hormonal Contraceptives",
+        "Hormonal Contraceptives (years)",
+        "IUD",
+        "IUD (years)",
+        "STDs",
+        "STDs (number)",
+        "STDs:condylomatosis",
+        "STDs:cervical condylomatosis",
+        "STDs:vaginal condylomatosis",
+        "STDs:vulvo-perineal condylomatosis",
+        "STDs:syphilis",
+        "STDs:pelvic inflammatory disease",
+        "STDs:genital herpes",
+        "STDs:molluscum contagiosum",
+        "STDs:AIDS",
+        "STDs:HIV",
+        "STDs:Hepatitis B",
+        "STDs:HPV",
+        "STDs: Number of diagnosis",
+        "Hinselmann",
+        "Schiller",
+        "Citology"
+      ],
+      "auc_validacion_cruzada": {
+        "logistica": 0.9191,
+        "bosque_aleatorio": 0.9121,
+        "gradient_boosting": 0.91
+      },
+      "modelo_elegido": "logistica",
+      "prueba": {
+        "casos_positivos": 11,
+        "casos_negativos": 156,
+        "auc": 0.866,
+        "auc_ic95": [
+          0.7121,
+          0.9828
+        ],
+        "auc_pr": 0.4394,
+        "umbral": 0.1051,
+        "sensibilidad": 0.8182,
+        "especificidad": 0.6474,
+        "vpp": 0.1406,
+        "verdaderos_positivos": 9,
+        "falsos_negativos": 2,
+        "falsos_positivos": 55
+      },
+      "referencia_regla_alguna_prueba_positiva": {
+        "casos_positivos": 11,
+        "casos_negativos": 156,
+        "auc": 0.9129,
+        "auc_ic95": [
+          0.8054,
+          0.9742
+        ],
+        "auc_pr": 0.4012,
+        "umbral": 0.5,
+        "sensibilidad": 0.9091,
+        "especificidad": 0.9167,
+        "vpp": 0.4348,
+        "verdaderos_positivos": 10,
+        "falsos_negativos": 1,
+        "falsos_positivos": 13
+      }
+    }
+  },
+  "riesgo_materno": {
+    "dataset": "UCI 863 Maternal Health Risk (Bangladés)",
+    "filas_originales": 1014,
+    "filas_unicas": 452,
+    "conflictivas_excluidas": 71,
+    "casos_usados": 381,
+    "balanced_accuracy_validacion_cruzada": {
+      "logistica": 0.5769,
+      "bosque_aleatorio": 0.6808,
+      "gradient_boosting": 0.654
+    },
+    "modelo_elegido": "bosque_aleatorio",
+    "prueba": {
+      "casos": 77,
+      "exactitud": 0.7662,
+      "exactitud_balanceada": 0.7113,
+      "exactitud_balanceada_ic95": [
+        0.6076,
+        0.8086
+      ],
+      "f1_macro": 0.7016,
+      "sensibilidad_riesgo_alto": 0.9048,
+      "matriz_confusion": {
+        "orden": [
+          "low risk",
+          "mid risk",
+          "high risk"
+        ],
+        "valores": [
+          [
+            34,
+            5,
+            2
+          ],
+          [
+            5,
+            6,
+            4
+          ],
+          [
+            0,
+            2,
+            19
+          ]
+        ]
+      }
+    },
+    "referencia_clase_mas_frecuente": {
+      "exactitud": 0.5325,
+      "exactitud_balanceada": 0.3333
+    }
+  }
+}
