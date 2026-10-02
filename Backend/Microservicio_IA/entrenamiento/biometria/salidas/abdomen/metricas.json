@@ -1,0 +1,102 @@
+{
+  "tarea": "abdomen",
+  "dataset": "Multicentre Fetal Biometry 2026 (UCL RDR 10.5522/04/30819911)",
+  "particion": "oficial por paciente (_Train/_Test) sin las pacientes de UCLH que aparecían en los dos lados; validación 15 % de las pacientes de entrenamiento",
+  "fuga_en_la_particion_oficial": {
+    "pacientes_en_ambos_lados": [
+      "ucl005",
+      "ucl031",
+      "ucl034",
+      "ucl035",
+      "ucl056"
+    ],
+    "imagenes_de_prueba_quitadas": 21
+  },
+  "imagenes_prueba": 140,
+  "pacientes_prueba": 118,
+  "epoca_elegida": 60,
+  "error_relativo_validacion": 0.0294,
+  "prueba": {
+    "imagenes": 140,
+    "tad": {
+      "imagenes": 140,
+      "error_relativo_medio": 0.0322,
+      "dentro_de_5_por_ciento": 0.8786,
+      "imagenes_con_mm": 134,
+      "error_medio_mm": 2.31,
+      "error_mediano_mm": 1.29
+    },
+    "apad": {
+      "imagenes": 140,
+      "error_relativo_medio": 0.036,
+      "dentro_de_5_por_ciento": 0.8643,
+      "imagenes_con_mm": 134,
+      "error_medio_mm": 2.39,
+      "error_mediano_mm": 1.01
+    },
+    "ca": {
+      "imagenes": 134,
+      "error_relativo_medio": 0.0288,
+      "dentro_de_5_por_ciento": 0.8881,
+      "imagenes_con_mm": 134,
+      "error_medio_mm": 6.05,
+      "error_mediano_mm": 2.92
+    }
+  },
+  "por_sitio": {
+    "Barcelona (FETAL_PLANES)": {
+      "imagenes": 125,
+      "tad": {
+        "imagenes": 125,
+        "error_relativo_medio": 0.0344,
+        "dentro_de_5_por_ciento": 0.864,
+        "imagenes_con_mm": 125,
+        "error_medio_mm": 2.42,
+        "error_mediano_mm": 1.4
+      },
+      "apad": {
+        "imagenes": 125,
+        "error_relativo_medio": 0.0392,
+        "dentro_de_5_por_ciento": 0.848,
+        "imagenes_con_mm": 125,
+        "error_medio_mm": 2.51,
+        "error_mediano_mm": 1.03
+      },
+      "ca": {
+        "imagenes": 125,
+        "error_relativo_medio": 0.0301,
+        "dentro_de_5_por_ciento": 0.88,
+        "imagenes_con_mm": 125,
+        "error_medio_mm": 6.33,
+        "error_mediano_mm": 2.99
+      }
+    },
+    "Londres (UCLH)": {
+      "imagenes": 15,
+      "tad": {
+        "imagenes": 15,
+        "error_relativo_medio": 0.0144,
+        "dentro_de_5_por_ciento": 1.0,
+        "imagenes_con_mm": 9,
+        "error_medio_mm": 0.85,
+        "error_mediano_mm": 0.5
+      },
+      "apad": {
+        "imagenes": 15,
+        "error_relativo_medio": 0.0093,
+        "dentro_de_5_por_ciento": 1.0,
+        "imagenes_con_mm": 9,
+        "error_medio_mm": 0.77,
+        "error_mediano_mm": 0.49
+      },
+      "ca": {
+        "imagenes": 9,
+        "error_relativo_medio": 0.0111,
+        "dentro_de_5_por_ciento": 1.0,
+        "imagenes_con_mm": 9,
+        "error_medio_mm": 2.18,
+        "error_mediano_mm": 2.0
+      }
+    }
+  }
+}

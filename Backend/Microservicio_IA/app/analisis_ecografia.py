@@ -3,8 +3,9 @@
     imagen → plano anatómico (EfficientNet-B0, 92,7 %)
            ├─ cerebro → segmentación de cabeza (HC, DBP, EG) + cribado de anomalías cerebrales
            ├─ tórax   → segmentación de tórax y corazón (índice cardiotorácico)
-           ├─ abdomen → segmentación abdominal (¿plano correcto para medir CA?)
-           └─ fémur, cuello uterino, otro → se informa el plano; no hay red de medida validada
+           ├─ abdomen → segmentación abdominal (¿plano correcto para medir CA?) + circunferencia abdominal
+           ├─ fémur   → longitud del fémur (red de puntos, 1,3 mm de error medio)
+           └─ cuello uterino, otro → se informa el plano; no hay red de medida validada
 
 Reemplaza a la EfficientNet-B4 de «14 patologías», que se entrenó con
 etiquetas no verificables (ver datos/CATALOGO.md) y no tenía ninguna métrica
@@ -19,12 +20,13 @@ from __future__ import annotations
 import logging
 import time
 
+from .biometria import biometria
 from .ecografia_real import ARCHIVO_CEREBRO, ARCHIVO_PLANO, redes
 from .segmentacion import segmentacion
 
 logger = logging.getLogger(__name__)
 
-VERSION_FLUJO = "2.0"
+VERSION_FLUJO = "2.1"
 #: Plano → tarea de segmentación
 TAREA_POR_PLANO = {"cerebro fetal": "cabeza", "tórax fetal": "torax", "abdomen fetal": "abdomen"}
 
@@ -40,6 +42,10 @@ def _texto(informe: dict) -> str:
     if "indice_cardiotoracico_areas" in m:
         partes.append(f"Índice cardiotorácico por áreas {m['indice_cardiotoracico_areas']} "
                       f"(referencia {m['referencia_areas'][0]}–{m['referencia_areas'][1]}).")
+    if "longitud_femur_mm" in m:
+        partes.append(f"Longitud del fémur {m['longitud_femur_mm']} mm (±{m['margen_lf_mm']}).")
+    if "circunferencia_abdominal_mm" in m:
+        partes.append(f"Circunferencia abdominal {m['circunferencia_abdominal_mm']} mm (±{m['margen_ca_mm']}).")
     if "plano_adecuado_para_ca" in m:
         partes.append("Corte adecuado para medir la circunferencia abdominal." if m["plano_adecuado_para_ca"]
                       else "El corte no muestra estómago y vena umbilical: no es el adecuado para medir la CA.")
@@ -63,7 +69,13 @@ def analizar(imagen, tamano_pixel_mm: float | None = None) -> dict:
                      "modelos_usados": [plano["modelo"]]}
 
     tarea = TAREA_POR_PLANO.get(plano["plano"])
-    if tarea and segmentacion.disponible(tarea):
+    if plano["plano"] == "fémur fetal" and biometria.disponible("femur"):
+        r = biometria.medir("femur", imagen, tamano_pixel_mm)
+        informe["medidas"] = r["medidas"]
+        informe["superposicion_png"] = r["superposicion_png"]
+        informe["avisos"] += r["avisos"]
+        informe["modelos_usados"].append(r["modelo"])
+    elif tarea and segmentacion.disponible(tarea):
         if tarea == "cabeza":
             r = segmentacion.medir_cabeza(imagen, tamano_pixel_mm)
         elif tarea == "torax":
@@ -75,6 +87,12 @@ def analizar(imagen, tamano_pixel_mm: float | None = None) -> dict:
         informe["superposicion_png"] = r["superposicion_png"]
         informe["avisos"] += r["avisos"]
         informe["modelos_usados"].append(r["modelo"])
+        if tarea == "abdomen" and biometria.disponible("abdomen"):
+            b = biometria.medir("abdomen", imagen, tamano_pixel_mm)
+            informe["medidas"] |= b["medidas"]
+            informe["avisos"] += [a for a in b["avisos"] if a not in informe["avisos"]]
+            informe["modelos_usados"].append(b["modelo"])
+            informe["superposicion_diametros_png"] = b["superposicion_png"]
     elif tarea:
         informe["avisos"].append(f"La red de segmentación de {tarea} no está instalada en este servidor.")
     else:

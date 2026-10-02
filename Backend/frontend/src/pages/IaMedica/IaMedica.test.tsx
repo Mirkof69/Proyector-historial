@@ -67,10 +67,23 @@ describe('IaMedica - análisis con redes medidas', () => {
     expect(screen.getByText('plano_anatomico_fetal_planes')).toBeInTheDocument();
   });
 
+  it('muestra la longitud del fémur y la circunferencia abdominal con su margen', async () => {
+    (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
+      plano: { plano: 'fémur fetal', confianza: 0.97, probabilidades: { 'fémur fetal': 0.97 }, avisos: [] },
+      medidas: { longitud_femur_mm: 52.4, margen_lf_mm: 1.29, circunferencia_abdominal_mm: 248.1, margen_ca_mm: 6.05 },
+    }));
+    renderPagina();
+    await userEvent.click(await screen.findByText('Analizar con IA'));
+    expect(await screen.findByText('52.4 mm ± 1.29')).toBeInTheDocument();
+    expect(screen.getByText('248.1 mm ± 6.05')).toBeInTheDocument();
+    expect(screen.getByText('Longitud del fémur')).toBeInTheDocument();
+  });
+
   it('no inventa medidas para un plano sin red de medida', async () => {
     (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
-      plano: { plano: 'fémur fetal', confianza: 0.95, probabilidades: { 'fémur fetal': 0.95 }, avisos: [] },
-      hallazgos: ['Para el plano «fémur fetal» no hay una red de medida validada: solo se informa el plano.'],
+      // El fémur ya tiene red de medida (RF-32); el cuello uterino todavía no.
+      plano: { plano: 'cuello uterino materno', confianza: 0.95, probabilidades: { 'cuello uterino materno': 0.95 }, avisos: [] },
+      hallazgos: ['Para el plano «cuello uterino materno» no hay una red de medida validada: solo se informa el plano.'],
     }));
     renderPagina();
     await userEvent.click(await screen.findByText('Analizar con IA'));

@@ -1,0 +1,55 @@
+{
+  "dataset": "Term-Preterm EHG Database (PhysioNet, Ljubljana)",
+  "registros": 300,
+  "prematuros": 38,
+  "ehg_y_clinicos": {
+    "auc_validacion_cruzada": {
+      "logistica": 0.4211,
+      "bosque_aleatorio": 0.4192,
+      "gradient_boosting": 0.4344
+    },
+    "modelo_elegido": "gradient_boosting",
+    "prueba": {
+      "casos_positivos": 8,
+      "casos_negativos": 52,
+      "auc": 0.613,
+      "auc_ic95": [
+        0.3236,
+        0.8707
+      ],
+      "auc_pr": 0.4496,
+      "umbral": 0.0537,
+      "sensibilidad": 0.875,
+      "especificidad": 0.1538,
+      "vpp": 0.1373,
+      "verdaderos_positivos": 7,
+      "falsos_negativos": 1,
+      "falsos_positivos": 44
+    }
+  },
+  "referencia_solo_clinicos": {
+    "auc_validacion_cruzada": {
+      "logistica": 0.4267,
+      "bosque_aleatorio": 0.4448,
+      "gradient_boosting": 0.4554
+    },
+    "modelo_elegido": "gradient_boosting",
+    "prueba": {
+      "casos_positivos": 8,
+      "casos_negativos": 52,
+      "auc": 0.6587,
+      "auc_ic95": [
+        0.3943,
+        0.868
+      ],
+      "auc_pr": 0.2874,
+      "umbral": 0.1278,
+      "sensibilidad": 0.875,
+      "especificidad": 0.1923,
+      "vpp": 0.1429,
+      "verdaderos_positivos": 7,
+      "falsos_negativos": 1,
+      "falsos_positivos": 42
+    }
+  }
+}

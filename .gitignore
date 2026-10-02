@@ -144,3 +144,12 @@ Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/*
 !Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/metricas*.json
 !Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/historia.json
 !Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/predicciones_*.csv
+# Biometría y señales: métricas, historia y medidas de prueba sí; pesos, modelos y rasgos no.
+!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/
+Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/*
+!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/metricas.json
+!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/historia.json
+!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/prueba_medidas.csv
+!Backend/Microservicio_IA/entrenamiento/senales/salidas/*/
+Backend/Microservicio_IA/entrenamiento/senales/salidas/*/*
+!Backend/Microservicio_IA/entrenamiento/senales/salidas/*/metricas.json

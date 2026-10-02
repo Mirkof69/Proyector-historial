@@ -30,6 +30,13 @@ const ETIQUETAS_MEDIDA: Record<string, string> = {
   indice_cardiotoracico_circunferencias: 'Índice cardiotorácico (circunferencias)',
   plano_adecuado_para_ca: 'Corte adecuado para medir la CA',
   relacion_ejes: 'Relación de ejes del cráneo',
+  longitud_femur_mm: 'Longitud del fémur',
+  circunferencia_abdominal_mm: 'Circunferencia abdominal',
+  diametro_abdominal_transverso_mm: 'Diámetro abdominal transverso',
+  diametro_abdominal_anteroposterior_mm: 'Diámetro abdominal anteroposterior',
+  fl_px: 'Longitud del fémur (px, sin escala)',
+  tad_px: 'Diámetro transverso (px, sin escala)',
+  apad_px: 'Diámetro anteroposterior (px, sin escala)',
 };
 
 const valorMedida = (clave: string, v: unknown, informe: InformeRedesMedidas): React.ReactNode => {
@@ -37,6 +44,9 @@ const valorMedida = (clave: string, v: unknown, informe: InformeRedesMedidas): R
   if (typeof v === 'boolean') return v ? <Tag color="green">Sí</Tag> : <Tag color="orange">No</Tag>;
   if (clave === 'circunferencia_cefalica_mm') return `${v} mm ± ${m.margen_hc_mm}`;
   if (clave === 'diametro_biparietal_mm') return `${v} mm ± ${m.margen_dbp_mm}`;
+  if (clave === 'longitud_femur_mm') return `${v} mm ± ${m.margen_lf_mm}`;
+  if (clave === 'circunferencia_abdominal_mm') return `${v} mm ± ${m.margen_ca_mm}`;
+  if (clave.endsWith('_mm')) return `${v} mm`;
   if (clave.includes('semanas')) return `${v} semanas`;
   if (clave === 'indice_cardiotoracico_areas') {
     const [min, max] = m.referencia_areas ?? [0.25, 0.35];

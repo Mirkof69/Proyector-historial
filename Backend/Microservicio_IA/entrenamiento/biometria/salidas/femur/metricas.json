@@ -1,0 +1,53 @@
+{
+  "tarea": "femur",
+  "dataset": "Multicentre Fetal Biometry 2026 (UCL RDR 10.5522/04/30819911)",
+  "particion": "oficial por paciente (_Train/_Test) sin las pacientes de UCLH que aparecían en los dos lados; validación 15 % de las pacientes de entrenamiento",
+  "fuga_en_la_particion_oficial": {
+    "pacientes_en_ambos_lados": [
+      "ucl031",
+      "ucl034",
+      "ucl050",
+      "ucl056"
+    ],
+    "imagenes_de_prueba_quitadas": 9
+  },
+  "imagenes_prueba": 353,
+  "pacientes_prueba": 271,
+  "epoca_elegida": 64,
+  "error_relativo_validacion": 0.036,
+  "prueba": {
+    "imagenes": 353,
+    "fl": {
+      "imagenes": 353,
+      "error_relativo_medio": 0.0278,
+      "dentro_de_5_por_ciento": 0.9235,
+      "imagenes_con_mm": 348,
+      "error_medio_mm": 1.29,
+      "error_mediano_mm": 0.58
+    }
+  },
+  "por_sitio": {
+    "Barcelona (FETAL_PLANES)": {
+      "imagenes": 323,
+      "fl": {
+        "imagenes": 323,
+        "error_relativo_medio": 0.0287,
+        "dentro_de_5_por_ciento": 0.9195,
+        "imagenes_con_mm": 323,
+        "error_medio_mm": 1.33,
+        "error_mediano_mm": 0.58
+      }
+    },
+    "Londres (UCLH)": {
+      "imagenes": 30,
+      "fl": {
+        "imagenes": 30,
+        "error_relativo_medio": 0.0177,
+        "dentro_de_5_por_ciento": 0.9667,
+        "imagenes_con_mm": 25,
+        "error_medio_mm": 0.8,
+        "error_mediano_mm": 0.57
+      }
+    }
+  }
+}

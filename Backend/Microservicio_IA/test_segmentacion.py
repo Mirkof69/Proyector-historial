@@ -120,7 +120,7 @@ def test_analisis_completo_de_una_cabeza():
                          data={"tamano_pixel_mm": 0.15})
     assert r.status_code == 200
     d = r.json()
-    assert d["status"] == "success" and d["version_flujo"] == "2.0"
+    assert d["status"] == "success" and d["version_flujo"] == "2.1"
     if d["plano"]["plano"] == "cerebro fetal":
         assert "circunferencia_cefalica_mm" in d["medidas"]
         assert d["superposicion_png"]

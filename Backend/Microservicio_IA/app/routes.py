@@ -10,6 +10,7 @@ medidas en pacientes que no vieron (las métricas viajan en cada respuesta):
     POST /api/anomalias-cerebrales
     POST /api/segmentacion/{cabeza|torax|abdomen|intraparto}   (intraparto: ángulo de progresión)
     POST /api/ginecologia/{ovario|mioma|ovario-pco}            ecografía ginecológica
+    POST /api/biometria/{longitud-femur|circunferencia-abdominal}   red de puntos
     POST /api/quality-check · POST /api/consultar (chatbot) · GET /api/modelos
 
 La EfficientNet-B4 de «14 patologías» se retiró: se había entrenado con
@@ -28,6 +29,7 @@ from pydantic import BaseModel
 from .config import IMAGE_CONFIG
 from .ecografia_real import redes as redes_reales
 from .preprocessing import PILImagePreprocessor as ImagePreprocessor
+from .biometria import biometria
 from .ginecologia import ginecologia
 from .segmentacion import TAREAS_OBSTETRICAS, segmentacion
 
@@ -103,6 +105,29 @@ async def segmentar(tarea: str, file: UploadFile = File(...), tamano_pixel_mm: f
         raise HTTPException(status_code=503, detail=str(e)) from e
 
 
+async def _medir_biometria(tarea: str, file: UploadFile, tamano_pixel_mm: float | None) -> dict:
+    # Rutas explícitas (no «/biometria/{tarea}»): esa forma capturaba la ruta ya
+    # existente /biometria/circunferencia-cefalica y la dejaba en 404.
+    if tamano_pixel_mm is not None and not (0.01 <= tamano_pixel_mm <= 2.0):
+        raise HTTPException(status_code=400, detail="tamano_pixel_mm fuera de rango (0,01–2,0 mm por píxel).")
+    imagen = await _leer_imagen(file)
+    try:
+        return await run_in_threadpool(biometria.medir, tarea, imagen, tamano_pixel_mm)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+
+
+@router.post("/biometria/longitud-femur", summary="Longitud del fémur (red de puntos, datos de 4 hospitales)")
+async def longitud_femur(file: UploadFile = File(...), tamano_pixel_mm: float | None = Form(None)) -> dict:
+    return await _medir_biometria("femur", file, tamano_pixel_mm)
+
+
+@router.post("/biometria/circunferencia-abdominal",
+             summary="Circunferencia abdominal desde los diámetros transverso y anteroposterior (red de puntos)")
+async def circunferencia_abdominal(file: UploadFile = File(...), tamano_pixel_mm: float | None = Form(None)) -> dict:
+    return await _medir_biometria("abdomen", file, tamano_pixel_mm)
+
+
 GINECOLOGIA = {"ovario": "analizar_ovario", "mioma": "ubicar_mioma", "ovario-pco": "clasificar_ovario_pco"}
 
 
@@ -128,7 +153,7 @@ async def analizar_ginecologia(tarea: str, file: UploadFile = File(...),
 
 @router.get("/modelos", summary="Redes disponibles y sus métricas medidas")
 async def modelos() -> dict:
-    return redes_reales.estado() | segmentacion.estado() | ginecologia.estado()
+    return redes_reales.estado() | segmentacion.estado() | ginecologia.estado() | biometria.estado()
 
 
 async def _leer_imagen(file: UploadFile):

@@ -1,0 +1,121 @@
+{
+  "dataset": "CTU-UHB Intrapartum CTG (PhysioNet, Brno, 552 registros)",
+  "registros": 552,
+  "ventana": "últimos 30 min de la primera etapa",
+  "variables": [
+    "Age",
+    "Gravidity",
+    "Parity",
+    "Diabetes",
+    "Hypertension",
+    "Preeclampsia",
+    "Liq. praecox",
+    "Pyrexia",
+    "Meconium",
+    "Gest. weeks",
+    "Presentation",
+    "Induced",
+    "perdida_senal",
+    "linea_base",
+    "stv",
+    "ltv",
+    "media",
+    "desvio",
+    "minimo_p5",
+    "desaceleraciones",
+    "segundos_en_desaceleracion",
+    "area_desaceleraciones",
+    "aceleraciones",
+    "contracciones_30min",
+    "potencia_vlf",
+    "potencia_lf",
+    "potencia_mf",
+    "potencia_hf"
+  ],
+  "acidemia_ph_menor_7_15": {
+    "prevalencia": 0.1902,
+    "auc_validacion_cruzada": {
+      "logistica": 0.6572,
+      "bosque_aleatorio": 0.6142,
+      "gradient_boosting": 0.5736
+    },
+    "modelo_elegido": "logistica",
+    "prueba": {
+      "casos_positivos": 21,
+      "casos_negativos": 90,
+      "auc": 0.7265,
+      "auc_ic95": [
+        0.6045,
+        0.8422
+      ],
+      "auc_pr": 0.4311,
+      "umbral": 0.3443,
+      "sensibilidad": 0.9048,
+      "especificidad": 0.3333,
+      "vpp": 0.2405,
+      "verdaderos_positivos": 19,
+      "falsos_negativos": 2,
+      "falsos_positivos": 60
+    },
+    "referencia_3_rasgos_clasicos": {
+      "casos_positivos": 21,
+      "casos_negativos": 90,
+      "auc": 0.6339,
+      "auc_ic95": [
+        0.4974,
+        0.7599
+      ],
+      "auc_pr": 0.3557,
+      "umbral": 0.43,
+      "sensibilidad": 1.0,
+      "especificidad": 0.1889,
+      "vpp": 0.2234,
+      "verdaderos_positivos": 21,
+      "falsos_negativos": 0,
+      "falsos_positivos": 73
+    }
+  },
+  "acidemia_grave_ph_menor_7_05": {
+    "prevalencia": 0.0725,
+    "auc_validacion_cruzada": {
+      "logistica": 0.7048,
+      "bosque_aleatorio": 0.7303,
+      "gradient_boosting": 0.6472
+    },
+    "modelo_elegido": "bosque_aleatorio",
+    "prueba": {
+      "casos_positivos": 8,
+      "casos_negativos": 103,
+      "auc": 0.6408,
+      "auc_ic95": [
+        0.3848,
+        0.8655
+      ],
+      "auc_pr": 0.153,
+      "umbral": 0.1393,
+      "sensibilidad": 0.75,
+      "especificidad": 0.5243,
+      "vpp": 0.1091,
+      "verdaderos_positivos": 6,
+      "falsos_negativos": 2,
+      "falsos_positivos": 49
+    },
+    "referencia_3_rasgos_clasicos": {
+      "casos_positivos": 8,
+      "casos_negativos": 103,
+      "auc": 0.7488,
+      "auc_ic95": [
+        0.5021,
+        0.9238
+      ],
+      "auc_pr": 0.203,
+      "umbral": 0.3944,
+      "sensibilidad": 0.875,
+      "especificidad": 0.1068,
+      "vpp": 0.0707,
+      "verdaderos_positivos": 7,
+      "falsos_negativos": 1,
+      "falsos_positivos": 92
+    }
+  }
+}
