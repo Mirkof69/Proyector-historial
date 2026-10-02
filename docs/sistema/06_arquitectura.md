@@ -14,7 +14,7 @@ flowchart LR
         SPA[SPA compilada<br/>servir_produccion.py · :3000<br/>gzip + caché por hash]
     end
 
-    subgraph BE[Backend · Django 6 + DRF · ASGI uvicorn :8000 · 8 workers]
+    subgraph BE[Backend · Django 6 + DRF · API en waitress :8000 · WebSockets en uvicorn :8010]
         API[API REST /api/*<br/>JWT en cookie httpOnly + CSRF]
         WS[WebSocket /ws/*<br/>Django Channels]
         MEDIA[/media/ protegida<br/>solo con sesión y rol/]
@@ -22,13 +22,13 @@ flowchart LR
     end
 
     subgraph IA[Microservicio de IA · FastAPI + PyTorch · :8001]
-        REDES[Redes con ecografías reales<br/>plano · cabeza · anomalías]
-        B4[EfficientNet-B4<br/>experimental]
+        REDES[Redes con ecografías reales<br/>plano · anomalías cerebrales]
+        SEG[Segmentación U-Net<br/>cabeza · tórax · abdomen · intraparto]
         CHAT[Asistente obstétrico]
     end
 
     DB[(PostgreSQL 18<br/>un esquema por clínica)]
-    R[(Redis<br/>opcional: canales,<br/>caché, cola)]
+    R[(Redis<br/>canal API → WebSockets,<br/>caché, cola)]
     FS[(Archivos<br/>media/ · ml_modelos/<br/>trained_models/)]
 
     U -->|HTTPS| SPA
@@ -37,10 +37,11 @@ flowchart LR
     SPA -->|imágenes con cookie| MEDIA
     API -->|ORM| DB
     API -->|imagen + parámetros| REDES
-    API --> B4
+    API -->|análisis completo| SEG
     API --> CHAT
     API --> FS
-    WS -.-> R
+    API -->|publica notificaciones| R
+    R -->|las entrega| WS
     TASKS -.-> R
     TASKS --> DB
     REDES --> FS
@@ -118,6 +119,6 @@ flowchart LR
 | Frontend | React 18, TypeScript, Ant Design 5, Recharts, Day.js |
 | Backend | Python 3.12, Django 6, Django REST Framework, django-tenants, Channels, SimpleJWT, drf-spectacular (OpenAPI) |
 | IA | FastAPI, PyTorch (CUDA), timm (EfficientNet), scikit-learn (modelo supervisado) |
-| Base de datos | PostgreSQL 18 |
-| Opcionales | Redis (canales, caché, cola), Celery, HashiCorp Vault (secretos), nginx (TLS) |
+| Base de datos y mensajería | PostgreSQL 18; Redis (canal de notificaciones entre la API y los WebSockets, caché) |
+| Opcionales | Celery, HashiCorp Vault (secretos), nginx (TLS) |
 | Pruebas | pytest, Jest, Playwright, ruff, eslint, tsc |

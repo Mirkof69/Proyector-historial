@@ -16,6 +16,7 @@ produjo y la huella (sha256) de sus pesos.
 | Segmentación de cabeza | U-Net (codificador EfficientNet-B2) | Large-Scale Fetal Head Biometry, 2.833 imágenes de 1.038 pacientes | Dice cráneo 0,968. **Otro hospital (HC18, 999 imágenes):** circunferencia cefálica con error medio 4,4 mm (3,7 %), 92 % dentro del 5 %, R² 0,982 |
 | Segmentación de tórax y corazón | U-Net | FOCUS, 300 imágenes | Dice 0,93; índice cardiotorácico ±0,02 |
 | Segmentación abdominal | U-Net | Fetal Abdominal Structures, 1.588 imágenes de 169 pacientes | Dice hígado 0,84, vena umbilical 0,77, estómago 0,71, aorta 0,69; estómago visto en el 92 %, vena en el 98 % |
+| Segmentación intraparto | U-Net | IUGC MICCAI 2024 (ecografía transperineal), 2.218 imágenes de 48 exámenes | Ángulo de progresión con error medio 6,7° en 300 imágenes de 240 exámenes de otros años (piso del método 3,4°). AoP ≥ 120°: sensibilidad 65 %, especificidad 96 % → se informa como medida |
 | Cribado de anomalías cerebrales | EfficientNet-B0 | Fetal Brain Abnormalities + normales de FETAL_PLANES | Falsas alarmas en otro hospital: 1 de 1.866. **Sensibilidad real no medible** con datos públicos |
 | Circunferencia cefálica (regresión) | EfficientNet-B0 | HC18 | R² 0,978; error medio 7,0 mm (superada por la segmentación) |
 
@@ -48,12 +49,12 @@ redes usadas con sus métricas e `informe_texto`. Ver
 |---|---|---|
 | POST | `/analyze` · `/analisis-ecografia` | Análisis completo (con `tamano_pixel_mm` da milímetros) |
 | POST | `/plano-anatomico` | Solo el plano |
-| POST | `/segmentacion/{cabeza\|torax\|abdomen}` | Segmentar una estructura y medir |
+| POST | `/segmentacion/{cabeza\|torax\|abdomen\|intraparto}` | Segmentar y medir (intraparto: ángulo de progresión) |
 | POST | `/biometria/circunferencia-cefalica` | HC por regresión |
 | POST | `/anomalias-cerebrales` | Cribado cerebral |
 | GET | `/modelos` | Redes disponibles y sus métricas |
 | POST | `/quality-check` · `/consultar` | Calidad de imagen · chatbot obstétrico |
-| GET | `/health` | 503 si falta la red de plano (la puerta de todo análisis) |
+| GET | `/health` | 503 si falta la red de plano; informa las redes precargadas al arrancar |
 
 ## Instalar y ejecutar
 
@@ -62,6 +63,9 @@ pip install -r requirements.txt            # servir
 pip install -r requirements-entrenamiento.txt   # entrenar y probar
 uvicorn app.main:app --host 0.0.0.0 --port 8001
 ```
+
+Al arrancar se precargan las 7 redes en la GPU (≈ 5 s): sin eso la primera
+consulta tras cada reinicio superaba los 30 s.
 
 Versiones exactas probadas: [requirements.lock.txt](requirements.lock.txt). Con
 mTLS: [start_mtls.sh](start_mtls.sh). Los pesos van en `trained_models/` (fuera
@@ -72,6 +76,7 @@ de git).
 | Red | Scripts | Métricas |
 |---|---|---|
 | Segmentación | `entrenamiento/segmentacion/preparar.py` y `entrenar.py <tarea>` | `entrenamiento/segmentacion/salidas/<tarea>/metricas.json` |
+| Intraparto | `entrenamiento/intraparto/preparar.py`, `segmentacion/entrenar.py intraparto`, `intraparto/evaluar.py` | `salidas/intraparto/metricas.json` |
 | Plano y HC | `entrenamiento/redes_ecografia_real/` | `LEEME.md` |
 | Anomalías cerebrales | `entrenamiento/patologias_cerebrales/` | `INFORME.md` |
 
@@ -82,5 +87,5 @@ que la API reproduce lo medido al entrenar.
 ## Pruebas
 
 ```bash
-python -m pytest -q        # 29 pruebas
+python -m pytest -q        # 30 pruebas
 ```

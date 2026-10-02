@@ -54,11 +54,11 @@ Verifica cada punto antes de cambiarlo; si ya cumple, déjalo y dilo.
 |---|---|---|
 | Unificar Evoluciones y Notas | Hecho: una sola fuente (notas de evolución); la ruta vieja redirige | — |
 | Unificar calculadoras | Hecho: peso fetal (Hadlock) con una única fórmula en `ecografias/peso_fetal.py` ↔ `frontend/src/utils/pesoFetal.ts`; diabetes gestacional con criterio IADPSG | Revisar que no quede ninguna otra copia |
-| Unificar los dos modelos de imagen | Hecho en parte: un solo puente (`ecografias/ai_views.py`) hacia el microservicio | La EfficientNet-B4 sigue como experimental y sin métrica válida: decidir si se retira |
-| Detalle del parto con pestañas | Hecho con 4 pestañas: Resumen, Recién nacidos, Alertas, Complicaciones | Ver la sección 5.A |
-| Centro de reportes en una página | Hecho: 6 pestañas (tiempo real, estadísticas por fecha, KPIs, indicadores, PDF, auditoría) | Ver la sección 5.C |
-| Importación de laboratorio desde Excel | Hecho: plantilla con catálogo, vista previa con errores por fila, auditada | CSV, mapeo de columnas, deshacer por lote |
-| Paginación en el servidor | Hecha en los 10 listados (`hooks/useListadoServidor.ts` + acción `resumen` + `ExportarExcelMixin`) | Medir la latencia de la API (meta en RNF-01) |
+| Unificar los modelos de imagen | Hecho: un solo flujo medido (plano → segmentación → anomalías); la B4 se retiró | — |
+| Detalle del parto con pestañas | Hecho con 5 pestañas, partograma, Capurro/Ballard, ángulo de progresión y epicrisis | — |
+| Centro de reportes en una página | Hecho: 8 pestañas con período común, natalidad, IA e impresión | Envío por correo (falta el servidor de correo) |
+| Importación de laboratorio | Hecho: Excel y CSV, mapeo de columnas, vista previa, deshacer por lote | — |
+| Paginación en el servidor | Hecha en los 10 listados; API medida: p95 < 200 ms en 16/16 rutas con waitress | Repetir la medición en el servidor del hospital |
 | Plan de QA y casos de prueba | Hecho: 42/42 pasan; backend ~925 pruebas, Jest 107, IA 32, E2E 6/6 | Prueba de aceptación con personal del hospital |
 | Documentación y diagramas | Hecho: `docs/sistema/` con 27 diagramas | Mantenerla al día con cada cambio |
 

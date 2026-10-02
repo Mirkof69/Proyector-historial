@@ -110,6 +110,36 @@ Requisitos: RF-20 · Pruebas: CP-100
 
 Requisitos: RF-15 · Pruebas: CP-070
 
+### HU-19 · Partograma y ángulo de progresión
+**Como** médica, **quiero** registrar cada tacto y ver la curva de dilatación, **para** detectar a tiempo un trabajo de parto detenido.
+- La fase activa empieza en el primer tacto de 4 cm o más; desde ahí se dibujan las líneas de alerta (1 cm/h) y acción (4 h después).
+- Si la curva cruza una línea, la pantalla lo avisa.
+- Puedo subir la ecografía intraparto y la red mide el ángulo de progresión con su margen; yo lo confirmo antes de guardarlo.
+
+Requisitos: RF-24, RF-28 · Pruebas: CP-044, CP-045
+
+### HU-20 · Edad gestacional del recién nacido
+**Como** médica, **quiero** registrar el Capurro o el Ballard del recién nacido, **para** clasificarlo como pretérmino, a término o postérmino.
+- Elijo cada signo de una lista con sus puntos; la edad se ve antes de guardar.
+- Puntos que la escala no tiene se rechazan.
+
+Requisitos: RF-25 · Pruebas: CP-043
+
+### HU-21 · Epicrisis del parto
+**Como** médica, **quiero** redactar y firmar la epicrisis del parto, **para** que el expediente quede completo al egreso.
+- El borrador trae lo que el sistema ya sabe (procedimientos, recién nacidos, complicaciones).
+- El código CIE-10 se valida; firmar pide la matrícula y después ya no se puede editar.
+- Se descarga en PDF para el expediente.
+
+Requisitos: RF-26, RF-27 · Pruebas: CP-042
+
+### HU-22 · Cardiotocografía con IA
+**Como** médica, **quiero** cargar los valores del monitor fetal y ver si el trazado es normal, sospechoso o patológico, **para** tener una segunda lectura.
+- Veo cuánto acierta el modelo en registros que no vio y sus límites.
+- Si falta un dato, no se clasifica.
+
+Requisitos: RF-29 · Pruebas: CP-083
+
 ## Laboratorio
 
 ### HU-10 · Carga de resultados por Excel
@@ -118,6 +148,13 @@ Requisitos: RF-15 · Pruebas: CP-070
 - Cada valor se evalúa contra su rango; reimportar el mismo archivo no duplica.
 
 Requisitos: RF-12, RF-13 · Pruebas: CP-050, CP-051, CP-053
+
+### HU-23 · CSV del laboratorio y deshacer un lote
+**Como** laboratorista, **quiero** subir el archivo tal como lo saca el equipo del laboratorio (CSV o Excel con otros encabezados), **para** no copiarlo a la plantilla.
+- Los encabezados conocidos se reconocen solos; si no, elijo qué columna es cada dato.
+- Si subí el archivo equivocado, deshago el lote completo indicando el motivo.
+
+Requisitos: RF-13 · Pruebas: CP-054, CP-055
 
 ## Administrador/a
 
@@ -142,3 +179,11 @@ Requisitos: RF-18, RF-19 · Pruebas: CP-105, CP-106
 - Las sesiones y exportaciones quedan auditadas.
 
 Requisitos: RF-21, RF-22 · Pruebas: CP-090, CP-091, CP-092
+
+### HU-24 · Datos propios del hospital y reportes de natalidad e IA
+**Como** administradora, **quiero** agregar campos propios a la epicrisis y ver los reportes de natalidad, morbilidad e IA por período, **para** cumplir con lo que pide mi establecimiento y con los informes a la dirección.
+- Defino el campo (texto, número, fecha, sí/no, lista) y el formulario lo muestra y valida sin programar.
+- El período elegido arriba vale para todas las pestañas; puedo imprimir y exportar a Excel.
+- Si el período no tiene partos, se dice; no se dibujan ceros como si fueran datos.
+
+Requisitos: RF-18, RF-27 · Pruebas: CP-042, CP-107

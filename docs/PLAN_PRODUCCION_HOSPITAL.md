@@ -114,6 +114,18 @@ Frontend
 - [x] Versiones fijas (`requirements.lock.txt`), respaldo diario con restauración verificada (`RESPALDO_DIARIO.bat`), arranques de desarrollo y producción corregidos.
 - [x] Orden del repositorio: media/ y respaldos de .env fuera de git, lanzadores reparados (los 3 usaban una opción inexistente) y validados por test, datos de IA en `Microservicio_IA/datos`. Plan de QA y 38 casos de prueba esperado/obtenido en `docs/QA_*.md`.
 
+### Sprint 7 — Parto completo, IA real, laboratorio y rendimiento (HECHO, 01/10/2026)
+- [x] Detalle del parto en 5 pestañas: admisión, trabajo de parto (partograma con líneas de alerta y acción de la OMS y registro de tactos), recién nacidos (Capurro / Ballard), alumbramiento y complicaciones, **epicrisis** (CIE-10, egreso, anticoncepción post evento, firma con matrícula, PDF, campos propios del hospital).
+- [x] **EfficientNet-B4 retirada** y reemplazada por un flujo medido: plano → U-Net de cabeza (HC en otro hospital ±4,4 mm), tórax (índice cardiotorácico) o abdomen → cribado cerebral; informe JSON con la imagen segmentada.
+- [x] **Ángulo de progresión intraparto** (U-Net con IUGC 2024): error medio 6,7° en 300 imágenes de otros años; integrado en el tacto del partograma.
+- [x] **Cardiotocografía** supervisada con 2.126 registros reales: 96,0 % en 423 no vistos.
+- [x] Peso al nacer: cada predicción se cierra con el peso real del recién nacido.
+- [x] Laboratorio: CSV, mapeo de columnas y **deshacer por lote**.
+- [x] Reportes: período común, natalidad y morbilidad, IA, impresión.
+- [x] Rendimiento: API en waitress (p95 < 200 ms en 16/16 rutas), búsqueda 367 → 31 ms, 40 usuarios simultáneos sin errores; redes de IA precargadas al arrancar.
+- [x] Notificaciones en vivo en producción: Redis entre la API (waitress) y los WebSockets (uvicorn, 1 worker); sin él las alertas no llegaban nunca (CP-108). QA 56/56.
+- [x] Fallos encontrados en el navegador y corregidos: permisos `examen`/`control` inexistentes (médicos sin «Nuevo examen» ni «Nuevo control»), WebSocket sin clínica (las notificaciones pendientes nunca llegaban), logs que no rotaban en Windows.
+
 ---
 
 ## 3. Controles de calidad (quality gates)
@@ -206,12 +218,16 @@ verde + commit con explicación del fallo que previene.
 
 ## 7. Lo que no se puede prometer (y por qué)
 
-- **La EfficientNet-B4 de patologías no llega al 90 % real sin datos nuevos.** La mayoría
-  de sus positivos son imágenes sintéticas y no tiene ninguna métrica medida en una
-  prueba separada. Hace falta un conjunto de ecografías reales etiquetadas por
-  especialistas, separado por paciente.
-- **Las redes que sí pasan del umbral**: plano anatómico 92,7 %; circunferencia
-  cefálica R² 0,978. Ambas con datos reales y madres no vistas.
+- **No hay red de «14 patologías»**: la EfficientNet-B4 se retiró porque sus etiquetas no
+  eran verificables. Detectar patologías concretas exige ecografías reales con el
+  diagnóstico confirmado, del propio hospital y separadas por paciente.
+- **Las redes medidas con datos reales**: plano anatómico 92,7 %; circunferencia cefálica
+  por segmentación con error de 4,4 mm en otro hospital (92 % de las medidas dentro del
+  5 %); cardiotocografía 96,0 % en registros no vistos.
+- **El ángulo de progresión es una medida, no una decisión**: error medio 6,7°; con corte
+  en 120° detecta el 65 % (15 de 23). El médico lo confirma sobre el dibujo.
+- **El índice cardiotorácico se mide (±0,02) pero no se validó la detección de
+  cardiomegalia**: el dataset solo trae corazones normales.
 - **Anomalías cerebrales: la especificidad sí está medida, la sensibilidad no.**
   0,2 % de falsas alarmas en 999 cabezas normales de otro hospital. Pero en el
   único dataset público con anomalías, todas las normales vienen de un hospital
