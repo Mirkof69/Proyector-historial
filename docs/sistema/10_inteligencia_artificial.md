@@ -124,6 +124,8 @@ no para decidir; «no validado» = no hay datos públicos para medirlo.
 | Acidemia al nacer desde la señal del monitoreo | P20 | Modelos supervisados sobre CTU-UHB | AUC 0,73: demasiadas falsas alarmas | **Descartado** |
 | Trabajo de parto que no progresa | O62–O64 | U-Net intraparto → ángulo de progresión | 6,7° de error medio; con corte en 120° detecta el 65 % | Medida confiable; orientación para decidir |
 | Parto prematuro | O60 | Modelos supervisados sobre el electrohisterograma (TPEHG) | Sin señal medida sin fugas | **Descartado**; la longitud cervical (ISBI 2025) exige acuerdo de datos |
+| Calidad del corte para medir la translucencia nucal (tamizaje de trisomías) | Q90 | CNN EfficientNet-B0 (Shenzhen) | 94,8 % en el mismo hospital; **68,6 % en otra sede** | **No en servicio**: no generaliza a otro centro |
+| Cardiopatía congénita por variables maternas | Q20–Q28 | Modelos supervisados (tablas de CARDIUM) | AUC 0,70, VPP 7–9 % | **Descartado**; las imágenes de CARDIUM y Heartbeat piden formulario |
 | Preeclampsia · diabetes gestacional · trisomías | O14 · O24 · Q90 | Calculadoras clínicas (FMF, IADPSG): fórmulas, no IA | Las de la literatura | En uso (no es IA) |
 | Calidad del plano anatómico | — | Clasificador CNN (EfficientNet-B0) | 92,7 % | Confiable |
 

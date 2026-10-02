@@ -46,13 +46,27 @@ Lo que encontró la revisión:
   (SMOTE/ADASYN) antes de partir; las copias sintéticas de un mismo caso quedan
   a ambos lados. Medido sin esa fuga, no hay señal.
 
+Tercera tanda (02/10/2026, con los enlaces y archivos que trajo el usuario):
+
+| Dataset | Registros | Resultado medido | Decisión |
+|---|---|---|---|
+| Dataset for Fetus Framework (Shenzhen; Mendeley n2rbrb9t4f, CC BY 4.0) | 1.684 cortes sagitales de 11–13+6 semanas; prueba externa de otra sede (Longhua) | ¿El corte sirve para medir la TN? Ronda 1: 92,3 % en el mismo hospital y **58,3 % en la otra sede**. Ronda 2 (zoom y estilo fijados de antemano): **94,8 %** (AUC 0,99) y **68,6 %** (AUC 0,73) | **No se pone en servicio**: no generaliza a otro centro; habría que afinarla con cortes del propio hospital |
+| CARDIUM, tablas clínicas (repositorio BCV-Uniandes, CC BY-NC 4.0) | 1.104 gestantes, 74 con cardiopatía | Solo variables maternas: AUC 0,52–0,65 en validación cruzada; 0,70 en prueba con especificidad 17–34 % a sensibilidad 87 % (VPP 7–9 %) | **Descartado**: sin imágenes no sirve |
+| Term-Preterm EHG DataSet with Tocogram (PhysioNet) | 26 registros de 18 embarazos | Demasiado pequeño para cambiar la conclusión de TPEHG | Guardado, no usado |
+
+La biometría propia coincide con lo que publica el artículo del dataset (Di Vece
+et al., Sci Rep 2026): su modelo multicéntrico (BiometryNet) tiene una mediana de
+error en fémur de alrededor de 1 mm en la prueba M-C; el nuestro, 0,6 mm (media
+1,3 mm). El artículo también documenta que entrenar en un centro y probar en otro
+dispara el error (fémur NME 0,03 → 0,90): la misma lección que la translucencia nucal.
+
 Pedidos que necesitan un formulario de la institución (no se pueden descargar libremente):
 
 | Dataset | Para qué serviría | Cómo pedirlo |
 |---|---|---|
-| Heartbeat (1.475 pacientes, ecocardiografía fetal) y CARDIUM (1.103) | Cardiopatías congénitas | Formulario de acceso de BCV-Uniandes (verifica afiliación académica) |
-| Fetal Ultrasound Grand Challenge ISBI 2025 (cuello uterino) | Longitud cervical → riesgo de parto prematuro | Acuerdo de uso de datos en Zenodo 14305302 |
-| Dataset for Fetus Framework (Shenzhen, translucencia nucal) | Calidad del plano de TN para el tamizaje de Down | Mendeley n2rbrb9t4f (CC BY 4.0; solo calidad del plano, sin diagnóstico) |
+| Heartbeat (1.475 pacientes, ecocardiografía fetal) | Cardiopatías congénitas | Formulario https://forms.gle/QTTn1S7kKxkepVB18 |
+| CARDIUM, imágenes (6.558) | Cardiopatías congénitas | Formulario https://docs.google.com/forms/d/e/1FAIpQLSeW3EKB54HnfSVmyOf8yD9swB7DUiaEr0_pSMl6z_zTwdJR-Q/viewform |
+| Fetal Ultrasound Grand Challenge ISBI 2025 (cuello uterino) | Longitud cervical → riesgo de parto prematuro | Acuerdo de uso de datos en Zenodo 14305302 (el GitHub maskoffs/Fetal-Ultrasound-Grand-Challenge trae solo el código) |
 
 ## Ginecología (añadido el 02/10/2026)
 

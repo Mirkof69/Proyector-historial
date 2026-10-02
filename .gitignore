@@ -153,3 +153,7 @@ Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/*
 !Backend/Microservicio_IA/entrenamiento/senales/salidas/*/
 Backend/Microservicio_IA/entrenamiento/senales/salidas/*/*
 !Backend/Microservicio_IA/entrenamiento/senales/salidas/*/metricas.json
+!Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/
+Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/*
+!Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/metricas.json
+!Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/historia.json

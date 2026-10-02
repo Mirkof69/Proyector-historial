@@ -1,0 +1,93 @@
+{
+  "tarea": "translucencia_nucal_calidad_del_corte",
+  "dataset": "Dataset for Fetus Framework (Shenzhen People's Hospital; externa: sede Longhua) · Mendeley n2rbrb9t4f · CC BY 4.0",
+  "particion": "oficial: entrenamiento (Set1+Set2), prueba interna y prueba externa de otra sede",
+  "copias_quitadas_de_la_prueba": 1,
+  "exactitud_balanceada_validacion": 0.9797,
+  "prueba_interna": {
+    "imagenes": 155,
+    "exactitud": 0.9226,
+    "exactitud_balanceada": 0.9231,
+    "f1_macro": 0.9223,
+    "auc_macro_ovr": null,
+    "exactitud_ic95": [
+      0.8774,
+      0.9613
+    ],
+    "exactitud_balanceada_ic95": [
+      0.8792,
+      0.9623
+    ],
+    "por_clase": {
+      "no_estandar": {
+        "casos": 83,
+        "sensibilidad": 0.9157,
+        "valor_predictivo_positivo": 0.9383
+      },
+      "estandar": {
+        "casos": 72,
+        "sensibilidad": 0.9306,
+        "valor_predictivo_positivo": 0.9054
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "no_estandar",
+        "estandar"
+      ],
+      "valores": [
+        [
+          76,
+          7
+        ],
+        [
+          5,
+          67
+        ]
+      ]
+    }
+  },
+  "prueba_externa": {
+    "imagenes": 156,
+    "exactitud": 0.5833,
+    "exactitud_balanceada": 0.5017,
+    "f1_macro": 0.4074,
+    "auc_macro_ovr": null,
+    "exactitud_ic95": [
+      0.5064,
+      0.6603
+    ],
+    "exactitud_balanceada_ic95": [
+      0.4696,
+      0.5364
+    ],
+    "por_clase": {
+      "no_estandar": {
+        "casos": 92,
+        "sensibilidad": 0.9565,
+        "valor_predictivo_positivo": 0.5906
+      },
+      "estandar": {
+        "casos": 64,
+        "sensibilidad": 0.0469,
+        "valor_predictivo_positivo": 0.4286
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "no_estandar",
+        "estandar"
+      ],
+      "valores": [
+        [
+          88,
+          4
+        ],
+        [
+          61,
+          3
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "dataset": "CARDIUM, tablas clínicas (BCV-Uniandes, CC BY-NC 4.0)",
+  "pacientes": 1104,
+  "con_cardiopatia": 74,
+  "A_todas_las_variables": {
+    "variables": 164,
+    "auc_validacion_cruzada": {
+      "logistica": 0.5657,
+      "bosque_aleatorio": 0.6467,
+      "gradient_boosting": 0.5225
+    },
+    "modelo_elegido": "bosque_aleatorio",
+    "prueba": {
+      "casos_positivos": 15,
+      "casos_negativos": 206,
+      "auc": 0.7045,
+      "auc_ic95": [
+        0.5555,
+        0.8398
+      ],
+      "auc_pr": 0.2,
+      "umbral": 0.1486,
+      "sensibilidad": 0.8667,
+      "especificidad": 0.3447,
+      "vpp": 0.0878,
+      "verdaderos_positivos": 13,
+      "falsos_negativos": 2,
+      "falsos_positivos": 135
+    }
+  },
+  "B_solo_antes_de_la_ecografia": {
+    "variables": 160,
+    "auc_validacion_cruzada": {
+      "logistica": 0.5163,
+      "bosque_aleatorio": 0.5605,
+      "gradient_boosting": 0.5059
+    },
+    "modelo_elegido": "bosque_aleatorio",
+    "prueba": {
+      "casos_positivos": 15,
+      "casos_negativos": 206,
+      "auc": 0.7026,
+      "auc_ic95": [
+        0.5225,
+        0.8627
+      ],
+      "auc_pr": 0.2053,
+      "umbral": 0.1401,
+      "sensibilidad": 0.8667,
+      "especificidad": 0.165,
+      "vpp": 0.0703,
+      "verdaderos_positivos": 13,
+      "falsos_negativos": 2,
+      "falsos_positivos": 172
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "tarea": "translucencia_nucal_calidad_del_corte",
+  "dataset": "Dataset for Fetus Framework (Shenzhen People's Hospital; externa: sede Longhua) · Mendeley n2rbrb9t4f · CC BY 4.0",
+  "particion": "oficial: entrenamiento (Set1+Set2), prueba interna y prueba externa de otra sede",
+  "copias_quitadas_de_la_prueba": 1,
+  "ronda": "zoom",
+  "exactitud_balanceada_validacion": 0.9937,
+  "prueba_interna": {
+    "imagenes": 155,
+    "exactitud": 0.9484,
+    "exactitud_balanceada": 0.95,
+    "f1_macro": 0.9483,
+    "auc_macro_ovr": null,
+    "exactitud_ic95": [
+      0.9097,
+      0.9806
+    ],
+    "exactitud_balanceada_ic95": [
+      0.9149,
+      0.9811
+    ],
+    "por_clase": {
+      "no_estandar": {
+        "casos": 83,
+        "sensibilidad": 0.9277,
+        "valor_predictivo_positivo": 0.9747
+      },
+      "estandar": {
+        "casos": 72,
+        "sensibilidad": 0.9722,
+        "valor_predictivo_positivo": 0.9211
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "no_estandar",
+        "estandar"
+      ],
+      "valores": [
+        [
+          77,
+          6
+        ],
+        [
+          2,
+          70
+        ]
+      ]
+    },
+    "auc": 0.9881
+  },
+  "prueba_externa": {
+    "imagenes": 156,
+    "exactitud": 0.6859,
+    "exactitud_balanceada": 0.6624,
+    "f1_macro": 0.665,
+    "auc_macro_ovr": null,
+    "exactitud_ic95": [
+      0.6154,
+      0.7564
+    ],
+    "exactitud_balanceada_ic95": [
+      0.5858,
+      0.7371
+    ],
+    "por_clase": {
+      "no_estandar": {
+        "casos": 92,
+        "sensibilidad": 0.7935,
+        "valor_predictivo_positivo": 0.7087
+      },
+      "estandar": {
+        "casos": 64,
+        "sensibilidad": 0.5312,
+        "valor_predictivo_positivo": 0.6415
+      }
+    },
+    "matriz_confusion": {
+      "filas_real_columnas_predicha": [
+        "no_estandar",
+        "estandar"
+      ],
+      "valores": [
+        [
+          73,
+          19
+        ],
+        [
+          30,
+          34
+        ]
+      ]
+    },
+    "auc": 0.7279
+  }
+}
