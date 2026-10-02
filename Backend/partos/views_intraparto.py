@@ -12,6 +12,8 @@ from __future__ import annotations
 import logging
 
 import requests
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -21,6 +23,8 @@ from core.permissions import EsSoloMedico, FetalMedicalPermission
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(summary="Medir el ángulo de progresión en una ecografía transperineal",
+               request={"multipart/form-data": OpenApiTypes.OBJECT}, responses=OpenApiTypes.OBJECT)
 @api_view(["POST"])
 @permission_classes([FetalMedicalPermission, EsSoloMedico])
 def angulo_progresion(request):

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -82,7 +83,7 @@ def prediccion_peso(request):
     return Response(resultado, status=status.HTTP_200_OK)
 
 
-@extend_schema(summary="Cuánto acierta el modelo de peso con los nacimientos reales")
+@extend_schema(summary="Cuánto acierta el modelo de peso con los nacimientos reales", responses=OpenApiTypes.OBJECT)
 @api_view(["GET"])
 @permission_classes([EsSoloMedico])
 def desempeno_prediccion_peso(request):

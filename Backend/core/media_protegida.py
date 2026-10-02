@@ -11,6 +11,8 @@ from pathlib import Path
 
 from django.conf import settings
 from django.http import FileResponse, Http404
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,6 +33,8 @@ def ruta_media_segura(ruta: str) -> Path | None:
 class MediaProtegidaView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(summary="Archivo de media protegido por sesión y rol",
+                   responses={(200, "application/octet-stream"): OpenApiTypes.BINARY})
     def get(self, request, ruta):
         carpeta = ruta.split("/", 1)[0]
         if carpeta in CARPETAS_CLINICAS and getattr(request.user, "rol", "") == "recepcion":

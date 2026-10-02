@@ -7,6 +7,8 @@ Separadas de ``usuarios/auth_cookies.py`` porque aquel módulo se carga desde
 
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -54,6 +56,7 @@ class CookieTokenRefreshView(TokenRefreshView):
         return response
 
 
+@extend_schema(summary="Entrega la cookie CSRF", responses=OpenApiTypes.OBJECT)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie

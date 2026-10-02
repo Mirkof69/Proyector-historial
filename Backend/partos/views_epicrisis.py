@@ -15,6 +15,8 @@ import logging
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import HttpResponse
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -218,6 +220,7 @@ class CampoAdicionalEpicrisisViewSet(viewsets.ModelViewSet):
         return [EsSoloAdministrador()]
 
 
+@extend_schema(summary="Tablas de Capurro y Ballard", responses=OpenApiTypes.OBJECT)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def tablas_edad_gestacional_rn(_request):

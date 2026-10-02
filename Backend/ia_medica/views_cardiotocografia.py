@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -20,7 +21,8 @@ from core.permissions import EsSoloMedico
 logger = logging.getLogger(__name__)
 
 
-@extend_schema(summary="Clasificar una cardiotocografía (normal, sospechosa, patológica)")
+@extend_schema(summary="Clasificar una cardiotocografía (normal, sospechosa, patológica)",
+               request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
 @api_view(["GET", "POST"])
 @permission_classes([EsSoloMedico])
 def cardiotocografia(request):

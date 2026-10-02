@@ -19,6 +19,8 @@ from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -150,6 +152,7 @@ def datos_ia(inicio: datetime, fin: datetime) -> dict:
     }
 
 
+@extend_schema(summary="Natalidad y morbilidad del período", responses=OpenApiTypes.OBJECT)
 @api_view(["GET"])
 @permission_classes([FetalMedicalPermission])
 def reporte_natalidad(request):
@@ -160,6 +163,8 @@ def reporte_natalidad(request):
     return Response({"desde": desde, "hasta": hasta, **datos_natalidad(inicio, fin)})
 
 
+@extend_schema(summary="Natalidad y morbilidad en Excel",
+               responses={(200, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"): OpenApiTypes.BINARY})
 @api_view(["GET"])
 @permission_classes([FetalMedicalPermission])
 def reporte_natalidad_excel(request):
@@ -211,6 +216,7 @@ def reporte_natalidad_excel(request):
     return respuesta
 
 
+@extend_schema(summary="Uso, resultados y fiabilidad de la IA en el período", responses=OpenApiTypes.OBJECT)
 @api_view(["GET"])
 @permission_classes([FetalMedicalPermission])
 def reporte_ia(request):
