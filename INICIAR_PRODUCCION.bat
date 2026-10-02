@@ -24,13 +24,27 @@ echo ================================================================
 echo.
 
 :: ── 1. PostgreSQL ───────────────────────────────────────────────
-echo [1/5] PostgreSQL...
+echo [1/6] PostgreSQL...
 net start postgresql-x64-18 >nul 2>&1
 if %errorlevel% equ 0 (echo     OK iniciado) else (echo     OK ya estaba corriendo)
 timeout /t 2 /nobreak >nul
 
-:: ── 2. Migraciones ──────────────────────────────────────────────
-echo [2/5] Migraciones...
+:: ── 2. Redis ───────────────────────────────────────────────────
+:: Las notificaciones las crea la API (waitress) y las entrega otro proceso, el
+:: de los WebSockets (uvicorn): sin Redis no cruzan, y como el frontend deja de
+:: sondear cuando el WebSocket conecta, las alertas no se veian hasta recargar
+:: (comprobado el 01/10/2026). Si el servicio no arranca, se lanza el ejecutable.
+echo [2/6] Redis...
+set REDIS_URL=redis://127.0.0.1:6379/0
+net start Redis >nul 2>&1
+"C:\Program Files\Redis\redis-cli.exe" ping 2>nul | findstr PONG >nul || (
+    if exist "C:\Program Files\Redis\redis-server.exe" start "Redis" /min "C:\Program Files\Redis\redis-server.exe" --port 6379 --bind 127.0.0.1
+    timeout /t 2 /nobreak >nul
+)
+"C:\Program Files\Redis\redis-cli.exe" ping 2>nul | findstr PONG >nul && (echo     OK) || (echo     AVISO: Redis no responde; las notificaciones solo se veran al recargar la pagina)
+
+:: ── 3. Migraciones ──────────────────────────────────────────────
+echo [3/6] Migraciones...
 cd /d "%~dp0Backend"
 :: migrate_schemas (no migrate): cada clinica es un esquema de django-tenants.
 :: Antes usaba el python del sistema y ocultaba los errores con >nul.
@@ -41,8 +55,8 @@ if %errorlevel% equ 0 (echo     OK al dia) else (
     exit /b 1
 )
 
-:: ── 3. Compilar el frontend si hace falta ───────────────────────
-echo [3/5] Build del frontend...
+:: ── 4. Compilar el frontend si hace falta ───────────────────────
+echo [4/6] Build del frontend...
 if not exist "%~dp0Backend\frontend\build\index.html" (
     echo     No hay build. Compilando, esto tarda unos minutos...
     cd /d "%~dp0Backend\frontend"
@@ -51,20 +65,22 @@ if not exist "%~dp0Backend\frontend\build\index.html" (
     echo     OK build existente
 )
 
-:: ── 4. Backend ──────────────────────────────────────────────────
-echo [4/5] Backend Django: API ^(8000^) y notificaciones en tiempo real ^(8010^)...
+:: ── 5. Backend ──────────────────────────────────────────────────
+echo [5/6] Backend Django: API ^(8000^) y notificaciones en tiempo real ^(8010^)...
 :: La API la sirve waitress (WSGI): medido el 01/10/2026 con la demo de 3.200
 :: pacientes, 5-53 ms de mediana y menos de 60 ms en el 95 %% de las peticiones.
 :: Con uvicorn (ASGI) en Windows cada peticion sumaba 50-100 ms de puente entre
 :: hilos: 100-250 ms. Uvicorn queda solo para los WebSockets (puerto 8010), que
-:: el frontend de produccion busca ahi solo.
+:: el frontend de produccion busca ahi solo. Un solo worker: es asincrono y
+:: atiende cientos de sockets; con varios, en Windows, las conexiones quedaban
+:: colgadas en el socket compartido. REDIS_URL (paso 2) llega a los dos procesos.
 :: El python del entorno virtual (.venv), que es donde estan las dependencias.
 start "Backend API (WSGI)" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& .venv\Scripts\python.exe -m waitress --host=0.0.0.0 --port=8000 --threads=32 wsgi:application"
-start "Backend WebSockets (ASGI)" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 0.0.0.0 --port 8010 --workers 2"
+start "Backend WebSockets (ASGI)" cmd /k "cd /d %~dp0Backend && set DEBUG=False&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 0.0.0.0 --port 8010 --workers 1"
 timeout /t 3 /nobreak >nul
 
-:: ── 5. Microservicio de IA ──────────────────────────────────────
-echo [5/5] Microservicio de IA ^(puerto 8001^) y frontend ^(3000^)...
+:: ── 6. Microservicio de IA ──────────────────────────────────────
+echo [6/6] Microservicio de IA ^(puerto 8001^) y frontend ^(3000^)...
 start "Microservicio IA" cmd /k "cd /d %~dp0Backend\Microservicio_IA && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
 start "Frontend produccion" cmd /k "cd /d %~dp0Backend\frontend && python servir_produccion.py 3000"
 

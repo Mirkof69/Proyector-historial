@@ -67,7 +67,7 @@ class EpicrisisViewSet(viewsets.ModelViewSet):
         if epicrisis.estado == "firmada":
             return Response({"error": "Una epicrisis firmada no se borra: es parte del expediente."},
                             status=status.HTTP_409_CONFLICT)
-        _auditar(request, "ELIMINAR", f"Epicrisis {epicrisis.pk} (borrador) del parto {epicrisis.parto_id}")
+        _auditar(request, accion="ELIMINAR", detalle=f"Epicrisis {epicrisis.pk} (borrador) del parto {epicrisis.parto_id}")
         return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=["get"])
@@ -119,7 +119,7 @@ class EpicrisisViewSet(viewsets.ModelViewSet):
         except DjangoValidationError as e:
             detalle = e.message_dict if hasattr(e, "error_dict") else {"error": e.messages[0]}
             return Response(detalle, status=status.HTTP_400_BAD_REQUEST)
-        _auditar(request, "FIRMAR", f"Epicrisis {epicrisis.pk} firmada (matrícula {epicrisis.matricula_profesional})")
+        _auditar(request, accion="FIRMAR", detalle=f"Epicrisis {epicrisis.pk} firmada (matrícula {epicrisis.matricula_profesional})")
         return Response(self.get_serializer(epicrisis).data)
 
     @action(detail=True, methods=["post"])
@@ -134,7 +134,7 @@ class EpicrisisViewSet(viewsets.ModelViewSet):
         epicrisis.estado = "borrador"
         epicrisis.fecha_firma = None
         epicrisis.save(update_fields=["estado", "fecha_firma", "fecha_modificacion"])
-        _auditar(request, "REABRIR", f"Epicrisis {epicrisis.pk} reabierta: {motivo}")
+        _auditar(request, accion="REABRIR", detalle=f"Epicrisis {epicrisis.pk} reabierta: {motivo}")
         return Response(self.get_serializer(epicrisis).data)
 
     @action(detail=True, methods=["get"])
@@ -200,7 +200,7 @@ class EpicrisisViewSet(viewsets.ModelViewSet):
                         f"{timezone.localtime(e.fecha_firma):%d/%m/%Y %H:%M}")
         else:
             pdf.parrafo("Documento sin firmar: no tiene validez hasta que el médico responsable lo firme.")
-        _auditar(request, "EXPORTAR", f"PDF de la epicrisis {e.pk}")
+        _auditar(request, accion="EXPORTAR", detalle=f"PDF de la epicrisis {e.pk}")
         respuesta = HttpResponse(pdf.generar().getvalue(), content_type="application/pdf")
         respuesta["Content-Disposition"] = f'attachment; filename="epicrisis_parto_{parto.pk}.pdf"'
         return respuesta

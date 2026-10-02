@@ -1,7 +1,7 @@
 @echo off
 :: ============================================================================
 :: Arranque de DESARROLLO — Fetal Medical Bolivia
-:: (Para el hospital usar INICIAR_PRODUCCION.bat: build real y 8 workers.)
+:: (Para el hospital usar INICIAR_PRODUCCION.bat: build real, API en waitress, WebSockets y Redis.)
 ::
 ::   Backend   uvicorn ASGI con recarga (runserver es WSGI: los WebSockets de
 ::             notificaciones daban 404 en /ws/)

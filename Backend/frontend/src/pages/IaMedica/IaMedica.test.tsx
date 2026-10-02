@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import IaMedica from './IaMedica';
@@ -62,7 +62,7 @@ describe('IaMedica - análisis con redes medidas', () => {
     }));
     renderPagina();
     await userEvent.click(await screen.findByText('Analizar con IA'));
-    await waitFor(() => expect(screen.getByText('251.3 mm ± 4.41')).toBeInTheDocument());
+    expect(await screen.findByText('251.3 mm ± 4.41')).toBeInTheDocument();
     expect(screen.getByText('66.2 mm ± 1.61')).toBeInTheDocument();
     expect(screen.getByText('plano_anatomico_fetal_planes')).toBeInTheDocument();
   });
@@ -74,7 +74,7 @@ describe('IaMedica - análisis con redes medidas', () => {
     }));
     renderPagina();
     await userEvent.click(await screen.findByText('Analizar con IA'));
-    await waitFor(() => expect(screen.getByText('Sin medidas para este plano')).toBeInTheDocument());
+    expect(await screen.findByText('Sin medidas para este plano')).toBeInTheDocument();
     expect(screen.queryByText(/mm ±/)).not.toBeInTheDocument();
   });
 });

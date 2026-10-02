@@ -2,9 +2,10 @@
 
 Uso: python manage.py limpiar_datos_e2e --schema=clinica_demo
 
-Borra en orden (imágenes, ecografías, controles, partos, embarazos,
-pacientes) porque la historia clínica está protegida contra el borrado en
-cascada. Nunca toca pacientes reales: solo las de apellido paterno «E2E».
+Borra en orden (imágenes, ecografías, exámenes de laboratorio, controles,
+partos, embarazos, pacientes) porque la historia clínica está protegida contra el borrado en
+cascada. Los exámenes quedan cuando una corrida se corta antes de deshacer
+la importación del laboratorio. Nunca toca pacientes reales: solo las de apellido paterno «E2E».
 """
 import os
 
@@ -22,6 +23,7 @@ class Command(BaseCommand):
         from controles.models import ControlPrenatal
         from ecografias.models import Ecografia, ImagenEcografia
         from embarazos.models import Embarazo
+        from laboratorio.models import ExamenLaboratorio
         from pacientes.models import Paciente
         from partos.models import Parto
 
@@ -36,6 +38,7 @@ class Command(BaseCommand):
                     os.remove(ruta)
             cuentas = {
                 "ecografías": Ecografia.objects.filter(paciente_id__in=ids).delete()[0],
+                "exámenes": ExamenLaboratorio.objects.filter(paciente_id__in=ids).delete()[0],
                 "controles": ControlPrenatal.objects.filter(paciente_id__in=ids).delete()[0],
                 "partos": Parto.objects.filter(paciente_id__in=ids).delete()[0],
                 "embarazos": Embarazo.objects.filter(paciente_id__in=ids).delete()[0],

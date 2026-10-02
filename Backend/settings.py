@@ -277,22 +277,27 @@ WSGI_APPLICATION = "wsgi.application"
 ASGI_APPLICATION = "asgi.application"
 
 # ========== CHANNEL LAYERS (WebSocket Backend) ==========
-# InMemoryChannelLayer for development; RedisChannelLayer for production.
+# En produccion la API (waitress) y los WebSockets (uvicorn) son procesos
+# distintos: la notificacion se crea en uno y el socket abierto vive en el otro.
+# La capa en memoria no cruza procesos, y el frontend deja de sondear cuando el
+# WebSocket conecta: sin Redis las alertas no llegaban nunca (visto el 01/10/2026).
+#
+# Capa pub/sub y protocolo 2 (RESP2): el Redis para Windows instalado es la
+# 3.0, que no conoce HELLO (redis-py 8 lo manda por defecto) ni BZPOPMIN (lo usa
+# channels_redis.core). Probado contra esa 3.0; funciona igual en Redis moderno.
 _REDIS_URL = env("REDIS_URL", default=cast(Any, ""))
 
 if _REDIS_URL:
     CHANNEL_LAYERS = {
         "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
             "CONFIG": {
-                "hosts": [_REDIS_URL],
-                "capacity": 1500,  # Maximum number of messages to store
-                "expiry": 10,  # Message expiry in seconds
+                "hosts": [{"address": _REDIS_URL, "protocol": 2}],
             },
         },
     }
 else:
-    # Development fallback: in-memory channel layer (single-process only)
+    # Desarrollo: un solo proceso sirve la API y los WebSockets.
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -379,7 +384,8 @@ if TESTING and not TEST_CON_TENANTS:
 
 
 # ========== CONFIGURACION DE CACHE ==========
-# Redis cache configuration with fallback to LocMemCache for development
+# Redis con LocMemCache de respaldo en desarrollo. IGNORE_EXCEPTIONS esconde
+# los fallos: sin protocol=2 contra el Redis 3.0 cada lectura fallaba en silencio.
 _REDIS_CACHE_URL = env("REDIS_URL", default=cast(Any, ""))
 
 if _REDIS_CACHE_URL:
@@ -394,6 +400,7 @@ if _REDIS_CACHE_URL:
                 "CONNECTION_POOL_KWARGS": {
                     "max_connections": 50,
                     "retry_on_timeout": True,
+                    "protocol": 2,  # RESP2: ver CHANNEL_LAYERS
                 },
             },
             "KEY_PREFIX": "fetal_medical",
@@ -407,6 +414,7 @@ if _REDIS_CACHE_URL:
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
                 "IGNORE_EXCEPTIONS": True,
+                "CONNECTION_POOL_KWARGS": {"protocol": 2},
             },
             "KEY_PREFIX": "fetal_sessions",
             "TIMEOUT": 86400,  # 24 hours
@@ -418,6 +426,7 @@ if _REDIS_CACHE_URL:
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
                 "IGNORE_EXCEPTIONS": True,
+                "CONNECTION_POOL_KWARGS": {"protocol": 2},
             },
             "KEY_PREFIX": "fetal_stats",
             "TIMEOUT": 60,  # 1 minute for frequently changing stats
