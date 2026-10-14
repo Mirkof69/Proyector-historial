@@ -19,14 +19,17 @@ class TicketSoporteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Get queryset"""
         qs = TicketSoporte.objects.select_related("usuario").all()
-        if self.request.user.is_staff or self.request.user.is_superuser:
+        u = self.request.user
+        if u.is_staff or u.is_superuser or getattr(u, "rol", "") == "administrador":
             return qs
         return qs.filter(usuario=self.request.user)
 
     def get_permissions(self):
         """Solo administradores pueden actualizar/eliminar tickets."""
         if self.action in ["update", "partial_update", "destroy"]:
-            return [permissions.IsAdminUser()]
+            from core.permissions import EsSoloAdministrador
+
+            return [permissions.IsAuthenticated(), EsSoloAdministrador]
         return super().get_permissions()
 
     def perform_create(self, serializer):

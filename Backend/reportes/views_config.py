@@ -9,7 +9,9 @@ from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
+
+from core.permissions import EsSoloAdministrador
 from rest_framework.response import Response
 
 from .models_config import ConfiguracionAlertas, HorarioAtencion, SistemaConfiguracion
@@ -37,7 +39,9 @@ logger = logging.getLogger(__name__)
 )
 @api_view(["GET", "POST"])
 @extend_schema(request=None, responses={200: dict})
-@permission_classes([IsAuthenticated, IsAdminUser])
+# Por ROL, no IsAdminUser: ese mira is_staff y dejaba fuera al administrador
+# del sistema (la pantalla Configuración le mostraba «Acceso Denegado»).
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
 @parser_classes([MultiPartParser, FormParser])
 def configuracion_general(request):
     """GET: Obtener configuración actual del sistema
@@ -101,7 +105,7 @@ def configuracion_alertas(request):
     responses={200: dict}
 )
 @api_view(["GET", "POST"])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
 def horarios_atencion(request):
     """GET: Obtener todos los horarios de atención
     POST: Actualizar todos los horarios (batch update)
@@ -169,7 +173,7 @@ def horarios_atencion(request):
     responses={200: dict}
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
 def crear_backup(request):
     """Crear un backup manual de la base de datos"""
     try:
@@ -216,7 +220,7 @@ def crear_backup(request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
 def listar_backups(_request):
     """Listar todos los backups disponibles"""
     try:
@@ -238,7 +242,7 @@ def listar_backups(_request):
     responses={200: dict}
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
 def descargar_backup(request, filename):
     """Descargar un archivo de backup específico"""
     try:
@@ -265,7 +269,7 @@ def descargar_backup(request, filename):
     responses={200: dict}
 )
 @api_view(["DELETE"])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
 def eliminar_backup(request, filename):
     """Eliminar un archivo de backup"""
     try:
@@ -293,7 +297,7 @@ def eliminar_backup(request, filename):
     responses={200: dict}
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
 def restaurar_backup(request, filename):
     """Restaura la base de datos completa desde un backup.
 
