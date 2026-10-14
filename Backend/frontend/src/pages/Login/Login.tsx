@@ -86,7 +86,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       }
 
       if ('setupRequired' in result && result.setupRequired) {
-        pendingCredentials.current = { email: values.email, password: values.password };
         setSetupMessage(result.mensaje);
         setStep('setup_required');
         return;
@@ -275,7 +274,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             {step === 'setup_required' && (
               <PasoSetupRequerido
                 setupMessage={setupMessage}
-                onSetup={() => navigate('/setup-mfa', { state: { credentials: pendingCredentials.current } })}
+                onSetup={() => navigate(FRONTEND_ROUTES.SETUP_MFA)}
                 onBack={handleBackToCredentials}
               />
             )}

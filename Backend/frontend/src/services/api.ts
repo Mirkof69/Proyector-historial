@@ -252,7 +252,9 @@ apiClient.interceptors.response.use(
     // --- MANEJO DE OTROS ERRORES (400, 403, 404, 500) ---
     const status = error.response?.status;
 
-    if (status === 403) {
+    // El 403 «configure su MFA» del login no es una denegación: lo atiende la
+    // pantalla de login (mostrar aquí «Acceso Denegado» tapaba ese paso).
+    if (status === 403 && !(error.response?.data as any)?.mfa_setup_required) {
       antdGlobal.modal.error({
         title: '⛔ Acceso Denegado',
         content: 'No tienes permisos suficientes para realizar esta acción.',
@@ -364,6 +366,10 @@ const login = async (email: string, password: string): Promise<any> => {
     if (IS_DEV) logger.log('✅ Login exitoso (sesión por cookies httpOnly)');
     return data;
   } catch (error: any) {
+    // MFA obligatorio sin configurar: llega como 403 pero es un paso del login.
+    if (error?.response?.status === 403 && error.response.data?.mfa_setup_required) {
+      return error.response.data;
+    }
     if (IS_DEV) console.error('❌ Login fallido:', error);
     throw error;
   }

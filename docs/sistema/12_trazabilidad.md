@@ -64,6 +64,7 @@ para regenerarlo: `python quality-assurance/casos_de_prueba.py`.
 | RNF-14 Disponibilidad bajo carga | `prueba_concurrencia.py`: 40 usuarios, 0 errores | 📝 Medido en el equipo de desarrollo; repetir en el servidor del hospital |
 | RNF-15 Extensibilidad | CP-042 | ✅ Verificado |
 | RNF-16 Fiabilidad de las alertas | CP-108 | ✅ Verificado |
+| RNF-17 Seguridad de acceso (MFA) | CP-113 | ✅ Verificado |
 
 ## Cobertura
 

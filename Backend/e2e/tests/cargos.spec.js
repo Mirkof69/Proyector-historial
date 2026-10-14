@@ -6,7 +6,24 @@
 // El usuario de prueba es siempre el mismo y se reutiliza: quien ya entró tiene
 // registros de auditoría, que son inmutables (Ley 164), así que no se borra:
 // la limpieza lo desactiva y le quita el cargo.
+//
+// En producción (DEBUG=False) el rol médico exige MFA: la primera vez que entra
+// configura Google Authenticator, como haría la obstetriz real. El código TOTP
+// se calcula aquí (RFC 6238) con el secreto que muestra la pantalla.
+const crypto = require('crypto');
 const { test, expect } = require('@playwright/test');
+
+const totp = (secreto) => {
+  const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '';
+  for (const c of secreto.replace(/=+$/, '')) bits += alfabeto.indexOf(c).toString(2).padStart(5, '0');
+  const clave = Buffer.from(bits.match(/.{8}/g).map((b) => parseInt(b, 2)));
+  const contador = Buffer.alloc(8);
+  contador.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)));
+  const h = crypto.createHmac('sha1', clave).update(contador).digest();
+  const o = h[h.length - 1] & 0xf;
+  return String((h.readUInt32BE(o) & 0x7fffffff) % 1000000).padStart(6, '0');
+};
 
 const API = process.env.E2E_API || 'http://localhost:8000/api';
 const ADMIN = process.env.E2E_ADMIN_EMAIL || 'admin.demo@fetalmedical.bo';
@@ -32,7 +49,21 @@ const entrar = async (page, email, clave) => {
   await page.fill('input[placeholder="ejemplo@fetalmedical.com"]', email);
   await page.fill('input[placeholder="Ingrese su contraseña"]', clave);
   await page.click('button[type=submit]');
-  await page.waitForURL((u) => !u.pathname.includes('login'));
+  const configurar = page.getByRole('button', { name: /Configurar Google Authenticator/ });
+  await Promise.race([
+    page.waitForURL((u) => !u.pathname.includes('login')),
+    configurar.waitFor(),
+  ]);
+  if (await configurar.isVisible()) {
+    // MFA obligatorio sin configurar (producción): QR → código → dentro.
+    await expect(page.getByText('Acceso Denegado')).toHaveCount(0);
+    await configurar.click();
+    const secreto = (await page.locator('.ant-typography code').first().innerText()).trim();
+    await page.getByRole('button', { name: /Ya escaneé el QR/ }).click();
+    await page.fill('input[placeholder="000000"]', totp(secreto));
+    await page.getByRole('button', { name: /Activar MFA/ }).click();
+    await page.waitForURL((u) => u.pathname.startsWith('/dashboard'), { timeout: 15000 });
+  }
   await page.request.get(`${API}/token/csrf/`);
 };
 
@@ -85,6 +116,9 @@ test.describe('Cargos: otros funcionarios', () => {
       ? await api(admin, 'PATCH', `/usuarios/${existente.id}/`, datos)
       : await api(admin, 'POST', '/usuarios/', datos);
     expect([200, 201], JSON.stringify(alta.datos)).toContain(alta.status);
+    // Se reutiliza: si otra corrida ya le activó el MFA, el administrador se lo
+    // restablece (como con un celular perdido) y lo configura de nuevo.
+    expect((await api(admin, 'POST', `/usuarios/${existente ? existente.id : alta.datos.id}/restablecer-mfa/`)).status).toBe(200);
 
     const contexto = await browser.newContext();
     const obstetriz = await contexto.newPage();

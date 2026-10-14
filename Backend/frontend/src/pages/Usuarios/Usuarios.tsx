@@ -124,6 +124,10 @@ const Usuarios: React.FC = () => {
       cargarUsuarios();
     } catch (error: any) { antdMessage.error('Error al cambiar estado del usuario'); }
   }, [cargarUsuarios, antdMessage]);
+  const handleRestablecerMfa = useCallback(async (usuario: Usuario) => {
+    try { const r = await usuariosService.restablecerMfa(usuario.id!); antdMessage.success(r.mensaje); }
+    catch (error: any) { antdMessage.error('No se pudo restablecer el MFA'); }
+  }, [antdMessage]);
   const handleCambiarPassword = useCallback((usuario: Usuario) => { dispatch({ type: 'OPEN_PASSWORD_MODAL', payload: usuario }); }, []);
   const handleCloseDrawer = useCallback((reload?: boolean) => { dispatch({ type: 'CLOSE_DRAWER' }); if (reload) cargarUsuarios(); }, [cargarUsuarios]);
   const handleClosePasswordModal = useCallback((reload?: boolean) => { dispatch({ type: 'CLOSE_PASSWORD_MODAL' }); if (reload) cargarUsuarios(); }, [cargarUsuarios]);
@@ -166,6 +170,7 @@ const Usuarios: React.FC = () => {
           onCambiarPassword={handleCambiarPassword}
           onEliminar={handleEliminarUsuario}
           onToggleActivo={handleToggleActivo}
+          onRestablecerMfa={handleRestablecerMfa}
         />
       </Card>
 

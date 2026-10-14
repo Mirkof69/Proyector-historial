@@ -44,6 +44,7 @@ class RegistroAuditoria(models.Model):
         ("MFA_ACTIVADO", "MFA activado"),
         ("MFA_FALLIDO", "Intento MFA fallido"),
         ("MFA_DESACTIVADO", "MFA desactivado"),
+        ("MFA_RESTABLECIDO", "MFA restablecido por un administrador"),
         ("CUENTA_BLOQUEADA", "Cuenta bloqueada por intentos"),
         # CRUD genérico (compatibilidad legacy)
         ("crear", "Crear"),

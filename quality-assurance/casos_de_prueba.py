@@ -11,7 +11,7 @@ sus pruebas pasan; si una prueba no aparece en la ejecución, el caso queda
 
 Requisitos: Backend/.venv (backend), Python del sistema con torch (IA),
 node_modules del frontend y de e2e, y para E2E el sistema levantado
-(INICIAR_SISTEMA.bat) con la demo cargada.
+(INICIAR.bat) con la demo cargada.
 """
 from __future__ import annotations
 
@@ -170,6 +170,17 @@ CASOS = [
       "js:FormularioRol::",
       "e2e:1. el administrador crea el cargo sin laboratorio",
       "e2e:2. un usuario nuevo con ese cargo entra: ve Partos, no Laboratorio, y la API lo bloquea"]),
+    ("CP-113", "Seguridad", "Alto", "Médico nuevo en producción (MFA obligatorio) y celular perdido",
+     "Entra configurando Google Authenticator sin un falso «Acceso Denegado»; el token temporal del MFA no vale como "
+     "sesión (antes, mandado como Bearer, entraba sin el código); el administrador restablece el MFA y queda auditado",
+     ["py:test_mfa_obligatorio::test_login_da_un_token_para_configurar",
+      "py:test_mfa_obligatorio::test_flujo_completo_activa_el_mfa_y_abre_la_sesion",
+      "py:test_mfa_obligatorio::test_el_token_viejo_no_reemplaza_un_mfa_ya_activo",
+      "py:test_mfa_obligatorio::test_sin_token_o_con_otro_proposito_no_sirve",
+      "py:test_mfa_obligatorio::test_token_del_paso_2_no_entra_sin_el_codigo",
+      "py:test_mfa_obligatorio::test_token_de_configuracion_no_entra",
+      "py:test_mfa_obligatorio::test_el_administrador_lo_restablece_y_queda_auditado",
+      "py:test_mfa_obligatorio::test_otro_medico_no_puede"]),
     ("CP-108", "Operación", "Alto", "Notificación en tiempo real con la API y los WebSockets en procesos distintos",
      "Con Redis cruza de un proceso a otro; producción sin Redis avisa al arrancar (antes la alerta no llegaba nunca)",
      ["py:test_capa_canales_produccion::test_mensaje_cruza_entre_dos_capas_independientes",

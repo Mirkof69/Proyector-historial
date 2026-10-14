@@ -1,6 +1,6 @@
 import React from 'react';
 import { Empty, Table, Avatar, Space, Tag, Tooltip, Switch, Button, Popconfirm, Typography } from 'antd';
-import { UserOutlined, MailOutlined, PhoneOutlined, EyeOutlined, EditOutlined, KeyOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, PhoneOutlined, EyeOutlined, EditOutlined, KeyOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined, SafetyOutlined } from '@ant-design/icons';
 import { Usuario } from '../../../services/usuariosService';
 import { configuracionDeRol } from '../../../config/roles';
 
@@ -13,6 +13,7 @@ const keyIcon = <KeyOutlined />;
 const deleteIcon = <DeleteOutlined />;
 const checkCircleIcon = <CheckCircleOutlined />;
 const stopIcon = <StopOutlined />;
+const mfaIcon = <SafetyOutlined />;
 
 interface UsuariosTableProps {
   usuarios: Usuario[];
@@ -22,6 +23,7 @@ interface UsuariosTableProps {
   onCambiarPassword: (usuario: Usuario) => void;
   onEliminar: (id: number) => void;
   onToggleActivo: (usuario: Usuario) => void;
+  onRestablecerMfa: (usuario: Usuario) => void;
 }
 
 const UsuariosTable: React.FC<UsuariosTableProps> = ({
@@ -31,7 +33,8 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
   onEditar,
   onCambiarPassword,
   onEliminar,
-  onToggleActivo
+  onToggleActivo,
+  onRestablecerMfa
 }) => {
   const columnas = [
     {
@@ -100,12 +103,15 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
       title: 'Acciones',
       key: 'acciones',
       fixed: 'right' as const,
-      width: 200,
+      width: 240,
       render: (_: any, record: Usuario) => (
         <Space>
           <Tooltip title="Ver detalles"><Button type="text" icon={eyeIcon} onClick={() => onVisualizar(record)} /></Tooltip>
           <Tooltip title="Editar"><Button type="text" icon={editIcon} onClick={() => onEditar(record)} /></Tooltip>
           <Tooltip title="Cambiar contraseña"><Button type="text" icon={keyIcon} onClick={() => onCambiarPassword(record)} /></Tooltip>
+          <Popconfirm title="¿Restablecer el MFA?" description="Para quien perdió o cambió el celular: al entrar configurará Google Authenticator de nuevo." onConfirm={() => onRestablecerMfa(record)} okText="Restablecer" cancelText="Cancelar">
+            <Tooltip title="Restablecer MFA (celular perdido)"><Button type="text" icon={mfaIcon} aria-label="Restablecer MFA" /></Tooltip>
+          </Popconfirm>
           <Popconfirm title="¿Eliminar usuario?" description="Esta acción no se puede deshacer" onConfirm={() => onEliminar(record.id!)} okText="Eliminar" cancelText="Cancelar" okButtonProps={{ danger: true }}>
             <Tooltip title="Eliminar"><Button type="text" danger icon={deleteIcon} /></Tooltip>
           </Popconfirm>

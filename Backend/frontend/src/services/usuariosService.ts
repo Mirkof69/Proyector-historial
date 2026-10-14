@@ -283,6 +283,12 @@ export const usuariosService = {
   /**
    * Desactivar usuario (baja lógica)
    */
+  /** Borra el MFA de quien perdió el celular: lo configura de nuevo al entrar (solo administrador). */
+  async restablecerMfa(id: number): Promise<{ mensaje: string }> {
+    const response = await api.post<{ mensaje: string }>(`/usuarios/${id}/restablecer-mfa/`);
+    return response.data;
+  },
+
   async desactivar(id: number): Promise<Usuario> {
     try {
       const response = await api.post<Usuario>(`/usuarios/${id}/desactivar/`);

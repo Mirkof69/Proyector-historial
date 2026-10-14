@@ -3,13 +3,16 @@
  * PÁGINA: CONFIGURACIÓN MFA — Google Authenticator
  * =============================================================================
  * Flujo:
- *   1. POST /api/usuarios/mfa/setup/  → recibe QR + secreto
+ *   1. Pedir QR + secreto
  *   2. Usuario escanea QR con Google Authenticator
- *   3. POST /api/usuarios/mfa/confirm/ { code } → activa MFA
+ *   3. Confirmar el primer código → activa MFA
  *   4. Redirigir al dashboard
  *
- * Acceso: desde la pantalla de login cuando mfa_setup_required: true
- *         o desde Configuración de perfil para activar MFA voluntariamente
+ * Dos accesos:
+ *   - Con sesión (activar MFA voluntariamente): /mfa/setup/ y /mfa/confirm/.
+ *   - Desde el login cuando el rol exige MFA (mfa_setup_required): todavía no
+ *     hay sesión; se usa el token temporal del login con /mfa-setup-inicial/ y
+ *     /mfa-confirmar-inicial/, que además abre la sesión.
  * =============================================================================
  */
 
@@ -23,8 +26,9 @@ import {
   SafetyOutlined,
   HeartOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { useAuth } from '../../hooks/useAuth';
 import type { MfaSetupResponse } from '../../services/authService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import PasoInicioMfa from './components/PasoInicioMfa';
@@ -47,8 +51,10 @@ const SetupMfa: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const locationState = location.state as { credentials?: { email: string; password: string } } | null;
+  const { refreshAuth } = useAuth();
+  // Se decide UNA vez al entrar: si cambiara al abrirse la sesión, el efecto de
+  // abajo volvería a pedir un QR y reemplazaría el secreto recién activado.
+  const [inicial] = useState(() => !authService.isAuthenticated() && authService.hasMfaSetupToken());
 
   // ──────────────────────────────────────────────────────────────────────────
   // SOLICITAR QR AL BACKEND
@@ -57,7 +63,7 @@ const SetupMfa: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await authService.setupMfa();
+      const data = inicial ? await authService.setupMfaInicial() : await authService.setupMfa();
       setSetupData(data);
       setCurrentStep(1);
     } catch (err: any) {
@@ -66,20 +72,16 @@ const SetupMfa: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [inicial]);
 
   useEffect(() => {
-    // Protección de ruta: si no hay sesión y no venimos del login, fuera.
-    if (!authService.isAuthenticated() && !locationState?.credentials) {
+    // Protección de ruta: sin sesión y sin venir del login, fuera.
+    if (!authService.isAuthenticated() && !inicial) {
       navigate(FRONTEND_ROUTES.LOGIN, { replace: true });
       return;
     }
-
-    // Si venimos desde el login con credenciales temporales o ya estamos autenticados, pedir el QR automáticamente
-    if (authService.isAuthenticated()) {
-      requestSetup();
-    }
-  }, [requestSetup, navigate, locationState]);
+    requestSetup();
+  }, [requestSetup, navigate, inicial]);
 
   // ──────────────────────────────────────────────────────────────────────────
   // CONFIRMAR CÓDIGO TOTP
@@ -88,8 +90,12 @@ const SetupMfa: React.FC = () => {
     setConfirming(true);
     setError(null);
     try {
-      const result = await authService.confirmMfa(values.code.replace(/\s/g, ''));
-      if (result.mfa_enabled) {
+      const code = values.code.replace(/\s/g, '');
+      const activado = inicial
+        ? Boolean((await authService.confirmMfaInicial(code)).user)
+        : (await authService.confirmMfa(code)).mfa_enabled;
+      if (activado) {
+        if (inicial) refreshAuth();
         setDone(true);
         setCurrentStep(3);
         message.success({ content: '✅ MFA activado correctamente. Su cuenta ahora está protegida.', duration: 3 });

@@ -81,6 +81,13 @@ def enforce_csrf(request) -> None:
         raise exceptions.PermissionDenied(f"CSRF Failed: {reason}")
 
 
+# Claims de los JWT temporales del MFA (usuarios/views.py): no son una sesión.
+#   mfa_pending        tiene MFA: falta el código TOTP (paso 2 del login).
+#   mfa_setup_pending  su rol exige MFA y aún no lo configuró: solo sirve para
+#                      generar el QR y activarlo (mfa-setup-inicial/confirmar).
+CLAIMS_TEMPORALES = ("mfa_pending", "mfa_setup_pending")
+
+
 class CookieJWTAuthentication(JWTAuthentication):
     """JWT por header Bearer (Kong / API externa) con fallback a cookie.
 
@@ -100,6 +107,10 @@ class CookieJWTAuthentication(JWTAuthentication):
             return None
 
         validated_token = self.get_validated_token(raw_token)
+        # El temp_token del MFA es un access JWT firmado igual que uno real: sin
+        # esto, mandarlo como Bearer saltaba el código TOTP con solo la clave.
+        if any(validated_token.get(c) for c in CLAIMS_TEMPORALES):
+            raise exceptions.AuthenticationFailed("Token temporal de MFA: complete la verificación.")
 
         if header is None:
             # Autenticación por cookie → proteger contra CSRF

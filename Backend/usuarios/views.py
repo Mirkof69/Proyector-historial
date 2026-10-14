@@ -47,19 +47,59 @@ logger = logging.getLogger(__name__)
 # "mfa_pending": true. Se genera con RefreshToken del usuario pero se firma con
 # un claim adicional para que el backend pueda distinguirlo de un access token real.
 
-def _build_temp_token(usuario) -> str:
-    """Genera un JWT temporal (5 min) que marca el estado 'pendiente MFA'."""
+# Propósitos (claims) en auth_cookies.CLAIMS_TEMPORALES: ninguno vale como sesión.
+def _build_temp_token(usuario, proposito: str = "mfa_pending", minutos: int = 5) -> str:
+    """Genera un JWT temporal que marca el estado pendiente de MFA."""
     refresh = RefreshToken.for_user(usuario)
-    # Cambiamos la expiración del access token a 5 minutos
     access = refresh.access_token
-    access.set_exp(lifetime=timedelta(minutes=5))
-    access["mfa_pending"] = True  # claim custom — diferencia de un access válido
+    access.set_exp(lifetime=timedelta(minutes=minutos))
+    access[proposito] = True  # claim custom — diferencia de un access válido
     # Blacklistear el refresh para que no pueda usarse directamente
     refresh.blacklist()
     return str(access)
 
 
-def _decode_temp_token(token_str):
+def _nuevo_secreto_mfa(usuario) -> dict:
+    """Genera el secreto TOTP del usuario y su QR para Google Authenticator."""
+    import base64
+    import io
+
+    import qrcode
+
+    secret = pyotp.random_base32()
+    usuario.mfa_secret = secret
+    usuario.save(update_fields=["mfa_secret"])
+    uri = pyotp.TOTP(secret).provisioning_uri(name=usuario.email, issuer_name="Fetal Medical Bolivia")
+    buf = io.BytesIO()
+    qrcode.make(uri).save(buf)
+    return {
+        "secret": secret,
+        "qr_code": f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}",
+        "uri": uri,
+        "mensaje": "Escanee el QR con Google Authenticator y confirme con el código de 6 dígitos.",
+    }
+
+
+def _auditar_mfa_activado(request, usuario) -> None:
+    # Contrapartida de MFA_DESACTIVADO: sin registrar tambien la activacion,
+    # la auditoria mostraria bajas de seguridad sin sus altas y no se podria
+    # reconstruir el estado de una cuenta.
+    try:
+        from auditoria.models import RegistroAuditoria
+
+        RegistroAuditoria.registrar(
+            usuario=usuario,
+            accion="MFA_ACTIVADO",
+            modulo="Usuario",
+            registro_id=str(usuario.id),
+            detalle=f"MFA activado por {usuario.email}",
+            request=request,
+        )
+    except Exception:
+        logger.warning("No se pudo auditar el MFA activado", exc_info=True)
+
+
+def _decode_temp_token(token_str, proposito: str = "mfa_pending"):
     """Valida el temp_token y retorna el Usuario o lanza excepción."""
     from rest_framework_simplejwt.exceptions import TokenError
     from rest_framework_simplejwt.tokens import AccessToken
@@ -69,7 +109,7 @@ def _decode_temp_token(token_str):
     except TokenError as exc:
         raise ValueError("temp_token inválido o expirado") from exc
 
-    if not token.get("mfa_pending"):
+    if not token.get(proposito):
         raise ValueError("El token no es un temp_token MFA válido")
 
     user_id = token.get("user_id")
@@ -120,7 +160,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     #: Solo el administrador. Antes el ViewSet entero pedía solo sesión: recepción
     #: podía crear usuarios, borrarlos, desactivar al administrador o
     #: ascenderse a superusuario con un PATCH.
-    ACCIONES_SOLO_ADMIN = frozenset({"create", "destroy", "activar", "desactivar"})
+    ACCIONES_SOLO_ADMIN = frozenset({"create", "destroy", "activar", "desactivar", "restablecer_mfa"})
     #: Campos que un usuario no administrador no puede tocar ni en su propio perfil.
     #: La contraseña se cambia por `cambiar_password`, que pide la actual.
     CAMPOS_PROTEGIDOS = ("rol", "is_staff", "is_superuser", "activo", "email",
@@ -365,6 +405,33 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=["post"], url_path="restablecer-mfa")
+    def restablecer_mfa(self, request, pk=None):
+        """El administrador borra el MFA de alguien que perdió o cambió el celular.
+
+        Sin esto, un médico sin su teléfono quedaba fuera para siempre: el MFA
+        es obligatorio para su rol y nadie podía quitárselo. Al entrar de nuevo
+        el sistema le pide configurarlo otra vez (con su contraseña).
+        """
+        usuario = self.get_object()
+        usuario.mfa_enabled = False
+        usuario.mfa_secret = None
+        usuario.save(update_fields=["mfa_enabled", "mfa_secret"])
+        try:
+            from auditoria.models import RegistroAuditoria
+
+            RegistroAuditoria.registrar(
+                usuario=request.user,
+                accion="MFA_RESTABLECIDO",
+                modulo="Usuario",
+                registro_id=str(usuario.id),
+                detalle=f"MFA de {usuario.email} restablecido por {request.user.email}",
+                request=request,
+            )
+        except Exception:
+            logger.warning("No se pudo auditar el MFA restablecido", exc_info=True)
+        return Response({"mensaje": f"MFA de {usuario.nombre_completo} restablecido: lo configurará al entrar."})
+
     # =================================================================================
     # GESTIÓN DE PERMISOS
     # =================================================================================
@@ -569,29 +636,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     )
     def mfa_setup(self, request):
         """Genera secreto TOTP y QR para Google Authenticator. Confirmar con /mfa/confirm/."""
-        import base64
-        import io
-
-        import qrcode
-
-        secret = pyotp.random_base32()
-        request.user.mfa_secret = secret
-        request.user.save(update_fields=["mfa_secret"])
-        uri = pyotp.TOTP(secret).provisioning_uri(
-            name=request.user.email, issuer_name="Fetal Medical Bolivia",
-        )
-        img = qrcode.make(uri)
-        buf = io.BytesIO()
-        img.save(buf)
-        qr_b64 = base64.b64encode(buf.getvalue()).decode()
-        return Response(
-            {
-                "secret": secret,
-                "qr_code": f"data:image/png;base64,{qr_b64}",
-                "uri": uri,
-                "mensaje": 'Escanee el QR con Google Authenticator, luego confirme con POST /mfa/confirm/ {"code":"..."}',
-            },
-        )
+        return Response(_nuevo_secreto_mfa(request.user))
 
     @action(
         detail=False,
@@ -607,23 +652,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         if pyotp.TOTP(request.user.mfa_secret).verify(code, valid_window=1):
             request.user.mfa_enabled = True
             request.user.save(update_fields=["mfa_enabled"])
-
-            # Contrapartida de MFA_DESACTIVADO: sin registrar tambien la
-            # activacion, la auditoria mostraria bajas de seguridad sin sus
-            # altas y no se podria reconstruir el estado de una cuenta.
-            try:
-                from auditoria.models import RegistroAuditoria
-
-                RegistroAuditoria.registrar(
-                    usuario=request.user,
-                    accion="MFA_ACTIVADO",
-                    modulo="Usuario",
-                    registro_id=str(request.user.id),
-                    detalle=f"MFA activado por {request.user.email}",
-                    request=request,
-                )
-            except Exception:
-                logger.warning("No se pudo auditar el MFA activado", exc_info=True)
+            _auditar_mfa_activado(request, request.user)
 
             return Response(
                 {"mensaje": "MFA activado correctamente", "mfa_enabled": True},
@@ -823,14 +852,19 @@ def login_view(request):
             status=status.HTTP_200_OK,
         )
 
-    # MFA OBLIGATORIO: médico/admin sin MFA configurado → bloquear
+    # MFA OBLIGATORIO: médico/admin sin MFA configurado → no hay sesión todavía.
+    # Antes era un callejón sin salida: /mfa/setup/ exige sesión y aquí no se
+    # daba ninguna, así que un médico nuevo en producción no podía entrar nunca.
+    # Ahora recibe un token que SOLO sirve para configurar el MFA (10 min: hay
+    # que instalar la app y escanear el QR).
     if getattr(usuario, "mfa_obligatorio", False) and not usuario.mfa_enabled:
         return Response(
             {
                 "mfa_setup_required": True,
+                "temp_token": _build_temp_token(usuario, "mfa_setup_pending", minutos=10),
                 "mensaje": (
                     "Su rol requiere autenticación de dos factores (MFA). "
-                    "Configure MFA antes de continuar: POST /api/usuarios/mfa/setup/"
+                    "Configúrela antes de continuar: POST /api/usuarios/mfa-setup-inicial/"
                 ),
             },
             status=status.HTTP_403_FORBIDDEN,
@@ -990,6 +1024,63 @@ def current_user_view(request):
     return Response(serializer.data)
 
 
+def _emitir_sesion(request, usuario, detalle: str) -> Response:
+    """Cierra un login con MFA: IP, sesión de auditoría, LOGIN y cookies httpOnly.
+
+    La usan el paso 2 del login (mfa-verify) y la activación inicial del MFA.
+    """
+    # Registrar IP
+    x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    ip = x_forwarded.split(",")[0] if x_forwarded else request.META.get("REMOTE_ADDR")
+    usuario.ultimo_login_ip = ip
+    usuario.save(update_fields=["ultimo_login_ip"])
+
+    # Sesión de auditoría: todo lo que haga con este token queda asociado.
+    sid = nuevo_sid()
+    fijar_sesion(request, sid)
+
+    # Auditoría
+    try:
+        from auditoria.models import RegistroAuditoria
+        RegistroAuditoria.registrar(
+            usuario=usuario,
+            accion="LOGIN",
+            modulo="Usuario",
+            registro_id=str(usuario.id),
+            detalle=f"{detalle} — rol: {usuario.rol}",
+            request=request,
+        )
+    except Exception:
+        pass
+
+    # Emitir JWT definitivo (sin claim mfa_pending)
+    refresh = RefreshToken.for_user(usuario)
+    refresh[SID_CLAIM] = sid
+
+    # SEGURIDAD: igual que login_view — JWT solo en cookies httpOnly
+    response = Response(
+        {
+            "user": {
+                "id": usuario.id,
+                "email": usuario.email,
+                "nombre": usuario.nombre_completo,
+                "rol": usuario.rol,
+                "especialidad": usuario.especialidad,
+                "foto_url": (
+                    request.build_absolute_uri(usuario.foto.url) if usuario.foto else None
+                ),
+                "is_staff": usuario.is_staff,
+                "is_superuser": usuario.is_superuser,
+                "permisos": permisos_de_usuario(usuario),
+            },
+        },
+        status=status.HTTP_200_OK,
+    )
+    set_jwt_cookies(response, access=refresh.access_token, refresh=refresh)
+    csrf_get_token(request)
+    return response
+
+
 @extend_schema(
     tags=["Authentication"],
     summary="Verificar código MFA (paso 2 del login)",
@@ -1081,54 +1172,55 @@ def mfa_verify_view(request):
         usuario.bloqueado_hasta = None
         usuario.save(update_fields=["intentos_fallidos", "bloqueado_hasta"])
 
-    # Registrar IP
-    x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
-    ip = x_forwarded.split(",")[0] if x_forwarded else request.META.get("REMOTE_ADDR")
-    usuario.ultimo_login_ip = ip
-    usuario.save(update_fields=["ultimo_login_ip"])
+    return _emitir_sesion(request, usuario, "Login MFA exitoso")
 
-    # Sesión de auditoría: todo lo que haga con este token queda asociado.
-    sid = nuevo_sid()
-    fijar_sesion(request, sid)
 
-    # Auditoría
+@extend_schema(
+    tags=["Authentication"],
+    summary="Configurar MFA por primera vez (sin sesión)",
+    description=(
+        "Para quien su rol exige MFA y aún no lo tiene: con el temp_token que devolvió "
+        "el login (mfa_setup_required) genera el secreto y el QR."
+    ),
+    responses={200: OpenApiResponse(description="QR y secreto"), 401: OpenApiResponse(description="Token inválido")},
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
+def mfa_setup_inicial_view(request):
     try:
-        from auditoria.models import RegistroAuditoria
-        RegistroAuditoria.registrar(
-            usuario=usuario,
-            accion="LOGIN",
-            modulo="Usuario",
-            registro_id=str(usuario.id),
-            detalle=f"Login MFA exitoso — rol: {usuario.rol}",
-            request=request,
-        )
-    except Exception:
-        pass
-
-    # Emitir JWT definitivo (sin claim mfa_pending)
-    refresh = RefreshToken.for_user(usuario)
-    refresh[SID_CLAIM] = sid
+        usuario = _decode_temp_token(str(request.data.get("temp_token", "")), "mfa_setup_pending")
+    except ValueError as exc:
+        registrar_intento_fallido(request)
+        return Response({"error": str(exc)}, status=status.HTTP_401_UNAUTHORIZED)
+    if usuario.mfa_enabled:
+        # Un token viejo no puede reemplazar el secreto de un MFA ya activo.
+        return Response({"error": "El MFA ya está activo: inicie sesión."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(_nuevo_secreto_mfa(usuario))
 
 
-    # SEGURIDAD: igual que login_view — JWT solo en cookies httpOnly
-    response = Response(
-        {
-            "user": {
-                "id": usuario.id,
-                "email": usuario.email,
-                "nombre": usuario.nombre_completo,
-                "rol": usuario.rol,
-                "especialidad": usuario.especialidad,
-                "foto_url": (
-                    request.build_absolute_uri(usuario.foto.url) if usuario.foto else None
-                ),
-                "is_staff": usuario.is_staff,
-                "is_superuser": usuario.is_superuser,
-                "permisos": permisos_de_usuario(usuario),
-            },
-        },
-        status=status.HTTP_200_OK,
-    )
-    set_jwt_cookies(response, access=refresh.access_token, refresh=refresh)
-    csrf_get_token(request)
-    return response
+@extend_schema(
+    tags=["Authentication"],
+    summary="Activar MFA por primera vez y entrar",
+    description="Verifica el primer código TOTP, activa el MFA y abre la sesión (cookies httpOnly).",
+    responses={200: OpenApiResponse(description="MFA activo y sesión abierta"),
+               400: OpenApiResponse(description="Código inválido"), 401: OpenApiResponse(description="Token inválido")},
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
+def mfa_confirmar_inicial_view(request):
+    try:
+        usuario = _decode_temp_token(str(request.data.get("temp_token", "")), "mfa_setup_pending")
+    except ValueError as exc:
+        registrar_intento_fallido(request)
+        return Response({"error": str(exc)}, status=status.HTTP_401_UNAUTHORIZED)
+    if usuario.mfa_enabled or not usuario.mfa_secret:
+        return Response({"error": "Genere primero el QR."}, status=status.HTTP_400_BAD_REQUEST)
+    if not pyotp.TOTP(usuario.mfa_secret).verify(str(request.data.get("code", "")), valid_window=1):
+        registrar_intento_fallido(request)
+        return Response({"error": "Código inválido o expirado"}, status=status.HTTP_400_BAD_REQUEST)
+    usuario.mfa_enabled = True
+    usuario.save(update_fields=["mfa_enabled"])
+    _auditar_mfa_activado(request, usuario)
+    return _emitir_sesion(request, usuario, "Login al activar MFA")

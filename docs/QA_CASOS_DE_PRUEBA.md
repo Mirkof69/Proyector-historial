@@ -1,11 +1,11 @@
 # Casos de prueba — esperado frente a obtenido
 
-Generado el 02/10/2026 17:30 por `quality-assurance/casos_de_prueba.py`, que **ejecuta**
+Generado el 14/10/2026 01:00 por `quality-assurance/casos_de_prueba.py`, que **ejecuta**
 las pruebas de cada caso. No editar a mano: volver a correr el script.
 Plan de QA y de pruebas: [QA_PLAN_DE_PRUEBAS.md](QA_PLAN_DE_PRUEBAS.md) ·
 Requisitos, historias de usuario y casos de uso: [sistema/](sistema/README.md).
 
-**Resultado: 61 de 61 casos pasan** · 0 fallan · 0 sin ejecutar
+**Resultado: 62 de 62 casos pasan** · 0 fallan · 0 sin ejecutar
 
 
 Prefijos: `py:` backend (pytest) · `ia:` microservicio de IA (pytest) · `js:` frontend (Jest) ·
@@ -75,3 +75,4 @@ Prefijos: `py:` backend (pytest) · `ia:` microservicio de IA (pytest) · `js:` 
 | <a id="cp-110"></a>CP-110 | Rendimiento | Alto | Abrir cada listado con la demo de 3.200 pacientes | Menos de 5 s y 15 peticiones o menos por pantalla, sin errores JS ni 500 | ✅ Pasa: obtenido = esperado | `perf:/dashboard/pacientes`<br>`perf:/dashboard/embarazos`<br>`perf:/dashboard/controles`<br>`perf:/dashboard/ecografias`<br>`perf:/dashboard/partos`<br>`perf:/dashboard/laboratorio`<br>`perf:/dashboard/citas`<br>`perf:/dashboard/vacunas`<br>`perf:/dashboard/triaje`<br>`perf:/dashboard/notas-evolucion` |
 | <a id="cp-111"></a>CP-111 | Rendimiento | Alto | Latencia de la API con la configuración de producción | Percentil 95 < 200 ms en los 16 listados y reportes (waitress, demo de 3.200 pacientes) | ✅ Pasa: obtenido = esperado | `lat:` |
 | <a id="cp-112"></a>CP-112 | Permisos | Alto | Otro funcionario: cargo «Obstetriz» sobre el rol médico sin laboratorio | Lo crea el administrador desde la pantalla; quien lo tiene ve Partos y no Laboratorio, y la API le responde 403. Un cargo no puede agregar módulos a su rol | ✅ Pasa: obtenido = esperado | `py:test_cargos::test_un_cargo_no_puede_agregar_modulos_a_su_rol`<br>`py:test_cargos::test_el_usuario_toma_el_rol_base_y_solo_los_modulos_del_cargo`<br>`py:test_cargos::test_la_api_rechaza_el_modulo_que_el_cargo_no_incluye`<br>`py:test_cargos::test_solo_el_administrador_crea_cargos`<br>`py:test_cargos::test_un_cargo_con_usuarios_no_se_borra`<br>`js:FormularioRol::`<br>`e2e:1. el administrador crea el cargo sin laboratorio`<br>`e2e:2. un usuario nuevo con ese cargo entra: ve Partos, no Laboratorio, y la API lo bloquea` |
+| <a id="cp-113"></a>CP-113 | Seguridad | Alto | Médico nuevo en producción (MFA obligatorio) y celular perdido | Entra configurando Google Authenticator sin un falso «Acceso Denegado»; el token temporal del MFA no vale como sesión (antes, mandado como Bearer, entraba sin el código); el administrador restablece el MFA y queda auditado | ✅ Pasa: obtenido = esperado | `py:test_mfa_obligatorio::test_login_da_un_token_para_configurar`<br>`py:test_mfa_obligatorio::test_flujo_completo_activa_el_mfa_y_abre_la_sesion`<br>`py:test_mfa_obligatorio::test_el_token_viejo_no_reemplaza_un_mfa_ya_activo`<br>`py:test_mfa_obligatorio::test_sin_token_o_con_otro_proposito_no_sirve`<br>`py:test_mfa_obligatorio::test_token_del_paso_2_no_entra_sin_el_codigo`<br>`py:test_mfa_obligatorio::test_token_de_configuracion_no_entra`<br>`py:test_mfa_obligatorio::test_el_administrador_lo_restablece_y_queda_auditado`<br>`py:test_mfa_obligatorio::test_otro_medico_no_puede` |

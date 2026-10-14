@@ -68,6 +68,8 @@ interface MfaRequiredResponse {
 interface MfaSetupRequiredResponse {
   mfa_setup_required: true;
   mensaje: string;
+  /** Solo sirve para generar el QR y activar el MFA (10 min); no es una sesión. */
+  temp_token?: string;
 }
 
 /** Unión de todos los posibles resultados del endpoint /login/ */
@@ -132,6 +134,9 @@ export interface MfaSetupResponse {
 // ═══════════════════════════════════════════════════════════════════════════
 // GUARD FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
+
+/** temp_token del login cuando el rol exige MFA y aún no está configurado. */
+const MFA_SETUP_TOKEN = 'mfa_setup_token';
 
 function isMfaRequired(data: any): data is MfaRequiredResponse {
   return data?.mfa_required === true;
@@ -205,6 +210,7 @@ class AuthService {
 
     // ── Caso: MFA setup requerido (HTTP 403 con mfa_setup_required) ──────
     if (isMfaSetupRequired(rawData)) {
+      if (rawData.temp_token) sessionStorage.setItem(MFA_SETUP_TOKEN, rawData.temp_token);
       return {
         success: false,
         setupRequired: true,
@@ -298,6 +304,27 @@ class AuthService {
   async confirmMfa(code: string): Promise<{ mfa_enabled: boolean; mensaje: string }> {
     const response = await api.apiClient.post('/usuarios/mfa/confirm/', { code });
     return response.data;
+  }
+
+  /** Primera configuración del MFA obligatorio, antes de tener sesión: QR y secreto. */
+  async setupMfaInicial(): Promise<MfaSetupResponse> {
+    const temp_token = sessionStorage.getItem(MFA_SETUP_TOKEN);
+    const response = await api.apiClient.post('/usuarios/mfa-setup-inicial/', { temp_token });
+    return response.data;
+  }
+
+  /** Activa el MFA con el primer código y abre la sesión (cookies httpOnly). */
+  async confirmMfaInicial(code: string): Promise<{ user: LoginResponseUser }> {
+    const temp_token = sessionStorage.getItem(MFA_SETUP_TOKEN);
+    const response = await api.apiClient.post('/usuarios/mfa-confirmar-inicial/', { temp_token, code });
+    sessionStorage.removeItem(MFA_SETUP_TOKEN);
+    localStorage.setItem('user:v1', JSON.stringify(response.data.user));
+    return response.data;
+  }
+
+  /** ¿Hay una configuración inicial de MFA en curso (vino del login)? */
+  hasMfaSetupToken(): boolean {
+    return Boolean(sessionStorage.getItem(MFA_SETUP_TOKEN));
   }
 
   /** Obtiene QR y secreto para configurar Google Authenticator */
