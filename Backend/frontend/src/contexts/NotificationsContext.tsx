@@ -19,7 +19,7 @@ import { API_URL } from '../services/api';
  *
  * En PRODUCCIÓN la API la sirve un servidor WSGI en el 8000 (waitress: 5–50 ms
  * por petición, medido el 01/10/2026; con uvicorn eran 100–250 ms en Windows)
- * y los WebSockets un uvicorn aparte en el 8010 (INICIAR_PRODUCCION.bat). En
+ * y los WebSockets un uvicorn aparte en el 8010 (INICIAR.bat). En
  * desarrollo un solo uvicorn en el 8000 atiende las dos cosas.
  * `REACT_APP_WS_URL` fija la dirección a mano si el despliegue es otro.
  */

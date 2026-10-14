@@ -215,7 +215,7 @@ verde + commit con explicación del fallo que previene.
 | `Microservicio_IA/.venv` (apunta al Python de Artemis) | Se conserva: es el entorno del equipo de entrenamiento, allí funciona |
 | Carpetas vacías `datasets/`, `temp/` | Se conservan: `app/config.py` las crea al arrancar |
 | Scripts `debug_*.py` (puerto 5000 obsoleto) | ✅ borrados. `start_gpu_training.bat` se conserva: es el lanzador de entrenamiento en Artemis |
-| Scripts de arranque en la raíz | ✅ `INICIAR_SISTEMA.bat` (desarrollo, ASGI + IA), `INICIAR_PRODUCCION.bat` (8 workers, comprobación final), `RESPALDO_DIARIO.bat`; borrados `start_all.bat` y `start_system.bat` (rotos) |
+| Scripts de arranque en la raíz | ✅ `INICIAR.bat` (un solo lanzador: producción por defecto, `desarrollo` y `detener`; comprueba cada servicio), `RESPALDO_DIARIO.bat`; borrados `start_all.bat` y `start_system.bat` (rotos) |
 
 ---
 

@@ -70,7 +70,7 @@ reintroduce los errores.
 
 ## 2. Arranque del sistema
 
-`INICIAR_SISTEMA.bat` levanta todo en orden. Los componentes por separado:
+`INICIAR.bat` levanta todo en orden (`INICIAR.bat desarrollo` para programar, `INICIAR.bat detener` para cerrar). Los componentes por separado:
 
 ```powershell
 # PostgreSQL (servicio de Windows)

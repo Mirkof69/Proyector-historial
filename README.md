@@ -80,10 +80,11 @@ MIGRAR_Y_SEED.bat
 ### 3. Iniciar el Sistema Completo
 Para levantar simultáneamente el Frontend (React), el Backend (Django), el Microservicio de IA (FastAPI) y el API Gateway:
 ```bash
-# Iniciar todos los servicios:
-INICIAR_SISTEMA.bat
+INICIAR.bat              # hospital / producción (doble clic)
+INICIAR.bat desarrollo   # para programar: recarga automática y React dev
+INICIAR.bat detener      # cierra todos los servicios del sistema
 ```
-*`INICIAR_SISTEMA.bat` es para desarrollo. Para un hospital usar `INICIAR_PRODUCCION.bat` (build real, 8 workers, comprueba que los servicios respondan) y programar `RESPALDO_DIARIO.bat` (respaldo con pg_dump; instrucciones dentro del archivo).*
+*Un solo lanzador: arranca PostgreSQL, Redis, migraciones de todas las clínicas, build del frontend si cambió, API en waitress, notificaciones en vivo, IA y frontend, y comprueba que cada uno responda. Programar además `RESPALDO_DIARIO.bat` (respaldo con pg_dump; instrucciones dentro del archivo).*
 
 ---
 

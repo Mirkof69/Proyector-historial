@@ -127,7 +127,7 @@ cd Backend && .venv/Scripts/python.exe -m ruff check . && .venv/Scripts/python.e
 cd Backend/frontend && npx tsc --noEmit && npx eslint src && set CI=true && npx react-scripts test --watchAll=false
 # Microservicio de IA (Python con torch)
 cd Backend/Microservicio_IA && python -m pytest
-# E2E (sistema levantado con INICIAR_SISTEMA.bat y la demo cargada)
+# E2E (sistema levantado con INICIAR.bat y la demo cargada)
 cd Backend/e2e && npx playwright test
 # Casos de prueba esperado/obtenido → docs/QA_CASOS_DE_PRUEBA.md
 python quality-assurance/casos_de_prueba.py

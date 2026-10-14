@@ -29,5 +29,5 @@ echo [3/3] Estado de la base...
 "%PY%" manage.py tenant_command shell --schema=clinica_demo -c "from pacientes.models import Paciente; from embarazos.models import Embarazo; from usuarios.models import Usuario; print('Pacientes', Paciente.objects.count(), '- embarazos', Embarazo.objects.count()); [print('  ', u.rol, u.email) for u in Usuario.objects.order_by('rol')]"
 
 echo.
-echo Listo. Arranque el sistema con INICIAR_SISTEMA.bat
+echo Listo. Arranque el sistema con INICIAR.bat
 pause

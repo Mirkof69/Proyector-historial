@@ -1,6 +1,6 @@
 """Los .bat de arranque llaman a comandos de Django con opciones que existen.
 
-Regresión: INICIAR_SISTEMA, INICIAR_PRODUCCION y MIGRAR_Y_SEED usaban
+Regresión: los lanzadores de entonces (hoy un solo INICIAR.bat) y MIGRAR_Y_SEED usaban
 `migrate_schemas --no-input`, opción que ese comando NO tiene (es
 `--noinput`). Los tres lanzadores fallaban en el paso de migraciones y se
 cerraban: el sistema no arrancaba con doble clic.

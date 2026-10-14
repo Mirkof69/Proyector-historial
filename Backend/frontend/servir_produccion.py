@@ -2,7 +2,7 @@
 
 Por qué existe este archivo
 ---------------------------
-`INICIAR_SISTEMA.bat` levantaba el frontend con `npm start`, que es el
+El antiguo lanzador de desarrollo levantaba el frontend con `npm start`, que es el
 servidor de DESARROLLO de Create React App: entrega los módulos sin
 minificar ni agrupar, sin compresión y sin cabeceras de caché, y encima
 carga la maquinaria de recarga en caliente. Sirve para programar; en la red

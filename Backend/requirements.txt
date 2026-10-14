@@ -43,7 +43,7 @@ daphne>=4.0
 
 # Utilities
 gunicorn>=21.1
-# Servidor WSGI de la API en Windows (INICIAR_PRODUCCION.bat): 5–53 ms por petición.
+# Servidor WSGI de la API en Windows (INICIAR.bat): 5–53 ms por petición.
 waitress>=3.0
 # Rotación de logs segura entre procesos (settings.py, LOGGING).
 concurrent-log-handler>=0.9.25

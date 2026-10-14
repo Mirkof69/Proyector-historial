@@ -18,6 +18,6 @@ def capa_de_canales_compartida(app_configs=None, **kwargs):
     return [Warning(
         "Las notificaciones en tiempo real usan la capa en memoria: no cruzan del "
         "proceso de la API al de los WebSockets.",
-        hint="Defina REDIS_URL (INICIAR_PRODUCCION.bat arranca Redis y la define).",
+        hint="Defina REDIS_URL (INICIAR.bat arranca Redis y la define).",
         id="notifications_websocket.W001",
     )]

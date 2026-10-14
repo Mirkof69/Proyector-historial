@@ -63,7 +63,7 @@ frontend de producción los busca en el 8010 (o en `REACT_APP_WS_URL`).
 memoria de Channels no cruza procesos, y el frontend deja de sondear en cuanto
 el WebSocket conecta: sin Redis las alertas no aparecían hasta recargar la
 página (comprobado el 01/10/2026: con Redis la notificación llega en 0,16 s;
-sin él, nunca). `INICIAR_PRODUCCION.bat` arranca Redis y pasa `REDIS_URL` a los
+sin él, nunca). `INICIAR.bat` arranca Redis y pasa `REDIS_URL` a los
 dos procesos; si falta, `manage.py check` lo advierte
 (`notifications_websocket.W001`). Se usa la capa pub/sub con protocolo RESP2,
 que funciona con el Redis 3.0 para Windows instalado (no conoce `HELLO` ni
@@ -82,24 +82,35 @@ peticiones se quedan colgadas.
 
 | Lanzador | Para qué |
 |---|---|
-| `INICIAR_PRODUCCION.bat` | Hospital: PostgreSQL, Redis, migraciones de todas las clínicas, build del frontend, API en waitress (8000), WebSockets en uvicorn (8010), IA (8001), comprobación de salud |
-| `INICIAR_SISTEMA.bat` | Desarrollo: recarga automática del backend y servidor de desarrollo de React |
+| `INICIAR.bat` | Hospital (por defecto): PostgreSQL, Redis, migraciones de todas las clínicas, build del frontend si cambió, red de la clínica, API en waitress (8000), WebSockets en uvicorn (8010), IA (8001), frontend (3000) y comprobación de salud |
+| `INICIAR.bat desarrollo` | Para programar: recarga automática del backend y servidor de desarrollo de React |
+| `INICIAR.bat detener` | Cierra los servicios del sistema (puertos 3000, 8000, 8001, 8010) |
 | `MIGRAR_Y_SEED.bat` | Solo demostración: migraciones y datos ficticios (nunca en el hospital) |
 | `RESPALDO_DIARIO.bat` | Respaldo de la base (programar en el Programador de tareas) |
 
 ```mermaid
 flowchart LR
-    A[INICIAR_PRODUCCION.bat] --> B[PostgreSQL]
+    A[INICIAR.bat] --> B[PostgreSQL]
     B --> R[Redis]
     R --> C[migrate_schemas --noinput<br/>todas las clínicas]
     C --> D{¿build del frontend?}
-    D -- No --> E[npm run build]
-    D -- Sí --> F[API :8000 + WebSockets :8010]
-    E --> F
+    D -- Cambió --> E[npm run build]
+    D -- Al día --> N[Red de la clínica<br/>IP del servidor en .env y dominios]
+    E --> N
+    N --> F[API :8000 + WebSockets :8010]
     F --> G[IA :8001]
     G --> H[Frontend :3000]
-    H --> I[Comprobación de salud<br/>backend · IA · frontend]
+    H --> I[Comprobación de salud<br/>API · IA · frontend · notificaciones]
 ```
+
+## Acceso con dos factores (MFA)
+
+En producción (`DEBUG=False`) médicos y administradores necesitan Google
+Authenticator. La primera vez que entran, el sistema los lleva a configurarlo
+(QR y primer código) y al terminar ya quedan dentro; no hace falta que nadie los
+ayude. Si alguien pierde o cambia el celular, el administrador abre
+**Usuarios → Restablecer MFA** (icono de escudo): la persona lo configura de
+nuevo al entrar y el hecho queda en la auditoría como `MFA_RESTABLECIDO`.
 
 ## Configuración (`Backend/.env`)
 
@@ -111,7 +122,7 @@ flowchart LR
 | `AI_SERVICE_URL` | Dirección del microservicio de IA |
 | `CORS_ALLOWED_ORIGINS`, `CSRF_TRUSTED_ORIGINS` | Orígenes permitidos del frontend |
 | `CSRF_COOKIE_SECURE`, `SESSION_COOKIE_SECURE`, `SECURE_*` | Endurecimiento con HTTPS |
-| `REDIS_URL` | **Obligatoria en producción**: notificaciones en tiempo real entre la API y los WebSockets, y caché (la define `INICIAR_PRODUCCION.bat`) |
+| `REDIS_URL` | **Obligatoria en producción**: notificaciones en tiempo real entre la API y los WebSockets, y caché (la define `INICIAR.bat`) |
 | `CELERY_BROKER_URL` | Opcional: cola de tareas |
 
 Con `VAULT_ADDR` y `VAULT_TOKEN` los secretos se leen de HashiCorp Vault.
@@ -157,5 +168,5 @@ flowchart LR
 3. Configurar `Backend/.env` con claves nuevas y la IP o dominio del servidor.
 4. Crear la clínica (tenant) y su dominio; cargar el catálogo de laboratorio (`poblar_valores_referencia`).
 5. Copiar los modelos de IA a `Backend/Microservicio_IA/trained_models/`.
-6. Ejecutar `INICIAR_PRODUCCION.bat` y programar `RESPALDO_DIARIO.bat`.
+6. Ejecutar `INICIAR.bat` y programar `RESPALDO_DIARIO.bat`.
 7. Crear los usuarios con su rol; los permisos se asignan solos.
