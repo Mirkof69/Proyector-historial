@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Form, Input, Button, Switch, Select, Space, Spin, Checkbox, Alert, Typography } from 'antd';
-import { SaveOutlined, CloseOutlined, SafetyOutlined } from '@ant-design/icons';
+import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAntdApp } from '../../hooks/useMessage';
 import cargosService, { CargoEntrada, ModuloElegible, ModulosPorRol, RolBase } from '../../services/cargosService';
 import { mensajeDeError } from '../../services/partoDetalleService';
+import './Roles.css';
 
 const { TextArea } = Input;
-const { Text } = Typography;
+
+const { Text, Title } = Typography;
 
 interface SelectorModulosProps {
   modulos: ModuloElegible[];
@@ -17,8 +19,7 @@ interface SelectorModulosProps {
 
 /** Casillas de módulos, controladas por el Form.Item; los obligatorios quedan fijos. */
 const SelectorModulos: React.FC<SelectorModulosProps> = ({ modulos, value = [], onChange }) => (
-  <div role="group" aria-label="Módulos que usa"
-    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
+  <div role="group" aria-label="Módulos que usa" className="roles-page__modulos">
     {modulos.map(m => (
       <Checkbox
         key={m.modulo}
@@ -96,11 +97,17 @@ const FormularioRol: React.FC = () => {
   };
 
   return (
-    <div>
-      <Button icon={<CloseOutlined />} onClick={() => navigate('/dashboard/roles')} style={{ marginBottom: 16 }}>Cancelar</Button>
-      <Card title={<span><SafetyOutlined style={{ marginRight: 8 }} />{isEditing ? 'Editar cargo' : 'Nuevo cargo'}</span>}>
-        {!inicial ? <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div> : (
-          <Form form={form} layout="vertical" onFinish={guardar} initialValues={inicial} style={{ maxWidth: 680 }}>
+    <div className="roles-page page-container">
+      <header className="roles-page__cabecera">
+        <div>
+          <Title level={2}>{isEditing ? 'Editar cargo' : 'Nuevo cargo'}</Title>
+          <Text type="secondary">Elija el rol en que se basa y desmarque los módulos que este cargo no usa.</Text>
+        </div>
+        <Button icon={<CloseOutlined />} onClick={() => navigate('/dashboard/roles')}>Cancelar</Button>
+      </header>
+      <Card>
+        {!inicial ? <div className="roles-page__cargando"><Spin /></div> : (
+          <Form form={form} layout="vertical" onFinish={guardar} initialValues={inicial} className="roles-page__formulario">
             <Form.Item name="nombre" label="Nombre del cargo" rules={[{ required: true, whitespace: true, message: 'Escriba el nombre del cargo' }]}>
               <Input placeholder="Ej.: Obstetriz, Nutricionista, Trabajo social" maxLength={80} />
             </Form.Item>
@@ -127,7 +134,7 @@ const FormularioRol: React.FC = () => {
             <Alert
               type="info"
               showIcon
-              style={{ marginBottom: 16 }}
+              className="roles-page__aviso"
               message="Un cargo solo puede quitar módulos a su rol, nunca agregar. Lo que no marque desaparece del menú y la API lo rechaza."
             />
             <Form.Item name="activo" label="Activo" valuePropName="checked" extra="Un cargo inactivo no se puede asignar a usuarios nuevos; quien ya lo tiene lo conserva.">

@@ -234,14 +234,14 @@ export const calcularRiesgo = (valores: DatosScreening): ResultadoRiesgo => {
   // Clasificar T21
   if (riesgo_t21 >= punto_corte) {
     clasificacion_t21 = '🔴 ALTO RIESGO';
-    color = '#f5222d';
+    color = 'var(--color-peligro)';
     screening_positivo = true;
   } else if (riesgo_t21 >= 1 / 1000) {
     clasificacion_t21 = '🟡 RIESGO INTERMEDIO';
-    color = '#fa8c16';
+    color = 'var(--color-aviso)';
   } else {
     clasificacion_t21 = '🟢 BAJO RIESGO';
-    color = '#52c41a';
+    color = 'var(--color-exito)';
   }
 
   // Clasificar T18
@@ -316,28 +316,28 @@ export const getDataEdadVsRiesgo = () => {
 export const getDataBiomarcadores = (resultado: ResultadoRiesgo | null) => {
   if (!resultado) return [];
   return [
-    { name: 'NT', mom: resultado.nt_mom, referencia: 1.0, color: '#1890ff' },
-    { name: 'PAPP-A', mom: resultado.pappa_mom, referencia: 1.0, color: '#52c41a' },
-    { name: 'βhCG libre', mom: resultado.bhcg_mom, referencia: 1.0, color: '#fa8c16' }
+    { name: 'NT', mom: resultado.nt_mom, referencia: 1.0, color: 'var(--grafico-1)' },
+    { name: 'PAPP-A', mom: resultado.pappa_mom, referencia: 1.0, color: 'var(--grafico-2)' },
+    { name: 'βhCG libre', mom: resultado.bhcg_mom, referencia: 1.0, color: 'var(--grafico-3)' }
   ];
 };
 
 export const getDataDistribucionRiesgo = (resultado: ResultadoRiesgo | null) => {
   if (!resultado) return [];
   return [
-    { name: 'T21 (Down)', value: resultado.riesgo_t21 * 100, color: '#f5222d', riesgoStr: formatRiesgo(resultado.riesgo_t21) },
-    { name: 'T18 (Edwards)', value: resultado.riesgo_t18 * 100, color: '#fa8c16', riesgoStr: formatRiesgo(resultado.riesgo_t18) },
-    { name: 'T13 (Patau)', value: resultado.riesgo_t13 * 100, color: '#722ed1', riesgoStr: formatRiesgo(resultado.riesgo_t13) },
-    { name: 'Normal', value: Math.max(0, 100 - (resultado.riesgo_t21 + resultado.riesgo_t18 + resultado.riesgo_t13) * 100), color: '#52c41a', riesgoStr: '' }
+    { name: 'T21 (Down)', value: resultado.riesgo_t21 * 100, color: 'var(--grafico-5)', riesgoStr: formatRiesgo(resultado.riesgo_t21) },
+    { name: 'T18 (Edwards)', value: resultado.riesgo_t18 * 100, color: 'var(--grafico-3)', riesgoStr: formatRiesgo(resultado.riesgo_t18) },
+    { name: 'T13 (Patau)', value: resultado.riesgo_t13 * 100, color: 'var(--grafico-6)', riesgoStr: formatRiesgo(resultado.riesgo_t13) },
+    { name: 'Normal', value: Math.max(0, 100 - (resultado.riesgo_t21 + resultado.riesgo_t18 + resultado.riesgo_t13) * 100), color: 'var(--grafico-4)', riesgoStr: '' }
   ];
 };
 
 export const getDataLikelihoodRatios = (resultado: ResultadoRiesgo | null) => {
   if (!resultado) return [];
   return [
-    { aneuplodia: 'T21', lr: resultado.lr_t21, color: '#1890ff' },
-    { aneuplodia: 'T18', lr: resultado.lr_t18, color: '#fa8c16' },
-    { aneuplodia: 'T13', lr: resultado.lr_t13, color: '#722ed1' }
+    { aneuplodia: 'T21', lr: resultado.lr_t21, color: 'var(--grafico-5)' },
+    { aneuplodia: 'T18', lr: resultado.lr_t18, color: 'var(--grafico-3)' },
+    { aneuplodia: 'T13', lr: resultado.lr_t13, color: 'var(--grafico-6)' }
   ];
 };
 

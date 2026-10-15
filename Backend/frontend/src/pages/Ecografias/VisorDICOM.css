@@ -1,43 +1,166 @@
-.viewer-tool-indicator {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  color: #fff;
-  background: rgba(24, 144, 255, 0.9);
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  z-index: 10;
+/* =============================================================================
+   VISOR DICOM (/dashboard/ecografias/:id/dicom)
+   Contrato: docs/DISENO_INTERFAZ.md. Las barras y paneles siguen al tema; solo
+   el lienzo de la imagen es negro en todos los temas (--color-visor-fondo).
+   ============================================================================= */
+
+.visor-dicom {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie);
 }
 
-.viewer-info-overlay-top {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+.visor-dicom .visor-dicom__cuerpo {
+  height: calc(100vh - var(--alto-cabecera) - 120px);
+  min-height: 600px;
+  overflow: hidden;
 }
 
-.viewer-info-overlay-bottom {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+/* Barras (superior e inferior) */
+.visor-dicom .visor-barra.ant-card,
+.visor-dicom .visor-controles.ant-card {
+  border: 0;
+  border-radius: 0;
 }
 
-.viewer-gradcam-overlay {
+.visor-dicom .visor-barra.ant-card {
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.visor-dicom .visor-barra .ant-card-body {
+  padding: var(--esp-2) var(--esp-4);
+}
+
+.visor-dicom .visor-controles.ant-card {
+  border-top: 1px solid var(--color-borde);
+}
+
+.visor-dicom .visor-controles .ant-card-body {
+  padding: var(--esp-3) var(--esp-4);
+}
+
+.visor-dicom .visor-controles .ant-tabs-nav {
+  margin-bottom: 0;
+}
+
+.visor-dicom .visor-deslizador {
+  width: 200px;
+}
+
+/* Paneles laterales */
+.visor-dicom .visor-herramientas {
+  flex: 0 0 80px;
+  padding: var(--esp-4) var(--esp-2);
+  overflow-y: auto;
+  border-inline-end: 1px solid var(--color-borde);
+  background-color: var(--color-superficie-2);
+}
+
+.visor-dicom .visor-metadatos {
+  flex: 0 0 300px;
+  padding: var(--esp-4);
+  overflow-y: auto;
+  border-inline-start: 1px solid var(--color-borde);
+  background-color: var(--color-superficie-2);
+}
+
+.visor-dicom .visor-metadatos .ant-list-item.visor-metadatos__fila {
+  justify-content: flex-start;
+  padding: var(--esp-2) 0;
+  border-block-end: 1px solid var(--color-borde-suave);
+}
+
+.visor-dicom .visor-separador.ant-divider {
+  margin: var(--esp-2) 0;
+}
+
+/* Lienzo: negro en todos los temas */
+.visor-dicom .visor-lienzo {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--color-visor-fondo);
+}
+
+.visor-dicom .visor-lienzo canvas {
+  border: 1px solid var(--color-borde-fuerte);
+}
+
+/* Marcador cuando no hay imagen */
+.visor-dicom .visor-marcador {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--color-texto-3);
   pointer-events: none;
+}
+
+/* Rótulos sobre la imagen: superficie propia del tema, legibles en los cuatro */
+.visor-dicom .viewer-info-overlay-top,
+.visor-dicom .viewer-info-overlay-bottom,
+.visor-dicom .viewer-tool-indicator {
+  position: absolute;
+  z-index: 10;
+  padding: var(--esp-2) var(--esp-3);
+  border-radius: var(--radio-sm);
+  font-size: var(--texto-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.visor-dicom .viewer-info-overlay-top,
+.visor-dicom .viewer-info-overlay-bottom {
+  left: var(--esp-4);
+  border: 1px solid var(--color-borde);
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+}
+
+.visor-dicom .viewer-info-overlay-top {
+  top: var(--esp-4);
+}
+
+.visor-dicom .viewer-info-overlay-bottom {
+  bottom: var(--esp-4);
+}
+
+.visor-dicom .viewer-tool-indicator {
+  top: var(--esp-4);
+  right: var(--esp-4);
+  background-color: var(--color-primario);
+  color: var(--color-sobre-primario);
+  font-weight: var(--peso-fuerte);
+}
+
+.visor-dicom .viewer-gradcam-overlay {
+  position: absolute;
   width: 512px;
   height: 512px;
+  max-width: 100%;
   opacity: 0.5;
   mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .visor-dicom .visor-dicom__cuerpo {
+    height: auto;
+    min-height: 480px;
+  }
+
+  .visor-dicom .visor-metadatos {
+    display: none;
+  }
+
+  .visor-dicom .visor-deslizador {
+    width: 140px;
+  }
 }

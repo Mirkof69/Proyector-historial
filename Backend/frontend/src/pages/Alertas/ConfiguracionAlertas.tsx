@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Form, Switch, Button, InputNumber, Typography, message, Spin, Divider } from 'antd';
-import { SaveOutlined, BellOutlined } from '@ant-design/icons';
+import { SaveOutlined } from '@ant-design/icons';
+import './AlertasMedicas.css';
 import api from '../../services/api';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const ConfiguracionAlertas: React.FC = () => {
   const [form] = Form.useForm();
@@ -39,24 +40,29 @@ const ConfiguracionAlertas: React.FC = () => {
   };
 
   return (
-    <Card
-      title={<span><BellOutlined style={{ marginRight: 8 }} />Configuración de Alertas</span>}
-      extra={<Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>Guardar</Button>}
-    >
+    <div className="alertas-page page-container">
+    <header className="alertas-page__cabecera">
+      <div>
+        <Title level={2}>Configuración de Alertas</Title>
+        <Text type="secondary">Qué valores disparan una alerta y por qué medio se avisa.</Text>
+      </div>
+      <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>Guardar</Button>
+    </header>
+    <Card>
       <Spin spinning={loading}>
-        <Form form={form} layout="vertical" onFinish={handleSave} style={{ maxWidth: 600 }}>
+        <Form form={form} layout="vertical" onFinish={handleSave} className="alertas-page__formulario">
           <Title level={5}>Alertas de Signos Vitales</Title>
           <Form.Item name="alertar_presion_alta" label="Alertar sobre presión arterial alta" valuePropName="checked">
             <Switch />
           </Form.Item>
           <Form.Item name="limite_presion_sistolica" label="Límite superior presión sistólica (mmHg)">
-            <InputNumber min={100} max={250} style={{ width: '100%' }} placeholder="140" />
+            <InputNumber min={100} max={250} className="alertas-page__control" placeholder="140" />
           </Form.Item>
           <Form.Item name="alertar_glucosa_alta" label="Alertar sobre glucosa elevada" valuePropName="checked">
             <Switch />
           </Form.Item>
           <Form.Item name="limite_glucosa_ayunas" label="Límite glucosa en ayunas (mg/dL)">
-            <InputNumber min={70} max={300} style={{ width: '100%' }} placeholder="105" />
+            <InputNumber min={70} max={300} className="alertas-page__control" placeholder="105" />
           </Form.Item>
 
           <Divider />
@@ -79,6 +85,7 @@ const ConfiguracionAlertas: React.FC = () => {
         </Form>
       </Spin>
     </Card>
+    </div>
   );
 };
 

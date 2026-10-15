@@ -232,20 +232,20 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             showIcon
             closable
             onClose={() => setConnectionError(false)}
-            style={{ maxWidth: 900, margin: '0 auto 20px' }}
+            className="login-alerta-conexion"
           />
         )}
 
         <div className="login-container">
           {/* ── COLUMNA IZQUIERDA: FORMULARIO ── */}
-          <Card className="login-card login-card-form" variant="borderless">
+          <Card className="login-card login-card-form">
 
             {/* Indicador de pasos cuando está en modo MFA */}
             {step !== 'credentials' && (
               <Steps
                 current={step === 'totp' ? 1 : 2}
                 size="small"
-                style={{ marginBottom: 24 }}
+                className="login-pasos"
                 items={[
                   { title: 'Credenciales', icon: <UserOutlined /> },
                   { title: 'Verificación MFA', icon: <KeyOutlined /> },

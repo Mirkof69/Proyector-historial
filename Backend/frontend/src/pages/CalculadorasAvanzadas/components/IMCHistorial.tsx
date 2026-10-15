@@ -14,50 +14,46 @@ const IMCHistorial: React.FC<IMCHistorialProps> = ({ historial, promedioGanancia
   <>
     <Divider>Estadísticas del Historial</Divider>
 
-    <Row gutter={16} style={{ marginBottom: 24 }}>
+    <Row gutter={[16, 16]} className="calc-fila-stats">
       <Col xs={12} sm={6}>
-        <Card variant="borderless">
+        <Card className="calc-stat-card">
           <Statistic
             title="Total Mediciones"
             value={historial.length}
             prefix={<LineChartOutlined />}
-            valueStyle={{ color: '#1890ff' }}
           />
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card variant="borderless">
+        <Card className="calc-stat-card">
           <Statistic
             title="Ganancia Promedio"
             value={promedioGanancia}
             suffix="kg"
-            valueStyle={{ color: '#52c41a' }}
           />
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card variant="borderless">
+        <Card className="calc-stat-card">
           <Statistic
             title="% Ganancia Adecuada"
             value={tasaAdecuada}
             suffix="%"
-            valueStyle={{ color: '#722ed1' }}
           />
         </Card>
       </Col>
       <Col xs={12} sm={6}>
-        <Card variant="borderless">
+        <Card className="calc-stat-card">
           <Statistic
             title="Último Registro"
             value={historial[0]?.semanas || 0}
             suffix="sem"
-            valueStyle={{ color: '#fa8c16' }}
           />
         </Card>
       </Col>
     </Row>
 
-    <Card title="Historial de Mediciones" variant="borderless">
+    <Card title="Historial de Mediciones">
       <Table
         columns={columnsIMC}
         dataSource={historial}

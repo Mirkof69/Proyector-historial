@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Tag, Button, Typography, Spin } from 'antd';
 import { ReloadOutlined, WarningOutlined } from '@ant-design/icons';
 import { antecedentesService, AntecedentePatologico } from '../../services/antecedentesService';
+import './Antecedentes.css';
 
 const { Text } = Typography;
 
@@ -29,23 +30,24 @@ const AntecedentesPatologicos: React.FC = () => {
     { title: 'Paciente', key: 'paciente', render: (_: unknown, r: AntecedentePatologico) => r.paciente_info?.nombre_completo || `ID: ${r.paciente}` },
     {
       title: 'Tipo', dataIndex: 'tipo', key: 'tipo',
-      render: (v: string) => <Tag color={v === 'personal' ? 'blue' : 'purple'}>{v === 'personal' ? 'Personal' : 'Heredofamiliar'}</Tag>,
+      render: (v: string) => <Tag>{v === 'personal' ? 'Personal' : 'Heredofamiliar'}</Tag>,
     },
-    { title: 'Diabetes', dataIndex: 'diabetes', key: 'diabetes', render: (v: boolean) => v ? <Tag color="orange">Sí</Tag> : 'No' },
-    { title: 'Hipertensión', dataIndex: 'hipertension', key: 'hipertension', render: (v: boolean) => v ? <Tag color="red">Sí</Tag> : 'No' },
-    { title: 'Alergias', dataIndex: 'tiene_alergias', key: 'alergias', render: (v: boolean) => v ? <Tag color="magenta">Sí</Tag> : 'No' },
-    { title: 'Asma', dataIndex: 'asma', key: 'asma', render: (v: boolean) => v ? <Tag color="cyan">Sí</Tag> : 'No' },
+    { title: 'Diabetes', dataIndex: 'diabetes', key: 'diabetes', render: (v: boolean) => v ? <Tag color="warning">Sí</Tag> : 'No' },
+    { title: 'Hipertensión', dataIndex: 'hipertension', key: 'hipertension', render: (v: boolean) => v ? <Tag color="error">Sí</Tag> : 'No' },
+    { title: 'Alergias', dataIndex: 'tiene_alergias', key: 'alergias', render: (v: boolean) => v ? <Tag>Sí</Tag> : 'No' },
+    { title: 'Asma', dataIndex: 'asma', key: 'asma', render: (v: boolean) => v ? <Tag>Sí</Tag> : 'No' },
     {
       title: 'Riesgo', key: 'riesgo',
       render: (_: unknown, r: AntecedentePatologico) => r.tiene_factores_riesgo_calculado
-        ? <Tag color="red" icon={<WarningOutlined />}>Alto</Tag>
-        : <Tag color="green">Bajo</Tag>,
+        ? <Tag color="error" icon={<WarningOutlined />}>Alto</Tag>
+        : <Tag color="success">Bajo</Tag>,
     },
   ];
 
   return (
     <Card
-      title={<span><WarningOutlined style={{ color: '#faad14', marginRight: 8 }} />Antecedentes Patológicos</span>}
+      className="antecedentes-pagina"
+      title={<span><WarningOutlined className="antecedentes-icono" />Antecedentes Patológicos</span>}
       extra={<Button icon={<ReloadOutlined />} onClick={cargarAntecedentes} loading={loading}>Recargar</Button>}
     >
       <Spin spinning={loading}>

@@ -95,14 +95,14 @@ const TabControles: React.FC<TabControlesProps> = ({ controles, embarazoActivo, 
                   <YAxis domain={FCF_DOMAIN} label={FCF_LABEL} />
                   <RechartsTooltip />
                   <Legend />
-                  <ReferenceArea y1={110} y2={160} fill="#52c41a" fillOpacity={0.1} />
+                  <ReferenceArea y1={110} y2={160} fill="var(--color-exito)" fillOpacity={0.1} />
                   <Line
                     type="monotone"
                     dataKey="lcf"
-                    stroke="#eb2f96"
+                    stroke="var(--grafico-1)"
                     strokeWidth={2}
                     name="LCF (lpm)"
-                    dot={{ fill: '#eb2f96', r: 4 }}
+                    dot={{ fill: 'var(--grafico-1)', r: 4 }}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
@@ -121,7 +121,7 @@ const TabControles: React.FC<TabControlesProps> = ({ controles, embarazoActivo, 
           { title: 'Semana', render: (_: any, r: any) => r.semanas_gestacion ?? r.edad_gestacional_semanas ?? '-', width: 80, align: 'center' as const },
           { title: 'Fecha', render: (_: any, r: any) => dayjs(r.fecha_control || r.fecha).format('DD/MM/YY'), width: 100 },
           { title: 'Peso (kg)', dataIndex: 'peso_actual', align: 'center' },
-          { title: 'PA (mmHg)', render: (_, r: any) => <Tag color={r.presion_arterial_sistolica >= 140 ? 'red' : 'green'}>{r.presion_arterial_sistolica}/{r.presion_arterial_diastolica}</Tag>, align: 'center' },
+          { title: 'PA (mmHg)', render: (_, r: any) => <Tag color={r.presion_arterial_sistolica >= 140 ? 'error' : 'success'}>{r.presion_arterial_sistolica}/{r.presion_arterial_diastolica}</Tag>, align: 'center' },
           { title: 'AU (cm)', dataIndex: 'altura_uterina', align: 'center' },
           { title: 'LCF', dataIndex: 'frecuencia_cardiaca_fetal', align: 'center' },
           { title: 'Presentación', dataIndex: 'presentacion_fetal' },
@@ -142,7 +142,7 @@ const TabControles: React.FC<TabControlesProps> = ({ controles, embarazoActivo, 
               <p><strong>Observaciones:</strong> {record.observaciones || 'Sin observaciones'}</p>
               <p><strong>Próxima cita:</strong> {record.proximo_control ? dayjs(record.proximo_control).format('DD/MM/YYYY') : 'No programada'}</p>
               <Divider style={{ margin: '8px 0' }} />
-              <Space split={verticalDivider} size="small" style={{ fontSize: 12, color: '#8c8c8c' }}>
+              <Space split={verticalDivider} size="small" wrap className="historia-nota texto-ayuda">
                 <span><ClockCircleOutlined /> Creado: {dayjs(record.fecha_registro || record.fecha).format('DD/MM/YYYY HH:mm')}</span>
                 {record.fecha_actualizacion && record.fecha_actualizacion !== record.fecha_registro && (
                   <span><EditOutlined /> Modificado: {dayjs(record.fecha_actualizacion).format('DD/MM/YYYY HH:mm')}</span>

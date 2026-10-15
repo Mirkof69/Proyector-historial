@@ -35,7 +35,7 @@ const DicomToolbar: React.FC<DicomToolbarProps> = ({
   onRotateLeft, onRotateRight, onToolSelect, onReset, onAnnotationChange,
 }) => (
   <>
-    <Card title="🔧 Herramientas" size="small">
+    <Card title="Herramientas" size="small">
       <Space direction="vertical" style={{ width: '100%' }}>
         <Divider orientation="left" plain>Zoom</Divider>
         <Space>
@@ -117,7 +117,7 @@ const DicomToolbar: React.FC<DicomToolbarProps> = ({
       </Space>
     </Card>
 
-    <Card title="📊 Mediciones" size="small" style={{ marginTop: 16 }}>
+    <Card title="Mediciones" size="small" style={{ marginTop: 16 }}>
       {measurements.length === 0 ? (
         <Text type="secondary">No hay mediciones</Text>
       ) : (
@@ -129,7 +129,7 @@ const DicomToolbar: React.FC<DicomToolbarProps> = ({
       )}
     </Card>
 
-    <Card title="📝 Anotaciones" size="small" style={{ marginTop: 16 }}>
+    <Card title="Anotaciones" size="small" style={{ marginTop: 16 }}>
       <Input.TextArea
         rows={4}
         placeholder="Agregar observaciones sobre la imagen..."
@@ -138,7 +138,7 @@ const DicomToolbar: React.FC<DicomToolbarProps> = ({
         aria-label="Anotaciones de la imagen DICOM"
       />
       <Tag color={isDrawing ? 'processing' : 'default'}>
-        {isDrawing ? '✏️ Dibujando...' : '✓ Listo'}
+        {isDrawing ? 'Dibujando…' : 'Listo'}
       </Tag>
     </Card>
   </>

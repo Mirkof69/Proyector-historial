@@ -12,7 +12,7 @@ export const columnasComparacion = [
     key: 'campo',
     render: (text: string, record: ComparacionControl) => (
       <Space>
-        {record.importante && <WarningOutlined style={{ color: '#ff4d4f' }} />}
+        {record.importante && <WarningOutlined className="u-c-peligro" />}
         <Text strong={record.importante}>{text}</Text>
       </Space>
     ),

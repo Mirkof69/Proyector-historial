@@ -17,22 +17,19 @@ const BeneficiosSection: React.FC<BeneficiosSectionProps> = ({ beneficios }) => 
   <div id="beneficios" className="beneficios-section">
     <div className="section-container">
       <div className="section-header">
-        <Title level={2} className="section-title" style={{ color: '#fff' }}>
+        <Title level={2} className="section-title">
           Beneficios del Sistema
         </Title>
-        <Paragraph
-          className="section-description"
-          style={{ color: 'rgba(255,255,255,0.9)' }}
-        >
+        <Paragraph className="section-description">
           Tecnología que transforma la atención prenatal
         </Paragraph>
       </div>
-      <Row gutter={[24, 24]} style={{ marginTop: 50 }}>
+      <Row gutter={[16, 16]}>
         {beneficios.map((beneficio) => (
           <Col xs={24} sm={12} md={6} key={beneficio.titulo}>
             <Card className="beneficio-card">
               <div className="beneficio-icon">{beneficio.icon}</div>
-              <Title level={4} style={{ marginTop: 16 }}>
+              <Title level={4}>
                 {beneficio.titulo}
               </Title>
               <Text>{beneficio.descripcion}</Text>

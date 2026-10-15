@@ -10,14 +10,14 @@ interface TabFiltrosReporteProps {
 }
 
 const TabFiltrosReporte: React.FC<TabFiltrosReporteProps> = ({ reporte }) => (
-  <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8 }}>
+  <div className="reportes-panel">
     <Alert
       message="Auditoría de Filtros"
       description="Estos son los parámetros exactos que se utilizaron para generar este documento."
       type="info"
       showIcon
       icon={<InfoCircleOutlined />}
-      style={{ marginBottom: 15 }}
+      className="reportes-separado"
     />
 
     <Descriptions title="Parámetros" bordered size="small" column={1}>
@@ -61,7 +61,7 @@ const TabFiltrosReporte: React.FC<TabFiltrosReporteProps> = ({ reporte }) => (
           title: 'Tipo',
           dataIndex: 'tipo',
           key: 'tipo',
-          render: (tipo) => <Tag color="blue">{tipo}</Tag>
+          render: (tipo) => <Tag>{tipo}</Tag>
         }
       ]}
       pagination={false}

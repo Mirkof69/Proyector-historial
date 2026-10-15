@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Tag, Button, Typography, Spin } from 'antd';
 import { ReloadOutlined, WomanOutlined } from '@ant-design/icons';
 import { antecedentesService, AntecedenteGinecoObstetrico } from '../../services/antecedentesService';
+import './Antecedentes.css';
 
 const { Text } = Typography;
 
@@ -30,7 +31,7 @@ const AntecedentesGinecoObstetricos: React.FC = () => {
     {
       title: 'Fórmula Obstétrica', key: 'formula',
       render: (_: unknown, r: AntecedenteGinecoObstetrico) => (
-        <Tag color="blue">{r.formula_obstetrica || `G${r.gestas ?? 0}P${r.partos ?? 0}A${r.abortos ?? 0}C${r.cesareas ?? 0}`}</Tag>
+        <Tag>{r.formula_obstetrica || `G${r.gestas ?? 0}P${r.partos ?? 0}A${r.abortos ?? 0}C${r.cesareas ?? 0}`}</Tag>
       ),
     },
     { title: 'Gestas', dataIndex: 'gestas', key: 'gestas', render: (v: number) => v ?? '-' },
@@ -41,7 +42,7 @@ const AntecedentesGinecoObstetricos: React.FC = () => {
     {
       title: 'Ciclos', dataIndex: 'ciclos_menstruales', key: 'ciclos',
       render: (v: string) => {
-        const colors: Record<string, string> = { regular: 'green', irregular: 'orange', amenorrea: 'red' };
+        const colors: Record<string, string> = { regular: 'success', irregular: 'warning', amenorrea: 'error' };
         return v ? <Tag color={colors[v] || 'default'}>{v}</Tag> : '-';
       },
     },
@@ -49,7 +50,8 @@ const AntecedentesGinecoObstetricos: React.FC = () => {
 
   return (
     <Card
-      title={<span><WomanOutlined style={{ color: '#eb2f96', marginRight: 8 }} />Antecedentes Gineco-Obstétricos</span>}
+      className="antecedentes-pagina"
+      title={<span><WomanOutlined className="antecedentes-icono" />Antecedentes Gineco-Obstétricos</span>}
       extra={<Button icon={<ReloadOutlined />} onClick={cargarAntecedentes} loading={loading}>Recargar</Button>}
     >
       <Spin spinning={loading}>

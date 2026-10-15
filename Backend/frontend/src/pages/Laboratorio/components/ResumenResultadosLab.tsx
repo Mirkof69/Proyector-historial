@@ -20,7 +20,7 @@ const ResumenResultadosLab: React.FC<ResumenResultadosLabProps> = ({ resumen }) 
         Resumen de Resultados
       </Space>
     }
-    style={{ marginBottom: 16 }}
+    className="laboratorio-separado"
   >
     <Row gutter={[16, 16]}>
       <Col xs={24} sm={12} md={6}>
@@ -37,7 +37,6 @@ const ResumenResultadosLab: React.FC<ResumenResultadosLabProps> = ({ resumen }) 
           <Statistic
             title="Normales"
             value={resumen.normales}
-            valueStyle={{ color: '#52c41a' }}
             prefix={<CheckCircleOutlined />}
           />
         </Card>
@@ -47,7 +46,6 @@ const ResumenResultadosLab: React.FC<ResumenResultadosLabProps> = ({ resumen }) 
           <Statistic
             title="Anormales"
             value={resumen.anormales}
-            valueStyle={{ color: '#faad14' }}
             prefix={<ExclamationCircleOutlined />}
           />
         </Card>
@@ -57,7 +55,6 @@ const ResumenResultadosLab: React.FC<ResumenResultadosLabProps> = ({ resumen }) 
           <Statistic
             title="Críticos"
             value={resumen.criticos}
-            valueStyle={{ color: '#ff4d4f' }}
             prefix={<WarningOutlined />}
           />
         </Card>

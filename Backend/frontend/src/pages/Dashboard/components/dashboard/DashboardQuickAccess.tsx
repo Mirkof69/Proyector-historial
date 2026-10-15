@@ -8,7 +8,7 @@ interface DashboardQuickAccessProps {
 }
 
 const DashboardQuickAccess: React.FC<DashboardQuickAccessProps> = ({ showQuickAccess, onNavigate }) => (
-  <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+  <Row gutter={[16, 16]}>
     <Col span={24}>
       <Card title="Accesos Rápidos" className="shadow-card">
         <Row gutter={[16, 16]}>
@@ -44,21 +44,21 @@ const DashboardQuickAccess: React.FC<DashboardQuickAccessProps> = ({ showQuickAc
           )}
           {showQuickAccess('Triaje') && (
             <Col span={6} xs={12} sm={6}>
-              <Button block size="large" className="btn-quick orange-accent" icon={<MedicineBoxOutlined />} onClick={() => onNavigate('/dashboard/triaje', 'Triaje')}>Triaje</Button>
+              <Button block size="large" className="btn-quick" icon={<MedicineBoxOutlined />} onClick={() => onNavigate('/dashboard/triaje', 'Triaje')}>Triaje</Button>
             </Col>
           )}
           {showQuickAccess('Vacunas') && (
             <Col span={6} xs={12} sm={6}>
-              <Button block size="large" className="btn-quick blue-accent" icon={<MedicineBoxOutlined />} onClick={() => onNavigate('/dashboard/vacunas', 'Vacunas')}>Vacunas</Button>
+              <Button block size="large" className="btn-quick" icon={<MedicineBoxOutlined />} onClick={() => onNavigate('/dashboard/vacunas', 'Vacunas')}>Vacunas</Button>
             </Col>
           )}
           {showQuickAccess('Notas de evolución') && (
             <Col span={6} xs={12} sm={6}>
-              <Button block size="large" className="btn-quick green-accent" icon={<FileTextOutlined />} onClick={() => onNavigate('/dashboard/notas-evolucion', 'Notas de evolución')}>Notas de evolución</Button>
+              <Button block size="large" className="btn-quick" icon={<FileTextOutlined />} onClick={() => onNavigate('/dashboard/notas-evolucion', 'Notas de evolución')}>Notas de evolución</Button>
             </Col>
           )}
           <Col span={6} xs={12} sm={6}>
-            <Button block size="large" className="btn-quick" icon={<RobotOutlined />} onClick={() => onNavigate('/ia-asistente', 'IA Assistant')} style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', border: 'none' }}>IA Assistant</Button>
+            <Button block size="large" className="btn-quick" icon={<RobotOutlined />} onClick={() => onNavigate('/ia-asistente', 'IA Assistant')}>IA Assistant</Button>
           </Col>
         </Row>
       </Card>

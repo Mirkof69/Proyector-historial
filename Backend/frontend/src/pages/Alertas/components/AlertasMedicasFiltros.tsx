@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Button, Space, Input, Select, DatePicker } from 'antd';
 import {
-  CheckCircleOutlined, SearchOutlined, PlusOutlined, ReloadOutlined, FilterOutlined,
+  CheckCircleOutlined, SearchOutlined, ReloadOutlined, FilterOutlined,
 } from '@ant-design/icons';
 import { AlertaMedica } from '../../../services/reportesService';
 import { AlertasState } from '../alertasMedicasUtils';
@@ -24,19 +24,19 @@ const AlertasMedicasFiltros: React.FC<AlertasMedicasFiltrosProps> = ({
   searchText, filterSeveridad, filterEstado, dateRange, setState, cargarAlertas,
   filteredAlertas, filtrosAvanzadosVisibleRef, handleResolverTodas,
 }) => (
-  <Card style={{ marginBottom: 16 }}>
+  <Card>
     <Space wrap>
       <Input
         placeholder="Buscar por paciente, tipo o mensaje..."
         prefix={<SearchOutlined />}
         value={searchText}
         onChange={e => setState(prev => ({ ...prev, searchText: e.target.value }))}
-        style={{ width: 300 }}
+        className="alertas-page__buscar"
       />
       <Select
         value={filterSeveridad}
         onChange={val => setState(prev => ({ ...prev, filterSeveridad: val }))}
-        style={{ width: 150 }}
+        className="alertas-page__selector"
       >
         <Select.Option value="all">Todas las severidades</Select.Option>
         <Select.Option value="baja">Baja</Select.Option>
@@ -47,7 +47,7 @@ const AlertasMedicasFiltros: React.FC<AlertasMedicasFiltrosProps> = ({
       <Select
         value={filterEstado}
         onChange={val => setState(prev => ({ ...prev, filterEstado: val }))}
-        style={{ width: 150 }}
+        className="alertas-page__selector"
       >
         <Select.Option value="all">Todos los estados</Select.Option>
         <Select.Option value="activa">Activas</Select.Option>
@@ -66,13 +66,6 @@ const AlertasMedicasFiltros: React.FC<AlertasMedicasFiltrosProps> = ({
         onClick={cargarAlertas}
       >
         Recargar
-      </Button>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={() => setState(prev => ({ ...prev, modalNuevaAlerta: true }))}
-      >
-        Nueva Alerta
       </Button>
       <Button
         icon={<FilterOutlined />}

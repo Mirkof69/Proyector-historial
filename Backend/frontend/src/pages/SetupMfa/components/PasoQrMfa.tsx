@@ -16,9 +16,9 @@ interface PasoQrMfaProps {
 const PasoQrMfa: React.FC<PasoQrMfaProps> = ({ loading, setupData, onRegenerar, onContinuar, onCopySecret }) => {
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 40 }}>
+      <div className="setup-mfa__paso setup-mfa__cargando">
         <Spin size="large" />
-        <Paragraph style={{ marginTop: 16 }}>Generando código QR seguro…</Paragraph>
+        <Paragraph>Generando código QR seguro…</Paragraph>
       </div>
     );
   }
@@ -26,43 +26,30 @@ const PasoQrMfa: React.FC<PasoQrMfaProps> = ({ loading, setupData, onRegenerar, 
   if (!setupData) return null;
 
   return (
-    <div style={{ textAlign: 'center' }}>
+    <div className="setup-mfa__paso">
       <Alert
         message="Paso 1: Escanee el código QR"
         description="Abra Google Authenticator → toque + → Escanear código QR."
         type="success"
         showIcon
-        style={{ marginBottom: 20, textAlign: 'left' }}
+        className="setup-mfa__bloque"
       />
 
       {/* QR Image */}
-      <div style={{
-        display: 'inline-block',
-        padding: 12,
-        background: '#fff',
-        borderRadius: 12,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-        marginBottom: 20,
-      }}>
+      {/* La imagen trae su propio fondo blanco y margen de silencio (qrcode.make) */}
+      <div className="setup-mfa__qr">
         <img
           src={setupData.qr_code}
           alt="QR Code MFA"
-          style={{ width: 200, height: 200, display: 'block' }}
         />
       </div>
 
       {/* Clave manual */}
-      <Paragraph type="secondary" style={{ marginBottom: 8 }}>
+      <Paragraph type="secondary" className="setup-mfa__ayuda">
         <MobileOutlined /> ¿No puede escanear? Use el código manual:
       </Paragraph>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: 8, marginBottom: 24
-      }}>
-        <Text
-          code
-          style={{ fontSize: 13, letterSpacing: '0.05em', userSelect: 'all' }}
-        >
+      <div className="setup-mfa__secreto">
+        <Text code>
           {setupData.secret}
         </Text>
         <Button
@@ -81,7 +68,6 @@ const PasoQrMfa: React.FC<PasoQrMfaProps> = ({ loading, setupData, onRegenerar, 
           type="primary"
           icon={<KeyOutlined />}
           onClick={onContinuar}
-          style={{ borderRadius: 8 }}
         >
           Ya escaneé el QR →
         </Button>

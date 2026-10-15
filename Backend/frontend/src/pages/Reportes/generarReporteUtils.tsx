@@ -15,10 +15,10 @@ export interface FormValues {
 }
 
 export const iconoPorCategoria: Record<string, React.ReactElement> = {
-  estadistico: <BarChartOutlined style={{ fontSize: 48, color: '#1890ff' }} />,
-  paciente: <FileTextOutlined style={{ fontSize: 48, color: '#52c41a' }} />,
-  institucional: <FileTextOutlined style={{ fontSize: 48, color: '#722ed1' }} />,
-  regulatorio: <FileTextOutlined style={{ fontSize: 48, color: '#fa8c16' }} />,
-  clinico: <FileTextOutlined style={{ fontSize: 48, color: '#ff4d4f' }} />,
-  financiero: <BarChartOutlined style={{ fontSize: 48, color: '#13c2c2' }} />,
+  estadistico: <BarChartOutlined className="reportes-icono-tipo" />,
+  paciente: <FileTextOutlined className="reportes-icono-tipo" />,
+  institucional: <FileTextOutlined className="reportes-icono-tipo" />,
+  regulatorio: <FileTextOutlined className="reportes-icono-tipo" />,
+  clinico: <FileTextOutlined className="reportes-icono-tipo" />,
+  financiero: <BarChartOutlined className="reportes-icono-tipo" />,
 };

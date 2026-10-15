@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Tag, Button, Space, Typography, Spin, Input, Select, Tabs } from 'antd';
-import { SearchOutlined, ReloadOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../services/api';
 import SesionesAuditoria from './SesionesAuditoria';
 
-const { Text } = Typography;
+import './Auditoria/Auditoria.css';
+
+const { Text, Title } = Typography;
 
 interface AuditoriaUsuario {
   id: number;
@@ -25,14 +27,15 @@ interface AccesoEntry {
 // auditoria general — eso es lo que distingue esta pantalla de Auditoria.
 const ACCIONES_ACCESO = ['LOGIN', 'LOGOUT', 'LOGIN_FALLIDO', 'MFA_ACTIVADO', 'MFA_FALLIDO', 'MFA_DESACTIVADO', 'CUENTA_BLOQUEADA'];
 
+// Etiquetas semánticas: acceso correcto, aviso y fallo.
 const accionColors: Record<string, string> = {
-  LOGIN: 'green',
+  LOGIN: 'success',
   LOGOUT: 'default',
-  LOGIN_FALLIDO: 'red',
-  MFA_ACTIVADO: 'blue',
-  MFA_FALLIDO: 'orange',
-  MFA_DESACTIVADO: 'orange',
-  CUENTA_BLOQUEADA: 'red',
+  LOGIN_FALLIDO: 'error',
+  MFA_ACTIVADO: 'success',
+  MFA_FALLIDO: 'warning',
+  MFA_DESACTIVADO: 'warning',
+  CUENTA_BLOQUEADA: 'error',
 };
 
 const AccessLogs: React.FC = () => {
@@ -90,8 +93,12 @@ const AccessLogs: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card title={<span><SafetyCertificateOutlined style={{ marginRight: 8 }} />Registro de Accesos</span>}>
+    <div className="auditoria-page page-container">
+      <header className="auditoria-page__cabecera">
+        <Title level={2}>Registro de Accesos</Title>
+        <Text type="secondary">Sesiones de cada usuario y eventos de inicio de sesión y MFA.</Text>
+      </header>
+      <Card>
         <Tabs
           defaultActiveKey="sesiones"
           items={[
@@ -101,12 +108,12 @@ const AccessLogs: React.FC = () => {
               label: 'Eventos de acceso',
               children: (
       <>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-          <Space>
+        <div className="auditoria-page__filtros">
+          <Space wrap>
             <Select
               placeholder="Tipo de evento"
               allowClear
-              style={{ width: 180 }}
+              className="auditoria-page__tipo"
               value={accionFiltro}
               onChange={(v) => { setAccionFiltro(v); cargar(search, v); }}
               options={ACCIONES_ACCESO.map(a => ({ value: a, label: a.replace(/_/g, ' ') }))}
@@ -117,7 +124,7 @@ const AccessLogs: React.FC = () => {
               value={search}
               onChange={e => setSearch(e.target.value)}
               onPressEnter={() => cargar(search, accionFiltro)}
-              style={{ width: 220 }}
+              className="auditoria-page__buscar"
               allowClear
             />
             <Button icon={<ReloadOutlined />} onClick={() => cargar(search, accionFiltro)} loading={loading}>

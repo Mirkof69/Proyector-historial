@@ -10,7 +10,7 @@ interface IMCFormProps {
 }
 
 const IMCForm: React.FC<IMCFormProps> = ({ form, onFinish }) => (
-  <Card title="Datos de la Paciente" variant="borderless">
+  <Card title="Datos de la Paciente">
     <Form form={form} layout="vertical" onFinish={onFinish}>
       <Form.Item
         label="Peso Pregestacional (kg)"
@@ -21,7 +21,6 @@ const IMCForm: React.FC<IMCFormProps> = ({ form, onFinish }) => (
           min={30}
           max={200}
           step={0.1}
-          style={{ width: '100%' }}
           placeholder="Ej: 65.5"
         />
       </Form.Item>
@@ -35,7 +34,6 @@ const IMCForm: React.FC<IMCFormProps> = ({ form, onFinish }) => (
           min={130}
           max={200}
           step={0.1}
-          style={{ width: '100%' }}
           placeholder="Ej: 165"
         />
       </Form.Item>
@@ -49,7 +47,6 @@ const IMCForm: React.FC<IMCFormProps> = ({ form, onFinish }) => (
           min={30}
           max={200}
           step={0.1}
-          style={{ width: '100%' }}
           placeholder="Ej: 72.3"
         />
       </Form.Item>
@@ -63,7 +60,6 @@ const IMCForm: React.FC<IMCFormProps> = ({ form, onFinish }) => (
           min={1}
           max={42}
           step={1}
-          style={{ width: '100%' }}
           placeholder="Ej: 24"
         />
       </Form.Item>

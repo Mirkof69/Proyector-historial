@@ -31,7 +31,7 @@ const ResultadosLabTabs: React.FC<ResultadosLabTabsProps> = ({ examen, estadisti
   const columnsResultados = buildColumnsResultados();
 
   return (
-    <Card style={{ marginBottom: 16 }}>
+    <Card className="laboratorio-separado">
       <Tabs defaultActiveKey="resultados" items={[
         {
           key: "resultados",
@@ -50,7 +50,7 @@ const ResultadosLabTabs: React.FC<ResultadosLabTabsProps> = ({ examen, estadisti
           key: "estadisticas",
           label: <TabEstadisticasLabel count={estadisticas?.total_historicos ?? 0} />,
           children: loadingEstadisticas ? (
-            <div style={{ textAlign: 'center', padding: '50px 0' }}>
+            <div className="laboratorio-page__cargando">
               <Spin tip="Cargando estadísticas…"><div /></Spin>
             </div>
           ) : (

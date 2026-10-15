@@ -1,649 +1,227 @@
-/* =============================================================================
-   PARTOS - ESTILOS COMPLETOS
-   =============================================================================
-   Partograma completo, registro de parto, estadísticas y recién nacido
-============================================================================= */
-
-/* ========== CONTAINER PRINCIPAL ========== */
-.partos-container {
-    background-color: var(--bg-primary);
-    min-height: 100vh;
-    padding: var(--spacing-lg) var(--spacing-xl);
-}
-
-/* ========== HEADER CON RESUMEN ========== */
-.partos-header {
-    background: linear-gradient(135deg, #7c3aed 0%, rgba(124, 58, 237, 0.8) 100%);
-    color: #fff;
-    padding: var(--spacing-xl);
-    border-radius: var(--border-radius-lg);
-    margin-bottom: var(--spacing-xl);
-    box-shadow: var(--shadow-lg);
-    position: relative;
-    overflow: hidden;
-}
-
-.partos-header::before {
-    content: '';
-    position: absolute;
-    top: -60%;
-    right: -20%;
-    width: 500px;
-    height: 500px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 50%;
-}
-
-.partos-header__content {
-    position: relative;
-    z-index: 1;
-}
-
-.partos-header__title {
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--spacing-md);
-}
-
-.partos-header__stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-lg);
-}
-
-.partos-header__stat {
-    text-align: center;
-    padding: var(--spacing-md);
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--border-radius-md);
-    backdrop-filter: blur(10px);
-}
-
-.partos-header__stat-value {
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-bold);
-    line-height: 1;
-}
-
-.partos-header__stat-label {
-    font-size: var(--font-size-sm);
-    opacity: 0.9;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: var(--spacing-xs);
-}
-
-/* ========== PARTOGRAMA ========== */
-.partograma-container {
-    background-color: var(--bg-elevated);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-xl);
-    margin-bottom: var(--spacing-xl);
-    box-shadow: var(--shadow-card);
-}
-
-.partograma-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-xl);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 2px solid var(--color-primary);
-}
-
-.partograma-title {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-}
-
-.partograma-actions {
-    display: flex;
-    gap: var(--spacing-sm);
-}
-
-/* Grid del Partograma */
-.partograma-grid {
-    position: relative;
-    background-color: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    min-height: 600px;
-    padding: var(--spacing-lg);
-}
-
-.partograma-axis {
-    position: absolute;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-}
-
-.partograma-axis--y {
-    left: var(--spacing-sm);
-    top: 50%;
-    transform: translateY(-50%) rotate(-90deg);
-    transform-origin: center;
-}
-
-.partograma-axis--x {
-    bottom: var(--spacing-sm);
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.partograma-curve {
-    position: relative;
-    height: 500px;
-    margin: var(--spacing-xl);
-}
-
-.partograma-curve__alert {
-    position: absolute;
-    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%);
-    border-left: 3px solid var(--color-error);
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-}
-
-.partograma-curve__normal {
-    position: absolute;
-    background: linear-gradient(90deg, rgba(74, 222, 128, 0.1) 0%, transparent 100%);
-    border-left: 3px solid var(--color-success);
-}
-
-/* Puntos de medición */
-.partograma-point {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: var(--color-primary);
-    border: 2px solid #fff;
-    cursor: pointer;
-    transition: all var(--transition-base) var(--transition-ease);
-    box-shadow: var(--shadow-sm);
-}
-
-.partograma-point:hover {
-    transform: scale(1.5);
-    box-shadow: var(--shadow-md);
-    z-index: 10;
-}
-
-.partograma-point--alert {
-    background-color: var(--color-error);
-    animation: pulse 2s infinite;
-}
-
-/* ========== FORMULARIO DE REGISTRO ========== */
-.parto-form {
-    background-color: var(--bg-elevated);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-card);
-}
-
-.parto-form__section {
-    padding: var(--spacing-xl);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.parto-form__section:last-child {
-    border-bottom: none;
-}
-
-.parto-form__section-header {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 2px solid var(--color-primary);
-}
-
-.parto-form__section-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--border-radius-md);
-    background: var(--color-primary-gradient);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-}
-
-.parto-form__section-title {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-}
-
-.parto-form__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing-lg);
-}
-
-/* ========== VÍA DE PARTO SELECTOR ========== */
-.via-parto-selector {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
-}
-
-.via-parto-option {
-    padding: var(--spacing-xl);
-    border-radius: var(--border-radius-lg);
-    border: 2px solid var(--border-color);
-    cursor: pointer;
-    transition: all var(--transition-base) var(--transition-ease);
-    text-align: center;
-    background-color: var(--bg-elevated);
-}
-
-.via-parto-option:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--color-primary);
-}
-
-.via-parto-option.active {
-    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--bg-elevated) 100%);
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
-}
-
-.via-parto-option__icon {
-    font-size: 48px;
-    margin-bottom: var(--spacing-md);
-    color: var(--color-primary);
-}
-
-.via-parto-option__label {
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    font-size: var(--font-size-lg);
-}
-
-.via-parto-option__description {
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    margin-top: var(--spacing-xs);
-}
-
-/* ========== RECIÉN NACIDO SECTION ========== */
-.recien-nacido-card {
-    background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, var(--bg-elevated) 100%);
-    border: 1px solid var(--color-prenatal);
-    border-left-width: 4px;
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-xl);
-    margin-top: var(--spacing-xl);
-}
+/* Partos: listado, formulario, detalle, partograma, Apgar y complicaciones
+   — contrato: docs/DISENO_INTERFAZ.md. Todo bajo .partos-page o una clase
+   propia; los modales de Ant Design se montan fuera y llevan la suya. */
 
-.recien-nacido-card__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-lg);
+.partos-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
 }
 
-.recien-nacido-card__title {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-prenatal);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+/* ---------- Encabezado de página ---------- */
+.partos-page__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-4);
 }
 
-.recien-nacido-card__quick-info {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
+.partos-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
 }
 
-.recien-nacido-stat {
-    text-align: center;
-    padding: var(--spacing-md);
-    background-color: var(--bg-elevated);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--border-color);
+.partos-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
 }
 
-.recien-nacido-stat__value {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-prenatal);
+.partos-page__meta .ant-tag {
+  margin-inline-end: 0;
 }
 
-.recien-nacido-stat__label {
-    font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: var(--spacing-xs);
+.partos-page__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
 }
 
-/* APGAR Score */
-.apgar-score {
-    background-color: var(--bg-elevated);
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-lg);
-    border: 1px solid var(--border-color);
+.partos-page__cargando {
+  padding: var(--esp-6) 0;
+  text-align: center;
+  color: var(--color-texto-2);
 }
 
-.apgar-score__title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-md);
+.partos-page__cargando-texto {
+  margin-top: var(--esp-4);
+  font-size: var(--texto-md);
 }
 
-.apgar-score__grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-md);
+/* ---------- Cifras del listado ---------- */
+.partos-page__cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--esp-4);
 }
 
-.apgar-score__item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--spacing-sm) var(--spacing-md);
-    background-color: var(--bg-secondary);
-    border-radius: var(--border-radius-sm);
+.partos-page__cifras .ant-statistic-title {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-weight: var(--peso-medio);
 }
 
-.apgar-score__label {
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+.partos-page__cifras .ant-statistic-title .anticon {
+  color: var(--color-texto-3);
 }
 
-.apgar-score__value {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    padding: var(--spacing-xs) var(--spacing-md);
-    border-radius: var(--border-radius-sm);
+.partos-page__cifras .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
 }
 
-.apgar-score__value--excellent {
-    background-color: var(--color-success);
-    color: #fff;
+.partos-page__cifras .ant-statistic-content-suffix {
+  font-size: var(--texto-md);
+  color: var(--color-texto-3);
 }
 
-.apgar-score__value--good {
-    background-color: var(--color-info);
-    color: #fff;
+/* Cifras de texto (tipo de parto, presentación, duración) en el detalle */
+.partos-page__cifras--texto .ant-statistic-content {
+  font-size: var(--texto-md);
 }
 
-.apgar-score__value--poor {
-    background-color: var(--color-error);
-    color: #fff;
-    animation: pulse 2s infinite;
+/* ---------- Filtros ---------- */
+.partos-page__buscar {
+  width: 220px;
+  max-width: 100%;
 }
 
-/* ========== COMPLICACIONES Y ALERTAS ========== */
-.complicaciones-section {
-    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, var(--bg-elevated) 100%);
-    border: 1px solid var(--color-error);
-    border-left-width: 4px;
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-lg);
-    margin-top: var(--spacing-lg);
+.partos-page__selector {
+  width: 190px;
+  max-width: 100%;
 }
 
-.complicaciones-section__title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-error);
-    margin-bottom: var(--spacing-md);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+.partos-page__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
 }
 
-.complicaciones-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+/* ---------- Ayudas de maquetación (estáticas, antes en línea) ---------- */
+.partos-ancho {
+  width: 100%;
 }
 
-.complicacion-item {
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--border-color-light);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+.partos-separado {
+  margin-bottom: var(--esp-4);
 }
 
-.complicacion-item:last-child {
-    border-bottom: none;
+.partos-separado-sm {
+  margin-bottom: var(--esp-3);
 }
 
-.complicacion-item__icon {
-    color: var(--color-error);
-    font-size: 16px;
+.partos-arriba {
+  margin-top: var(--esp-4);
 }
 
-.complicacion-item__text {
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    flex: 1;
+.partos-sin-margen {
+  margin: 0;
 }
 
-.complicacion-item__severity {
-    padding: 2px 8px;
-    border-radius: var(--border-radius-sm);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
+.partos-lista {
+  margin: 0;
+  padding-left: var(--esp-5);
+  list-style: disc;
 }
 
-.complicacion-item__severity--alta {
-    background-color: var(--color-error);
-    color: #fff;
+.partos-texto-pre {
+  white-space: pre-wrap;
+  margin-bottom: 0;
 }
 
-.complicacion-item__severity--media {
-    background-color: var(--color-warning);
-    color: #fff;
+.partos-acciones-formulario {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--esp-5);
 }
 
-.complicacion-item__severity--baja {
-    background-color: var(--color-info);
-    color: #fff;
+.partos-ballard {
+  width: 160px;
 }
 
-/* ========== HISTORIAL DE PARTOS TABLE ========== */
-.partos-history-table {
-    background-color: var(--bg-elevated);
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-card);
+/* ---------- Estado clínico en texto e iconos ---------- */
+.partos-peligro {
+  color: var(--color-peligro);
 }
 
-.partos-history-table .ant-table-thead>tr>th {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
-    font-weight: var(--font-weight-bold);
-    text-transform: uppercase;
-    font-size: var(--font-size-xs);
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #7c3aed;
+.partos-aviso {
+  color: var(--color-aviso);
 }
 
-.partos-history-table .ant-table-tbody>tr {
-    transition: all var(--transition-fast) var(--transition-ease);
+.partos-exito {
+  color: var(--color-exito);
 }
 
-.partos-history-table .ant-table-tbody>tr:hover {
-    background-color: var(--bg-hover);
-    transform: translateX(4px);
-    box-shadow: -4px 0 0 #7c3aed;
+.partos-info {
+  color: var(--color-info);
 }
 
-.parto-badge {
-    font-size: var(--font-size-xs);
-    padding: 4px 10px;
-    border-radius: var(--border-radius-md);
-    font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
+.partos-icono-titulo {
+  margin-right: var(--esp-2);
 }
 
-.parto-badge--vaginal {
-    background-color: var(--color-success-light);
-    color: var(--color-success);
-    border: 1px solid var(--color-success);
+.partos-texto-fuerte {
+  font-weight: var(--peso-fuerte);
 }
 
-.parto-badge--cesarea {
-    background-color: var(--color-info-light);
-    color: var(--color-info);
-    border: 1px solid var(--color-info);
+/* Etiqueta «CRÍTICO» junto a un título */
+.partos-critico .ant-badge-count {
+  background-color: var(--color-peligro);
+  color: var(--color-superficie);
+  box-shadow: none;
 }
 
-.parto-badge--instrumentado {
-    background-color: var(--color-warning-light);
-    color: var(--color-warning);
-    border: 1px solid var(--color-warning);
+/* Apgar grande en el detalle: el color dice el estado */
+.partos-apgar.ant-typography {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ========== ESTADÍSTICAS Y GRÁFICOS ========== */
-.partos-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
-}
-
-.parto-stat-card {
-    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-lg);
-    position: relative;
-    overflow: hidden;
-    transition: all var(--transition-base) var(--transition-ease);
-}
+.partos-apgar--success.ant-typography { color: var(--color-exito); }
+.partos-apgar--warning.ant-typography { color: var(--color-aviso); }
+.partos-apgar--error.ant-typography { color: var(--color-peligro); }
 
-.parto-stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-card-hover);
+/* ---------- Partograma ---------- */
+.partos-grafica {
+  width: 100%;
+  height: 280px;
 }
 
-.parto-stat-card__icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--border-radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    margin-bottom: var(--spacing-md);
-    background-color: rgba(124, 58, 237, 0.15);
-    color: #7c3aed;
+/* Formulario: etiqueta del evento (parto / aborto) */
+.partos-evento .ant-badge-count {
+  box-shadow: none;
 }
 
-.parto-stat-card__value {
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-bold);
-    color: #7c3aed;
-    line-height: 1;
-    margin-bottom: var(--spacing-sm);
+.partos-evento--aborto .ant-badge-count {
+  background-color: var(--color-peligro);
+  color: var(--color-superficie);
 }
 
-.parto-stat-card__label {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.partos-evento--parto .ant-badge-count {
+  background-color: var(--color-exito);
+  color: var(--color-superficie);
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 1024px) {
-    .via-parto-selector {
-        grid-template-columns: 1fr;
-    }
-
-    .partograma-curve {
-        height: 400px;
-    }
-
-    .partos-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.partos-evento__icono {
+  font-size: var(--texto-xl);
 }
-
-@media (max-width: 768px) {
-    .partos-container {
-        padding: var(--spacing-md);
-    }
 
-    .partos-header {
-        padding: var(--spacing-lg);
-    }
-
-    .partos-header__stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .parto-form__section {
-        padding: var(--spacing-lg);
-    }
-
-    .parto-form__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .recien-nacido-card__quick-info {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .apgar-score__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .partos-stats-grid {
-        grid-template-columns: 1fr;
-    }
+/* Modal de borrado (Ant Design lo monta fuera de la página) */
+.partos-borrado__advertencia {
+  margin-top: var(--esp-4);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-peligro);
 }
-
-@media (max-width: 480px) {
-
-    .partos-header__stats,
-    .recien-nacido-card__quick-info {
-        grid-template-columns: 1fr;
-    }
 
-    .partograma-curve {
-        height: 300px;
-    }
+.partos-borrado__lista {
+  margin: 0 0 0 var(--esp-5);
+  list-style: disc;
 }
-
-/* ========== MODO IMPRESIÓN ========== */
-@media print {
-
-    .partos-header__actions,
-    .partograma-actions,
-    .parto-form__section-actions {
-        display: none !important;
-    }
-
-    .partograma-container,
-    .parto-form {
-        break-inside: avoid;
-        box-shadow: none !important;
-    }
 
-    .partos-history-table {
-        break-inside: avoid;
-    }
+.partos-borrado__lista--peligro {
+  color: var(--color-peligro);
 }

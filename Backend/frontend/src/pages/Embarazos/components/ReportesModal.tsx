@@ -59,14 +59,14 @@ const useBuscarEmbarazos = (visible: boolean) => {
 const ReportesModal: React.FC<ReportesModalProps> = ({ visible, onClose }) => {
   const { opciones, cargando, buscar } = useBuscarEmbarazos(visible);
   return (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title="Generador de Reportes Obstétricos"
     open={visible}
     onCancel={onClose}
     width={800}
     footer={null}
   >
-    <Space direction="vertical" style={{ width: '100%' }} size="large">
+    <Space direction="vertical" className="u-ancho" size="large">
       <Card title="Reporte Individual de Embarazo" size="small">
         <Form layout="vertical">
           <Form.Item label="Seleccionar Embarazo">
@@ -105,7 +105,7 @@ const ReportesModal: React.FC<ReportesModalProps> = ({ visible, onClose }) => {
       <Card title="Reporte Estadístico General" size="small">
         <Form layout="vertical">
           <Form.Item label="Período">
-            <RangePicker style={{ width: '100%' }} />
+            <RangePicker className="u-ancho" />
           </Form.Item>
           <Form.Item label="Tipo de Análisis">
             <Select defaultValue="resumen">
@@ -120,7 +120,7 @@ const ReportesModal: React.FC<ReportesModalProps> = ({ visible, onClose }) => {
       </Card>
 
       <Card title="Certificados y Carnés" size="small">
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" className="u-ancho">
           <Button icon={idcardOutlinedIcon2} block>Carné Perinatal (OMS)</Button>
           <Button icon={safetyCertificateOutlinedIcon3} block>Certificado de Monitoreo Prenatal</Button>
           <Button icon={fileProtectOutlinedIcon2} block>Constancia de Controles</Button>

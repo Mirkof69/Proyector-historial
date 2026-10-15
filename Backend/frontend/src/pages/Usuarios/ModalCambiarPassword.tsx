@@ -80,7 +80,7 @@ const ModalCambiarPassword: React.FC<ModalCambiarPasswordProps> = ({
     <Modal
       title={
         <Space>
-          <KeyOutlined style={{ color: '#1890ff' }} />
+          <KeyOutlined className="usuario-password__icono" />
           <span>Cambiar Contraseña</span>
         </Space>
       }
@@ -101,10 +101,10 @@ const ModalCambiarPassword: React.FC<ModalCambiarPasswordProps> = ({
         }
         type="warning"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="usuario-password__aviso"
       />
 
-      <Text type="secondary" style={{ display: 'block', marginBottom: 24, fontSize: 13 }}>
+      <Text type="secondary" className="usuario-password__datos">
         Usuario: <strong>{usuario.nombre_completo}</strong> • Email: <strong>{usuario.email}</strong>
       </Text>
 
@@ -158,7 +158,7 @@ const ModalCambiarPassword: React.FC<ModalCambiarPasswordProps> = ({
         <Alert
           message="Requisitos de Seguridad"
           description={
-            <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+            <ul className="usuario-password__requisitos">
               <li>Mínimo 8 caracteres</li>
               <li>Se recomienda usar mayúsculas, minúsculas, números y símbolos</li>
               <li>Evite contraseñas obvias o comunes</li>
@@ -166,10 +166,10 @@ const ModalCambiarPassword: React.FC<ModalCambiarPasswordProps> = ({
           }
           type="info"
           showIcon
-          style={{ marginBottom: 24 }}
+          className="usuario-password__requisitos-alerta"
         />
 
-        <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+        <Form.Item className="usuario-password__acciones">
           <Space>
             <Button onClick={handleCancel} size="large">
               Cancelar

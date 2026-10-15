@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, List, Button, Space, Tag, Badge, Typography } from 'antd';
 import { CalendarOutlined, UserOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
-import { CitaDelDia, getEstadoColor, getTipoColor, getEstadoBadge } from './calendarioCitasUtils';
+import { CitaDelDia, getEstadoClase, getTipoColor, getEstadoBadge } from './calendarioCitasUtils';
 
 const { Text } = Typography;
 
@@ -43,7 +43,7 @@ const ModalCitasDelDia: React.FC<ModalCitasDelDiaProps> = ({ open, dia, citas, o
         >
           <List.Item.Meta
             avatar={
-              <div className="cita-avatar" style={{ background: getEstadoColor(cita.estado) }}>
+              <div className={getEstadoClase(cita.estado)}>
                 {cita.hora}
               </div>
             }
@@ -57,7 +57,7 @@ const ModalCitasDelDia: React.FC<ModalCitasDelDiaProps> = ({ open, dia, citas, o
               </Space>
             }
             description={
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Space direction="vertical" size="small" className="calendario-page__lista-dia">
                 <Space>
                   <Badge status={getEstadoBadge(cita.estado)} />
                   <Text>{cita.estado.toUpperCase()}</Text>

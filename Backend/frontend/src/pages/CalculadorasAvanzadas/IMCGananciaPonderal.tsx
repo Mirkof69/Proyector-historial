@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Form, Row, Col, Typography } from 'antd';
+import { Form, Row, Col } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
-import './IMCGananciaPonderal.css';
+import './calculadoraAvanzada.css';
+import CabeceraCalculadora from './components/CabeceraCalculadora';
 import { DatosPaciente, ResultadoIMC, RegistroIMC, calcularIMC } from './imcGananciaUtils';
 import IMCForm from './components/IMCForm';
 import IMCResultado from './components/IMCResultado';
 import IMCGraficas from './components/IMCGraficas';
 import IMCHistorial from './components/IMCHistorial';
-
-const { Title, Text } = Typography;
 
   const IMCGananciaPonderal: React.FC = () => {
     const [form] = Form.useForm();
@@ -49,16 +48,12 @@ const { Title, Text } = Typography;
     : '0';
 
   return (
-    <div className="imc-ganancia-page">
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2}>
-          <CalculatorOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-          IMC y Ganancia Ponderal Gestacional
-        </Title>
-        <Text type="secondary">
-          Calculadora de Índice de Masa Corporal pregestacional y monitoreo de ganancia de peso según guías IOM (Institute of Medicine)
-        </Text>
-      </div>
+    <div className="calc-pagina imc-ganancia-page">
+      <CabeceraCalculadora
+        icono={<CalculatorOutlined />}
+        titulo="IMC y Ganancia Ponderal Gestacional"
+        descripcion="Calculadora de Índice de Masa Corporal pregestacional y monitoreo de ganancia de peso según guías IOM (Institute of Medicine)"
+      />
 
       <Row gutter={[16, 16]}>
         {/* Formulario de entrada */}

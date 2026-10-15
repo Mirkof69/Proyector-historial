@@ -9,7 +9,7 @@ import { iaMedicaService, PrediccionPeso } from '../../../services/iaMedicaServi
  * muestra el motivo que devuelve el servidor y ningún número.
  */
 
-const COLOR_CLASE: Record<string, string> = { bajo_peso: 'orange', normal: 'green', macrosomia: 'red' };
+const COLOR_CLASE: Record<string, string> = { bajo_peso: 'warning', normal: 'success', macrosomia: 'error' };
 const NOMBRE_CLASE: Record<string, string> = {
   bajo_peso: 'Bajo peso (< 2.500 g)', normal: 'Peso normal', macrosomia: 'Macrosomía (> 4.000 g)',
 };
@@ -35,11 +35,11 @@ const PrediccionPesoNacer: React.FC<{ ecografiaId: number }> = ({ ecografiaId })
   };
 
   return (
-    <Card size="small" style={{ marginTop: 16 }}
+    <Card size="small" className="u-mt-4"
       title={<span><ExperimentOutlined /> Peso al nacer previsto</span>}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'end' }}>
+      <div className="eco-prediccion__entrada">
         <div>
-          <label htmlFor="semanas-parto" style={{ display: 'block', marginBottom: 4 }}>
+          <label htmlFor="semanas-parto" className="u-bloque u-mb-1">
             Si nace a las (semanas)
           </label>
           <InputNumber id="semanas-parto" min={24} max={42} step={1} value={semanas}
@@ -48,10 +48,10 @@ const PrediccionPesoNacer: React.FC<{ ecografiaId: number }> = ({ ecografiaId })
         <Button type="primary" loading={cargando} onClick={predecir}>Calcular</Button>
       </div>
 
-      {error && <Alert style={{ marginTop: 12 }} type="info" showIcon message={error} />}
+      {error && <Alert className="u-mt-3" type="info" showIcon message={error} />}
 
       {resultado && (
-        <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
+        <div className="eco-prediccion__resultado">
           <Row gutter={16}>
             <Col xs={24} md={8}>
               <Statistic title="Modelo" value={gramos(resultado.peso_previsto_g)}
@@ -61,12 +61,12 @@ const PrediccionPesoNacer: React.FC<{ ecografiaId: number }> = ({ ecografiaId })
               <Statistic title="Hadlock (fórmula clínica)" value={gramos(resultado.peso_hadlock_proyectado_g)} />
             </Col>
             <Col xs={24} md={8}>
-              <div style={{ marginBottom: 4, opacity: 0.75 }}>Clase</div>
+              <div className="eco-prediccion__etiqueta">Clase</div>
               <Tag color={COLOR_CLASE[resultado.clase]}>{NOMBRE_CLASE[resultado.clase] ?? resultado.clase}</Tag>
             </Col>
           </Row>
           {resultado.advertencias.map((a) => <Alert key={a} type="warning" showIcon message={a} />)}
-          <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>
+          <p className="eco-prediccion__nota">
             Modelo {resultado.modelo.version} · {resultado.modelo.algoritmo} · R² de validación{' '}
             {resultado.modelo.r2_validacion ?? '—'}. Ecografía de {resultado.semanas_ecografia} semanas.
             Es apoyo a la decisión, no un diagnóstico.

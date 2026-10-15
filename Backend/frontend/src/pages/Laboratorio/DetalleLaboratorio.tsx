@@ -17,7 +17,6 @@ import {
   Alert,
   Row,
   Col,
-  Divider,
   Spin,
   Typography,
   Tooltip,
@@ -44,6 +43,8 @@ import FormularioResultados from './FormularioResultados';
 import ResumenResultadosLab from './components/ResumenResultadosLab';
 import ResultadosLabTabs from './components/ResultadosLabTabs';
 import InfoAdicionalLab from './components/InfoAdicionalLab';
+
+import './Laboratorio.css';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -134,9 +135,9 @@ const DetalleLaboratorio: React.FC = () => {
   // ==========================================================================
   if (loadingRef.current) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+      <div className="laboratorio-page__cargando">
         <Spin size="large" />
-        <div style={{ marginTop: 16 }}>Cargando datos del examen…</div>
+        <div className="laboratorio-arriba">Cargando datos del examen…</div>
       </div>
     );
   }
@@ -150,7 +151,7 @@ const DetalleLaboratorio: React.FC = () => {
           type="error"
           showIcon
         />
-        <Button onClick={handleVolver} style={{ marginTop: 16 }}>
+        <Button onClick={handleVolver} className="laboratorio-arriba">
           Volver al listado
         </Button>
       </Card>
@@ -158,29 +159,21 @@ const DetalleLaboratorio: React.FC = () => {
   }
 
   return (
-    <div className="detalle-laboratorio-container">
-      {/* HEADER */}
-      <Card className="header-card">
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Space>
+    <div className="laboratorio-page page-container">
+      {/* ENCABEZADO */}
+      <header className="laboratorio-page__cabecera">
+        <div>
+          <Title level={2}>
+            Detalle de Examen de Laboratorio
+          </Title>
+          <Text type="secondary">
+            {examen.tipo_examen_info?.nombre || `Examen #${examen.id}`}
+          </Text>
+        </div>
+            <Space wrap className="no-print">
               <Button icon={<ArrowLeftOutlined />} onClick={handleVolver}>
                 Volver
               </Button>
-              <Divider type="vertical" />
-              <ExperimentOutlined style={{ fontSize: 24, color: '#722ed1' }} />
-              <div>
-                <Title level={4} style={{ margin: 0 }}>
-                  Detalle de Examen de Laboratorio
-                </Title>
-                <Text type="secondary">
-                  {examen.tipo_examen_info?.nombre || `Examen #${examen.id}`}
-                </Text>
-              </div>
-            </Space>
-          </Col>
-          <Col>
-            <Space>
               <Tooltip title="Imprimir el reporte del examen de laboratorio">
                 <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
                   Imprimir
@@ -197,21 +190,19 @@ const DetalleLaboratorio: React.FC = () => {
                 </Button>
               </Tooltip>
             </Space>
-          </Col>
-        </Row>
-      </Card>
+      </header>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
           {/* ALERTAS CRÍTICAS */}
           {examen.resumen && examen.resumen.criticos > 0 && (
             <Alert
-              message={`⚠️ ${examen.resumen.criticos} RESULTADO(S) CRÍTICO(S) DETECTADO(S)`}
+              message={`${examen.resumen.criticos} RESULTADO(S) CRÍTICO(S) DETECTADO(S)`}
               description="Requiere atención médica inmediata. Consulte con el médico tratante."
               type="error"
               showIcon
               icon={<WarningOutlined />}
-              style={{ marginBottom: 16 }}
+              className="laboratorio-separado"
             />
           )}
 
@@ -223,7 +214,7 @@ const DetalleLaboratorio: React.FC = () => {
                 Información del Paciente
               </Space>
             }
-            style={{ marginBottom: 16 }}
+            className="laboratorio-separado"
           >
             {examen.paciente_info && (
               <Descriptions column={{ xs: 1, sm: 2 }} bordered>
@@ -248,7 +239,7 @@ const DetalleLaboratorio: React.FC = () => {
                 Datos del Examen
               </Space>
             }
-            style={{ marginBottom: 16 }}
+            className="laboratorio-separado"
           >
             <Descriptions column={{ xs: 1, sm: 2 }} bordered>
               <Descriptions.Item label="Tipo de Examen">
@@ -258,15 +249,15 @@ const DetalleLaboratorio: React.FC = () => {
                 {examen.tipo_examen_info?.codigo || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Categoría">
-                <Tag color="blue">{examen.categoria || examen.tipo_examen_info?.categoria}</Tag>
+                <Tag>{examen.categoria || examen.tipo_examen_info?.categoria}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Estado">
-                <Tag color={examen.estado === 'completado' ? 'green' : examen.estado === 'en_proceso' ? 'blue' : 'orange'}>
+                <Tag color={examen.estado === 'completado' ? 'success' : examen.estado === 'en_proceso' ? 'default' : 'warning'}>
                   {examen.estado?.toUpperCase()}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Prioridad">
-                <Tag color={examen.prioridad === 'stat' ? 'red' : examen.prioridad === 'urgente' ? 'orange' : 'default'}>
+                <Tag color={examen.prioridad === 'stat' ? 'error' : examen.prioridad === 'urgente' ? 'warning' : 'default'}>
                   {examen.prioridad?.toUpperCase()}
                 </Tag>
               </Descriptions.Item>
@@ -318,14 +309,14 @@ const DetalleLaboratorio: React.FC = () => {
                   Ingresar Resultados del Examen
                 </Space>
               }
-              style={{ marginBottom: 16 }}
+              className="laboratorio-separado"
             >
               <Alert
                 message="Este examen aún no tiene resultados"
                 description="Complete el formulario a continuació n para ingresar los resultados de laboratorio."
                 type="info"
                 showIcon
-                style={{ marginBottom: 16 }}
+                className="laboratorio-separado"
               />
               <FormularioResultados
                 examenId={examen.id!}
@@ -335,7 +326,7 @@ const DetalleLaboratorio: React.FC = () => {
               />
             </Card>
           ) : (
-            <Card style={{ marginBottom: 16 }}>
+            <Card className="laboratorio-separado">
               <Alert
                 message="Sin Resultados"
                 description="Este examen fue marcado como completado pero no tiene resultados registrados."
@@ -354,7 +345,7 @@ const DetalleLaboratorio: React.FC = () => {
                   Observaciones
                 </Space>
               }
-              style={{ marginBottom: 16 }}
+              className="laboratorio-separado"
             >
               <Paragraph>{examen.observaciones}</Paragraph>
             </Card>

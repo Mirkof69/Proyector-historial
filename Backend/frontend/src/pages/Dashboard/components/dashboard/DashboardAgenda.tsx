@@ -23,9 +23,9 @@ const DashboardAgenda: React.FC<DashboardAgendaProps> = ({ citasHoy }) => {
   const navigate = useNavigate();
 
   return (
-    <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+    <Row gutter={[16, 16]}>
       <Col xs={24} lg={16}>
-        <Card title="Agenda del Día" extra={<Button type="link" onClick={() => navigate('/dashboard/citas')} style={{ padding: 0 }}>Ver todo</Button>} className="shadow-card">
+        <Card title="Agenda del Día" extra={<Button type="link" onClick={() => navigate('/dashboard/citas')}>Ver todo</Button>} className="shadow-card">
           <List
             itemLayout="horizontal"
             dataSource={citasHoy}
@@ -33,11 +33,11 @@ const DashboardAgenda: React.FC<DashboardAgendaProps> = ({ citasHoy }) => {
             renderItem={(item: CitaHoy) => (
               <List.Item>
                 <List.Item.Meta
-                  avatar={<Avatar icon={<ClockCircleOutlined />} style={{ backgroundColor: '#1890ff' }} />}
-                  title={<span><strong>{item.hora}</strong> - {item.paciente_nombre}</span>}
+                  avatar={<Avatar icon={<ClockCircleOutlined />} className="dashboard-agenda__avatar" />}
+                  title={<span><strong className="dashboard-agenda__hora">{item.hora}</strong> - {item.paciente_nombre}</span>}
                   description={
                     <Space>
-                      <Tag color={item.estado === 'CONFIRMADA' ? 'green' : 'orange'}>{item.estado}</Tag>
+                      <Tag color={item.estado === 'CONFIRMADA' ? 'success' : 'warning'}>{item.estado}</Tag>
                       <Text type="secondary">{item.motivo}</Text>
                     </Space>
                   }

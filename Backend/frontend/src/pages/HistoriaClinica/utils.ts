@@ -5,7 +5,8 @@ import {
   AlertaClinica 
 } from './types';
 
-export const RIESGO_COLORS = { 'BAJO': '#52c41a', 'ALTO': '#fa8c16', 'MUY_ALTO': '#f5222d' };
+// Colores de Tag semánticos (tokens del tema), no hex fijos.
+export const RIESGO_COLORS = { 'BAJO': 'success', 'ALTO': 'warning', 'MUY_ALTO': 'error' };
 export const ESTADO_CIVIL_OPTS = ['Soltera', 'Casada', 'Unión Libre', 'Divorciada', 'Viuda'];
 
 export const PROTOCOLOS_EMBARAZO: ProtocoloObstetrico[] = [

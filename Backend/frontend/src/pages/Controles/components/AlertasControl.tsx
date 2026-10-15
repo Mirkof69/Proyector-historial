@@ -22,10 +22,10 @@ const AlertasControl: React.FC<AlertasControlProps> = ({ control }) => (
           </Space>
         }
         description={
-          <ul style={{ marginBottom: 0, paddingLeft: 20, marginTop: 8 }}>
+          <ul className="pc-lista u-mt-2">
             {/* @ts-ignore */}
             {control.alertas.map((alerta: any) => (
-              <li key={`${alerta.tipo}-${alerta.mensaje}`} style={{ marginBottom: 8, fontSize: 13, lineHeight: 1.5 }}>
+              <li key={`${alerta.tipo}-${alerta.mensaje}`} className="u-t-sm">
                 <Space direction="vertical" size={0}>
                   {/* Mensaje principal */}
                   <Text strong>
@@ -33,7 +33,7 @@ const AlertasControl: React.FC<AlertasControlProps> = ({ control }) => (
                   </Text>
                   {/* Detalles adicionales */}
                   {alerta.valor && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className="u-t-xs">
                       Valor: {alerta.valor}
                     </Text>
                   )}
@@ -41,12 +41,12 @@ const AlertasControl: React.FC<AlertasControlProps> = ({ control }) => (
                     <Tag
                       color={
                         alerta.nivel === 'alto' || alerta.nivel === 'critico'
-                          ? 'red'
+                          ? 'error'
                           : alerta.nivel === 'medio'
-                            ? 'orange'
-                            : 'blue'
+                            ? 'warning'
+                            : 'processing'
                       }
-                      style={{ marginTop: 4 }}
+                      className="u-mt-1"
                     >
                       {alerta.nivel.toUpperCase()}
                     </Tag>
@@ -59,7 +59,7 @@ const AlertasControl: React.FC<AlertasControlProps> = ({ control }) => (
         type="error"
         showIcon
         closable
-        style={{ marginBottom: 16 }}
+        className="u-mb-4"
       />
     )}
   </>

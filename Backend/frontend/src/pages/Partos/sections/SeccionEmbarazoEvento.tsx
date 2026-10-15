@@ -48,7 +48,7 @@ export const SeccionEmbarazoEvento: React.FC<SeccionEmbarazoEventoProps> = ({
           <Form.Item
             label={
               <Space>
-                <ExclamationCircleOutlined style={{ color: '#1890ff' }} />
+                <ExclamationCircleOutlined className="partos-info" />
                 <strong>Tipo de Evento</strong>
               </Space>
             }
@@ -80,17 +80,17 @@ export const SeccionEmbarazoEvento: React.FC<SeccionEmbarazoEventoProps> = ({
               }}
               size="large"
               placeholder="Seleccione tipo de evento"
-              style={{ width: '100%' }}
+              className="partos-ancho"
             >
               <Option value="aborto">
                 <Space>
-                  <WarningOutlined style={{ color: '#ff4d4f' }} />
+                  <WarningOutlined className="partos-peligro" />
                   <strong>ABORTO</strong> - Pérdida gestacional {'<'} 20 semanas
                 </Space>
               </Option>
               <Option value="parto">
                 <Space>
-                  <HeartOutlined style={{ color: '#52c41a' }} />
+                  <HeartOutlined className="partos-exito" />
                   <strong>PARTO</strong> - Nacimiento {'≥'} 20 semanas
                 </Space>
               </Option>
@@ -106,7 +106,7 @@ export const SeccionEmbarazoEvento: React.FC<SeccionEmbarazoEventoProps> = ({
           type="warning"
           showIcon
           icon={<ExclamationCircleOutlined />}
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         />
       )}
 
@@ -117,7 +117,7 @@ export const SeccionEmbarazoEvento: React.FC<SeccionEmbarazoEventoProps> = ({
           type="info"
           showIcon
           icon={<InfoCircleOutlined />}
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         />
       )}
     </>

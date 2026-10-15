@@ -241,7 +241,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
     < Modal
       title={
         < Space >
-          <WarningOutlined style={{ color: '#fa8c16' }} />
+          <WarningOutlined style={{ color: 'var(--color-aviso)' }} />
           <Text strong>Evaluación Integral de Riesgo Obstétrico</Text>
         </Space >
       }
@@ -274,7 +274,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
                   style={{ marginBottom: 16 }}
                 />
 
-                <Card title="Riesgo MUY ALTO" size="small" style={{ marginBottom: 16 }} headStyle={{ backgroundColor: '#fff2e8' }}>
+                <Card title="Riesgo MUY ALTO" size="small" style={{ marginBottom: 16 }} headStyle={{ backgroundColor: 'var(--color-peligro-suave)' }}>
                   <List
                     size="small"
                     dataSource={FACTORES_RIESGO.MUY_ALTO}
@@ -282,7 +282,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
                   />
                 </Card>
 
-                <Card title="Riesgo ALTO" size="small" headStyle={{ backgroundColor: '#fff7e6' }}>
+                <Card title="Riesgo ALTO" size="small" headStyle={{ backgroundColor: 'var(--color-aviso-suave)' }}>
                   <List
                     size="small"
                     dataSource={FACTORES_RIESGO.ALTO}
@@ -469,7 +469,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
 
             return {
               key: `${tipo}-${itemAny.id || idx}`,
-              color: tipo === 'Control' ? 'green' : tipo === 'Ecografía' ? 'blue' : 'gray',
+              color: tipo === 'Control' ? 'var(--color-exito)' : tipo === 'Ecografía' ? 'var(--color-primario)' : 'gray',
               children: (
                 <>
                   <Text strong>{tipo}</Text>
@@ -515,9 +515,9 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
                 <YAxis />
                 <RechartsTooltip />
                 <Legend />
-                <Line type="monotone" dataKey="sistolica" stroke="#8884d8" name="Sistólica" />
-                <Line type="monotone" dataKey="diastolica" stroke="#82ca9d" name="Diastólica" />
-                <ReferenceArea y1={140} y2={200} fill="#ff4d4f" fillOpacity={0.1} />
+                <Line type="monotone" dataKey="sistolica" stroke="var(--grafico-5)" name="Sistólica" />
+                <Line type="monotone" dataKey="diastolica" stroke="var(--grafico-2)" name="Diastólica" />
+                <ReferenceArea y1={140} y2={200} fill="var(--color-peligro)" fillOpacity={0.1} />
               </ComposedChart>
             </ResponsiveContainer>
           </Card>
@@ -543,8 +543,8 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
                 <YAxis />
                 <RechartsTooltip />
                 <Legend />
-                <Bar dataKey="valor" fill="#8884d8" name="Hb (g/dL)" />
-                <ReferenceArea y1={0} y2={11} fill="#ff4d4f" fillOpacity={0.1} />
+                <Bar dataKey="valor" fill="var(--grafico-1)" name="Hb (g/dL)" />
+                <ReferenceArea y1={0} y2={11} fill="var(--color-peligro)" fillOpacity={0.1} />
               </ComposedChart>
             </ResponsiveContainer>
           </Card>
@@ -567,7 +567,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
         <Space>
           <WarningOutlined />
           Panel de Alertas Clínicas
-          <Badge count={alertasActivas.length} style={{ backgroundColor: '#ff4d4f' }} />
+          <Badge count={alertasActivas.length} />
         </Space>
       }
       placement="right"
@@ -580,7 +580,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
           status="success"
           title="Sin Alertas"
           subTitle="No hay alertas clínicas activas para este paciente."
-          icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+          icon={<CheckCircleOutlined style={{ color: 'var(--color-exito)' }} />}
         />
       ) : (
         <List

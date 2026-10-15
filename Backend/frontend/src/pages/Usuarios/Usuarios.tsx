@@ -1,7 +1,7 @@
 import React, { useReducer, useEffect, useMemo, useCallback } from 'react';
-import { Button, Space, Card, Typography, Badge, Drawer } from 'antd';
+import { Button, Card, Typography, Badge, Drawer } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
-import { PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { usuariosService, Usuario } from '../../services/usuariosService';
 import FormularioUsuario from './FormularioUsuario';
 import ModalCambiarPassword from './ModalCambiarPassword';
@@ -13,7 +13,7 @@ import './Usuarios.css';
 import { incluyeTexto } from '../../utils/texto';
 import { contarPorRol } from '../../config/roles';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 // El mapa de roles vive ahora en `config/roles`: estaba copiado aqui, en la
 // tabla y en el detalle, y las tres copias se habian quedado atras respecto a
@@ -144,7 +144,18 @@ const Usuarios: React.FC = () => {
   }, [usuarios, searchText, filtroRol, filtroEstado]);
 
   return (
-    <div className="usuarios-container page-container" style={{ padding: 24 }}>
+    <div className="usuarios-page page-container">
+      <header className="usuarios-page__cabecera">
+        <div>
+          <Title level={2}>
+            Gestión de Usuarios
+            <Badge className="usuarios-page__contador" count={usuariosFiltrados.length} showZero overflowCount={9999} />
+          </Title>
+          <Text type="secondary">Cuentas del personal, su rol, su estado y su acceso al sistema.</Text>
+        </div>
+        <Button type="primary" icon={plusIcon} onClick={handleNuevoUsuario}>Nuevo Usuario</Button>
+      </header>
+
       <UsuariosStatsCards estadisticas={estadisticas} />
 
       <UsuariosFilterBar
@@ -158,10 +169,7 @@ const Usuarios: React.FC = () => {
         onLimpiar={handleLimpiarFiltros}
       />
 
-      <Card
-        title={<Space><UserOutlined /><Title level={4} style={{ margin: 0 }}>Gestión de Usuarios</Title><Badge count={usuariosFiltrados.length} showZero color="#1890ff" /></Space>}
-        extra={<Button type="primary" icon={plusIcon} onClick={handleNuevoUsuario}>Nuevo Usuario</Button>}
-      >
+      <Card>
         <UsuariosTable
           usuarios={usuariosFiltrados}
           loading={loading}

@@ -30,7 +30,7 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
               Información de la Paciente
             </Space>
           }
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         >
           <Descriptions column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="Nombre Completo">
@@ -40,7 +40,7 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
               </Text>
             </Descriptions.Item>
             <Descriptions.Item label="ID Clínico">
-              <Tag color="blue">{paciente.id_clinico}</Tag>
+              <span className="texto-mono">{paciente.id_clinico}</span>
             </Descriptions.Item>
             <Descriptions.Item label="CI">{paciente.ci}</Descriptions.Item>
           </Descriptions>
@@ -51,11 +51,11 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
       <Card
         title={
           <Space>
-            <WarningOutlined style={{ color: '#ff4d4f' }} />
+            <WarningOutlined className="partos-peligro" />
             Datos del Aborto
           </Space>
         }
-        style={{ marginBottom: 16 }}
+        className="partos-separado"
       >
         <Descriptions column={{ xs: 1, sm: 2 }} bordered>
           <Descriptions.Item label="Fecha del Evento">
@@ -65,10 +65,10 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
             </Space>
           </Descriptions.Item>
           <Descriptions.Item label="Edad Gestacional">
-            <Tag color="orange">{parto.edad_gestacional_parto} semanas</Tag>
+            <Tag color="warning">{parto.edad_gestacional_parto} semanas</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Tipo de Aborto">
-            <Tag color="red">
+            <Tag color="error">
               {parto.tipo_aborto?.replace('_', ' ').toUpperCase() || 'No especificado'}
             </Tag>
           </Descriptions.Item>
@@ -77,16 +77,16 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
           </Descriptions.Item>
           <Descriptions.Item label="Apoyo Psicológico">
             {parto.apoyo_psicologico_realizado ? (
-              <Tag color="green"><CheckCircleOutlined /> Sí proporcionado</Tag>
+              <Tag color="success"><CheckCircleOutlined /> Sí proporcionado</Tag>
             ) : (
-              <Tag color="orange">No proporcionado</Tag>
+              <Tag color="warning">No proporcionado</Tag>
             )}
           </Descriptions.Item>
           <Descriptions.Item label="Protocolo de Duelo">
             {parto.protocolo_duelo_aplicado ? (
-              <Tag color="green"><CheckCircleOutlined /> Sí aplicado</Tag>
+              <Tag color="success"><CheckCircleOutlined /> Sí aplicado</Tag>
             ) : (
-              <Tag color="orange">No aplicado</Tag>
+              <Tag color="warning">No aplicado</Tag>
             )}
           </Descriptions.Item>
           {parto.perdida_sanguinea_estimada && (
@@ -96,7 +96,7 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
           )}
           {parto.hemorragia_postparto && (
             <Descriptions.Item label="Hemorragia Post-Evacuación" span="filled">
-              <Tag color="red"><WarningOutlined /> Sí presente</Tag>
+              <Tag color="error"><WarningOutlined /> Sí presente</Tag>
             </Descriptions.Item>
           )}
         </Descriptions>
@@ -107,11 +107,11 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
         <Card
           title={
             <Space>
-              <WarningOutlined style={{ color: '#ff4d4f' }} />
+              <WarningOutlined className="partos-peligro" />
               Complicaciones
             </Space>
           }
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         >
           <Alert
             message="Complicaciones Maternas"
@@ -131,13 +131,13 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
               Observaciones del Aborto
             </Space>
           }
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         >
           <Paragraph>{parto.observaciones_aborto}</Paragraph>
         </Card>
       )}
 
-      {/* ✅ ALERTAS MÉDICAS */}
+      {/* ALERTAS MÉDICAS */}
       {parto.alertas_parto && parto.alertas_parto.length > 0 && (
         <Card
           title={
@@ -145,13 +145,13 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
               <WarningOutlined />
               Alertas Médicas
               {parto.tiene_alertas_criticas && (
-                <Badge count="CRÍTICO" style={{ backgroundColor: '#f5222d' }} />
+                <Badge className="partos-critico" count="CRÍTICO" />
               )}
             </Space>
           }
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         >
-          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <Space direction="vertical" className="partos-ancho" size="middle">
             {parto.alertas_parto.map((alerta: any) => (
               <Alert
                 key={alerta.tipo + alerta.mensaje}
@@ -170,7 +170,7 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
         </Card>
       )}
 
-      {/* ✅ RECOMENDACIONES MÉDICAS */}
+      {/* RECOMENDACIONES MÉDICAS */}
       {parto.recomendaciones_por_edad && parto.recomendaciones_por_edad.length > 0 && (
         <Card
           title={
@@ -179,14 +179,14 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
               Recomendaciones Médicas
             </Space>
           }
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         >
           <Alert
             message="Recomendaciones generales"
             description="Estas son recomendaciones generales basadas en la situación. Siempre consulte con el médico tratante."
             type="info"
             showIcon
-            style={{ marginBottom: 16 }}
+            className="partos-separado"
           />
 
           <Collapse accordion defaultActiveKey={['0']}
@@ -227,7 +227,7 @@ const DetallePartoAbortoView: React.FC<DetallePartoAbortoViewProps> = ({ parto, 
                     type={getAlertType()}
                     message={rec.titulo}
                     description={
-                      <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                      <ul className="partos-lista">
                         {rec.recomendaciones.map((r: string) => (
                           <li key={`rec-${rec.id || rec.periodo}-${r}`}>{r}</li>
                         ))}

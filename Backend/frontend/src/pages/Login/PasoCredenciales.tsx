@@ -67,7 +67,7 @@ const PasoCredenciales: React.FC<PasoCredencialesProps> = ({ form, loading, onFi
       </Form.Item>
 
       <Form.Item>
-        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+        <Space className="login-recordar">
           <Form.Item name="remember" valuePropName="checked" noStyle>
             <Checkbox disabled={loading}>Recordarme</Checkbox>
           </Form.Item>
@@ -77,7 +77,7 @@ const PasoCredenciales: React.FC<PasoCredencialesProps> = ({ form, loading, onFi
         </Space>
       </Form.Item>
 
-      <Form.Item style={{ marginBottom: 0 }}>
+      <Form.Item className="login-submit-item">
         <Button
           type="primary"
           htmlType="submit"
@@ -93,7 +93,7 @@ const PasoCredenciales: React.FC<PasoCredencialesProps> = ({ form, loading, onFi
 
       <Divider />
       <div className="login-info-footer">
-        <Text type="secondary" style={{ fontSize: 12 }}>
+        <Text type="secondary">
           <SafetyOutlined /> Acceso exclusivo para personal médico autorizado
         </Text>
       </div>

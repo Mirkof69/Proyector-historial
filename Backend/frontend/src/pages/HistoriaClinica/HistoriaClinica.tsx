@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Layout,
   Card,
   Row,
   Col,
@@ -581,7 +580,7 @@ const HistoriaClinica: React.FC = () => {
         <div>
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="Nivel de Riesgo">
-              <Tag color={riesgoPreeclampsia.nivel === 'ALTO' ? 'red' : riesgoPreeclampsia.nivel === 'MODERADO' ? 'orange' : 'green'}>
+              <Tag color={riesgoPreeclampsia.nivel === 'ALTO' ? 'error' : riesgoPreeclampsia.nivel === 'MODERADO' ? 'warning' : 'success'}>
                 {riesgoPreeclampsia.nivel}
               </Tag>
             </Descriptions.Item>
@@ -697,7 +696,7 @@ const HistoriaClinica: React.FC = () => {
               title: 'Interpretación',
               dataIndex: 'interpretacion',
               render: (text, r) => text ? (
-                <Tag color={r.alerta ? 'red' : 'green'}>{text}</Tag>
+                <Tag color={r.alerta ? 'error' : 'success'}>{text}</Tag>
               ) : '-'
             },
             { title: 'Rango Normal', dataIndex: 'rango_normal', render: (text) => text || '-' }
@@ -766,7 +765,7 @@ const HistoriaClinica: React.FC = () => {
               <Space direction="vertical" style={{ width: '100%' }}>
                 <Space>
                   <Text strong>{t.examen}</Text>
-                  <Tag color={t.tendencia === 'MEJORANDO' ? 'green' : t.tendencia === 'EMPEORANDO' ? 'red' : 'blue'}>
+                  <Tag color={t.tendencia === 'MEJORANDO' ? 'success' : t.tendencia === 'EMPEORANDO' ? 'error' : 'processing'}>
                     {t.tendencia}
                   </Tag>
                 </Space>
@@ -776,7 +775,7 @@ const HistoriaClinica: React.FC = () => {
                     <XAxis dataKey="fechaCorta" />
                     <YAxis />
                     <RechartsTooltip />
-                    <Line type="monotone" dataKey="valor" stroke="#1890ff" strokeWidth={2} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="valor" stroke="var(--grafico-1)" strokeWidth={2} dot={{ r: 4 }} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </Space>
@@ -918,20 +917,20 @@ const HistoriaClinica: React.FC = () => {
   // ==========================================
 
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div className="historia-clinica-cargando">
       <Spin size="large">
-        <div style={{ padding: 50, textAlign: 'center' }}>
+        <div className="historia-clinica-cargando__texto">
           <p>Cargando expediente clínico…</p>
         </div>
       </Spin>
     </div>
   );
-  if (error) return <Alert message="Error" description={error} type="error" showIcon style={{ margin: 20 }} />;
+  if (error) return <Alert message="Error" description={error} type="error" showIcon />;
 
   return (
-    <Layout style={{ background: 'var(--bg-primary, #fff)', minHeight: '100vh' }} suppressHydrationWarning>
-      <div style={{ padding: '20px 40px' }}>
-        <Space style={{ marginBottom: 16 }}>
+    <div className="historia-clinica-container">
+      <div className="historia-clinica-content">
+        <Space className="historia-breadcrumb" wrap>
           <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/dashboard/pacientes')}>Lista de Pacientes</Button>
           <Text type="secondary"> / HC: {paciente?.nombre} {paciente?.apellido_paterno || paciente?.apellidos || ''}</Text>
         </Space>
@@ -964,7 +963,7 @@ const HistoriaClinica: React.FC = () => {
         />
 
         {/* CONTROLES DE VISTA Y FILTROS */}
-        <Card size="small" style={{ marginBottom: 16 }}>
+        <Card size="small" className="historia-filtros">
           <Row gutter={[16, 8]} align="middle">
             <Col flex="auto">
               <Space wrap>
@@ -975,14 +974,14 @@ const HistoriaClinica: React.FC = () => {
                   onChange={(e) =>
                     setBusquedaFiltro(prev => ({ ...prev, texto: e.target.value }))
                   }
-                  style={{ width: 250 }}
+                  className="historia-filtros__busqueda"
                 />
                 <Select
                   value={busquedaFiltro.categoria}
                   onChange={(val) =>
                     setBusquedaFiltro(prev => ({ ...prev, categoria: val }))
                   }
-                  style={{ width: 150 }}
+                  className="historia-filtros__selector"
                 >
                   <Option value="TODO">Todo</Option>
                   <Option value="CONTROLES">Controles</Option>
@@ -992,7 +991,7 @@ const HistoriaClinica: React.FC = () => {
                 <Select
                   value={periodoVisualizacion}
                   onChange={setPeriodoVisualizacion}
-                  style={{ width: 150 }}
+                  className="historia-filtros__selector"
                 >
                   <Option value="TODO">Todo el embarazo</Option>
                   <Option value="ULTIMO_MES">Último mes</Option>
@@ -1001,17 +1000,19 @@ const HistoriaClinica: React.FC = () => {
               </Space>
             </Col>
             <Col>
-              <Space>
+              <Space wrap>
                 <Tooltip title="Vista compacta">
                   <Button
-                    type={vistaCompacta ? 'primary' : 'default'}
+                    aria-pressed={vistaCompacta}
+                    className={vistaCompacta ? 'historia-conmutador--activo' : undefined}
                     icon={<TableOutlined />}
                     onClick={() => setVistaCompacta(prev => !prev)}
                   />
                 </Tooltip>
                 <Tooltip title="Gráficas avanzadas">
                   <Button
-                    type={mostrarGraficasAvanzadas ? 'primary' : 'default'}
+                    aria-pressed={mostrarGraficasAvanzadas}
+                    className={mostrarGraficasAvanzadas ? 'historia-conmutador--activo' : undefined}
                     icon={<LineChartOutlined />}
                     onClick={() => setMostrarGraficasAvanzadas(prev => !prev)}
                   />
@@ -1027,7 +1028,7 @@ const HistoriaClinica: React.FC = () => {
                           label: (
                             <Space direction="vertical" size="small">
                               <Text strong>{rec.titulo}</Text>
-                              <Text type="secondary" style={{ fontSize: 12 }}>
+                              <Text type="secondary" className="historia-nota">
                                 {rec.descripcion}
                               </Text>
                             </Space>
@@ -1085,13 +1086,12 @@ const HistoriaClinica: React.FC = () => {
             onChange={setActiveTab}
             size="large"
             type="line"
-            tabBarStyle={{ padding: '0 20px' }}
             items={[
               {
                 key: 'dashboard',
                 label: <span><HeartOutlined /> Dashboard</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <DashboardObstetrico
                       alertasClinicas={alertasClinicas}
                       embarazoActivo={embarazoActivo}
@@ -1123,7 +1123,7 @@ const HistoriaClinica: React.FC = () => {
                 label: <span><MedicineBoxOutlined /> Controles</span>,
                 disabled: !embarazoActivo,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabControles
                       controles={controles}
                       embarazoActivo={embarazoActivo}
@@ -1137,7 +1137,7 @@ const HistoriaClinica: React.FC = () => {
                 label: <span><ScanOutlined /> Ecografías</span>,
                 disabled: !embarazoActivo,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabEcografias ecografias={ecografias} navigate={navigate} embarazoActivo={embarazoActivo} />
                   </div>
                 ),
@@ -1146,7 +1146,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'laboratorio',
                 label: <span><ExperimentOutlined /> Laboratorio</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabLaboratorios laboratorios={laboratorios} />
                   </div>
                 ),
@@ -1155,7 +1155,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'notas',
                 label: <span><FileTextOutlined /> Evolución (SOAP)</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabNotasEvolucion
                       notas={notas}
                       setDrawerNotasVisible={setDrawerNotasVisible}
@@ -1167,7 +1167,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'partos',
                 label: <span><WomanOutlined /> Partos</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabPartos
                       partos={partos}
                       pacienteId={pacienteId}
@@ -1180,7 +1180,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'vacunas',
                 label: <span><SafetyCertificateOutlined /> Vacunas</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabVacunas vacunas={vacunas} />
                   </div>
                 ),
@@ -1189,7 +1189,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'tratamientos',
                 label: <span><MedicineBoxOutlined /> Tratamientos</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabTratamientos
                       tratamientos={tratamientos}
                       setModalRecetaVisible={setModalRecetaVisible}
@@ -1201,7 +1201,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'herramientas',
                 label: <span><CalculatorOutlined /> Herramientas Clínicas</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabHerramientasClinicas
                       handleCalcularRiesgo={handleCalcularRiesgo}
                       handleCalcularIMCGanancia={handleCalcularIMCGanancia}
@@ -1222,7 +1222,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'protocolos',
                 label: <span><SafetyCertificateOutlined /> Protocolos</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabProtocolosCumplimiento
                       calcularEGActual={calcularEGActual}
                       laboratorios={laboratorios}
@@ -1235,7 +1235,7 @@ const HistoriaClinica: React.FC = () => {
                 key: 'comparacion',
                 label: <span><LineChartOutlined /> Comparación Embarazos</span>,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className="historia-tab-panel">
                     <TabComparacionEmbarazos
                       embarazoActivo={embarazoActivo}
                       historialEmbarazos={historialEmbarazos}
@@ -1289,7 +1289,7 @@ const HistoriaClinica: React.FC = () => {
         />
 
       </div >
-    </Layout >
+    </div>
   );
 };
 

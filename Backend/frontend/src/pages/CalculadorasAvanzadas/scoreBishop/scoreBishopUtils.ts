@@ -84,11 +84,11 @@ export const calcularBishop = (values: BishopScore): ResultadoBishop => {
 };
 
 export const getHistogramaData = (historial: HistorialBishop[]) => [
-  { rango: '0-2', cantidad: historial.filter(h => h.puntaje <= 2).length, color: '#f5222d' },
-  { rango: '3-5', cantidad: historial.filter(h => h.puntaje >= 3 && h.puntaje <= 5).length, color: '#fa8c16' },
-  { rango: '6-7', cantidad: historial.filter(h => h.puntaje >= 6 && h.puntaje <= 7).length, color: '#faad14' },
-  { rango: '8-10', cantidad: historial.filter(h => h.puntaje >= 8 && h.puntaje <= 10).length, color: '#52c41a' },
-  { rango: '11-13', cantidad: historial.filter(h => h.puntaje >= 11).length, color: '#1890ff' },
+  { rango: '0-2', cantidad: historial.filter(h => h.puntaje <= 2).length, color: 'var(--color-peligro)' },
+  { rango: '3-5', cantidad: historial.filter(h => h.puntaje >= 3 && h.puntaje <= 5).length, color: 'var(--color-peligro)' },
+  { rango: '6-7', cantidad: historial.filter(h => h.puntaje >= 6 && h.puntaje <= 7).length, color: 'var(--color-aviso)' },
+  { rango: '8-10', cantidad: historial.filter(h => h.puntaje >= 8 && h.puntaje <= 10).length, color: 'var(--color-exito)' },
+  { rango: '11-13', cantidad: historial.filter(h => h.puntaje >= 11).length, color: 'var(--color-exito)' },
 ];
 
 export const getDistribucionPie = (historial: HistorialBishop[]) => {
@@ -97,9 +97,9 @@ export const getDistribucionPie = (historial: HistorialBishop[]) => {
   const desfavorable = historial.filter(h => h.puntaje < 6).length;
 
   return [
-    { name: 'Favorable', value: favorable, color: '#52c41a' },
-    { name: 'Intermedio', value: intermedio, color: '#faad14' },
-    { name: 'Desfavorable', value: desfavorable, color: '#f5222d' },
+    { name: 'Favorable', value: favorable, color: 'var(--color-exito)' },
+    { name: 'Intermedio', value: intermedio, color: 'var(--color-aviso)' },
+    { name: 'Desfavorable', value: desfavorable, color: 'var(--color-peligro)' },
   ];
 };
 

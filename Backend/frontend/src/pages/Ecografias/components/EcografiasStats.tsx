@@ -12,41 +12,37 @@ interface EcografiasStatsProps {
 }
 
 const EcografiasStats: React.FC<EcografiasStatsProps> = ({ estadisticas }) => (
-  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+  <Row gutter={[16, 16]} className="pc-cifras">
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Total Ecografías"
           value={estadisticas.total}
           prefix={<FileImageOutlined />}
-          valueStyle={{ color: '#722ed1' }}
         />
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Primer Trimestre"
           value={estadisticas.primerTrimestre}
-          valueStyle={{ color: '#13c2c2' }}
         />
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Segundo Trimestre"
           value={estadisticas.segundoTrimestre}
-          valueStyle={{ color: '#1890ff' }}
         />
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Tercer Trimestre"
           value={estadisticas.tercerTrimestre}
-          valueStyle={{ color: '#722ed1' }}
         />
       </Card>
     </Col>

@@ -34,7 +34,6 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
                 title="Total Partos"
                 value={partos.length}
                 prefix={<WomanOutlined />}
-                valueStyle={{ color: '#1890ff' }}
               />
             </Card>
           </Col>
@@ -43,7 +42,6 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
               <Statistic
                 title="Eutócicos"
                 value={partos.filter(p => p.tipo_parto === 'eutocico').length}
-                valueStyle={{ color: '#52c41a' }}
               />
             </Card>
           </Col>
@@ -52,7 +50,6 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
               <Statistic
                 title="Cesáreas"
                 value={partos.filter(p => p.tipo_parto === 'cesarea').length}
-                valueStyle={{ color: '#faad14' }}
               />
             </Card>
           </Col>
@@ -61,7 +58,6 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
               <Statistic
                 title="Instrumentados"
                 value={partos.filter(p => p.tipo_parto === 'instrumentado').length}
-                valueStyle={{ color: '#722ed1' }}
               />
             </Card>
           </Col>
@@ -131,7 +127,7 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
                 return (
                   <Space direction="vertical" size={0}>
                     <span>
-                      <Tag color={rn.sexo === 'masculino' ? 'blue' : 'pink'}>
+                      <Tag>
                         {rn.sexo === 'masculino' ? 'Masculino' : 'Femenino'}
                       </Tag>
                     </span>
@@ -151,12 +147,12 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
                 return (
                   <Space>
                     <Tooltip title="APGAR 1 minuto">
-                      <Tag color={(rn.apgar_1_minuto || 0) >= 7 ? 'green' : (rn.apgar_1_minuto || 0) >= 4 ? 'orange' : 'red'}>
+                      <Tag color={(rn.apgar_1_minuto || 0) >= 7 ? 'success' : (rn.apgar_1_minuto || 0) >= 4 ? 'warning' : 'error'}>
                         1': {rn.apgar_1_minuto ?? '-'}
                       </Tag>
                     </Tooltip>
                     <Tooltip title="APGAR 5 minutos">
-                      <Tag color={(rn.apgar_5_minutos || 0) >= 7 ? 'green' : (rn.apgar_5_minutos || 0) >= 4 ? 'orange' : 'red'}>
+                      <Tag color={(rn.apgar_5_minutos || 0) >= 7 ? 'success' : (rn.apgar_5_minutos || 0) >= 4 ? 'warning' : 'error'}>
                         5': {rn.apgar_5_minutos ?? '-'}
                       </Tag>
                     </Tooltip>
@@ -202,7 +198,7 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
             expandedRowRender: (record: Parto) => {
               const rn = record.recien_nacidos?.[0];
               return (
-                <div style={{ padding: '12px 24px', background: '#fafafa' }}>
+                <div className="historia-detalle-fila">
                   <Row gutter={[16, 16]}>
                     <Col span={24}>
                       <Descriptions bordered column={3} size="small">
@@ -238,23 +234,23 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
                         {rn && (
                           <>
                             <Descriptions.Item label="Sexo RN" span={1}>
-                              <Tag color={rn.sexo === 'masculino' ? 'blue' : 'pink'}>
-                                {rn.sexo === 'masculino' ? 'Masculino ♂' : 'Femenino ♀'}
+                              <Tag>
+                                {rn.sexo === 'masculino' ? 'Masculino' : 'Femenino'}
                               </Tag>
                             </Descriptions.Item>
 
                             <Descriptions.Item label="Clasificación APGAR" span={1}>
                               <Space>
-                                <span>1 min: <Tag color={(rn.apgar_1_minuto || 0) >= 7 ? 'green' : (rn.apgar_1_minuto || 0) >= 4 ? 'orange' : 'red'}>{rn.apgar_1_minuto ?? '-'}</Tag></span>
-                                <span>5 min: <Tag color={(rn.apgar_5_minutos || 0) >= 7 ? 'green' : (rn.apgar_5_minutos || 0) >= 4 ? 'orange' : 'red'}>{rn.apgar_5_minutos ?? '-'}</Tag></span>
+                                <span>1 min: <Tag color={(rn.apgar_1_minuto || 0) >= 7 ? 'success' : (rn.apgar_1_minuto || 0) >= 4 ? 'warning' : 'error'}>{rn.apgar_1_minuto ?? '-'}</Tag></span>
+                                <span>5 min: <Tag color={(rn.apgar_5_minutos || 0) >= 7 ? 'success' : (rn.apgar_5_minutos || 0) >= 4 ? 'warning' : 'error'}>{rn.apgar_5_minutos ?? '-'}</Tag></span>
                               </Space>
                             </Descriptions.Item>
 
                             <Descriptions.Item label="Peso al Nacer" span={1}>
                               <strong>{rn.peso_nacimiento || 0}g</strong>
-                              {rn.peso_nacimiento && rn.peso_nacimiento < 2500 && <Tag color="orange" style={{ marginLeft: 8 }}>Bajo Peso</Tag>}
-                              {rn.peso_nacimiento && rn.peso_nacimiento >= 2500 && rn.peso_nacimiento <= 4000 && <Tag color="green" style={{ marginLeft: 8 }}>Normal</Tag>}
-                              {rn.peso_nacimiento && rn.peso_nacimiento > 4000 && <Tag color="red" style={{ marginLeft: 8 }}>Macrosomía</Tag>}
+                              {rn.peso_nacimiento && rn.peso_nacimiento < 2500 && <Tag color="warning" style={{ marginLeft: 8 }}>Bajo Peso</Tag>}
+                              {rn.peso_nacimiento && rn.peso_nacimiento >= 2500 && rn.peso_nacimiento <= 4000 && <Tag color="success" style={{ marginLeft: 8 }}>Normal</Tag>}
+                              {rn.peso_nacimiento && rn.peso_nacimiento > 4000 && <Tag color="error" style={{ marginLeft: 8 }}>Macrosomía</Tag>}
                             </Descriptions.Item>
 
                             <Descriptions.Item label="Talla al Nacer" span={1}>
@@ -287,7 +283,7 @@ const TabPartos: React.FC<TabPartosProps> = ({ partos, pacienteId, navigate }) =
       </>
     ) : (
       <Card variant="borderless" style={{ textAlign: 'center', padding: '40px 0' }}>
-        <WomanOutlined style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }} />
+        <WomanOutlined className="historia-vacio__icono" />
         <p>No se han registrado partos para esta paciente.</p>
         <Button type="primary" onClick={() => navigate(`/dashboard/partos/nuevo?paciente=${pacienteId}`)}>
           Registrar Primer Parto

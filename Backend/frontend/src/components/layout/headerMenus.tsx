@@ -3,7 +3,7 @@ import { Space } from 'antd';
 import type { MenuProps } from 'antd';
 import type { NavigateFunction } from 'react-router-dom';
 import {
-  SunOutlined, MoonOutlined, BgColorsOutlined,
+  SunOutlined, MoonOutlined, CoffeeOutlined, CheckOutlined,
   UserOutlined, SettingOutlined, LogoutOutlined,
 } from '@ant-design/icons';
 import type { FontScale } from '../../contexts/ThemeContext';
@@ -17,17 +17,20 @@ export const buildThemeMenuItems = (
 ): MenuProps['items'] => [
   {
     key: 'normal',
-    label: <Space><SunOutlined style={{ color: '#1890ff' }} /> Tema Claro</Space>,
+    icon: <SunOutlined />,
+    label: 'Tema Claro',
     onClick: () => setTheme('normal'),
   },
   {
     key: 'dark',
-    label: <Space><MoonOutlined style={{ color: '#faad14' }} /> Tema Oscuro</Space>,
+    icon: <MoonOutlined />,
+    label: 'Tema Oscuro',
     onClick: () => setTheme('dark'),
   },
   {
     key: 'mocha',
-    label: <Space><BgColorsOutlined style={{ color: '#8b4513' }} /> Tema Moca</Space>,
+    icon: <CoffeeOutlined />,
+    label: 'Tema Moca',
     onClick: () => setTheme('mocha'),
   },
   { type: 'divider' },
@@ -38,17 +41,17 @@ export const buildThemeMenuItems = (
     children: [
       {
         key: 'font-normal',
-        label: <Space><span style={{ fontSize: 13 }}>A</span> Normal {fontScale === 'normal' ? '✓' : ''}</Space>,
+        label: <Space><span style={{ fontSize: 13 }}>A</span> Normal {fontScale === 'normal' && <CheckOutlined aria-label="seleccionado" />}</Space>,
         onClick: () => setFontScale('normal'),
       },
       {
         key: 'font-grande',
-        label: <Space><span style={{ fontSize: 16 }}>A</span> Grande {fontScale === 'grande' ? '✓' : ''}</Space>,
+        label: <Space><span style={{ fontSize: 16 }}>A</span> Grande {fontScale === 'grande' && <CheckOutlined aria-label="seleccionado" />}</Space>,
         onClick: () => setFontScale('grande'),
       },
       {
         key: 'font-extra',
-        label: <Space><span style={{ fontSize: 19 }}>A</span> Extra grande {fontScale === 'extra' ? '✓' : ''}</Space>,
+        label: <Space><span style={{ fontSize: 19 }}>A</span> Extra grande {fontScale === 'extra' && <CheckOutlined aria-label="seleccionado" />}</Space>,
         onClick: () => setFontScale('extra'),
       },
     ],

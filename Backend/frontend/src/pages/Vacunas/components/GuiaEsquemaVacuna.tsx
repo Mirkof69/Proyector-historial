@@ -13,16 +13,15 @@ interface GuiaEsquemaVacunaProps {
 }
 
 const GuiaEsquemaVacuna: React.FC<GuiaEsquemaVacunaProps> = ({ vacunaSeleccionada, progresoDosis, numeroDosis, alertas }) => (
-  <Card title={<Space><InfoCircleOutlined /> Guía del Esquema</Space>} className="sidebar-card">
+  <Card title={<Space><InfoCircleOutlined /> Guía del Esquema</Space>}>
     {vacunaSeleccionada ? (
       <div className="vacuna-guide-content">
-        <div className="progreso-container" style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div className="vacunas-guia__progreso">
           <Progress
             type="dashboard"
             percent={progresoDosis}
-            strokeColor={{ '0%': '#108ee9', '100%': '#87d068' }}
           />
-          <div style={{ marginTop: 8 }}>
+          <div>
             <Text strong>Cobertura: {progresoDosis.toFixed(0)}%</Text>
             <br />
             <Text type="secondary">
@@ -39,12 +38,12 @@ const GuiaEsquemaVacuna: React.FC<GuiaEsquemaVacunaProps> = ({ vacunaSeleccionad
         </Descriptions>
 
         {alertas.length > 0 && (
-          <div style={{ marginTop: 20 }}>
-            <Divider style={{ margin: '12px 0' }} />
+          <div>
+            <Divider />
             {alertas.map((a) => (
-              <div key={`alerta-${a}`} style={{ marginBottom: 10, display: 'flex', gap: 8 }}>
-                <WarningOutlined style={{ color: '#faad14' }} />
-                <Text style={{ fontSize: '0.85em' }}>{a}</Text>
+              <div key={`alerta-${a}`} className="vacunas-guia__alerta">
+                <WarningOutlined className="vacunas-aviso" />
+                <Text>{a}</Text>
               </div>
             ))}
           </div>

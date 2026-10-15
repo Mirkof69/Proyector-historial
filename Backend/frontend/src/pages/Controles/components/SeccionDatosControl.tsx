@@ -22,7 +22,7 @@ const SeccionDatosControl: React.FC<SeccionDatosControlProps> = ({
     </Divider>
 
     <Row gutter={16}>
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item
           name="embarazo"
           label="Embarazo"
@@ -34,22 +34,22 @@ const SeccionDatosControl: React.FC<SeccionDatosControlProps> = ({
           />
         </Form.Item>
       </Col>
-      <Col span={6}>
+      <Col xs={12} md={6}>
         <Form.Item
           name="numero_control"
           label="N° Control"
           rules={[{ required: true, message: 'Requerido' }]}
         >
-          <InputNumber style={{ width: '100%' }} min={1} max={20} size="large" />
+          <InputNumber className="u-ancho" min={1} max={20} size="large" />
         </Form.Item>
       </Col>
-      <Col span={6}>
+      <Col xs={12} md={6}>
         <Form.Item
           name="fecha_control"
           label="Fecha del Control"
           rules={[{ required: true, message: 'Requerido' }]}
         >
-          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" size="large" />
+          <DatePicker className="u-ancho" format="DD/MM/YYYY" size="large" />
         </Form.Item>
       </Col>
     </Row>

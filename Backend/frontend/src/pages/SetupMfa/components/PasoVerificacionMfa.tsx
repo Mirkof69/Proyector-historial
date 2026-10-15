@@ -21,7 +21,7 @@ const PasoVerificacionMfa: React.FC<PasoVerificacionMfaProps> = ({ form, confirm
       description="Abra Google Authenticator y escriba el código de 6 dígitos que aparece para 'Fetal Medical Bolivia'."
       type="info"
       showIcon
-      style={{ marginBottom: 24 }}
+      className="setup-mfa__bloque"
     />
 
     <Form
@@ -44,12 +44,7 @@ const PasoVerificacionMfa: React.FC<PasoVerificacionMfaProps> = ({ form, confirm
           size="large"
           inputMode="numeric"
           disabled={confirming}
-          style={{
-            letterSpacing: '0.05em',
-            fontSize: '1.4rem',
-            fontWeight: 700,
-            textAlign: 'center',
-          }}
+          className="setup-mfa__otp"
           onChange={(e) => {
             const val = e.target.value.replace(/\D/g, '');
             if (val.length === 6) {
@@ -60,7 +55,7 @@ const PasoVerificacionMfa: React.FC<PasoVerificacionMfaProps> = ({ form, confirm
         />
       </Form.Item>
 
-      <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+      <Space className="setup-mfa__acciones">
         <Button onClick={onVolver}>← Volver al QR</Button>
         <Button
           type="primary"

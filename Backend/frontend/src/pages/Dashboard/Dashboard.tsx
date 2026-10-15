@@ -12,6 +12,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import MainLayout from '../../components/layout/MainLayout';
+import './DashboardHome.css';
 import { authService } from '../../services/authService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 
@@ -38,18 +39,9 @@ const Dashboard: React.FC<DashboardProps> = ({ children, onLogout }) => {
 
   if (!authenticated) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <div className="dashboard-verificando">
         <Spin size="large" indicator={loadingIcon} />
-        <div style={{ fontSize: 16, color: 'var(--text-secondary, #666)' }}>Cargando sistema…</div>
+        <div className="dashboard-verificando__texto">Cargando sistema…</div>
       </div>
     );
   }

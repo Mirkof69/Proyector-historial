@@ -18,10 +18,10 @@ interface TimelineCompletoModalProps {
 const TimelineCompletoModal: React.FC<TimelineCompletoModalProps> = ({
   open, loadingTimeline, timelineData, onClose,
 }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={
       <Space>
-        <HistoryOutlined style={{ color: '#722ed1' }} />
+        <HistoryOutlined className="u-c-primario" />
         <span>Timeline Completo del Embarazo</span>
       </Space>
     }
@@ -39,7 +39,7 @@ const TimelineCompletoModal: React.FC<TimelineCompletoModalProps> = ({
   >
     <Spin spinning={loadingTimeline}>
       {timelineData ? (
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <Space direction="vertical" className="u-ancho" size="large">
           <Alert
             message="Historial Completo"
             description="Todos los eventos registrados del embarazo en orden cronológico."
@@ -78,9 +78,9 @@ const TimelineCompletoModal: React.FC<TimelineCompletoModalProps> = ({
                     ? dayjs(evento.fecha).format('DD/MM/YYYY HH:mm')
                     : 'Fecha desconocida',
                   children: (
-                    <Card size="small" style={{ marginBottom: 8 }}>
-                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                        <Text strong style={{ fontSize: 14 }}>
+                    <Card size="small" className="u-mb-2">
+                      <Space direction="vertical" size={4} className="u-ancho">
+                        <Text strong className="u-t-base">
                           {evento.titulo || evento.descripcion}
                         </Text>
                         {evento.tipo && (
@@ -89,14 +89,14 @@ const TimelineCompletoModal: React.FC<TimelineCompletoModalProps> = ({
                           </Tag>
                         )}
                         {evento.detalle && (
-                          <Text type="secondary" style={{ fontSize: 12 }}>
+                          <Text type="secondary" className="u-t-xs">
                             {evento.detalle}
                           </Text>
                         )}
                         {evento.observaciones && (
                           <Paragraph
                             type="secondary"
-                            style={{ fontSize: 12, marginBottom: 0 }}
+                            className="u-t-xs u-mb-0"
                             ellipsis={{ rows: 2, expandable: true }}
                           >
                             {evento.observaciones}

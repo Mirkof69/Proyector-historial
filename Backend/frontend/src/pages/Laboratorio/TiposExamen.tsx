@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Tag, Typography } from 'antd';
-import { ReloadOutlined, ExperimentOutlined } from '@ant-design/icons';
+import { ReloadOutlined } from '@ant-design/icons';
+import './Laboratorio.css';
 import { laboratorioService, TipoExamen } from '../../services/laboratorioService';
 
 const { Text } = Typography;
 
+// La categoría no es un estado: todas en etiqueta neutra.
 const categoriaColors: Record<string, string> = {
-  hematologia: 'red',
-  bioquimica: 'blue',
-  inmunologia: 'purple',
-  microbiologia: 'cyan',
-  urinalisis: 'orange',
-  serologia: 'magenta',
-  hormonal: 'green',
-  genetica: 'geekblue',
 };
 
 const TiposExamen: React.FC = () => {
@@ -53,10 +47,15 @@ const TiposExamen: React.FC = () => {
   ];
 
   return (
-    <Card
-      title={<span><ExperimentOutlined style={{ marginRight: 8 }} />Tipos de Examen</span>}
-      extra={<Button icon={<ReloadOutlined />} onClick={cargarTipos} loading={loading}>Recargar</Button>}
-    >
+    <div className="laboratorio-page page-container">
+      <header className="laboratorio-page__cabecera">
+        <div>
+          <Typography.Title level={2}>Tipos de Examen</Typography.Title>
+          <Typography.Text type="secondary">Catálogo de exámenes que se pueden solicitar.</Typography.Text>
+        </div>
+        <Button icon={<ReloadOutlined />} onClick={cargarTipos} loading={loading}>Recargar</Button>
+      </header>
+    <Card>
       <Table
         columns={columns}
         dataSource={tipos}
@@ -64,8 +63,10 @@ const TiposExamen: React.FC = () => {
         loading={loading}
         pagination={{ pageSize: 20 }}
         locale={{ emptyText: 'No hay tipos de examen registrados' }}
+        scroll={{ x: 720 }}
       />
     </Card>
+    </div>
   );
 };
 

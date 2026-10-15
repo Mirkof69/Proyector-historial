@@ -12,7 +12,7 @@ interface HeroSectionProps {
 const HeroSection: React.FC<HeroSectionProps> = ({ onLogin, onScrollToFeatures }) => (
   <div className="hero-section">
     <div className="hero-content">
-      <Badge.Ribbon text="Sistema Profesional" color="purple">
+      <Badge.Ribbon text="Sistema Profesional" color="var(--color-primario)">
         <div className="hero-text-container">
           <Title level={1} className="hero-title">
             Sistema Integral de

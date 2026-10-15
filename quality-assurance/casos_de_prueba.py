@@ -180,7 +180,8 @@ CASOS = [
       "py:test_mfa_obligatorio::test_token_del_paso_2_no_entra_sin_el_codigo",
       "py:test_mfa_obligatorio::test_token_de_configuracion_no_entra",
       "py:test_mfa_obligatorio::test_el_administrador_lo_restablece_y_queda_auditado",
-      "py:test_mfa_obligatorio::test_otro_medico_no_puede"]),
+      "py:test_mfa_obligatorio::test_otro_medico_no_puede",
+      "js:SetupMfa::"]),
     ("CP-108", "Operación", "Alto", "Notificación en tiempo real con la API y los WebSockets en procesos distintos",
      "Con Redis cruza de un proceso a otro; producción sin Redis avisa al arrancar (antes la alerta no llegaba nunca)",
      ["py:test_capa_canales_produccion::test_mensaje_cruza_entre_dos_capas_independientes",
@@ -305,6 +306,37 @@ CASOS = [
      "Menos de 5 s y 15 peticiones o menos por pantalla, sin errores JS ni 500",
      [f"perf:/dashboard/{r}" for r in ("pacientes", "embarazos", "controles", "ecografias", "partos",
                                        "laboratorio", "citas", "vacunas", "triaje", "notas-evolucion")]),
+    ("CP-115", "Interfaz", "Alto", "Todas las pantallas en tema claro y oscuro con el sistema de diseño único",
+     "68 pantallas × 2 temas sin error de JavaScript, sin 500, sin pantalla en blanco ni desborde lateral "
+     "(antes el panel principal mostraba cifras invisibles en tema claro y Configuración negaba el acceso al "
+     "administrador); colores solo desde tokens.css",
+     [f"e2e:{tema} · {ruta}" for tema in ("light", "dark")
+      for ruta in ("home", "pacientes", "historia-clinica", "embarazos", "controles", "ecografias", "ia-medica/imagenes",
+                   "ia-guia", "partos", "laboratorio", "citas", "calculadoras-avanzadas", "reportes", "usuarios",
+                   "roles", "configuracion", "auditoria", "ayuda")]
+     + ["js:antdThemeTokens::", "js:tokens::", "py:test_permisos_configuracion::test_el_administrador_sin_is_staff_entra"]),
+    ("CP-114", "IA (guía)", "Alto", "Guía de IA y cada modelo usado desde su pantalla",
+     "La guía lista los 15 modelos en servicio con la cifra medida que manda el backend (13 redes + 2 de tabla) y "
+     "los 7 descartados con su motivo; «Usar ahora» lleva a la pantalla exacta; cada modelo responde 200 desde la "
+     "interfaz con datos reales de prueba; los errores del microservicio llegan como 400/503 con su motivo, no 500; "
+     "el asistente responde desde cualquier pantalla (antes paciente_id = 0 daba 500)",
+     ["py:test_guia_ia::test_estan_las_13_redes_que_sirve_el_microservicio",
+      "py:test_guia_ia::test_las_cifras_son_las_medidas",
+      "py:test_guia_ia::test_metricas_con_otra_forma_no_inventan_numero",
+      "py:test_guia_ia::test_descartados_no_figuran_como_en_servicio",
+      "py:test_guia_ia::test_translucencia", "py:test_guia_ia::test_acidemia",
+      "py:test_guia_ia::test_modelos_trae_las_redes_y_los_descartados",
+      "py:test_guia_ia::test_extension_no_permitida_llega_como_400_con_su_motivo",
+      "py:test_guia_ia::test_red_sin_instalar_llega_como_503",
+      "py:test_guia_ia::test_paciente_cero_no_tumba_la_consulta",
+      "ia:test_contrato_modelos::test_el_catalogo_conoce_todas_las_redes_que_se_sirven",
+      "js:GuiaIA::", "js:IAAsistenteMedico::",
+      "js:IaMedica::el informe completo se pide desde la tarjeta de redes",
+      "e2e:1. la Guía de IA está en el menú", "e2e:3. U-Net de cabeza", "e2e:4. U-Net de tórax",
+      "e2e:5. U-Net abdominal + puntos", "e2e:6. red de puntos del fémur",
+      "e2e:7. cribado de anomalías cerebrales", "e2e:8. ginecología: ovario poliquístico",
+      "e2e:9. cardiotocografía", "e2e:10. ángulo de progresión desde el partograma",
+      "e2e:11. «Modelos y métricas» lista", "e2e:12. peso al nacer", "e2e:13. asistente de consulta"]),
 ]
 
 

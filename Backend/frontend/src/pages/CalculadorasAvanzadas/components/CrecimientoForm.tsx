@@ -16,12 +16,12 @@ const CrecimientoForm: React.FC<CrecimientoFormProps> = ({ form, onFinish, usand
   <Card title={
     <>
       <BarChartOutlined /> Datos de Biometría Fetal
-      {usandoDatosEjemplo && <Tag color="blue" style={{ marginLeft: 8 }}>Datos de Ejemplo</Tag>}
+      {usandoDatosEjemplo && <Tag color="processing" className="calc-etiqueta-ejemplo">Datos de Ejemplo</Tag>}
     </>
   }>
     <Form form={form} layout="vertical" onFinish={onFinish}>
       <Form.Item label="Edad Gestacional (semanas)" name="semanas" rules={[{ required: true }]} initialValue={28}>
-        <InputNumber min={20} max={42} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={20} max={42} step={0.1} />
       </Form.Item>
 
       <Divider>Parámetros Biométricos</Divider>
@@ -33,7 +33,7 @@ const CrecimientoForm: React.FC<CrecimientoFormProps> = ({ form, onFinish, usand
         initialValue={73}
         tooltip="Diámetro mayor de la cabeza fetal, medido de hueso externo a hueso interno"
       >
-        <InputNumber min={20} max={120} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={20} max={120} step={0.1} />
       </Form.Item>
 
       <Form.Item
@@ -43,7 +43,7 @@ const CrecimientoForm: React.FC<CrecimientoFormProps> = ({ form, onFinish, usand
         initialValue={269}
         tooltip="Perímetro de la cabeza fetal a nivel de tálamos y cavum septum pellucidum"
       >
-        <InputNumber min={100} max={450} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={100} max={450} step={0.1} />
       </Form.Item>
 
       <Form.Item
@@ -53,7 +53,7 @@ const CrecimientoForm: React.FC<CrecimientoFormProps> = ({ form, onFinish, usand
         initialValue={253}
         tooltip="Perímetro del abdomen a nivel de vena umbilical y estómago"
       >
-        <InputNumber min={100} max={500} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={100} max={500} step={0.1} />
       </Form.Item>
 
       <Form.Item
@@ -63,7 +63,7 @@ const CrecimientoForm: React.FC<CrecimientoFormProps> = ({ form, onFinish, usand
         initialValue={56}
         tooltip="Longitud del fémur de metáfisis a metáfisis, excluyendo epífisis"
       >
-        <InputNumber min={10} max={100} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={10} max={100} step={0.1} />
       </Form.Item>
 
       <Form.Item
@@ -81,7 +81,7 @@ const CrecimientoForm: React.FC<CrecimientoFormProps> = ({ form, onFinish, usand
         </Select>
       </Form.Item>
 
-      <Form.Item style={{ marginTop: 24 }}>
+      <Form.Item className="calc-enviar">
         <Button type="primary" htmlType="submit" block size="large" icon={<ExperimentOutlined />}>
           Calcular EFW y Percentiles
         </Button>

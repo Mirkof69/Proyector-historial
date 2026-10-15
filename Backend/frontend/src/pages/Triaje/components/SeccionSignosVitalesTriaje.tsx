@@ -78,15 +78,9 @@ const SeccionSignosVitalesTriaje: React.FC<SeccionSignosVitalesTriajeProps> = ({
             </Col>
             <Col span={24}>
               {imc !== null && (
-                <div className="imc-display" style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  backgroundColor: '#f0f5ff',
-                  border: '1px solid #adc6ff',
-                  textAlign: 'center'
-                }}>
+                <div className="triaje-imc">
                   <Text type="secondary">IMC Calculado:</Text>
-                  <Title level={4} style={{ margin: 0 }}>{imc}</Title>
+                  <Title level={4} className="triaje-imc__valor">{imc}</Title>
                   <Tag color="processing">{getClasificacionIMC(imc)}</Tag>
                 </div>
               )}

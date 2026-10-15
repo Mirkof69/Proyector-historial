@@ -18,6 +18,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { pacientesService, Paciente } from '../../services/pacientesService';
+import './HistoriaClinica.css';
 import { incluyeTexto } from '../../utils/texto';
 
 const ListaHistoriasClinicas: React.FC = () => {
@@ -90,9 +91,9 @@ const ListaHistoriasClinicas: React.FC = () => {
       width: 250,
       render: (text: string, record: Paciente) => (
         <Space direction="vertical" size={0}>
-          <span style={{ fontWeight: 500 }}>{text}</span>
+          <span className="historias-lista__nombre">{text}</span>
           {record.embarazo_activo && (
-            <Tag color="purple" style={{ fontSize: 12 }}>Embarazo Activo</Tag>
+            <Tag>Embarazo Activo</Tag>
           )}
         </Space>
       ),
@@ -146,7 +147,6 @@ const ListaHistoriasClinicas: React.FC = () => {
           {record.tiene_historia_clinica ? (
             <Tooltip title="Ver Historia Clínica">
               <Button
-                type="primary"
                 icon={<EyeOutlined />}
                 size="small"
                 onClick={() => navigate(`/dashboard/pacientes/${record.id}/historia`)}
@@ -157,10 +157,8 @@ const ListaHistoriasClinicas: React.FC = () => {
           ) : (
             <Tooltip title="Crear Historia Clínica">
               <Button
-                type="primary"
                 icon={<PlusOutlined />}
                 size="small"
-                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
                 onClick={() => navigate(`/dashboard/pacientes/${record.id}/historia`)}
               >
                 Crear HC
@@ -173,72 +171,60 @@ const ListaHistoriasClinicas: React.FC = () => {
   ];
 
   return (
-    <div className="page-container" style={{ padding: 24 }}>
-      {/* Header */}
-      <Card style={{ marginBottom: 24 }}>
-        <Row align="middle" justify="space-between">
-          <Col>
-            <Space align="center">
-              <FileTextOutlined style={{ fontSize: 32, color: '#1890ff' }} />
-              <div>
-                <h2 style={{ margin: 0 }}>Gestión de Historiales Clínicos</h2>
-                <p style={{ margin: 0, color: '#8c8c8c' }}>
-                  Visualiza y administra las historias clínicas de todos los pacientes
-                </p>
-              </div>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+    <div className="page-container historias-lista">
+      {/* Encabezado de página */}
+      <header className="historias-lista__encabezado">
+        <h2 className="historias-lista__titulo">Gestión de Historiales Clínicos</h2>
+        <p className="historias-lista__descripcion">
+          Visualiza y administra las historias clínicas de todos los pacientes
+        </p>
+      </header>
 
       {/* Estadísticas */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
+      <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className="stat-card">
             <Statistic
               title="Total Pacientes"
               value={stats.total}
               prefix={<FileTextOutlined />}
-              valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className="stat-card">
             <Statistic
               title="Con Historia Clínica"
               value={stats.conHistoria}
               prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
               suffix={`/ ${stats.total}`}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className="stat-card">
             <Statistic
               title="Sin Historia Clínica"
               value={stats.sinHistoria}
               prefix={<WarningOutlined />}
-              valueStyle={{ color: '#faad14' }}
+              className={stats.sinHistoria > 0 ? 'historias-lista__cifra--aviso' : undefined}
               suffix={`/ ${stats.total}`}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className="stat-card">
             <Statistic
               title="Embarazos Activos"
               value={stats.embarazadas}
               prefix={<Badge status="processing" />}
-              valueStyle={{ color: '#722ed1' }}
             />
           </Card>
         </Col>
       </Row>
 
       {/* Búsqueda */}
-      <Card style={{ marginBottom: 16 }}>
+      <Card>
         <Input
           placeholder="Buscar por nombre, documento o N° historia..."
           prefix={<SearchOutlined />}
@@ -263,20 +249,8 @@ const ListaHistoriasClinicas: React.FC = () => {
             showTotal: (total) => `Total: ${total} pacientes`,
           }}
           scroll={{ x: 1200 }}
-          rowClassName={(record) =>
-            !record.tiene_historia_clinica ? 'sin-historia-clinica' : ''
-          }
         />
       </Card>
-
-      <style>{`
-        .sin-historia-clinica {
-          background-color: #fffbe6;
-        }
-        .dark .sin-historia-clinica {
-          background-color: rgba(250, 173, 20, 0.1);
-        }
-      `}</style>
     </div>
   );
 };

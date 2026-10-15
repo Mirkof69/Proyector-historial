@@ -35,9 +35,9 @@ export interface PacienteOption {
 
 // Colores para riesgos (Semántica Clínica)
 export const RISK_COLORS = {
-    bajo: 'green',
-    medio: 'orange',
-    alto: 'red',
+    bajo: 'success',
+    medio: 'warning',
+    alto: 'error',
 };
 
 export const RISK_LABELS = {
@@ -240,10 +240,10 @@ export const calcularIMC = (peso: number, talla: number) => {
   let clasificacion = '';
   let color = '';
 
-  if (imc < 18.5) { clasificacion = 'Bajo Peso'; color = 'orange'; }
-  else if (imc < 25) { clasificacion = 'Peso Normal'; color = 'green'; }
-  else if (imc < 30) { clasificacion = 'Sobrepeso'; color = 'orange'; }
-  else { clasificacion = 'Obesidad'; color = 'red'; }
+  if (imc < 18.5) { clasificacion = 'Bajo Peso'; color = 'warning'; }
+  else if (imc < 25) { clasificacion = 'Peso Normal'; color = 'success'; }
+  else if (imc < 30) { clasificacion = 'Sobrepeso'; color = 'warning'; }
+  else { clasificacion = 'Obesidad'; color = 'error'; }
 
   return { valor: imc.toFixed(2), clasificacion, color };
 };

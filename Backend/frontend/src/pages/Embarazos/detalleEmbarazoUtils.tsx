@@ -34,16 +34,16 @@ export const calcularProgreso = (fum: string) => {
 };
 
 export const getTrimestre = (semanas: number) => {
-  if (semanas < 13) return { numero: 1, texto: 'Primer Trimestre', color: 'cyan' };
-  if (semanas < 28) return { numero: 2, texto: 'Segundo Trimestre', color: 'blue' };
-  return { numero: 3, texto: 'Tercer Trimestre', color: 'purple' };
+  if (semanas < 13) return { numero: 1, texto: 'Primer Trimestre', color: 'processing' };
+  if (semanas < 28) return { numero: 2, texto: 'Segundo Trimestre', color: 'processing' };
+  return { numero: 3, texto: 'Tercer Trimestre', color: 'processing' };
 };
 
 export const calcularIMCClasificacion = (imc: number) => {
-  if (imc < 18.5) return { texto: 'Bajo peso', color: 'orange' };
-  if (imc < 25) return { texto: 'Normal', color: 'green' };
-  if (imc < 30) return { texto: 'Sobrepeso', color: 'orange' };
-  return { texto: 'Obesidad', color: 'red' };
+  if (imc < 18.5) return { texto: 'Bajo peso', color: 'warning' };
+  if (imc < 25) return { texto: 'Normal', color: 'success' };
+  if (imc < 30) return { texto: 'Sobrepeso', color: 'warning' };
+  return { texto: 'Obesidad', color: 'error' };
 };
 
 export const getEstadoConfig = (estado: string) => {

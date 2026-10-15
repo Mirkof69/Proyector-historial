@@ -20,7 +20,7 @@ const DetalleEcoDatosGenerales: React.FC<DetalleEcoDatosGeneralesProps> = ({ eco
         Datos Generales
       </Space>
     }
-    style={{ marginBottom: 16 }}
+    className="u-mb-4"
   >
     <Descriptions column={{ xs: 1, sm: 2 }} bordered>
       <Descriptions.Item label="Paciente">
@@ -28,9 +28,9 @@ const DetalleEcoDatosGenerales: React.FC<DetalleEcoDatosGeneralesProps> = ({ eco
       </Descriptions.Item>
       <Descriptions.Item label="Médico">
         <Space>
-          <UserOutlined style={{ color: '#1890ff' }} />
+          <UserOutlined className="u-c-primario" />
           {ecografia.medico_nombre || '-'}
-          {ecografia.medico_nombre && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+          {ecografia.medico_nombre && <CheckCircleOutlined className="u-c-exito" />}
         </Space>
       </Descriptions.Item>
       <Descriptions.Item label="Fecha del Estudio">
@@ -40,7 +40,7 @@ const DetalleEcoDatosGenerales: React.FC<DetalleEcoDatosGeneralesProps> = ({ eco
         </Space>
       </Descriptions.Item>
       <Descriptions.Item label="Tipo de Ecografía">
-        <Tag color="blue">
+        <Tag color="processing">
           {ecografia.tipo_ecografia?.replace('_', ' ').toUpperCase()}
         </Tag>
       </Descriptions.Item>
@@ -60,7 +60,7 @@ const DetalleEcoDatosGenerales: React.FC<DetalleEcoDatosGeneralesProps> = ({ eco
       {ecografia.frecuencia_cardiaca_fetal && (
         <Descriptions.Item label="FCF">
           <Space>
-            <HeartOutlined style={{ color: '#ff4d4f' }} />
+            <HeartOutlined className="u-c-peligro" />
             {ecografia.frecuencia_cardiaca_fetal} lpm
           </Space>
         </Descriptions.Item>

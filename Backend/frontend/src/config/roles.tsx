@@ -49,11 +49,11 @@ export interface ConfiguracionRol {
  * de encontrar gente y nadie se entera.
  */
 export const ROLES: Record<string, ConfiguracionRol> = {
-  medico: { nombre: 'Médico', color: '#3498db', icono: <MedicineBoxOutlined /> },
-  enfermera: { nombre: 'Enfermera', color: '#2ecc71', icono: <HeartOutlined /> },
-  laboratorista: { nombre: 'Laboratorista', color: '#9b59b6', icono: <ExperimentOutlined /> },
-  administrador: { nombre: 'Administrador', color: '#e74c3c', icono: <SafetyCertificateOutlined /> },
-  recepcion: { nombre: 'Recepción', color: '#f39c12', icono: <ScheduleOutlined /> },
+  medico: { nombre: 'Médico', color: 'var(--grafico-1)', icono: <MedicineBoxOutlined /> },
+  enfermera: { nombre: 'Enfermera', color: 'var(--grafico-2)', icono: <HeartOutlined /> },
+  laboratorista: { nombre: 'Laboratorista', color: 'var(--grafico-3)', icono: <ExperimentOutlined /> },
+  administrador: { nombre: 'Administrador', color: 'var(--grafico-4)', icono: <SafetyCertificateOutlined /> },
+  recepcion: { nombre: 'Recepción', color: 'var(--grafico-5)', icono: <ScheduleOutlined /> },
 };
 
 /** Los roles en el orden en que se muestran en filtros y estadísticas. */
@@ -74,7 +74,7 @@ export function configuracionDeRol(rol: string | undefined | null): Configuracio
   // Gris en hexadecimal a proposito, no la palabra 'default' de antd: este
   // color tambien se usa como `backgroundColor` del avatar, y ahi 'default' no
   // es un color CSS valido -- el avatar se quedaria sin fondo.
-  return { nombre: rol || 'Sin rol', color: '#8c8c8c', icono: null };
+  return { nombre: rol || 'Sin rol', color: 'var(--color-texto-3)', icono: null };
 }
 
 /** Cuenta cuántas usuarias hay de cada rol, incluidos los roles con cero. */

@@ -17,7 +17,7 @@ const CAPTURAS = path.join(__dirname, '..', 'test-results', 'pantallas');
 
 const RUTAS = [
   'home', 'pacientes', 'pacientes/nuevo', 'pacientes/buscar', 'historia-clinica', 'embarazos', 'embarazos/nuevo',
-  'controles', 'controles/nuevo', 'ecografias', 'ecografias/nuevo', 'ia-medica/imagenes', 'ia-asistente',
+  'controles', 'controles/nuevo', 'ecografias', 'ecografias/nuevo', 'ia-medica/imagenes', 'ia-guia', 'ia-asistente',
   'partos', 'partos/nuevo', 'triaje', 'triaje/nuevo', 'citas', 'citas/hoy', 'citas/calendario', 'citas/nuevo',
   'laboratorio', 'laboratorio/nuevo', 'laboratorio/resultados', 'laboratorio/tipos-examen',
   'laboratorio/valores-referencia', 'laboratorios', 'vacunas', 'vacunas/nuevo', 'vacunas/tipos',
@@ -60,12 +60,12 @@ for (const tema of ['light', 'dark']) {
     test.afterAll(async () => { await page.context().close(); });
 
     for (const ruta of RUTAS) {
-      test(ruta, async () => {
+      test(`${tema} · ${ruta}`, async () => {
         problemas.length = 0;
         await page.goto(`/dashboard/${ruta}`);
         await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
         await expect.soft(page.locator('.ant-layout-sider')).toBeVisible();
-        const contenido = await page.locator('.ant-layout-content').innerText().catch(() => '');
+        const contenido = await page.locator('.ant-layout-content').first().innerText().catch(() => '');
         expect.soft(contenido.trim().length, 'la pantalla quedó en blanco').toBeGreaterThan(20);
         const desborde = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         await page.screenshot({ path: path.join(CAPTURAS, `${tema}__${ruta.replace(/\//g, '_')}.png`) });

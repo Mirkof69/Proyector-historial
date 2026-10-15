@@ -33,7 +33,6 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
               title="Vacunas Aplicadas"
               value={totalVacunas}
               prefix={<SafetyCertificateOutlined />}
-              valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
@@ -42,7 +41,6 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
             <Statistic
               title="Último Mes"
               value={vacunasUltimoMes}
-              valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
@@ -51,7 +49,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
             <Statistic
               title="Pendientes"
               value={vacunasPendientes.length}
-              valueStyle={{ color: vacunasPendientes.length > 0 ? '#faad14' : '#52c41a' }}
+              valueStyle={{ color: vacunasPendientes.length > 0 ? 'var(--color-aviso)' : 'var(--color-exito)' }}
             />
           </Card>
         </Col>
@@ -114,7 +112,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
             title: 'Dosis',
             dataIndex: 'dosis',
             key: 'dosis',
-            render: (dosis: number) => <Tag color="blue">Dosis {dosis}</Tag>,
+            render: (dosis: number) => <Tag>Dosis {dosis}</Tag>,
           },
           {
             title: 'Lote',
@@ -128,7 +126,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
             key: 'fecha_proxima_dosis',
             render: (fecha: string) =>
               fecha ? (
-                <Text style={{ color: dayjs(fecha).isBefore(dayjs()) ? '#f5222d' : '#52c41a' }}>
+                <Text type={dayjs(fecha).isBefore(dayjs()) ? 'danger' : 'success'}>
                   {dayjs(fecha).format('DD/MM/YYYY')}
                 </Text>
               ) : (
@@ -151,7 +149,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
                     </Descriptions.Item>
 
                     <Descriptions.Item label="Número de Dosis">
-                      <Tag color="blue" style={{ fontSize: 14 }}>Dosis {record.dosis}</Tag>
+                      <Tag style={{ fontSize: 14 }}>Dosis {record.dosis}</Tag>
                     </Descriptions.Item>
 
                     <Descriptions.Item label="Vía de Administración">
@@ -197,7 +195,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
 
                 {/* TRAZABILIDAD */}
                 <Col span={24} style={{ marginTop: 16 }}>
-                  <Card size="small" title="Trazabilidad" style={{ background: '#fafafa' }}>
+                  <Card size="small" title="Trazabilidad" className="historia-trazabilidad">
                     <Space split={verticalDivider} size="large" wrap>
                       <Space direction="vertical" size={0}>
                         <Text type="secondary">Aplicada por:</Text>
@@ -225,7 +223,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
                       {record.semanas_gestacion && (
                         <Space direction="vertical" size={0}>
                           <Text type="secondary">Edad gestacional:</Text>
-                          <Text strong style={{ color: '#722ed1' }}>
+                          <Text strong>
                             {record.semanas_gestacion} semanas
                           </Text>
                         </Space>

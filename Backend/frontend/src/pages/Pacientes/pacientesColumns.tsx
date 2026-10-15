@@ -5,7 +5,7 @@ import {
   FolderOpenOutlined, PhoneOutlined, IdcardOutlined, HomeOutlined,
   MoreOutlined, HistoryOutlined, PrinterOutlined, MedicineBoxOutlined,
   HeartOutlined, HeartFilled, WarningOutlined, FileTextOutlined,
-  SafetyCertificateOutlined, SettingOutlined, QuestionCircleOutlined,
+  SafetyCertificateOutlined, SettingOutlined, QuestionCircleOutlined, CheckOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Paciente } from './pacientesTypes';
@@ -45,8 +45,8 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
       width: 120,
       render: (text: string, record: Paciente) => (
         <div>
-          <Tag color="blue" style={{ marginRight: 0 }}>{text}</Tag>
-          <div style={{ fontSize: '12px', color: token.colorTextTertiary, marginTop: 4 }}>
+          <Tag className="pacientes-tabla__codigo">{text}</Tag>
+          <div className="pacientes-tabla__nota texto-ayuda">
             {dayjs(record.fecha_registro).format('DD/MM/YYYY')}
           </div>
         </div>
@@ -59,17 +59,17 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
       // Sin orden por nombre: está cifrado en la base y ordenar una sola
       // página en el navegador daría un orden falso entre páginas.
       render: (_: any, record: Paciente) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="pacientes-tabla__persona">
           <Avatar
             shape="square"
             size="large"
             icon={USER_ICON}
             src={record.foto_perfil}
-            style={{ backgroundColor: '#ffadd2', marginRight: 12 }}
+            className="pacientes-tabla__avatar"
           />
           <div>
-            <Text strong style={{ fontSize: 15 }}>{record.nombre_completo}</Text>
-            <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
+            <Text strong>{record.nombre_completo}</Text>
+            <div className="pacientes-tabla__nota texto-secundario">
               {record.edad} años
             </div>
           </div>
@@ -112,18 +112,18 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
         if (tieneEmbarazoActivo) {
           // Embarazo Activo - EN CONTROL
           return (
-            <Space direction="vertical" size={3} style={{ width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Space direction="vertical" size={3} className="pacientes-tabla__ancho">
+              <div className="pacientes-tabla__fila">
                 <Badge status="processing" />
-                <Tag color="green" style={{ margin: 0, fontWeight: 'bold', fontSize: '12px' }}>
-                  🤰 GESTANDO
+                <Tag color="success" icon={<HeartOutlined />} className="pacientes-tabla__tag">
+                  GESTANDO
                 </Tag>
               </div>
-              <div style={{ fontSize: '12px', color: token.colorSuccess }}>
-                ✓ En Control Prenatal
+              <div className="pacientes-tabla__nota pacientes-tabla__nota--exito">
+                <CheckOutlined /> En Control Prenatal
               </div>
               {numeroGesta > 0 && (
-                <Text style={{ fontSize: '12px', color: token.colorTextSecondary }}>
+                <Text type="secondary" className="pacientes-tabla__nota">
                   Gesta: {numeroGesta}
                 </Text>
               )}
@@ -134,54 +134,54 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
 
           // Determinar el estado final más reciente
           let estadoFinal = '';
-          let colorEstado = 'blue';
+          let colorEstado = 'default';
           let iconoEstado: React.ReactNode = <FileTextOutlined />;
 
           if (ultimoEstado) {
             estadoFinal = ultimoEstado;
             if (ultimoEstado.toLowerCase().includes('aborto')) {
-              colorEstado = 'orange';
+              colorEstado = 'warning';
               iconoEstado = <WarningOutlined />;
             } else if (ultimoEstado.toLowerCase().includes('cesarea') || ultimoEstado.toLowerCase().includes('cesárea')) {
-              colorEstado = 'purple';
+              colorEstado = 'default';
               iconoEstado = <MedicineBoxOutlined />;
             } else if (ultimoEstado.toLowerCase().includes('parto')) {
-              colorEstado = 'cyan';
+              colorEstado = 'default';
               iconoEstado = <HeartOutlined />;
             }
           } else {
             if (numeroAbortos > 0 && numeroPara === 0 && numeroCesareas === 0) {
               estadoFinal = 'Último: Aborto';
-              colorEstado = 'orange';
+              colorEstado = 'warning';
               iconoEstado = <WarningOutlined />;
             } else if (numeroCesareas > 0) {
               estadoFinal = 'Último: Cesárea';
-              colorEstado = 'purple';
+              colorEstado = 'default';
               iconoEstado = <MedicineBoxOutlined />;
             } else if (numeroPara > 0) {
               estadoFinal = 'Último: Parto Normal';
-              colorEstado = 'cyan';
+              colorEstado = 'default';
               iconoEstado = <HeartOutlined />;
             } else {
               estadoFinal = 'Con Historial';
-              colorEstado = 'blue';
+              colorEstado = 'default';
               iconoEstado = <FileTextOutlined />;
             }
           }
 
           return (
-            <Space direction="vertical" size={2} style={{ width: '100%' }}>
-              <Tag color={colorEstado} style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>
+            <Space direction="vertical" size={2} className="pacientes-tabla__ancho">
+              <Tag color={colorEstado} className="pacientes-tabla__tag">
                 {iconoEstado} {estadoFinal}
               </Tag>
-              <Space direction="vertical" size={2} style={{ width: '100%' }}>
-                {numeroGesta > 0 && <Tag color="blue" style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>Gestaciones: {numeroGesta}</Tag>}
-                {numeroPara > 0 && <Tag color="green" style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>Partos: {numeroPara}</Tag>}
-                {numeroCesareas > 0 && <Tag color="purple" style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>Cesáreas: {numeroCesareas}</Tag>}
-                {numeroAbortos > 0 && <Tag color="orange" style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>Abortos: {numeroAbortos}</Tag>}
+              <Space direction="vertical" size={2} className="pacientes-tabla__ancho">
+                {numeroGesta > 0 && <Tag className="pacientes-tabla__tag">Gestaciones: {numeroGesta}</Tag>}
+                {numeroPara > 0 && <Tag className="pacientes-tabla__tag">Partos: {numeroPara}</Tag>}
+                {numeroCesareas > 0 && <Tag className="pacientes-tabla__tag">Cesáreas: {numeroCesareas}</Tag>}
+                {numeroAbortos > 0 && <Tag className="pacientes-tabla__tag">Abortos: {numeroAbortos}</Tag>}
               </Space>
               {fechaUltimoEvento && (
-                <Text type="secondary" style={{ fontSize: '12px' }}>
+                <Text type="secondary" className="pacientes-tabla__nota">
                   {dayjs(fechaUltimoEvento).format('DD/MM/YYYY')}
                 </Text>
               )}
@@ -191,10 +191,10 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
           // Sin embarazo y sin historial
           return (
             <Space direction="vertical" size={2}>
-              <Tag color="default" style={{ margin: 0, fontSize: '12px' }}>
-                ✓ Sin Embarazo
+              <Tag className="pacientes-tabla__tag">
+                Sin Embarazo
               </Tag>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
+              <Text type="secondary" className="pacientes-tabla__nota">
                 Sin historial
               </Text>
             </Space>
@@ -217,23 +217,23 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
         const tieneDatos = record.tipo_sangre || imc || record.peso_kg || record.altura_cm;
 
         return (
-          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          <Space direction="vertical" size={4} className="pacientes-tabla__ancho">
             {/* Tipo de Sangre */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <HeartFilled style={{ color: token.colorError, fontSize: 12 }} />
+            <div className="pacientes-tabla__fila">
+              <HeartFilled className="pacientes-tabla__icono-sangre" />
               {record.tipo_sangre ? (
-                <Tag color="red" style={{ fontWeight: 'bold', margin: 0, fontSize: '12px' }}>
+                <Tag className="pacientes-tabla__tag">
                   {record.tipo_sangre}
                   {record.factor_rh && ` ${record.factor_rh === 'positivo' ? '+' : '-'}`}
                 </Tag>
               ) : (
-                <Text type="secondary" style={{ fontSize: '12px' }}>Sin registro</Text>
+                <Text type="secondary" className="pacientes-tabla__nota">Sin registro</Text>
               )}
             </div>
 
             {/* Peso y Altura */}
             {(record.peso_kg || record.altura_cm) && (
-              <div style={{ fontSize: '12px', color: token.colorTextSecondary }}>
+              <div className="pacientes-tabla__nota texto-secundario">
                 {record.peso_kg && <span>{record.peso_kg}kg</span>}
                 {record.peso_kg && record.altura_cm && <span> • </span>}
                 {record.altura_cm && <span>{record.altura_cm}cm</span>}
@@ -242,15 +242,15 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
 
             {/* IMC */}
             {imc && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Text strong style={{ fontSize: '12px', color: token.colorTextSecondary }}>IMC:</Text>
+              <div className="pacientes-tabla__fila">
+                <Text strong type="secondary" className="pacientes-tabla__nota">IMC:</Text>
                 <Tag
                   color={
-                    imc < 18.5 ? 'orange' :
-                      imc < 25 ? 'green' :
-                        imc < 30 ? 'gold' : 'red'
+                    imc < 18.5 ? 'warning' :
+                      imc < 25 ? 'success' :
+                        imc < 30 ? 'warning' : 'error'
                   }
-                  style={{ fontSize: '12px', margin: 0 }}
+                  className="pacientes-tabla__tag"
                 >
                   {imc.toFixed(1)} - {
                     imc < 18.5 ? 'Bajo' :
@@ -261,7 +261,7 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
               </div>
             )}
 
-            {!tieneDatos && <Text type="secondary" style={{ fontSize: '12px' }}>Sin datos médicos</Text>}
+            {!tieneDatos && <Text type="secondary" className="pacientes-tabla__nota">Sin datos médicos</Text>}
           </Space>
         );
       },
@@ -271,7 +271,7 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
       key: 'contacto',
       width: 150,
       render: (_: any, record: Paciente) => (
-        <Space direction="vertical" size={0} style={{ fontSize: 12 }}>
+        <Space direction="vertical" size={0} className="pacientes-tabla__nota">
           {record.telefono && <span><PhoneOutlined /> {record.telefono}</span>}
           {record.ciudad && <span><HomeOutlined /> {record.ciudad}</span>}
         </Space>
@@ -285,7 +285,6 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
       render: (_: any, record: Paciente) => (
         <Space>
           <Button
-            type="primary"
             shape="circle"
             icon={FOLDER_OPEN_ICON}
             aria-label={`Historia clínica de ${record.nombre_completo || 'la paciente'}`}

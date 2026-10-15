@@ -25,7 +25,7 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
     }))
     .filter((img) => img.url);
   return (
-  <Card style={{ marginBottom: 16 }}>
+  <Card className="u-mb-4">
     <Tabs
       defaultActiveKey="biometria"
       items={[
@@ -46,7 +46,6 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                       title="DBP"
                       value={ecografia.biometria.diametro_biparietal}
                       suffix="mm"
-                      valueStyle={{ color: '#1890ff' }}
                     />
                   </Col>
                 )}
@@ -56,7 +55,6 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                       title="CC"
                       value={ecografia.biometria.circunferencia_cefalica}
                       suffix="mm"
-                      valueStyle={{ color: '#52c41a' }}
                     />
                   </Col>
                 )}
@@ -66,7 +64,6 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                       title="CA"
                       value={ecografia.biometria.circunferencia_abdominal}
                       suffix="mm"
-                      valueStyle={{ color: '#722ed1' }}
                     />
                   </Col>
                 )}
@@ -76,7 +73,6 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                       title="LF"
                       value={ecografia.biometria.longitud_femur}
                       suffix="mm"
-                      valueStyle={{ color: '#fa8c16' }}
                     />
                   </Col>
                 )}
@@ -86,8 +82,7 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                       title="Peso Fetal Estimado"
                       value={ecografia.biometria.peso_fetal_estimado}
                       suffix="g"
-                      valueStyle={{ color: '#13c2c2', fontSize: 24 }}
-                      prefix={<HeartOutlined />}
+                                            prefix={<HeartOutlined />}
                     />
                   </Col>
                 )}
@@ -97,7 +92,6 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                       title="Percentil de Peso"
                       value={ecografia.biometria.percentil_peso}
                       suffix="%"
-                      valueStyle={{ color: '#eb2f96' }}
                     />
                   </Col>
                 )}
@@ -107,7 +101,7 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                   message={ecografia.biometria.evaluacion_crecimiento}
                   type={ecografia.biometria.evaluacion_crecimiento?.includes('Normal') ? 'success' : 'warning'}
                   showIcon
-                  style={{ marginTop: 16 }}
+                  className="u-mt-4"
                 />
               )}
               {puedePredecir && ecografia.id && <PrediccionPesoNacer ecografiaId={ecografia.id} />}
@@ -133,28 +127,28 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                     key: 'organos',
                     label: 'Evaluación de Órganos',
                     children: (
-                      <Descriptions column={2} bordered size="small">
+                      <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
                         <Descriptions.Item label="Cráneo">
-                          {ecografia.anatomia.craneo_normal ? '✅ Normal' : '❌ Anormal'}
+                          <Tag color={ecografia.anatomia.craneo_normal ? 'success' : 'error'}>{ecografia.anatomia.craneo_normal ? 'Normal' : 'Anormal'}</Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Cerebro">
-                          {ecografia.anatomia.cerebro_normal ? '✅ Normal' : '❌ Anormal'}
+                          <Tag color={ecografia.anatomia.cerebro_normal ? 'success' : 'error'}>{ecografia.anatomia.cerebro_normal ? 'Normal' : 'Anormal'}</Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Corazón">
-                          {ecografia.anatomia.corazon_normal ? '✅ Normal' : '❌ Anormal'}
+                          <Tag color={ecografia.anatomia.corazon_normal ? 'success' : 'error'}>{ecografia.anatomia.corazon_normal ? 'Normal' : 'Anormal'}</Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Columna">
-                          {ecografia.anatomia.columna_normal ? '✅ Normal' : '❌ Anormal'}
+                          <Tag color={ecografia.anatomia.columna_normal ? 'success' : 'error'}>{ecografia.anatomia.columna_normal ? 'Normal' : 'Anormal'}</Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Extremidades Superiores">
-                          {ecografia.anatomia.extremidades_superiores_normales ? '✅ Normal' : '❌ Anormal'}
+                          <Tag color={ecografia.anatomia.extremidades_superiores_normales ? 'success' : 'error'}>{ecografia.anatomia.extremidades_superiores_normales ? 'Normal' : 'Anormal'}</Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Extremidades Inferiores">
-                          {ecografia.anatomia.extremidades_inferiores_normales ? '✅ Normal' : '❌ Anormal'}
+                          <Tag color={ecografia.anatomia.extremidades_inferiores_normales ? 'success' : 'error'}>{ecografia.anatomia.extremidades_inferiores_normales ? 'Normal' : 'Anormal'}</Tag>
                         </Descriptions.Item>
                         {ecografia.anatomia.sexo_fetal && (
                           <Descriptions.Item label="Sexo Fetal" span={2}>
-                            <Tag color={ecografia.anatomia.sexo_fetal === 'masculino' ? 'blue' : 'magenta'}>
+                            <Tag>
                               {ecografia.anatomia.sexo_fetal.toUpperCase()}
                             </Tag>
                           </Descriptions.Item>
@@ -166,7 +160,7 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
               />
               {ecografia.anatomia.evaluacion_anatomica && (
                 <Collapse
-                  style={{ marginTop: 16 }}
+                  className="u-mt-4"
                   items={[
                     {
                       key: '1',
@@ -224,7 +218,7 @@ const DetalleEcoTabs: React.FC<DetalleEcoTabsProps> = ({ ecografia }) => {
                   message={ecografia.anexos.evaluacion_cordon}
                   type={ecografia.anexos.evaluacion_cordon?.includes('Normal') ? 'success' : 'warning'}
                   showIcon
-                  style={{ marginTop: 16 }}
+                  className="u-mt-4"
                 />
               )}
               {puedePredecir && ecografia.id && <PrediccionPesoNacer ecografiaId={ecografia.id} />}

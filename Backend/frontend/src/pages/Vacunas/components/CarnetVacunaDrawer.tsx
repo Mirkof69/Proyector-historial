@@ -22,7 +22,7 @@ const CarnetVacunaDrawer: React.FC<CarnetVacunaDrawerProps> = ({
   isDrawerVisible, selectedVacuna, setIsDrawerVisible, handleEditar,
 }) => (
   <Drawer
-    title={<Title level={4} style={{ margin: 0 }}><FilePdfOutlined /> Certificado Digital de Vacunación</Title>}
+    title={<><FilePdfOutlined /> Certificado Digital de Vacunación</>}
     placement="right"
     width={600}
     onClose={() => setIsDrawerVisible(false)}
@@ -31,7 +31,7 @@ const CarnetVacunaDrawer: React.FC<CarnetVacunaDrawerProps> = ({
     extra={
       <Space>
         <Button icon={<PrinterOutlined />} onClick={() => window.print()}>Imprimir</Button>
-        <Button type="primary" icon={<ExportOutlined />}>PDF</Button>
+        <Button icon={<ExportOutlined />}>PDF</Button>
       </Space>
     }
   >
@@ -54,7 +54,7 @@ const CarnetVacunaDrawer: React.FC<CarnetVacunaDrawerProps> = ({
 
         <Descriptions title="Información de la Vacuna" column={1} bordered size="small">
           <Descriptions.Item label="Vacuna">
-            <Text strong color="blue">{selectedVacuna.tipo_vacuna_info?.nombre || selectedVacuna.tipo_vacuna_nombre}</Text>
+            <Text strong>{selectedVacuna.tipo_vacuna_info?.nombre || selectedVacuna.tipo_vacuna_nombre}</Text>
           </Descriptions.Item>
           <Descriptions.Item label="Dosis Nº">{selectedVacuna.numero_dosis}</Descriptions.Item>
           <Descriptions.Item label="Fecha Aplicación">{dayjs(selectedVacuna.fecha_aplicacion).format('DD [de] MMMM, YYYY')}</Descriptions.Item>
@@ -119,11 +119,11 @@ const CarnetVacunaDrawer: React.FC<CarnetVacunaDrawerProps> = ({
         )}
 
         <Divider />
-        <Space style={{ width: '100%', justifyContent: 'center' }}>
-          <Button type="primary" icon={<FilePdfOutlined />} size="large">
+        <Space wrap className="vacunas-detalle__pie">
+          <Button type="primary" icon={<FilePdfOutlined />}>
             Descargar Certificado
           </Button>
-          <Button icon={<EditOutlined />} size="large" onClick={() => handleEditar(selectedVacuna.id)}>
+          <Button icon={<EditOutlined />} onClick={() => handleEditar(selectedVacuna.id)}>
             Editar Registro
           </Button>
         </Space>

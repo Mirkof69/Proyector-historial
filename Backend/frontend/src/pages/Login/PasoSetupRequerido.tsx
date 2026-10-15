@@ -10,7 +10,7 @@ interface PasoSetupRequeridoProps {
 
 const PasoSetupRequerido: React.FC<PasoSetupRequeridoProps> = ({ setupMessage, onSetup, onBack }) => (
   <Result
-    icon={<QrcodeOutlined style={{ color: '#fa8c16' }} />}
+    icon={<QrcodeOutlined className="login-icono-aviso" />}
     title="Configuración MFA Requerida"
     subTitle={
       setupMessage ||

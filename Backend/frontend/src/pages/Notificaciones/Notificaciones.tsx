@@ -1,7 +1,7 @@
 import React, { useState, useReducer, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { notificacionesService, Notificacion } from '../../services/notificacionesService';
-import { Button, Space, Dropdown, Empty, Typography, Table } from "antd";
+import { Button, Card, Space, Dropdown, Empty, Typography, Table } from "antd";
 import {
   DeleteOutlined,
   CheckOutlined,
@@ -142,8 +142,8 @@ const BELL_ICON_2 = <BellOutlined />;
   const columns = buildColumnsNotificaciones({ handleViewDetails, handleMarkAsRead, handleDelete });
 
   return (
-    <div className="notifications-page fade-in">
-      <div className="notifications-header">
+    <div className="notifications-page page-container">
+      <header className="notifications-page__cabecera">
         <div>
           <Title level={2}>Centro de Notificaciones</Title>
           <Text type="secondary">
@@ -204,7 +204,7 @@ const BELL_ICON_2 = <BellOutlined />;
             Marcar todo leído
           </Button>
         </Space>
-      </div>
+      </header>
 
       <NotificacionesStats stats={stats} />
 
@@ -215,7 +215,7 @@ const BELL_ICON_2 = <BellOutlined />;
         total={stats.total}
       />
 
-      <div className="notifications-table-card">
+      <Card>
         {viewMode === 'table' ? (
           <Table
             columns={columns}
@@ -231,6 +231,7 @@ const BELL_ICON_2 = <BellOutlined />;
             locale={{
               emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No se encontraron notificaciones" />
             }}
+            scroll={{ x: 760 }}
           />
         ) : (
           <NotificacionesListView
@@ -241,7 +242,7 @@ const BELL_ICON_2 = <BellOutlined />;
             handleDelete={handleDelete}
           />
         )}
-      </div>
+      </Card>
 
       <NotificacionDrawer
         open={drawerVisible}

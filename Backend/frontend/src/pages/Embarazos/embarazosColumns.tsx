@@ -40,13 +40,13 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
       key: 'paciente',
       width: 220,
       render: (_: any, r: EmbarazoExtendido) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Avatar style={{ backgroundColor: '#f56a00' }} icon={userOutlinedIcon3} size="small">
+        <div className="u-flex u-alinear-centro u-gap-2">
+          <Avatar className="pc-avatar" icon={userOutlinedIcon3} size="small">
             {r.paciente_nombre?.charAt(0)}
           </Avatar>
           <div>
-            <Text strong style={{ display: 'block', lineHeight: 1.2 }}>{r.paciente_nombre || `Paciente #${r.paciente}`}</Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>Gesta: {r.numero_gesta}</Text>
+            <Text strong className="u-bloque u-interlineado-titulo">{r.paciente_nombre || `Paciente #${r.paciente}`}</Text>
+            <Text type="secondary" className="u-t-xs">Gesta: {r.numero_gesta}</Text>
           </div>
         </div>
       )
@@ -59,13 +59,13 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
       sorter: true,
       width: 200,
       render: (_: any, r: EmbarazoExtendido) => (
-        <div style={{ fontSize: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#666' }}>FUM:</span>
+        <div className="u-t-xs">
+          <div className="u-flex u-entre">
+            <span className="u-c-texto-2">FUM:</span>
             <Text strong>{dayjs(r.fecha_ultima_menstruacion).format('DD/MM/YY')}</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#666' }}>FPP:</span>
+          <div className="u-flex u-entre">
+            <span className="u-c-texto-2">FPP:</span>
             <Text type={r.fecha_probable_parto ? 'success' : 'secondary'}>
               {r.fecha_probable_parto ? dayjs(r.fecha_probable_parto).format('DD/MM/YY') : '?'}
             </Text>
@@ -82,14 +82,14 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
         const dias = r.edad_gestacional_dias_num || 0;
         const percent = Math.min((semanas / 40) * 100, 100);
 
-        let progressColor = '#1890ff';
-        if (semanas >= 37) progressColor = '#52c41a'; // A término
-        else if (semanas >= 41) progressColor = '#faad14'; // Post-término
+        let progressColor = 'var(--color-info)';
+        if (semanas >= 37) progressColor = 'var(--color-exito)'; // A término
+        else if (semanas >= 41) progressColor = 'var(--color-aviso)'; // Post-término
 
         return (
           <Tooltip title={`Trimestre ${r.trimestre_actual} • ${semanas} semanas`}>
-            <div style={{ width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 2 }}>
+            <div className="u-ancho">
+              <div className="u-flex u-entre u-t-xs">
                 <Text strong>{semanas}s + {dias}d</Text>
                 <Text type="secondary">40s</Text>
               </div>
@@ -98,7 +98,7 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
                 showInfo={false}
                 strokeColor={progressColor}
                 size="small"
-                trailColor="#f0f0f0"
+                trailColor="var(--color-borde-suave)"
               />
             </div>
           </Tooltip>
@@ -113,7 +113,7 @@ export const buildEmbarazosColumns = (deps: EmbarazosColumnsDeps) => {
       render: (riesgo: string) => (
         <Tag
           color={(RISK_COLORS as any)[riesgo] || 'default'}
-          style={{ width: '100%', textAlign: 'center', fontWeight: 600 }}
+          className="u-ancho u-centro u-fuerte"
         >
           {(RISK_LABELS as any)[riesgo] || riesgo?.toUpperCase()}
         </Tag>

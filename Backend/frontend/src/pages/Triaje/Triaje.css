@@ -1,0 +1,154 @@
+/* =============================================================================
+   TRIAJE — listado, registro y detalle
+   =============================================================================
+   Contrato: docs/DISENO_INTERFAZ.md. Todo bajo .triaje-pagina; colores solo con
+   var(--…). Modales y cajones (portal) usan los tokens de Ant Design.
+   ============================================================================= */
+
+.triaje-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+/* ---------- Encabezado de página ---------- */
+.triaje-pagina .pagina-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.triaje-pagina .pagina-encabezado__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.triaje-pagina .pagina-encabezado__titulo,
+.triaje-pagina h2.pagina-encabezado__titulo.ant-typography {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  color: var(--color-texto);
+}
+
+.triaje-pagina .pagina-encabezado__descripcion {
+  margin: 0;
+  color: var(--color-texto-2);
+}
+
+/* ---------- Tarjetas de cifras ---------- */
+.triaje-pagina .stat-card.ant-card {
+  height: 100%;
+}
+
+.triaje-pagina .stat-card .ant-statistic-title,
+.triaje-pagina .stat-card__etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.triaje-pagina .stat-card__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.triaje-pagina .stat-card__etiqueta .anticon,
+.triaje-pagina .stat-card .ant-statistic-content-prefix {
+  color: var(--color-texto-3);
+}
+
+.triaje-pagina .stat-card .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+/* Cifra que es un estado */
+.triaje-pagina .cifra--peligro .ant-statistic-content { color: var(--color-peligro); }
+.triaje-pagina .cifra--aviso .ant-statistic-content { color: var(--color-aviso); }
+.triaje-pagina .cifra--exito .ant-statistic-content { color: var(--color-exito); }
+
+/* Las cifras de triaje están en una fila de 5: cifra algo menor */
+.triaje-pagina .stat-card .ant-statistic-content {
+  font-size: var(--texto-xl);
+}
+
+.triaje-pagina .triaje-tabla.ant-card {
+  overflow: hidden;
+}
+
+/* Cabecera dentro de la tarjeta del formulario y del detalle */
+.triaje-pagina .triaje-cabecera {
+  margin-bottom: var(--esp-5);
+  padding-bottom: var(--esp-4);
+  border-bottom: 1px solid var(--color-borde-suave);
+}
+
+.triaje-pagina .triaje-cabecera h2.ant-typography {
+  margin: 0;
+}
+
+.triaje-pagina .triaje-boton-paso.ant-btn {
+  min-width: 200px;
+}
+
+.triaje-pagina .triaje-alertas {
+  margin-bottom: var(--esp-5);
+}
+
+.triaje-pagina .triaje-alertas__lista {
+  margin: 0;
+  padding-left: var(--esp-5);
+}
+
+.triaje-pagina .triaje-panel-riesgo.ant-card {
+  height: 100%;
+}
+
+.triaje-pagina .triaje-ancho {
+  width: 100%;
+}
+
+.triaje-pagina .triaje-prioridad.ant-card {
+  background-color: var(--color-superficie-2);
+  text-align: center;
+}
+
+.triaje-pagina .triaje-prioridad__valor {
+  margin-top: var(--esp-2);
+}
+
+.triaje-pagina .triaje-prioridad__tag.ant-tag {
+  width: 100%;
+  margin: 0;
+  padding: var(--esp-2) var(--esp-4);
+  font-size: var(--texto-md);
+  font-weight: var(--peso-fuerte);
+  text-align: center;
+}
+
+.triaje-pagina .triaje-imc {
+  padding: var(--esp-3);
+  border: 1px solid var(--color-info-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-info-suave);
+  text-align: center;
+}
+
+.triaje-pagina h4.triaje-imc__valor.ant-typography {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .triaje-pagina .triaje-boton-paso.ant-btn {
+    min-width: 0;
+  }
+}

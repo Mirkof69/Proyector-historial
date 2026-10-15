@@ -1,7 +1,8 @@
 import React, { useReducer } from 'react';
-import { Form, Row, Col, Typography } from 'antd';
+import { Form, Row, Col } from 'antd';
 import { LineChartOutlined } from '@ant-design/icons';
-import './CrecimientoFetal.css';
+import './calculadoraAvanzada.css';
+import CabeceraCalculadora from './components/CabeceraCalculadora';
 import {
   DatosBiometria, RegistroCrecimiento,
   growthReducer, initialGrowthState, calcularCrecimiento,
@@ -9,8 +10,6 @@ import {
 import CrecimientoForm from './components/CrecimientoForm';
 import CrecimientoResultado from './components/CrecimientoResultado';
 import CrecimientoGraficas from './components/CrecimientoGraficas';
-
-const { Title, Text } = Typography;
 
 const CrecimientoFetal: React.FC = () => {
   const [form] = Form.useForm();
@@ -37,16 +36,12 @@ const CrecimientoFetal: React.FC = () => {
   };
 
   return (
-    <div className="crecimiento-fetal-page">
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2}>
-          <LineChartOutlined style={{ marginRight: 8, color: '#00bcd4' }} />
-          Calculadora de Crecimiento Fetal y Biometría
-        </Title>
-        <Text type="secondary">
-          Estimación del peso fetal (EFW) con fórmulas de Hadlock y análisis de percentiles según Intergrowth-21st
-        </Text>
-      </div>
+    <div className="calc-pagina crecimiento-fetal-page">
+      <CabeceraCalculadora
+        icono={<LineChartOutlined />}
+        titulo="Calculadora de Crecimiento Fetal y Biometría"
+        descripcion="Estimación del peso fetal (EFW) con fórmulas de Hadlock y análisis de percentiles según Intergrowth-21st"
+      />
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={10}>

@@ -12,19 +12,11 @@ interface VisorMetadataPanelProps {
 }
 
 const VisorMetadataPanel: React.FC<VisorMetadataPanelProps> = ({ metadata, ecografia }) => (
-  <Col
-    style={{
-      width: 300,
-      background: '#141414',
-      borderLeft: '1px solid #434343',
-      padding: 16,
-      overflowY: 'auto'
-    }}
-  >
-    <Title level={5} style={{ color: '#fff' }}>
+  <Col className="visor-metadatos">
+    <Title level={5}>
       <InfoCircleOutlined /> Metadata DICOM
     </Title>
-    <Divider style={{ background: '#434343' }} />
+    <Divider className="visor-separador" />
     <List
       size="small"
       dataSource={[
@@ -41,30 +33,30 @@ const VisorMetadataPanel: React.FC<VisorMetadataPanelProps> = ({ metadata, ecogr
         { label: 'Modelo', value: metadata.model },
       ]}
       renderItem={item => (
-        <List.Item style={{ padding: '8px 0', borderBottom: '1px solid #434343' }}>
-          <Text style={{ color: '#999', fontSize: 12 }}>{item.label}:</Text>
-          <Text strong style={{ color: '#fff', fontSize: 12, marginLeft: 8 }}>
+        <List.Item className="visor-metadatos__fila">
+          <Text className="u-c-texto-3 u-t-xs">{item.label}:</Text>
+          <Text strong className="u-t-xs u-ml-2">
             {item.value}
           </Text>
         </List.Item>
       )}
     />
 
-    <Divider style={{ background: '#434343' }} />
+    <Divider className="visor-separador" />
 
-    <Title level={5} style={{ color: '#fff' }}>
+    <Title level={5}>
       Observaciones
     </Title>
-    <Paragraph style={{ color: '#ccc', fontSize: 12 }}>
+    <Paragraph className="u-t-xs u-c-texto-2">
       {ecografia.observaciones || 'Sin observaciones'}
     </Paragraph>
 
     {ecografia.diagnostico && (
       <>
-        <Title level={5} style={{ color: '#fff' }}>
+        <Title level={5}>
           Diagnóstico
         </Title>
-        <Paragraph style={{ color: '#ccc', fontSize: 12 }}>
+        <Paragraph className="u-t-xs u-c-texto-2">
           {ecografia.diagnostico}
         </Paragraph>
       </>

@@ -7,14 +7,8 @@ import ThemedConfigProvider from './providers/ThemedConfigProvider';
 import AppRoutes from './routes/AppRoutes';
 import { AntdGlobalBridge } from './utils/antdGlobal';
 
-// =============================================================================
-// CSS IMPORTS
-// =============================================================================
-import './styles/global-theme.css';
-import './styles/antd-overrides.css';
-import './styles/theme-dark.css';
-import './index.css';
-import './App.css';
+// Las hojas globales (tokens, base, antd, layout) y las fuentes se cargan una
+// sola vez en index.tsx, antes que cualquier componente.
 
 /**
  * Shell de la aplicación: torre de providers (error boundary → tema → config

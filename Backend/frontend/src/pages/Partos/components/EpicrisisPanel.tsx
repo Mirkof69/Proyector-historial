@@ -42,8 +42,8 @@ const CampoExtra: React.FC<{ campo: CampoAdicionalEpicrisis }> = ({ campo }) => 
   const comun = { name: nombre, label: campo.etiqueta, extra: campo.ayuda || undefined, rules: reglas };
   switch (campo.tipo) {
     case 'parrafo': return <Form.Item {...comun}><Input.TextArea rows={2} /></Form.Item>;
-    case 'numero': return <Form.Item {...comun}><InputNumber style={{ width: '100%' }} /></Form.Item>;
-    case 'fecha': return <Form.Item {...comun}><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>;
+    case 'numero': return <Form.Item {...comun}><InputNumber className="partos-ancho" /></Form.Item>;
+    case 'fecha': return <Form.Item {...comun}><DatePicker format="DD/MM/YYYY" className="partos-ancho" /></Form.Item>;
     case 'si_no': return <Form.Item {...comun} valuePropName="checked" rules={[]}><Checkbox>Sí</Checkbox></Form.Item>;
     case 'opcion': return <Form.Item {...comun}><Select allowClear options={campo.opciones.map((o) => ({ value: o, label: o }))} /></Form.Item>;
     default: return <Form.Item {...comun}><Input /></Form.Item>;
@@ -140,7 +140,7 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
     Modal.confirm({
       title: 'Firmar la epicrisis',
       content: (
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" className="partos-ancho">
           <Text>Una vez firmada no se puede modificar. Ingrese su matrícula profesional:</Text>
           <Input defaultValue={matricula} onChange={(e) => { matricula = e.target.value; }} placeholder="Matrícula" />
         </Space>
@@ -166,7 +166,7 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
         <Form form={form} layout="vertical" onFinish={guardar}>
           <Row gutter={12}>
             <Col xs={24} sm={12}><Form.Item name="fecha_egreso" label="Fecha y hora de egreso" rules={[{ required: true }]}>
-              <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} /></Form.Item></Col>
+              <DatePicker showTime format="DD/MM/YYYY HH:mm" className="partos-ancho" /></Form.Item></Col>
             <Col xs={12} sm={6}><Form.Item name="tipo_egreso" label="Tipo de egreso"><Select options={TIPO_EGRESO} /></Form.Item></Col>
             <Col xs={12} sm={6}><Form.Item name="condicion_materna_egreso" label="Condición de la madre"><Select options={CONDICION} /></Form.Item></Col>
             <Form.Item noStyle shouldUpdate={(a, b) => a.tipo_egreso !== b.tipo_egreso}>
@@ -199,7 +199,7 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
             <Col xs={24} sm={8}><Form.Item name="signos_alarma_explicados" valuePropName="checked">
               <Checkbox>Se explicaron los signos de alarma</Checkbox></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="proximo_control" label="Próximo control">
-              <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item></Col>
+              <DatePicker format="DD/MM/YYYY" className="partos-ancho" /></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="lugar_proximo_control" label="Lugar"><Input /></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="pronostico" label="Pronóstico"><Select options={PRONOSTICO} /></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="matricula_profesional" label="Matrícula profesional"><Input maxLength={30} /></Form.Item></Col>
@@ -222,7 +222,7 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
   if (!epicrisis) {
     return (
       <Empty description="Este parto aún no tiene epicrisis">
-        {puedeEditar && <Button type="primary" icon={<FileAddOutlined />} onClick={redactar}>Redactar epicrisis</Button>}
+        {puedeEditar && <Button icon={<FileAddOutlined />} onClick={redactar}>Redactar epicrisis</Button>}
       </Empty>
     );
   }
@@ -230,18 +230,18 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
   const firmada = epicrisis.estado === 'firmada';
   return (
     <Card
-      title={<Space>Epicrisis {firmada ? <Tag color="green" icon={<SafetyCertificateOutlined />}>Firmada</Tag> : <Tag color="gold">Borrador</Tag>}</Space>}
+      title={<Space>Epicrisis {firmada ? <Tag color="success" icon={<SafetyCertificateOutlined />}>Firmada</Tag> : <Tag color="warning">Borrador</Tag>}</Space>}
       extra={(
         <Space wrap>
           <Button icon={<FilePdfOutlined />}
             onClick={() => descargarArchivo(`/partos/epicrisis/${epicrisis.id}/pdf/`, `epicrisis_parto_${partoId}.pdf`)}>PDF</Button>
           {puedeEditar && !firmada && <Button icon={<EditOutlined />} onClick={editar}>Editar</Button>}
-          {puedeEditar && !firmada && <Button type="primary" icon={<SafetyCertificateOutlined />} onClick={firmar}>Firmar</Button>}
+          {puedeEditar && !firmada && <Button icon={<SafetyCertificateOutlined />} onClick={firmar}>Firmar</Button>}
         </Space>
       )}
     >
       {firmada && (
-        <Alert type="success" showIcon style={{ marginBottom: 16 }}
+        <Alert type="success" showIcon className="partos-separado"
           message={`Firmada por ${epicrisis.medico_nombre} · Matrícula ${epicrisis.matricula_profesional} · ${dayjs(epicrisis.fecha_firma).format('DD/MM/YYYY HH:mm')}`}
           description="Es parte del expediente: ya no se modifica. Si hay un error, el administrador puede reabrirla." />
       )}
@@ -269,9 +269,9 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
         ['Complicaciones', epicrisis.complicaciones], ['Indicaciones al alta', epicrisis.indicaciones_alta]] as const)
         .filter(([, texto]) => texto)
         .map(([titulo, texto]) => (
-          <div key={titulo} style={{ marginTop: 12 }}>
+          <div key={titulo} className="partos-arriba">
             <Text strong>{titulo}</Text>
-            <Paragraph style={{ whiteSpace: 'pre-wrap', marginBottom: 0 }}>{texto}</Paragraph>
+            <Paragraph className="partos-texto-pre">{texto}</Paragraph>
           </div>
         ))}
     </Card>

@@ -82,28 +82,14 @@ export const getEstadoBadge = (estado: string): BadgeProps['status'] => {
   return estados[estado] || 'default';
 };
 
-export const getEstadoColor = (estado: string): string => {
-  const colores: Record<string, string> = {
-    pendiente: '#faad14',
-    confirmada: '#1890ff',
-    completada: '#52c41a',
-    cancelada: '#ff4d4f',
-  };
-  return colores[estado] || '#d9d9d9';
+/** Clase del cuadro de hora según el estado (CalendarioCitas.css). */
+export const getEstadoClase = (estado: string): string => {
+  const conocidos = ['pendiente', 'confirmada', 'completada', 'cancelada'];
+  return conocidos.includes(estado) ? `cita-avatar cita-avatar--${estado}` : 'cita-avatar';
 };
 
-export const getTipoColor = (tipo: string): string => {
-  const colores: Record<string, string> = {
-    control_prenatal: '#1890ff',
-    ecografia: '#722ed1',
-    consulta_general: '#13c2c2',
-    emergencia: '#ff4d4f',
-    seguimiento: '#52c41a',
-    laboratorio: '#fa8c16',
-    procedimiento: '#eb2f96',
-  };
-  return colores[tipo] || '#d9d9d9';
-};
+/** Color de Tag por token: solo la emergencia es un estado; el resto, neutro. */
+export const getTipoColor = (tipo: string): string => (tipo === 'emergencia' ? 'error' : 'default');
 
 export const esAtrasada = (fechaHora: string, estado: string): boolean => (
   dayjs(fechaHora).isBefore(dayjs()) &&

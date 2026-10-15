@@ -13,27 +13,27 @@ interface TriajeHeaderProps {
 }
 
 const TriajeHeader: React.FC<TriajeHeaderProps> = ({ triaje, onVolver, onEditar }) => (
-  <div className="blue-gradient-header" style={{ margin: '-24px -24px 24px -24px', padding: '24px' }}>
-    <Row justify="space-between" align="middle">
+  <div className="triaje-cabecera">
+    <Row justify="space-between" align="middle" gutter={[16, 16]}>
       <Col>
         <Space size="large">
           <Button
             icon={<ArrowLeftOutlined />}
             onClick={onVolver}
-            ghost
+            aria-label="Volver"
           />
           <div>
-            <Title level={2} style={{ color: '#fff', margin: 0 }}>
+            <Title level={2} className="pagina-encabezado__titulo">
               Detalle de Evaluación de Triaje
             </Title>
-            <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
+            <Text className="pagina-encabezado__descripcion">
               ID Registro: #{triaje.id} | Fecha: {dayjs(triaje.fecha_registro).format('DD/MM/YYYY HH:mm')}
             </Text>
           </div>
         </Space>
       </Col>
       <Col>
-        <Space>
+        <Space wrap>
           <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
             Imprimir Informe
           </Button>

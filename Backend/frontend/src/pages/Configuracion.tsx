@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout, Tabs, Form, Button, Row, Col, Typography, Alert, Spin, Badge, Space, notification, Card } from 'antd';
+import { Tabs, Form, Button, Typography, Alert, Spin, Badge, Space, notification } from 'antd';
 import { useAntdApp } from '../hooks/useMessage';
-import { SettingOutlined, ShopOutlined, ClockCircleOutlined, CloudServerOutlined, DatabaseOutlined, SaveOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons';
+import { ShopOutlined, ClockCircleOutlined, CloudServerOutlined, DatabaseOutlined, SaveOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import configService from '../services/configService';
 import ConfiguracionIdentidad from './Configuracion/components/ConfiguracionIdentidad';
 import ConfiguracionHorarios from './Configuracion/components/ConfiguracionHorarios';
 import ConfiguracionSistema from './Configuracion/components/ConfiguracionSistema';
+import './Configuracion/Configuracion.css';
 
 const { Text } = Typography;
 
@@ -215,17 +216,15 @@ const Configuracion: React.FC = () => {
   };
 
   if (loading) {
-    return <div style={{ height: '80vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Spin size="large" tip="Cargando panel de control…"><div /></Spin></div>;
+    return <div className="configuracion-page__cargando"><Spin size="large" tip="Cargando panel de control…"><div /></Spin></div>;
   }
 
   return (
-    <Layout>
-      <Layout.Content style={{ padding: 24 }}>
-        <div className="configuracion-container animate-fade-in">
-          <div style={{ marginBottom: 24 }}>
-            <Typography.Title level={2}><SettingOutlined /> Configuración del Sistema</Typography.Title>
+    <section className="configuracion-page page-container">
+          <header className="configuracion-page__cabecera">
+            <Typography.Title level={2}>Configuración del Sistema</Typography.Title>
             <Text type="secondary">Administre los parámetros globales, horarios y mantenimiento de la plataforma.</Text>
-          </div>
+          </header>
 
           {configData?.modo_mantenimiento && (
             <Alert
@@ -234,31 +233,22 @@ const Configuracion: React.FC = () => {
               type="warning"
               showIcon
               closable
-              style={{ marginBottom: 16 }}
             />
           )}
 
-          <Card size="small" style={{ marginBottom: 16, background: '#f5f5f5' }}>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Text type="secondary"><CloudServerOutlined /> Sistema en línea</Text>
-              </Col>
-              <Col span={12} style={{ textAlign: 'right' }}>
-                <Space>
-                  <Text type="secondary">Backups disponibles:</Text>
-                  <Badge count={backups.length} showZero style={{ backgroundColor: '#52c41a' }} />
-                  <Button size="small" icon={reloadIcon} onClick={cargarConfiguracion}>
-                    Refrescar
-                  </Button>
-                </Space>
-              </Col>
-            </Row>
-          </Card>
+          <div className="configuracion-page__estado">
+            <span className="configuracion-page__en-linea"><CloudServerOutlined /> Sistema en línea</span>
+            <Space>
+              <Text type="secondary">Backups disponibles:</Text>
+              <Badge className="configuracion-page__contador" count={backups.length} showZero overflowCount={999} />
+              <Button size="small" icon={reloadIcon} onClick={cargarConfiguracion}>
+                Refrescar
+              </Button>
+            </Space>
+          </div>
 
           <Tabs
             defaultActiveKey="1"
-            type="card"
-            size="large"
             items={[
               {
                 key: '1',
@@ -298,9 +288,7 @@ const Configuracion: React.FC = () => {
               },
             ]}
           />
-        </div>
-      </Layout.Content>
-    </Layout>
+    </section>
   );
 };
 

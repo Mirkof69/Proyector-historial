@@ -84,7 +84,7 @@ const EdadGestacionalRNModal: React.FC<Props> = ({ rn, abierto, onCerrar, onGuar
             <Form.Item label={`Puntaje total (${tablas.ballard.minimo} a ${tablas.ballard.maximo})`} required
               extra="Suma de los seis signos neuromusculares y los seis físicos.">
               <InputNumber value={ballard ?? undefined} min={tablas.ballard.minimo} max={tablas.ballard.maximo}
-                onChange={(v) => setBallard(v ?? null)} style={{ width: 160 }} />
+                onChange={(v) => setBallard(v ?? null)} className="partos-ballard" />
             </Form.Item>
           )}
           {semanas !== null ? (

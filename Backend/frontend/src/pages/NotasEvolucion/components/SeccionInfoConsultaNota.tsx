@@ -69,7 +69,7 @@ const SeccionInfoConsultaNota: React.FC<SeccionInfoConsultaNotaProps> = ({
         <Form.Item
           label={
             <Space>
-              <HeartOutlined style={{ color: '#eb2f96' }} />
+              <HeartOutlined className="notas-icono" />
               Tipo de Consulta
             </Space>
           }

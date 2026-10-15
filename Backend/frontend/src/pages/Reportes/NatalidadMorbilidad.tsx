@@ -11,8 +11,9 @@ import { useRangoReportes } from './rangoReportes';
 const { Text } = Typography;
 
 /** Paleta categórica validada (colorblind-safe; ver skill dataviz). Orden fijo, nunca ciclado. */
-export const SERIE = { azul: '#2a78d6', naranja: '#eb6834', aqua: '#1baf7a', amarillo: '#eda100' };
-const GRILLA = 'var(--color-border, #e5e7eb)';
+// Series del tema (tokens.css --grafico-*): cambian solas con el tema.
+export const SERIE = { azul: 'var(--grafico-2)', naranja: 'var(--grafico-5)', aqua: 'var(--grafico-4)', amarillo: 'var(--grafico-3)' };
+const GRILLA = 'var(--color-borde-suave)';
 
 interface Datos {
   desde: string; hasta: string;
@@ -34,15 +35,15 @@ const BarrasHorizontales: React.FC<{ datos: { nombre: string; total: number }[];
   datos, color, titulo,
 }) => (
   datos.length === 0 ? <Empty description={`Sin ${titulo.toLowerCase()} en el período`} /> : (
-    <div style={{ width: '100%', height: Math.max(160, datos.length * 44) }} role="img" aria-label={titulo}>
+    <div className="reportes-ancho" style={{ height: Math.max(160, datos.length * 44) }} role="img" aria-label={titulo}>
       <ResponsiveContainer>
         <BarChart data={datos} layout="vertical" margin={{ left: 8, right: 40 }} barCategoryGap={8}>
           <CartesianGrid horizontal={false} stroke={GRILLA} />
           <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
           <YAxis type="category" dataKey="nombre" width={170} tick={{ fontSize: 12 }} />
-          <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+          <Tooltip cursor={{ fill: 'var(--color-hover)' }} />
           <Bar dataKey="total" name="Total" fill={color} radius={[0, 4, 4, 0]} maxBarSize={24}>
-            <LabelList dataKey="total" position="right" style={{ fontSize: 12, fill: 'var(--color-text, #1f2937)' }} />
+            <LabelList dataKey="total" position="right" className="reportes-etiqueta-grafica" />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -88,11 +89,11 @@ const NatalidadMorbilidad: React.FC = () => {
 
   return (
     <Spin spinning={cargando}>
-      <Row justify="space-between" align="middle" gutter={[8, 8]} style={{ marginBottom: 16 }} className="no-print">
+      <Row justify="space-between" align="middle" gutter={[8, 8]} className="no-print reportes-separado">
         <Col><Segmented value={vista} onChange={(v) => setVista(v as 'graficos' | 'tabla')}
           options={[{ value: 'graficos', label: 'Gráficos' }, { value: 'tabla', label: 'Tabla' }]} /></Col>
         <Col>
-          <Button icon={<ReloadOutlined />} onClick={cargar} style={{ marginRight: 8 }}>Actualizar</Button>
+          <Button icon={<ReloadOutlined />} onClick={cargar} className="reportes-boton-separado">Actualizar</Button>
           <Button icon={<FileExcelOutlined />} onClick={exportar} disabled={!datos?.totales.partos}>Excel</Button>
         </Col>
       </Row>
@@ -101,7 +102,7 @@ const NatalidadMorbilidad: React.FC = () => {
         <Empty description="No hay partos registrados en el período elegido." />
       ) : (
         <>
-          <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+          <Row gutter={[12, 12]} className="reportes-separado reportes-cifras">
             {[
               ['Partos', datos.totales.partos], ['Recién nacidos', datos.totales.recien_nacidos],
               ['Cesáreas', pct(datos.tasas.cesarea_pct)], ['Bajo peso al nacer', pct(datos.tasas.bajo_peso_pct)],
@@ -125,10 +126,10 @@ const NatalidadMorbilidad: React.FC = () => {
               <Col xs={24} lg={12}>
                 <Table size="small" pagination={false} rowKey="via" title={() => <Text strong>Vía de parto</Text>}
                   dataSource={datos.via_parto} columns={[{ title: 'Vía', dataIndex: 'via' }, { title: 'Total', dataIndex: 'total' }]} />
-                <Table size="small" pagination={false} rowKey="categoria" style={{ marginTop: 16 }}
+                <Table size="small" pagination={false} rowKey="categoria" className="reportes-arriba"
                   title={() => <Text strong>Peso al nacer</Text>} dataSource={datos.peso_al_nacer}
                   columns={[{ title: 'Categoría', dataIndex: 'categoria' }, { title: 'Recién nacidos', dataIndex: 'total' }]} />
-                <Table size="small" pagination={false} rowKey="tipo" style={{ marginTop: 16 }}
+                <Table size="small" pagination={false} rowKey="tipo" className="reportes-arriba"
                   title={() => <Text strong>Complicaciones</Text>} dataSource={datos.complicaciones}
                   locale={{ emptyText: 'Sin complicaciones registradas' }}
                   columns={[{ title: 'Tipo', dataIndex: 'tipo' }, { title: 'Total', dataIndex: 'total' }]} />
@@ -138,16 +139,16 @@ const NatalidadMorbilidad: React.FC = () => {
             <Row gutter={[16, 16]}>
               <Col xs={24}>
                 <Card size="small" title="Partos por mes, según la vía">
-                  <div style={{ width: '100%', height: 300 }} role="img" aria-label="Partos por mes, vaginales y cesáreas">
+                  <div className="reportes-grafica-300" role="img" aria-label="Partos por mes, vaginales y cesáreas">
                     <ResponsiveContainer>
                       <BarChart data={porMes} margin={{ top: 16, right: 16, left: 0, bottom: 4 }} barCategoryGap="20%">
                         <CartesianGrid vertical={false} stroke={GRILLA} />
                         <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
                         <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                        <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                        <Tooltip cursor={{ fill: 'var(--color-hover)' }} />
                         <Legend />
-                        <Bar dataKey="Vaginales" stackId="via" fill={SERIE.azul} stroke="var(--color-bg, #fff)" strokeWidth={2} maxBarSize={36} />
-                        <Bar dataKey="Cesáreas" stackId="via" fill={SERIE.naranja} stroke="var(--color-bg, #fff)" strokeWidth={2}
+                        <Bar dataKey="Vaginales" stackId="via" fill={SERIE.azul} stroke="var(--color-superficie)" strokeWidth={2} maxBarSize={36} />
+                        <Bar dataKey="Cesáreas" stackId="via" fill={SERIE.naranja} stroke="var(--color-superficie)" strokeWidth={2}
                           radius={[4, 4, 0, 0]} maxBarSize={36} />
                       </BarChart>
                     </ResponsiveContainer>

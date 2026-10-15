@@ -34,7 +34,7 @@ const TabAnatomiaEco: React.FC = () => (
     </Row>
     <Divider />
     <Row gutter={24}>
-      <Col xs={24} md={12}><Form.Item name={['anatomia', 'translucencia_nucal']} label="Translucencia Nucal (mm)"><InputNumber step={0.1} style={{ width: '100%' }} /></Form.Item></Col>
+      <Col xs={24} md={12}><Form.Item name={['anatomia', 'translucencia_nucal']} label="Translucencia Nucal (mm)"><InputNumber step={0.1} className="u-ancho" /></Form.Item></Col>
       <Col xs={24} md={12}><Form.Item name={['anatomia', 'hueso_nasal_presente']} valuePropName="checked"><Checkbox>Hueso Nasal Presente</Checkbox></Form.Item></Col>
     </Row>
     <Form.Item name={['anatomia', 'hallazgos_anormales']} label="Hallazgos Anormales / Observaciones Anatómicas"><TextArea rows={3} /></Form.Item>

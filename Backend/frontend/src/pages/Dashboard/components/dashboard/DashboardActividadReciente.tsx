@@ -27,15 +27,15 @@ const DashboardActividadReciente: React.FC<DashboardActividadProps> = ({ activid
       <Timeline
         items={actividades.map((act) => ({
           key: act._uniqueKey || `act-${act.id}`,
-          dot: act.tipo === 'warning' ? <WarningOutlined style={{ color: 'orange' }} /> :
-            act.tipo === 'success' ? <CheckCircleOutlined style={{ color: 'green' }} /> : undefined,
+          dot: act.tipo === 'warning' ? <WarningOutlined className="dashboard-actividad__icono--aviso" /> :
+            act.tipo === 'success' ? <CheckCircleOutlined className="dashboard-actividad__icono--exito" /> : undefined,
           children: (
             <div>
               <Text strong>{act.usuario}</Text>
               <br />
               <Text type="secondary">{act.accion}</Text>
               <br />
-              <Text type="secondary" style={{ fontSize: 12 }}>{dayjs(act.fecha).fromNow()}</Text>
+              <Text type="secondary" className="dashboard-actividad__fecha">{dayjs(act.fecha).fromNow()}</Text>
             </div>
           )
         }))}

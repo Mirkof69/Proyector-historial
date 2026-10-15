@@ -11,8 +11,8 @@
 import React, { useState, useReducer, useEffect, useMemo } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
-import { Alert, Table, Card } from "antd";
-import { WarningOutlined } from '@ant-design/icons';
+import { Alert, Table, Card, Button, Typography } from "antd";
+import { WarningOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { partosService, Parto } from '../../services/partosService';
 import { FRONTEND_ROUTES } from '../../config/routes';
@@ -24,6 +24,8 @@ import { buildPartosColumns } from './components/partosColumns';
 import PartosStats from './components/PartosStats';
 import PartosToolbar from './components/PartosToolbar';
 import './Partos.css';
+
+const { Title, Text } = Typography;
 
 const CESAREAS = 'cesarea_electiva,cesarea_urgencia,cesarea_emergencia';
 const VAGINALES = 'vaginal_espontaneo,vaginal_instrumentado';
@@ -84,26 +86,26 @@ const Partos: React.FC = () => {
 
   const handleDelete = (parto: any) => {
     modal.confirm({
-      title: '⚠️ ¿Confirmar eliminación permanente del parto?',
+      title: '¿Confirmar eliminación permanente del parto?',
       icon: <WarningOutlined />,
       content: (
         <div>
           <p><strong>Se eliminará el parto:</strong></p>
-          <ul style={{ marginLeft: 20 }}>
+          <ul className="partos-borrado__lista">
             <li>Paciente: {parto.paciente_nombre}</li>
             <li>Fecha: {parto.fecha_parto}</li>
             <li>Tipo: {parto.tipo_parto_display}</li>
           </ul>
-          <p style={{ color: '#ff4d4f', fontWeight: 'bold', marginTop: 16 }}>
-            ⚠️ ADVERTENCIA: Esta acción eliminará PERMANENTEMENTE:
+          <p className="partos-borrado__advertencia">
+            ADVERTENCIA: Esta acción eliminará PERMANENTEMENTE:
           </p>
-          <ul style={{ marginLeft: 20, color: '#ff4d4f' }}>
+          <ul className="partos-borrado__lista partos-borrado__lista--peligro">
             <li>Registro completo del parto</li>
             <li>Datos de todos los recién nacidos</li>
             <li>Registros del partograma</li>
             <li>Complicaciones y observaciones</li>
           </ul>
-          <p style={{ marginTop: 16 }}>
+          <p className="partos-arriba">
             <strong>Esta acción NO se puede deshacer.</strong>
           </p>
         </div>
@@ -141,8 +143,20 @@ const Partos: React.FC = () => {
   // RENDER
   // ==========================================================================
   return (
-    <div className="partos-container page-container">
-      {/* HEADER Y ESTADÍSTICAS */}
+    <div className="partos-page page-container">
+      <header className="partos-page__cabecera">
+        <div>
+          <Title level={2}>Partos</Title>
+          <Text type="secondary">Registro de partos, abortos y recién nacidos.</Text>
+        </div>
+        {canAdd('parto') && (
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+            Registrar Nuevo Parto
+          </Button>
+        )}
+      </header>
+
+      {/* ESTADÍSTICAS */}
       <PartosStats total={stats.total} cesareas={stats.cesareas} vaginales={stats.vaginales} />
 
       {/* BARRA DE HERRAMIENTAS */}
@@ -151,13 +165,11 @@ const Partos: React.FC = () => {
         dispatchFiltros={dispatchFiltros}
         onReload={recargar}
         onExport={handleExportExcel}
-        onNew={handleCreate}
-        canAdd={canAdd('parto')}
       />
 
       {/* TABLA PRINCIPAL */}
-      <Card className="table-card">
-        {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
+      <Card>
+        {listado.error && <Alert type="error" showIcon message={listado.error} className="partos-separado-sm" />}
         <Table
           columns={columns}
           dataSource={listado.datos}
@@ -168,6 +180,7 @@ const Partos: React.FC = () => {
           locale={{
             emptyText: 'No hay registros de partos',
           }}
+          scroll={{ x: 1100 }}
         />
       </Card>
     </div>

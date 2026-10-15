@@ -14,9 +14,9 @@ interface LaboratorioFiltrosProps {
 }
 
 const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispatchFiltros, onLimpiar }) => (
-  <Space direction="vertical" size="middle" style={{ width: '100%', marginBottom: 16 }}>
+  <Space direction="vertical" size="middle" className="laboratorio-ancho laboratorio-separado">
     <Row gutter={[16, 16]}>
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={7}>
         <Input
           placeholder="Buscar paciente o examen..."
           prefix={<SearchOutlined />}
@@ -25,10 +25,10 @@ const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispat
           allowClear
         />
       </Col>
-      <Col xs={24} sm={12} md={5}>
+      <Col xs={24} sm={12} lg={5}>
         <Select
           placeholder="Categoría"
-          style={{ width: '100%' }}
+          className="laboratorio-ancho"
           value={filtros.filtroCategoria}
           onChange={(val) => dispatchFiltros({ type: 'SET_CATEGORIA', payload: val })}
           allowClear
@@ -42,10 +42,10 @@ const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispat
           <Option value="hormonal">Hormonal</Option>
         </Select>
       </Col>
-      <Col xs={24} sm={12} md={5}>
+      <Col xs={24} sm={12} lg={5}>
         <Select
           placeholder="Estado"
-          style={{ width: '100%' }}
+          className="laboratorio-ancho"
           value={filtros.filtroEstado}
           onChange={(val) => dispatchFiltros({ type: 'SET_ESTADO', payload: val })}
           allowClear
@@ -56,15 +56,15 @@ const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispat
           <Option value="cancelado">Cancelado</Option>
         </Select>
       </Col>
-      <Col xs={24} sm={12} md={5}>
+      <Col xs={24} sm={12} lg={4}>
         <RangePicker
-          style={{ width: '100%' }}
+          className="laboratorio-ancho"
           format="DD/MM/YYYY"
           value={filtros.filtroFecha}
           onChange={(dates) => dispatchFiltros({ type: 'SET_FECHA', payload: dates as [Dayjs, Dayjs] })}
         />
       </Col>
-      <Col xs={24} sm={12} md={1}>
+      <Col xs={24} sm={12} lg={3}>
         <Button icon={<FilterOutlined />} onClick={onLimpiar} block>
           Limpiar
         </Button>

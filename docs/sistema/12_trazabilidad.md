@@ -42,6 +42,7 @@ para regenerarlo: `python quality-assurance/casos_de_prueba.py`.
 | RF-29 Cardiotocografía con IA | HU-22 | CU-03 | CP-083 | ✅ Verificado |
 | RF-31 Ecografía ginecológica con IA | HU-26 | CU-04 | CP-085, CP-086, CP-087 | ✅ Verificado |
 | RF-32 Fémur y circunferencia abdominal desde la imagen | HU-27 | CU-04 | CP-088 | ✅ Verificado |
+| RF-33 Guía de IA: cada modelo, su fiabilidad medida y dónde se usa | HU-28 | CU-04 | CP-114 | ✅ Verificado |
 | RF-30 Cargos del hospital (otros funcionarios) | HU-25 | CU-08 | CP-112 | ✅ Verificado |
 
 ## Requisitos no funcionales
@@ -58,7 +59,7 @@ para regenerarlo: `python quality-assurance/casos_de_prueba.py`.
 | RNF-08 Localización | CP-100 | ✅ Verificado |
 | RNF-09 Operabilidad | CP-101 | ✅ Verificado |
 | RNF-10 Calidad de datos | CP-103 | ✅ Verificado |
-| RNF-11 Usabilidad y accesibilidad | — | 📝 Revisión manual |
+| RNF-11 Usabilidad y accesibilidad | CP-115 | ✅ Verificado |
 | RNF-12 Mantenibilidad | CI (ruff, pytest, tsc, eslint) | ✅ Verificado en CI |
 | RNF-13 Escalabilidad multi-clínica | — | 📝 Por arquitectura (django-tenants) |
 | RNF-14 Disponibilidad bajo carga | `prueba_concurrencia.py`: 40 usuarios, 0 errores | 📝 Medido en el equipo de desarrollo; repetir en el servidor del hospital |

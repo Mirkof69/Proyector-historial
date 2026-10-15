@@ -20,14 +20,14 @@ const UsuarioDetailDrawer: React.FC<UsuarioDetailDrawerProps> = ({ usuario, open
   return (
     <Drawer title="Detalles del Usuario" width={600} open={open} onClose={onClose}>
       <div>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <Avatar size={100} src={usuario.foto_url} icon={userIcon} style={{ backgroundColor: configuracionDeRol(usuario.rol).color }} />
-          <Title level={4} style={{ marginTop: 16 }}>{usuario.nombre_completo}</Title>
+        <div className="usuario-detalle__cabecera">
+          <Avatar size={96} src={usuario.foto_url} icon={userIcon} className="usuario-detalle__avatar" />
+          <Title level={4}>{usuario.nombre_completo}</Title>
           {/* `configuracionDeRol` siempre devuelve un nombre. Antes esto era
               `ROLES_CONFIG[rol]?.nombre` sin alternativa, y para enfermera,
               laboratorista y recepcion pintaba una etiqueta VACIA: parecia que
               la usuaria no tuviera rol asignado. */}
-          <Tag color={configuracionDeRol(usuario.rol).color} icon={configuracionDeRol(usuario.rol).icono}>
+          <Tag icon={configuracionDeRol(usuario.rol).icono}>
             {configuracionDeRol(usuario.rol).nombre}
           </Tag>
         </div>

@@ -18,7 +18,7 @@ interface DetalleEmbarazoTabsProps {
 const DetalleEmbarazoTabs: React.FC<DetalleEmbarazoTabsProps> = ({
   controles, loadingControles, ultimoControl, handleVerControl, handleNuevoControl,
 }) => (
-  <Card style={{ marginTop: 16 }} title={<><MedicineBoxOutlined /> Seguimiento del Embarazo</>}>
+  <Card className="u-mt-4" title={<><MedicineBoxOutlined /> Seguimiento del Embarazo</>}>
     <Tabs defaultActiveKey="controles" items={[
       {
         key: 'controles',
@@ -30,7 +30,7 @@ const DetalleEmbarazoTabs: React.FC<DetalleEmbarazoTabsProps> = ({
           </Badge>
         ),
         children: loadingControles ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div className="u-centro u-p-6">
             <Spin tip="Cargando controles…"><div /></Spin>
           </div>
         ) : controles.length > 0 ? (
@@ -40,7 +40,7 @@ const DetalleEmbarazoTabs: React.FC<DetalleEmbarazoTabsProps> = ({
               description={ultimoControl && `Último control: ${dayjs(ultimoControl.fecha_control).format('DD/MM/YYYY')}`}
               type="info"
               showIcon
-              style={{ marginBottom: 16 }}
+              className="u-mb-4"
             />
             <List
               itemLayout="horizontal"
@@ -63,16 +63,16 @@ const DetalleEmbarazoTabs: React.FC<DetalleEmbarazoTabsProps> = ({
                       // @ts-ignore
                       control.tiene_alertas ? (
                         <Badge dot>
-                          <MedicineBoxOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+                          <MedicineBoxOutlined className="u-t-xl u-c-peligro" />
                         </Badge>
                       ) : (
-                        <MedicineBoxOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                        <MedicineBoxOutlined className="u-t-xl u-c-primario" />
                       )
                     }
                     title={
                       <Space>
                         <Text strong>Control #{control.numero_control}</Text>
-                        <Tag color="blue">
+                        <Tag color="processing">
                           {control.edad_gestacional_semanas}s + {control.edad_gestacional_dias || 0}d
                         </Tag>
                         {/* @ts-ignore */}
@@ -110,7 +110,7 @@ const DetalleEmbarazoTabs: React.FC<DetalleEmbarazoTabsProps> = ({
             description="No hay controles prenatales registrados"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           >
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevoControl}>
+            <Button icon={<PlusOutlined />} onClick={handleNuevoControl}>
               Crear Primer Control
             </Button>
           </Empty>
@@ -126,7 +126,7 @@ const DetalleEmbarazoTabs: React.FC<DetalleEmbarazoTabsProps> = ({
               description="El registro y visualización de ecografías estará disponible próximamente."
               type="info"
               showIcon
-              style={{ marginBottom: 16 }}
+              className="u-mb-4"
             />
             <Empty description="No hay ecografías registradas" />
           </>
@@ -142,7 +142,7 @@ const DetalleEmbarazoTabs: React.FC<DetalleEmbarazoTabsProps> = ({
               description="Los resultados de laboratorio se mostrarán aquí próximamente."
               type="info"
               showIcon
-              style={{ marginBottom: 16 }}
+              className="u-mb-4"
             />
             <Empty description="No hay estudios de laboratorio" />
           </>

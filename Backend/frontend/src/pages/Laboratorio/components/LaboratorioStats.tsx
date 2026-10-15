@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, Statistic } from 'antd';
+import { Card, Statistic } from 'antd';
 import { ExperimentOutlined, ExclamationCircleOutlined, WarningOutlined } from '@ant-design/icons';
 
 interface LaboratorioStatsProps {
@@ -14,38 +14,26 @@ interface LaboratorioStatsProps {
 const LaboratorioStats: React.FC<LaboratorioStatsProps> = ({
   total, solicitados, en_proceso, completados, con_anormales, con_criticos,
 }) => (
-  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card>
-        <Statistic title="Total Exámenes" value={total} prefix={<ExperimentOutlined />} valueStyle={{ color: '#722ed1' }} />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card>
-        <Statistic title="Solicitados" value={solicitados} valueStyle={{ color: '#fa8c16' }} />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card>
-        <Statistic title="En Proceso" value={en_proceso} valueStyle={{ color: '#1890ff' }} />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card>
-        <Statistic title="Completados" value={completados} valueStyle={{ color: '#52c41a' }} />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card>
-        <Statistic title="Con Anormales" value={con_anormales} valueStyle={{ color: '#faad14' }} prefix={<ExclamationCircleOutlined />} />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card>
-        <Statistic title="Con Críticos" value={con_criticos} valueStyle={{ color: '#ff4d4f' }} prefix={<WarningOutlined />} />
-      </Card>
-    </Col>
-  </Row>
+  <div className="laboratorio-page__cifras">
+    <Card size="small">
+      <Statistic title={<><ExperimentOutlined />Total Exámenes</>} value={total} />
+    </Card>
+    <Card size="small">
+      <Statistic title="Solicitados" value={solicitados} />
+    </Card>
+    <Card size="small">
+      <Statistic title="En Proceso" value={en_proceso} />
+    </Card>
+    <Card size="small">
+      <Statistic title="Completados" value={completados} />
+    </Card>
+    <Card size="small" className={con_anormales > 0 ? 'laboratorio-page__cifra--aviso' : undefined}>
+      <Statistic title={<><ExclamationCircleOutlined />Con Anormales</>} value={con_anormales} />
+    </Card>
+    <Card size="small" className={con_criticos > 0 ? 'laboratorio-page__cifra--peligro' : undefined}>
+      <Statistic title={<><WarningOutlined />Con Críticos</>} value={con_criticos} />
+    </Card>
+  </div>
 );
 
 export default LaboratorioStats;

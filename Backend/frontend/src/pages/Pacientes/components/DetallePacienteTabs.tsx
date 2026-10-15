@@ -106,21 +106,21 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
               <Descriptions bordered column={2}>
                 {antecedentes[0].diabetes !== undefined && (
                   <Descriptions.Item label="Diabetes">
-                    <Tag color={antecedentes[0].diabetes ? 'red' : 'green'}>
+                    <Tag color={antecedentes[0].diabetes ? 'error' : 'success'}>
                       {antecedentes[0].diabetes ? 'Sí' : 'No'}
                     </Tag>
                   </Descriptions.Item>
                 )}
                 {antecedentes[0].hipertension !== undefined && (
                   <Descriptions.Item label="Hipertensión">
-                    <Tag color={antecedentes[0].hipertension ? 'red' : 'green'}>
+                    <Tag color={antecedentes[0].hipertension ? 'error' : 'success'}>
                       {antecedentes[0].hipertension ? 'Sí' : 'No'}
                     </Tag>
                   </Descriptions.Item>
                 )}
                 {antecedentes[0].cardiopatia !== undefined && (
                   <Descriptions.Item label="Cardiopatía">
-                    <Tag color={antecedentes[0].cardiopatia ? 'orange' : 'green'}>
+                    <Tag color={antecedentes[0].cardiopatia ? 'warning' : 'success'}>
                       {antecedentes[0].cardiopatia ? 'Sí' : 'No'}
                     </Tag>
                   </Descriptions.Item>
@@ -167,7 +167,7 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
                 { title: 'Diagnóstico', dataIndex: 'diagnostico', key: 'diagnostico', ellipsis: true },
                 { title: 'IA', key: 'ia', width: 60, align: 'center' as const,
                   render: (_: any, r: any) => (r as any).tiene_analisis_ia
-                    ? <AntTooltip title="Tiene análisis IA"><RobotOutlined style={{ color: '#722ed1', fontSize: 18 }} /></AntTooltip>
+                    ? <AntTooltip title="Tiene análisis IA"><RobotOutlined className="pacientes-icono-ia" /></AntTooltip>
                     : null },
                 { title: 'Acción', key: 'accion', width: 100,
                   render: (_: any, r: any) => (
@@ -204,20 +204,20 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
                 .map((item) => {
                   let label = '';
                   let content = '';
-                  let color = 'blue';
+                  let color = 'var(--color-primario)';
 
                   if (item.prioridad) {
                     label = dayjs(item.fecha_hora || item.fecha_registro).format('DD/MM/YYYY HH:mm');
                     content = `Triaje - Prioridad: ${item.prioridad}`;
-                    color = item.prioridad === 'urgente' ? 'red' : item.prioridad === 'alto' ? 'orange' : 'blue';
+                    color = item.prioridad === 'urgente' ? 'var(--color-peligro)' : item.prioridad === 'alto' ? 'var(--color-aviso)' : 'var(--color-primario)';
                   } else if (item.tipo_consulta) {
                     label = dayjs(item.fecha_consulta).format('DD/MM/YYYY');
                     content = `Nota Médica - ${item.tipo_consulta}: ${item.motivo_consulta?.substring(0, 50)}...`;
-                    color = 'purple';
+                    color = 'gray';
                   } else if (item.lote) {
                     label = dayjs(item.fecha_aplicacion).format('DD/MM/YYYY');
                     content = `Vacuna - ${item.tipo_vacuna_nombre || 'Vacuna'} (Dosis ${item.numero_dosis})`;
-                    color = 'green';
+                    color = 'var(--color-exito)';
                   }
 
                   return {

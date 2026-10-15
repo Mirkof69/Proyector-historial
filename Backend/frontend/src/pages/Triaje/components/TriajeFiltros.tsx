@@ -18,7 +18,7 @@ const TriajeFiltros: React.FC<TriajeFiltrosProps> = ({
   searchText, filterState, filterPriority, filterDate,
   onSearchChange, onStateChange, onPriorityChange, onDateChange, onLimpiar,
 }) => (
-  <Card className="shadow-card" style={{ marginBottom: '24px' }}>
+  <Card>
     <Row gutter={[16, 16]} align="middle">
       <Col xs={24} md={8}>
         <Input

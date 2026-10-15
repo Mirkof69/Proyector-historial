@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Badge } from 'antd';
-import { ArrowLeftOutlined, BellOutlined, CheckOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, CheckOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useAntdApp } from '../../hooks/useMessage';
 import { reportesService, AlertaMedica } from '../../services/reportesService';
 
-const { Text } = Typography;
+import './AlertasMedicas.css';
 
+const { Text, Title } = Typography;
+
+// Color de Tag por token: la prioridad es un estado clínico.
 const prioridadColors: Record<string, string> = {
-  baja: 'blue',
-  media: 'orange',
-  alta: 'red',
-  critica: 'magenta',
-  emergencia: 'red',
+  baja: 'processing',
+  media: 'warning',
+  alta: 'error',
+  critica: 'error',
+  emergencia: 'error',
 };
 
 const DetalleAlerta: React.FC = () => {
@@ -55,16 +58,22 @@ const DetalleAlerta: React.FC = () => {
     }
   };
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 100 }}><Spin size="large" /></div>;
+  if (loading) return <div className="alertas-page__cargando"><Spin size="large" /></div>;
   if (!alerta) return <Card><Alert message="Alerta no encontrada" type="error" showIcon /></Card>;
 
   const resuelta = alerta.estado === 'resuelta';
   const descartada = alerta.estado === 'descartada';
 
   return (
-    <div>
-      <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>Volver</Button>
-      <Card title={<span><BellOutlined style={{ marginRight: 8 }} />Detalle de Alerta #{alerta.id}</span>}>
+    <div className="alertas-page page-container">
+      <header className="alertas-page__cabecera">
+        <div>
+          <Title level={2}>Detalle de Alerta <span className="tabular-nums">#{alerta.id}</span></Title>
+          <Text type="secondary">{alerta.modulo_origen_display || alerta.modulo_origen}</Text>
+        </div>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>Volver</Button>
+      </header>
+      <Card>
         <Descriptions column={{ xs: 1, sm: 2 }} bordered>
           <Descriptions.Item label="Título" span={2}><Text strong>{alerta.titulo}</Text></Descriptions.Item>
           <Descriptions.Item label="Paciente">{alerta.paciente_nombre || '—'}</Descriptions.Item>
@@ -98,7 +107,7 @@ const DetalleAlerta: React.FC = () => {
         </Descriptions>
 
         {!resuelta && !descartada && (
-          <div style={{ marginTop: 24 }}>
+          <div className="alerta-detalle__bloque">
             <Button type="primary" icon={<CheckOutlined />} loading={resolviendo} onClick={handleResolver}>
               Marcar como Resuelta
             </Button>

@@ -111,14 +111,7 @@ const AlertasListado: React.FC<AlertasListadoProps> = ({
                 key={alerta.id}
                 extra={
                   <Space direction="vertical" align="end">
-                    <Tag
-                      icon={tipoConfig.icon}
-                      style={{
-                        backgroundColor: tipoConfig.color,
-                        color: 'white',
-                        border: 'none',
-                      }}
-                    >
+                    <Tag icon={tipoConfig.icon} color={tipoConfig.color}>
                       {tipoConfig.text}
                     </Tag>
                     <Tag color={estadoConfig.color} icon={estadoConfig.icon}>
@@ -126,7 +119,6 @@ const AlertasListado: React.FC<AlertasListadoProps> = ({
                     </Tag>
                     <Tooltip title="Ver detalle completo de la alerta">
                       <Button
-                        type="primary"
                         size="small"
                         onClick={() => handleVerDetalle(alerta)}
                       >
@@ -138,12 +130,7 @@ const AlertasListado: React.FC<AlertasListadoProps> = ({
               >
                 <List.Item.Meta
                   avatar={
-                    <Avatar
-                      style={{
-                        backgroundColor: tipoConfig.color,
-                      }}
-                      icon={tipoConfig.icon}
-                    />
+                    <Avatar className={tipoConfig.clase} icon={tipoConfig.icon} />
                   }
                   title={
                     <Space>

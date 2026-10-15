@@ -29,15 +29,15 @@ interface Datos {
 const Barras: React.FC<{ titulo: string; datos: { nombre: string; total: number }[] }> = ({ titulo, datos }) => (
   <Card size="small" title={titulo}>
     {datos.length === 0 ? <Empty description="Sin datos en el período" /> : (
-      <div style={{ width: '100%', height: Math.max(150, datos.length * 42) }} role="img" aria-label={titulo}>
+      <div className="reportes-ancho" style={{ height: Math.max(150, datos.length * 42) }} role="img" aria-label={titulo}>
         <ResponsiveContainer>
           <BarChart data={datos} layout="vertical" margin={{ left: 8, right: 40 }}>
-            <CartesianGrid horizontal={false} stroke="var(--color-border, #e5e7eb)" />
+            <CartesianGrid horizontal={false} />
             <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
             <YAxis type="category" dataKey="nombre" width={150} tick={{ fontSize: 12 }} />
-            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+            <Tooltip cursor={{ fill: 'var(--color-hover)' }} />
             <Bar dataKey="total" name="Total" fill={SERIE.azul} radius={[0, 4, 4, 0]} maxBarSize={22}>
-              <LabelList dataKey="total" position="right" style={{ fontSize: 12, fill: 'var(--color-text, #1f2937)' }} />
+              <LabelList dataKey="total" position="right" className="reportes-etiqueta-grafica" />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
@@ -74,13 +74,13 @@ const ReporteIA: React.FC = () => {
   const p = datos?.prediccion_peso;
   return (
     <Spin spinning={cargando}>
-      <div className="no-print" style={{ textAlign: 'right', marginBottom: 12 }}>
+      <div className="no-print reportes-acciones-derecha">
         <Button icon={<ReloadOutlined />} onClick={cargar}>Actualizar</Button>
       </div>
       {error && <Alert type="error" showIcon message={error} />}
       {datos && (
         <>
-          <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+          <Row gutter={[12, 12]} className="reportes-separado reportes-cifras">
             <Col xs={12} md={6}><Card size="small"><Statistic title="Ecografías analizadas" value={datos.analisis_imagen.total} /></Card></Col>
             <Col xs={12} md={6}><Card size="small"><Statistic title="Validadas por un médico" value={datos.analisis_imagen.validados_por_medico} /></Card></Col>
             <Col xs={12} md={6}><Card size="small"><Statistic title="Tiempo medio por análisis"
@@ -88,7 +88,7 @@ const ReporteIA: React.FC = () => {
             <Col xs={12} md={6}><Card size="small"><Statistic title="Cardiotocografías clasificadas"
               value={datos.cardiotocografia.reduce((a, c) => a + c.total, 0)} /></Card></Col>
           </Row>
-          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Row gutter={[16, 16]} className="reportes-separado">
             <Col xs={24} lg={8}><Barras titulo="Resultado del análisis de ecografías"
               datos={datos.analisis_imagen.por_resultado.map((r) => ({ nombre: r.resultado, total: r.total }))} /></Col>
             <Col xs={24} lg={8}><Barras titulo="Plano anatómico reconocido"
@@ -96,7 +96,7 @@ const ReporteIA: React.FC = () => {
             <Col xs={24} lg={8}><Barras titulo="Cardiotocografías por clase"
               datos={datos.cardiotocografia.map((r) => ({ nombre: r.clase, total: r.total }))} /></Col>
           </Row>
-          <Card size="small" title="Peso al nacer: predicho frente al real" style={{ marginBottom: 16 }}>
+          <Card size="small" title="Peso al nacer: predicho frente al real" className="reportes-separado">
             {p && p.cerradas_con_nacimiento > 0 ? (
               <Row gutter={16}>
                 <Col xs={12} md={6}><Statistic title="Predicciones" value={p.predicciones} /></Col>

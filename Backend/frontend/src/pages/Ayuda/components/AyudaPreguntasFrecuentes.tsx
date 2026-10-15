@@ -31,17 +31,17 @@ const AyudaPreguntasFrecuentes: React.FC<AyudaPreguntasFrecuentesProps> = ({ sea
 
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: 20 }}>
+    <div className="ayuda-page__faq ayuda-page__seccion">
       {searchQuery && (
-        <div style={{ marginBottom: 20 }}>
+        <div>
           <Text strong>Resultados de búsqueda para: "{searchQuery}"</Text>
         </div>
       )}
 
       {filteredFaqs.length > 0 ? (
         filteredFaqs.map((categoria) => (
-          <div key={categoria.categoria} style={{ marginBottom: 32 }}>
-            <Title level={4} style={{ color: '#1890ff' }}>{categoria.categoria}</Title>
+          <div key={categoria.categoria}>
+            <Title level={4}>{categoria.categoria}</Title>
             <Collapse
               accordion
               ghost
@@ -49,26 +49,22 @@ const AyudaPreguntasFrecuentes: React.FC<AyudaPreguntasFrecuentesProps> = ({ sea
               items={categoria.items.map((item) => ({
                 key: item.pregunta,
                 label: (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="ayuda-page__pregunta">
                     <Text strong>{item.pregunta}</Text>
-                    <Tag color={
-                      item.dificultad === 'Básico' ? 'green' :
-                      item.dificultad === 'Intermedio' ? 'orange' : 'red'
-                    }>
+                    <Tag>
                       {item.dificultad}
                     </Tag>
                   </div>
                 ),
-                children: <Paragraph style={{ color: '#666' }}>{item.respuesta}</Paragraph>
+                children: <Paragraph type="secondary">{item.respuesta}</Paragraph>
               }))}
             />
           </div>
         ))
       ) : (
-        <div style={{ textAlign: 'center', padding: 50 }}>
+        <div className="ayuda-page__sin-resultados">
           <Text type="secondary">No encontramos respuestas para tu búsqueda.</Text>
-          <br />
-          <Button type="primary" style={{ marginTop: 16 }} onClick={handleContactarSoporte}>
+          <Button type="primary" onClick={handleContactarSoporte}>
             Contactar Soporte
           </Button>
         </div>

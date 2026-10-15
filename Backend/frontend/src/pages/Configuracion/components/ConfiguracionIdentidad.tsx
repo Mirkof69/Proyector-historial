@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Form, Input, Button, Upload, Divider, Row, Col, Typography } from 'antd';
 import { useAntdApp } from '../../../hooks/useMessage';
-import { ShopOutlined, SaveOutlined, UploadOutlined } from '@ant-design/icons';
+import { ShopOutlined, SaveOutlined, UploadOutlined, PictureOutlined } from '@ant-design/icons';
 
 const { Paragraph } = Typography;
 const { TextArea } = Input;
@@ -22,7 +22,7 @@ const ConfiguracionIdentidad: React.FC<ConfiguracionIdentidadProps> = ({ form, s
   const { message } = useAntdApp();
 
   return (
-    <Card className="shadow-sm">
+    <Card>
       <Form form={form} layout="vertical" onFinish={onSave}>
         <Row gutter={32}>
           <Col xs={24} lg={16}>
@@ -51,19 +51,17 @@ const ConfiguracionIdentidad: React.FC<ConfiguracionIdentidadProps> = ({ form, s
             </Row>
           </Col>
 
-          <Col xs={24} lg={8} style={{ textAlign: 'center', borderLeft: '1px solid #f0f0f0' }}>
+          <Col xs={24} lg={8} className="configuracion-page__logo">
             <Divider orientation="center">Logo Oficial</Divider>
-            <div style={{ marginBottom: 20 }}>
-              <img
-                src={configData?.logo_url || "https://via.placeholder.com/150?text=LOGO"}
-                alt="Logo Actual"
-                style={{ width: 150, height: 150, objectFit: 'contain', borderRadius: 8, border: '1px dashed #d9d9d9', padding: 10 }}
-              />
-            </div>
+            {/* Sin logo cargado: marcador local (antes se pedía una imagen a
+                via.placeholder.com, que no carga en la red del hospital). */}
+            {configData?.logo_url
+              ? <img src={configData.logo_url} alt="Logo Actual" className="configuracion-page__logo-imagen" />
+              : <div className="configuracion-page__logo-imagen" role="img" aria-label="Logo Actual"><PictureOutlined /> LOGO</div>}
             <Upload maxCount={1} beforeUpload={() => false} onChange={(info) => { logoFileRef.current = info.file; }}>
               <Button icon={UPLOAD_ICON}>Subir Nuevo Logo</Button>
             </Upload>
-            <Paragraph type="secondary" style={{ fontSize: 12, marginTop: 10 }}>
+            <Paragraph type="secondary" className="configuracion-page__ayuda">
               Recomendado: PNG transparente, 300x300px. Se usará en recetas y reportes.
             </Paragraph>
           </Col>
@@ -72,7 +70,7 @@ const ConfiguracionIdentidad: React.FC<ConfiguracionIdentidadProps> = ({ form, s
         <Divider />
 
         <Row justify="end">
-          <Button type="primary" htmlType="submit" icon={SAVE_ICON} size="large" loading={saving}>
+          <Button type="primary" htmlType="submit" icon={SAVE_ICON} loading={saving}>
             Guardar Configuración General
           </Button>
         </Row>

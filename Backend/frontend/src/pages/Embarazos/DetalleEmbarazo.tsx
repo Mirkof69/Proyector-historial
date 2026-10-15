@@ -46,8 +46,9 @@ import DetalleEmbarazoTabs from './components/DetalleEmbarazoTabs';
 import DetalleEmbarazoTimeline from './components/DetalleEmbarazoTimeline';
 import RiesgoDetalladoModal from './components/RiesgoDetalladoModal';
 import TimelineCompletoModal from './components/TimelineCompletoModal';
+import './paginaClinica.css';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const arrowLeftIcon = <ArrowLeftOutlined />;
 const arrowLeftIcon2 = <ArrowLeftOutlined />;
@@ -207,7 +208,7 @@ const DetalleEmbarazo: React.FC = () => {
 
   if (loadingRef.current) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px' }}>
+      <div className="pagina-clinica pc-cargando">
         <Spin size="large" tip="Cargando información del embarazo…"><div /></Spin>
       </div>
     );
@@ -215,11 +216,11 @@ const DetalleEmbarazo: React.FC = () => {
 
   if (!embarazo) {
     return (
-      <div>
+      <div className="pagina-clinica embarazo-detalle">
         <Button
           icon={arrowLeftIcon2}
           onClick={handleBack}
-          style={{ marginBottom: 16 }}
+          className="u-mb-4"
         >
           Volver a la lista
         </Button>
@@ -267,12 +268,22 @@ const DetalleEmbarazo: React.FC = () => {
   const ultimoControl = controles.length > 0 ? controles[controles.length - 1] : null;
 
   return (
-    <div>
-      {/* ========== HEADER CON ACCIONES ========== */}
-      <Space style={{ marginBottom: 16 }} wrap>
+    <div className="pagina-clinica embarazo-detalle">
+      {/* ========== ENCABEZADO DE PÁGINA ========== */}
+      <div className="pc-cabecera">
+        <div className="pc-cabecera__texto">
+          <Title level={2} className="pc-cabecera__titulo">{nombrePaciente}</Title>
+          <p className="pc-cabecera__descripcion">
+            <span className="texto-mono">{formulaObstetrica}</span> · {eg.texto} · {trimestre.texto}
+          </p>
+        </div>
         <Button icon={arrowLeftIcon} onClick={handleBack}>
           Volver a la lista
         </Button>
+      </div>
+
+      {/* ========== ACCIONES ========== */}
+      <Space className="u-mb-4" wrap>
         <Button type="primary" icon={editIcon2} onClick={handleEdit}>
           Editar Embarazo
         </Button>
@@ -282,14 +293,12 @@ const DetalleEmbarazo: React.FC = () => {
         <Button
           icon={safetyIcon2}
           onClick={handleCalcularRiesgo}
-          style={{ borderColor: '#ff4d4f', color: '#ff4d4f' }}
         >
           Análisis de Riesgo Detallado
         </Button>
         <Button
           icon={historyIcon2}
           onClick={handleVerTimeline}
-          style={{ borderColor: '#722ed1', color: '#722ed1' }}
         >
           Ver Timeline Completo
         </Button>
@@ -327,7 +336,7 @@ const DetalleEmbarazo: React.FC = () => {
           type="error"
           showIcon
           icon={warningIcon2}
-          style={{ marginBottom: 16 }}
+          className="u-mb-4"
         />
       )}
 
@@ -337,7 +346,7 @@ const DetalleEmbarazo: React.FC = () => {
           description="Se han detectado alertas médicas en los controles prenatales. Revise el historial de controles."
           type="warning"
           showIcon
-          style={{ marginBottom: 16 }}
+          className="u-mb-4"
           closable
         />
       )}

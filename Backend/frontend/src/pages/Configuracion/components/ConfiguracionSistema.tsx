@@ -45,12 +45,12 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
   return (
     <Row gutter={24}>
       <Col xs={24} md={12}>
-        <Card title="Mantenimiento y Seguridad" className="shadow-sm" style={{ height: '100%' }}>
+        <Card title="Mantenimiento y Seguridad" className="configuracion-page__columna">
           <Form form={formSmtp} layout="vertical" onFinish={() => { message.success('Config SMTP guardada'); }}>
             <Form.Item name="modo_mantenimiento" label="Modo Mantenimiento" valuePropName="checked">
               <Switch checkedChildren="ACTIVADO" unCheckedChildren="DESACTIVADO" />
             </Form.Item>
-            <Paragraph type="secondary" style={{ fontSize: 12 }}>
+            <Paragraph type="secondary" className="configuracion-page__ayuda">
               Si se activa, solo los administradores podrán iniciar sesión. Útil para actualizaciones.
             </Paragraph>
             <Divider />
@@ -64,7 +64,7 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
             <Divider />
             <Title level={5}><DatabaseOutlined /> Retención de Logs</Title>
             <Form.Item label="Días de Retención">
-              <Select value={diasRetencion} onChange={setDiasRetencion} style={{ width: '100%' }}>
+              <Select value={diasRetencion} onChange={setDiasRetencion} className="configuracion-page__ancho">
                 <Option value={7}>7 días</Option>
                 <Option value={15}>15 días</Option>
                 <Option value={30}>30 días (recomendado)</Option>
@@ -91,9 +91,8 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
       <Col xs={24} md={12}>
         <Card
           title="Copias de Seguridad (Backups)"
-          className="shadow-sm"
+          className="configuracion-page__columna"
           extra={<Button type="primary" size="small" icon={DATABASE_ICON} onClick={onCreateBackup}>Crear Backup</Button>}
-          style={{ height: '100%' }}
         >
           <List
             size="small"
@@ -112,14 +111,14 @@ const ConfiguracionSistema: React.FC<ConfiguracionSistemaProps> = ({
                 </Popconfirm>
               ]}>
                 <List.Item.Meta
-                  avatar={<SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: 20 }} />}
+                  avatar={<SafetyCertificateOutlined className="configuracion-page__backup-icono" />}
                   title={item.id}
                   description={`${item.fecha} • Tamaño: ${item.size}`}
                 />
               </List.Item>
             )}
           />
-          {backups.length === 0 && <div style={{ padding: 20, textAlign: 'center' }}>No hay backups recientes</div>}
+          {backups.length === 0 && <div className="configuracion-page__vacio">No hay backups recientes</div>}
         </Card>
       </Col>
     </Row>

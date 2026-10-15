@@ -35,12 +35,12 @@ export const formatPesoTooltip = (value: any) => value ? `${Number(value).toFixe
 
 // Función para clasificar IMC según OMS
 export const clasificarIMC = (imc: number): { clasificacion: string; color: string } => {
-  if (imc < 18.5) return { clasificacion: 'BAJO PESO', color: '#faad14' };
-  if (imc < 25) return { clasificacion: 'NORMAL', color: '#52c41a' };
-  if (imc < 30) return { clasificacion: 'SOBREPESO', color: '#fa8c16' };
-  if (imc < 35) return { clasificacion: 'OBESIDAD I', color: '#f5222d' };
-  if (imc < 40) return { clasificacion: 'OBESIDAD II', color: '#cf1322' };
-  return { clasificacion: 'OBESIDAD III', color: '#a8071a' };
+  if (imc < 18.5) return { clasificacion: 'BAJO PESO', color: 'var(--color-aviso)' };
+  if (imc < 25) return { clasificacion: 'NORMAL', color: 'var(--color-exito)' };
+  if (imc < 30) return { clasificacion: 'SOBREPESO', color: 'var(--color-aviso)' };
+  if (imc < 35) return { clasificacion: 'OBESIDAD I', color: 'var(--color-peligro)' };
+  if (imc < 40) return { clasificacion: 'OBESIDAD II', color: 'var(--color-peligro)' };
+  return { clasificacion: 'OBESIDAD III', color: 'var(--color-peligro)' };
 };
 
 // Función para obtener ganancia recomendada según IOM (Institute of Medicine)
@@ -145,13 +145,13 @@ export const getComponentesPeso = (resultado: ResultadoIMC | null) => {
   const gananciaTotal = resultado?.ganancia_actual || 0;
 
   return [
-    { name: 'Feto', value: gananciaTotal * 0.25, porcentaje: 25, color: '#1890ff' },
-    { name: 'Placenta', value: gananciaTotal * 0.05, porcentaje: 5, color: '#13c2c2' },
-    { name: 'Líquido Amniótico', value: gananciaTotal * 0.06, porcentaje: 6, color: '#52c41a' },
-    { name: 'Útero + Mamas', value: gananciaTotal * 0.10, porcentaje: 10, color: '#722ed1' },
-    { name: 'Sangre', value: gananciaTotal * 0.12, porcentaje: 12, color: '#eb2f96' },
-    { name: 'Líquidos Extracelulares', value: gananciaTotal * 0.17, porcentaje: 17, color: '#fa8c16' },
-    { name: 'Reservas Grasas', value: gananciaTotal * 0.25, porcentaje: 25, color: '#faad14' }
+    { name: 'Feto', value: gananciaTotal * 0.25, porcentaje: 25, color: 'var(--grafico-1)' },
+    { name: 'Placenta', value: gananciaTotal * 0.05, porcentaje: 5, color: 'var(--grafico-2)' },
+    { name: 'Líquido Amniótico', value: gananciaTotal * 0.06, porcentaje: 6, color: 'var(--grafico-3)' },
+    { name: 'Útero + Mamas', value: gananciaTotal * 0.10, porcentaje: 10, color: 'var(--grafico-4)' },
+    { name: 'Sangre', value: gananciaTotal * 0.12, porcentaje: 12, color: 'var(--grafico-5)' },
+    { name: 'Líquidos Extracelulares', value: gananciaTotal * 0.17, porcentaje: 17, color: 'var(--grafico-6)' },
+    { name: 'Reservas Grasas', value: gananciaTotal * 0.25, porcentaje: 25, color: 'var(--color-texto-3)' }
   ];
 };
 

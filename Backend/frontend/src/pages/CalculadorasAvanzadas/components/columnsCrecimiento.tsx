@@ -10,11 +10,11 @@ export const columnsCrecimiento = [
     dataIndex: 'percentil',
     key: 'percentil',
     render: (val: number) => {
-      let color = 'green';
-      if (val < 3) color = 'red';
-      else if (val < 10) color = 'orange';
-      else if (val > 97) color = 'red';
-      else if (val > 90) color = 'gold';
+      let color = 'success';
+      if (val < 3) color = 'error';
+      else if (val < 10) color = 'warning';
+      else if (val > 97) color = 'error';
+      else if (val > 90) color = 'warning';
       return <Tag color={color}>p{val.toFixed(1)}</Tag>;
     }
   },

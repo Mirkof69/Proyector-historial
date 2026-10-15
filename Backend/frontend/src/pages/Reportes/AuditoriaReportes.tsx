@@ -103,7 +103,7 @@ const AuditoriaReportes: React.FC = () => {
         <Tag color={accionColors[record.accion] || 'default'}>{v || record.accion}</Tag>
       ),
     },
-    { title: 'Módulo', dataIndex: 'modulo', key: 'modulo', render: (v: string) => <Tag color="geekblue">{v || '-'}</Tag> },
+    { title: 'Módulo', dataIndex: 'modulo', key: 'modulo', render: (v: string) => <Tag>{v || '-'}</Tag> },
     { title: 'Registro afectado', dataIndex: 'registro_id', key: 'registro_id', render: (v: string) => v || '-' },
     { title: 'Fecha', dataIndex: 'fecha', key: 'fecha', render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY HH:mm:ss') : '-' },
     {
@@ -116,16 +116,16 @@ const AuditoriaReportes: React.FC = () => {
 
   return (
     <Card
-      title={<span><AuditOutlined style={{ marginRight: 8 }} />Auditoría de Reportes</span>}
+      title={<span><AuditOutlined /> Auditoría de Reportes</span>}
       extra={
-        <Space>
+        <Space wrap>
           <Input
             placeholder="Buscar por usuario o módulo..."
             prefix={<SearchOutlined />}
             value={search}
             onChange={e => setSearch(e.target.value)}
             onPressEnter={() => cargarAuditoria(search)}
-            style={{ width: 250 }}
+            className="reportes-buscar"
             allowClear
           />
           <Button icon={<ReloadOutlined />} onClick={() => cargarAuditoria(search)} loading={loading}>Recargar</Button>

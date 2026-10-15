@@ -20,7 +20,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
     <Divider orientation="left">Informacion General</Divider>
 
     <Row gutter={16}>
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item
           name="paciente"
           label="Paciente"
@@ -30,7 +30,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
         </Form.Item>
       </Col>
 
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item
           name="numero_gesta"
           label="Numero de Gesta"
@@ -60,7 +60,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
           {/* InputNumber (no Input type="number"): el HTML nativo emite STRING
               y la regla type:'number' rechazaba CUALQUIER valor tecleado —
               era imposible crear un embarazo desde este formulario. */}
-          <InputNumber style={{ width: '100%' }} min={1} disabled aria-readonly />
+          <InputNumber className="u-ancho" min={1} disabled aria-readonly />
         </Form.Item>
       </Col>
     </Row>
@@ -68,7 +68,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
     <Divider orientation="left">Fechas y Calculos</Divider>
 
     <Row gutter={16}>
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item
           name="fecha_ultima_menstruacion"
           label="Fecha Ultima Menstruacion"
@@ -101,40 +101,40 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
           ]}
           tooltip="Se calcularan automaticamente FPP y edad gestacional"
         >
-          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Seleccione fecha" />
+          <DatePicker className="u-ancho" format="DD/MM/YYYY" placeholder="Seleccione fecha" />
         </Form.Item>
       </Col>
 
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item
           name="fecha_probable_parto"
           label="Fecha Probable de Parto"
           tooltip="Se calcula automaticamente (FUM + 280 dias)"
         >
-          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Se completa automaticamente" disabled />
+          <DatePicker className="u-ancho" format="DD/MM/YYYY" placeholder="Se completa automaticamente" disabled />
         </Form.Item>
       </Col>
     </Row>
 
     {fppCalculada && (
-      <Alert message={`FPP Calculada: ${fppCalculada}`} type="success" showIcon style={{ marginBottom: 16 }} />
+      <Alert message={`FPP Calculada: ${fppCalculada}`} type="success" showIcon className="u-mb-4" />
     )}
 
     {edadGestacional && (
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={12}>
+      <Row gutter={16} className="u-mb-4">
+        <Col xs={24} md={12}>
           <Card>
             <Text strong>Edad Gestacional:</Text>
             <br />
             <Text>{edadGestacional}</Text>
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card>
             <Text strong>Trimestre Actual:</Text>
             <br />
             {trimestreActual ? (
-              <Tag color={trimestreActual === 1 ? 'blue' : trimestreActual === 2 ? 'green' : 'orange'} style={{ fontSize: 14, padding: '4px 12px', marginTop: 4 }}>
+              <Tag color={trimestreActual === 1 ? 'processing' : trimestreActual === 2 ? 'success' : 'warning'} className="u-t-base u-p-etiqueta u-mt-1">
                 Trimestre {trimestreActual}
               </Tag>
             ) : (

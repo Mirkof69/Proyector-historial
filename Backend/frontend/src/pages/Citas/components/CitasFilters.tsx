@@ -30,7 +30,7 @@ const CitasFilters: React.FC<CitasFiltersProps> = ({
   onFiltroFechaChange,
   onLimpiar,
 }) => (
-  <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+  <Row gutter={[16, 16]} className="citas-separado">
     <Col xs={24} sm={12} md={8}>
       <Input
         placeholder="Buscar por paciente, médico, motivo, ID clínico..."
@@ -43,7 +43,7 @@ const CitasFilters: React.FC<CitasFiltersProps> = ({
     <Col xs={24} sm={12} md={4}>
       <Select
         placeholder="Estado"
-        style={{ width: '100%' }}
+        className="citas-ancho"
         value={filtroEstado || undefined}
         onChange={(value) => onFiltroEstadoChange(value as EstadoCita | '')}
         allowClear
@@ -60,7 +60,7 @@ const CitasFilters: React.FC<CitasFiltersProps> = ({
     <Col xs={24} sm={12} md={4}>
       <Select
         placeholder="Tipo"
-        style={{ width: '100%' }}
+        className="citas-ancho"
         value={filtroTipo || undefined}
         onChange={(value) => onFiltroTipoChange(value as TipoCita | '')}
         allowClear
@@ -73,7 +73,7 @@ const CitasFilters: React.FC<CitasFiltersProps> = ({
     </Col>
     <Col xs={24} sm={12} md={6}>
       <RangePicker
-        style={{ width: '100%' }}
+        className="citas-ancho"
         format="DD/MM/YYYY"
         value={filtroFecha}
         onChange={(dates) => onFiltroFechaChange(dates as [dayjs.Dayjs, dayjs.Dayjs])}

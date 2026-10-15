@@ -74,6 +74,8 @@ import {
     calcularFPP, calcularEdadGestacional, calcularIMC,
 } from './embarazosReducer';
 import { buildEmbarazosColumns } from './embarazosColumns';
+import './paginaClinica.css';
+import './Embarazos.css';
 import EmbarazoFormModal from './components/EmbarazoFormModal';
 import EmbarazoDrawer from './components/EmbarazoDrawer';
 import AnalisisEvolucionModal from './components/AnalisisEvolucionModal';
@@ -85,7 +87,7 @@ import FiltrosAvanzadosDrawer from './components/FiltrosAvanzadosDrawer';
 
 dayjs.locale('es');
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 // =============================================================================
 // 2. COMPONENTE PRINCIPAL
@@ -100,7 +102,7 @@ const fileTextOutlinedIcon8 = <FileTextOutlined />;
 const bellOutlinedIcon3 = <BellOutlined />;
 const databaseOutlinedIcon3 = <DatabaseOutlined />;
 const plusOutlinedIcon9 = <PlusOutlined />;
-const heartOutlinedIcon6 = <HeartOutlined style={{ fontSize: 64, color: '#bfbfbf' }} />;
+const heartOutlinedIcon6 = <HeartOutlined className="embarazos-vacio__icono" />;
 
 interface ResumenEmbarazos {
     total: number;
@@ -379,10 +381,10 @@ const Embarazos: React.FC = () => {
             // 3. Enviar al backend
             if (state.editingEmbarazo) {
                 await embarazosService.update(state.editingEmbarazo.id!, payload);
-                message.success({ content: 'Ficha de embarazo actualizada correctamente', icon: <CheckCircleOutlined style={{ color: '#52c41a' }} /> });
+                message.success({ content: 'Ficha de embarazo actualizada correctamente', icon: <CheckCircleOutlined className="u-c-exito" /> });
             } else {
                 await embarazosService.create(payload);
-                message.success({ content: 'Nuevo embarazo registrado exitosamente', icon: <CheckCircleOutlined style={{ color: '#52c41a' }} /> });
+                message.success({ content: 'Nuevo embarazo registrado exitosamente', icon: <CheckCircleOutlined className="u-c-exito" /> });
             }
 
             // 4. Limpieza y recarga
@@ -403,6 +405,7 @@ const Embarazos: React.FC = () => {
 
     const handleDelete = useCallback(async (id: number) => {
         modal.confirm({
+            className: 'capa-clinica',
             title: '¿Eliminar embarazo?',
             content: 'Solo se puede borrar un embarazo registrado por error, sin controles, ecografías ni partos. Esta acción no se puede deshacer.',
             okText: 'Sí, eliminar',
@@ -459,7 +462,7 @@ const Embarazos: React.FC = () => {
             message.success({
                 content: 'Datos sincronizados correctamente',
                 key: 'sync',
-                icon: <SyncOutlined style={{ color: '#52c41a' }} />
+                icon: <SyncOutlined className="u-c-exito" />
             });
         } catch (error) {
             message.error({ content: 'Error al sincronizar datos', key: 'sync' });
@@ -471,8 +474,9 @@ const Embarazos: React.FC = () => {
     // ✅ Handler para finalizar embarazo
     const handleFinalizarEmbarazo = useCallback(async (embarazo: EmbarazoExtendido) => {
         modal.confirm({
+            className: 'capa-clinica',
             title: '¿Finalizar embarazo?',
-            icon: <StopOutlined style={{ color: '#faad14' }} />,
+            icon: <StopOutlined className="u-c-aviso" />,
             content: `Se marcará como finalizado el embarazo de ${embarazo.paciente_nombre}`,
             okText: 'Finalizar',
             okButtonProps: { icon: <StopOutlined /> },
@@ -526,90 +530,84 @@ const Embarazos: React.FC = () => {
     // =============================================================================
 
     return (
-        <div className="embarazos-module animate-fade-in">
+        <div className="pagina-clinica embarazos-page page-container">
 
-            {/* --- HEADER DE ESTADÍSTICAS (KPIs) --- */}
-            <div style={{ marginBottom: 24 }}>
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic
-                                title="Embarazos Activos"
-                                value={stats.activos}
-                                prefix={<HeartOutlined style={{ color: '#1890ff' }} />}
-                            />
-                            <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
-                                Total registrados: {stats.total}
-                            </div>
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic
-                                title="Alto Riesgo"
-                                value={stats.altoRiesgo}
-                                prefix={<WarningOutlined style={{ color: '#ff4d4f' }} />}
-                                valueStyle={{ color: '#ff4d4f' }}
-                            />
-                            <Progress percent={stats.activos > 0 ? (stats.altoRiesgo / stats.activos) * 100 : 0} size="small" showInfo={false} status="exception" />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic
-                                title="Próximos a Término"
-                                value={stats.termino}
-                                prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                                valueStyle={{ color: '#52c41a' }}
-                            />
-                            <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
-                                {'>'} 37 semanas de gestación
-                            </div>
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm action-card" style={{ background: '#e6f7ff', cursor: 'pointer' }} onClick={handleOpenCreate} role="button" aria-label="Registrar nuevo embarazo" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenCreate(); } }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 80 }}>
-                                <PlusOutlined style={{ fontSize: 24, color: '#1890ff', marginBottom: 8 }} />
-                                <Text strong style={{ color: '#1890ff' }}>Registrar Nuevo Embarazo</Text>
-                            </div>
-                        </Card>
-                    </Col>
-                </Row>
+            {/* --- ENCABEZADO DE PÁGINA --- */}
+            <div className="pc-cabecera">
+                <div className="pc-cabecera__texto">
+                    <Title level={2} className="pc-cabecera__titulo">Directorio Obstétrico</Title>
+                    <p className="pc-cabecera__descripcion">
+                        Embarazos registrados, nivel de riesgo y proximidad al término.
+                    </p>
+                </div>
+                <Button type="primary" icon={plusOutlinedIcon9} onClick={handleOpenCreate} aria-label="Registrar nuevo embarazo">
+                    Registrar Nuevo Embarazo
+                </Button>
             </div>
 
+            {/* --- TARJETAS DE CIFRAS (KPIs) --- */}
+            <Row gutter={[16, 16]} className="pc-cifras">
+                <Col xs={24} sm={8}>
+                    <Card className="pc-cifra">
+                        <AnimatedStatistic
+                            title="Embarazos Activos"
+                            value={stats.activos}
+                        />
+                        <div className="pc-cifra__nota">
+                            Total registrados: {stats.total}
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card className="pc-cifra">
+                        <AnimatedStatistic
+                            title="Alto Riesgo"
+                            value={stats.altoRiesgo}
+                            prefix={<WarningOutlined />}
+                            className="u-cifra-peligro"
+                        />
+                        <Progress percent={stats.activos > 0 ? (stats.altoRiesgo / stats.activos) * 100 : 0} size="small" showInfo={false} status="exception" />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card className="pc-cifra">
+                        <AnimatedStatistic
+                            title="Próximos a Término"
+                            value={stats.termino}
+                        />
+                        <div className="pc-cifra__nota">
+                            {'>'} 37 semanas de gestación
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
+
             {/* --- FILTROS Y TABLA PRINCIPAL --- */}
-            <Card className="shadow-card" title={<Title level={4} style={{ margin: 0 }}>Directorio Obstétrico</Title>}>
+            <Card className="embarazos-directorio">
 
                 {/* Toolbar */}
-                <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-                    <Col xs={24} md={8}>
+                <div className="pc-barra">
+                    <div className="pc-barra__filtros">
                         <Input
+                            className="pc-barra__buscar"
                             placeholder="Buscar por nombre, CI o ID..."
-                            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                            prefix={<SearchOutlined />}
                             onChange={e => dispatch({ type: 'SET_SEARCH_TEXT', payload: e.target.value })}
                             allowClear
-                            size="large"
                         />
-                    </Col>
-                    <Col xs={12} md={5}>
                         <Select
+                            className="pc-barra__filtro"
                             placeholder="Filtrar Riesgo"
-                            style={{ width: '100%' }}
                             allowClear
-                            size="large"
                             onChange={(value) => dispatch({ type: 'SET_RISK_FILTER', payload: value })}
                         >
-                            <Option value="bajo">🟢 Bajo Riesgo</Option>
-                            <Option value="medio">🟠 Riesgo Medio</Option>
-                            <Option value="alto">🔴 Alto Riesgo</Option>
+                            <Option value="bajo">Bajo Riesgo</Option>
+                            <Option value="medio">Riesgo Medio</Option>
+                            <Option value="alto">Alto Riesgo</Option>
                         </Select>
-                    </Col>
-                    <Col xs={12} md={5}>
                         <Select
+                            className="pc-barra__filtro"
                             placeholder="Ver Todos"
-                            style={{ width: '100%' }}
-                            size="large"
                             onChange={(value) => dispatch({ type: 'SET_STATUS_FILTER', payload: value })}
                             allowClear
                         >
@@ -617,9 +615,8 @@ const Embarazos: React.FC = () => {
                             <Option value="finalizado">Finalizados (Parto)</Option>
                             <Option value="perdida">Interrumpidos</Option>
                         </Select>
-                    </Col>
-                    <Col xs={24} md={6} style={{ textAlign: 'right' }}>
-                        <Space wrap>
+                    </div>
+                    <Space wrap className="pc-barra__acciones">
                             <Tooltip title="Filtros Avanzados">
                                 <Button
                                     icon={filterIcon}
@@ -685,7 +682,6 @@ const Embarazos: React.FC = () => {
                                 <Button
                                     icon={databaseOutlinedIcon3}
                                     onClick={() => dispatch({ type: 'SET_DRAWER_PANEL_CONTROL_VISIBLE', payload: true })}
-                                    type="primary"
                                 >
                                     Panel Control
                                 </Button>
@@ -693,14 +689,14 @@ const Embarazos: React.FC = () => {
                             <Button icon={reloadOutlinedIcon4} onClick={loadEmbarazos} loading={listado.cargando}>
                                 Recargar
                             </Button>
-                        </Space>
-                    </Col>
-                </Row>
+                    </Space>
+                </div>
 
-                {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
+                {listado.error && <Alert type="error" showIcon message={listado.error} className="embarazos-error" />}
 
                 {/* Tabla */}
                 <Table
+                    className="embarazos-tabla"
                     dataSource={embarazosPagina}
                     columns={columns as any}
                     rowKey="id"
@@ -716,7 +712,7 @@ const Embarazos: React.FC = () => {
                                 subTitle="Comience registrando un nuevo embarazo utilizando el botón superior"
                                 extra={
                                     canAdd('embarazo') ? (
-                                        <Button type="primary" icon={plusOutlinedIcon9} onClick={handleOpenCreate}>
+                                        <Button icon={plusOutlinedIcon9} onClick={handleOpenCreate}>
                                             Registrar Nuevo Embarazo
                                         </Button>
                                     ) : null

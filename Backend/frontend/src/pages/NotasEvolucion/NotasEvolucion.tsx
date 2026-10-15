@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import { notasEvolucionService, NotaEvolucion } from '../../services/notasEvolucionService';
 import { aQuery, contarEnServidor, useListadoServidor } from '../../hooks/useListadoServidor';
 import { descargarArchivo } from '../../utils/descargarArchivo';
+import './NotasEvolucion.css';
 
 const URL_NOTAS = '/notas-evolucion/';
 
@@ -80,11 +81,11 @@ const NotasEvolucionPage: React.FC = () => {
       key: 'tipo',
       render: (tipo: string) => {
         const colors: { [key: string]: string } = {
-          control_prenatal: 'blue',
-          urgencia: 'red',
-          seguimiento: 'green',
-          interconsulta: 'orange',
-          puerperio: 'purple',
+          control_prenatal: 'default',
+          urgencia: 'error',
+          seguimiento: 'default',
+          interconsulta: 'default',
+          puerperio: 'default',
           otro: 'default',
         };
         const labels: { [key: string]: string } = {
@@ -119,7 +120,6 @@ const NotasEvolucionPage: React.FC = () => {
         <Space>
           <Button
             size="small"
-            type="primary"
             icon={<EyeOutlined />}
             aria-label="Ver nota"
             title="Ver nota"
@@ -148,42 +148,45 @@ const NotasEvolucionPage: React.FC = () => {
   ];
 
   return (
-    <div className="page-container" style={{ padding: 24 }}>
+    <div className="page-container notas-pagina">
+      <header className="pagina-encabezado">
+        <div className="pagina-encabezado__texto">
+          <h2 className="pagina-encabezado__titulo">Notas de Evolución</h2>
+          <p className="pagina-encabezado__descripcion">Registro de consultas, urgencias y seguimientos de cada paciente.</p>
+        </div>
+      </header>
       {/* Estadísticas */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Statistic
+      <Row gutter={[16, 16]}>
+        <Col xs={12} md={6}>
+          <Card className="stat-card"><Statistic
             title="Total Notas"
             value={stats.total}
-            valueStyle={{ color: '#1890ff' }}
-          />
+          /></Card>
         </Col>
-        <Col span={6}>
-          <Statistic
+        <Col xs={12} md={6}>
+          <Card className="stat-card"><Statistic
             title="Controles Prenatales"
             value={stats.controles}
-            valueStyle={{ color: '#52c41a' }}
-          />
+          /></Card>
         </Col>
-        <Col span={6}>
-          <Statistic
+        <Col xs={12} md={6}>
+          <Card className="stat-card"><Statistic
             title="Urgencias"
             value={stats.urgencias}
-            valueStyle={{ color: '#ff4d4f' }}
-          />
+            className={stats.urgencias > 0 ? 'cifra--peligro' : undefined}
+          /></Card>
         </Col>
-        <Col span={6}>
-          <Statistic
+        <Col xs={12} md={6}>
+          <Card className="stat-card"><Statistic
             title="Seguimientos"
             value={stats.seguimientos}
-            valueStyle={{ color: '#faad14' }}
-          />
+          /></Card>
         </Col>
       </Row>
 
       {/* Barra de búsqueda y filtros */}
-      <Card style={{ marginBottom: 24 }}>
-        <Row gutter={16} align="middle">
+      <Card>
+        <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
             <Input
               placeholder="Buscar por paciente, médico o motivo..."
@@ -198,7 +201,7 @@ const NotasEvolucionPage: React.FC = () => {
               placeholder="Tipo de consulta"
               value={filterTipo}
               onChange={(v) => setFilterTipo(v ?? '')}
-              style={{ width: 200 }}
+              className="notas-filtro-tipo"
               size="large"
               allowClear
               options={[
@@ -235,7 +238,7 @@ const NotasEvolucionPage: React.FC = () => {
 
       {/* Tabla de notas */}
       <Card>
-        {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
+        {listado.error && <Alert type="error" showIcon message={listado.error} className="notas-error" />}
         <Table
           columns={columns}
           dataSource={listado.datos}

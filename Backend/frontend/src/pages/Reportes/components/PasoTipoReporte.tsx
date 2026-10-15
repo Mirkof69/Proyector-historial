@@ -23,7 +23,7 @@ const PasoTipoReporte: React.FC<PasoTipoReporteProps> = ({
     </Paragraph>
 
     {cargandoTipos ? (
-      <div style={{ textAlign: 'center', padding: '40px 0' }}>
+      <div className="reportes-cargando">
         <Spin />
       </div>
     ) : tiposReporte.length === 0 ? (
@@ -39,7 +39,7 @@ const PasoTipoReporte: React.FC<PasoTipoReporteProps> = ({
         rules={[{ required: true, message: 'Seleccione un tipo de reporte' }]}
       >
         <Radio.Group
-          style={{ width: '100%' }}
+          className="reportes-ancho"
           onChange={(e) => handleTipoReporteChange(e.target.value)}
         >
           <Row gutter={[16, 16]}>
@@ -51,21 +51,21 @@ const PasoTipoReporte: React.FC<PasoTipoReporteProps> = ({
                     tipoSeleccionado === tipo.id ? 'reporte-card-selected' : ''
                   }
                 >
-                  <Radio value={tipo.id} style={{ width: '100%' }}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      <div style={{ textAlign: 'center' }}>
-                        {iconoPorCategoria[tipo.categoria] || <FileTextOutlined style={{ fontSize: 48 }} />}
+                  <Radio value={tipo.id} className="reportes-ancho">
+                    <Space direction="vertical" className="reportes-ancho">
+                      <div className="reportes-centro">
+                        {iconoPorCategoria[tipo.categoria] || <FileTextOutlined className="reportes-icono-tipo" />}
                       </div>
-                      <Title level={5} style={{ marginBottom: 8 }}>
+                      <Title level={5}>
                         {tipo.nombre}
                       </Title>
                       <Paragraph
                         type="secondary"
-                        style={{ marginBottom: 8, fontSize: 12 }}
+                        className="reportes-texto-ayuda"
                       >
                         {tipo.descripcion}
                       </Paragraph>
-                      <Tag color={tipo.categoria === 'estadistico' ? 'blue' : 'green'}>
+                      <Tag color={tipo.categoria === 'estadistico' ? 'default' : 'success'}>
                         {tipo.categoria_display || tipo.categoria}
                       </Tag>
                     </Space>

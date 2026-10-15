@@ -41,14 +41,14 @@ export const getSearchColumns = (handleViewDetail: (result: SearchResult) => voi
     width: 120,
     render: (estado: string, record: SearchResult) => {
       const colors: Record<string, string> = {
-        'activo': 'green',
-        'Embarazo Activo': 'green',
-        'disponible': 'green',
-        'confirmada': 'green',
-        'completada': 'blue',
-        'pendiente': 'orange',
-        'cancelada': 'red',
-        'ocupado': 'red',
+        'activo': 'success',
+        'Embarazo Activo': 'success',
+        'disponible': 'success',
+        'confirmada': 'success',
+        'completada': 'processing',
+        'pendiente': 'warning',
+        'cancelada': 'error',
+        'ocupado': 'error',
       };
 
       // Mostrar icono de alerta para resultados urgentes
@@ -57,7 +57,7 @@ export const getSearchColumns = (handleViewDetail: (result: SearchResult) => voi
 
       return (
         <Space>
-          {isUrgent && <AlertOutlined style={{ color: '#ff4d4f' }} />}
+          {isUrgent && <AlertOutlined className="busqueda-urgente" />}
           <Tag color={colors[estado] || 'default'}>{estado || 'N/A'}</Tag>
         </Space>
       );
@@ -72,7 +72,7 @@ export const getSearchColumns = (handleViewDetail: (result: SearchResult) => voi
     render: (score: number) => (
       <Badge
         count={score}
-        style={{ backgroundColor: score > 50 ? '#52c41a' : score > 25 ? '#faad14' : '#d9d9d9' }}
+        style={{ backgroundColor: score > 50 ? 'var(--color-exito)' : score > 25 ? 'var(--color-aviso)' : 'var(--color-texto-3)', color: 'var(--color-sobre-primario)' }}
       />
     ),
   },
@@ -84,7 +84,6 @@ export const getSearchColumns = (handleViewDetail: (result: SearchResult) => voi
     render: (_: any, record: SearchResult) => (
       <Tooltip title="Ver detalle">
         <Button
-          type="primary"
           size="small"
           icon={EYE_ICON_2}
           onClick={() => handleViewDetail(record)}

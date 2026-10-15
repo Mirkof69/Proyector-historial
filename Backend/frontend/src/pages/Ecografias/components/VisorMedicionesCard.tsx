@@ -27,7 +27,7 @@ const VisorMedicionesCard: React.FC<VisorMedicionesCardProps> = ({
         <Badge count={measurements.length + annotations.length} showZero />
       </Space>
     }
-    style={{ marginTop: 16 }}
+    className="u-mt-4"
   >
     <Tabs defaultActiveKey="measurements" type="card" items={[
       {
@@ -54,7 +54,7 @@ const VisorMedicionesCard: React.FC<VisorMedicionesCardProps> = ({
                 ]}
               >
                 <List.Item.Meta
-                  avatar={<LineChartOutlined style={{ fontSize: 20, color: '#1890ff' }} />}
+                  avatar={<LineChartOutlined className="u-t-lg u-c-info" />}
                   title={measurement.length !== undefined
                     ? `Medición: ${measurement.length.toFixed(1)} mm`
                     : `Medición: ${Math.round(measurement.lengthPx)} píxeles`}
@@ -89,7 +89,7 @@ const VisorMedicionesCard: React.FC<VisorMedicionesCardProps> = ({
                 ]}
               >
                 <List.Item.Meta
-                  avatar={<EditOutlined style={{ fontSize: 20, color: annotation.color }} />}
+                  avatar={<EditOutlined className="u-t-lg" style={{ color: annotation.color }} />}
                   title={annotation.text}
                   description={`Posición: (${annotation.x}, ${annotation.y}) - ${dayjs(annotation.timestamp).format('DD/MM/YYYY HH:mm:ss')}`}
                 />
@@ -108,7 +108,7 @@ const VisorMedicionesCard: React.FC<VisorMedicionesCardProps> = ({
                 title="Total Mediciones"
                 value={measurements.length}
                 prefix={<LineChartOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+
               />
             </Col>
             <Col span={12}>
@@ -116,10 +116,10 @@ const VisorMedicionesCard: React.FC<VisorMedicionesCardProps> = ({
                 title="Total Anotaciones"
                 value={annotations.length}
                 prefix={<EditOutlined />}
-                valueStyle={{ color: '#52c41a' }}
+                className="u-cifra-exito"
               />
             </Col>
-            <Col span={24} style={{ marginTop: 16 }}>
+            <Col span={24} className="u-mt-4">
               <Alert
                 message="Herramientas de Análisis"
                 description={metadata.pixelSpacing

@@ -9,15 +9,15 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ searchText, onSearchChange, onNew }) => (
-  <Card style={{ marginBottom: '24px' }}>
-    <Row gutter={16} align="middle">
+  <Card>
+    <Row gutter={[16, 16]} align="middle">
       <Col flex="auto">
         <Input
           placeholder="Buscar por nombre de paciente..."
           value={searchText}
           onChange={(e) => onSearchChange(e.target.value)}
           size="large"
-          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+          prefix={<SearchOutlined className="texto-ayuda" />}
           allowClear
         />
       </Col>

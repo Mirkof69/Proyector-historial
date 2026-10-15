@@ -22,11 +22,11 @@ const TabInfoGeneralReporte: React.FC<TabInfoGeneralReporteProps> = ({ reporte }
       </Descriptions.Item>
 
       <Descriptions.Item label="Tipo de Reporte">
-        <Tag color="blue">{reporte.tipo_reporte}</Tag>
+        <Tag>{reporte.tipo_reporte}</Tag>
       </Descriptions.Item>
 
       <Descriptions.Item label="Formato">
-        <Tag color="geekblue">{reporte.formato}</Tag>
+        <Tag>{reporte.formato}</Tag>
       </Descriptions.Item>
 
       <Descriptions.Item label="Generado Por">
@@ -58,14 +58,14 @@ const TabInfoGeneralReporte: React.FC<TabInfoGeneralReporteProps> = ({ reporte }
     <Divider />
 
     <Paragraph>
-      <InfoCircleOutlined style={{ color: '#1890ff', marginRight: 8 }} />
+      <InfoCircleOutlined className="reportes-texto-info" /> 
       Este reporte fue generado automáticamente por el sistema Fetal Medical.
       Los datos reflejan el estado de la base de datos al momento de la creación.
     </Paragraph>
 
     {reporte.estado === 'FALLIDO' && (
       <Alert
-        style={{ marginTop: 20 }}
+        className="reportes-arriba"
         message="Causa del Error"
         description={reporte.mensaje_error || "Error desconocido durante la generación del reporte."}
         type="error"

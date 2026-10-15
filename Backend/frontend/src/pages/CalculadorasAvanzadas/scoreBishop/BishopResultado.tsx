@@ -51,9 +51,9 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
   }
 
   const color =
-    resultado.clasificacion === 'FAVORABLE' ? '#52c41a'
-      : resultado.clasificacion === 'INTERMEDIO' ? '#faad14'
-        : '#f5222d';
+    resultado.clasificacion === 'FAVORABLE' ? 'var(--color-exito)'
+      : resultado.clasificacion === 'INTERMEDIO' ? 'var(--color-aviso)'
+        : 'var(--color-peligro)';
 
   return (
     <>
@@ -61,16 +61,16 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
         title={
           <Space>
             {resultado.clasificacion === 'FAVORABLE' ? (
-              <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+              <CheckCircleOutlined className="calc-icono-estado calc-icono-estado--exito" />
             ) : resultado.clasificacion === 'INTERMEDIO' ? (
-              <WarningOutlined style={{ color: '#faad14', fontSize: 24 }} />
+              <WarningOutlined className="calc-icono-estado calc-icono-estado--aviso" />
             ) : (
-              <CloseCircleOutlined style={{ color: '#f5222d', fontSize: 24 }} />
+              <CloseCircleOutlined className="calc-icono-estado calc-icono-estado--peligro" />
             )}
             <span>Resultado del Score de Bishop</span>
           </Space>
         }
-        variant="borderless"
+       
       >
         <Row gutter={[16, 16]}>
           <Col span={12}>
@@ -78,7 +78,8 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
               title="Puntaje Total"
               value={resultado.puntaje}
               suffix="/ 13"
-              valueStyle={{ fontSize: 48, color }}
+              className="calc-cifra-grande"
+              valueStyle={{ color }}
             />
           </Col>
           <Col span={12}>
@@ -86,7 +87,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
               title="Probabilidad de Éxito"
               value={resultado.probabilidadExito}
               suffix="%"
-              valueStyle={{ fontSize: 36 }}
+              className="calc-cifra-grande"
             />
           </Col>
         </Row>
@@ -98,7 +99,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
           description={resultado.interpretacion}
           type={resultado.color as any}
           showIcon
-          style={{ marginBottom: 16 }}
+          className="calc-bloque"
         />
 
         <Descriptions title="Recomendación Clínica" bordered column={1}>
@@ -117,10 +118,10 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
       <Divider />
 
       {/* Gráficas Estadísticas */}
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+      <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>
-          <Card title="Distribución Poblacional (n=5)" variant="borderless">
-            <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+          <Card title="Distribución Poblacional (n=5)">
+            <Suspense fallback={<div className="calc-cargando"><Spin /></div>}>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
@@ -130,8 +131,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
                     labelLine={false}
                     label={renderPieLabel}
                     outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
+                                        dataKey="value"
                   >
                     {distribucionPie.map((entry) => (
                       <Cell key={`cell-${entry.name}`} fill={entry.color} />
@@ -146,8 +146,8 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
         </Col>
 
         <Col xs={24} md={12}>
-          <Card title="Histograma de Puntajes" variant="borderless">
-            <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+          <Card title="Histograma de Puntajes">
+            <Suspense fallback={<div className="calc-cargando"><Spin /></div>}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={histograma}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -155,7 +155,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="cantidad" fill="#1890ff">
+                  <Bar dataKey="cantidad" fill="var(--grafico-1)">
                     {histograma.map((entry) => (
                       <Cell key={`cell-${entry.rango}`} fill={entry.color} />
                     ))}
@@ -167,8 +167,8 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
         </Col>
 
         <Col span={24}>
-          <Card title="Tendencia de Evaluaciones" variant="borderless">
-            <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+          <Card title="Tendencia de Evaluaciones">
+            <Suspense fallback={<div className="calc-cargando"><Spin /></div>}>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={tendencia}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -176,7 +176,7 @@ const BishopResultado: React.FC<BishopResultadoProps> = ({ resultado, distribuci
                   <YAxis domain={TENDENCIA_DOMAIN} />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="puntaje" stroke="#1890ff" strokeWidth={2} />
+                  <Line type="monotone" dataKey="puntaje" stroke="var(--grafico-1)" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </Suspense>

@@ -30,8 +30,8 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
   <Card
     title={
       <Space>
-        <HeartOutlined style={{ fontSize: 20, color: '#ff4d4f' }} />
-        <Title level={4} style={{ margin: 0 }}>
+        <HeartOutlined className="u-t-lg u-c-primario" />
+        <Title level={4} className="u-m-0">
           Embarazo #{embarazo.id}
         </Title>
       </Space>
@@ -47,41 +47,41 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
       </Space>
     }
   >
-    <Descriptions bordered column={2} size="middle">
+    <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }} size="middle">
       {/* INFORMACIÓN DE LA PACIENTE */}
       <Descriptions.Item label={<><UserOutlined /> Paciente</>} span="filled">
         <Space>
-          <Text strong style={{ fontSize: 16 }}>
+          <Text strong className="u-t-md">
             {nombrePaciente}
           </Text>
-          {paciente && <Tag color="blue">{paciente.id_clinico}</Tag>}
+          {paciente && <Tag color="processing">{paciente.id_clinico}</Tag>}
         </Space>
       </Descriptions.Item>
 
       {/* DATOS OBSTÉTRICOS */}
       <Descriptions.Item label="Número de Gesta">
-        <Tag color="geekblue" style={{ fontSize: 14 }}>
+        <Tag className="u-t-base texto-mono">
           G{embarazo.numero_gesta}
         </Tag>
       </Descriptions.Item>
 
       <Descriptions.Item label="Fórmula Obstétrica">
         <Tooltip title="Gesta-Partos-Cesáreas-Abortos">
-          <Tag color="purple" style={{ fontSize: 14 }}>
+          <Tag className="u-t-base texto-mono">
             {formulaObstetrica}
           </Tag>
         </Tooltip>
       </Descriptions.Item>
 
       <Descriptions.Item label="Tipo de Embarazo">
-        <Tag color={embarazo.tipo_embarazo === 'multiple' || embarazo.tipo_embarazo === 'gemelar' ? 'orange' : 'default'}>
+        <Tag color={embarazo.tipo_embarazo === 'multiple' || embarazo.tipo_embarazo === 'gemelar' ? 'warning' : 'default'}>
           {embarazo.tipo_embarazo ? (embarazo.tipo_embarazo.charAt(0).toUpperCase() +
             embarazo.tipo_embarazo.slice(1)) : 'Simple'}
         </Tag>
       </Descriptions.Item>
 
       <Descriptions.Item label="Hijos Vivos">
-        <Badge count={embarazo.hijos_vivos || 0} showZero style={{ backgroundColor: '#52c41a' }} />
+        <Badge count={embarazo.hijos_vivos || 0} showZero className="pc-insignia pc-insignia--exito" />
       </Descriptions.Item>
 
       {/* FECHAS IMPORTANTES */}
@@ -124,10 +124,10 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
       {/* EDAD GESTACIONAL */}
       <Descriptions.Item label="Edad Gestacional Actual" span="filled">
         <Space size="large">
-          <Text strong style={{ fontSize: '18px', color: '#1890ff' }}>
+          <Text strong className="u-t-lg u-c-primario">
             {eg.texto}
           </Text>
-          <Tag color={trimestre.color} style={{ fontSize: 14 }}>
+          <Tag color={trimestre.color} className="u-t-base">
             {trimestre.texto}
           </Tag>
         </Space>
@@ -135,22 +135,18 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
 
       {/* PROGRESO */}
       <Descriptions.Item label="Progreso del Embarazo" span="filled">
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" className="u-ancho">
           <Progress
             percent={progreso}
             status="active"
-            strokeColor={{
-              '0%': '#87d068',
-              '50%': '#1890ff',
-              '100%': '#722ed1',
-            }}
+            strokeColor="var(--color-primario)"
           />
           <Space>
             <Text>
               <strong>{diasRestantes} días restantes</strong> hasta la FPP
             </Text>
             {diasRestantes < 30 && (
-              <Tag color="orange" icon={<InfoCircleOutlined />}>
+              <Tag color="warning" icon={<InfoCircleOutlined />}>
                 Término cercano
               </Tag>
             )}
@@ -183,7 +179,7 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
       {/* OTROS DATOS */}
       {embarazo.grupo_sanguineo_pareja && (
         <Descriptions.Item label="Grupo Sanguíneo Pareja" span="filled">
-          <Tag color="red">{embarazo.grupo_sanguineo_pareja}</Tag>
+          <Tag color="error">{embarazo.grupo_sanguineo_pareja}</Tag>
         </Descriptions.Item>
       )}
 
@@ -195,7 +191,7 @@ const DetalleEmbarazoInfo: React.FC<DetalleEmbarazoInfoProps> = ({
 
       {embarazo.notas && (
         <Descriptions.Item label="Observaciones Clínicas" span="filled">
-          <Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
+          <Paragraph className="u-mb-0 u-pre">
             {embarazo.notas}
           </Paragraph>
         </Descriptions.Item>

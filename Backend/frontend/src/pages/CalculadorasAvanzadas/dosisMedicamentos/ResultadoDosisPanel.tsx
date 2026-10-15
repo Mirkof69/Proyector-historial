@@ -7,36 +7,37 @@ const { Text } = Typography;
 
 const ResultadoDosisPanel: React.FC<{ resultado: ResultadoDosis }> = ({ resultado }) => (
   <>
-    <Card title={<><SafetyOutlined /> Dosis Calculada</>} style={{ marginBottom: 16 }}>
-      <Row gutter={16}>
-        <Col span={8}>
+    <Card title={<><SafetyOutlined /> Dosis Calculada</>} className="calc-bloque">
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="Dosis"
             value={resultado.dosis_calculada}
             suffix={resultado.unidad}
-            valueStyle={{ color: resultado.color, fontWeight: 'bold', fontSize: 28 }}
+            className="calc-cifra-grande"
+            valueStyle={{ color: resultado.color }}
           />
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="CLCr"
             value={resultado.clcr}
             precision={1}
             suffix="mL/min"
-            valueStyle={{ color: resultado.clcr < 60 ? '#fa8c16' : '#52c41a', fontSize: 20 }}
+            valueStyle={{ color: resultado.clcr < 60 ? 'var(--color-aviso)' : 'var(--color-exito)' }}
           />
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="Categoría FDA"
             value={resultado.categoria_fda}
-            valueStyle={{ color: resultado.categoria_fda === 'X' || resultado.categoria_fda === 'D' ? '#f5222d' : '#52c41a', fontSize: 20 }}
+            valueStyle={{ color: resultado.categoria_fda === 'X' || resultado.categoria_fda === 'D' ? 'var(--color-peligro)' : 'var(--color-exito)' }}
           />
         </Col>
       </Row>
-      <Divider style={{ margin: '12px 0' }} />
-      <div style={{ padding: '8px 0' }}>
-        <Text strong>Vía:</Text> <Tag color="blue">{resultado.via}</Tag>
+      <Divider className="calc-separador" />
+      <div className="calc-datos-via">
+        <Text strong>Vía:</Text> <Tag color="processing">{resultado.via}</Tag>
         <br />
         <Text strong>Frecuencia:</Text> <Text>{resultado.frecuencia}</Text>
       </div>
@@ -45,9 +46,9 @@ const ResultadoDosisPanel: React.FC<{ resultado: ResultadoDosis }> = ({ resultad
     <Alert
       message="Información del Medicamento"
       description={resultado.interpretacion}
-      type={resultado.color === '#f5222d' ? 'error' : resultado.color === '#fa8c16' ? 'warning' : 'info'}
+      type={resultado.color === 'var(--color-peligro)' ? 'error' : resultado.color === 'var(--color-aviso)' ? 'warning' : 'info'}
       showIcon
-      style={{ marginBottom: 16 }}
+      className="calc-bloque"
     />
 
     {resultado.ajuste_renal !== 'No requiere ajuste' && (
@@ -57,7 +58,7 @@ const ResultadoDosisPanel: React.FC<{ resultado: ResultadoDosis }> = ({ resultad
         type={resultado.clcr < 30 ? 'error' : 'warning'}
         showIcon
         icon={<WarningOutlined />}
-        style={{ marginBottom: 16 }}
+        className="calc-bloque"
       />
     )}
 
@@ -65,7 +66,7 @@ const ResultadoDosisPanel: React.FC<{ resultado: ResultadoDosis }> = ({ resultad
       <Alert
         message="Contraindicaciones"
         description={
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
+          <ul className="calc-lista">
             {resultado.contraindicaciones.map((item) => (
               <li key={`ci-${item}`}>{item}</li>
             ))}
@@ -73,7 +74,7 @@ const ResultadoDosisPanel: React.FC<{ resultado: ResultadoDosis }> = ({ resultad
         }
         type="error"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="calc-bloque"
       />
     )}
 
@@ -81,7 +82,7 @@ const ResultadoDosisPanel: React.FC<{ resultado: ResultadoDosis }> = ({ resultad
       <Alert
         message="Precauciones"
         description={
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
+          <ul className="calc-lista">
             {resultado.precauciones.map((item) => (
               <li key={`prec-${item}`}>{item}</li>
             ))}
@@ -89,7 +90,7 @@ const ResultadoDosisPanel: React.FC<{ resultado: ResultadoDosis }> = ({ resultad
         }
         type="warning"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="calc-bloque"
       />
     )}
   </>

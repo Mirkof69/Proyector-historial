@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Notificacion } from '../../../services/notificacionesService';
-import { getTypeIcon, getTypeLabel } from '../notificacionesUtils';
+import { getTypeIcon, getTypeLabel, getTypeTagColor, getTypeAvatarClass } from '../notificacionesUtils';
 
 const { Text } = Typography;
 
@@ -28,22 +28,8 @@ export const buildColumnsNotificaciones = ({ handleViewDetails, handleMarkAsRead
     width: 150,
     render: (tipo: string) => (
       <Space>
-        <Avatar
-          icon={getTypeIcon(tipo)}
-          style={{
-            backgroundColor:
-              tipo === 'error' || tipo === 'warning' ? '#ff4d4f' :
-              tipo === 'success' ? '#52c41a' :
-              tipo === 'cita' ? '#1890ff' :
-              tipo === 'examen' ? '#faad14' : '#13c2c2'
-          }}
-        />
-        <Tag color={
-          tipo === 'error' || tipo === 'warning' ? 'red' :
-          tipo === 'success' ? 'green' :
-          tipo === 'cita' ? 'blue' :
-          tipo === 'examen' ? 'orange' : 'cyan'
-        }>
+        <Avatar icon={getTypeIcon(tipo)} className={getTypeAvatarClass(tipo)} />
+        <Tag color={getTypeTagColor(tipo)}>
           {getTypeLabel(tipo)}
         </Tag>
       </Space>
@@ -56,13 +42,13 @@ export const buildColumnsNotificaciones = ({ handleViewDetails, handleMarkAsRead
       <button
         type="button"
         onClick={() => handleViewDetails(record)}
-        style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, textAlign: 'left', width: '100%' }}
+        className="notifications-page__contenido"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewDetails(record); } }}
       >
-        <Text strong={!record.leida} style={{ display: 'block', marginBottom: 4 }}>
+        <Text strong={!record.leida}>
           {record.titulo}
         </Text>
-        <Text type="secondary" style={{ fontSize: 13 }}>
+        <Text type="secondary" className="notifications-page__mensaje">
           {record.mensaje}
         </Text>
       </button>
@@ -75,8 +61,8 @@ export const buildColumnsNotificaciones = ({ handleViewDetails, handleMarkAsRead
     width: 150,
     render: (date: string) => (
       <Tooltip title={dayjs(date).format('DD/MM/YYYY HH:mm:ss')}>
-        <span style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>
-          <ClockCircleOutlined style={{ marginRight: 6 }} />
+        <span className="notifications-page__fecha">
+          <ClockCircleOutlined />
           {dayjs(date).fromNow()}
         </span>
       </Tooltip>
@@ -94,7 +80,7 @@ export const buildColumnsNotificaciones = ({ handleViewDetails, handleMarkAsRead
           <Tooltip title="Marcar como leída">
             <Button
               type="text"
-              className="action-btn read"
+              className="notifications-page__accion--leida"
               icon={CHECK_ICON_2}
               onClick={() => handleMarkAsRead(record.id)}
             />
@@ -109,7 +95,7 @@ export const buildColumnsNotificaciones = ({ handleViewDetails, handleMarkAsRead
           <Tooltip title="Eliminar">
             <Button
               type="text"
-              className="action-btn delete"
+              danger
               icon={DELETE_ICON_6}
             />
           </Tooltip>

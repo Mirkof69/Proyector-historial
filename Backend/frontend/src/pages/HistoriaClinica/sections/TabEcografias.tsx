@@ -50,7 +50,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                   <YAxis label={{ value: 'Peso (g)', angle: -90, position: 'insideLeft' }} />
                   <RechartsTooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="peso" stroke="#722ed1" fill="#722ed1" fillOpacity={0.3} name="Peso Fetal (g)" />
+                  <Area type="monotone" dataKey="peso" stroke="var(--grafico-1)" fill="var(--grafico-1)" fillOpacity={0.3} name="Peso Fetal (g)" />
                 </ComposedChart>
               </ResponsiveContainer>
             </Card>
@@ -65,7 +65,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                     <YAxis label={{ value: 'mm', angle: -90, position: 'insideLeft' }} />
                     <RechartsTooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="dbp" stroke="#1890ff" strokeWidth={2} name="DBP (mm)" dot={{ fill: '#1890ff', r: 5 }} />
+                    <Line type="monotone" dataKey="dbp" stroke="var(--grafico-2)" strokeWidth={2} name="DBP (mm)" dot={{ fill: 'var(--grafico-2)', r: 5 }} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </Card>
@@ -81,7 +81,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                     <YAxis label={{ value: 'mm', angle: -90, position: 'insideLeft' }} />
                     <RechartsTooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="ca" stroke="#52c41a" strokeWidth={2} name="CA (mm)" dot={{ fill: '#52c41a', r: 5 }} />
+                    <Line type="monotone" dataKey="ca" stroke="var(--grafico-4)" strokeWidth={2} name="CA (mm)" dot={{ fill: 'var(--grafico-4)', r: 5 }} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </Card>
@@ -97,7 +97,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                     <YAxis label={{ value: 'mm', angle: -90, position: 'insideLeft' }} />
                     <RechartsTooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="lf" stroke="#faad14" strokeWidth={2} name="LF (mm)" dot={{ fill: '#faad14', r: 5 }} />
+                    <Line type="monotone" dataKey="lf" stroke="var(--grafico-3)" strokeWidth={2} name="LF (mm)" dot={{ fill: 'var(--grafico-3)', r: 5 }} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </Card>
@@ -106,13 +106,13 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
         </Row>
       )}
 
-      <div className="ecografias-gallery" style={{ marginBottom: 24 }}>
+      <div className="ecografias-gallery">
         <Row gutter={[16, 16]}>
           {ecografias.map(eco => (
             <Col xs={24} sm={12} md={8} lg={6} key={eco.id}>
               <Card
                 hoverable
-                cover={<div style={{ height: 150, background: '#333', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ScanOutlined style={{ fontSize: 40 }} /></div>}
+                cover={<div className="historia-eco-portada"><ScanOutlined /></div>}
                 actions={[
                   <Tooltip title="Ver Reporte" key="report"><FileTextOutlined onClick={() => navigate(`/dashboard/ecografias/${eco.id}`)} /></Tooltip>,
                   <Tooltip title="Editar" key="edit"><EditOutlined /></Tooltip>
@@ -147,7 +147,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
         bordered
         columns={[
           { title: 'Fecha', dataIndex: 'fecha', render: (t) => dayjs(t).format('DD/MM/YY'), width: 100, sorter: (a: any, b: any) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime() },
-          { title: 'Tipo', dataIndex: 'tipo', width: 180, filters: [{ text: 'Primer Trimestre', value: 'PRIMER_TRIMESTRE' }, { text: 'Segundo Trimestre', value: 'SEGUNDO_TRIMESTRE' }, { text: 'Tercer Trimestre', value: 'TERCER_TRIMESTRE' }, { text: 'Doppler', value: 'DOPPLER' }], onFilter: (value: any, record: any) => record.tipo === value, render: (tipo) => <Tag color="purple">{tipo}</Tag> },
+          { title: 'Tipo', dataIndex: 'tipo', width: 180, filters: [{ text: 'Primer Trimestre', value: 'PRIMER_TRIMESTRE' }, { text: 'Segundo Trimestre', value: 'SEGUNDO_TRIMESTRE' }, { text: 'Tercer Trimestre', value: 'TERCER_TRIMESTRE' }, { text: 'Doppler', value: 'DOPPLER' }], onFilter: (value: any, record: any) => record.tipo === value, render: (tipo) => <Tag>{tipo}</Tag> },
           { title: 'EG Calculada', dataIndex: 'edad_gestacional', render: (eg, r: any) => <Text strong>{eg ?? r.edad_gestacional_semanas ?? '-'} sem</Text>, align: 'center' as const, width: 100 },
           { title: 'Peso Fetal', dataIndex: 'peso_fetal_estimado', render: (peso) => peso ? `${peso}g` : '-', align: 'center' as const, width: 100 },
           { title: 'Medidas Biométricas', render: (_, r: any) => (<Space size={4} direction="vertical">{r.diametro_biparietal && <Text type="secondary" style={{ fontSize: 12 }}>DBP: {r.diametro_biparietal}mm</Text>}{r.circunferencia_abdominal && <Text type="secondary" style={{ fontSize: 12 }}>CA: {r.circunferencia_abdominal}mm</Text>}{r.longitud_femur && <Text type="secondary" style={{ fontSize: 12 }}>LF: {r.longitud_femur}mm</Text>}</Space>), width: 150 },
@@ -156,11 +156,11 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
         ]}
         expandable={{
           expandedRowRender: (record: any) => (
-            <div style={{ padding: '16px 24px', background: 'var(--bg-secondary, #fafafa)' }}>
+            <div className="historia-detalle-fila">
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <Descriptions bordered column={3} size="small">
-                    <Descriptions.Item label="Tipo de Ecografía" span={1}><Tag color="purple">{record.tipo}</Tag></Descriptions.Item>
+                    <Descriptions.Item label="Tipo de Ecografía" span={1}><Tag>{record.tipo}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Fecha" span={1}>{dayjs(record.fecha).format('DD/MM/YYYY')}</Descriptions.Item>
                     <Descriptions.Item label="EG Calculada" span={1}><Text strong>{record.edad_gestacional ?? record.edad_gestacional_semanas ?? '-'} semanas</Text></Descriptions.Item>
                     <Descriptions.Item label="Peso Fetal Estimado" span={1}><Text strong style={{ fontSize: 16 }}>{record.peso_fetal_estimado ? `${record.peso_fetal_estimado}g` : 'no medido'}</Text></Descriptions.Item>
@@ -177,7 +177,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                     <Descriptions.Item label="Posición Placenta" span={1}>{record.posicion_placenta || '-'}</Descriptions.Item>
                     <Descriptions.Item label="Grado Placentario" span={1}>{record.grado_placentario || '-'}</Descriptions.Item>
                     <Descriptions.Item label="Cordón Umbilical" span={1}>{record.cordon_umbilical || '-'}</Descriptions.Item>
-                    <Descriptions.Item label="Sexo Fetal" span={1}>{record.sexo_fetal ? (<Tag color={record.sexo_fetal === 'M' ? 'blue' : 'pink'}>{record.sexo_fetal === 'M' ? 'Masculino ♂' : 'Femenino ♀'}</Tag>) : 'No determinado'}</Descriptions.Item>
+                    <Descriptions.Item label="Sexo Fetal" span={1}>{record.sexo_fetal ? (<Tag>{record.sexo_fetal === 'M' ? 'Masculino' : 'Femenino'}</Tag>) : 'No determinado'}</Descriptions.Item>
                     <Descriptions.Item label="Presentación" span={1}>{record.presentacion || '-'}</Descriptions.Item>
                     <Descriptions.Item label="Latido Cardíaco Fetal" span={1}>{record.latido_cardiaco_fetal ? `${record.latido_cardiaco_fetal} lpm` : '-'}</Descriptions.Item>
                     {record.anatomia_fetal && (<Descriptions.Item label="Anatomía Fetal" span={3}><Text>{record.anatomia_fetal}</Text></Descriptions.Item>)}
@@ -187,7 +187,7 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
                   </Descriptions>
                 </Col>
                 <Col span={24}>
-                  <Card size="small" title="Trazabilidad" style={{ background: 'var(--bg-tertiary, #f0f2f5)' }}>
+                  <Card size="small" title="Trazabilidad" className="historia-trazabilidad">
                     <Space split={verticalDivider} size="large">
                       <Space direction="vertical" size={0}>
                         <Text type="secondary">Realizado por:</Text>

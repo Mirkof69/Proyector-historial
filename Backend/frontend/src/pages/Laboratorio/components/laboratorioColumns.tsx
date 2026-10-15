@@ -23,8 +23,10 @@ export const buildLaboratorioColumns = (
     render: (_: any, record: ExamenLaboratorio) => (
       <Space direction="vertical" size={0}>
         <Space>
-          <UserOutlined style={{ color: '#1890ff' }} />
-          <span style={{ fontWeight: 500 }}>{record.paciente_nombre || 'No especificado'}</span>
+          <span className="laboratorio-page__paciente">
+            <UserOutlined />
+            {record.paciente_nombre || 'No especificado'}
+          </span>
         </Space>
       </Space>
     ),
@@ -37,7 +39,7 @@ export const buildLaboratorioColumns = (
       <Space direction="vertical" size={0}>
         <Text>{text || '-'}</Text>
         {record.categoria && (
-          <Tag color="purple">
+          <Tag>
             {record.categoria}
           </Tag>
         )}
@@ -65,10 +67,10 @@ export const buildLaboratorioColumns = (
     width: 120,
     render: (estado: string) => {
       const colors = {
-        solicitado: 'orange',
-        en_proceso: 'blue',
-        completado: 'green',
-        cancelado: 'red',
+        solicitado: 'warning',
+        en_proceso: 'processing',
+        completado: 'success',
+        cancelado: 'default',
       };
       return <Tag color={colors[estado as keyof typeof colors] || 'default'}>{estado?.toUpperCase()}</Tag>;
     },
@@ -81,8 +83,8 @@ export const buildLaboratorioColumns = (
     render: (prioridad: string) => {
       const colors = {
         normal: 'default',
-        urgente: 'orange',
-        stat: 'red',
+        urgente: 'warning',
+        stat: 'error',
       };
       return <Tag color={colors[prioridad as keyof typeof colors] || 'default'}>{prioridad?.toUpperCase()}</Tag>;
     },
@@ -98,7 +100,7 @@ export const buildLaboratorioColumns = (
           return (
             <Tooltip title={`${criticos} crítico(s)`}>
               <Badge count={criticos} showZero>
-                <Tag color="red" icon={<WarningOutlined />}>
+                <Tag color="error" icon={<WarningOutlined />}>
                   CRÍTICOS
                 </Tag>
               </Badge>
@@ -109,12 +111,12 @@ export const buildLaboratorioColumns = (
           return (
             <Tooltip title={`${anormales} anormal(es)`}>
               <Badge count={anormales}>
-                <Tag color="orange">ANORMALES</Tag>
+                <Tag color="warning">ANORMALES</Tag>
               </Badge>
             </Tooltip>
           );
         }
-        return <Tag color="green">NORMALES</Tag>;
+        return <Tag color="success">NORMALES</Tag>;
       }
       return <Text type="secondary">Sin resultados</Text>;
     },

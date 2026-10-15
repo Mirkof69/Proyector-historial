@@ -124,12 +124,14 @@ export function alertReducer(state: AlertState, action: AlertAction): AlertState
 }
 
 export const getTipoConfig = (tipo: string) => {
-  const configs: Record<string, { icon: React.ReactElement; color: string; text: string }> = {
-    'critica': { icon: <FireOutlined />, color: '#f5222d', text: 'Crítica' },
-    'alta': { icon: <WarningOutlined />, color: '#fa8c16', text: 'Alta' },
-    'media': { icon: <ExclamationCircleOutlined />, color: '#faad14', text: 'Media' },
-    'baja': { icon: <InfoCircleOutlined />, color: '#1890ff', text: 'Baja' },
-    'info': { icon: <BellOutlined />, color: '#52c41a', text: 'Información' },
+  // `color`: color de Tag de Ant Design (por token); `clase`: avatar del
+  // nivel en AlertasMedicas.css. Sin hex: cambia solo con el tema.
+  const configs: Record<string, { icon: React.ReactElement; color: string; clase: string; text: string }> = {
+    'critica': { icon: <FireOutlined />, color: 'error', clase: 'alerta-nivel alerta-nivel--critica', text: 'Crítica' },
+    'alta': { icon: <WarningOutlined />, color: 'error', clase: 'alerta-nivel alerta-nivel--alta', text: 'Alta' },
+    'media': { icon: <ExclamationCircleOutlined />, color: 'warning', clase: 'alerta-nivel alerta-nivel--media', text: 'Media' },
+    'baja': { icon: <InfoCircleOutlined />, color: 'processing', clase: 'alerta-nivel alerta-nivel--baja', text: 'Baja' },
+    'info': { icon: <BellOutlined />, color: 'default', clase: 'alerta-nivel', text: 'Información' },
   };
   return configs[tipo] || configs['info'];
 };

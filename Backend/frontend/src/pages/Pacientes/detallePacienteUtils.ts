@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 
-export const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+// Series categóricas del tema activo (tokens.css → --grafico-1..6).
+export const COLORS = [1, 2, 3, 4, 5, 6].map((n) => `var(--grafico-${n})`);
 
 export const renderVacunaLabel = (entry: any) => `${entry.name}: ${entry.value}`;
 

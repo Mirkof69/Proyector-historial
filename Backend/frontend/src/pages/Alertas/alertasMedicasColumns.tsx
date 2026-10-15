@@ -30,7 +30,7 @@ export const buildColumnsAlertasMedicas = ({ setState, marcarResuelta }: BuildCo
     key: 'titulo',
     render: (titulo: string, record: AlertaMedica) => (
       <div>
-        <div style={{ fontWeight: 500 }}>{titulo}</div>
+        <div className="alertas-page__titulo-fila">{titulo}</div>
         <Tag icon={<BellOutlined />}>{record.tipo_display || record.tipo}</Tag>
       </div>
     )
@@ -40,13 +40,9 @@ export const buildColumnsAlertasMedicas = ({ setState, marcarResuelta }: BuildCo
     dataIndex: 'prioridad',
     key: 'prioridad',
     render: (prioridad: string, record: AlertaMedica) => (
-      <Badge
-        count={record.prioridad_display || prioridad.toUpperCase()}
-        style={{
-          backgroundColor: getSeveridadColor(prioridad),
-          fontWeight: 'bold'
-        }}
-      />
+      <Tag color={getSeveridadColor(prioridad)}>
+        {record.prioridad_display || prioridad.toUpperCase()}
+      </Tag>
     ),
     sorter: (a: AlertaMedica, b: AlertaMedica) => {
       const orden: Record<string, number> = { baja: 1, media: 2, alta: 3, critica: 4, emergencia: 5 };
@@ -64,7 +60,7 @@ export const buildColumnsAlertasMedicas = ({ setState, marcarResuelta }: BuildCo
     dataIndex: 'modulo_origen_display',
     key: 'modulo',
     render: (modulo: string, record: AlertaMedica) => (
-      <Tag color="cyan">{modulo || record.modulo_origen}</Tag>
+      <Tag>{modulo || record.modulo_origen}</Tag>
     )
   },
   {

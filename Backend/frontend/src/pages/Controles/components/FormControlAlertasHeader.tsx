@@ -43,7 +43,7 @@ const FormControlAlertasHeader: React.FC<FormControlAlertasHeaderProps> = ({
         type="info"
         showIcon
         icon={<InfoCircleOutlined />}
-        style={{ marginBottom: 16 }}
+        className="u-mb-4"
       />
     )}
 
@@ -52,9 +52,9 @@ const FormControlAlertasHeader: React.FC<FormControlAlertasHeaderProps> = ({
       <Alert
         message={`⚠️ ${alertasPreliminares.length} Alerta(s) Clínica(s) Detectada(s)`}
         description={
-          <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+          <ul className="pc-lista">
             {alertasPreliminares.map((alerta) => (
-              <li key={alerta} style={{ marginBottom: 4 }}>
+              <li key={alerta} className="u-mb-1">
                 {alerta}
               </li>
             ))}
@@ -63,7 +63,7 @@ const FormControlAlertasHeader: React.FC<FormControlAlertasHeaderProps> = ({
         type="error"
         showIcon
         icon={<WarningOutlined />}
-        style={{ marginBottom: 16 }}
+        className="u-mb-4"
       />
     )}
   </>

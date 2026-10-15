@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Space, Tag, Switch, Popconfirm, Empty, Alert, Typography } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
-import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined, SafetyOutlined } from '@ant-design/icons';
+import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import cargosService, { Cargo } from '../../services/cargosService';
 import { configuracionDeRol } from '../../config/roles';
 import { mensajeDeError } from '../../services/partoDetalleService';
 
-const { Text } = Typography;
+import './Roles.css';
+
+const { Text, Title } = Typography;
 
 /**
  * Cargos del hospital. Antes esta pantalla editaba «permisos» que ningún código
@@ -72,7 +74,7 @@ const Roles: React.FC = () => {
       key: 'rol_base',
       render: (rol: string) => {
         const config = configuracionDeRol(rol);
-        return <Tag color={config.color} icon={config.icono}>{config.nombre}</Tag>;
+        return <Tag icon={config.icono}>{config.nombre}</Tag>;
       },
     },
     {
@@ -124,17 +126,19 @@ const Roles: React.FC = () => {
   ];
 
   return (
-    <div className="page-container" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
-        <h1 style={{ margin: 0 }}><SafetyOutlined /> Cargos y permisos</h1>
+    <div className="roles-page page-container">
+      <header className="roles-page__cabecera">
+        <div>
+          <Title level={2}>Cargos y permisos</Title>
+          <Text type="secondary">Qué módulos usa cada funcionario, sobre el rol del sistema en que se basa.</Text>
+        </div>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/roles/nuevo')}>
           Nuevo cargo
         </Button>
-      </div>
+      </header>
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
         message="Para otros funcionarios del hospital (obstetriz, nutricionista, trabajo social…)"
         description="Cada cargo se basa en un rol del sistema y elige qué módulos de ese rol usa. Puede quitar módulos, nunca agregar: lo que el sistema deja hacer sigue siendo lo del rol base."
       />

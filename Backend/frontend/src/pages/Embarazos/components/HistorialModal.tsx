@@ -23,7 +23,7 @@ interface HistorialModalProps {
 }
 
 const HistorialModal: React.FC<HistorialModalProps> = ({ visible, onClose, selectedEmbarazo }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={
       <Space>
         <HistoryOutlined />
@@ -44,7 +44,7 @@ const HistorialModal: React.FC<HistorialModalProps> = ({ visible, onClose, selec
   >
     {selectedEmbarazo && (
       <div>
-        <Card size="small" style={{ marginBottom: 16 }}>
+        <Card size="small" className="u-mb-4">
           <Descriptions column={2} size="small">
             <Descriptions.Item label="Paciente">
               <Text strong>{selectedEmbarazo?.paciente_nombre}</Text>
@@ -69,7 +69,7 @@ const HistorialModal: React.FC<HistorialModalProps> = ({ visible, onClose, selec
             <span>Antecedentes Obstétricos</span>
           </Space>
         </Divider>
-        <Paragraph style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+        <Paragraph className="pc-texto-libre">
           <Text strong>Gesta:</Text> {selectedEmbarazo.numero_gesta} •{' '}
           <Text strong>Partos previos:</Text> {selectedEmbarazo.partos_previos || 0} •{' '}
           <Text strong>Cesáreas:</Text> {selectedEmbarazo.cesareas_previas || 0} •{' '}
@@ -86,7 +86,7 @@ const HistorialModal: React.FC<HistorialModalProps> = ({ visible, onClose, selec
           rows={4}
           value={selectedEmbarazo.notas || 'Sin notas registradas'}
           readOnly
-          style={{ marginBottom: 16 }}
+          className="u-mb-4"
         />
 
         <Divider orientation="left">Línea de Tiempo</Divider>

@@ -51,7 +51,7 @@ const MedicalRadarChart: React.FC<ChartConfig> = ({
         <Suspense fallback={<div className="chart-loading" style={{ height }}><Spin size="large" /></div>}>
         <ResponsiveContainer width="100%" height={height}>
             <RadarChart data={sanitizedData}>
-                <PolarGrid stroke="#d9d9d9" />
+                <PolarGrid stroke="var(--color-borde)" />
                 {/* @ts-ignore - Recharts type compatibility issue with TypeScript 5+ */}
                 <PolarAngleAxis dataKey="subject" />
                 {/* @ts-ignore - Recharts type compatibility issue with TypeScript 5+ */}

@@ -26,8 +26,8 @@ export const columnsEmbarazos = [
     key: 'estado',
     render: (estado: string) => {
       let color = 'default';
-      if (estado === 'activo') color = 'green';
-      if (estado === 'finalizado') color = 'blue';
+      if (estado === 'activo') color = 'success';
+      if (estado === 'finalizado') color = 'processing';
       return <Tag color={color}>{estado?.toUpperCase()}</Tag>;
     },
   },
@@ -37,9 +37,9 @@ export const columnsEmbarazos = [
     key: 'riesgo_embarazo',
     render: (riesgo: string) => {
       let color = 'default';
-      if (riesgo === 'alto') color = 'red';
-      if (riesgo === 'medio') color = 'orange';
-      if (riesgo === 'bajo') color = 'green';
+      if (riesgo === 'alto') color = 'error';
+      if (riesgo === 'medio') color = 'warning';
+      if (riesgo === 'bajo') color = 'success';
       return <Tag color={color}>{riesgo ? riesgo.toUpperCase() : 'NO DEFINIDO'}</Tag>;
     },
   },
@@ -57,7 +57,7 @@ export const columnsTriajes = [
     dataIndex: 'prioridad',
     key: 'prioridad',
     render: (p: string) => {
-      const colors: any = { urgente: 'red', alto: 'orange', normal: 'blue', bajo: 'green' };
+      const colors: any = { urgente: 'error', alto: 'warning', normal: 'processing', bajo: 'success' };
       return <Tag color={colors[p] || 'default'}>{p?.toUpperCase()}</Tag>;
     },
   },
@@ -78,7 +78,7 @@ export const columnsTriajes = [
   {
     title: 'Estado',
     dataIndex: 'estado',
-    render: (e: string) => <Tag color={e === 'completado' ? 'green' : 'orange'}>{e}</Tag>,
+    render: (e: string) => <Tag color={e === 'completado' ? 'success' : 'warning'}>{e}</Tag>,
   },
 ];
 
@@ -125,7 +125,7 @@ export const columnsVacunas = [
   {
     title: 'Dosis',
     dataIndex: 'numero_dosis',
-    render: (n: number) => <Tag color="blue">{n}</Tag>,
+    render: (n: number) => <Tag>{n}</Tag>,
   },
   {
     title: 'Lote',
@@ -134,6 +134,6 @@ export const columnsVacunas = [
   {
     title: 'Próxima Dosis',
     dataIndex: 'proxima_dosis_fecha',
-    render: (f: string) => f ? dayjs(f).format('DD/MM/YYYY') : <Tag color="green">Completo</Tag>,
+    render: (f: string) => f ? dayjs(f).format('DD/MM/YYYY') : <Tag color="success">Completo</Tag>,
   },
 ];

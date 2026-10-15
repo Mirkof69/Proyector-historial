@@ -18,11 +18,11 @@ const FiltrosLeyendaCitas: React.FC<FiltrosLeyendaCitasProps> = ({
 }) => (
   <>
     {/* FILTROS */}
-    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+    <Row gutter={[16, 16]} className="calendario-page__filtros">
       <Col xs={24} sm={12} md={8}>
         <Select
           placeholder="Filtrar por estado"
-          style={{ width: '100%' }}
+          className="calendario-page__control"
           value={filtroEstado}
           onChange={onEstadoChange}
           allowClear
@@ -36,7 +36,7 @@ const FiltrosLeyendaCitas: React.FC<FiltrosLeyendaCitasProps> = ({
       <Col xs={24} sm={12} md={8}>
         <Select
           placeholder="Filtrar por tipo"
-          style={{ width: '100%' }}
+          className="calendario-page__control"
           value={filtroTipo}
           onChange={onTipoChange}
           allowClear
@@ -72,14 +72,14 @@ const FiltrosLeyendaCitas: React.FC<FiltrosLeyendaCitasProps> = ({
             <Badge status="error" />
             <Text>Cancelada</Text>
           </Space>
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text type="secondary" className="calendario-page__ayuda">
             Haga clic en cualquier día para ver las citas programadas
           </Text>
         </Space>
       }
       type="info"
       showIcon
-      style={{ marginBottom: 16 }}
+      className="calendario-page__leyenda"
     />
   </>
 );

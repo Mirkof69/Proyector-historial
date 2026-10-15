@@ -35,10 +35,10 @@ interface PedidoMapeo {
 }
 
 const ETIQUETA: Record<EstadoFila, { color: string; texto: string }> = {
-  valida: { color: 'green', texto: 'Lista para importar' },
-  creada: { color: 'green', texto: 'Guardada' },
-  error: { color: 'red', texto: 'Con errores' },
-  duplicada: { color: 'orange', texto: 'Ya cargada' },
+  valida: { color: 'success', texto: 'Lista para importar' },
+  creada: { color: 'success', texto: 'Guardada' },
+  error: { color: 'error', texto: 'Con errores' },
+  duplicada: { color: 'warning', texto: 'Ya cargada' },
 };
 
 interface Props {
@@ -115,7 +115,7 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
     {
       title: 'Qué corregir', dataIndex: 'errores', key: 'errores',
       render: (errores: string[]) => (errores.length
-        ? <ul style={{ margin: 0, paddingLeft: 18 }}>{errores.map((x) => <li key={x}>{x}</li>)}</ul>
+        ? <ul className="laboratorio-importar__errores">{errores.map((x) => <li key={x}>{x}</li>)}</ul>
         : <Text type="secondary">—</Text>),
     },
   ];
@@ -149,14 +149,14 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
       <Steps
         current={paso}
         size="small"
-        style={{ marginBottom: 24 }}
+        className="laboratorio-importar__pasos"
         items={[{ title: 'Subir archivo' }, { title: 'Revisar' }, { title: 'Resultado' }]}
       />
-      {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
+      {error && <Alert type="error" showIcon message={error} className="laboratorio-separado" />}
 
       {paso === 0 && (
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <Paragraph style={{ margin: 0 }}>
+        <Space direction="vertical" className="laboratorio-ancho" size="middle">
+          <Paragraph className="laboratorio-sin-margen">
             Descargue la plantilla: trae la hoja «Catálogo» con los códigos de examen, los
             parámetros y sus rangos. Ponga una fila por parámetro; las filas de la misma
             paciente, examen y fecha se guardan como un solo examen completado.
@@ -183,7 +183,7 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
                 <Col xs={24} sm={12} key={c.campo}>
                   <Text strong>{c.etiqueta}{c.obligatorio ? ' *' : ''}</Text>
                   <Select
-                    style={{ width: '100%' }}
+                    className="laboratorio-ancho"
                     allowClear={!c.obligatorio}
                     placeholder="Columna del archivo"
                     value={mapeo[c.campo]}
@@ -210,16 +210,16 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
                 ? `Se guardaron ${resumen.creada} resultados en ${resumen.examenes} exámenes`
                 : 'No se guardó ningún resultado'}
               subTitle="Las filas con errores o ya cargadas no se guardaron. Puede corregirlas y volver a importarlas. Si subió el archivo equivocado, deshágalo desde «Importaciones anteriores»."
-              style={{ padding: '8px 0 16px' }}
+              className="laboratorio-importar__resultado"
             />
           )}
-          <Space size="large" style={{ marginBottom: 16 }} wrap>
+          <Space size="large" className="laboratorio-importar__cifras" wrap>
             <Statistic title="Filas leídas" value={resumen.total} />
             <Statistic title={paso === 2 ? 'Guardadas' : 'Listas'} value={paso === 2 ? resumen.creada : resumen.valida}
-              valueStyle={{ color: 'var(--color-success, #16a34a)' }} />
+              className="laboratorio-importar__cifra--exito" />
             <Statistic title="Exámenes" value={resumen.examenes} />
             <Statistic title="Con errores" value={resumen.error}
-              valueStyle={{ color: resumen.error ? 'var(--color-error, #dc2626)' : undefined }} />
+              className={resumen.error ? 'laboratorio-importar__cifra--peligro' : undefined} />
             <Statistic title="Ya cargadas" value={resumen.duplicada} />
           </Space>
           <Table

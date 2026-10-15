@@ -10,6 +10,7 @@ import PerfilHeader from './Perfil/PerfilHeader';
 import PerfilResumenAcceso from './Perfil/PerfilResumenAcceso';
 import TabDatosPersonales from './Perfil/TabDatosPersonales';
 import TabSeguridad from './Perfil/TabSeguridad';
+import './Perfil/Perfil.css';
 
 const tabDatosPersonales = <span><UserOutlined /> Datos Personales</span>;
 const tabSeguridad = <span><LockOutlined /> Seguridad</span>;
@@ -166,14 +167,7 @@ const Perfil: React.FC = () => {
 
   if (loading) {
     return (
-      <div
-        style={{
-          height: '80vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
+      <div className="perfil-page__cargando">
         <Spin size="large" tip="Cargando perfil…"><div /></Spin>
       </div>
     );
@@ -181,21 +175,18 @@ const Perfil: React.FC = () => {
 
   if (!user) {
     return (
-      <div style={{ padding: 24 }}>
+      <div className="perfil-page">
         <Empty description="No se pudieron cargar los datos del usuario" />
       </div>
     );
   }
 
   return (
-    <div
-      className="perfil-container animate-fade-in"
-      style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}
-    >
+    <div className="perfil-page page-container">
       {/* CABECERA DEL PERFIL */}
       <PerfilHeader user={user} />
 
-      <Row gutter={24}>
+      <Row gutter={[24, 24]}>
         {/* COLUMNA IZQUIERDA: RESUMEN RÁPIDO */}
         <Col xs={24} lg={8}>
           <PerfilResumenAcceso user={user} />
@@ -203,7 +194,7 @@ const Perfil: React.FC = () => {
 
         {/* COLUMNA DERECHA: FORMULARIOS DE EDICIÓN */}
         <Col xs={24} lg={16}>
-          <Card className="shadow-sm">
+          <Card>
             <Tabs defaultActiveKey="1" items={[
               {
                 key: "1",

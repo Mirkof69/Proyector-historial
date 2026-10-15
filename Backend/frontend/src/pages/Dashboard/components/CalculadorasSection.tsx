@@ -7,7 +7,6 @@ const { Title, Paragraph, Text } = Typography;
 interface Calculadora {
   nombre: string;
   categoria: string;
-  color: string;
 }
 
 interface CalculadorasSectionProps {
@@ -27,18 +26,16 @@ const CalculadorasSection: React.FC<CalculadorasSectionProps> = ({ calculadoras,
           de decisiones basadas en evidencia
         </Paragraph>
       </div>
-      <Row gutter={[16, 16]} style={{ marginTop: 50 }}>
+      <Row gutter={[16, 16]}>
         {calculadoras.map((calc) => (
           <Col xs={24} sm={12} md={8} key={calc.nombre}>
             <Card className="calculadora-card" size="small">
-              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Space direction="vertical" size={4} className="landing-ancho-completo">
                 <Space>
-                  <CheckCircleOutlined
-                    style={{ color: calc.color, fontSize: 18 }}
-                  />
+                  <CheckCircleOutlined className="calculadora-card__icono" />
                   <Text strong>{calc.nombre}</Text>
                 </Space>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text type="secondary" className="calculadora-card__categoria">
                   {calc.categoria}
                 </Text>
               </Space>
@@ -46,7 +43,7 @@ const CalculadorasSection: React.FC<CalculadorasSectionProps> = ({ calculadoras,
           </Col>
         ))}
       </Row>
-      <Divider style={{ margin: '60px 0 40px' }} />
+      <Divider />
       <div className="cta-container">
         <Title level={3}>¿Listo para empezar?</Title>
         <Paragraph>
@@ -54,7 +51,6 @@ const CalculadorasSection: React.FC<CalculadorasSectionProps> = ({ calculadoras,
           gestionar historias clínicas digitales
         </Paragraph>
         <Button
-          type="primary"
           size="large"
           icon={<LoginOutlined />}
           onClick={onLogin}

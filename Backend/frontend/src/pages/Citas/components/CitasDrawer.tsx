@@ -123,7 +123,7 @@ const CitasDrawer: React.FC<CitasDrawerProps> = React.memo(({
         </Space>
       }
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <Space direction="vertical" className="citas-ancho" size="large">
         <Descriptions title="Información de la Cita" bordered column={1} size="small">
           <Descriptions.Item label="Paciente">
             <strong>{cita.paciente_info?.nombre_completo || 'No especificado'}</strong>
@@ -152,7 +152,7 @@ const CitasDrawer: React.FC<CitasDrawerProps> = React.memo(({
 
         <Divider orientation="left">Acceso Rápido a Módulos</Divider>
         <Card size="small">
-          <Space direction="vertical" style={{ width: '100%' }} size="small">
+          <Space direction="vertical" className="citas-ancho" size="small">
             {QUICK_LINKS.map((link) => {
               const label = link.label.replace('{nombre}', cita.paciente_info?.nombre_completo || '');
               const isLastPrimary = link.primary;

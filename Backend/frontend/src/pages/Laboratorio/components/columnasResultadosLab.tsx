@@ -36,7 +36,7 @@ export const buildColumnasResultados = (
             />
           ) : (
             <InputNumber
-              style={{ width: 120 }}
+              className="laboratorio-importar__selector"
               placeholder="Valor"
               value={resultados[index]?.valor_numerico}
               onChange={(value) => onResultadoChange(index, 'valor_numerico', value)}
@@ -61,12 +61,12 @@ export const buildColumnasResultados = (
     render: (_: any, __: any, index: number) => {
       const resultado = resultados[index];
       if (resultado?.es_critico) {
-        return <Tag color="red">CRÍTICO</Tag>;
+        return <Tag color="error">CRÍTICO</Tag>;
       }
       if (!resultado?.es_normal) {
-        return <Tag color="orange">ANORMAL</Tag>;
+        return <Tag color="warning">ANORMAL</Tag>;
       }
-      return <Tag color="green">NORMAL</Tag>;
+      return <Tag color="success">NORMAL</Tag>;
     },
   },
   {

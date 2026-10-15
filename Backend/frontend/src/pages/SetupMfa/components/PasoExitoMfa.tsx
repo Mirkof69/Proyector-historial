@@ -9,9 +9,9 @@ interface PasoExitoMfaProps {
 }
 
 const PasoExitoMfa: React.FC<PasoExitoMfaProps> = ({ onIrDashboard }) => (
-  <div style={{ textAlign: 'center', padding: '20px 0' }}>
-    <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 16 }} />
-    <Title level={3} style={{ color: '#52c41a' }}>¡MFA Activado!</Title>
+  <div className="setup-mfa__exito">
+    <CheckCircleOutlined className="setup-mfa__exito-icono" />
+    <Title level={3} type="success">¡MFA Activado!</Title>
     <Paragraph>
       Su cuenta ahora está protegida con autenticación de dos factores.
       Será redirigido al sistema en unos segundos…
@@ -20,7 +20,6 @@ const PasoExitoMfa: React.FC<PasoExitoMfaProps> = ({ onIrDashboard }) => (
       type="primary"
       size="large"
       onClick={onIrDashboard}
-      style={{ marginTop: 16 }}
     >
       Ir al Dashboard
     </Button>

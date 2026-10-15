@@ -25,10 +25,10 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ features }) => (
           salud materna
         </Paragraph>
       </div>
-      <Row gutter={[24, 24]} style={{ marginTop: 60 }}>
+      <Row gutter={[16, 16]}>
         {features.map((feature) => (
           <Col xs={24} sm={12} lg={8} key={feature.title}>
-            <Card className="feature-card" hoverable>
+            <Card className="feature-card">
               <div className="feature-icon">{feature.icon}</div>
               <Title level={4}>{feature.title}</Title>
               <Paragraph>{feature.description}</Paragraph>

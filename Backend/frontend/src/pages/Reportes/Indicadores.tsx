@@ -110,11 +110,11 @@ const Indicadores: React.FC = () => {
 
   return (
     <Card
-      title={<span><BarChartOutlined style={{ marginRight: 8 }} />Indicadores de Gestión</span>}
+      title={<span><BarChartOutlined /> Indicadores de Gestión</span>}
       extra={<Button icon={<DownloadOutlined />} onClick={handleExportarExcel}>Exportar Excel</Button>}
     >
       {indicadores.length === 0 && !loading && (
-        <Alert message="Sin indicadores" description="No hay indicadores registrados para el período actual." type="info" showIcon style={{ marginBottom: 16 }} />
+        <Alert message="Sin indicadores" description="No hay indicadores registrados para el período actual." type="info" showIcon className="reportes-separado" />
       )}
       <Spin spinning={loading}>
         <Table

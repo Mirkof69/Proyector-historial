@@ -17,10 +17,14 @@ import {
   AlertaMedica, alertReducer, initialAlertState, mapAlertaReal,
 } from './sistemaAlertasUtils';
 import AlertasStats from './components/AlertasStats';
+import './AlertasMedicas.css';
+import { Typography } from 'antd';
 import AlertasFiltros from './components/AlertasFiltros';
 import AlertasListado from './components/AlertasListado';
 import AlertasCategorias from './components/AlertasCategorias';
 import AlertaDetalleModal from './components/AlertaDetalleModal';
+
+const { Title, Text } = Typography;
 
 dayjs.extend(relativeTime);
 dayjs.locale(es);
@@ -100,7 +104,13 @@ const SistemaAlertas: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className="alertas-page page-container">
+      <header className="alertas-page__cabecera">
+        <div>
+          <Title level={2}>Sistema de Alertas</Title>
+          <Text type="secondary">Alertas por prioridad, estado y categoría clínica.</Text>
+        </div>
+      </header>
       {/* Header con estadísticas */}
       <AlertasStats stats={stats} />
 

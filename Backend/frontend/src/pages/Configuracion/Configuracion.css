@@ -1,0 +1,114 @@
+/* Configuración del sistema — contrato: docs/DISENO_INTERFAZ.md */
+
+.configuracion-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.configuracion-page__cargando {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.configuracion-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
+}
+
+/* Franja de estado: superficie secundaria con borde, igual en los cuatro temas */
+.configuracion-page__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  background-color: var(--color-superficie-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+}
+
+.configuracion-page__en-linea {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  color: var(--color-texto-2);
+}
+
+.configuracion-page__en-linea .anticon {
+  color: var(--color-exito);
+}
+
+.configuracion-page__contador .ant-badge-count {
+  background-color: var(--color-exito-suave);
+  color: var(--color-exito);
+  box-shadow: 0 0 0 1px var(--color-exito-borde);
+}
+
+/* ---------- Identidad ---------- */
+.configuracion-page__logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-3);
+  text-align: center;
+}
+
+@media (min-width: 992px) {
+  .configuracion-page__logo {
+    border-left: 1px solid var(--color-borde-suave);
+  }
+}
+
+.configuracion-page__logo-imagen {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  padding: var(--esp-2);
+  object-fit: contain;
+  border: 1px dashed var(--color-borde-fuerte);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie-2);
+  color: var(--color-texto-3);
+}
+
+.configuracion-page__ayuda {
+  font-size: var(--texto-xs);
+}
+
+.configuracion-page__acciones {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--esp-5);
+}
+
+/* ---------- Horarios ---------- */
+.configuracion-page__aviso.ant-alert {
+  margin-bottom: var(--esp-5);
+}
+
+/* ---------- Sistema ---------- */
+.configuracion-page__columna.ant-card {
+  height: 100%;
+}
+
+.configuracion-page__backup-icono {
+  font-size: var(--texto-lg);
+  color: var(--color-exito);
+}
+
+.configuracion-page__vacio {
+  padding: var(--esp-5);
+  text-align: center;
+  color: var(--color-texto-3);
+}
+
+.configuracion-page__ancho {
+  width: 100%;
+}

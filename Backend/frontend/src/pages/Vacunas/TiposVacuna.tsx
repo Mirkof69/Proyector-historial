@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Tag, Button, Space, Typography, Spin } from 'antd';
-import { ReloadOutlined, MedicineBoxOutlined, PlusOutlined } from '@ant-design/icons';
+import { ReloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { vacunasService } from '../../services/vacunasService';
 
@@ -42,7 +42,7 @@ const TiposVacuna: React.FC = () => {
   const columns = [
     { title: 'Nombre', dataIndex: 'nombre', key: 'nombre', render: (v: string) => <Text strong>{v}</Text> },
     { title: 'Descripción', dataIndex: 'descripcion', key: 'descripcion', ellipsis: true },
-    { title: 'Dosis Requeridas', dataIndex: 'dosis_requeridas', key: 'dosis', render: (v: number) => <Tag color="blue">{v}</Tag> },
+    { title: 'Dosis Requeridas', dataIndex: 'dosis_requeridas', key: 'dosis', render: (v: number) => <span className="tabular-nums">{v}</span> },
     { title: 'Intervalo (días)', dataIndex: 'intervalo_dias', key: 'intervalo', render: (v: number) => v ? `${v} días` : '-' },
     { title: 'Edad Mínima (meses)', dataIndex: 'edad_minima_meses', key: 'edad_min', render: (v: number) => v != null ? `${v} meses` : '-' },
     {
@@ -56,15 +56,18 @@ const TiposVacuna: React.FC = () => {
   ];
 
   return (
-    <Card
-      title={<span><MedicineBoxOutlined style={{ marginRight: 8 }} />Tipos de Vacuna</span>}
-      extra={
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={cargarTipos} loading={loading}>Recargar</Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/vacunas/tipos/nuevo')}>Nuevo Tipo</Button>
-        </Space>
-      }
-    >
+    <div className="vacunas-page page-container">
+    <header className="vacunas-page__cabecera">
+      <div>
+        <Typography.Title level={2}>Tipos de Vacuna</Typography.Title>
+        <Typography.Text type="secondary">Catálogo de vacunas, dosis requeridas e intervalos del esquema.</Typography.Text>
+      </div>
+      <Space wrap>
+        <Button icon={<ReloadOutlined />} onClick={cargarTipos} loading={loading}>Recargar</Button>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/vacunas/tipos/nuevo')}>Nuevo Tipo</Button>
+      </Space>
+    </header>
+    <Card>
       <Spin spinning={loading}>
         <Table
           columns={columns}
@@ -72,9 +75,11 @@ const TiposVacuna: React.FC = () => {
           rowKey="id"
           pagination={{ pageSize: 20 }}
           locale={{ emptyText: 'No hay tipos de vacuna registrados' }}
+          scroll={{ x: 760 }}
         />
       </Spin>
     </Card>
+    </div>
   );
 };
 

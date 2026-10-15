@@ -22,12 +22,11 @@ const VisorTopBar: React.FC<VisorTopBarProps> = ({
 }) => (
   <Card
     size="small"
-    style={{ borderRadius: 0, background: '#141414' }}
-    styles={{ body: { padding: '8px 16px' } }}
+    className="visor-barra"
   >
-    <Row justify="space-between" align="middle">
+    <Row justify="space-between" align="middle" gutter={[8, 8]}>
       <Col>
-        <Space>
+        <Space wrap>
           <Button
             size="small"
             icon={<ExpandOutlined />}
@@ -35,12 +34,12 @@ const VisorTopBar: React.FC<VisorTopBarProps> = ({
           >
             Volver
           </Button>
-          <Divider type="vertical" style={{ background: '#434343' }} />
-          <Text style={{ color: '#fff' }}>
+          <Divider type="vertical" />
+          <Text>
             <FileImageOutlined /> {ecografia.tipo_ecografia || 'Ecografía'}
           </Text>
-          <Tag color="blue">{ecografia.paciente_nombre}</Tag>
-          <Tag color="green">{dayjs(ecografia.fecha).format('DD/MM/YYYY')}</Tag>
+          <Tag color="processing">{ecografia.paciente_nombre}</Tag>
+          <Tag color="success">{dayjs(ecografia.fecha).format('DD/MM/YYYY')}</Tag>
         </Space>
       </Col>
       <Col>

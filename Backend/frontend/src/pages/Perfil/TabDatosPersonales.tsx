@@ -77,15 +77,15 @@ const TabDatosPersonales: React.FC<TabDatosPersonalesProps> = ({
 
     <Form.Item label="Foto de Perfil">
       {uploadProgress > 0 && uploadProgress < 100 && (
-        <Progress percent={uploadProgress} style={{ marginBottom: 12 }} />
+        <Progress percent={uploadProgress} className="perfil-page__progreso" />
       )}
       <Upload {...uploadProps} listType="picture-card" maxCount={1}>
-        <div>
-          <UploadOutlined style={{ fontSize: 24 }} />
-          <div style={{ marginTop: 8 }}>Subir Foto</div>
+        <div className="perfil-page__subir">
+          <UploadOutlined />
+          <div>Subir Foto</div>
         </div>
       </Upload>
-      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
+      <Text type="secondary" className="perfil-page__ayuda">
         JPG o PNG, máximo 2MB. Se guarda al hacer clic en "Guardar Cambios".
       </Text>
     </Form.Item>

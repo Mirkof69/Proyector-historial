@@ -5,7 +5,7 @@ import {
   Typography, Statistic, Alert,
 } from 'antd';
 import {
-  HistoryOutlined, ScanOutlined, WomanOutlined, ExperimentOutlined,
+  HistoryOutlined, ScanOutlined, WomanOutlined, ExperimentOutlined, LineChartOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useAntdApp } from '../../../hooks/useMessage';
@@ -81,7 +81,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={8}>
           <Card
-            title={embarazoActivo?.estado === 'activo' ? "🤰 Embarazo Actual" : "📋 Embarazo Más Reciente"}
+            title={embarazoActivo?.estado === 'activo' ? "Embarazo Actual" : "Embarazo Más Reciente"}
             className="card-shadow"
             extra={
               embarazoActivo ? (
@@ -94,7 +94,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
           >
             {embarazoActivo ? (
               <div style={{ textAlign: 'center' }}>
-                <Progress type="circle" percent={porcentaje} format={() => `${semanas}.${dias} sem`} size={120} strokeColor={embarazoActivo.estado === 'activo' ? "#1890ff" : "#8c8c8c"} />
+                <Progress type="circle" percent={porcentaje} format={() => `${semanas}.${dias} sem`} size={120} strokeColor={embarazoActivo.estado === 'activo' ? 'var(--color-primario)' : 'var(--color-texto-3)'} />
                 <div style={{ marginTop: 20, textAlign: 'left' }}>
                   <Descriptions column={1} size="small" bordered>
                     <Descriptions.Item label="FPP (FUM)">{dayjs(embarazoActivo.fecha_probable_parto).format('DD MMM YYYY')}</Descriptions.Item>
@@ -112,7 +112,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
         </Col>
 
         <Col xs={24} lg={16}>
-          <Card title="📈 Evolución: Altura Uterina vs Semanas" className="card-shadow">
+          <Card title={<><LineChartOutlined /> Evolución: Altura Uterina vs Semanas</>} className="card-shadow">
             {controles.length > 1 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <ComposedChart data={datosGraficas}>
@@ -121,10 +121,10 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
                   <YAxis />
                   <RechartsTooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="p90" stroke="none" fill="#e6f7ff" name="P90" />
-                  <Area type="monotone" dataKey="p10" stroke="none" fill="#ffffff" name="P10" />
-                  <Line type="monotone" dataKey="au" stroke="#ff4d4f" strokeWidth={2} name="Altura Uterina (cm)" dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="p50" stroke="#8c8c8c" strokeDasharray="5 5" name="Referencia P50" dot={false} />
+                  <Area type="monotone" dataKey="p90" stroke="none" fill="var(--color-primario-suave)" name="P90" />
+                  <Area type="monotone" dataKey="p10" stroke="none" fill="var(--color-superficie)" fillOpacity={1} name="P10" />
+                  <Line type="monotone" dataKey="au" stroke="var(--grafico-5)" strokeWidth={2} name="Altura Uterina (cm)" dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="p50" stroke="var(--color-texto-3)" strokeDasharray="5 5" name="Referencia P50" dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             ) : <Empty description="Insuficientes datos para graficar" />}
@@ -204,7 +204,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
                 mode="left"
                 items={[
                   {
-                    color: 'green',
+                    color: 'var(--color-exito)',
                     label: dayjs(embarazoActivo.fecha_ultima_menstruacion).format('DD/MM/YYYY'),
                     children: (
                       <>
@@ -215,21 +215,21 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
                   },
                   ...controles.map((control: any) => ({
                     key: `control-${control.id}`,
-                    color: 'blue',
+                    color: 'var(--color-primario)',
                     label: dayjs(control.fecha).format('DD/MM/YYYY'),
                     children: (
                       <>
                         <strong>Control Prenatal - {control.semanas_gestacion} sem</strong>
                         <div>
                           Peso: {control.peso_actual}kg | PA: {control.presion_arterial_sistolica}/{control.presion_arterial_diastolica} mmHg
-                          {control.observaciones && <div style={{ fontSize: 12, color: '#8c8c8c' }}>{control.observaciones.substring(0, 80)}…</div>}
+                          {control.observaciones && <div className="historia-nota texto-ayuda">{control.observaciones.substring(0, 80)}…</div>}
                         </div>
                       </>
                     )
                   })),
                   ...ecografias.map((eco: any) => ({
                     key: `eco-${eco.id}`,
-                    color: 'purple',
+                    color: 'gray',
                     label: dayjs(eco.fecha).format('DD/MM/YYYY'),
                     dot: <ScanOutlined style={{ fontSize: 16 }} />,
                     children: (
@@ -256,7 +256,7 @@ const DashboardObstetrico: React.FC<DashboardObstetricoProps> = React.memo(({
                     )
                   })),
                   ...(embarazoActivo.estado === 'activo' ? [{
-                    color: 'gold',
+                    color: 'var(--color-aviso)',
                     label: dayjs(embarazoActivo.fecha_probable_parto).format('DD/MM/YYYY'),
                     dot: <WomanOutlined style={{ fontSize: 16 }} />,
                     children: (
@@ -308,7 +308,7 @@ const UltimosSignosVitales: React.FC<UltimosSignosVitalesProps> = React.memo(({ 
             : 'N/D'
         }
         valueStyle={{
-          color: (control.presion_arterial_sistolica || 0) >= 140 ? 'red' : 'black'
+          color: (control.presion_arterial_sistolica || 0) >= 140 ? 'var(--color-peligro)' : undefined
         }}
       />
     </Col>

@@ -27,25 +27,24 @@ const DetalleCitaSidebar: React.FC<DetalleCitaSidebarProps> = ({
     {cita.dias_hasta_cita !== undefined && (
       <Row gutter={[16, 16]}>
         <Col xs={24}>
-          <Card hoverable>
+          <Card
+            size="small"
+            className={`citas-page__cifra-sola ${cita.dias_hasta_cita < 0 ? 'citas-page__cifra--peligro' : cita.dias_hasta_cita <= 3 ? 'citas-page__cifra--aviso' : 'citas-page__cifra--exito'}`}
+          >
             <Statistic
-              title="Días hasta la cita"
+              title={<><CalendarOutlined />Días hasta la cita</>}
               value={cita.dias_hasta_cita}
               suffix="días"
-              prefix={<CalendarOutlined />}
-              valueStyle={{
-                color: cita.dias_hasta_cita < 0 ? '#ff4d4f' : cita.dias_hasta_cita <= 3 ? '#faad14' : '#52c41a'
-              }}
             />
           </Card>
         </Col>
       </Row>
     )}
 
-    <Card title="Acciones Rápidas" size="small" style={{ marginTop: 16 }}>
-      <Space direction="vertical" style={{ width: '100%' }}>
+    <Card title="Acciones Rápidas" size="small" className="citas-arriba">
+      <Space direction="vertical" className="citas-ancho">
         {cita.estado === 'agendada' && (
-          <Button type="primary" icon={<CheckCircleOutlined />} onClick={onConfirmar} block>
+          <Button icon={<CheckCircleOutlined />} onClick={onConfirmar} block>
             Confirmar Cita
           </Button>
         )}
@@ -66,12 +65,12 @@ const DetalleCitaSidebar: React.FC<DetalleCitaSidebarProps> = ({
       <Card
         title={
           <>
-            <HistoryOutlined style={{ marginRight: 8 }} />
+            <HistoryOutlined /> 
             Historial de Cambios
           </>
         }
         size="small"
-        style={{ marginTop: 16 }}
+        className="citas-arriba"
       >
         <Timeline
           items={cita.historial.map((h) => ({
@@ -86,7 +85,7 @@ const DetalleCitaSidebar: React.FC<DetalleCitaSidebarProps> = ({
                 {h.observacion && (
                   <>
                     <br />
-                    <small style={{ color: '#8c8c8c' }}>{h.observacion}</small>
+                    <small className="citas-page__secundario">{h.observacion}</small>
                   </>
                 )}
               </>

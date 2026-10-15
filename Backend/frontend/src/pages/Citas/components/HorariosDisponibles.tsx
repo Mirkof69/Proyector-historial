@@ -24,7 +24,7 @@ const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
 
   if (loadingHorarios) {
     return (
-      <Card size="small" title="Horarios Disponibles" style={{ marginTop: 16 }}>
+      <Card size="small" title="Horarios Disponibles" className="citas-arriba">
         <Spin />
       </Card>
     );
@@ -38,16 +38,16 @@ const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
   const ocupados = horariosDisponibles.filter(h => !h.disponible);
 
   return (
-    <Card size="small" title="Horarios Disponibles" style={{ marginTop: 16 }}>
+    <Card size="small" title="Horarios Disponibles" className="citas-arriba">
       {disponibles.length > 0 && (
-        <div style={{ marginBottom: 8 }}>
+        <div>
           <strong>Disponibles:</strong>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+          <div className="citas-page__horarios">
             {disponibles.map((h) => (
               <Tag
                 key={h.hora}
-                color="green"
-                style={{ cursor: 'pointer' }}
+                color="success"
+                className="citas-page__horario-libre tabular-nums"
                 onClick={() => onHoraSelect(h.hora)}
               >
                 {h.hora}
@@ -59,10 +59,10 @@ const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
       {ocupados.length > 0 && (
         <div>
           <strong>Ocupados:</strong>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+          <div className="citas-page__horarios">
             {ocupados.map((h) => (
               <Tooltip key={h.hora} title={h.motivo || 'No disponible'}>
-                <Tag color="red">{h.hora}</Tag>
+                <Tag color="error" className="tabular-nums">{h.hora}</Tag>
               </Tooltip>
             ))}
           </div>

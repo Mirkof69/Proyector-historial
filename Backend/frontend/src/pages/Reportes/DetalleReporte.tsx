@@ -16,6 +16,8 @@ import TabInfoGeneralReporte from './components/TabInfoGeneralReporte';
 import TabFiltrosReporte from './components/TabFiltrosReporte';
 import TabVistaPreviaPdfReporte from './components/TabVistaPreviaPdfReporte';
 
+import './Reportes.css';
+
 const { Title, Text } = Typography;
 
 const DetalleReporte: React.FC = () => {
@@ -107,7 +109,7 @@ const DetalleReporte: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: 50, textAlign: 'center' }}>
+      <div className="reportes-cargando">
         <Spin size="large" tip="Cargando información del reporte…"><div /></Spin>
       </div>
     );
@@ -132,29 +134,22 @@ const DetalleReporte: React.FC = () => {
   if (!reporte) return null;
 
   return (
-    <div className="animate-fade-in">
-      <Card
-        style={{ marginBottom: 20 }}
-        title={
-          <Space align="center">
+    <div className="reportes-page page-container">
+      <header className="reportes-page__cabecera">
+        <div>
+          <Title level={2}>
+            <IconoFormatoReporte formato={reporte.formato} /> {reporte.titulo}
+          </Title>
+          <Text type="secondary" className="tabular-nums">
+            ID: {reporte.id} • Generado el {new Date(reporte.fecha_creacion).toISOString().slice(0, 16).replace('T', ' ')}
+          </Text>
+        </div>
+          <Space wrap className="no-print">
             <Button
               icon={<ArrowLeftOutlined />}
-              type="text"
               onClick={() => navigate('/dashboard/reportes')}
+              aria-label="Volver"
             />
-            <Space direction="vertical" size={0}>
-              <Space>
-                <IconoFormatoReporte formato={reporte.formato} />
-                <Title level={4} style={{ margin: 0 }}>{reporte.titulo}</Title>
-              </Space>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                ID: {reporte.id} • Generado el {new Date(reporte.fecha_creacion).toISOString().slice(0, 16).replace('T', ' ')}
-              </Text>
-            </Space>
-          </Space>
-        }
-        extra={
-          <Space>
             {reporte.estado === 'TERMINADO' && (
               <>
                 <Tooltip title="Imprimir ficha técnica del reporte">
@@ -187,8 +182,8 @@ const DetalleReporte: React.FC = () => {
               </Button>
             </Tooltip>
           </Space>
-        }
-      >
+      </header>
+      <Card>
         <Tabs defaultActiveKey="1" items={[
           {
             key: "1",

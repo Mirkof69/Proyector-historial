@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
-  Card, Table, Empty, Button, Form, Spin
+  Card, Table, Empty, Button, Form, Spin, Typography
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
-import {
-  WarningOutlined, PlusOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { reportesService, AlertaMedica } from '../../services/reportesService';
 import dayjs from 'dayjs';
@@ -18,6 +16,8 @@ import AlertasMedicasFiltros from './components/AlertasMedicasFiltros';
 import AlertaMedicaDetalleDrawer from './components/AlertaMedicaDetalleDrawer';
 import NuevaAlertaModal from './components/NuevaAlertaModal';
 import { incluyeTexto } from '../../utils/texto';
+
+const { Title, Text } = Typography;
 
 const AlertasMedicas: React.FC = () => {
   const {modal,  message } = useAntdApp();
@@ -169,12 +169,21 @@ const AlertasMedicas: React.FC = () => {
   const alertasHoy = alertas.filter(a => dayjs(a.fecha_creacion).isSame(dayjs(), 'day')).length;
 
   return (
-    <div className="alertas-page page-container" style={{ padding: 24 }} suppressHydrationWarning>
+    <div className="alertas-page page-container" suppressHydrationWarning>
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1><WarningOutlined style={{ color: '#fa8c16' }} /> Alertas Médicas</h1>
-        <p style={{ color: '#666' }}>Monitoreo y gestión de alertas clínicas del sistema</p>
-      </div>
+      <header className="alertas-page__cabecera">
+        <div>
+          <Title level={2}>Alertas Médicas</Title>
+          <Text type="secondary">Monitoreo y gestión de alertas clínicas del sistema</Text>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setState(prev => ({ ...prev, modalNuevaAlerta: true }))}
+        >
+          Nueva Alerta
+        </Button>
+      </header>
 
       {/* Estadísticas */}
       <AlertasMedicasStats
@@ -208,7 +217,7 @@ const AlertasMedicas: React.FC = () => {
               description="No se encontraron alertas con los filtros aplicados"
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             >
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => setState(prev => ({ ...prev, modalNuevaAlerta: true }))}>
+              <Button icon={<PlusOutlined />} onClick={() => setState(prev => ({ ...prev, modalNuevaAlerta: true }))}>
                 Crear Primera Alerta
               </Button>
             </Empty>
@@ -225,6 +234,7 @@ const AlertasMedicas: React.FC = () => {
                 showTotal: (total) => `Total: ${total} alertas`
               }}
               rowClassName={(record) => record.estado === 'activa' && (record.prioridad === 'critica' || record.prioridad === 'emergencia') ? 'alerta-critica-row' : ''}
+              scroll={{ x: 1100 }}
             />
           )}
         </Spin>

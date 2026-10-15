@@ -24,7 +24,7 @@ interface BishopFormProps {
 
 const BishopForm: React.FC<BishopFormProps> = ({ form, loading, resultado, radarData, onFinish, onReset }) => (
   <>
-    <Card title="Evaluación de Parámetros Cervicales" variant="borderless">
+    <Card title="Evaluación de Parámetros Cervicales">
       <Form
         form={form}
         layout="vertical"
@@ -88,8 +88,8 @@ const BishopForm: React.FC<BishopFormProps> = ({ form, loading, resultado, radar
     </Card>
 
     {resultado && (
-      <Card title="Distribución de Parámetros" style={{ marginTop: 16 }}>
-        <Suspense fallback={<div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}>
+      <Card title="Distribución de Parámetros" className="calc-bloque-arriba">
+        <Suspense fallback={<div className="calc-cargando"><Spin /></div>}>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={radarData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -97,8 +97,8 @@ const BishopForm: React.FC<BishopFormProps> = ({ form, loading, resultado, radar
               <YAxis domain={BISHOP_DOMAIN} />
               <Tooltip />
               <Legend />
-              <Bar name="Valor Actual" dataKey="valor" fill="#1890ff" />
-              <Bar name="Máximo" dataKey="maxValor" fill="#52c41a" opacity={0.3} />
+              <Bar name="Valor Actual" dataKey="valor" fill="var(--grafico-1)" />
+              <Bar name="Máximo" dataKey="maxValor" fill="var(--color-borde-fuerte)" />
             </BarChart>
           </ResponsiveContainer>
         </Suspense>

@@ -19,7 +19,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
     </Divider>
 
     <Row gutter={16}>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="altura_uterina"
           label="Altura Uterina (cm)"
@@ -38,7 +38,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
           ]}
         >
           <InputNumber
-            style={{ width: '100%' }}
+            className="u-ancho"
             min={10}
             max={50}
             step={0.1}
@@ -47,7 +47,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
           />
         </Form.Item>
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="frecuencia_cardiaca_fetal"
           label="FCF (lpm)"
@@ -63,7 +63,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
               80 a 90 (una bradicardia guardada como casi normal). Fuera de
               110-160 se guarda y el sistema alerta. */}
           <InputNumber
-            style={{ width: '100%' }}
+            className="u-ancho"
             min={50}
             max={300}
             placeholder="110-160"
@@ -71,7 +71,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
           />
         </Form.Item>
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="presentacion_fetal"
           label="Presentación"
@@ -93,7 +93,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
     </Row>
 
     <Row gutter={16}>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="movimientos_fetales"
           label="Movimientos Fetales"
@@ -113,7 +113,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
           </Select>
         </Form.Item>
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="edema"
           label="Edema"
@@ -133,7 +133,7 @@ const SeccionExamenObstetrico: React.FC<SeccionExamenObstetricoProps> = ({ seman
           </Select>
         </Form.Item>
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="proteinuria"
           label="Proteinuria"

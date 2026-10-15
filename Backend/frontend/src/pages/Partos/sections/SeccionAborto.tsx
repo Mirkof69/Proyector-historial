@@ -14,8 +14,8 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
     <>
       <Divider orientation="left">
         <Space>
-          <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />
-          <strong style={{ color: '#ff4d4f' }}>PROTOCOLO DE ABORTO</strong>
+          <ExclamationCircleOutlined className="partos-peligro" />
+          <strong className="partos-peligro">PROTOCOLO DE ABORTO</strong>
         </Space>
       </Divider>
 
@@ -26,7 +26,7 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
             label="Fecha del Evento"
             rules={[{ required: true, message: 'Ingrese fecha del evento' }]}
           >
-            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
           </Form.Item>
         </Col>
 
@@ -40,7 +40,7 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
               placeholder="Ej: 12"
               min={1}
               max={19}
-              style={{ width: '100%' }}
+              className="partos-ancho"
               onChange={(value) => {
                 const dias = form.getFieldValue('dias_gestacion') || 0;
                 if (value !== null) {
@@ -61,7 +61,7 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
               placeholder="Ej: 3"
               min={0}
               max={6}
-              style={{ width: '100%' }}
+              className="partos-ancho"
               onChange={(value) => {
                 const semanas = form.getFieldValue('semanas_gestacion') || 0;
                 if (value !== null) {
@@ -73,7 +73,7 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
         </Col>
       </Row>
 
-      <Divider orientation="left" style={{ marginTop: 24 }}>Datos del Aborto</Divider>
+      <Divider orientation="left">Datos del Aborto</Divider>
 
       <Row gutter={16}>
         <Col span={12}>
@@ -85,10 +85,10 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
           >
             <Select placeholder="Seleccione tipo de aborto" size="large">
               <Option value="espontaneo">
-                <Space><WarningOutlined style={{ color: '#faad14' }} />Espontáneo</Space>
+                <Space><WarningOutlined className="partos-aviso" />Espontáneo</Space>
               </Option>
               <Option value="inducido">
-                <Space><ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />Inducido Terapéutico</Space>
+                <Space><ExclamationCircleOutlined className="partos-peligro" />Inducido Terapéutico</Space>
               </Option>
               <Option value="incompleto">Incompleto</Option>
               <Option value="completo">Completo</Option>
@@ -120,13 +120,13 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item name="apoyo_psicologico_realizado" valuePropName="checked">
-            <Checkbox>✅ Se proporcionó apoyo psicológico</Checkbox>
+            <Checkbox>Se proporcionó apoyo psicológico</Checkbox>
           </Form.Item>
         </Col>
 
         <Col span={12}>
           <Form.Item name="protocolo_duelo_aplicado" valuePropName="checked">
-            <Checkbox>✅ Se aplicó protocolo de duelo</Checkbox>
+            <Checkbox>Se aplicó protocolo de duelo</Checkbox>
           </Form.Item>
         </Col>
       </Row>
@@ -134,10 +134,10 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item name="hemorragia_postparto" valuePropName="checked">
-            <Checkbox>⚠️ Hemorragia post-evacuación</Checkbox>
+            <Checkbox>Hemorragia post-evacuación</Checkbox>
           </Form.Item>
           <Form.Item name="perdida_sanguinea_estimada" label="Pérdida Sanguínea (mL)">
-            <InputNumber min={0} step={50} placeholder="0" style={{ width: '100%' }} />
+            <InputNumber min={0} step={50} placeholder="0" className="partos-ancho" />
           </Form.Item>
         </Col>
 

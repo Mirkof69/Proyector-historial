@@ -110,7 +110,7 @@ const GraficoPesoMaterno: React.FC<Props> = ({
                 </Text>
                 <br />
                 <Text type="secondary">
-                    Ganancia actual: <Text strong style={{ color: fueraDeRango ? '#ff4d4f' : '#52c41a' }}>
+                    Ganancia actual: <Text strong style={{ color: fueraDeRango ? 'var(--color-peligro)' : 'var(--color-exito)' }}>
                         {safeNum(gananciaTotal).toFixed(1)} kg
                     </Text>
                 </Text>
@@ -134,8 +134,8 @@ const GraficoPesoMaterno: React.FC<Props> = ({
                 <AreaChart data={dataConRangos} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
                         <linearGradient id="colorRangoPeso" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#52c41a" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#52c41a" stopOpacity={0.1} />
+                            <stop offset="5%" stopColor="var(--color-exito)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="var(--color-exito)" stopOpacity={0.1} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -167,22 +167,22 @@ const GraficoPesoMaterno: React.FC<Props> = ({
                         type="monotone"
                         dataKey="peso_esperado_min"
                         stroke="none"
-                        fill="#fff"
+                        fill="var(--color-superficie)"
                         name=""
                     />
 
                     <Line
                         type="monotone"
                         dataKey="peso_actual"
-                        stroke="#1890ff"
+                        stroke="var(--color-primario)"
                         strokeWidth={3}
-                        dot={{ r: 5, fill: '#1890ff' }}
+                        dot={{ r: 5, fill: 'var(--color-primario)' }}
                         name="Peso Actual"
                     />
 
                     <ReferenceLine
                         y={pesoPregestacional}
-                        stroke="#722ed1"
+                        stroke="var(--grafico-6)"
                         strokeDasharray="3 3"
                         label="Peso Pregestacional"
                     />

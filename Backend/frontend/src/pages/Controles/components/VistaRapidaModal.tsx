@@ -5,8 +5,7 @@ import {
 } from 'antd';
 import {
   EditOutlined, MedicineBoxOutlined, EyeOutlined, CheckCircleOutlined,
-  SearchOutlined, ExportOutlined,
-} from '@ant-design/icons';
+  SearchOutlined, ExportOutlined, LinkOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { ControlPrenatal } from '../../../services/controlesService';
 import { Embarazo } from '../../../services/embarazosService';
@@ -34,13 +33,13 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
   handleCloseModal, handleEdit, navigate, getNombrePaciente, getIdClinicoPaciente,
   getEdadGestacional, getPresionArterial, calcularIMC,
 }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={
       <Space>
         <MedicineBoxOutlined />
         Vista Rápida del Control
         {controlVistaRapida && (
-          <Tag color="blue">#{controlVistaRapida.numero_control}</Tag>
+          <Tag color="processing">#{controlVistaRapida.numero_control}</Tag>
         )}
       </Space>
     }
@@ -73,13 +72,13 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
             <Text strong>{getNombrePaciente(editingControl)}</Text>
           </Descriptions.Item>
           <Descriptions.Item label="ID Clínico">
-            <Tag color="blue">{getIdClinicoPaciente(editingControl)}</Tag>
+            <Tag color="processing">{getIdClinicoPaciente(editingControl)}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Fecha Control">
             {dayjs(editingControl.fecha_control).format('DD/MM/YYYY')}
           </Descriptions.Item>
           <Descriptions.Item label="Edad Gestacional">
-            <Tag color="cyan">{getEdadGestacional(editingControl)}</Tag>
+            <Tag>{getEdadGestacional(editingControl)}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="N° Control">
             {editingControl.numero_control}
@@ -98,8 +97,8 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
                 color:
                   (editingControl.presion_arterial_sistolica || 0) >= 140 ||
                     (editingControl.presion_arterial_diastolica || 0) >= 90
-                    ? '#cf1322'
-                    : '#3f8600',
+                    ? 'var(--color-peligro)'
+                    : 'var(--color-exito)',
               }}
             />
           </Col>
@@ -113,8 +112,8 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
                   editingControl.frecuencia_cardiaca_fetal &&
                     (editingControl.frecuencia_cardiaca_fetal < 110 ||
                       editingControl.frecuencia_cardiaca_fetal > 160)
-                    ? '#cf1322'
-                    : '#3f8600',
+                    ? 'var(--color-peligro)'
+                    : 'var(--color-exito)',
               }}
             />
           </Col>
@@ -156,7 +155,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
             <Divider>Datos del Embarazo</Divider>
             <Descriptions bordered column={2} size="small">
               <Descriptions.Item label="Estado">
-                <Tag color={selectedEmbarazo.estado === 'activo' ? 'green' : 'default'}>
+                <Tag color={selectedEmbarazo.estado === 'activo' ? 'success' : 'default'}>
                   {selectedEmbarazo.estado}
                 </Tag>
               </Descriptions.Item>
@@ -177,7 +176,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
             <Alert
               message={`${alertasPreview.length} Alerta(s) Detectada(s)`}
               description={
-                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                <ul className="pc-lista">
                   {alertasPreview.map((alerta) => (
                     <li key={`alerta-${alerta}`}>{alerta}</li>
                   ))}
@@ -189,14 +188,14 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
           </>
         )}
 
-        <Divider orientation="left">🔗 Acceso Rápido a Módulos</Divider>
-        <Card size="small" style={{ marginBottom: 16 }}>
-          <Space direction="vertical" style={{ width: '100%' }} size="small">
+        <Divider orientation="left"><LinkOutlined /> Acceso Rápido a Módulos</Divider>
+        <Card size="small" className="u-mb-4">
+          <Space direction="vertical" className="u-ancho" size="small">
             <Button
               type="link"
               icon={<EyeOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 handleCloseModal();
                 navigate(`/dashboard/pacientes?id=${editingControl.paciente}`);
@@ -208,7 +207,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
               type="link"
               icon={<MedicineBoxOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 handleCloseModal();
                 navigate(`/dashboard/embarazos?id=${editingControl.embarazo}`);
@@ -220,7 +219,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
               type="link"
               icon={<SearchOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 handleCloseModal();
                 navigate(`/dashboard/ecografias?embarazo=${editingControl.embarazo}`);
@@ -232,7 +231,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
               type="link"
               icon={<ExportOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 handleCloseModal();
                 navigate(`/dashboard/laboratorio?embarazo=${editingControl.embarazo}`);
@@ -244,7 +243,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
               type="link"
               icon={<CheckCircleOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 handleCloseModal();
                 navigate(`/dashboard/citas?embarazo=${editingControl.embarazo}`);
@@ -256,7 +255,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
               type="link"
               icon={<MedicineBoxOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 handleCloseModal();
                 navigate(`/dashboard/partos?embarazo=${editingControl.embarazo}`);
@@ -264,7 +263,7 @@ const VistaRapidaModal: React.FC<VistaRapidaModalProps> = ({
             >
               Ver Información de Parto
             </Button>
-            <Divider style={{ margin: '8px 0' }} />
+            <Divider className="u-mv-2" />
             <Button
               type="primary"
               icon={<ExportOutlined />}

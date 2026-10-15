@@ -11,7 +11,7 @@ export const columnsRiesgoCromosomico = [
     dataIndex: 'riesgo_t21',
     key: 'riesgo_t21',
     render: (val: number) => {
-      const color = val >= 1 / 250 ? 'red' : val >= 1 / 1000 ? 'orange' : 'green';
+      const color = val >= 1 / 250 ? 'error' : val >= 1 / 1000 ? 'warning' : 'success';
       return <Tag color={color}>{formatRiesgo(val)}</Tag>;
     }
   },
@@ -20,7 +20,7 @@ export const columnsRiesgoCromosomico = [
     dataIndex: 'riesgo_t18',
     key: 'riesgo_t18',
     render: (val: number) => {
-      const color = val >= 1 / 250 ? 'red' : val >= 1 / 1000 ? 'orange' : 'green';
+      const color = val >= 1 / 250 ? 'error' : val >= 1 / 1000 ? 'warning' : 'success';
       return <Tag color={color}>{formatRiesgo(val)}</Tag>;
     }
   },
@@ -29,7 +29,7 @@ export const columnsRiesgoCromosomico = [
     dataIndex: 'riesgo_t13',
     key: 'riesgo_t13',
     render: (val: number) => {
-      const color = val >= 1 / 250 ? 'red' : val >= 1 / 1000 ? 'orange' : 'green';
+      const color = val >= 1 / 250 ? 'error' : val >= 1 / 1000 ? 'warning' : 'success';
       return <Tag color={color}>{formatRiesgo(val)}</Tag>;
     }
   },

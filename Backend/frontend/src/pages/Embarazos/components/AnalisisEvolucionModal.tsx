@@ -14,7 +14,7 @@ interface AnalisisEvolucionModalProps {
 const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
   visible, onClose, total, stats,
 }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={<Space><LineChartOutlined /> Análisis de Evolución de Embarazos</Space>}
     open={visible}
     onCancel={onClose}
@@ -36,14 +36,14 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
             `}
                 type="info"
                 showIcon
-                style={{ marginBottom: 16 }}
+                className="u-mb-4"
               />
               <Row gutter={16}>
                 <Col span={12}>
-                  <Statistic title="Tasa de Alto Riesgo" value={stats.activos > 0 ? ((stats.altoRiesgo / stats.activos) * 100).toFixed(1) : 0} suffix="%" valueStyle={{ color: '#cf1322' }} />
+                  <Statistic title="Tasa de Alto Riesgo" value={stats.activos > 0 ? ((stats.altoRiesgo / stats.activos) * 100).toFixed(1) : 0} suffix="%" className="u-cifra-peligro" />
                 </Col>
                 <Col span={12}>
-                  <Statistic title="Embarazos a Término" value={stats.termino} suffix={`/ ${stats.activos}`} valueStyle={{ color: '#3f8600' }} />
+                  <Statistic title="Embarazos a Término" value={stats.termino} suffix={`/ ${stats.activos}`} className="u-cifra-exito" />
                 </Col>
               </Row>
             </Card>
@@ -76,7 +76,7 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
               />
               <Divider />
               <Text strong>Principales Factores de Riesgo Detectados:</Text>
-              <ul style={{ marginTop: 10 }}>
+              <ul className="u-mt-2">
                 <li>Edad materna {'>'} 35 años: Aumenta riesgo 2.3x</li>
                 <li>IMC {'>'} 30: Aumenta riesgo 1.8x (preeclampsia, diabetes gestacional)</li>
                 <li>Cesáreas previas ≥ 2: Aumenta riesgo de complicaciones uterinas</li>
@@ -103,7 +103,7 @@ const AnalisisEvolucionModal: React.FC<AnalisisEvolucionModalProps> = ({
                     dataIndex: 'estado',
                     key: 'estado',
                     render: (estado: string) => (
-                      <Tag color={estado === 'conforme' ? 'green' : 'red'}>
+                      <Tag color={estado === 'conforme' ? 'success' : 'error'}>
                         {estado === 'conforme' ? 'Conforme' : 'No Conforme'}
                       </Tag>
                     )

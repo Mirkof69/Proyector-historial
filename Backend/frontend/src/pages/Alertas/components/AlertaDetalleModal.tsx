@@ -48,7 +48,7 @@ const AlertaDetalleModal: React.FC<AlertaDetalleModalProps> = ({
           description={alertaSeleccionada.descripcion}
           type={alertaSeleccionada.tipo === 'critica' ? 'error' : alertaSeleccionada.tipo === 'alta' ? 'warning' : 'info'}
           showIcon
-          style={{ marginBottom: 16 }}
+          className="alerta-detalle__aviso"
         />
 
         <Divider orientation="left">Información del Paciente</Divider>

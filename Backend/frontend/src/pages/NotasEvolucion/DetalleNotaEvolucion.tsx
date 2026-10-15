@@ -8,10 +8,10 @@ import { notasEvolucionService, NotaEvolucion } from '../../services/notasEvoluc
 const { Title, Text } = Typography;
 
 const tipoConsultaColors: Record<string, string> = {
-  control_prenatal: 'blue',
-  urgencia: 'red',
-  seguimiento: 'green',
-  primera_vez: 'purple',
+  control_prenatal: 'default',
+  urgencia: 'error',
+  seguimiento: 'default',
+  primera_vez: 'default',
 };
 
 const DetalleNotaEvolucion: React.FC = () => {

@@ -52,7 +52,7 @@ const PasoConfiguracion: React.FC<PasoConfiguracionProps> = ({ tipoDetalle }) =>
             label={
               <Space>
                 Descripción (Opcional)
-                <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                <InfoCircleOutlined className="reportes-texto-info" />
               </Space>
             }
             tooltip="Descripción adicional del reporte"
@@ -76,7 +76,7 @@ const PasoConfiguracion: React.FC<PasoConfiguracionProps> = ({ tipoDetalle }) =>
               {formatosDisponibles.includes('pdf') && (
                 <Radio value="pdf">
                   <Space>
-                    <FilePdfOutlined style={{ color: '#ff4d4f' }} />
+                    <FilePdfOutlined className="reportes-icono-pdf" />
                     PDF
                   </Space>
                 </Radio>
@@ -84,7 +84,7 @@ const PasoConfiguracion: React.FC<PasoConfiguracionProps> = ({ tipoDetalle }) =>
               {formatosDisponibles.includes('excel') && (
                 <Radio value="excel">
                   <Space>
-                    <FileExcelOutlined style={{ color: '#52c41a' }} />
+                    <FileExcelOutlined className="reportes-icono-excel" />
                     Excel
                   </Space>
                 </Radio>
@@ -102,7 +102,7 @@ const PasoConfiguracion: React.FC<PasoConfiguracionProps> = ({ tipoDetalle }) =>
               tooltip="Período de tiempo para el reporte"
             >
               <RangePicker
-                style={{ width: '100%' }}
+                className="reportes-ancho"
                 format="DD/MM/YYYY"
                 size="large"
               />

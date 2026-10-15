@@ -1,0 +1,261 @@
+/* =============================================================================
+   PÁGINAS CLÍNICAS — Embarazos, Controles prenatales y Ecografías
+   =============================================================================
+   Contrato: docs/DISENO_INTERFAZ.md. Estas tres secciones comparten estructura
+   (encabezado, cifras, directorio con tabla, detalle, formulario) y unas pocas
+   utilidades de espacio/texto que sustituyen a los antiguos style={{…}} fijos.
+
+   Alcance: la raíz de cada página lleva `.pagina-clinica`; los modales y
+   cajones (que Ant Design monta fuera de la página) llevan
+   rootClassName/className `capa-clinica`. Nada de aquí sale de esas dos raíces.
+   ============================================================================= */
+
+/* ---------- Encabezado de página: título 22/600 + descripción + acciones ---------- */
+.pagina-clinica .pc-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-5);
+}
+
+.pagina-clinica .pc-cabecera__texto {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.pagina-clinica .pc-cabecera__titulo.ant-typography {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: 0 0 var(--esp-1);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+}
+
+.pagina-clinica .pc-cabecera__icono {
+  color: var(--color-primario);
+}
+
+.pagina-clinica .pc-cabecera__descripcion {
+  margin: 0;
+  color: var(--color-texto-2);
+}
+
+.pagina-clinica .pc-cabecera__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+/* ---------- Tarjetas de cifras: etiqueta 13/500, cifra 28/600 tabular ---------- */
+.pagina-clinica .pc-cifras {
+  margin-bottom: var(--esp-5);
+}
+
+.pagina-clinica .pc-cifra {
+  height: 100%;
+}
+
+.pagina-clinica .pc-cifra .ant-statistic-title {
+  margin-bottom: var(--esp-1);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.pagina-clinica .pc-cifra .ant-statistic-content {
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagina-clinica .pc-cifra .ant-statistic-content-prefix {
+  font-size: var(--texto-lg);
+}
+
+.pagina-clinica .pc-cifra__nota {
+  margin-top: var(--esp-2);
+  font-size: var(--texto-xs);
+  color: var(--color-texto-2);
+}
+
+/* ---------- Barra de búsqueda y filtros sobre una tabla ---------- */
+.pagina-clinica .pc-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  margin-bottom: var(--esp-4);
+}
+
+.pagina-clinica .pc-barra__filtros {
+  display: flex;
+  flex: 1 1 480px;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
+.pagina-clinica .pc-barra__buscar {
+  flex: 2 1 240px;
+}
+
+.pagina-clinica .pc-barra__filtro {
+  flex: 1 1 160px;
+}
+
+/* ---------- Formularios: controles a todo el ancho de su columna ---------- */
+:is(.pagina-clinica, .capa-clinica) .ant-form-item .ant-input-number,
+:is(.pagina-clinica, .capa-clinica) .ant-form-item .ant-picker,
+:is(.pagina-clinica, .capa-clinica) .ant-form-item .ant-select {
+  width: 100%;
+}
+
+/* Estado de carga a pantalla de una página de detalle */
+.pagina-clinica .pc-cargando {
+  padding: var(--esp-6) 0;
+  text-align: center;
+}
+
+/* Bloque de texto libre sobre superficie secundaria (observaciones, conclusiones) */
+:is(.pagina-clinica, .capa-clinica) .pc-texto-libre {
+  margin: 0;
+  padding: var(--esp-3);
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+  background-color: var(--color-superficie-2);
+  white-space: pre-wrap;
+}
+
+/* Lista dentro de una alerta */
+:is(.pagina-clinica, .capa-clinica) .pc-lista {
+  margin: 0;
+  padding-inline-start: var(--esp-5);
+}
+
+:is(.pagina-clinica, .capa-clinica) .pc-lista li + li {
+  margin-top: var(--esp-1);
+}
+
+/* Insignia de conteo neutra (el rojo por defecto de Badge significa alarma) */
+:is(.pagina-clinica, .capa-clinica) .pc-insignia .ant-badge-count {
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+  box-shadow: none;
+}
+
+:is(.pagina-clinica, .capa-clinica) .pc-insignia--exito .ant-badge-count {
+  background-color: var(--color-exito-suave);
+  color: var(--color-exito);
+}
+
+:is(.pagina-clinica, .capa-clinica) .pc-insignia--peligro .ant-badge-count {
+  background-color: var(--color-peligro-suave);
+  color: var(--color-peligro);
+}
+
+/* Avatar de paciente: superficie de marca suave */
+:is(.pagina-clinica, .capa-clinica) .pc-avatar.ant-avatar {
+  flex-shrink: 0;
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+}
+
+/* ---------- Utilidades (sustituyen estilos en línea fijos) ---------- */
+:is(.pagina-clinica, .capa-clinica) .u-ancho { width: 100%; }
+:is(.pagina-clinica, .capa-clinica) .u-alto { height: 100%; }
+:is(.pagina-clinica, .capa-clinica) .u-alto-min { min-height: 80px; }
+
+:is(.pagina-clinica, .capa-clinica) .u-m-0 { margin: 0; }
+:is(.pagina-clinica, .capa-clinica) .u-mv-2 { margin-block: var(--esp-2); }
+:is(.pagina-clinica, .capa-clinica) .u-mv-3 { margin-block: var(--esp-3); }
+:is(.pagina-clinica, .capa-clinica) .u-mb-0 { margin-bottom: 0; }
+:is(.pagina-clinica, .capa-clinica) .u-mb-1 { margin-bottom: var(--esp-1); }
+:is(.pagina-clinica, .capa-clinica) .u-mb-2 { margin-bottom: var(--esp-2); }
+:is(.pagina-clinica, .capa-clinica) .u-mb-3 { margin-bottom: var(--esp-3); }
+:is(.pagina-clinica, .capa-clinica) .u-mb-4 { margin-bottom: var(--esp-4); }
+:is(.pagina-clinica, .capa-clinica) .u-mb-5 { margin-bottom: var(--esp-5); }
+:is(.pagina-clinica, .capa-clinica) .u-mt-1 { margin-top: var(--esp-1); }
+:is(.pagina-clinica, .capa-clinica) .u-mt-2 { margin-top: var(--esp-2); }
+:is(.pagina-clinica, .capa-clinica) .u-mt-3 { margin-top: var(--esp-3); }
+:is(.pagina-clinica, .capa-clinica) .u-mt-4 { margin-top: var(--esp-4); }
+:is(.pagina-clinica, .capa-clinica) .u-mt-6 { margin-top: var(--esp-6); }
+:is(.pagina-clinica, .capa-clinica) .u-mt-neg { margin-top: calc(var(--esp-2) * -1); }
+:is(.pagina-clinica, .capa-clinica) .u-ml-2 { margin-inline-start: var(--esp-2); }
+:is(.pagina-clinica, .capa-clinica) .u-ml-5 { margin-inline-start: var(--esp-5); }
+:is(.pagina-clinica, .capa-clinica) .u-mr-2 { margin-inline-end: var(--esp-2); }
+:is(.pagina-clinica, .capa-clinica) .u-p-6 { padding: var(--esp-6); }
+:is(.pagina-clinica, .capa-clinica) .u-p-etiqueta { padding: var(--esp-1) var(--esp-3); }
+
+:is(.pagina-clinica, .capa-clinica) .u-centro { text-align: center; }
+:is(.pagina-clinica, .capa-clinica) .u-derecha { text-align: right; }
+:is(.pagina-clinica, .capa-clinica) .u-izquierda { text-align: start; }
+
+:is(.pagina-clinica, .capa-clinica) .u-bloque { display: block; }
+:is(.pagina-clinica, .capa-clinica) .u-flex { display: flex; }
+:is(.pagina-clinica, .capa-clinica) .u-columna { flex-direction: column; }
+:is(.pagina-clinica, .capa-clinica) .u-envolver { flex-wrap: wrap; }
+:is(.pagina-clinica, .capa-clinica) .u-alinear-centro { align-items: center; }
+:is(.pagina-clinica, .capa-clinica) .u-entre { justify-content: space-between; }
+:is(.pagina-clinica, .capa-clinica) .u-fin { justify-content: flex-end; }
+:is(.pagina-clinica, .capa-clinica) .u-gap-2 { gap: var(--esp-2); }
+
+:is(.pagina-clinica, .capa-clinica) .u-t-xs { font-size: var(--texto-xs); }
+:is(.pagina-clinica, .capa-clinica) .u-t-sm { font-size: var(--texto-sm); }
+:is(.pagina-clinica, .capa-clinica) .u-t-base { font-size: var(--texto-base); }
+:is(.pagina-clinica, .capa-clinica) .u-t-md { font-size: var(--texto-md); }
+:is(.pagina-clinica, .capa-clinica) .u-t-lg { font-size: var(--texto-lg); }
+:is(.pagina-clinica, .capa-clinica) .u-t-xl { font-size: var(--texto-xl); }
+:is(.pagina-clinica, .capa-clinica) .u-t-2xl { font-size: var(--texto-2xl); }
+:is(.pagina-clinica, .capa-clinica) .u-t-icono { font-size: 48px; }
+:is(.pagina-clinica, .capa-clinica) .u-fuerte { font-weight: var(--peso-fuerte); }
+:is(.pagina-clinica, .capa-clinica) .u-medio { font-weight: var(--peso-medio); }
+:is(.pagina-clinica, .capa-clinica) .u-pre { white-space: pre-wrap; }
+:is(.pagina-clinica, .capa-clinica) .u-interlineado-titulo { line-height: var(--interlineado-titulo); }
+
+/* Color de texto: solo estados (u-c-info/exito/aviso/peligro) o jerarquía */
+:is(.pagina-clinica, .capa-clinica) .u-c-texto-2 { color: var(--color-texto-2); }
+:is(.pagina-clinica, .capa-clinica) .u-c-texto-3 { color: var(--color-texto-3); }
+:is(.pagina-clinica, .capa-clinica) .u-c-primario { color: var(--color-primario); }
+:is(.pagina-clinica, .capa-clinica) .u-c-info { color: var(--color-info); }
+:is(.pagina-clinica, .capa-clinica) .u-c-exito { color: var(--color-exito); }
+:is(.pagina-clinica, .capa-clinica) .u-c-aviso { color: var(--color-aviso); }
+:is(.pagina-clinica, .capa-clinica) .u-c-peligro { color: var(--color-peligro); }
+
+/* Móvil: sin desbordes; cabecera y barra en una columna */
+@media (max-width: 768px) {
+  .pagina-clinica .pc-cabecera {
+    margin-bottom: var(--esp-4);
+  }
+
+  .pagina-clinica .pc-cifra .ant-statistic-content {
+    font-size: var(--texto-xl);
+  }
+
+  .pagina-clinica .pc-barra__filtros {
+    flex-basis: 100%;
+  }
+
+  :is(.pagina-clinica, .capa-clinica) .u-p-6 {
+    padding: var(--esp-4);
+  }
+}
+
+/* Unidad o sufijo de una cifra: más pequeño, no compite con el número */
+.pagina-clinica .pc-cifra .ant-statistic-content-suffix {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-normal);
+  color: var(--color-texto-2);
+}
+
+/* Cifra de una Statistic cuyo valor es un estado (o de tamaño medio) */
+:is(.pagina-clinica, .capa-clinica) .u-cifra-peligro .ant-statistic-content { color: var(--color-peligro); }
+:is(.pagina-clinica, .capa-clinica) .u-cifra-aviso .ant-statistic-content { color: var(--color-aviso); }
+:is(.pagina-clinica, .capa-clinica) .u-cifra-exito .ant-statistic-content { color: var(--color-exito); }
+:is(.pagina-clinica, .capa-clinica) .u-cifra-media .ant-statistic-content { font-size: var(--texto-lg); }

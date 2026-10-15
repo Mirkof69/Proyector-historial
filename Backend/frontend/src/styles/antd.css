@@ -1,0 +1,71 @@
+/* =============================================================================
+   ANT DESIGN — solo lo que los tokens no pueden expresar
+   =============================================================================
+   Colores, radios, alturas, fondos, bordes y sombras de Ant Design se fijan
+   en src/config/antd-theme-tokens.ts (ConfigProvider). Ant Design inyecta sus
+   estilos en tiempo de ejecución; pelear con ellos desde aquí obligaba a usar
+   `!important` (había ~600). Esta hoja no pinta colores de componentes.
+
+   Lo que queda, y por qué:
+   ============================================================================= */
+
+/* Cifras clínicas alineadas: no existe token para font-variant-numeric. */
+.ant-statistic-content,
+.ant-table-cell,
+.ant-descriptions-item-content,
+.ant-input-number-input,
+.ant-pagination-item,
+.ant-badge-count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Títulos de Typography con renglones equilibrados (sin token). */
+h1.ant-typography,
+h2.ant-typography,
+h3.ant-typography,
+h4.ant-typography,
+h5.ant-typography,
+.ant-card-head-title,
+.ant-modal-title {
+  text-wrap: balance;
+}
+
+/* Móvil: las tablas anchas se desplazan dentro de su contenedor, nunca la
+   página (contrato: sin scroll horizontal ≤ 768 px). */
+@media (max-width: 768px) {
+  .ant-table-wrapper {
+    max-width: 100%;
+  }
+
+  .ant-table-content {
+    overflow-x: auto;
+  }
+}
+
+/* Impresión: fuera la navegación y los controles. */
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header,
+  .ant-layout-footer,
+  .ant-pagination,
+  .ant-float-btn,
+  .ant-btn {
+    display: none !important; /* gana a los display en línea de Ant Design */
+  }
+
+  .ant-layout-content {
+    margin: 0 !important; /* MainLayout fija el margen en línea */
+  }
+
+  .ant-card,
+  .ant-table {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+}
+
+/* Etiquetas de formulario 13/500 (el tamaño va por token Form.labelFontSize;
+   el peso no tiene token). */
+.ant-form-item-label > label {
+  font-weight: var(--peso-medio);
+}

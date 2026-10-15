@@ -10,6 +10,8 @@ import dayjs from 'dayjs';
 import api from '../../services/api';
 import { useAntdApp } from '../../hooks/useMessage';
 import { usePermissions } from '../../hooks/usePermissions';
+import '../Embarazos/paginaClinica.css';
+import './Ecografias.css';
 
 const { Text } = Typography;
 const URL_ARCHIVOS = '/ecografias-archivos/archivos/';
@@ -113,7 +115,7 @@ const ArchivosEcografia: React.FC = () => {
 
   const columnas = [
     { title: 'Nombre', dataIndex: 'nombre_archivo', key: 'nombre', render: (v: string) => <Text strong>{v}</Text> },
-    { title: 'Tipo', dataIndex: 'tipo_archivo', key: 'tipo', render: (v: string) => <Tag color="cyan">{ETIQUETA_TIPO[v] ?? v}</Tag> },
+    { title: 'Tipo', dataIndex: 'tipo_archivo', key: 'tipo', render: (v: string) => <Tag>{ETIQUETA_TIPO[v] ?? v}</Tag> },
     { title: 'Tamaño', dataIndex: 'tamano_bytes', key: 'tamano', render: formatoTamano },
     { title: 'Subido', dataIndex: 'fecha_subida', key: 'fecha',
       render: (v: string, a: ArchivoEcografia) => <>{v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '—'}{a.subido_por_nombre && <><br /><Text type="secondary">{a.subido_por_nombre}</Text></>}</> },
@@ -140,7 +142,7 @@ const ArchivosEcografia: React.FC = () => {
 
   if (!id) {
     return (
-      <Card title={<span><FileImageOutlined style={{ marginRight: 8 }} />Archivos de la ecografía</span>}>
+      <Card className="pagina-clinica" title={<span><FileImageOutlined className="u-mr-2" />Archivos de la ecografía</span>}>
         <Alert message="Abra una ecografía para ver sus archivos." type="info" showIcon />
       </Card>
     );
@@ -148,7 +150,8 @@ const ArchivosEcografia: React.FC = () => {
 
   return (
     <Card
-      title={<span><FileImageOutlined style={{ marginRight: 8 }} />Archivos de la ecografía</span>}
+      className="pagina-clinica ecografias-archivos"
+      title={<span><FileImageOutlined className="u-mr-2" />Archivos de la ecografía</span>}
       extra={
         <Space>
           <Button onClick={() => navigate(`/dashboard/ecografias/${id}`)}>Volver a la ecografía</Button>
@@ -157,7 +160,7 @@ const ArchivosEcografia: React.FC = () => {
       }
     >
       {canAdd('ecografiaarchivo') && (
-        <Form form={form} layout="inline" onFinish={subir} style={{ marginBottom: 16, rowGap: 8 }}>
+        <Form form={form} layout="inline" onFinish={subir} className="eco-archivos__subir">
           <Form.Item name="archivo" valuePropName="fileList" getValueFromEvent={(e) => e?.fileList}
             rules={[{ required: true, message: 'Elija un archivo' }]}>
             <Upload beforeUpload={() => false} maxCount={1} accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff,.dcm,.pdf,.mp4,.avi">
@@ -165,13 +168,13 @@ const ArchivosEcografia: React.FC = () => {
             </Upload>
           </Form.Item>
           <Form.Item name="descripcion">
-            <Input placeholder="Descripción (opcional)" style={{ width: 260 }} />
+            <Input placeholder="Descripción (opcional)" className="eco-archivos__descripcion" />
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={subiendo}>Subir</Button>
-          <Text type="secondary" style={{ alignSelf: 'center' }}>Imagen, DICOM, PDF o video · hasta 50 MB</Text>
+          <Text type="secondary" className="eco-archivos__ayuda">Imagen, DICOM, PDF o video · hasta 50 MB</Text>
         </Form>
       )}
-      {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 12 }} />}
+      {error && <Alert type="error" showIcon message={error} className="u-mb-3" />}
       <Table
         columns={columnas}
         dataSource={archivos}
@@ -180,8 +183,8 @@ const ArchivosEcografia: React.FC = () => {
         pagination={{ pageSize: 10 }}
         locale={{ emptyText: 'Esta ecografía no tiene archivos adjuntos' }}
       />
-      <Modal open={!!vista} onCancel={() => setVista(null)} footer={null} width={800} title={vista?.nombre_archivo}>
-        {vista && <Image src={vista.archivo} crossOrigin="use-credentials" style={{ width: '100%' }} />}
+      <Modal rootClassName="capa-clinica" open={!!vista} onCancel={() => setVista(null)} footer={null} width={800} title={vista?.nombre_archivo}>
+        {vista && <Image src={vista.archivo} crossOrigin="use-credentials" className="u-ancho" />}
       </Modal>
     </Card>
   );

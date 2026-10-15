@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Form, Row, Col, Typography } from 'antd';
+import { Form, Row, Col } from 'antd';
 import { MedicineBoxOutlined } from '@ant-design/icons';
 import {
   calcularDosis, DatosPaciente, ResultadoDosis, RegistroDosis,
@@ -7,9 +7,8 @@ import {
 import FormDosis from './dosisMedicamentos/FormDosis';
 import ResultadoDosisPanel from './dosisMedicamentos/ResultadoDosisPanel';
 import AnalisisDosis from './dosisMedicamentos/AnalisisDosis';
-import './DosisMedicamentos.css';
-
-const { Title, Text } = Typography;
+import './calculadoraAvanzada.css';
+import CabeceraCalculadora from './components/CabeceraCalculadora';
 
 const DosisMedicamentos: React.FC = () => {
   const [form] = Form.useForm();
@@ -31,16 +30,12 @@ const DosisMedicamentos: React.FC = () => {
   };
 
   return (
-    <div className="dosis-medicamentos-page">
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2}>
-          <MedicineBoxOutlined style={{ marginRight: 8, color: '#13c2c2' }} />
-          Calculadora de Dosis Obstétricas
-        </Title>
-        <Text type="secondary">
-          Cálculo de dosis de 16 medicamentos obstétricos con ajuste por peso, función renal y alertas de seguridad
-        </Text>
-      </div>
+    <div className="calc-pagina dosis-medicamentos-page">
+      <CabeceraCalculadora
+        icono={<MedicineBoxOutlined />}
+        titulo="Calculadora de Dosis Obstétricas"
+        descripcion="Cálculo de dosis de 16 medicamentos obstétricos con ajuste por peso, función renal y alertas de seguridad"
+      />
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={10}>

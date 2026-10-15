@@ -29,6 +29,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ecografiasService } from '../../services/ecografiasService';
 import dayjs from 'dayjs';
+import '../Embarazos/paginaClinica.css';
 import './VisorDICOM.css';
 import {
   DicomMetadata, initialState, viewerReducer,
@@ -239,7 +240,7 @@ const VisorDICOM: React.FC = () => {
         y: Math.round(y),
         text: `Anotación ${annotations.length + 1}`,
         timestamp: new Date().toISOString(),
-        color: '#ffeb3b'
+        color: 'var(--color-aviso)'
       };
       dispatch({ type: 'ADD_ANNOTATION', payload: newAnnotation });
       message.success('Anotación agregada');
@@ -273,9 +274,9 @@ const VisorDICOM: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '100px', textAlign: 'center' }}>
+      <div className="u-p-6 u-centro">
         <Spin size="large" />
-        <div style={{ marginTop: 16 }}>
+        <div className="u-mt-4">
           <Text>Cargando imagen DICOM…</Text>
         </div>
       </div>
@@ -299,7 +300,7 @@ const VisorDICOM: React.FC = () => {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0a0a0f' }}>
+    <div className="pagina-clinica visor-dicom">
       {/* Barra superior de herramientas */}
       <VisorTopBar
         ecografia={ecografia}
@@ -310,7 +311,7 @@ const VisorDICOM: React.FC = () => {
       />
 
       {/* Área principal */}
-      <Row style={{ flex: 1, overflow: 'hidden' }}>
+      <Row className="visor-dicom__cuerpo" wrap={false}>
         {/* Panel izquierdo - Herramientas */}
         <VisorToolPanel
           tools={tools}

@@ -1,8 +1,7 @@
 import React from 'react';
 import { Button, Space, Tag, Drawer, Descriptions, Divider, Card } from 'antd';
 import {
-  EyeOutlined, EditOutlined, FileImageOutlined, CalendarOutlined, UserOutlined,
-} from '@ant-design/icons';
+  EyeOutlined, EditOutlined, FileImageOutlined, CalendarOutlined, UserOutlined, LinkOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Ecografia } from '../../../services/ecografiasService';
 import { FRONTEND_ROUTES } from '../../../config/routes';
@@ -19,13 +18,13 @@ interface EcografiaVistaRapidaDrawerProps {
 const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
   drawerVistaRapidaVisible, setDrawerVistaRapidaVisible, ecografiaSeleccionada, handleVer, navigate, canChange,
 }) => (
-  <Drawer
+  <Drawer rootClassName="capa-clinica"
     title={
       <Space>
         <FileImageOutlined />
         Vista Rápida de Ecografía
         {ecografiaSeleccionada && (
-          <Tag color="blue">{ecografiaSeleccionada.tipo_ecografia}</Tag>
+          <Tag color="processing">{ecografiaSeleccionada.tipo_ecografia}</Tag>
         )}
       </Space>
     }
@@ -64,7 +63,7 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
     }
   >
     {ecografiaSeleccionada && (
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <Space direction="vertical" className="u-ancho" size="large">
         <Descriptions title="Información de la Ecografía" bordered column={1} size="small">
           <Descriptions.Item label="Paciente">
             <strong>{ecografiaSeleccionada.paciente_nombre || 'No especificado'}</strong>
@@ -73,7 +72,7 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
             {dayjs(ecografiaSeleccionada.fecha_ecografia).format('DD/MM/YYYY')}
           </Descriptions.Item>
           <Descriptions.Item label="Tipo">
-            <Tag color="blue">{ecografiaSeleccionada.tipo_ecografia}</Tag>
+            <Tag color="processing">{ecografiaSeleccionada.tipo_ecografia}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Edad Gestacional">
             {ecografiaSeleccionada.edad_gestacional_semanas} semanas
@@ -85,14 +84,14 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
           )}
         </Descriptions>
 
-        <Divider orientation="left">🔗 Acceso Rápido a Módulos</Divider>
+        <Divider orientation="left"><LinkOutlined /> Acceso Rápido a Módulos</Divider>
         <Card size="small">
-          <Space direction="vertical" style={{ width: '100%' }} size="small">
+          <Space direction="vertical" className="u-ancho" size="small">
             <Button
               type="link"
               icon={<UserOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 setDrawerVistaRapidaVisible(false);
                 navigate(`/dashboard/pacientes?id=${ecografiaSeleccionada.paciente}`);
@@ -104,7 +103,7 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
               type="link"
               icon={<FileImageOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 setDrawerVistaRapidaVisible(false);
                 navigate(`/dashboard/embarazos?id=${ecografiaSeleccionada.embarazo}`);
@@ -116,7 +115,7 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
               type="link"
               icon={<FileImageOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 setDrawerVistaRapidaVisible(false);
                 navigate(`/dashboard/controles?embarazo=${ecografiaSeleccionada.embarazo}`);
@@ -128,7 +127,7 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
               type="link"
               icon={<CalendarOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 setDrawerVistaRapidaVisible(false);
                 navigate(`/dashboard/citas?embarazo=${ecografiaSeleccionada.embarazo}`);
@@ -140,7 +139,7 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
               type="link"
               icon={<FileImageOutlined />}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 setDrawerVistaRapidaVisible(false);
                 navigate(`/dashboard/laboratorio?embarazo=${ecografiaSeleccionada.embarazo}`);
@@ -148,7 +147,7 @@ const EcografiaVistaRapidaDrawer: React.FC<EcografiaVistaRapidaDrawerProps> = ({
             >
               Ver Exámenes de Laboratorio
             </Button>
-            <Divider style={{ margin: '8px 0' }} />
+            <Divider className="u-mv-2" />
             <Button
               type="primary"
               icon={<UserOutlined />}

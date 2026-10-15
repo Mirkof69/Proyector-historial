@@ -73,9 +73,9 @@ const getDataBPP = (resultado: ResultadoSufrimiento) => [
 ];
 
 const getDataCTG = () => [
-  { categoria: 'Cat I\nNormal', frecuencia: 60, color: '#52c41a' },
-  { categoria: 'Cat II\nIndeterminado', frecuencia: 30, color: '#faad14' },
-  { categoria: 'Cat III\nAnormal', frecuencia: 10, color: '#ff4d4f' },
+  { categoria: 'Cat I\nNormal', frecuencia: 60, color: 'var(--color-exito)' },
+  { categoria: 'Cat II\nIndeterminado', frecuencia: 30, color: 'var(--color-aviso)' },
+  { categoria: 'Cat III\nAnormal', frecuencia: 10, color: 'var(--color-peligro)' },
 ];
 
 const getDataDoppler = (form: any, resultado: ResultadoSufrimiento) => {
@@ -101,29 +101,29 @@ const columnasHistorial = [
   {
     title: 'BPP Score', dataIndex: 'bpp_score', key: 'bpp_score',
     render: (score: number) => {
-      let color = 'green';
-      if (score <= 2) color = 'red';
-      else if (score <= 4) color = 'orange';
-      else if (score === 6) color = 'gold';
+      let color = 'success';
+      if (score <= 2) color = 'error';
+      else if (score <= 4) color = 'warning';
+      else if (score === 6) color = 'warning';
       return <Tag color={color}>{score}/10</Tag>;
     },
   },
   {
     title: 'CTG', dataIndex: 'ctg_categoria', key: 'ctg_categoria',
     render: (cat: string) => {
-      let color = 'green';
-      if (cat.includes('III')) color = 'red';
-      else if (cat.includes('II')) color = 'orange';
+      let color = 'success';
+      if (cat.includes('III')) color = 'error';
+      else if (cat.includes('II')) color = 'warning';
       return <Tag color={color}>{cat}</Tag>;
     },
   },
   {
     title: 'Nivel de Riesgo', dataIndex: 'nivel_riesgo', key: 'nivel_riesgo',
     render: (riesgo: string) => {
-      let color = 'green';
-      if (riesgo.includes('CRÍTICO')) color = 'red';
-      else if (riesgo === 'ALTO') color = 'orange';
-      else if (riesgo === 'MODERADO') color = 'gold';
+      let color = 'success';
+      if (riesgo.includes('CRÍTICO')) color = 'error';
+      else if (riesgo === 'ALTO') color = 'warning';
+      else if (riesgo === 'MODERADO') color = 'warning';
       return <Tag color={color}>{riesgo}</Tag>;
     },
   },
@@ -132,35 +132,35 @@ const columnasHistorial = [
 export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> = ({ resultado, historial, form }) => {
   return (
     <>
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+      <Row gutter={[16, 16]} className="calc-bloque-arriba">
         <Col xs={24} sm={12} md={6}>
-          <Card>
+          <Card className="calc-stat-card">
             <Statistic title="BPP Score" value={`${resultado.bpp_score}/10`} valueStyle={{ color: resultado.bpp_color }} prefix={<SafetyOutlined />} />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="CTG" value={resultado.ctg_categoria} valueStyle={{ color: resultado.ctg_color, fontSize: 16 }} prefix={<LineChartOutlined />} />
+          <Card className="calc-stat-card">
+            <Statistic title="CTG" value={resultado.ctg_categoria} className="calc-cifra-pequena" valueStyle={{ color: resultado.ctg_color }} prefix={<LineChartOutlined />} />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="Relación C/P" value={resultado.relacion_cp.toFixed(2)} valueStyle={{ color: resultado.relacion_cp >= 1.0 ? '#52c41a' : '#ff4d4f' }} suffix={resultado.relacion_cp >= 1.0 ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : <WarningOutlined style={{ color: '#ff4d4f' }} />} />
+          <Card className="calc-stat-card">
+            <Statistic title="Relación C/P" value={resultado.relacion_cp.toFixed(2)} valueStyle={{ color: resultado.relacion_cp >= 1.0 ? 'var(--color-exito)' : 'var(--color-peligro)' }} suffix={resultado.relacion_cp >= 1.0 ? <CheckCircleOutlined /> : <WarningOutlined />} />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="Nivel de Riesgo" value={resultado.nivel_riesgo} valueStyle={{ color: resultado.color_riesgo, fontSize: 14 }} prefix={<WarningOutlined />} />
+          <Card className="calc-stat-card">
+            <Statistic title="Nivel de Riesgo" value={resultado.nivel_riesgo} className="calc-cifra-pequena" valueStyle={{ color: resultado.color_riesgo }} prefix={<WarningOutlined />} />
           </Card>
         </Col>
       </Row>
 
-      <Card title="Interpretación Clínica" style={{ marginTop: 16 }}>
+      <Card title="Interpretación Clínica" className="calc-bloque-arriba">
         <Alert message={resultado.accion_inmediata} description={resultado.interpretacion} type={resultado.nivel_riesgo.includes('CRÍTICO') ? 'error' : resultado.nivel_riesgo === 'ALTO' ? 'warning' : 'success'} showIcon />
       </Card>
 
-      <Card title="Recomendaciones de Manejo" style={{ marginTop: 16 }}>
-        <Space direction="vertical" style={{ width: '100%' }}>
+      <Card title="Recomendaciones de Manejo" className="calc-bloque-arriba">
+        <Space direction="vertical" className="calc-pila">
           {(() => {
             // Tipo constante por render: se calcula una vez fuera del map.
             const tipoRec = resultado.nivel_riesgo.includes('CRÍTICO') ? 'error' : resultado.nivel_riesgo === 'ALTO' ? 'warning' : 'info';
@@ -171,7 +171,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
         </Space>
       </Card>
 
-      <Divider><LineChartOutlined /> Análisis Gráfico</Divider>
+      <Divider><span className="calc-titulo-seccion"><LineChartOutlined /> Análisis Gráfico</span></Divider>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
@@ -179,7 +179,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getDataBPP(resultado)}>
                 <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="componente" /><YAxis domain={BPP_SCORE_DOMAIN} ticks={BPP_TICKS} /><Tooltip /><Legend />
-                <Bar dataKey="puntos" fill="#eb2f96" name="Puntos Obtenidos" /><Bar dataKey="maximo" fill="#d9d9d9" name="Máximo" />
+                <Bar dataKey="puntos" fill="var(--grafico-1)" name="Puntos Obtenidos" /><Bar dataKey="maximo" fill="var(--color-borde-fuerte)" name="Máximo" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -201,7 +201,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getDataDoppler(form, resultado)}>
                 <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="parametro" /><YAxis /><Tooltip /><Legend />
-                <Bar dataKey="valor" fill="#722ed1" name="Valor Actual" /><Bar dataKey="normal" fill="#52c41a" name="Normal" /><Bar dataKey="limite" fill="#ff4d4f" name="Límite" />
+                <Bar dataKey="valor" fill="var(--grafico-1)" name="Valor Actual" /><Bar dataKey="normal" fill="var(--color-exito)" name="Normal" /><Bar dataKey="limite" fill="var(--color-peligro)" name="Límite" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -211,7 +211,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getDataRadar(resultado, form)}>
                 <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="categoria" /><YAxis domain={BPP_DOMAIN} label={SCORE_LABEL} /><Tooltip /><Legend />
-                <Bar dataKey="puntaje" fill="#eb2f96" name="Puntaje" />
+                <Bar dataKey="puntaje" fill="var(--grafico-1)" name="Puntaje" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -219,14 +219,14 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
       </Row>
 
       {historial.length > 0 && (
-        <Card title="Historial de Evaluaciones" style={{ marginTop: 16 }}>
+        <Card title="Historial de Evaluaciones" className="calc-bloque-arriba">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={[...historial].reverse()}>
               <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="fecha" tick={HISTORIAL_TICK} /><YAxis domain={HISTORIAL_DOMAIN} label={BPP_LABEL} /><Tooltip /><Legend />
-              <Line type="monotone" dataKey="bpp_score" stroke="#eb2f96" name="BPP Score" strokeWidth={2} />
+              <Line type="monotone" dataKey="bpp_score" stroke="var(--grafico-1)" name="BPP Score" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
-          <Table columns={columnasHistorial} dataSource={historial} rowKey={(record) => record.fecha} pagination={{ pageSize: 5 }} size="small" style={{ marginTop: 16 }} />
+          <Table columns={columnasHistorial} dataSource={historial} rowKey={(record) => record.fecha} pagination={{ pageSize: 5 }} size="small" className="calc-bloque-arriba" />
         </Card>
       )}
     </>

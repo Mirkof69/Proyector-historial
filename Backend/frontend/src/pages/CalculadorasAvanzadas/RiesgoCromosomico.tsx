@@ -1,7 +1,8 @@
 import React, { useReducer } from 'react';
-import { Row, Col, Typography, Form } from 'antd';
+import { Row, Col, Form } from 'antd';
 import { ExperimentOutlined } from '@ant-design/icons';
-import './RiesgoCromosomico.css';
+import './calculadoraAvanzada.css';
+import CabeceraCalculadora from './components/CabeceraCalculadora';
 import {
   DatosScreening, RegistroScreening,
   screeningReducer, initialScreeningState, calcularRiesgo,
@@ -9,8 +10,6 @@ import {
 import RiesgoCromosomicoForm from './components/RiesgoCromosomicoForm';
 import RiesgoCromosomicoResultado from './components/RiesgoCromosomicoResultado';
 import RiesgoCromosomicoGraficas from './components/RiesgoCromosomicoGraficas';
-
-const { Title, Text } = Typography;
 
 const RiesgoCromosomico: React.FC = () => {
   const [form] = Form.useForm();
@@ -34,16 +33,12 @@ const RiesgoCromosomico: React.FC = () => {
   };
 
   return (
-    <div className="riesgo-cromosomico-page">
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2}>
-          <ExperimentOutlined style={{ marginRight: 8, color: '#722ed1' }} />
-          Screening de Aneuploidías - Primer Trimestre (FMF)
-        </Title>
-        <Text type="secondary">
-          Cálculo de riesgo combinado para T21 (Down), T18 (Edwards) y T13 (Patau) con NT, PAPP-A y βhCG libre
-        </Text>
-      </div>
+    <div className="calc-pagina riesgo-cromosomico-page">
+      <CabeceraCalculadora
+        icono={<ExperimentOutlined />}
+        titulo="Screening de Aneuploidías - Primer Trimestre (FMF)"
+        descripcion="Cálculo de riesgo combinado para T21 (Down), T18 (Edwards) y T13 (Patau) con NT, PAPP-A y βhCG libre"
+      />
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>

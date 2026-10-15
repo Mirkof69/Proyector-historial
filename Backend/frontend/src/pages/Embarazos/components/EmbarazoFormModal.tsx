@@ -37,10 +37,10 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
   form, dispatch, handleSubmit, handleFUMChange, handleAntropometriaChange,
   handlePacienteChange, loadPacientesOptions,
 }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={
       <Space>
-        <MedicineBoxOutlined style={{ color: '#1890ff' }} />
+        <MedicineBoxOutlined className="u-c-primario" />
         {editingEmbarazo ? 'Actualizar Ficha Clínica' : 'Apertura de Historia Obstétrica'}
       </Space>
     }
@@ -58,13 +58,13 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
         description="Al ingresar la Fecha de Última Menstruación (FUM), el sistema calculará automáticamente la FPP y la Edad Gestacional actual."
         type="info"
         showIcon
-        style={{ marginBottom: 24 }}
+        className="u-mb-5"
       />
 
       {/* 1. SELECCIÓN DE PACIENTE */}
-      <Card type="inner" title="1. Identificación del Paciente" size="small" style={{ marginBottom: 16 }}>
+      <Card type="inner" title="1. Identificación del Paciente" size="small" className="u-mb-4">
         <Row gutter={16}>
-          <Col span={16}>
+          <Col xs={24} md={16}>
             <Form.Item
               name="paciente"
               label="Buscar Paciente (Mujer)"
@@ -90,7 +90,7 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
               </Select>
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col xs={24} md={8}>
             <Form.Item
               name="medico_responsable"
               label="Médico Responsable"
@@ -120,12 +120,12 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
       </Card>
 
       {/* 2. DATOS OBSTÉTRICOS */}
-      <Card type="inner" title="2. Datos Obstétricos Actuales" size="small" style={{ marginBottom: 16 }}>
+      <Card type="inner" title="2. Datos Obstétricos Actuales" size="small" className="u-mb-4">
         <Row gutter={16}>
-          <Col span={8}>
+          <Col xs={24} md={8}>
             <Form.Item name="fecha_ultima_menstruacion" label="Fecha Última Menstruación (FUM)" rules={[{ required: true }]}>
               <DatePicker
-                style={{ width: '100%' }}
+                className="u-ancho"
                 format="DD/MM/YYYY"
                 onChange={handleFUMChange}
                 locale={locale}
@@ -133,24 +133,24 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
               />
             </Form.Item>
             {edadGestacionalCalculada && (
-              <div style={{ marginTop: -10, marginBottom: 10, color: '#1890ff', fontSize: 12 }}>
+              <div className="u-mt-neg u-mb-2 u-c-primario u-t-xs">
                 <InfoCircleOutlined /> EG: {edadGestacionalCalculada}
               </div>
             )}
           </Col>
-          <Col span={8}>
+          <Col xs={24} md={8}>
             <Form.Item name="fecha_probable_parto" label="Fecha Probable de Parto (FPP)" tooltip="Calculada automáticamente (Regla Naegele)">
-              <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" locale={locale} />
+              <DatePicker className="u-ancho" format="DD/MM/YYYY" locale={locale} />
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col xs={24} md={8}>
             <Form.Item name="numero_gesta" label="Nº Gesta Actual" rules={[{ required: true }]}>
-              <InputNumber min={1} max={20} style={{ width: '100%' }} />
+              <InputNumber min={1} max={20} className="u-ancho" />
             </Form.Item>
           </Col>
         </Row>
         <Row gutter={16}>
-          <Col span={8}>
+          <Col xs={24} md={8}>
             <Form.Item name="tipo_embarazo" label="Tipo de Embarazo" rules={[{ required: true }]}>
               <Select>
                 <Option value="simple">Simple (1)</Option>
@@ -159,16 +159,16 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
               </Select>
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col xs={24} md={8}>
             <Form.Item name="riesgo_embarazo" label="Clasificación de Riesgo" rules={[{ required: true }]}>
               <Select>
-                <Option value="bajo">🟢 Bajo Riesgo</Option>
-                <Option value="medio">🟠 Riesgo Medio</Option>
-                <Option value="alto">🔴 Alto Riesgo</Option>
+                <Option value="bajo">Bajo Riesgo</Option>
+                <Option value="medio">Riesgo Medio</Option>
+                <Option value="alto">Alto Riesgo</Option>
               </Select>
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col xs={24} md={8}>
             <Form.Item name="estado" label="Estado">
               <Select>
                 <Option value="activo">Activo</Option>
@@ -181,26 +181,26 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
       </Card>
 
       {/* 3. ANTECEDENTES */}
-      <Card type="inner" title="3. Antecedentes Ginecobstétricos" size="small" style={{ marginBottom: 16 }}>
+      <Card type="inner" title="3. Antecedentes Ginecobstétricos" size="small" className="u-mb-4">
         <Row gutter={16}>
-          <Col span={6}>
+          <Col xs={12} md={6}>
             <Form.Item name="partos_previos" label="Partos" initialValue={0}>
-              <InputNumber min={0} max={20} style={{ width: '100%' }} />
+              <InputNumber min={0} max={20} className="u-ancho" />
             </Form.Item>
           </Col>
-          <Col span={6}>
+          <Col xs={12} md={6}>
             <Form.Item name="cesareas_previas" label="Cesáreas" initialValue={0}>
-              <InputNumber min={0} max={10} style={{ width: '100%' }} />
+              <InputNumber min={0} max={10} className="u-ancho" />
             </Form.Item>
           </Col>
-          <Col span={6}>
+          <Col xs={12} md={6}>
             <Form.Item name="abortos_previos" label="Abortos" initialValue={0}>
-              <InputNumber min={0} max={10} style={{ width: '100%' }} />
+              <InputNumber min={0} max={10} className="u-ancho" />
             </Form.Item>
           </Col>
-          <Col span={6}>
+          <Col xs={12} md={6}>
             <Form.Item name="hijos_vivos" label="Hijos Vivos" initialValue={0}>
-              <InputNumber min={0} max={20} style={{ width: '100%' }} />
+              <InputNumber min={0} max={20} className="u-ancho" />
             </Form.Item>
           </Col>
         </Row>
@@ -208,33 +208,33 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
 
       {/* 4. ANTROPOMETRÍA Y NOTAS */}
       <Row gutter={16}>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Form.Item name="notas" label="Observaciones / Antecedentes Patológicos">
             <Input.TextArea rows={4} placeholder="Alergias, enfermedades crónicas, cirugías previas..." />
           </Form.Item>
         </Col>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card size="small" title="Datos Iniciales">
             <Row gutter={8}>
-              <Col span={12}>
+              <Col xs={24} md={12}>
                 <Form.Item name="peso_pregestacional" label="Peso (kg)">
-                  <InputNumber style={{ width: '100%' }} min={20} max={200} onChange={handleAntropometriaChange} />
+                  <InputNumber className="u-ancho" min={20} max={200} onChange={handleAntropometriaChange} />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col xs={24} md={12}>
                 <Form.Item name="talla_materna" label="Talla (cm)">
-                  <InputNumber style={{ width: '100%' }} min={100} max={220} onChange={handleAntropometriaChange} />
+                  <InputNumber className="u-ancho" min={100} max={220} onChange={handleAntropometriaChange} />
                 </Form.Item>
               </Col>
             </Row>
-            {imcCalculado && <Alert message={`IMC: ${imcCalculado}`} type="success" showIcon style={{ marginTop: 5 }} />}
+            {imcCalculado && <Alert message={`IMC: ${imcCalculado}`} type="success" showIcon className="u-mt-1" />}
           </Card>
         </Col>
       </Row>
 
       <Divider />
 
-      <div style={{ textAlign: 'right' }}>
+      <div className="u-derecha">
         <Space>
           <Button onClick={() => dispatch({ type: 'SET_MODAL_VISIBLE', payload: false })} size="large">Cancelar</Button>
           <Button type="primary" htmlType="submit" loading={actionLoading} icon={checkCircleOutlinedIcon7} size="large">

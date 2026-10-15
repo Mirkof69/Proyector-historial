@@ -26,7 +26,7 @@ const ProtocoloItem: React.FC<ProtocoloItemProps> = ({ protocolo, calcularEGActu
       ecografias.some(e => String(e.tipo || '').toLowerCase().includes(examenLower));
   });
   return (
-    <Card key={protocolo.id} style={{ marginBottom: 16 }} type={enVentana ? 'inner' : undefined} styles={{ body: { boxShadow: enVentana ? 'inset 4px 0 0 #1890ff' : undefined } }}>
+    <Card key={protocolo.id} style={{ marginBottom: 16 }} type={enVentana ? 'inner' : undefined} className={enVentana ? 'historia-protocolo--en-ventana' : undefined}>
       <Row align="middle" gutter={16}>
         <Col flex="auto">
           <Space direction="vertical" style={{ width: '100%' }}>
@@ -56,7 +56,7 @@ const ProtocoloItem: React.FC<ProtocoloItemProps> = ({ protocolo, calcularEGActu
                   <List size="small" dataSource={protocolo.examenes_requeridos || []} renderItem={(examen: any) => {
                     const examenLower = String(examen || '').toLowerCase();
                     const realizado = laboratorios.some(l => String(l.tipo_examen || '').toLowerCase().includes(examenLower)) || ecografias.some(e => String(e.tipo || '').toLowerCase().includes(examenLower));
-                    return (<List.Item key={`exam-${examen}`}>{realizado ? <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} /> : <CloseCircleOutlined style={{ color: '#ff4d4f', marginRight: 8 }} />}{examen}{realizado && <Tag color="success" style={{ marginLeft: 8 }}>Realizado</Tag>}</List.Item>);
+                    return (<List.Item key={`exam-${examen}`}>{realizado ? <CheckCircleOutlined className="historia-icono historia-icono--exito" /> : <CloseCircleOutlined className="historia-icono historia-icono--peligro" />}{examen}{realizado && <Tag color="success" style={{ marginLeft: 8 }}>Realizado</Tag>}</List.Item>);
                   }} />
                 </div>
               )

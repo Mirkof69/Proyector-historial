@@ -120,7 +120,7 @@ const DetalleCitaInfo: React.FC<DetalleCitaInfoProps> = ({ cita, esHoy, esAtrasa
 
     <Descriptions title="Detalles de la Cita" bordered column={1}>
       <Descriptions.Item label="Motivo">
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" className="citas-ancho">
           <FileTextOutlined />
           {cita.motivo || '-'}
         </Space>

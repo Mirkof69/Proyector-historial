@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Table, Tag, Typography, Space } from 'antd';
 import { HeartOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import './Partos.css';
 
 const { Title, Text } = Typography;
 
@@ -39,19 +40,19 @@ const ApgarScore: React.FC = () => {
     <Card
       title={
         <span>
-          <HeartOutlined style={{ color: '#eb2f96', marginRight: 8 }} />
+          <HeartOutlined className="partos-icono-titulo" />
           Score de Apgar
         </span>
       }
     >
       <Title level={5}>Evaluación del Recién Nacido</Title>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+      <Text type="secondary" className="partos-separado">
         El puntaje Apgar evalúa cinco signos vitales al minuto y a los 5 minutos del nacimiento. Cada signo recibe 0, 1 o 2 puntos.
       </Text>
 
       <Table columns={columns} dataSource={data} pagination={false} bordered size="small" />
 
-      <div style={{ marginTop: 24 }}>
+      <div className="partos-arriba">
         <Title level={5}>Interpretación</Title>
         <Space direction="vertical">
           <Tag color={getInterpretacion(10).color}>7–10: {getInterpretacion(10).text}</Tag>

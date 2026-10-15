@@ -20,13 +20,13 @@ const UsuariosFilterBar: React.FC<UsuariosFilterBarProps> = ({
   searchText, filtroRol, filtroEstado,
   onSearchChange, onFiltroRolChange, onFiltroEstadoChange, onBuscar, onLimpiar,
 }) => (
-  <Card style={{ marginBottom: 16 }}>
+  <Card>
     <Row gutter={[16, 16]}>
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Input placeholder="Buscar por nombre o email..." prefix={<SearchOutlined />} value={searchText} onChange={(e) => onSearchChange(e.target.value)} onPressEnter={onBuscar} allowClear />
       </Col>
-      <Col xs={24} sm={12} md={6}>
-        <Select placeholder="Filtrar por rol" style={{ width: '100%' }} value={filtroRol} onChange={onFiltroRolChange} allowClear>
+      <Col xs={24} sm={12} lg={5}>
+        <Select placeholder="Filtrar por rol" className="usuarios-page__filtro" value={filtroRol} onChange={onFiltroRolChange} allowClear>
           {/* Los cinco roles del backend, no tres. El valor que se manda es la
               clave exacta de `Usuario.ROLES`: escribir 'enfermero' donde el
               backend guarda 'enfermera' devolvia cero resultados siempre. */}
@@ -35,15 +35,15 @@ const UsuariosFilterBar: React.FC<UsuariosFilterBarProps> = ({
           ))}
         </Select>
       </Col>
-      <Col xs={24} sm={12} md={6}>
-        <Select placeholder="Filtrar por estado" style={{ width: '100%' }} value={filtroEstado} onChange={onFiltroEstadoChange} allowClear>
+      <Col xs={24} sm={12} lg={5}>
+        <Select placeholder="Filtrar por estado" className="usuarios-page__filtro" value={filtroEstado} onChange={onFiltroEstadoChange} allowClear>
           <Option value={true}>Activos</Option>
           <Option value={false}>Inactivos</Option>
         </Select>
       </Col>
-      <Col xs={24} sm={12} md={4}>
+      <Col xs={24} sm={12} lg={6}>
         <Space>
-          <Button type="primary" icon={<SearchOutlined />} onClick={onBuscar}>Buscar</Button>
+          <Button icon={<SearchOutlined />} onClick={onBuscar}>Buscar</Button>
           <Button icon={<ReloadOutlined />} onClick={onLimpiar}>Limpiar</Button>
         </Space>
       </Col>

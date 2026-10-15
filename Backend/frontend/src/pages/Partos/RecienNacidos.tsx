@@ -4,6 +4,7 @@ import { Alert, Card, Table, Tag } from 'antd';
 import { SmileOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { partosService } from '../../services/partosService';
+import './Partos.css';
 
 /**
  * Recién nacidos de un parto (ruta partos/:id/recien-nacido).
@@ -42,10 +43,10 @@ const RecienNacidos: React.FC = () => {
     { title: 'N.º', dataIndex: 'numero_gemelo', key: 'numero', width: 60 },
     {
       title: 'Sexo', dataIndex: 'sexo', key: 'sexo',
-      render: (s: string) => <Tag color={s === 'masculino' ? 'blue' : s === 'femenino' ? 'magenta' : 'default'}>
+      render: (s: string) => <Tag>
         {s === 'masculino' ? 'Masculino' : s === 'femenino' ? 'Femenino' : 'Indeterminado'}</Tag>,
     },
-    { title: 'Peso (g)', dataIndex: 'peso_nacimiento', key: 'peso', render: (v: number) => (v ? <Tag color={v < 2500 ? 'orange' : v > 4000 ? 'red' : 'green'}>{v} g</Tag> : '—') },
+    { title: 'Peso (g)', dataIndex: 'peso_nacimiento', key: 'peso', render: (v: number) => (v ? <Tag color={v < 2500 ? 'warning' : v > 4000 ? 'error' : 'success'}>{v} g</Tag> : '—') },
     { title: 'Talla (cm)', dataIndex: 'talla_nacimiento', key: 'talla', render: (v: number) => (v ? `${v} cm` : '—') },
     { title: "Apgar 1'", dataIndex: 'apgar_1_minuto', key: 'apgar1', render: (v: number) => (v != null ? <Tag color={colorApgar(v)}>{v}</Tag> : '—') },
     { title: "Apgar 5'", dataIndex: 'apgar_5_minutos', key: 'apgar5', render: (v: number) => (v != null ? <Tag color={colorApgar(v)}>{v}</Tag> : '—') },
@@ -54,8 +55,8 @@ const RecienNacidos: React.FC = () => {
   ];
 
   return (
-    <Card title={<span><SmileOutlined style={{ marginRight: 8 }} />Recién nacidos del parto</span>}>
-      {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
+    <Card title={<span><SmileOutlined className="partos-icono-titulo" />Recién nacidos del parto</span>}>
+      {error && <Alert type="error" showIcon message={error} className="partos-separado" />}
       <Table
         columns={columns}
         dataSource={filas}

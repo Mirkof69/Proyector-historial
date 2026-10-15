@@ -16,7 +16,7 @@ interface VisorExportModalProps {
 const VisorExportModal: React.FC<VisorExportModalProps> = ({
   exportModalVisible, zoom, rotation, dispatch, handleExportImage,
 }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={<><DownloadOutlined /> Exportar Imagen</>}
     open={exportModalVisible}
     onCancel={() => dispatch({ type: 'SET_EXPORT_MODAL_VISIBLE', payload: false })}
@@ -27,10 +27,10 @@ const VisorExportModal: React.FC<VisorExportModalProps> = ({
     }}
     width={500}
   >
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space direction="vertical" size="large" className="u-ancho">
       <div>
         <Text strong>Formato de Exportación:</Text>
-        <Radio.Group defaultValue="png" style={{ marginTop: 8, width: '100%' }}>
+        <Radio.Group defaultValue="png" className="u-mt-2 u-ancho">
           <Radio.Button value="png">PNG</Radio.Button>
           <Radio.Button value="jpeg">JPEG</Radio.Button>
           <Radio.Button value="dicom">DICOM</Radio.Button>
@@ -42,7 +42,7 @@ const VisorExportModal: React.FC<VisorExportModalProps> = ({
         <Text strong>Calidad:</Text>
         <Select
           defaultValue="high"
-          style={{ width: '100%', marginTop: 8 }}
+          className="u-ancho u-mt-2"
           options={[
             { value: 'low', label: 'Baja (compresión alta)' },
             { value: 'medium', label: 'Media (balanceada)' },
@@ -53,7 +53,7 @@ const VisorExportModal: React.FC<VisorExportModalProps> = ({
 
       <div>
         <Text strong>Incluir en la exportación:</Text>
-        <div style={{ marginTop: 8 }}>
+        <div className="u-mt-2">
           <Space direction="vertical">
             <Radio checked>Imagen actual</Radio>
             <Radio>Incluir mediciones</Radio>

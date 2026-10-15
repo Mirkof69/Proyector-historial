@@ -11,10 +11,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { Card, Form, Input, Button, Space, Row, Col, Divider, Alert, Spin, Typography, Table, Tooltip } from "antd";
+import './Laboratorio.css';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
-  ExperimentOutlined,
   InfoCircleOutlined,
   PlusOutlined,
   DeleteOutlined,
@@ -29,7 +29,7 @@ import { buildColumnasResultados } from './components/columnasResultadosLab';
 import DatosGeneralesLab from './components/DatosGeneralesLab';
 
 const { TextArea } = Input;
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const ARROW_LEFT_ICON_2 = <ArrowLeftOutlined />;
 const WARNING_ICON_4 = <WarningOutlined />;
@@ -233,9 +233,9 @@ const FormularioLaboratorio: React.FC = () => {
   // ==========================================================================
   if (loadingDataRef.current) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+      <div className="laboratorio-page__cargando">
         <Spin size="large" />
-        <div style={{ marginTop: 16 }}>Cargando datos…</div>
+        <div className="laboratorio-arriba">Cargando datos…</div>
       </div>
     );
   }
@@ -243,22 +243,19 @@ const FormularioLaboratorio: React.FC = () => {
   const columnsResultados = buildColumnasResultados(valoresReferencia, resultados, handleResultadoChange);
 
   return (
-    <div className="formulario-laboratorio-container">
-      <Card
-        title={
-          <Space>
-            <ExperimentOutlined style={{ fontSize: 24, color: '#722ed1' }} />
-            <span style={{ fontSize: 20, fontWeight: 600 }}>
-              {isEditing ? 'Editar Examen de Laboratorio' : 'Nuevo Examen de Laboratorio'}
-            </span>
-          </Space>
-        }
-        extra={
-          <Button icon={ARROW_LEFT_ICON_2} onClick={() => navigate(FRONTEND_ROUTES.DASHBOARD.LABORATORIO)}>
-            Volver
-          </Button>
-        }
-      >
+    <div className="laboratorio-page page-container">
+      <header className="laboratorio-page__cabecera">
+        <div>
+          <Title level={2}>
+            {isEditing ? 'Editar Examen de Laboratorio' : 'Nuevo Examen de Laboratorio'}
+          </Title>
+          <Text type="secondary">Datos de la solicitud y, si ya están, los resultados de cada parámetro.</Text>
+        </div>
+        <Button icon={ARROW_LEFT_ICON_2} onClick={() => navigate(FRONTEND_ROUTES.DASHBOARD.LABORATORIO)}>
+          Volver
+        </Button>
+      </header>
+      <Card>
         <Form
           form={form}
           layout="vertical"
@@ -272,11 +269,11 @@ const FormularioLaboratorio: React.FC = () => {
           {/* ALERTAS */}
           {resultadosCriticos > 0 && (
             <Alert
-              message={`⚠️ ${resultadosCriticos} resultado(s) crítico(s) detectado(s)`}
+              message={`${resultadosCriticos} resultado(s) crítico(s) detectado(s)`}
               type="error"
               showIcon
               icon={WARNING_ICON_4}
-              style={{ marginBottom: 16 }}
+              className="laboratorio-separado"
             />
           )}
           {resultadosAnormales > 0 && (
@@ -284,17 +281,17 @@ const FormularioLaboratorio: React.FC = () => {
               message={`${resultadosAnormales} resultado(s) anormal(es)`}
               type="warning"
               showIcon
-              style={{ marginBottom: 16 }}
+              className="laboratorio-separado"
             />
           )}
 
           <Divider orientation="left">
-            <Title level={5} style={{ margin: 0 }}>
+            <Title level={5} className="laboratorio-sin-margen">
               <InfoCircleOutlined /> Información del Examen
             </Title>
           </Divider>
 
-          <Paragraph type="secondary" style={{ marginBottom: 16 }}>
+          <Paragraph type="secondary" className="laboratorio-separado">
             Complete los datos generales del examen de laboratorio. Los campos marcados con (*) son obligatorios.
           </Paragraph>
 
@@ -312,7 +309,7 @@ const FormularioLaboratorio: React.FC = () => {
             <Card
               type="inner"
               title="Resultados del Examen"
-              style={{ marginBottom: 16 }}
+              className="laboratorio-separado"
             >
               <Table
                 columns={columnsResultados}
@@ -325,7 +322,7 @@ const FormularioLaboratorio: React.FC = () => {
           )}
 
           {/* OBSERVACIONES */}
-          <Card type="inner" title="Observaciones" style={{ marginBottom: 16 }}>
+          <Card type="inner" title="Observaciones" className="laboratorio-separado">
             <Form.Item name="observaciones" label="Observaciones Generales">
               <TextArea rows={3} placeholder="Observaciones adicionales..." />
             </Form.Item>

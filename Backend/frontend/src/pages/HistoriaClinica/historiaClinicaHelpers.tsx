@@ -38,9 +38,9 @@ export const ProtocoloEmbarazoItem: React.FC<ProtocoloEmbarazoItemProps> = ({ pr
     <List.Item.Meta
       avatar={
         protocolo.cumplido ? (
-          <CheckCircleOutlined style={{ fontSize: 24, color: '#52c41a' }} />
+          <CheckCircleOutlined style={{ fontSize: 24, color: 'var(--color-exito)' }} />
         ) : (
-          <CloseCircleOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+          <CloseCircleOutlined style={{ fontSize: 24, color: 'var(--color-peligro)' }} />
         )
       }
       title={protocolo.nombre}
@@ -48,7 +48,7 @@ export const ProtocoloEmbarazoItem: React.FC<ProtocoloEmbarazoItemProps> = ({ pr
         <>
           <Text type="secondary">{protocolo.descripcion}</Text>
           <br />
-          <Tag color="blue">
+          <Tag>
             {protocolo.semanas_inicio}-{protocolo.semanas_fin} semanas
           </Tag>
           {protocolo.examenes_requeridos.map((examen: string) => (
@@ -74,7 +74,7 @@ interface TendenciaLaboratorioItemProps {
 export const TendenciaLaboratorioItem: React.FC<TendenciaLaboratorioItemProps> = ({ tendencia }) => (
   <List.Item>
     <Text strong>{tendencia.examen}: </Text>
-    <Tag color={tendencia.tendencia === 'MEJORANDO' ? 'green' : tendencia.tendencia === 'EMPEORANDO' ? 'red' : 'blue'}>
+    <Tag color={tendencia.tendencia === 'MEJORANDO' ? 'success' : tendencia.tendencia === 'EMPEORANDO' ? 'error' : 'processing'}>
       {tendencia.tendencia}
     </Tag>
   </List.Item>
@@ -127,7 +127,7 @@ interface RiesgoPreeclampsiaItemProps {
 }
 export const RiesgoPreeclampsiaItem: React.FC<RiesgoPreeclampsiaItemProps> = ({ item }) => (
   <List.Item>
-    <CheckCircleOutlined style={{ color: '#1890ff', marginRight: 8 }} />
+    <CheckCircleOutlined style={{ color: 'var(--color-primario)', marginRight: 8 }} />
     {item}
   </List.Item>
 );

@@ -77,27 +77,27 @@ export const calcularShockIndex = (fc: number, pas: number): number => {
 
 export const clasificarShock = (si: number): { clase: string; color: string } => {
   if (si < 0.7) {
-    return { clase: '✅ Normal', color: '#52c41a' };
+    return { clase: '✅ Normal', color: 'var(--color-exito)' };
   } else if (si < 0.9) {
-    return { clase: '⚠️ Vigilancia', color: '#faad14' };
+    return { clase: '⚠️ Vigilancia', color: 'var(--color-aviso)' };
   } else if (si < 1.2) {
-    return { clase: '🟠 Compensado', color: '#fa8c16' };
+    return { clase: '🟠 Compensado', color: 'var(--color-aviso)' };
   } else if (si < 1.5) {
-    return { clase: '🔴 Descompensado', color: '#ff4d4f' };
+    return { clase: '🔴 Descompensado', color: 'var(--color-peligro)' };
   } else {
-    return { clase: '🚨 CRÍTICO', color: '#a8071a' };
+    return { clase: '🚨 CRÍTICO', color: 'var(--color-peligro)' };
   }
 };
 
 export const clasificarGravedad = (perdida_ml: number): { gravedad: string; color: string } => {
   if (perdida_ml < 500) {
-    return { gravedad: 'Leve', color: '#52c41a' };
+    return { gravedad: 'Leve', color: 'var(--color-exito)' };
   } else if (perdida_ml < 1000) {
-    return { gravedad: 'Moderada', color: '#faad14' };
+    return { gravedad: 'Moderada', color: 'var(--color-aviso)' };
   } else if (perdida_ml < 1500) {
-    return { gravedad: 'Severa', color: '#ff4d4f' };
+    return { gravedad: 'Severa', color: 'var(--color-peligro)' };
   } else {
-    return { gravedad: 'Masiva', color: '#a8071a' };
+    return { gravedad: 'Masiva', color: 'var(--color-peligro)' };
   }
 };
 
@@ -299,10 +299,10 @@ export const SHOCK_INDEX_LABEL = { value: 'Shock Index', angle: -90, position: '
 export const PERDIDA_LABEL = { value: 'Pérdida (ml)', angle: 90, position: 'insideRight' };
 
 export const getDataCausas4T = () => [
-  { causa: 'TONO\nAtonía', porcentaje: 70, color: '#ff4d4f' },
-  { causa: 'TRAUMA\nLaceraciones', porcentaje: 20, color: '#fa8c16' },
-  { causa: 'TEJIDO\nRetención', porcentaje: 8, color: '#faad14' },
-  { causa: 'TROMBINA\nCoagulopatía', porcentaje: 2, color: '#722ed1' },
+  { causa: 'TONO\nAtonía', porcentaje: 70, color: 'var(--grafico-1)' },
+  { causa: 'TRAUMA\nLaceraciones', porcentaje: 20, color: 'var(--grafico-2)' },
+  { causa: 'TEJIDO\nRetención', porcentaje: 8, color: 'var(--grafico-3)' },
+  { causa: 'TROMBINA\nCoagulopatía', porcentaje: 2, color: 'var(--grafico-6)' },
 ];
 
 export const getDataDistribucion = (resultado: ResultadoHemorragia | null) => {
@@ -310,7 +310,7 @@ export const getDataDistribucion = (resultado: ResultadoHemorragia | null) => {
 
   return [
     { name: 'Pérdida Actual', value: resultado.porcentaje_perdida, color: resultado.color_gravedad },
-    { name: 'Volemia Restante', value: 100 - resultado.porcentaje_perdida, color: '#95de64' }
+    { name: 'Volemia Restante', value: 100 - resultado.porcentaje_perdida, color: 'var(--color-borde-fuerte)' }
   ];
 };
 
@@ -351,9 +351,9 @@ export const getDataPTM = (resultado: ResultadoHemorragia | null) => {
   if (!resultado || !resultado.requiere_ptm) return [];
 
   return [
-    { componente: 'GR', unidades: resultado.protocolo_ptm.globulos_rojos, color: '#ff4d4f' },
-    { componente: 'PFC', unidades: resultado.protocolo_ptm.plasma, color: '#faad14' },
-    { componente: 'Plaq', unidades: resultado.protocolo_ptm.plaquetas, color: '#1890ff' },
-    { componente: 'Crio', unidades: resultado.protocolo_ptm.crioprecipitado, color: '#722ed1' }
+    { componente: 'GR', unidades: resultado.protocolo_ptm.globulos_rojos, color: 'var(--grafico-1)' },
+    { componente: 'PFC', unidades: resultado.protocolo_ptm.plasma, color: 'var(--grafico-2)' },
+    { componente: 'Plaq', unidades: resultado.protocolo_ptm.plaquetas, color: 'var(--grafico-3)' },
+    { componente: 'Crio', unidades: resultado.protocolo_ptm.crioprecipitado, color: 'var(--grafico-6)' }
   ];
 };

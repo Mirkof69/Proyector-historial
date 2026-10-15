@@ -47,7 +47,7 @@ interface PacienteAltoRiesgo {
 }
 
 const getRiesgoColor = (riesgo: 'alto' | 'critico') => {
-  return riesgo === 'critico' ? '#cf1322' : '#fa8c16';
+  return riesgo === 'critico' ? 'var(--color-peligro)' : 'var(--color-aviso)';
 };
 
 const getRiesgoIcon = (riesgo: 'alto' | 'critico') => {
@@ -150,7 +150,7 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
       title={
         <Space>
           <Badge count={totalAltoRiesgo} offset={[10, 0]}>
-            <WarningOutlined style={{ fontSize: 20, color: '#fa8c16' }} />
+            <WarningOutlined style={{ fontSize: 20, color: 'var(--color-aviso)' }} />
           </Badge>
           <span>Pacientes de Alto Riesgo</span>
         </Space>
@@ -183,7 +183,7 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
             <List.Item
               key={`paciente-riesgo-${paciente.embarazo_id}`}
               actions={[
-                <Tooltip title="Ver Historia ClÃƒÂ­nica" key="view">
+                <Tooltip title="Ver Historia Clínica" key="view">
                   <Button
                     type="primary"
                     size="small"
@@ -217,11 +217,11 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
                         color={getRiesgoColor(paciente.riesgo)}
                         icon={getRiesgoIcon(paciente.riesgo)}
                       >
-                        {paciente.riesgo === 'critico' ? 'CRÃƒ TICO' : 'ALTO'}
+                        {paciente.riesgo === 'critico' ? 'CRÍTICO' : 'ALTO'}
                       </Tag>
                     </Space>
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      CI: {paciente.ci} Ã¢â‚¬Â¢ EG: {paciente.edad_gestacional} sem
+                      CI: {paciente.ci} · EG: {paciente.edad_gestacional} sem
                     </Text>
                   </Space>
                 }
@@ -231,10 +231,7 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
                       <Text strong style={{ fontSize: 12 }}>Score de Riesgo:</Text>
                       <Progress
                         percent={paciente.score_riesgo}
-                        strokeColor={{
-                          '0%': '#fa8c16',
-                          '100%': '#cf1322',
-                        }}
+                        strokeColor={paciente.score_riesgo >= 70 ? 'var(--color-peligro)' : 'var(--color-aviso)'}
                         size="small"
                         status={paciente.score_riesgo >= 70 ? 'exception' : 'normal'}
                       />

@@ -5,15 +5,12 @@ import {
   Table,
   Button,
   Space,
-  Row,
-  Col,
   Empty,
   Typography
 } from 'antd';
 import {
   PlusOutlined,
   ReloadOutlined,
-  MedicineBoxOutlined,
   WarningOutlined,
   FileSearchOutlined,
   FileExcelOutlined,
@@ -128,7 +125,7 @@ const Vacunas: React.FC = () => {
   const handleEliminar = useCallback((vacuna: RegistroVacunaExtended) => {
     modal.confirm({
       title: 'Confirmar Eliminación',
-      icon: <WarningOutlined style={{ color: 'red' }} />,
+      icon: <WarningOutlined className="vacunas-icono-peligro" />,
       content: `¿Desea eliminar el registro de vacunación de ${vacuna.tipo_vacuna_nombre || vacuna.tipo_vacuna_info?.nombre} para el paciente ${vacuna.paciente_nombre || vacuna.paciente_info?.nombre_completo}?`,
       okText: 'Eliminar',
       okType: 'danger',
@@ -157,83 +154,66 @@ const Vacunas: React.FC = () => {
   );
 
   return (
-    <div className="animate-fade-in" style={{ padding: '24px' }}>
-      <Card className="shadow-card overflow-hidden">
-        {/* HEADER SECTION */}
-        <div className="blue-gradient-header" style={{ margin: '-24px -24px 24px -24px', padding: '32px' }}>
-          <Row justify="space-between" align="middle">
-            <Col>
-              <Space align="center" size="large">
-                <div className="header-icon-container">
-                  <MedicineBoxOutlined style={{ fontSize: '32px', color: '#fff' }} />
-                </div>
-                <div>
-                  <Title level={2} style={{ color: '#fff', margin: 0 }}>Gestión de Vacunas e Inmunizaciones</Title>
-                  <Text style={{ color: 'rgba(255,255,255,0.85)' }}>Control clínico de esquemas y cronogramas de vacunación</Text>
-                </div>
-              </Space>
-            </Col>
-            <Col>
-              <Space>
-                <Button
-                  size="large"
-                  icon={<FileSearchOutlined />}
-                  onClick={() => navigate('/dashboard/vacunas/tipos')}
-                >
-                  Catálogo
-                </Button>
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<PlusOutlined />}
-                  onClick={handleNuevaVacuna}
-                  className="btn-success-gradient"
-                >
-                  Registrar Vacuna
-                </Button>
-                <Button
-                  size="large"
-                  icon={<FileExcelOutlined />}
-                  onClick={() => descargarArchivo(`/vacunas/registros/exportar-excel/${aQuery(listado.parametros())}`, `vacunas_${dayjs().format('YYYYMMDD')}.xlsx`)
-                    .catch(() => message.error('No se pudo exportar el Excel'))}
-                >
-                  Exportar Excel
-                </Button>
-                <Button
-                  size="large"
-                  icon={<ReloadOutlined />}
-                  onClick={cargarVacunas}
-                  loading={loading}
-                />
-              </Space>
-            </Col>
-          </Row>
+    <div className="vacunas-page page-container">
+      <header className="vacunas-page__cabecera">
+        <div>
+          <Title level={2}>Gestión de Vacunas e Inmunizaciones</Title>
+          <Text type="secondary">Control clínico de esquemas y cronogramas de vacunación</Text>
         </div>
+        <Space wrap>
+          <Button
+            icon={<FileSearchOutlined />}
+            onClick={() => navigate('/dashboard/vacunas/tipos')}
+          >
+            Catálogo
+          </Button>
+          <Button
+            icon={<FileExcelOutlined />}
+            onClick={() => descargarArchivo(`/vacunas/registros/exportar-excel/${aQuery(listado.parametros())}`, `vacunas_${dayjs().format('YYYYMMDD')}.xlsx`)
+              .catch(() => message.error('No se pudo exportar el Excel'))}
+          >
+            Exportar Excel
+          </Button>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={cargarVacunas}
+            loading={loading}
+            aria-label="Actualizar"
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleNuevaVacuna}
+          >
+            Registrar Vacuna
+          </Button>
+        </Space>
+      </header>
 
-        <VacunasStats stats={stats} />
+      <VacunasStats stats={stats} />
 
-        <VacunasFiltros filtros={filtros} dispatchFiltros={dispatchFiltros} />
+      <VacunasFiltros filtros={filtros} dispatchFiltros={dispatchFiltros} />
 
-        {/* CHARTS COLLAPSIBLE */}
-        <VacunasGraficas graficoPorMes={graficoPorMes} graficoPorTipo={graficoPorTipo} />
+      {/* GRÁFICAS */}
+      <VacunasGraficas graficoPorMes={graficoPorMes} graficoPorTipo={graficoPorTipo} />
 
-        {/* TABLE SECTION */}
+      {/* TABLA */}
+      <Card>
         <Table
           columns={columns}
           dataSource={listado.datos}
           rowKey="id"
           loading={loading}
           scroll={{ x: 1200 }}
-          pagination={{ ...listado.paginacion, className: 'custom-pagination' }}
+          pagination={listado.paginacion}
           onChange={listado.onChange}
-          className="premium-table"
           locale={{
             emptyText: (
               <Empty
                 description="No hay vacunas registradas"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               >
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevaVacuna}>
+                <Button icon={<PlusOutlined />} onClick={handleNuevaVacuna}>
                   Registrar primera vacuna
                 </Button>
               </Empty>

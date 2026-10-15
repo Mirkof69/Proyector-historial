@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Divider, Button, Alert, Row, Col } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Typography, Button, Alert, Row, Col } from 'antd';
+import { ReloadOutlined, RobotOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/es';
@@ -252,7 +252,7 @@ const DashboardHome: React.FC = () => {
 
   if (error) {
     return (
-      <div style={{ padding: 40 }}>
+      <div className="dashboard-container">
         <Alert
           message="Error de Conexión"
           description={error}
@@ -272,23 +272,23 @@ const DashboardHome: React.FC = () => {
       <DashboardAgenda citasHoy={citasHoy} />
       <DashboardTendencias chartData={chartData} />
 
-      <Divider orientation="left" style={{ fontSize: 18, fontWeight: 600, marginTop: 40 }}>
-        🤖 Asistente Médico con Inteligencia Artificial
-      </Divider>
+      <h2 className="dashboard-seccion__titulo">
+        <RobotOutlined aria-hidden />
+        Asistente Médico con Inteligencia Artificial
+      </h2>
 
-      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+      <Row gutter={[16, 16]}>
         <Col span={24}>
           <IAAsistenteMedico />
         </Col>
       </Row>
 
-      <Row gutter={[24, 24]}>
+      <Row gutter={[16, 16]}>
         <DashboardActividadReciente actividades={actividades} />
         <DashboardAlertasMedicas alertasMedicas={alertasMedicas} />
       </Row>
 
-      <div style={{ marginTop: 40, textAlign: 'center', color: '#888' }}>
-        <Divider />
+      <div className="dashboard-pie">
         <Text type="secondary">
           Sistema de Historial Clínico Gineco-Obstétrico • Última actualización: {lastUpdated ? dayjs(lastUpdated).format('DD/MM/YYYY HH:mm:ss') : '-'}
         </Text>

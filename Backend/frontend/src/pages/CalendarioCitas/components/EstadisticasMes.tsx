@@ -1,10 +1,8 @@
 import React from 'react';
-import { Row, Col, Card, Typography } from 'antd';
+import { Card, Statistic } from 'antd';
 import {
   CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined,
 } from '@ant-design/icons';
-
-const { Text } = Typography;
 
 interface EstadisticasMesProps {
   total: number;
@@ -15,28 +13,22 @@ interface EstadisticasMesProps {
   atrasadas: number;
 }
 
-const StatCard: React.FC<{ icon: React.ReactNode; value: number; label: string; color?: string }> = ({ icon, value, label, color }) => (
-  <Col xs={12} sm={8} md={4}>
-    <Card size="small" style={{ textAlign: 'center' }}>
-      {icon}
-      <div style={{ marginTop: 8 }}>
-        <Text strong style={{ fontSize: 18, color }}>{value}</Text>
-        <br />
-        <Text type="secondary" style={{ fontSize: 12 }}>{label}</Text>
-      </div>
-    </Card>
-  </Col>
+/** Tarjeta de cifra; `peligro` solo cuando la cifra es un estado a atender. */
+const StatCard: React.FC<{ icon: React.ReactNode; value: number; label: string; peligro?: boolean }> = ({ icon, value, label, peligro }) => (
+  <Card size="small" className={peligro && value > 0 ? 'calendario-page__cifra--peligro' : undefined}>
+    <Statistic title={<>{icon}{label}</>} value={value} />
+  </Card>
 );
 
 const EstadisticasMes: React.FC<EstadisticasMesProps> = ({ total, pendientes, confirmadas, completadas, canceladas, atrasadas }) => (
-  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-    <StatCard icon={<CalendarOutlined style={{ fontSize: 24, color: '#1890ff' }} />} value={total} label="Total" />
-    <StatCard icon={<ClockCircleOutlined style={{ fontSize: 24, color: '#faad14' }} />} value={pendientes} label="Pendientes" color="#faad14" />
-    <StatCard icon={<CheckCircleOutlined style={{ fontSize: 24, color: '#1890ff' }} />} value={confirmadas} label="Confirmadas" color="#1890ff" />
-    <StatCard icon={<CheckCircleOutlined style={{ fontSize: 24, color: '#52c41a' }} />} value={completadas} label="Completadas" color="#52c41a" />
-    <StatCard icon={<CloseCircleOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />} value={canceladas} label="Canceladas" color="#ff4d4f" />
-    <StatCard icon={<WarningOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />} value={atrasadas} label="Atrasadas" color="#ff4d4f" />
-  </Row>
+  <div className="calendario-page__cifras">
+    <StatCard icon={<CalendarOutlined />} value={total} label="Total" />
+    <StatCard icon={<ClockCircleOutlined />} value={pendientes} label="Pendientes" />
+    <StatCard icon={<CheckCircleOutlined />} value={confirmadas} label="Confirmadas" />
+    <StatCard icon={<CheckCircleOutlined />} value={completadas} label="Completadas" />
+    <StatCard icon={<CloseCircleOutlined />} value={canceladas} label="Canceladas" />
+    <StatCard icon={<WarningOutlined />} value={atrasadas} label="Atrasadas" peligro />
+  </div>
 );
 
 export default EstadisticasMes;

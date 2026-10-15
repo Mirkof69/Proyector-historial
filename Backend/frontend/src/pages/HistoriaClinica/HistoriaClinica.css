@@ -1,695 +1,278 @@
 /* =============================================================================
-   HISTORIA CLÍNICA - ESTILOS COMPLETOS
+   HISTORIA CLÍNICA — expediente de la paciente y listado de historias
    =============================================================================
-   Estilos específicos para el módulo de Historia Clínica
-   Incluye dashboard, cards, gráficas, tabs y responsive
-============================================================================= */
+   Contrato: docs/DISENO_INTERFAZ.md. El expediente vive bajo
+   .historia-clinica-container y el listado bajo .historias-lista. Modales y
+   cajones (portal) usan tokens: var(--…) en sus props.
+   ============================================================================= */
 
-/* ========== CONTAINER PRINCIPAL ========== */
+/* ---------- Expediente ---------- */
 .historia-clinica-container {
-    background-color: var(--bg-primary);
-    min-height: 100vh;
-    padding: var(--spacing-lg) var(--spacing-xl);
+  min-width: 0;
 }
 
-.historia-clinica-content {
-    max-width: var(--content-max-width);
-    margin: 0 auto;
+.historia-clinica-container .historia-clinica-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
 }
 
-/* ========== HEADER DEL PACIENTE ========== */
-.header-paciente {
-    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-    border: 1px solid var(--border-color);
-    border-left: 4px solid var(--color-primary);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
-    box-shadow: var(--shadow-card);
-    transition: all var(--transition-base) var(--transition-ease);
-    animation: slideInLeft var(--transition-base) var(--transition-ease);
+.historia-clinica-container .historia-breadcrumb .ant-btn-link {
+  padding-inline: 0;
 }
 
-.header-paciente:hover {
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-2px);
+.historia-clinica-cargando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
 }
 
-.header-paciente__avatar {
-    width: 80px;
-    height: 80px;
-    border: 3px solid var(--color-primary);
-    box-shadow: var(--shadow-md);
+.historia-clinica-cargando__texto {
+  padding: var(--esp-6);
+  text-align: center;
+  color: var(--color-texto-2);
 }
 
-.header-paciente__nombre {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-xs);
-    line-height: var(--line-height-tight);
+/* Cabecera de la paciente: superficie + borde, sin fondos de color */
+.historia-clinica-container .header-paciente.ant-card {
+  border: 1px solid var(--color-borde);
 }
 
-.header-paciente__info {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    flex-wrap: wrap;
-    margin-top: var(--spacing-sm);
+.historia-clinica-container .header-paciente__avatar.ant-avatar {
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
 }
 
-.header-paciente__info-item {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+.historia-clinica-container .header-paciente__datos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  min-width: 0;
 }
 
-.header-paciente__tag-estado {
-    font-size: var(--font-size-xs);
-    padding: 2px 8px;
-    border-radius: var(--border-radius-sm);
-    font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
+.historia-clinica-container h2.header-paciente__nombre.ant-typography {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
 }
 
-.header-paciente__alergias {
-    margin-top: var(--spacing-md);
-    padding: var(--spacing-sm);
-    background-color: rgba(255, 77, 79, 0.1);
-    border-left: 3px solid var(--color-error);
-    border-radius: var(--border-radius-sm);
+.historia-clinica-container .header-paciente__tag-estado.ant-tag {
+  margin: 0;
 }
 
-.header-paciente__actions {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
+.historia-clinica-container .header-paciente__info {
+  color: var(--color-texto-2);
 }
 
-/* ========== CARD SHADOW GLOBAL ========== */
-.card-shadow {
-    box-shadow: var(--shadow-card);
-    border-radius: var(--border-radius-lg);
-    transition: all var(--transition-base) var(--transition-ease);
-    border: 1px solid var(--border-color);
+/* Barra de búsqueda y vistas */
+.historia-clinica-container .historia-filtros__busqueda {
+  width: 250px;
+  max-width: 100%;
 }
 
-.card-shadow:hover {
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-4px);
+.historia-clinica-container .historia-filtros__selector {
+  width: 150px;
 }
 
-/* ========== DASHBOARD TAB ========== */
-.dashboard-tab {
-    animation: fadeIn var(--transition-base) var(--transition-ease);
+/* Conmutadores (vista compacta, gráficas): estado activo sin otro primario */
+.historia-clinica-container .historia-conmutador--activo.ant-btn {
+  background-color: var(--color-primario-suave);
+  border-color: var(--color-primario);
+  color: var(--color-primario);
 }
 
-.dashboard-tab .ant-alert {
-    border-radius: var(--border-radius-md);
-    border-left-width: 4px;
-    border-left-style: solid;
-    animation: slideInLeft 0.3s var(--transition-ease);
+.historia-nota {
+  font-size: var(--texto-xs);
 }
 
-.dashboard-tab .ant-alert-error {
-    border-left-color: var(--color-critical);
-    background: linear-gradient(90deg, rgba(245, 34, 45, 0.1) 0%, var(--bg-elevated) 100%);
+/* Pestañas principales */
+.historia-clinica-container .main-tabs-card.ant-card {
+  overflow: hidden;
 }
 
-.dashboard-tab .ant-alert-warning {
-    border-left-color: var(--color-warning);
-    background: linear-gradient(90deg, rgba(250, 173, 20, 0.1) 0%, var(--bg-elevated) 100%);
+.historia-clinica-container .main-tabs-card .ant-tabs-nav {
+  margin: 0;
+  padding: 0 var(--esp-4);
 }
 
-/* ========== CARD EMBARAZO ACTUAL ========== */
-.card-embarazo {
-    text-align: center;
+.historia-clinica-container .historia-tab-panel {
+  padding: var(--esp-5);
 }
 
-.card-embarazo__progress {
-    margin: var(--spacing-lg) 0;
+/* Tarjetas dentro de las pestañas */
+.historia-clinica-container .card-shadow.ant-card {
+  height: 100%;
 }
 
-.card-embarazo__details {
-    margin-top: var(--spacing-lg);
-    text-align: left;
+.historia-clinica-container .historia-icono {
+  color: var(--color-texto-3);
 }
 
-.card-embarazo .ant-progress-circle {
-    transition: all var(--transition-slow) var(--transition-spring);
+.historia-clinica-container .historia-icono--exito {
+  margin-inline-end: var(--esp-2);
+  color: var(--color-exito);
 }
 
-.card-embarazo:hover .ant-progress-circle {
-    transform: scale(1.05);
+.historia-clinica-container .historia-icono--peligro {
+  margin-inline-end: var(--esp-2);
+  color: var(--color-peligro);
 }
 
-/* ========== GRÁFICAS ========== */
-.grafica-container {
-    padding: var(--spacing-md);
-    background-color: var(--bg-elevated);
-    border-radius: var(--border-radius-lg);
+/* Ecografías: portada de imagen (visor: negro en todos los temas) */
+.historia-clinica-container .ecografias-gallery {
+  margin-bottom: var(--esp-5);
 }
 
-.grafica-title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-md);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+.historia-clinica-container .historia-eco-portada {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  background-color: var(--color-visor-fondo);
+  color: var(--color-texto-3);
+  font-size: 40px;
 }
 
-.grafica-title__icon {
-    color: var(--color-primary);
+/* Fila expandida de tabla y bloque de trazabilidad */
+.historia-clinica-container .historia-detalle-fila {
+  padding: var(--esp-4) var(--esp-5);
+  background-color: var(--color-superficie-2);
 }
 
-.recharts-wrapper {
-    margin: 0 auto;
+.historia-clinica-container .historia-trazabilidad.ant-card {
+  background-color: var(--color-superficie-2);
 }
 
-/* Tooltip personalizado */
-.recharts-default-tooltip {
-    background-color: var(--bg-elevated) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: var(--border-radius-md) !important;
-    box-shadow: var(--shadow-lg) !important;
-    padding: var(--spacing-sm) !important;
+/* Notas de evolución */
+.historia-clinica-container .historia-nota-card.ant-card {
+  margin-bottom: var(--esp-4);
+  overflow: hidden;
 }
 
-.recharts-tooltip-label {
-    color: var(--text-primary) !important;
-    font-weight: var(--font-weight-semibold) !important;
-    margin-bottom: var(--spacing-xs) !important;
+.historia-clinica-container .historia-nota-card__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-4);
+  background-color: var(--color-superficie-2);
+  border-bottom: 1px solid var(--color-borde-suave);
 }
 
-.recharts-tooltip-item {
-    color: var(--text-secondary) !important;
-    font-size: var(--font-size-sm) !important;
+.historia-clinica-container .historia-nota-card__plan {
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--color-exito-borde);
+  border-radius: var(--radio-sm);
+  background-color: var(--color-exito-suave);
 }
 
-/* ========== SIGNOS VITALES CARD ========== */
-.signos-vitales-card {
-    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+.historia-clinica-container .historia-nota-card__pie.ant-card {
+  padding: var(--esp-2) var(--esp-4);
+  border-top: 1px solid var(--color-borde-suave);
+  border-radius: 0;
+  background-color: var(--color-superficie-2);
 }
 
-.signos-vitales-card .ant-statistic {
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-md);
-    transition: all var(--transition-base) var(--transition-ease);
+/* Protocolos: el que está en su ventana de semanas se marca con borde primario */
+.historia-clinica-container .historia-protocolo--en-ventana.ant-card {
+  border-color: var(--color-primario);
 }
 
-.signos-vitales-card .ant-statistic:hover {
-    background-color: var(--bg-hover);
-    transform: translateY(-2px);
+.historia-clinica-container .historia-vacio__icono {
+  margin-bottom: var(--esp-4);
+  font-size: 48px;
+  color: var(--color-texto-3);
 }
 
-.signos-vitales-card .ant-statistic-title {
-    color: var(--text-secondary);
-    font-size: var(--font-size-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: var(--font-weight-semibold);
+/* ---------- Listado de historias (/historia-clinica) ---------- */
+.historias-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
 }
 
-.signos-vitales-card .ant-statistic-content {
-    color: var(--text-primary);
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
+.historias-lista .historias-lista__encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
 }
 
-/* ========== TABS PRINCIPAL ========== */
-.main-tabs-card {
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-card);
-    border: 1px solid var(--border-color);
+.historias-lista .historias-lista__titulo {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
 }
 
-.main-tabs-card .ant-tabs-nav {
-    background-color: var(--bg-secondary);
-    margin-bottom: 0;
-    padding: 0 var(--spacing-lg);
+.historias-lista .historias-lista__descripcion {
+  margin: 0;
+  color: var(--color-texto-2);
 }
 
-.main-tabs-card .ant-tabs-tab {
-    padding: var(--spacing-md) var(--spacing-lg);
-    font-weight: var(--font-weight-medium);
-    transition: all var(--transition-base) var(--transition-ease);
+.historias-lista .stat-card.ant-card {
+  height: 100%;
 }
 
-.main-tabs-card .ant-tabs-tab:hover {
-    color: var(--color-primary);
+.historias-lista .stat-card .ant-statistic-title {
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
 }
 
-.main-tabs-card .ant-tabs-tab-active {
-    background-color: var(--bg-elevated);
+.historias-lista .stat-card .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
 }
 
-.main-tabs-card .ant-tabs-ink-bar {
-    height: 3px;
-    background: var(--color-primary-gradient);
+.historias-lista .stat-card .ant-statistic-content-prefix {
+  color: var(--color-texto-3);
 }
 
-.main-tabs-card .ant-tabs-content {
-    min-height: 400px;
+.historias-lista .historias-lista__cifra--aviso .ant-statistic-content {
+  color: var(--color-aviso);
 }
 
-/* ========== TAB CONTROLES ========== */
-.tab-controles__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-lg);
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
+.historias-lista .historias-lista__nombre {
+  font-weight: var(--peso-medio);
 }
 
-.tab-controles__table {
-    border-radius: var(--border-radius-md);
-    overflow: hidden;
-}
-
-.tab-controles__table .ant-table-thead>tr>th {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
-    font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
-    font-size: var(--font-size-xs);
-    letter-spacing: 0.5px;
-}
-
-.tab-controles__table .ant-table-tbody>tr {
-    transition: all var(--transition-fast) var(--transition-ease);
-}
-
-.tab-controles__table .ant-table-tbody>tr:hover {
-    background-color: var(--bg-hover);
-    transform: translateX(4px);
-    box-shadow: -3px 0 0 var(--color-primary);
-}
-
-.tab-controles__expandable {
-    background-color: var(--bg-secondary);
-    padding: var(--spacing-md);
-    border-left: 3px solid var(--color-primary);
-}
-
-/* ========== TAB ECOGRAFÍAS ========== */
-.ecografias-gallery {
-    padding: var(--spacing-md);
-}
-
-.ecografia-card {
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    transition: all var(--transition-base) var(--transition-ease);
-    border: 1px solid var(--border-color);
-}
-
-.ecografia-card:hover {
-    transform: translateY(-8px) rotate(1deg);
-    box-shadow: var(--shadow-xl);
-}
-
-.ecografia-card__cover {
-    height: 150px;
-    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 40px;
-}
-
-.ecografia-card__meta {
-    padding: var(--spacing-md);
-}
-
-.ecografia-card__info {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    line-height: var(--line-height-relaxed);
-}
-
-.ecografia-card__info p {
-    margin-bottom: var(--spacing-xs);
-}
-
-.ecografia-add-button {
-    min-height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    border: 2px dashed var(--border-color);
-    border-radius: var(--border-radius-lg);
-    transition: all var(--transition-base) var(--transition-ease);
-    cursor: pointer;
-    background-color: var(--bg-secondary);
-}
-
-.ecografia-add-button:hover {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary-light);
-    transform: scale(1.02);
-}
-
-/* ========== TAB LABORATORIO ========== */
-.lab-table {
-    border-radius: var(--border-radius-md);
-}
-
-.lab-table .ant-table-row-anormal {
-    background-color: rgba(255, 77, 79, 0.05);
-}
-
-.lab-badge-anormal {
-    animation: pulse 2s infinite;
-}
-
-.lab-resultado-normal {
-    color: var(--color-success);
-    font-weight: var(--font-weight-semibold);
-}
-
-.lab-resultado-anormal {
-    color: var(--color-error);
-    font-weight: var(--font-weight-bold);
-    animation: subtle-pulse 1.5s infinite;
-}
-
-@keyframes subtle-pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
-}
-
-/* ========== TAB NOTAS EVOLUCIÓN ========== */
-.notas-timeline {
-    padding: var(--spacing-lg);
-}
-
-.notas-timeline .ant-timeline-item {
-    padding-bottom: var(--spacing-xl);
-}
-
-.nota-card {
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-sm);
-    transition: all var(--transition-base) var(--transition-ease);
-    border: 1px solid var(--border-color);
-}
-
-.nota-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.nota-card__header {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.nota-card__soap {
-    padding: 0;
-}
-
-.nota-card__soap .ant-descriptions-item-label {
-    background-color: var(--bg-secondary);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-}
-
-.nota-card__soap .ant-descriptions-item-content {
-    color: var(--text-secondary);
-    line-height: var(--line-height-relaxed);
-}
-
-.nota-redactar-button {
-    border-radius: var(--border-radius-lg);
-    height: auto;
-    padding: var(--spacing-lg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-/* ========== VACUNAS Y TRATAMIENTOS ========== */
-.vacunas-card,
-.tratamientos-card {
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-}
-
-.vacuna-item {
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--border-color-light);
-    transition: all var(--transition-base) var(--transition-ease);
-}
-
-.vacuna-item:last-child {
-    border-bottom: none;
-}
-
-.vacuna-item:hover {
-    background-color: var(--bg-hover);
-    padding-left: var(--spacing-sm);
-}
-
-.tratamiento-item {
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--border-color-light);
-    transition: all var(--transition-base) var(--transition-ease);
-}
-
-.tratamiento-item:last-child {
-    border-bottom: none;
-}
-
-.tratamiento-item:hover {
-    background-color: var(--bg-hover);
-    padding-left: var(--spacing-sm);
-}
-
-.tratamiento-activo {
-    border-left: 3px solid var(--color-success);
-}
-
-.tratamiento-suspendido {
-    opacity: 0.6;
-    border-left: 3px solid var(--color-error);
-}
-
-/* ========== MODALES Y DRAWERS ========== */
-.drawer-notas {
-    background-color: var(--bg-elevated);
-}
-
-.drawer-notas__section-title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-sm);
-    border-bottom: 2px solid var(--color-primary);
-}
-
-.drawer-notas__form-item {
-    margin-bottom: var(--spacing-lg);
-}
-
-.modal-receta {
-    border-radius: var(--border-radius-lg);
-}
-
-.modal-riesgo {
-    border-radius: var(--border-radius-lg);
-}
-
-/* ========== BREADCRUMB ========== */
-.historia-breadcrumb {
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-sm) 0;
-}
-
-.historia-breadcrumb .ant-breadcrumb-link {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    color: var(--text-secondary);
-    transition: color var(--transition-fast) var(--transition-ease);
-}
-
-.historia-breadcrumb .ant-breadcrumb-link:hover {
-    color: var(--color-primary);
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 1200px) {
-    .historia-clinica-container {
-        padding: var(--spacing-md) var(--spacing-lg);
-    }
-
-    .header-paciente__avatar {
-        width: 64px;
-        height: 64px;
-    }
-
-    .header-paciente__nombre {
-        font-size: var(--font-size-xl);
-    }
-}
-
+/* ---------- Adaptación ---------- */
 @media (max-width: 768px) {
-    .historia-clinica-container {
-        padding: var(--spacing-sm) var(--spacing-md);
-    }
+  .historia-clinica-container .historia-tab-panel {
+    padding: var(--esp-4) var(--esp-3);
+  }
 
-    .header-paciente {
-        padding: var(--spacing-md);
-    }
+  .historia-clinica-container .historia-filtros__busqueda {
+    width: 100%;
+  }
 
-    .header-paciente__info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-sm);
-    }
-
-    .header-paciente__actions {
-        width: 100%;
-    }
-
-    .tab-controles__header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .signos-vitales-card .ant-col {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
-
-    .ecografias-gallery .ant-col {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-
-    .main-tabs-card .ant-tabs-tab {
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-size: var(--font-size-sm);
-    }
+  .historia-clinica-container .header-paciente__actions {
+    align-items: flex-start;
+  }
 }
 
-@media (max-width: 480px) {
-    .header-paciente__avatar {
-        width: 48px;
-        height: 48px;
-    }
-
-    .header-paciente__nombre {
-        font-size: var(--font-size-lg);
-    }
-
-    .signos-vitales-card .ant-col {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-}
-
-/* ========== MODO IMPRESIÓN ========== */
+/* ---------- Impresión ---------- */
 @media print {
+  .historia-clinica-container .historia-filtros,
+  .historia-clinica-container .historia-breadcrumb,
+  .historia-clinica-container .header-paciente__actions {
+    display: none;
+  }
 
-    .header-paciente__actions,
-    .tab-controles__header .ant-space,
-    .ecografia-add-button,
-    .nota-redactar-button {
-        display: none !important;
-    }
-
-    .historia-clinica-container {
-        padding: 0;
-    }
-
-    .card-shadow,
-    .main-tabs-card {
-        box-shadow: none !important;
-        border: 1px solid #000;
-    }
-
-    .ant-tabs-content {
-        page-break-inside: avoid;
-    }
+  .historia-clinica-container .main-tabs-card.ant-card {
+    border: 0;
+  }
 }
 
-/* ========== ANIMACIONES ADICIONALES ========== */
-@keyframes card-entrance {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.card-shadow {
-    animation: card-entrance 0.4s var(--transition-ease) backwards;
-}
-
-.card-shadow:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.card-shadow:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.card-shadow:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.card-shadow:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-/* ========== ACCESIBILIDAD ========== */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-}
-
-/* Alto contraste para formularios */
-@media (prefers-contrast: high) {
-
-    .ant-input,
-    .ant-select-selector {
-        border-width: 2px;
-    }
-
-    .ant-btn-primary {
-        border-width: 2px;
-    }
+/* Icono de la cifra: discreto, a escala de la etiqueta */
+.historias-lista .stat-card .ant-statistic-content-prefix {
+  margin-inline-end: var(--esp-2);
+  font-size: var(--texto-md);
+  color: var(--color-texto-3);
 }

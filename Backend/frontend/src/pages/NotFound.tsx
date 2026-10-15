@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Result, Button, Typography, Row, Col, Card, Divider, Space } from 'antd';
+import { Result, Button, Typography, Divider } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -12,18 +12,17 @@ import './NotFound.css';
 const { Text, Title, Paragraph } = Typography;
 
 const notFoundTitle = (
-  <Title level={1} style={{ color: 'var(--text-secondary)', marginBottom: 0 }}>
+  <Title level={1} className="pagina-estado__codigo">
     404
   </Title>
 );
 
 const getNotFoundSubTitle = (pathname: string) => (
-  <div style={{ marginBottom: 24 }}>
+  <div className="pagina-estado__texto">
     <Title level={3}>¡Ups! Página no encontrada</Title>
-    <Text type="secondary" style={{ fontSize: 16 }}>
+    <Text type="secondary">
       Lo sentimos, la ruta <code>{pathname}</code> no existe en el sistema.
     </Text>
-    <br />
     <Text type="secondary">
       Es posible que el enlace esté roto o que la página haya sido movida.
     </Text>
@@ -56,77 +55,54 @@ const NotFound: React.FC = () => {
   }, [countdown, navigate]);
 
   return (
-    <div className="not-found-container animate-fade-in" style={{
-      height: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}>
-      <Card
-        variant="borderless"
-        style={{
-          maxWidth: 800,
-          width: '90%',
-          borderRadius: 16,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-          textAlign: 'center',
-          padding: '40px 20px'
-        }}
-      >
+    <div className="pagina-estado page-container">
+      <div className="pagina-estado__tarjeta">
         <Result
           status="404"
           title={notFoundTitle}
           subTitle={notFoundSubTitle as React.ReactNode}
           extra={
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              <Space size="middle" wrap style={{ justifyContent: 'center' }}>
+            <div className="pagina-estado__extra">
+              <div className="pagina-estado__acciones">
                 <Button
                   type="primary"
-                  size="large"
                   icon={<HomeOutlined />}
                   onClick={() => navigate('/')}
-                  style={{ minWidth: 160, borderRadius: 6 }}
                 >
                   Ir al Inicio ({countdown}s)
                 </Button>
 
                 <Button
-                  size="large"
                   icon={<ArrowLeftOutlined />}
                   onClick={() => navigate(-1)}
-                  style={{ minWidth: 160, borderRadius: 6 }}
                 >
                   Volver Atrás
                 </Button>
-              </Space>
+              </div>
 
-              <Divider dashed style={{ margin: '24px 0' }}>¿Buscas algo específico?</Divider>
+              <Divider dashed>¿Buscas algo específico?</Divider>
 
-              <Paragraph type="secondary" style={{ marginBottom: 16, fontSize: 13 }}>
+              <Paragraph type="secondary">
                 Si necesitas ayuda para encontrar lo que buscas, puedes usar los enlaces rápidos de abajo o contactar con soporte técnico.
               </Paragraph>
 
               {/* Enlaces rápidos de ayuda */}
-              <Row gutter={[16, 16]} justify="center">
-                <Col xs={24} sm={8}>
-                  <Button block type="link" icon={<SearchOutlined />} onClick={() => navigate('/dashboard/pacientes')}>
-                    Buscar Paciente
-                  </Button>
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Button block type="link" icon={<BugOutlined />} onClick={() => navigate('/dashboard/ayuda')}>
-                    Reportar Error
-                  </Button>
-                </Col>
-              </Row>
-            </Space>
+              <div className="pagina-estado__acciones">
+                <Button type="link" icon={<SearchOutlined />} onClick={() => navigate('/dashboard/pacientes')}>
+                  Buscar Paciente
+                </Button>
+                <Button type="link" icon={<BugOutlined />} onClick={() => navigate('/dashboard/ayuda')}>
+                  Reportar Error
+                </Button>
+              </div>
+            </div>
           }
         />
 
-        <div style={{ marginTop: 40, color: '#bfbfbf', fontSize: 12 }} suppressHydrationWarning>
+        <div className="pagina-estado__pie texto-mono" suppressHydrationWarning>
           System ID: 404-NF-Route-Exception • {timestamp}
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

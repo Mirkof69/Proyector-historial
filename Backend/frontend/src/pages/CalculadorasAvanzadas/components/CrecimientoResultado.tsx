@@ -9,32 +9,32 @@ interface CrecimientoResultadoProps {
 
 const CrecimientoResultado: React.FC<CrecimientoResultadoProps> = ({ resultado }) => (
   <>
-    <Card title={<><SafetyOutlined /> Estadísticas del Crecimiento</>} style={{ marginBottom: 16 }}>
-      <Row gutter={16}>
-        <Col span={8}>
+    <Card title={<><SafetyOutlined /> Estadísticas del Crecimiento</>} className="calc-bloque">
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="Peso Fetal Estimado"
             value={resultado.efw}
             precision={0}
             suffix="g"
-            valueStyle={{ color: resultado.color, fontWeight: 'bold' }}
+            valueStyle={{ color: resultado.color }}
           />
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="Percentil"
             value={resultado.percentil}
             precision={1}
             prefix="p"
-            valueStyle={{ color: resultado.color, fontWeight: 'bold' }}
+            valueStyle={{ color: resultado.color }}
           />
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="Z-Score"
             value={resultado.zscore}
             precision={2}
-            valueStyle={{ color: Math.abs(resultado.zscore) > 2 ? '#f5222d' : '#52c41a' }}
+            valueStyle={{ color: Math.abs(resultado.zscore) > 2 ? 'var(--color-peligro)' : 'var(--color-exito)' }}
           />
         </Col>
       </Row>
@@ -43,30 +43,30 @@ const CrecimientoResultado: React.FC<CrecimientoResultadoProps> = ({ resultado }
     <Alert
       message={resultado.clasificacion}
       description={
-        <div>
-          <p style={{ marginBottom: 8 }}><strong>Interpretación:</strong> {resultado.interpretacion}</p>
-          <p style={{ marginBottom: 0 }}><strong>Recomendación:</strong> {resultado.recomendacion}</p>
+        <div className="calc-parrafos">
+          <p><strong>Interpretación:</strong> {resultado.interpretacion}</p>
+          <p><strong>Recomendación:</strong> {resultado.recomendacion}</p>
         </div>
       }
       type={resultado.categoria === 'NORMAL' ? 'success' : resultado.categoria === 'PEG' || resultado.categoria === 'GEG' ? 'warning' : 'error'}
       showIcon
       icon={resultado.categoria === 'NORMAL' ? <SafetyOutlined /> : <AlertOutlined />}
-      style={{ marginBottom: 16 }}
+      className="calc-bloque"
     />
 
     <Card title="Percentiles de Parámetros Biométricos" size="small">
-      <Row gutter={8}>
-        <Col span={6}>
-          <Statistic title="BPD" value={resultado.bpd_percentil} precision={1} prefix="p" valueStyle={{ fontSize: 16 }} />
+      <Row gutter={[8, 8]}>
+        <Col xs={12} sm={6}>
+          <Statistic title="BPD" value={resultado.bpd_percentil} precision={1} prefix="p" className="calc-cifra-pequena" />
         </Col>
-        <Col span={6}>
-          <Statistic title="HC" value={resultado.hc_percentil} precision={1} prefix="p" valueStyle={{ fontSize: 16 }} />
+        <Col xs={12} sm={6}>
+          <Statistic title="HC" value={resultado.hc_percentil} precision={1} prefix="p" className="calc-cifra-pequena" />
         </Col>
-        <Col span={6}>
-          <Statistic title="AC" value={resultado.ac_percentil} precision={1} prefix="p" valueStyle={{ fontSize: 16 }} />
+        <Col xs={12} sm={6}>
+          <Statistic title="AC" value={resultado.ac_percentil} precision={1} prefix="p" className="calc-cifra-pequena" />
         </Col>
-        <Col span={6}>
-          <Statistic title="FL" value={resultado.fl_percentil} precision={1} prefix="p" valueStyle={{ fontSize: 16 }} />
+        <Col xs={12} sm={6}>
+          <Statistic title="FL" value={resultado.fl_percentil} precision={1} prefix="p" className="calc-cifra-pequena" />
         </Col>
       </Row>
     </Card>

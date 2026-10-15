@@ -14,47 +14,39 @@ interface DashboardStatsCardsProps {
   stats: DashboardStats;
 }
 
+const Etiqueta: React.FC<{ icono: React.ReactNode; texto: string }> = ({ icono, texto }) => (
+  <span className="stat-card__etiqueta">{icono}{texto}</span>
+);
+
 const DashboardStatsCards: React.FC<DashboardStatsCardsProps> = ({ stats }) => (
   <div className="dashboard-stats-grid">
-    <Card className="stat-card blue-gradient">
+    <Card className="stat-card">
       <Statistic
-        title={<span style={{ color: '#fff' }}>Total Pacientes</span>}
+        title={<Etiqueta icono={<UserOutlined />} texto="Total Pacientes" />}
         value={stats.total_pacientes}
-        valueStyle={{ color: '#fff' }}
-        prefix={<UserOutlined />}
-        suffix={<span style={{ fontSize: 12, opacity: 0.8 }}>+{stats.pacientes_nuevos_mes} este mes</span>}
+        suffix={`+${stats.pacientes_nuevos_mes} este mes`}
       />
-      <div className="stat-icon-bg"><UserOutlined /></div>
     </Card>
 
-    <Card className="stat-card purple-gradient">
+    <Card className="stat-card">
       <Statistic
-        title={<span style={{ color: '#fff' }}>Embarazos Activos</span>}
+        title={<Etiqueta icono={<HeartOutlined />} texto="Embarazos Activos" />}
         value={stats.embarazos_activos}
-        valueStyle={{ color: '#fff' }}
-        prefix={<HeartOutlined />}
       />
-      <div className="stat-icon-bg"><HeartOutlined /></div>
     </Card>
 
-    <Card className="stat-card orange-gradient">
+    <Card className={`stat-card${stats.embarazos_riesgo_alto > 0 ? ' stat-card--peligro' : ''}`}>
       <Statistic
-        title={<span style={{ color: '#fff' }}>Riesgo Alto</span>}
+        title={<Etiqueta icono={<WarningOutlined />} texto="Riesgo Alto" />}
         value={stats.embarazos_riesgo_alto}
-        valueStyle={{ color: '#fff' }}
-        prefix={<WarningOutlined />}
       />
-      <div className="stat-icon-bg"><WarningOutlined /></div>
     </Card>
 
-    <Card className="stat-card green-gradient">
+    <Card className="stat-card">
       <Statistic
-        title={<span style={{ color: '#fff' }}>Citas para Hoy</span>}
+        title={<Etiqueta icono={<CalendarOutlined />} texto="Citas para Hoy" />}
         value={stats.citas_hoy_count}
-        valueStyle={{ color: '#fff' }}
-        prefix={<CalendarOutlined />}
       />
-      <div className="stat-icon-bg"><CalendarOutlined /></div>
     </Card>
   </div>
 );

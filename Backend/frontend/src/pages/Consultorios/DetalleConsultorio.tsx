@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { consultoriosService, Consultorio, EstadoConsultorio } from '../../services/consultoriosService';
+import './Consultorios.css';
 
 const getEstadoConfig = (estado: EstadoConsultorio | string) => {
   const configs: Record<string, { color: string; icon: React.ReactElement; text: string }> = {
@@ -54,7 +55,7 @@ const DetalleConsultorio: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div className="consultorios-pagina consultorios-cargando">
         <Spin size="large" />
       </div>
     );
@@ -62,7 +63,7 @@ const DetalleConsultorio: React.FC = () => {
 
   if (!consultorio) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div className="consultorios-pagina">
         <Card>
           <Empty description="Consultorio no encontrado" />
           <Button onClick={() => navigate('/dashboard/consultorios')}>
@@ -76,18 +77,18 @@ const DetalleConsultorio: React.FC = () => {
   const estadoConfig = getEstadoConfig(consultorio.estado || 'inactivo');
 
   return (
-    <div style={{ padding: '24px' }}>
-      {/* Header */}
-      <Card style={{ marginBottom: 16 }}>
-        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Space>
+    <div className="consultorios-pagina">
+      {/* Encabezado */}
+      <Card>
+        <Space wrap className="consultorios-detalle__cabecera">
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate('/dashboard/consultorios')}
             >
               Volver
             </Button>
-            <h2 style={{ margin: 0 }}>
+            <h2 className="pagina-encabezado__titulo">
               {consultorio.nombre}
             </h2>
             <Tag color={estadoConfig.color} icon={estadoConfig.icon}>
@@ -157,7 +158,7 @@ const DetalleConsultorio: React.FC = () => {
             {consultorio.nombre}
           </Descriptions.Item>
           <Descriptions.Item label="Tipo">
-            <Tag color="blue">{consultorio.tipo}</Tag>
+            <Tag>{consultorio.tipo}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Área">
             {consultorio.area || '-'}
@@ -179,17 +180,17 @@ const DetalleConsultorio: React.FC = () => {
         <Descriptions bordered column={{ xs: 1, sm: 2 }}>
           <Descriptions.Item label="Tipo de Equipamiento">
             {consultorio.equipamiento ? (
-              <Tag color="purple">{consultorio.equipamiento}</Tag>
+              <Tag>{consultorio.equipamiento}</Tag>
             ) : '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Características">
             <Space wrap>
-              {consultorio.tiene_camilla && <Tag color="green" icon={<CheckCircleOutlined />}>Camilla</Tag>}
-              {consultorio.tiene_escritorio && <Tag color="blue" icon={<CheckCircleOutlined />}>Escritorio</Tag>}
-              {consultorio.tiene_computadora && <Tag color="purple" icon={<CheckCircleOutlined />}>Computadora</Tag>}
-              {consultorio.tiene_lavamanos && <Tag color="cyan" icon={<CheckCircleOutlined />}>Lavamanos</Tag>}
-              {consultorio.tiene_oxigeno && <Tag color="orange" icon={<CheckCircleOutlined />}>Oxígeno</Tag>}
-              {consultorio.tiene_aspirador && <Tag color="geekblue" icon={<CheckCircleOutlined />}>Aspirador</Tag>}
+              {consultorio.tiene_camilla && <Tag icon={<CheckCircleOutlined />}>Camilla</Tag>}
+              {consultorio.tiene_escritorio && <Tag icon={<CheckCircleOutlined />}>Escritorio</Tag>}
+              {consultorio.tiene_computadora && <Tag icon={<CheckCircleOutlined />}>Computadora</Tag>}
+              {consultorio.tiene_lavamanos && <Tag icon={<CheckCircleOutlined />}>Lavamanos</Tag>}
+              {consultorio.tiene_oxigeno && <Tag icon={<CheckCircleOutlined />}>Oxígeno</Tag>}
+              {consultorio.tiene_aspirador && <Tag icon={<CheckCircleOutlined />}>Aspirador</Tag>}
               {!consultorio.tiene_camilla && !consultorio.tiene_escritorio &&
                !consultorio.tiene_computadora && !consultorio.tiene_lavamanos &&
                !consultorio.tiene_oxigeno && !consultorio.tiene_aspirador && '-'}

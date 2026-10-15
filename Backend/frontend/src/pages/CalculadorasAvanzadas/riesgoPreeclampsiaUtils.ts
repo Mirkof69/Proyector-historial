@@ -189,28 +189,28 @@ export const calcularRiesgo = (valores: DatosRiesgo): ResultadoRiesgo => {
 
     if (riesgo_pe_precoz >= 10) {
       clasificacion = '🔴 ALTO RIESGO';
-      color = '#f5222d';
+      color = 'var(--color-peligro)';
       interpretacion = 'Riesgo elevado de preeclampsia precoz (<34 semanas). Requiere monitoreo intensivo y profilaxis farmacológica.';
       recomendacion = 'Aspirina 150mg/día desde las 12 semanas hasta las 36 semanas. Vigilancia estrecha cada 2-3 semanas con biomarcadores y Doppler.';
       aspirina_indicada = true;
       seguimiento = 'Control cada 2-3 semanas con PlGF, sFlt-1, MAP, UtA-PI y biometría fetal.';
     } else if (riesgo_pe_precoz >= 5 || riesgo_pe_tardia >= 15) {
       clasificacion = '🟡 RIESGO INTERMEDIO';
-      color = '#fa8c16';
+      color = 'var(--color-aviso)';
       interpretacion = 'Riesgo moderado de preeclampsia. Se recomienda profilaxis y seguimiento cercano.';
       recomendacion = 'Aspirina 150mg/día desde las 12 semanas. Considerar suplementación con calcio 1.5g/día si ingesta dietética baja.';
       aspirina_indicada = true;
       seguimiento = 'Control cada 3-4 semanas con biomarcadores y evaluación clínica.';
     } else if (riesgo_pe_precoz >= 1 || riesgo_pe_tardia >= 5) {
       clasificacion = '🟢 BAJO RIESGO';
-      color = '#52c41a';
+      color = 'var(--color-exito)';
       interpretacion = 'Riesgo bajo de preeclampsia. Continuar con seguimiento prenatal habitual.';
       recomendacion = 'Seguimiento prenatal estándar. Educación sobre signos de alarma. Dieta saludable y actividad física regular.';
       aspirina_indicada = false;
       seguimiento = 'Control prenatal estándar según protocolo. Vigilancia de signos de alarma.';
     } else {
       clasificacion = '🟢 RIESGO MUY BAJO';
-      color = '#389e0d';
+      color = 'var(--color-exito)';
       interpretacion = 'Riesgo muy bajo de preeclampsia. Biomarcadores protectores.';
       recomendacion = 'Continuar con controles prenatales de rutina. Mantener estilo de vida saludable.';
       aspirina_indicada = false;
@@ -243,20 +243,20 @@ export const formatRatioTooltip = (value: any) => value ? Number(value).toFixed(
 export const getDataBiomarcadores = (resultado: ResultadoRiesgo | null) => {
   if (!resultado) return [];
   return [
-    { name: 'PlGF', mom: resultado.plgf_mom, referencia: 1.0, color: '#1890ff' },
-    { name: 'sFlt-1', mom: resultado.sflt1_mom, referencia: 1.0, color: '#f5222d' },
-    { name: 'PAPP-A', mom: resultado.pappa_mom, referencia: 1.0, color: '#52c41a' },
-    { name: 'MAP', mom: resultado.map_mom, referencia: 1.0, color: '#fa8c16' },
-    { name: 'UtA-PI', mom: resultado.uta_pi_mom, referencia: 1.0, color: '#722ed1' }
+    { name: 'PlGF', mom: resultado.plgf_mom, referencia: 1.0, color: 'var(--grafico-1)' },
+    { name: 'sFlt-1', mom: resultado.sflt1_mom, referencia: 1.0, color: 'var(--grafico-2)' },
+    { name: 'PAPP-A', mom: resultado.pappa_mom, referencia: 1.0, color: 'var(--grafico-3)' },
+    { name: 'MAP', mom: resultado.map_mom, referencia: 1.0, color: 'var(--grafico-4)' },
+    { name: 'UtA-PI', mom: resultado.uta_pi_mom, referencia: 1.0, color: 'var(--grafico-5)' }
   ];
 };
 
 export const getDataDistribucionRiesgo = (resultado: ResultadoRiesgo | null) => {
   if (!resultado) return [];
   return [
-    { name: 'PE Precoz', value: resultado.riesgo_pe_precoz, color: '#f5222d' },
-    { name: 'PE Tardía', value: resultado.riesgo_pe_tardia, color: '#fa8c16' },
-    { name: 'Sin PE', value: Math.max(0, 100 - resultado.riesgo_pe_precoz - resultado.riesgo_pe_tardia), color: '#52c41a' }
+    { name: 'PE Precoz', value: resultado.riesgo_pe_precoz, color: 'var(--color-peligro)' },
+    { name: 'PE Tardía', value: resultado.riesgo_pe_tardia, color: 'var(--color-aviso)' },
+    { name: 'Sin PE', value: Math.max(0, 100 - resultado.riesgo_pe_precoz - resultado.riesgo_pe_tardia), color: 'var(--color-exito)' }
   ];
 };
 

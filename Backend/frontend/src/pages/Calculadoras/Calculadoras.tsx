@@ -27,7 +27,7 @@
 
 import React, { useState, useReducer } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
-import { Card, Button, Space, Form, Alert, Tabs } from "antd";
+import { Card, Button, Form, Alert, Tabs, Typography } from "antd";
 import {
   CalculatorOutlined, InfoCircleOutlined, HistoryOutlined,
 } from '@ant-design/icons';
@@ -42,6 +42,9 @@ import DiabetesGestacionalTab from './components/DiabetesGestacionalTab';
 import { clasificarIla } from '../../utils/liquidoAmniotico';
 import { evaluarRiesgoPreeclampsia } from '../../utils/riesgoPreeclampsia';
 import { pesoFetalEstimado } from '../../utils/pesoFetal';
+import './Calculadoras.css';
+
+const { Title } = Typography;
 
 const CalculadorasPage: React.FC = () => {
   const [resultados, dispatchResultado] = useReducer(resultadosReducer, initialResultados);
@@ -464,31 +467,30 @@ const CalculadorasPage: React.FC = () => {
   });
 
   return (
-    <div className="calculadoras-container page-container">
-      <Card
-        title={
-          <Space>
-            <CalculatorOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-            <span style={{ fontSize: 20, fontWeight: 600 }}>Calculadoras Médicas Obstétricas</span>
-          </Space>
-        }
-        extra={
-          <Button
-            icon={<HistoryOutlined />}
-            onClick={() => setHistorialVisible(true)}
-            type="dashed"
-          >
-            Historial ({historial.length})
-          </Button>
-        }
-      >
+    <div className="calculadoras-page page-container">
+      <div className="calculadoras-cabecera">
+        <div className="calculadoras-cabecera__texto">
+          <Title level={2} className="calculadoras-cabecera__titulo">
+            <CalculatorOutlined className="calculadoras-cabecera__icono" />
+            Calculadoras Médicas Obstétricas
+          </Title>
+          <p className="calculadoras-cabecera__descripcion">Suite de Calculadoras Clínicas</p>
+        </div>
+        <Button
+          icon={<HistoryOutlined />}
+          onClick={() => setHistorialVisible(true)}
+        >
+          Historial ({historial.length})
+        </Button>
+      </div>
+
+      <Card>
         <Alert
-          message="Suite de Calculadoras Clínicas"
-          description="Herramientas médicas profesionales para cálculos obstétricos. Todos los resultados deben ser interpretados por un profesional de la salud."
+          message="Herramientas médicas profesionales para cálculos obstétricos. Todos los resultados deben ser interpretados por un profesional de la salud."
           type="info"
           showIcon
           icon={<InfoCircleOutlined />}
-          style={{ marginBottom: 24 }}
+          className="calculadoras-aviso"
         />
 
         <Tabs items={[

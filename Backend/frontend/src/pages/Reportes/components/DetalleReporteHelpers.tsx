@@ -22,6 +22,6 @@ export const EstadoTagReporte: React.FC<{ estado: string }> = ({ estado }) => {
 
 export const IconoFormatoReporte: React.FC<{ formato: string }> = ({ formato }) => (
   formato === 'PDF'
-    ? <FilePdfOutlined style={{ fontSize: '24px', color: '#ff4d4f' }} />
-    : <FileExcelOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
+    ? <FilePdfOutlined className="reportes-icono-pdf" />
+    : <FileExcelOutlined className="reportes-icono-excel" />
 );

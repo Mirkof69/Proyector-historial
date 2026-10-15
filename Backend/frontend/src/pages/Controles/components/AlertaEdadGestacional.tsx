@@ -14,7 +14,7 @@ const AlertaEdadGestacional: React.FC<AlertaEdadGestacionalProps> = ({ semanasGe
   return (
     <Alert
       message={
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" className="u-ancho">
           <Text strong>
             📋 Campos Obligatorios según Edad Gestacional: {semanasGestacion} semanas
           </Text>
@@ -38,7 +38,7 @@ const AlertaEdadGestacional: React.FC<AlertaEdadGestacionalProps> = ({ semanasGe
       type={semanasGestacion < 12 ? 'info' : semanasGestacion < 20 ? 'warning' : 'success'}
       showIcon
       icon={<InfoCircleOutlined />}
-      style={{ marginBottom: 16, marginTop: 16 }}
+      className="u-mb-4 u-mt-4"
     />
   );
 };

@@ -14,9 +14,9 @@ export const AlertasYRecomendaciones: React.FC<AlertasYRecomendacionesProps> = (
       {alertas.length > 0 && (
         <>
           <Divider orientation="left">
-            <Space><WarningOutlined style={{ color: '#ff4d4f' }} />Alertas Médicas</Space>
+            <Space><WarningOutlined className="partos-peligro" />Alertas Médicas</Space>
           </Divider>
-          <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }} size="middle">
+          <Space direction="vertical" className="partos-ancho partos-separado" size="middle">
             {alertas.map((alerta) => (
               <Alert
                 key={`${alerta.tipo}-${alerta.mensaje}`}
@@ -36,7 +36,7 @@ export const AlertasYRecomendaciones: React.FC<AlertasYRecomendacionesProps> = (
           <Divider orientation="left">Recomendaciones Médicas</Divider>
           <Collapse
             accordion
-            style={{ marginBottom: 16 }}
+            className="partos-separado"
             defaultActiveKey={['0']}
             items={recomendaciones.map((rec) => {
               const getAlertType = () => {
@@ -58,7 +58,7 @@ export const AlertasYRecomendaciones: React.FC<AlertasYRecomendacionesProps> = (
                     type={getAlertType()}
                     message={rec.titulo}
                     description={
-                      <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                      <ul className="partos-lista">
                         {rec.recomendaciones.map((r) => <li key={`rec-${r}`}>{r}</li>)}
                       </ul>
                     }

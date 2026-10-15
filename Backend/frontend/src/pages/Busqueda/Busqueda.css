@@ -1,0 +1,117 @@
+/* =============================================================================
+   BÚSQUEDA — global y avanzada de pacientes
+   =============================================================================
+   Contrato: docs/DISENO_INTERFAZ.md. Todo bajo .busqueda-pagina; colores solo con
+   var(--…). Modales y cajones (portal) usan los tokens de Ant Design.
+   ============================================================================= */
+
+.busqueda-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+/* ---------- Encabezado de página ---------- */
+.busqueda-pagina .pagina-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.busqueda-pagina .pagina-encabezado__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.busqueda-pagina .pagina-encabezado__titulo,
+.busqueda-pagina h2.pagina-encabezado__titulo.ant-typography {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  color: var(--color-texto);
+}
+
+.busqueda-pagina .pagina-encabezado__descripcion {
+  margin: 0;
+  color: var(--color-texto-2);
+}
+
+/* ---------- Tarjetas de cifras ---------- */
+.busqueda-pagina .stat-card.ant-card {
+  height: 100%;
+}
+
+.busqueda-pagina .stat-card .ant-statistic-title,
+.busqueda-pagina .stat-card__etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.busqueda-pagina .stat-card__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.busqueda-pagina .stat-card__etiqueta .anticon,
+.busqueda-pagina .stat-card .ant-statistic-content-prefix {
+  color: var(--color-texto-3);
+}
+
+.busqueda-pagina .stat-card .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+/* Cifra que es un estado */
+.busqueda-pagina .cifra--peligro .ant-statistic-content { color: var(--color-peligro); }
+.busqueda-pagina .cifra--aviso .ant-statistic-content { color: var(--color-aviso); }
+.busqueda-pagina .cifra--exito .ant-statistic-content { color: var(--color-exito); }
+
+.busqueda-pagina .busqueda-ancho {
+  width: 100%;
+}
+
+.busqueda-pagina .busqueda-caja {
+  max-width: 800px;
+}
+
+.busqueda-pagina .busqueda-nota {
+  font-size: var(--texto-xs);
+}
+
+.busqueda-pagina .busqueda-recientes {
+  margin-top: var(--esp-2);
+}
+
+.busqueda-pagina .busqueda-reciente.ant-tag {
+  cursor: pointer;
+}
+
+.busqueda-pagina .busqueda-cifras {
+  margin-block: var(--esp-4);
+}
+
+.busqueda-pagina .busqueda-urgente {
+  color: var(--color-peligro);
+}
+
+/* Móvil: el selector de modo se desplaza dentro de sí, no la página */
+.busqueda-pagina .ant-segmented {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Icono de la cifra: discreto, a escala de la etiqueta */
+.busqueda-pagina .stat-card .ant-statistic-content-prefix {
+  margin-inline-end: var(--esp-2);
+  font-size: var(--texto-md);
+  color: var(--color-texto-3);
+}

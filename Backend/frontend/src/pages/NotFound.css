@@ -1,40 +1,97 @@
-.not-found-container {
-    background: var(--bg-secondary, #f0f2f5);
-    min-height: 100vh;
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+/* Pantallas de estado: 404 (NotFound.tsx) y 403 (Unauthorized.tsx)
+   — contrato: docs/DISENO_INTERFAZ.md. Superficie plana con borde, sin
+   sombras ni degradados; el color de peligro solo en el icono del 403. */
+
+.pagina-estado {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--esp-5) var(--esp-4);
+  background-color: var(--color-fondo);
 }
 
-.animate-fade-in {
-    animation: fadeIn 0.8s ease-in-out;
+/* Dentro del armazón (ruta /dashboard/unauthorized) no ocupa toda la ventana */
+.app-content .pagina-estado {
+  min-height: 60vh;
+  padding: var(--esp-5) 0;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.pagina-estado__tarjeta {
+  width: 100%;
+  max-width: 720px;
+  padding: var(--esp-5) var(--esp-4);
+  text-align: center;
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
 }
 
-.ant-result-404 .ant-result-title {
-    color: #595959;
-    font-size: 48px !important;
-    margin-bottom: 24px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+.pagina-estado__tarjeta .ant-result {
+  padding: var(--esp-4) 0;
 }
 
-.ant-result-404 .ant-result-subtitle {
-    font-size: 18px !important;
-    color: #8c8c8c;
+.pagina-estado__codigo.ant-typography {
+  margin: 0;
+  color: var(--color-texto-2);
+  font-size: var(--texto-2xl);
+  font-variant-numeric: tabular-nums;
 }
 
-.ant-card-body {
-    padding: 40px !important;
+.pagina-estado__titulo-403 {
+  color: var(--color-texto);
+  font-weight: var(--peso-fuerte);
+}
+
+.pagina-estado__icono-403 {
+  color: var(--color-peligro);
+}
+
+.pagina-estado__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  margin: var(--esp-4) 0;
+}
+
+.pagina-estado__texto h3.ant-typography {
+  margin: 0;
+}
+
+.pagina-estado__texto .ant-typography {
+  margin-bottom: 0;
+}
+
+.pagina-estado__aviso.ant-alert {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.pagina-estado__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--esp-3);
+}
+
+.pagina-estado__extra {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  width: 100%;
+}
+
+.pagina-estado__extra .ant-divider {
+  margin: var(--esp-2) 0;
+}
+
+.pagina-estado__pie {
+  margin-top: var(--esp-5);
+  font-size: var(--texto-xs);
+  color: var(--color-texto-3);
+}
+
+.pagina-estado__tarjeta .ant-result-icon .pagina-estado__icono-403 {
+  font-size: 56px;
 }

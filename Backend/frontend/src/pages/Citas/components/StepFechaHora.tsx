@@ -30,7 +30,7 @@ const StepFechaHora: React.FC<StepFechaHoraProps> = ({
       description="Seleccione la fecha y hora de la cita. Los horarios disponibles se mostrarán automáticamente."
       type="info"
       showIcon
-      style={{ marginBottom: 16 }}
+      className="citas-separado"
     />
 
     <Row gutter={16}>
@@ -46,7 +46,7 @@ const StepFechaHora: React.FC<StepFechaHoraProps> = ({
           rules={[{ required: true, message: 'Seleccione la fecha' }]}
         >
           <DatePicker
-            style={{ width: '100%' }}
+            className="citas-ancho"
             format="DD/MM/YYYY"
             disabledDate={(current) => current && current < dayjs().startOf('day')}
             onChange={handleFechaChange}
@@ -77,7 +77,7 @@ const StepFechaHora: React.FC<StepFechaHoraProps> = ({
           ]}
         >
           <TimePicker
-            style={{ width: '100%' }}
+            className="citas-ancho"
             format="HH:mm"
             minuteStep={15}
             disabled={!medicoSeleccionado || !fechaSeleccionada}

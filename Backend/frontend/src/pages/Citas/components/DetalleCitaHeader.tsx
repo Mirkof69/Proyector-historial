@@ -1,9 +1,8 @@
 import React from 'react';
-import { Card, Space, Button } from 'antd';
+import { Space, Button, Typography } from 'antd';
 import {
   ArrowLeftOutlined,
   EditOutlined,
-  CalendarOutlined,
 } from '@ant-design/icons';
 import { EstadoCita } from '../../../services/citasService';
 import { getEstadoTag } from '../utils/citasUtils';
@@ -25,15 +24,15 @@ const DetalleCitaHeader: React.FC<DetalleCitaHeaderProps> = ({
   editable,
   children,
 }) => (
-  <Card
-    title={
-      <Space>
-        <CalendarOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-        <span style={{ fontSize: 20, fontWeight: 600 }}>Detalle de Cita #{citaId}</span>
-        {getEstadoTag(estado)}
-      </Space>
-    }
-    extra={
+  <>
+    <header className="citas-page__cabecera">
+      <div>
+        <Typography.Title level={2}>
+          Detalle de Cita <span className="tabular-nums">#{citaId}</span>
+          {getEstadoTag(estado)}
+        </Typography.Title>
+        <Typography.Text type="secondary">Datos de la cita, acciones rápidas e historial de cambios.</Typography.Text>
+      </div>
       <Space>
         <Button icon={<ArrowLeftOutlined />} onClick={onVolver}>
           Volver
@@ -44,10 +43,9 @@ const DetalleCitaHeader: React.FC<DetalleCitaHeaderProps> = ({
           </Button>
         )}
       </Space>
-    }
-  >
+    </header>
     {children}
-  </Card>
+  </>
 );
 
 export default DetalleCitaHeader;

@@ -18,7 +18,7 @@ interface AlertasModalProps {
 }
 
 const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, alertas, totalATermino }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={<Space><BellOutlined /> Sistema de Alertas Inteligentes</Space>}
     open={visible}
     onCancel={onClose}
@@ -36,7 +36,7 @@ const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, alertas, 
               <Alert
                 type="info"
                 showIcon
-                style={{ marginBottom: 12 }}
+                className="u-mb-3"
                 message={`Se muestran las ${alertas.length} de mayor edad gestacional de ${totalATermino} embarazos a término.`}
               />
             )}
@@ -57,7 +57,7 @@ const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, alertas, 
                   ]}
                 >
                   <List.Item.Meta
-                    avatar={<WarningOutlined style={{ fontSize: 24, color: '#faad14' }} />}
+                    avatar={<WarningOutlined className="u-t-xl u-c-aviso" />}
                     title={<Text strong>[{item.tipo}] {item.mensaje}</Text>}
                     description={`Fecha: ${item.fecha} • Prioridad: ${item.prioridad.toUpperCase()}`}
                   />
@@ -77,7 +77,7 @@ const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, alertas, 
                 description="El sistema enviará recordatorios automáticos para citas programadas 24h antes vía SMS/Email."
                 type="info"
                 showIcon
-                style={{ marginBottom: 16 }}
+                className="u-mb-4"
               />
               <Form layout="vertical">
                 <Form.Item label="Activar Recordatorios">
@@ -112,7 +112,7 @@ const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, alertas, 
                   dataIndex: 'estado',
                   key: 'estado',
                   render: (estado: string) => (
-                    <Tag color={estado === 'enviado' ? 'green' : 'orange'}>
+                    <Tag color={estado === 'enviado' ? 'success' : 'warning'}>
                       {estado}
                     </Tag>
                   )

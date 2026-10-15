@@ -13,16 +13,16 @@ interface EstadisticasLabProps {
 
 const getTendenciaIcono = (tendencia: number) => {
   if (Math.abs(tendencia) < 5) {
-    return <MinusOutlined style={{ color: '#1890ff' }} />;
+    return <MinusOutlined style={{ color: 'var(--color-primario)' }} />;
   }
   return tendencia > 0
-    ? <RiseOutlined style={{ color: '#f5222d' }} />
-    : <FallOutlined style={{ color: '#52c41a' }} />;
+    ? <RiseOutlined style={{ color: 'var(--color-peligro)' }} />
+    : <FallOutlined style={{ color: 'var(--color-exito)' }} />;
 };
 
 const getColorVariacion = (variacion: number) => {
-  if (Math.abs(variacion) < 5) return '#1890ff';
-  return variacion > 0 ? '#f5222d' : '#52c41a';
+  if (Math.abs(variacion) < 5) return 'var(--color-primario)';
+  return variacion > 0 ? 'var(--color-peligro)' : 'var(--color-exito)';
 };
 
 const EstadisticasLab: React.FC<EstadisticasLabProps> = ({ promedio, tendencia, ultimaVariacion, unidad }) => (
@@ -33,7 +33,7 @@ const EstadisticasLab: React.FC<EstadisticasLabProps> = ({ promedio, tendencia, 
         value={promedio.toFixed(2)}
         suffix={unidad}
         precision={2}
-        valueStyle={{ color: '#1890ff' }}
+        valueStyle={{ color: 'var(--color-primario)' }}
       />
     </Col>
     <Col xs={24} sm={8}>
@@ -45,10 +45,10 @@ const EstadisticasLab: React.FC<EstadisticasLabProps> = ({ promedio, tendencia, 
         valueStyle={{
           color:
             Math.abs(tendencia) < 5
-              ? '#1890ff'
+              ? 'var(--color-primario)'
               : tendencia > 0
-                ? '#f5222d'
-                : '#52c41a',
+                ? 'var(--color-peligro)'
+                : 'var(--color-exito)',
         }}
       />
       <Text type="secondary" style={{ fontSize: 12 }}>

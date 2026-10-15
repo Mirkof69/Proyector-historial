@@ -12,6 +12,7 @@ import { useAntdApp } from '../../hooks/useMessage';
 import SeccionDatosPacienteTriaje from './components/SeccionDatosPacienteTriaje';
 import SeccionSignosVitalesTriaje from './components/SeccionSignosVitalesTriaje';
 import SeccionMotivoTriaje from './components/SeccionMotivoTriaje';
+import './Triaje.css';
 
 const { Title, Text } = Typography;
 
@@ -78,23 +79,23 @@ const FormularioTriaje: React.FC = () => {
         const data = valores || form.getFieldsValue();
 
         if (data.presion_sistolica >= 140 || data.presion_diastolica >= 90) {
-            alertasDetectadas.push('⚠️ Presión arterial elevada (Posible Hipertensión)');
+            alertasDetectadas.push('Presión arterial elevada (Posible Hipertensión)');
         }
 
         if (data.temperatura >= 38) {
-            alertasDetectadas.push('⚠️ Fiebre detectada');
+            alertasDetectadas.push('Fiebre detectada');
         } else if (data.temperatura < 35 && data.temperatura > 0) {
-            alertasDetectadas.push('⚠️ Hipotermia detectada');
+            alertasDetectadas.push('Hipotermia detectada');
         }
 
         if (data.frecuencia_cardiaca > 100) {
-            alertasDetectadas.push('⚠️ Taquicardia detectada');
+            alertasDetectadas.push('Taquicardia detectada');
         } else if (data.frecuencia_cardiaca < 60 && data.frecuencia_cardiaca > 0) {
-            alertasDetectadas.push('⚠️ Bradicardia detectada');
+            alertasDetectadas.push('Bradicardia detectada');
         }
 
         if (data.saturacion_oxigeno && data.saturacion_oxigeno < 95) {
-            alertasDetectadas.push('⚠️ Saturación de oxígeno baja (Hipoxia)');
+            alertasDetectadas.push('Saturación de oxígeno baja (Hipoxia)');
         }
 
         setAlertas(alertasDetectadas);
@@ -136,10 +137,10 @@ const FormularioTriaje: React.FC = () => {
 
             const alertasIniciales: string[] = [];
             if (tieneAntecedentesRiesgo) {
-                alertasIniciales.push('⚠️ Paciente con antecedentes médicos de riesgo');
+                alertasIniciales.push('Paciente con antecedentes médicos de riesgo');
             }
             if (tieneEmbarazoActivo) {
-                alertasIniciales.push('🤰 Paciente con embarazo activo registrado');
+                alertasIniciales.push('Paciente con embarazo activo registrado');
             }
 
             setAlertas([...alertasIniciales, ...alertasGeneradas]);
@@ -162,7 +163,7 @@ const FormularioTriaje: React.FC = () => {
 
             if (fuentes.length > 0) {
                 setDatosAnteriores({
-                    mensaje: `✓ Antecedentes recuperados de registros previos`,
+                    mensaje: `Antecedentes recuperados de registros previos`,
                     tipo: 'info'
                 });
             }
@@ -249,20 +250,20 @@ const FormularioTriaje: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in" style={{ padding: 24 }}>
-            <Card className="shadow-card overflow-hidden">
-                <div className="blue-gradient-header" style={{ margin: '-24px -24px 24px -24px', padding: '24px' }}>
-                    <Row justify="space-between" align="middle">
+        <div className="triaje-pagina">
+            <Card>
+                <div className="triaje-cabecera">
+                    <Row justify="space-between" align="middle" gutter={[16, 16]}>
                         <Col>
-                            <Title level={2} style={{ color: '#fff', margin: 0 }}>
+                            <Title level={2} className="pagina-encabezado__titulo">
                                 <MedicineBoxOutlined /> {id ? 'Editar Triaje' : 'Nuevo Triaje de Enfermería'}
                             </Title>
-                            <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
+                            <Text className="pagina-encabezado__descripcion">
                                 Evaluación clínica y control de signos vitales
                             </Text>
                         </Col>
                         <Col>
-                            <Button ghost icon={<CloseOutlined />} onClick={() => navigate('/dashboard/triaje')}>
+                            <Button icon={<CloseOutlined />} onClick={() => navigate('/dashboard/triaje')}>
                                 Cancelar
                             </Button>
                         </Col>
@@ -344,7 +345,7 @@ const FormularioTriaje: React.FC = () => {
                                         <Button
                                             type="primary"
                                             size="large"
-                                            style={{ minWidth: 200 }}
+                                            className="triaje-boton-paso"
                                             onClick={siguientePaso}
                                         >
                                             Continuar <ArrowRightOutlined />
@@ -356,8 +357,7 @@ const FormularioTriaje: React.FC = () => {
                                             loading={loading}
                                             icon={<SaveOutlined />}
                                             size="large"
-                                            className="btn-primary-gradient"
-                                            style={{ minWidth: 200 }}
+                                            className="triaje-boton-paso"
                                         >
                                             {id ? 'Guardar cambios del triaje' : 'Registrar triaje'}
                                         </Button>

@@ -7,7 +7,7 @@ import {
 const { Title, Paragraph, Text } = Typography;
 
 const LoginInfoPanel: React.FC<{ showTotpHelp: boolean }> = ({ showTotpHelp }) => (
-  <Card className="login-card login-card-info" variant="borderless">
+  <Card className="login-card login-card-info">
     <div className="login-info-header">
       <SafetyOutlined className="login-info-main-icon" />
       <div>
@@ -81,7 +81,7 @@ const LoginInfoPanel: React.FC<{ showTotpHelp: boolean }> = ({ showTotpHelp }) =
         <Alert
           message="¿Cómo obtener el código?"
           description={
-            <ol style={{ paddingLeft: 16, margin: 0 }}>
+            <ol className="login-pasos-totp">
               <li>Abra Google Authenticator en su teléfono</li>
               <li>Busque la cuenta "Fetal Medical Bolivia"</li>
               <li>Ingrese el código de 6 dígitos que aparece</li>
@@ -96,7 +96,7 @@ const LoginInfoPanel: React.FC<{ showTotpHelp: boolean }> = ({ showTotpHelp }) =
 
     <Divider />
     <div className="login-support-info">
-      <Text type="secondary" style={{ fontSize: 12 }}>
+      <Text type="secondary">
         Si tiene problemas para acceder, contacte al administrador del sistema.
       </Text>
     </div>

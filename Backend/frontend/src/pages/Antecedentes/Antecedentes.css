@@ -1,0 +1,86 @@
+/* =============================================================================
+   ANTECEDENTES — gineco-obstétricos y patológicos
+   =============================================================================
+   Contrato: docs/DISENO_INTERFAZ.md. Todo bajo .antecedentes-pagina; colores solo con
+   var(--…). Modales y cajones (portal) usan los tokens de Ant Design.
+   ============================================================================= */
+
+.antecedentes-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+/* ---------- Encabezado de página ---------- */
+.antecedentes-pagina .pagina-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.antecedentes-pagina .pagina-encabezado__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.antecedentes-pagina .pagina-encabezado__titulo,
+.antecedentes-pagina h2.pagina-encabezado__titulo.ant-typography {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  color: var(--color-texto);
+}
+
+.antecedentes-pagina .pagina-encabezado__descripcion {
+  margin: 0;
+  color: var(--color-texto-2);
+}
+
+/* ---------- Tarjetas de cifras ---------- */
+.antecedentes-pagina .stat-card.ant-card {
+  height: 100%;
+}
+
+.antecedentes-pagina .stat-card .ant-statistic-title,
+.antecedentes-pagina .stat-card__etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.antecedentes-pagina .stat-card__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.antecedentes-pagina .stat-card__etiqueta .anticon,
+.antecedentes-pagina .stat-card .ant-statistic-content-prefix {
+  color: var(--color-texto-3);
+}
+
+.antecedentes-pagina .stat-card .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+/* Cifra que es un estado */
+.antecedentes-pagina .cifra--peligro .ant-statistic-content { color: var(--color-peligro); }
+.antecedentes-pagina .cifra--aviso .ant-statistic-content { color: var(--color-aviso); }
+.antecedentes-pagina .cifra--exito .ant-statistic-content { color: var(--color-exito); }
+
+/* Las tarjetas de patológicos / gineco-obstétricos llevan la clase en el Card */
+.antecedentes-pagina.ant-card {
+  display: block;
+}
+
+.antecedentes-pagina .antecedentes-icono {
+  margin-inline-end: var(--esp-2);
+  color: var(--color-texto-3);
+}

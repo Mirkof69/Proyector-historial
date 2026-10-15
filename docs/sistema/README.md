@@ -18,9 +18,9 @@ mermaid-cli; ver el encabezado del script).
 | Documento | Qué contiene |
 |---|---|
 | [01 · Visión general](01_vision_general.md) | Propósito, alcance, roles, módulos y glosario |
-| [02 · Requisitos funcionales](02_requisitos_funcionales.md) | RF-01 a RF-32, con prioridad y cómo se verifica cada uno |
+| [02 · Requisitos funcionales](02_requisitos_funcionales.md) | RF-01 a RF-33, con prioridad y cómo se verifica cada uno |
 | [03 · Requisitos no funcionales](03_requisitos_no_funcionales.md) | RNF-01 a RNF-17 con criterio medible y valor medido |
-| [04 · Historias de usuario](04_historias_de_usuario.md) | HU-01 a HU-27 por rol, con criterios de aceptación |
+| [04 · Historias de usuario](04_historias_de_usuario.md) | HU-01 a HU-28 por rol, con criterios de aceptación |
 | [05 · Casos de uso](05_casos_de_uso.md) | Diagrama de casos de uso y CU-01 a CU-08 detallados |
 | [06 · Arquitectura](06_arquitectura.md) | Microservicios, componentes, multi-clínica, tecnologías |
 | [07 · Modelo de datos](07_modelo_de_datos.md) | Diagrama entidad-relación de las entidades clínicas |
@@ -29,6 +29,7 @@ mermaid-cli; ver el encabezado del script).
 | [10 · Inteligencia artificial](10_inteligencia_artificial.md) | Redes con ecografías reales (plano, segmentación de cabeza, tórax, abdomen e intraparto, anomalías cerebrales), modelos supervisados (cardiotocografía y peso al nacer), métricas y límites |
 | [11 · Despliegue y operación](11_despliegue_y_operacion.md) | Diagrama de despliegue, puertos, arranque, respaldo, seguridad |
 | [12 · Trazabilidad](12_trazabilidad.md) | Matriz requisito → historia → caso de uso → caso de prueba |
+| [13 · Guía de IA para el usuario](13_guia_ia_usuario.md) | Manual clínico: qué es una CNN, una U-Net, una red de puntos y un modelo supervisado; cada modelo → dónde hacer clic → qué devuelve → cuánto creerle; los evaluados y descartados. Es la misma guía del menú «Guía de IA» |
 
 Documentos relacionados fuera de esta carpeta:
 [plan de producción](../PLAN_PRODUCCION_HOSPITAL.md) ·

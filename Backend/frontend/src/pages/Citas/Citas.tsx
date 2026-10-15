@@ -16,13 +16,10 @@ import {
   Card,
   Table,
   Button,
-  Space,
   Alert,
   MenuProps,
+  Typography,
 } from 'antd';
-import {
-  CalendarOutlined,
-} from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 // Cliente axios: `.get()` devuelve la respuesta, los datos están en `.data`.
@@ -38,6 +35,7 @@ import CitasStats from './components/CitasStats';
 import CitasAlerts from './components/CitasAlerts';
 import CitasFilters from './components/CitasFilters';
 import CitasQuickActions from './components/CitasQuickActions';
+import './Citas.css';
 import CitasDrawer from './components/CitasDrawer';
 import {
   EstadisticasCitas,
@@ -137,7 +135,7 @@ const CitasPage: React.FC = () => {
     navigate('/dashboard/citas/nuevo');
   }, [navigate]);
 
-  // ✨ NUEVA FUNCIÓN PARA VISTA RÁPIDA CON DRAWER
+  // NUEVA FUNCIÓN PARA VISTA RÁPIDA CON DRAWER
   const handleVerVistaRapida = useCallback((cita: Cita) => {
     setCitaSeleccionada(cita);
     setDrawerVistaRapidaVisible(true);
@@ -149,21 +147,21 @@ const CitasPage: React.FC = () => {
 
   const handleEliminar = useCallback((cita: any) => {
     modal.confirm({
-      title: '⚠️ ¿Confirmar eliminación permanente?',
+      title: '¿Confirmar eliminación permanente?',
       icon: exclamationIcon,
       content: (
         <div>
           <p><strong>Se eliminará la cita médica:</strong></p>
-          <ul style={{ marginLeft: 20 }}>
+          <ul className="citas-borrado__lista">
             <li>Paciente: {cita.paciente_info?.nombre_completo || 'No especificado'}</li>
             <li>Fecha: {dayjs(cita.fecha_cita).format('DD/MM/YYYY')} - {cita.hora_cita?.substring(0, 5)}</li>
             <li>Tipo: {getTipoTexto(cita.tipo_cita)}</li>
             <li>Motivo: {cita.motivo || 'No especificado'}</li>
           </ul>
-          <p style={{ color: '#ff4d4f', fontWeight: 'bold', marginTop: 16 }}>
-            ⚠️ ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
+          <p className="citas-borrado__advertencia">
+            ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
           </p>
-          <p style={{ marginTop: 16 }}>
+          <p className="citas-arriba">
             Se perderán todos los datos de esta cita, incluyendo observaciones y recordatorios asociados.
           </p>
         </div>
@@ -330,30 +328,28 @@ const CitasPage: React.FC = () => {
   );
 
   return (
-    <div className="citas-container animate-fade-in">
+    <div className="citas-page page-container">
+      <header className="citas-page__cabecera">
+        <div>
+          <Typography.Title level={2}>Gestión de Citas Médicas</Typography.Title>
+          <Typography.Text type="secondary">Agenda de consultas: confirmación, llegada y atención de cada cita.</Typography.Text>
+        </div>
+        <CitasQuickActions
+          loading={listado.cargando}
+          canAdd={canAdd('cita')}
+          onVerCalendario={handleVerCalendario}
+          onGestionarHorarios={() => setModalHorariosVisible(true)}
+          onExportExcel={handleExportExcel}
+          onActualizar={cargarCitas}
+          onNuevaCita={handleNuevo}
+        />
+      </header>
+
       <CitasStats estadisticas={estadisticas} />
       <CitasAlerts atrasadas={estadisticas.atrasadas} hoy={estadisticas.hoy} />
 
       {/* Tabla principal */}
-      <Card
-        title={
-          <Space>
-            <CalendarOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-            <span style={{ fontSize: 18, fontWeight: 600 }}>Gestión de Citas Médicas</span>
-          </Space>
-        }
-        extra={
-          <CitasQuickActions
-            loading={listado.cargando}
-            canAdd={canAdd('cita')}
-            onVerCalendario={handleVerCalendario}
-            onGestionarHorarios={() => setModalHorariosVisible(true)}
-            onExportExcel={handleExportExcel}
-            onActualizar={cargarCitas}
-            onNuevaCita={handleNuevo}
-          />
-        }
-      >
+      <Card>
         <CitasFilters
           busqueda={busqueda}
           filtroEstado={filtroEstado}
@@ -377,7 +373,7 @@ const CitasPage: React.FC = () => {
                 Reintentar
               </Button>
             }
-            style={{ marginBottom: 16 }}
+            className="citas-separado"
           />
         )}
 

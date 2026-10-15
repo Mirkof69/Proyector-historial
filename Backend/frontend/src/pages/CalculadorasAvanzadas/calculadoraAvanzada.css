@@ -1,0 +1,258 @@
+/* =============================================================================
+   CALCULADORAS AVANZADAS — hoja común de las 8 calculadoras
+   (Bishop, IMC, preeclampsia, crecimiento, cromosómico, dosis, hemorragia,
+   sufrimiento fetal). Contrato: docs/DISENO_INTERFAZ.md.
+   Todo va bajo `.calc-pagina` para no tocar Ant Design en otras pantallas.
+   ============================================================================= */
+
+/* ---------- Encabezado de página: título 22/600 + descripción + acciones ---------- */
+.calc-pagina .calc-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-5);
+}
+
+.calc-pagina .calc-cabecera__texto {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.calc-pagina .calc-cabecera__titulo.ant-typography {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: 0 0 var(--esp-1);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  color: var(--color-texto);
+}
+
+.calc-pagina .calc-cabecera__icono {
+  color: var(--color-primario);
+}
+
+.calc-pagina .calc-cabecera__descripcion {
+  margin: 0;
+  font-size: var(--texto-base);
+  color: var(--color-texto-2);
+}
+
+.calc-pagina .calc-cabecera__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+/* ---------- Bloques ---------- */
+.calc-pagina .calc-bloque {
+  margin-bottom: var(--esp-4);
+}
+
+.calc-pagina .calc-bloque-arriba {
+  margin-top: var(--esp-4);
+}
+
+.calc-pagina .calc-fila-stats {
+  margin-bottom: var(--esp-5);
+}
+
+/* Separadores de sección con texto: 16/600, sin color de marca */
+.calc-pagina .ant-divider-horizontal.ant-divider-with-text {
+  margin: var(--esp-6) 0 var(--esp-4);
+  font-size: var(--texto-md);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+.calc-pagina .calc-titulo-seccion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.calc-pagina .calc-titulo-seccion .anticon {
+  color: var(--color-texto-2);
+}
+
+/* ---------- Cifras (tarjetas de estadística) ---------- */
+.calc-pagina .ant-statistic-title {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.calc-pagina .ant-statistic-content {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-pagina .calc-stat-card .ant-statistic-content {
+  font-size: var(--texto-2xl);
+}
+
+.calc-pagina .calc-cifra-pequena .ant-statistic-content {
+  font-size: var(--texto-md);
+}
+
+.calc-pagina .calc-cifra-grande .ant-statistic-content {
+  font-size: var(--texto-2xl);
+}
+
+/* ---------- Formularios ---------- */
+.calc-pagina .ant-input-number,
+.calc-pagina .ant-picker {
+  width: 100%;
+}
+
+.calc-pagina .calc-enviar {
+  margin-top: var(--esp-5);
+  margin-bottom: 0;
+}
+
+.calc-pagina .calc-etiqueta-ejemplo {
+  margin-inline-start: var(--esp-2);
+}
+
+/* ---------- Gráficas ---------- */
+.calc-pagina .calc-cargando {
+  padding: var(--esp-5);
+  text-align: center;
+}
+
+/* Nota bajo una gráfica: 12 px, texto secundario */
+.calc-pagina .calc-nota {
+  margin-top: var(--esp-3);
+  font-size: var(--texto-xs);
+  color: var(--color-texto-2);
+}
+
+.calc-pagina .calc-nota p {
+  margin: 0 0 var(--esp-1);
+}
+
+/* ---------- Tarjetas de información clínica (Card size="small") ---------- */
+.calc-pagina .ant-card-small .ant-card-body p,
+.calc-pagina .ant-card-small .ant-card-body ul,
+.calc-pagina .ant-card-small .ant-card-body ol {
+  font-size: var(--texto-sm);
+}
+
+.calc-pagina .ant-card-small .ant-card-body p {
+  margin: 0 0 var(--esp-2);
+}
+
+.calc-pagina .ant-card-small .ant-card-body ul,
+.calc-pagina .ant-card-small .ant-card-body ol {
+  margin: 0 0 var(--esp-3);
+  padding-inline-start: var(--esp-5);
+}
+
+.calc-pagina .ant-card-small .ant-card-body li + li {
+  margin-top: var(--esp-1);
+}
+
+/* Separador fino dentro de una tarjeta de resultado */
+.calc-pagina .calc-separador.ant-divider {
+  margin: var(--esp-3) 0;
+}
+
+/* Párrafos de una alerta (interpretación / recomendación / seguimiento) */
+.calc-pagina .calc-parrafos p {
+  margin: 0 0 var(--esp-2);
+}
+
+.calc-pagina .calc-parrafos p:last-child {
+  margin-bottom: 0;
+}
+
+/* Texto en negrita con color de estado (columnas de historial) */
+.calc-pagina .calc-valor-estado {
+  font-weight: var(--peso-fuerte);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .calc-pagina .calc-cabecera {
+    margin-bottom: var(--esp-4);
+  }
+
+  .calc-pagina .ant-divider-horizontal.ant-divider-with-text {
+    margin-top: var(--esp-5);
+  }
+
+  .calc-pagina .calc-stat-card .ant-statistic-content,
+  .calc-pagina .calc-cifra-grande .ant-statistic-content {
+    font-size: var(--texto-xl);
+  }
+}
+
+/* Pila vertical a todo el ancho (antes style={{ width: '100%' }} en línea) */
+.calc-pagina .calc-pila,
+.calc-pagina .ant-form-item .ant-select {
+  width: 100%;
+}
+
+/* Icono de estado junto al título de un resultado */
+.calc-pagina .calc-icono-estado {
+  font-size: var(--texto-xl);
+}
+
+/* Nota bajo una cifra (Tag o texto) */
+.calc-pagina .calc-nota-cifra {
+  display: inline-block;
+  margin-top: var(--esp-2);
+  font-size: var(--texto-xs);
+}
+
+/* Pie de una gráfica, centrado */
+.calc-pagina .calc-pie-grafica {
+  display: block;
+  margin-top: var(--esp-2);
+  font-size: var(--texto-sm);
+  text-align: center;
+}
+
+/* Subtítulo dentro de una tarjeta (con icono) */
+.calc-pagina .calc-subtitulo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin-bottom: var(--esp-2);
+}
+
+.calc-pagina .calc-subtitulo .anticon {
+  color: var(--color-texto-2);
+}
+
+/* Lista dentro de una alerta o tarjeta */
+.calc-pagina .calc-lista {
+  margin: 0;
+  padding-inline-start: var(--esp-5);
+}
+
+.calc-pagina .calc-lista li + li {
+  margin-top: var(--esp-1);
+}
+
+/* Vía y frecuencia bajo la dosis calculada */
+.calc-pagina .calc-datos-via {
+  padding: var(--esp-2) 0;
+  line-height: 2;
+}
+
+/* Título de tarjeta que anuncia un estado crítico */
+.calc-pagina .calc-titulo-peligro {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  color: var(--color-peligro);
+}
+
+.calc-pagina .calc-icono-estado--exito { color: var(--color-exito); }
+.calc-pagina .calc-icono-estado--aviso { color: var(--color-aviso); }
+.calc-pagina .calc-icono-estado--peligro { color: var(--color-peligro); }

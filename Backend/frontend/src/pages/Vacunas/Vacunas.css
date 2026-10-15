@@ -1,167 +1,225 @@
-/* ==================================================================================
- * VACUNAS - ESTILOS Y ANIMACIONES
- * ================================================================================== */
+/* Vacunas: listado, registro, certificado y catálogo — contrato: docs/DISENO_INTERFAZ.md
+   Antes la cabecera usaba .blue-gradient-header (degradado azul con letra
+   blanca) definida en una hoja global que ya no existe: el título quedaba
+   blanco sobre blanco. Ahora sigue el patrón de encabezado del contrato. */
 
 .vacunas-page {
-  padding: 24px;
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.vacunas-page .page-header {
   display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.vacunas-page__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.vacunas-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
+}
+
+.vacunas-page__cargando {
+  padding: var(--esp-5);
+}
+
+/* ---------- Avisos y cifras ---------- */
+.vacunas-page__avisos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--esp-4);
+}
+
+.vacunas-page__cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--esp-4);
+}
+
+.vacunas-page__cifras .ant-statistic-title {
+  display: flex;
   align-items: center;
-  margin-bottom: 24px;
-  animation: slideInDown 0.6s ease;
+  gap: var(--esp-2);
+  font-weight: var(--peso-medio);
 }
 
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.vacunas-page__cifras .ant-statistic-title .anticon {
+  color: var(--color-texto-3);
 }
 
-.vacunas-page .page-header h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #1890ff;
+.vacunas-page__cifras .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
 }
 
-.vacunas-page .page-header p {
-  margin: 4px 0 0 0;
-  color: #8c8c8c;
-  font-size: 14px;
+.vacunas-page__cifra--peligro .ant-statistic-content {
+  color: var(--color-peligro);
 }
 
-.vacunas-page .stats-row {
-  margin-bottom: 24px;
+.vacunas-page__cifra--aviso .ant-statistic-content {
+  color: var(--color-aviso);
 }
 
-.vacunas-page .stats-row .ant-card {
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* ---------- Filtros y gráficas ---------- */
+.vacunas-page__control {
+  width: 100%;
 }
 
-.vacunas-page .stats-row .ant-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+.vacunas-page__graficas {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--esp-4);
 }
 
-.vacunas-page .filters-card {
-  margin-bottom: 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  animation: slideInUp 0.7s ease;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@media (max-width: 992px) {
+  .vacunas-page__graficas {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
-.vacunas-page .table-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  animation: fadeIn 0.8s ease;
+/* ---------- Tabla ---------- */
+.vacunas-page__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radio);
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+  font-size: var(--texto-md);
 }
 
-.vacunas-page .table-card .ant-table-thead>tr>th {
-  background-color: var(--bg-tertiary);
-  font-weight: 600;
-  color: var(--color-primary);
+.vacunas-page__secundario {
+  font-size: var(--texto-xs);
 }
 
-.vacunas-page .table-card .ant-table-tbody>tr:hover {
-  background-color: var(--bg-hover);
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.vacunas-page__fecha {
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Animaciones para los botones */
-.vacunas-page button {
-  transition: all 0.3s ease;
+/* ---------- Detalle / certificado ---------- */
+.vacunas-detalle__nombre {
+  font-size: var(--texto-md);
 }
 
-.vacunas-page button:hover {
-  transform: scale(1.05);
+.vacunas-detalle__estado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-4) 0;
 }
 
-/* Badge Ribbons animados */
-.vacunas-page .ant-badge-ribbon {
-  animation: pulse 2s infinite;
+.vacunas-detalle__estado-icono {
+  font-size: var(--texto-2xl);
+  color: var(--color-texto-2);
 }
 
-@keyframes pulse {
+.vacunas-detalle__proxima {
+  padding: var(--esp-4);
+  border: 1px solid var(--color-info-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-info-suave);
+}
 
-  0%,
-  100% {
-    opacity: 1;
+.vacunas-detalle__proxima-fecha {
+  margin: var(--esp-1) 0;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-info);
+}
+
+.vacunas-detalle__observaciones {
+  margin-top: var(--esp-2);
+  padding: var(--esp-3);
+  border-left: 3px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-sm);
+  background-color: var(--color-superficie-2);
+}
+
+.vacunas-detalle__firma {
+  margin-top: var(--esp-5);
+  padding-top: var(--esp-4);
+  border-top: 1px solid var(--color-borde-suave);
+  text-align: center;
+}
+
+.vacunas-detalle__firma-espacio {
+  height: 60px;
+  margin-bottom: var(--esp-2);
+}
+
+.vacunas-detalle__pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+}
+
+.vacunas-solo-impresion {
+  display: none;
+  text-align: center;
+}
+
+@media print {
+  .vacunas-solo-impresion {
+    display: block;
   }
-
-  50% {
-    opacity: 0.8;
-  }
 }
 
-/* Drawer */
-.vacunas-page .ant-drawer-content {
-  background: var(--bg-card);
+.vacunas-exito {
+  color: var(--color-exito);
 }
 
-/* Progress bars */
-.vacunas-page .ant-progress-line {
-  transition: all 0.3s ease;
+.vacunas-aviso {
+  color: var(--color-aviso);
 }
 
-/* Tags animados */
-.vacunas-page .ant-tag {
-  transition: all 0.2s ease;
+/* ---------- Formulario ---------- */
+.vacunas-form__nota {
+  margin-top: 28px; /* alinea con el campo vecino, que lleva etiqueta */
+  padding: var(--esp-3);
+  border: 1px solid var(--color-info-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-info-suave);
 }
 
-.vacunas-page .ant-tag:hover {
-  transform: scale(1.1);
+.vacunas-form__aviso.ant-alert {
+  margin-bottom: var(--esp-5);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .vacunas-page {
-    padding: 16px;
-  }
+.vacunas-form__vias.ant-radio-group {
+  display: flex;
+  width: 100%;
+}
 
-  .vacunas-page .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
+.vacunas-form__vias .ant-radio-button-wrapper {
+  flex: 1;
+  text-align: center;
+}
 
-  .vacunas-page .page-header h1 {
-    font-size: 24px;
-  }
+.vacunas-guia__progreso {
+  margin-bottom: var(--esp-5);
+  text-align: center;
+}
+
+.vacunas-guia__alerta {
+  display: flex;
+  gap: var(--esp-2);
+  margin-bottom: var(--esp-2);
+  font-size: var(--texto-sm);
+}
+
+/* ---------- Ayudas de maquetación ---------- */
+.vacunas-ancho { width: 100%; }
+.vacunas-separado { margin-bottom: var(--esp-4); }
+.vacunas-arriba { margin-top: var(--esp-4); }
+.vacunas-sin-margen { margin: 0; }
+
+/* Modal de borrado (fuera de la página) */
+.vacunas-icono-peligro {
+  color: var(--color-peligro);
 }

@@ -40,7 +40,7 @@ const { Option } = Select;
 const { Title, Text, Paragraph } = Typography;
 
 // Colores para gráficos
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+const COLORS = ['var(--grafico-1)', 'var(--grafico-2)', 'var(--grafico-3)', 'var(--grafico-4)', 'var(--grafico-5)', 'var(--grafico-6)'];
 
 const calcularPorcentaje = (valor: number, total: number) => {
   if (total === 0) return 0;
@@ -139,7 +139,7 @@ interface RenderChartsProps {
 const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stackedBarData, distributionData }) => {
   if (!kpis) return null;
   return (
-    <div className="reportes-charts-grid" style={{ maxHeight: '600px', overflowY: 'auto', overflowX: 'hidden' }}>
+    <div className="reportes-charts-grid">
       <div className="reportes-chart-card">
         <div className="reportes-chart-card__header">
           <div className="reportes-chart-card__title">Tendencia de Partos</div>
@@ -148,17 +148,13 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
         <div className="reportes-chart-card__body">
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={kpis?.tendencias?.partos_ultimo_anio}>
-              <defs>
-                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} /><stop offset="95%" stopColor="#8884d8" stopOpacity={0} /></linearGradient>
-                <linearGradient id="colorCesareas" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ffc658" stopOpacity={0.8} /><stop offset="95%" stopColor="#ffc658" stopOpacity={0} /></linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-              <XAxis dataKey="mes" stroke="#666" style={{ fontSize: 12 }} />
-              <YAxis stroke="#666" style={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="mes" stroke="var(--color-borde)" tick={{ fontSize: 12 }} />
+              <YAxis stroke="var(--color-borde)" tick={{ fontSize: 12 }} />
               <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
               <Legend wrapperStyle={{ paddingTop: 10 }} />
-              <Area type="monotone" dataKey="total" stroke="#8884d8" fillOpacity={1} fill="url(#colorTotal)" name="Total Partos" animationDuration={800} />
-              <Area type="monotone" dataKey="cesareas" stroke="#ffc658" fill="url(#colorCesareas)" fillOpacity={0.6} name="Cesáreas" animationDuration={800} />
+              <Area type="monotone" dataKey="total" stroke="var(--grafico-1)" fill="var(--grafico-1)" fillOpacity={0.15} name="Total Partos" animationDuration={800} />
+              <Area type="monotone" dataKey="cesareas" stroke="var(--grafico-3)" fill="var(--grafico-3)" fillOpacity={0.15} name="Cesáreas" animationDuration={800} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -171,13 +167,13 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
         <div className="reportes-chart-card__body">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={kpis?.tendencias?.citas_ultima_semana}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-              <XAxis dataKey="dia" stroke="#666" style={{ fontSize: 12 }} />
-              <YAxis stroke="#666" style={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="dia" stroke="var(--color-borde)" tick={{ fontSize: 12 }} />
+              <YAxis stroke="var(--color-borde)" tick={{ fontSize: 12 }} />
               <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
               <Legend wrapperStyle={{ paddingTop: 10 }} />
-              <Bar dataKey="completadas" fill="#82ca9d" name="Completadas" radius={BAR_RADIUS} animationDuration={800} />
-              <Bar dataKey="canceladas" fill="#ff8042" name="Canceladas" radius={BAR_RADIUS} animationDuration={800} />
+              <Bar dataKey="completadas" fill="var(--color-exito)" name="Completadas" radius={BAR_RADIUS} animationDuration={800} />
+              <Bar dataKey="canceladas" fill="var(--color-peligro)" name="Canceladas" radius={BAR_RADIUS} animationDuration={800} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -200,7 +196,7 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
                   animationDuration={800}
                 >
                   {compositionData.map((entry: any) => (
-                    <Cell key={entry.name} fill={colorEntidad(entry.name)} stroke="#fff" strokeWidth={2} />
+                    <Cell key={entry.name} fill={colorEntidad(entry.name)} stroke="var(--color-superficie)" strokeWidth={2} />
                   ))}
                 </Pie>
                 <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
@@ -216,15 +212,15 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
           <div className="reportes-chart-card__body">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={stackedBarData} maxBarSize={48}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-                <XAxis dataKey="month" stroke="#666" style={{ fontSize: 12 }} /><YAxis stroke="#666" style={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" stroke="var(--color-borde)" tick={{ fontSize: 12 }} /><YAxis stroke="var(--color-borde)" tick={{ fontSize: 12 }} />
                 <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
                 <Legend wrapperStyle={{ paddingTop: 10 }} />
                 {/* Color fijo por entidad + separador blanco de 2px entre segmentos */}
-                <Bar dataKey="citas" stackId="a" fill={SERIES_COLORS.citas} name="Citas" stroke="#fff" strokeWidth={2} animationDuration={800} />
-                <Bar dataKey="embarazos" stackId="a" fill={SERIES_COLORS.embarazos} name="Embarazos" stroke="#fff" strokeWidth={2} animationDuration={800} />
-                <Bar dataKey="controles" stackId="a" fill={SERIES_COLORS.controles} name="Controles" stroke="#fff" strokeWidth={2} animationDuration={800} />
-                <Bar dataKey="partos" stackId="a" fill={SERIES_COLORS.partos} name="Partos" stroke="#fff" strokeWidth={2} radius={[4, 4, 0, 0]} animationDuration={800} />
+                <Bar dataKey="citas" stackId="a" fill={SERIES_COLORS.citas} name="Citas" stroke="var(--color-superficie)" strokeWidth={2} animationDuration={800} />
+                <Bar dataKey="embarazos" stackId="a" fill={SERIES_COLORS.embarazos} name="Embarazos" stroke="var(--color-superficie)" strokeWidth={2} animationDuration={800} />
+                <Bar dataKey="controles" stackId="a" fill={SERIES_COLORS.controles} name="Controles" stroke="var(--color-superficie)" strokeWidth={2} animationDuration={800} />
+                <Bar dataKey="partos" stackId="a" fill={SERIES_COLORS.partos} name="Partos" stroke="var(--color-superficie)" strokeWidth={2} radius={[4, 4, 0, 0]} animationDuration={800} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -237,11 +233,11 @@ const RenderCharts: React.FC<RenderChartsProps> = ({ kpis, compositionData, stac
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={distributionData.data}>
                 {/* Magnitud = un solo tono secuencial (azul del token primario) */}
-                <defs><linearGradient id="colorAge" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#1890ff" stopOpacity={0.8} /><stop offset="95%" stopColor="#1890ff" stopOpacity={0.1} /></linearGradient></defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-                <XAxis dataKey="age" stroke="#666" label={{ value: 'Edad (años)', position: 'insideBottom', offset: -5 }} /><YAxis stroke="#666" label={{ value: 'Cantidad', angle: -90, position: 'insideLeft' }} allowDecimals={false} />
+                
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="age" stroke="var(--color-borde)" label={{ value: 'Edad (años)', position: 'insideBottom', offset: -5 }} /><YAxis stroke="var(--color-borde)" label={{ value: 'Cantidad', angle: -90, position: 'insideLeft' }} allowDecimals={false} />
                 <RechartsTooltip contentStyle={TOOLTIP_CONTENT_STYLE} formatter={TOOLTIP_FORMATTER} />
-                <Area type="monotone" dataKey="count" stroke="#1890ff" strokeWidth={2} fillOpacity={1} fill="url(#colorAge)" name="Pacientes" animationDuration={800} />
+                <Area type="monotone" dataKey="count" stroke="var(--grafico-1)" strokeWidth={2} fill="var(--grafico-1)" fillOpacity={0.15} name="Pacientes" animationDuration={800} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -264,14 +260,14 @@ const RenderHistory: React.FC<RenderHistoryProps> = ({ reportes, busqueda, filtr
   const { message } = useAntdApp();
   return (
   <div className="reportes-history">
-    <div className="reportes-history__header" style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="reportes-history__header">
       <div>
         <Title level={4}>Historial de Reportes</Title>
         <Text type="secondary">Consulte y descargue reportes generados anteriormente</Text>
       </div>
-      <Space>
-        <Input placeholder="Buscar reporte…" prefix={<SearchOutlined />} value={busqueda} onChange={e => setBusqueda(e.target.value)} style={{ width: 250 }} />
-        <Select placeholder="Filtrar por tipo" style={{ width: 180 }} value={filtroTipo} onChange={setFiltroTipo} allowClear>
+      <Space wrap>
+        <Input placeholder="Buscar reporte…" prefix={<SearchOutlined />} value={busqueda} onChange={e => setBusqueda(e.target.value)} className="reportes-buscar" />
+        <Select placeholder="Filtrar por tipo" className="reportes-selector" value={filtroTipo} onChange={setFiltroTipo} allowClear>
           <Option value="pacientes">Pacientes</Option>
           <Option value="embarazos">Embarazos</Option>
           <Option value="partos">Partos</Option>
@@ -290,7 +286,7 @@ const RenderHistory: React.FC<RenderHistoryProps> = ({ reportes, busqueda, filtr
       loading={loading}
       rowKey="id"
       columns={[
-        { title: 'Reporte', dataIndex: 'tipo_reporte_nombre', key: 'tipo_reporte_nombre', render: (text, record) => (<Space>{record.formato === 'pdf' ? <FilePdfOutlined style={{ color: '#ff4d4f' }} /> : <FileExcelOutlined style={{ color: '#52c41a' }} />}<Text strong>{text || 'Reporte sin tipo'}</Text></Space>) },
+        { title: 'Reporte', dataIndex: 'tipo_reporte_nombre', key: 'tipo_reporte_nombre', render: (text, record) => (<Space>{record.formato === 'pdf' ? <FilePdfOutlined className="reportes-icono-pdf" /> : <FileExcelOutlined className="reportes-icono-excel" />}<Text strong>{text || 'Reporte sin tipo'}</Text></Space>) },
         { title: 'Fecha', dataIndex: 'fecha_solicitud', key: 'fecha_solicitud', render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY HH:mm') },
         { title: 'Estado', dataIndex: 'estado', key: 'estado', render: (estado: string, record) => (<Tag color={estado === 'completado' ? 'success' : estado === 'error' ? 'error' : 'processing'}>{record.estado_display || estado.toUpperCase()}</Tag>) },
         { title: 'Acciones', key: 'acciones', render: (_, record) => (
@@ -302,7 +298,7 @@ const RenderHistory: React.FC<RenderHistoryProps> = ({ reportes, busqueda, filtr
               <Button
                 icon={<DownloadOutlined />}
                 size="small"
-                type="primary"
+                aria-label="Descargar"
                 disabled={record.estado !== 'completado'}
                 onClick={async () => {
                   try {
@@ -337,20 +333,21 @@ const RenderGenerator: React.FC<{ onGenerateReporte: (tipo: string) => void }> =
   </div>
 );
 
-const TOOLTIP_CONTENT_STYLE = { backgroundColor: '#fff', borderColor: '#ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' };
+// El tooltip de Recharts toma superficie y borde del tema desde base.css.
+const TOOLTIP_CONTENT_STYLE = {};
 
-// Paleta categórica por ENTIDAD (fija, nunca por posición): pasos oscuros de las
-// familias antd de los tokens, validada CVD/contraste con el validador de dataviz.
+// Paleta categórica por ENTIDAD (fija, nunca por posición) con las series del
+// tema (--grafico-1..6 de tokens.css): cambian solas con el tema.
 // El color sigue a la entidad en TODOS los gráficos — no se recicla ni se rota.
 const SERIES_COLORS: Record<string, string> = {
-  pacientes: '#1890ff',
-  citas: '#08979c',
-  embarazos: '#d48806',
-  controles: '#722ed1',
-  partos: '#389e0d',
+  pacientes: 'var(--grafico-1)',
+  citas: 'var(--grafico-2)',
+  embarazos: 'var(--grafico-3)',
+  controles: 'var(--grafico-6)',
+  partos: 'var(--grafico-4)',
 };
 const colorEntidad = (nombre: string): string =>
-  SERIES_COLORS[nombre.toLowerCase()] ?? '#8c8c8c';
+  SERIES_COLORS[nombre.toLowerCase()] ?? 'var(--color-texto-3)';
 const TOOLTIP_FORMATTER = (value: any) => [value, ''];
 const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 const renderPieLabel = (entry: any) => `${entry.name}: ${entry.percentage}%`;
@@ -485,27 +482,26 @@ const ReportesPage: React.FC = () => {
   };
 
   return (
-    <div className="reportes-container fade-in">
+    <div className="reportes-container">
       <div className="reportes-dashboard-header">
-        <div className="reportes-dashboard-header__content">
           <div>
-            <div className="reportes-dashboard-header__title">Panel de Reportes y Estadísticas</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <Title level={4}>Panel de Reportes y Estadísticas</Title>
+            <div className="reportes-dashboard-header__meta">
               <span>Visualice el estado del sistema y genere reportes detallados</span>
 
               {/* Reloj en tiempo real */}
-              <Tag color="cyan" icon={<ClockCircleOutlined />} style={{ fontSize: 14, padding: '4px 12px' }}>
+              <Tag icon={<ClockCircleOutlined />}>
                 {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </Tag>
 
               {lastUpdate && (
-                <Tag color="blue" icon={<ClockCircleOutlined />}>
+                <Tag icon={<ClockCircleOutlined />}>
                   Actualizado: {dayjs(lastUpdate).format('HH:mm:ss')}
                 </Tag>
               )}
               <Button
                 size="small"
-                type={autoRefresh ? 'primary' : 'default'}
+                aria-pressed={autoRefresh}
                 icon={<ReloadOutlined spin={autoRefresh} />}
                 onClick={() => setAutoRefresh(!autoRefresh)}
               >
@@ -519,7 +515,6 @@ const ReportesPage: React.FC = () => {
               icon={<FilePdfOutlined />}
               onClick={handleExportPDF}
               loading={exportLoading}
-              size="large"
             >
               Descargar PDF
             </Button>
@@ -528,17 +523,14 @@ const ReportesPage: React.FC = () => {
               icon={<FileExcelOutlined />}
               onClick={handleExportExcel}
               loading={exportLoading}
-              size="large"
-              style={{ marginLeft: 8 }}
             >
               Descargar Excel
             </Button>
           </div>
-        </div>
       </div>
 
       {/* Date Range Selector */}
-      <div style={{ marginBottom: 24 }}>
+      <div>
         <DateRangeSelector
           onChange={handleDateRangeChange}
           defaultPreset="month"
@@ -547,7 +539,7 @@ const ReportesPage: React.FC = () => {
       </div>
 
       {loading && !kpis ? (
-        <div style={{ textAlign: 'center', padding: '50px' }}>
+        <div className="reportes-cargando">
           <Spin size="large" tip="Cargando estadísticas…"><div /></Spin>
         </div>
       ) : (

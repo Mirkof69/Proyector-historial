@@ -23,8 +23,7 @@ export const GlobalLoader: React.FC<GlobalLoaderProps> = ({ tip = 'Cargando sist
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(5px)',
+        backgroundColor: 'var(--color-fondo)',
         zIndex: 9999,
     } : {
         display: 'flex',

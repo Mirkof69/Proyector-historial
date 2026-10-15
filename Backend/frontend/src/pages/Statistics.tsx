@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, Statistic, Spin, Button, DatePicker, Space, Empty } from 'antd';
+import { Card, Row, Col, Statistic, Spin, Button, DatePicker, Space, Empty, Typography } from 'antd';
 import {
   TeamOutlined, HeartOutlined, AlertOutlined, CalendarOutlined,
   ReloadOutlined, MedicineBoxOutlined, FileTextOutlined,
@@ -16,7 +16,8 @@ import { useRangoReportes } from './Reportes/rangoReportes';
 
 const { RangePicker } = DatePicker;
 
-const PIE_COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'];
+// Series del tema (tokens.css): cambian solas con el tema.
+const PIE_COLORS = ['var(--grafico-1)', 'var(--grafico-2)', 'var(--grafico-3)', 'var(--grafico-4)', 'var(--grafico-5)', 'var(--grafico-6)'];
 
 interface AllStatsState {
   dashboard: {
@@ -119,10 +120,10 @@ const Statistics: React.FC = () => {
   ] : [];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Space style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <h2 style={{ margin: 0 }}>Estadísticas del Sistema</h2>
-        <Space>
+    <div className="reportes-container">
+      <div className="reportes-dashboard-header">
+        <Typography.Title level={4}>Estadísticas del Sistema</Typography.Title>
+        <Space wrap>
           {!rangoCentro && <RangePicker
             value={rango}
             onChange={(v) => setRango(v as [Dayjs, Dayjs] | null)}
@@ -132,52 +133,52 @@ const Statistics: React.FC = () => {
           <Button icon={<FileExcelOutlined />} onClick={() => descargar('excel')} loading={exporting}>Excel</Button>
           <Button icon={<ReloadOutlined />} onClick={cargar} loading={loading}>Recargar</Button>
         </Space>
-      </Space>
+      </div>
 
       <Spin spinning={loading}>
         {error ? (
           <Empty description="No se pudieron cargar las estadísticas. Verifique la conexión con el servidor." />
         ) : (
           <>
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={6}>
+            <Row gutter={[16, 16]} className="reportes-separado reportes-cifras">
+              <Col xs={24} sm={12} lg={6}>
                 <Card><Statistic title="Total pacientes" value={dashboard?.total_pacientes ?? 0} prefix={<TeamOutlined />} /></Card>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Card><Statistic title="Embarazos activos" value={dashboard?.embarazos_activos ?? 0} prefix={<HeartOutlined />} /></Card>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Card>
                   <Statistic
                     title="Embarazos de alto riesgo"
                     value={dashboard?.embarazos_alto_riesgo ?? 0}
                     prefix={<AlertOutlined />}
-                    valueStyle={{ color: (dashboard?.embarazos_alto_riesgo ?? 0) > 0 ? '#ff4d4f' : undefined }}
+                    className={(dashboard?.embarazos_alto_riesgo ?? 0) > 0 ? 'reportes-cifra--peligro' : undefined}
                   />
                 </Card>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Card><Statistic title="Citas hoy" value={dashboard?.citas_hoy ?? 0} prefix={<CalendarOutlined />} /></Card>
               </Col>
             </Row>
 
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={6}>
+            <Row gutter={[16, 16]} className="reportes-separado reportes-cifras">
+              <Col xs={24} sm={12} lg={6}>
                 <Card><Statistic title="Nuevos pacientes" value={dashboard?.nuevos_pacientes ?? 0} /></Card>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Card><Statistic title="Controles del mes" value={dashboard?.controles_mes ?? 0} /></Card>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Card><Statistic title="Citas pendientes" value={dashboard?.citas_pendientes ?? 0} /></Card>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Card><Statistic title="Partos del mes" value={dashboard?.partos_mes ?? 0} prefix={<MedicineBoxOutlined />} /></Card>
               </Col>
             </Row>
 
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={12}>
+            <Row gutter={[16, 16]} className="reportes-separado reportes-cifras">
+              <Col xs={24} lg={12}>
                 <Card title="Embarazos por trimestre">
                   {porTrimestreData.some(d => d.total > 0) ? (
                     <ResponsiveContainer width="100%" height={260}>
@@ -186,13 +187,13 @@ const Statistics: React.FC = () => {
                         <XAxis dataKey="name" />
                         <YAxis allowDecimals={false} />
                         <Tooltip />
-                        <Bar dataKey="total" fill="#1890ff" />
+                        <Bar dataKey="total" fill="var(--grafico-1)" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : <Empty description="Sin datos de embarazos en el período" />}
                 </Card>
               </Col>
-              <Col span={12}>
+              <Col xs={24} lg={12}>
                 <Card title="Citas por estado">
                   {citas && citas.por_estado.length > 0 ? (
                     <ResponsiveContainer width="100%" height={260}>
@@ -212,7 +213,7 @@ const Statistics: React.FC = () => {
             </Row>
 
             <Row gutter={16}>
-              <Col span={12}>
+              <Col xs={24} lg={12}>
                 <Card title="Partos por tipo">
                   {partos && partos.por_tipo.length > 0 ? (
                     <ResponsiveContainer width="100%" height={260}>
@@ -229,8 +230,8 @@ const Statistics: React.FC = () => {
                   ) : <Empty description="Sin partos registrados en el período" />}
                 </Card>
               </Col>
-              <Col span={12}>
-                <Card title={<span><FileTextOutlined style={{ marginRight: 8 }} />Partos mensuales</span>}>
+              <Col xs={24} lg={12}>
+                <Card title={<span><FileTextOutlined /> Partos mensuales</span>}>
                   {partos && partos.partos_mensuales.length > 0 ? (
                     <ResponsiveContainer width="100%" height={260}>
                       <LineChart data={partos.partos_mensuales}>
@@ -238,7 +239,7 @@ const Statistics: React.FC = () => {
                         <XAxis dataKey="mes" />
                         <YAxis allowDecimals={false} />
                         <Tooltip />
-                        <Line type="monotone" dataKey="total" stroke="#722ed1" strokeWidth={2} />
+                        <Line type="monotone" dataKey="total" stroke="var(--grafico-1)" strokeWidth={2} />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : <Empty description="Sin datos mensuales de partos" />}

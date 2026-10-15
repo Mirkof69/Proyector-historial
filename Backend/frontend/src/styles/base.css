@@ -1,0 +1,331 @@
+/* =============================================================================
+   BASE — elementos HTML, tipografía, foco, movimiento, impresión y utilidades
+   =============================================================================
+   Va después del «preflight» de Tailwind (index.css), que ya pone a cero
+   márgenes, listas y bordes. Aquí solo lo que la aplicación necesita encima.
+   Colores, radios y fuentes: siempre var(--…) de tokens.css.
+   ============================================================================= */
+
+/* ---------- Documento ---------- */
+html {
+  font-size: 16px; /* 1rem = 16 px para Tailwind; el texto base es 14 px */
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-normal);
+  line-height: var(--interlineado);
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Escala de letra accesible (ThemeContext → data-font-scale). Ant Design se
+   escala por su token fontSize; esto cubre el texto que no es de Ant Design. */
+html[data-font-scale="grande"] body { font-size: calc(var(--texto-base) * 1.15); }
+html[data-font-scale="extra"] body { font-size: calc(var(--texto-base) * 1.3); }
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Tipografía ---------- */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: inherit;
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  text-wrap: balance;
+}
+
+p {
+  margin: 0 0 1em;
+}
+
+strong, b {
+  font-weight: var(--peso-fuerte);
+}
+
+a {
+  color: var(--color-primario);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primario-hover);
+}
+
+code, kbd, samp, pre {
+  font-family: var(--fuente-mono);
+}
+
+code {
+  font-size: 0.92em;
+  padding: 1px var(--esp-1);
+  border-radius: var(--radio-sm);
+  background-color: var(--color-superficie-2);
+  border: 1px solid var(--color-borde-suave);
+}
+
+::selection {
+  background-color: var(--color-primario-suave);
+  color: var(--color-texto);
+}
+
+/* ---------- Foco visible (todo lo interactivo) ---------- */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primario);
+  outline-offset: 2px;
+}
+
+/* ---------- Barras de desplazamiento ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-borde-fuerte) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-borde-fuerte);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-texto-3);
+}
+
+/* ---------- Utilidades ---------- */
+
+/* Cifras clínicas alineadas en columna */
+.tabular-nums,
+.cifra {
+  font-variant-numeric: tabular-nums;
+}
+
+/* CI, código de paciente, valores de laboratorio */
+.texto-mono {
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.texto-secundario { color: var(--color-texto-2); }
+.texto-ayuda { color: var(--color-texto-3); }
+
+.hide-mobile { display: initial; }
+.show-mobile { display: none; }
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none; }
+  .show-mobile { display: initial; }
+}
+
+/* ---------- Clases heredadas que usan las páginas (mantener) ---------- */
+
+/* Entrada de página: un desvanecido corto, sin rebote. */
+.page-container,
+.animate-fade-in,
+.animate-slide-up,
+.fade-in,
+.fade-in-up {
+  animation: fadeIn var(--duracion-lenta) var(--curva);
+}
+
+/* Punto de estado vivo (valor crítico, sincronización). Solo opacidad: el
+   tamaño no cambia para no mover el texto de alrededor. */
+.status-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-pulse-red,
+.status-pulse-green {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-pulse-red { background-color: var(--color-peligro); }
+.status-pulse-green { background-color: var(--color-exito); }
+
+/* Antes elevaba y escalaba al pasar el puntero; ahora solo cambia el borde. */
+.smooth-hover {
+  transition: border-color var(--duracion) var(--curva), background-color var(--duracion) var(--curva);
+}
+
+.smooth-hover:hover {
+  border-color: var(--color-borde-fuerte);
+}
+
+/* Superficies «glass» / «medical» retiradas: superficie plana con borde. */
+.glass-card,
+.glass-effect,
+.medical-card {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+}
+
+.gradient-text-primary {
+  color: var(--color-primario);
+}
+
+/* Tarjetas de cifras: la cifra siempre tabular */
+.stats-card .ant-statistic-content-value,
+.stat-card .ant-statistic-content-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Marcador de carga */
+.skeleton {
+  background-color: var(--color-superficie-2);
+  border-radius: var(--radio);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ---------- Gráficas (Recharts) en todos los temas ---------- */
+/* Recharts pinta ejes y rejilla con atributos SVG grises fijos; una regla CSS
+   gana a un atributo de presentación sin necesidad de !important. */
+.recharts-text,
+.recharts-cartesian-axis-tick-value,
+.recharts-polar-angle-axis-tick-value {
+  fill: var(--color-texto-2);
+}
+
+.recharts-cartesian-grid line,
+.recharts-polar-grid line,
+.recharts-polar-grid-concentric-polygon,
+.recharts-polar-grid-concentric-circle {
+  stroke: var(--color-borde-suave);
+}
+
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--color-borde);
+}
+
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+/* El tooltip por defecto de Recharts trae fondo blanco y borde en línea
+   (style="background-color:#fff"): solo !important le gana, como a un
+   estilo en línea de Ant Design sin token. */
+.recharts-default-tooltip {
+  background-color: var(--color-superficie) !important;
+  border: 1px solid var(--color-borde) !important;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-flotante);
+  color: var(--color-texto);
+}
+
+/* ---------- Animaciones (nombres globales que usan las hojas de página) ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pageSlideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Movimiento reducido (WCAG 2.3.3) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important; /* gana a animaciones de cualquier hoja */
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Impresión ---------- */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: none;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important; /* la impresión debe ocultarlo aunque la página lo muestre */
+  }
+
+  @page {
+    margin: 2cm;
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { triajeService, TriajeEnfermeria } from '../../services/triajeService';
-import { Alert, Empty, Table, Button, Card, Row, Col, Typography, Space } from 'antd';
+import { Alert, Empty, Table, Button, Card, Typography, Space } from 'antd';
 import {
   PlusOutlined, PrinterOutlined, ExportOutlined, MedicineBoxOutlined,
 } from '@ant-design/icons';
@@ -14,6 +14,7 @@ import es from 'dayjs/locale/es';
 import TriajeStats from './components/TriajeStats';
 import TriajeFiltros from './components/TriajeFiltros';
 import { buildTriajeColumns } from './components/triajeColumns';
+import './Triaje.css';
 
 dayjs.locale(es);
 const { Title, Text } = Typography;
@@ -94,19 +95,15 @@ const Triaje: React.FC = () => {
   );
 
   return (
-    <div className="animate-fade-in" style={{ padding: '24px' }}>
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        <Col span={24}>
-          <Card className="shadow-card">
-            <Row justify="space-between" align="middle">
-              <Col>
-                <Title level={2} style={{ margin: 0 }}>
-                  <MedicineBoxOutlined /> Gestión de Triaje
-                </Title>
-                <Text type="secondary">Evaluación inicial de pacientes y signos vitales</Text>
-              </Col>
-              <Col>
-                <Space>
+    <div className="triaje-pagina">
+      <header className="pagina-encabezado">
+        <div className="pagina-encabezado__texto">
+          <Title level={2} className="pagina-encabezado__titulo">
+            <MedicineBoxOutlined /> Gestión de Triaje
+          </Title>
+          <Text className="pagina-encabezado__descripcion">Evaluación inicial de pacientes y signos vitales</Text>
+        </div>
+                <Space wrap>
                   <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
                     Imprimir
                   </Button>
@@ -121,16 +118,11 @@ const Triaje: React.FC = () => {
                     size="large"
                     icon={<PlusOutlined />}
                     onClick={() => navigate('/dashboard/triaje/nuevo')}
-                    className="status-pulse"
                   >
                     Nuevo Triaje
                   </Button>
                 </Space>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
+      </header>
 
       <TriajeStats
         total={stats.total}
@@ -157,14 +149,14 @@ const Triaje: React.FC = () => {
         }}
       />
 
-      {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
+      {listado.error && <Alert type="error" showIcon message={listado.error} />}
+      <Card className="triaje-tabla" styles={{ body: { padding: 0 } }}>
       <Table
         columns={columns}
         dataSource={listado.datos}
         locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay registros de triaje" /> }}
         rowKey="id"
         loading={listado.cargando}
-        className="shadow-card"
         pagination={listado.paginacion}
         onChange={listado.onChange}
         scroll={{ x: 1000 }}
@@ -172,6 +164,7 @@ const Triaje: React.FC = () => {
           onDoubleClick: () => navigate(`/dashboard/triaje/${record.id}`),
         })}
       />
+      </Card>
     </div>
   );
 };

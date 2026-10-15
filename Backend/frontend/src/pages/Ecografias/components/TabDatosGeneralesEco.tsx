@@ -36,7 +36,7 @@ const TabDatosGeneralesEco: React.FC<TabDatosGeneralesEcoProps> = ({
     <Row gutter={24}>
       <Col xs={24} md={8}>
         <Form.Item name="fecha_ecografia" label="Fecha del Estudio" rules={[{ required: true, message: 'Requerido' }]}>
-          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" onChange={() => actualizarEdadGestacional()} disabledDate={(d) => d && d.isAfter(dayjs(), 'day')} />
+          <DatePicker className="u-ancho" format="DD/MM/YYYY" onChange={() => actualizarEdadGestacional()} disabledDate={(d) => d && d.isAfter(dayjs(), 'day')} />
         </Form.Item>
       </Col>
       <Col xs={24} md={8}>
@@ -52,16 +52,16 @@ const TabDatosGeneralesEco: React.FC<TabDatosGeneralesEcoProps> = ({
     </Row>
     <Divider orientation="left">Datos Básicos del Feto</Divider>
     {selectedEmbarazo && (
-      <Alert message="Información del Embarazo" description={<Space direction="vertical" size="small" style={{ width: '100%' }}><Row gutter={16}><Col span={8}><Text strong>FUM:</Text> {dayjs(selectedEmbarazo.fecha_ultima_menstruacion).format('DD/MM/YYYY')}</Col><Col span={8}><Text strong>FPP:</Text> {selectedEmbarazo.fecha_probable_parto ? dayjs(selectedEmbarazo.fecha_probable_parto).format('DD/MM/YYYY') : 'No calculada'}</Col><Col span={8}><Text strong>Estado:</Text> {(selectedEmbarazo.estado || 'activo').toUpperCase()}</Col></Row><Row gutter={16}><Col span={12}><Text strong>Semanas actuales:</Text> {selectedEmbarazo.semanas_gestacion || 'N/A'}</Col><Col span={12}><Text strong>Tipo:</Text> {selectedEmbarazo.tipo_embarazo || 'único'}</Col></Row></Space>} type="info" showIcon style={{ marginBottom: 16 }} />
+      <Alert message="Información del Embarazo" description={<Space direction="vertical" size="small" className="u-ancho"><Row gutter={16}><Col xs={24} md={8}><Text strong>FUM:</Text> {dayjs(selectedEmbarazo.fecha_ultima_menstruacion).format('DD/MM/YYYY')}</Col><Col xs={24} md={8}><Text strong>FPP:</Text> {selectedEmbarazo.fecha_probable_parto ? dayjs(selectedEmbarazo.fecha_probable_parto).format('DD/MM/YYYY') : 'No calculada'}</Col><Col xs={24} md={8}><Text strong>Estado:</Text> {(selectedEmbarazo.estado || 'activo').toUpperCase()}</Col></Row><Row gutter={16}><Col xs={24} md={12}><Text strong>Semanas actuales:</Text> {selectedEmbarazo.semanas_gestacion || 'N/A'}</Col><Col xs={24} md={12}><Text strong>Tipo:</Text> {selectedEmbarazo.tipo_embarazo || 'único'}</Col></Row></Space>} type="info" showIcon className="u-mb-4" />
     )}
     <Row gutter={24}>
-      <Col xs={24} md={6}><Form.Item name="edad_gestacional_semanas" label="Semanas (por Eco)" rules={[{ required: true, message: 'Requerido' }]} tooltip="Se autocompleta desde el embarazo, pero puede modificarse"><InputNumber min={4} max={43} style={{ width: '100%' }} placeholder="Autocompleta desde embarazo" /></Form.Item></Col>
-      <Col xs={24} md={6}><Form.Item name="edad_gestacional_dias" label="Días" initialValue={0} tooltip="Se autocompleta desde el embarazo, pero puede modificarse"><InputNumber min={0} max={6} style={{ width: '100%' }} placeholder="Días adicionales" /></Form.Item></Col>
-      <Col xs={24} md={6}><Form.Item name="numero_fetos" label="Número de Fetos"><InputNumber min={1} max={5} style={{ width: '100%' }} /></Form.Item></Col>
+      <Col xs={24} md={6}><Form.Item name="edad_gestacional_semanas" label="Semanas (por Eco)" rules={[{ required: true, message: 'Requerido' }]} tooltip="Se autocompleta desde el embarazo, pero puede modificarse"><InputNumber min={4} max={43} className="u-ancho" placeholder="Autocompleta desde embarazo" /></Form.Item></Col>
+      <Col xs={24} md={6}><Form.Item name="edad_gestacional_dias" label="Días" initialValue={0} tooltip="Se autocompleta desde el embarazo, pero puede modificarse"><InputNumber min={0} max={6} className="u-ancho" placeholder="Días adicionales" /></Form.Item></Col>
+      <Col xs={24} md={6}><Form.Item name="numero_fetos" label="Número de Fetos"><InputNumber min={1} max={5} className="u-ancho" /></Form.Item></Col>
       <Col xs={24} md={6}><Form.Item name="vitalidad_fetal" label="Vitalidad Fetal" valuePropName="checked"><Checkbox>Presente</Checkbox></Form.Item></Col>
     </Row>
     <Row gutter={24}>
-      <Col xs={24} md={8}><Form.Item name="frecuencia_cardiaca_fetal" label="FCF (latidos/min)" rules={[{ type: 'number', min: 50, max: 300, message: 'FCF entre 50 y 300 lpm (fuera de 110-160 se guarda y alerta)' }]}><InputNumber style={{ width: '100%' }} suffix="lpm" /></Form.Item></Col>
+      <Col xs={24} md={8}><Form.Item name="frecuencia_cardiaca_fetal" label="FCF (latidos/min)" rules={[{ type: 'number', min: 50, max: 300, message: 'FCF entre 50 y 300 lpm (fuera de 110-160 se guarda y alerta)' }]}><InputNumber className="u-ancho" suffix="lpm" /></Form.Item></Col>
     </Row>
   </Card>
 );

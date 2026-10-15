@@ -33,7 +33,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { reportesService, TipoReporteConfig } from '../../services/reportesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
-import './GenerarReporte.css';
+import './Reportes.css';
 import { FormValues } from './generarReporteUtils';
 import PasoTipoReporte from './components/PasoTipoReporte';
 import PasoConfiguracion from './components/PasoConfiguracion';
@@ -241,21 +241,16 @@ const GenerarReportePage: React.FC = () => {
   // RENDER PRINCIPAL
   // ==========================================================================
   return (
-    <div className="generar-reporte-container">
+    <div className="reportes-container">
       <Card
-        title={
-          <Space>
-            <FileTextOutlined style={{ fontSize: 24, color: '#722ed1' }} />
-            <span style={{ fontSize: 20, fontWeight: 600 }}>Generar Reporte</span>
-          </Space>
-        }
+        title="Generar Reporte"
         extra={
           <Button icon={<ArrowLeftOutlined />} onClick={handleVolver}>
             Volver
           </Button>
         }
       >
-        <Steps current={pasoActual} style={{ marginBottom: 32 }}>
+        <Steps current={pasoActual} className="reportes-pasos">
           <Step
             title="Tipo de Reporte"
             icon={<FileTextOutlined />}

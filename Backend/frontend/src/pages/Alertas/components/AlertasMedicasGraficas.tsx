@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Card, Row, Col, Spin } from 'antd';
+import { Card, Spin } from 'antd';
 import { AlertaMedica } from '../../../services/reportesService';
 import {
   renderPieLabel, getSeveridadData, getModuloData, getTiempoResolucionData,
@@ -25,10 +25,9 @@ interface AlertasMedicasGraficasProps {
 
 const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas }) => (
   <>
-    <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-      <Col xs={24} md={12}>
-        <Card title="Alertas por Severidad" variant="borderless">
-          <Suspense fallback={<div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>}>
+    <div className="alertas-page__graficas">
+        <Card title="Alertas por Severidad">
+          <Suspense fallback={<div className="alertas-page__cargando"><Spin /></div>}>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -38,7 +37,6 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
                 labelLine={false}
                 label={renderPieLabel}
                 outerRadius={80}
-                fill="#8884d8"
                 dataKey="value"
               >
                 {getSeveridadData(alertas).map((entry) => (
@@ -51,10 +49,8 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
           </ResponsiveContainer>
           </Suspense>
         </Card>
-      </Col>
-      <Col xs={24} md={12}>
-        <Card title="Alertas por Módulo" variant="borderless">
-          <Suspense fallback={<div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>}>
+        <Card title="Alertas por Módulo">
+          <Suspense fallback={<div className="alertas-page__cargando"><Spin /></div>}>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={getModuloData(alertas)}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -62,19 +58,17 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="cantidad" fill="#1890ff" />
+              <Bar dataKey="cantidad" fill="var(--grafico-1)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           </Suspense>
         </Card>
-      </Col>
-    </Row>
+    </div>
 
     {getTiempoResolucionData(alertas).length > 0 && (
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col span={24}>
-          <Card title="Tiempo de Resolución (horas)" variant="borderless">
-            <Suspense fallback={<div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>}>
+      <div className="alertas-page__graficas alertas-page__graficas--ancha">
+          <Card title="Tiempo de Resolución (horas)">
+            <Suspense fallback={<div className="alertas-page__cargando"><Spin /></div>}>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={getTiempoResolucionData(alertas)}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -82,13 +76,12 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="horas" stroke="#52c41a" strokeWidth={2} />
+                <Line type="monotone" dataKey="horas" stroke="var(--grafico-1)" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
           </Suspense>
           </Card>
-        </Col>
-      </Row>
+      </div>
     )}
   </>
 );

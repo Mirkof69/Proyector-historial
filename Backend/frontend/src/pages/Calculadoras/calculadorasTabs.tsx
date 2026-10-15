@@ -13,6 +13,21 @@ import { ResultadosAction } from './calculadorasReducer';
 
 const { Title, Text, Paragraph } = Typography;
 
+/** Color preset de Ant Design ('green'/'orange'/'red', guardado así en el historial) → estado del tema. */
+const estadoTag = (color?: string): 'success' | 'warning' | 'error' | 'default' => {
+  if (color === 'green') return 'success';
+  if (color === 'orange' || color === 'gold') return 'warning';
+  if (color === 'red') return 'error';
+  return 'default';
+};
+
+const COLOR_ESTADO: Record<string, string> = {
+  success: 'var(--color-exito)',
+  warning: 'var(--color-aviso)',
+  error: 'var(--color-peligro)',
+  default: 'var(--color-primario)',
+};
+
 export interface CalculadorasTabsDeps {
   formEG: FormInstance;
   formIMC: FormInstance;
@@ -75,10 +90,10 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
                   label="Fecha de Última Menstruación (FUM)"
                   rules={[{ required: true, message: 'Requerido' }]}
                 >
-                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" size="large" />
+                  <DatePicker format="DD/MM/YYYY" size="large" />
                 </Form.Item>
                 <Form.Item name="fecha_actual" label="Fecha Actual (Opcional)">
-                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" size="large" />
+                  <DatePicker format="DD/MM/YYYY" size="large" />
                 </Form.Item>
                 <Button type="primary" htmlType="submit" icon={<CalculatorOutlined />} loading={loading} size="large" block>
                   Calcular
@@ -89,11 +104,11 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Resultados" type="inner">
               {resultadoEG ? (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Space direction="vertical" className="calculadoras-pila" size="large">
                   <Statistic
                     title="Edad Gestacional"
                     value={resultadoEG.edad_gestacional}
-                    valueStyle={{ fontSize: 28, color: '#1890ff' }}
+                    className="calculadoras-cifra"
                   />
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
@@ -106,14 +121,14 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
                   <Divider />
                   <div>
                     <Text strong>FPP: </Text>
-                    <Text style={{ fontSize: 20 }}>{resultadoEG.fpp}</Text>
+                    <Text className="calculadoras-dato">{resultadoEG.fpp}</Text>
                   </div>
                   <div>
                     <Text strong>Días para parto: </Text>
-                    <Text style={{ fontSize: 20 }}>{resultadoEG.dias_para_parto} días</Text>
+                    <Text className="calculadoras-dato">{resultadoEG.dias_para_parto} días</Text>
                   </div>
-                  <Tag color="blue">{resultadoEG.trimestre}° Trimestre</Tag>
-                  <Tag color={resultadoEG.categoria === 'A término' ? 'green' : 'orange'}>{resultadoEG.categoria}</Tag>
+                  <Tag color="processing">{resultadoEG.trimestre}° Trimestre</Tag>
+                  <Tag color={resultadoEG.categoria === 'A término' ? 'success' : 'warning'}>{resultadoEG.categoria}</Tag>
                 </Space>
               ) : (
                 <Alert message="Complete los datos para ver los resultados" type="info" showIcon />
@@ -136,24 +151,24 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
                   label="Peso Pre-gestacional (kg)"
                   rules={[{ required: true, message: 'Requerido' }]}
                 >
-                  <InputNumber style={{ width: '100%' }} min={30} max={200} size="large" />
+                  <InputNumber min={30} max={200} size="large" />
                 </Form.Item>
                 <Form.Item name="altura" label="Altura (cm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={120} max={220} size="large" />
+                  <InputNumber min={120} max={220} size="large" />
                 </Form.Item>
                 <Form.Item
                   name="peso_actual"
                   label="Peso Actual (kg)"
                   rules={[{ required: true, message: 'Requerido' }]}
                 >
-                  <InputNumber style={{ width: '100%' }} min={30} max={200} size="large" />
+                  <InputNumber min={30} max={200} size="large" />
                 </Form.Item>
                 <Form.Item
                   name="edad_gestacional_semanas"
                   label="Semanas de Gestación"
                   rules={[{ required: true, message: 'Requerido' }]}
                 >
-                  <InputNumber style={{ width: '100%' }} min={1} max={42} size="large" />
+                  <InputNumber min={1} max={42} size="large" />
                 </Form.Item>
                 <Button type="primary" htmlType="submit" icon={<CalculatorOutlined />} loading={loading} size="large" block>
                   Calcular
@@ -164,17 +179,17 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Resultados" type="inner">
               {resultadoIMC ? (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
-                  <Statistic title="IMC" value={resultadoIMC.imc} valueStyle={{ fontSize: 28, color: '#1890ff' }} />
-                  <Tag color={resultadoIMC.color}>{resultadoIMC.categoria}</Tag>
+                <Space direction="vertical" className="calculadoras-pila" size="large">
+                  <Statistic title="IMC" value={resultadoIMC.imc} className="calculadoras-cifra" />
+                  <Tag color={estadoTag(resultadoIMC.color)}>{resultadoIMC.categoria}</Tag>
                   <Divider />
                   <div>
                     <Text strong>Ganancia Actual: </Text>
-                    <Text style={{ fontSize: 20 }}>{resultadoIMC.ganancia_actual} kg</Text>
+                    <Text className="calculadoras-dato">{resultadoIMC.ganancia_actual} kg</Text>
                   </div>
                   <div>
                     <Text strong>Ganancia Recomendada: </Text>
-                    <Text style={{ fontSize: 20 }}>{resultadoIMC.ganancia_recomendada}</Text>
+                    <Text className="calculadoras-dato">{resultadoIMC.ganancia_recomendada}</Text>
                   </div>
                   <Progress percent={(parseFloat(resultadoIMC.ganancia_actual) / 16) * 100} />
                 </Space>
@@ -241,15 +256,15 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Resultados" type="inner">
               {resultadoBishop ? (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Space direction="vertical" className="calculadoras-pila" size="large">
                   <Statistic
                     title="Score"
                     value={resultadoBishop.score}
                     suffix="/13"
-                    valueStyle={{ fontSize: 32, color: '#1890ff' }}
+                    className="calculadoras-cifra"
                   />
-                  <Progress percent={(resultadoBishop.score / 13) * 100} strokeColor={{ '0%': '#ff4d4f', '50%': '#faad14', '100%': '#52c41a' }} />
-                  <Tag color={resultadoBishop.color}>{resultadoBishop.interpretacion}</Tag>
+                  <Progress percent={(resultadoBishop.score / 13) * 100} strokeColor={COLOR_ESTADO[estadoTag(resultadoBishop.color)]} />
+                  <Tag color={estadoTag(resultadoBishop.color)}>{resultadoBishop.interpretacion}</Tag>
                   <Alert message={resultadoBishop.probabilidad} type={resultadoBishop.color === 'green' ? 'success' : resultadoBishop.color === 'red' ? 'error' : 'warning'} showIcon />
                 </Space>
               ) : (
@@ -269,20 +284,20 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
             <Card title="Factores de Riesgo" type="inner">
               <Form form={formPreeclampsia} layout="vertical" onFinish={calcularRiesgoPreeclampsia}>
                 <Form.Item name="edad" label="Edad (años)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={12} max={60} size="large" />
+                  <InputNumber min={12} max={60} size="large" />
                 </Form.Item>
                 <Form.Item name="imc" label="IMC Pre-gestacional" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={15} max={50} step={0.1} size="large" />
+                  <InputNumber min={15} max={50} step={0.1} size="large" />
                 </Form.Item>
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item name="presion_sistolica" label="Presión Sistólica" rules={[{ required: true, message: 'Requerido' }]}>
-                      <InputNumber style={{ width: '100%' }} min={80} max={200} size="large" />
+                      <InputNumber min={80} max={200} size="large" />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
                     <Form.Item name="presion_diastolica" label="Presión Diastólica" rules={[{ required: true, message: 'Requerido' }]}>
-                      <InputNumber style={{ width: '100%' }} min={50} max={150} size="large" />
+                      <InputNumber min={50} max={150} size="large" />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -319,13 +334,13 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Resultados" type="inner">
               {resultadoPreeclampsia ? (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Space direction="vertical" className="calculadoras-pila" size="large">
                   <Statistic
                     title="Factores de riesgo presentes"
                     value={resultadoPreeclampsia.puntos}
-                    valueStyle={{ fontSize: 32, color: '#1890ff' }}
+                    className="calculadoras-cifra"
                   />
-                  <Tag color={resultadoPreeclampsia.color}>{resultadoPreeclampsia.riesgo}</Tag>
+                  <Tag color={estadoTag(resultadoPreeclampsia.color)}>{resultadoPreeclampsia.riesgo}</Tag>
                   {resultadoPreeclampsia.alertaHipertension && (
                     <Alert type="error" showIcon message="Presión arterial elevada" description={resultadoPreeclampsia.alertaHipertension} />
                   )}
@@ -347,18 +362,18 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Mediciones Ecográficas" type="inner">
               <Form form={formILA} layout="vertical" onFinish={calcularILA}>
-                <Alert message="Técnica: Método de Phelan" description="Mida el bolsillo máximo vertical en cada cuadrante." type="info" showIcon style={{ marginBottom: 16 }} />
+                <Alert message="Técnica: Método de Phelan" description="Mida el bolsillo máximo vertical en cada cuadrante." type="info" showIcon className="calculadoras-aviso" />
                 <Form.Item name="cuadrante1" label="Cuadrante Superior Derecho (cm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={0} max={15} step={0.1} size="large" />
+                  <InputNumber min={0} max={15} step={0.1} size="large" />
                 </Form.Item>
                 <Form.Item name="cuadrante2" label="Cuadrante Superior Izquierdo (cm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={0} max={15} step={0.1} size="large" />
+                  <InputNumber min={0} max={15} step={0.1} size="large" />
                 </Form.Item>
                 <Form.Item name="cuadrante3" label="Cuadrante Inferior Derecho (cm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={0} max={15} step={0.1} size="large" />
+                  <InputNumber min={0} max={15} step={0.1} size="large" />
                 </Form.Item>
                 <Form.Item name="cuadrante4" label="Cuadrante Inferior Izquierdo (cm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={0} max={15} step={0.1} size="large" />
+                  <InputNumber min={0} max={15} step={0.1} size="large" />
                 </Form.Item>
                 <Button type="primary" htmlType="submit" icon={<CalculatorOutlined />} loading={loading} size="large" block>
                   Calcular ILA
@@ -369,15 +384,15 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Resultados" type="inner">
               {resultadoILA ? (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Space direction="vertical" className="calculadoras-pila" size="large">
                   <Statistic
                     title="ILA"
                     value={resultadoILA.ila}
                     suffix="cm"
-                    valueStyle={{ fontSize: 32, color: '#1890ff' }}
+                    className="calculadoras-cifra"
                   />
                   <Progress percent={(parseFloat(resultadoILA.ila) / 24) * 100} status={resultadoILA.color === 'green' ? 'success' : resultadoILA.color === 'red' ? 'exception' : 'normal'} />
-                  <Tag color={resultadoILA.color}>{resultadoILA.interpretacion}</Tag>
+                  <Tag color={estadoTag(resultadoILA.color)}>{resultadoILA.interpretacion}</Tag>
                   <Alert message="Conducta" description={resultadoILA.conducta} type={resultadoILA.color === 'green' ? 'success' : resultadoILA.color === 'red' ? 'error' : 'warning'} showIcon />
                 </Space>
               ) : (
@@ -396,18 +411,18 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Biometría Fetal" type="inner">
               <Form form={formPesoFetal} layout="vertical" onFinish={calcularPesoFetal}>
-                <Alert message="Fórmula de Hadlock" description="Ingrese medidas de ecografía obstétrica." type="info" showIcon style={{ marginBottom: 16 }} />
+                <Alert message="Fórmula de Hadlock" description="Ingrese medidas de ecografía obstétrica." type="info" showIcon className="calculadoras-aviso" />
                 <Form.Item name="dbp" label="DBP (mm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={20} max={120} step={0.1} size="large" />
+                  <InputNumber min={20} max={120} step={0.1} size="large" />
                 </Form.Item>
                 <Form.Item name="cc" label="CC (mm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={100} max={400} step={0.1} size="large" />
+                  <InputNumber min={100} max={400} step={0.1} size="large" />
                 </Form.Item>
                 <Form.Item name="ca" label="CA (mm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={100} max={450} step={0.1} size="large" />
+                  <InputNumber min={100} max={450} step={0.1} size="large" />
                 </Form.Item>
                 <Form.Item name="lf" label="LF (mm)" rules={[{ required: true, message: 'Requerido' }]}>
-                  <InputNumber style={{ width: '100%' }} min={20} max={90} step={0.1} size="large" />
+                  <InputNumber min={20} max={90} step={0.1} size="large" />
                 </Form.Item>
                 <Button type="primary" htmlType="submit" icon={<CalculatorOutlined />} loading={loading} size="large" block>
                   Calcular Peso
@@ -418,12 +433,12 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Resultados" type="inner">
               {resultadoPesoFetal ? (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Space direction="vertical" className="calculadoras-pila" size="large">
                   <Statistic
                     title="Peso Estimado"
                     value={resultadoPesoFetal.peso}
                     suffix="g"
-                    valueStyle={{ fontSize: 32, color: '#1890ff' }}
+                    className="calculadoras-cifra"
                   />
                   <Tag>{resultadoPesoFetal.formula}</Tag>
                   <Alert message="Estimación con un error de ±15 %"
@@ -490,15 +505,15 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Col xs={24} lg={12}>
             <Card title="Resultados" type="inner">
               {resultadoApgar ? (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Space direction="vertical" className="calculadoras-pila" size="large">
                   <Statistic
                     title="Apgar"
                     value={resultadoApgar.score}
                     suffix="/10"
-                    valueStyle={{ fontSize: 32, color: '#1890ff' }}
+                    className="calculadoras-cifra"
                   />
                   <Progress percent={(resultadoApgar.score / 10) * 100} status={resultadoApgar.color === 'green' ? 'success' : resultadoApgar.color === 'red' ? 'exception' : 'normal'} />
-                  <Tag color={resultadoApgar.color}>{resultadoApgar.interpretacion}</Tag>
+                  <Tag color={estadoTag(resultadoApgar.color)}>{resultadoApgar.interpretacion}</Tag>
                   <Alert message="Conducta" description={resultadoApgar.conducta} type={resultadoApgar.color === 'green' ? 'success' : resultadoApgar.color === 'red' ? 'error' : 'warning'} showIcon />
                 </Space>
               ) : (
@@ -522,7 +537,6 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
                     const cerebelo = (document.querySelector('input[data-cerebelo]') as any)?.value;
                     if (ac && cerebelo) calcularICC(ac as number, parseFloat(cerebelo));
                   }}
-                  style={{ width: '100%' }}
                 />
               </Form.Item>
             </Col>
@@ -534,7 +548,6 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
                     const ac = (document.querySelector('input[data-ac]') as any)?.value;
                     if (ac && cerebelo) calcularICC(parseFloat(ac), cerebelo as number);
                   }}
-                  style={{ width: '100%' }}
                 />
               </Form.Item>
             </Col>
@@ -542,8 +555,8 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           {resultadoICC && (
             <>
               <Divider />
-              <Statistic title="ICC" value={resultadoICC.icc} valueStyle={{ color: resultadoICC.normal ? '#52c41a' : '#ff4d4f' }} />
-              <Tag color={resultadoICC.normal ? 'green' : 'red'}>{resultadoICC.interpretacion}</Tag>
+              <Statistic title="ICC" value={resultadoICC.icc} valueStyle={{ color: resultadoICC.normal ? 'var(--color-exito)' : 'var(--color-peligro)' }} />
+              <Tag color={resultadoICC.normal ? 'success' : 'error'}>{resultadoICC.interpretacion}</Tag>
             </>
           )}
         </Card>
@@ -557,12 +570,12 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Sistólica (mmHg)">
-                <InputNumber onChange={(s) => { const d = (document.querySelector('input[data-dias]') as any)?.value; if (s && d) calcularPA(s as number, parseFloat(d)); }} style={{ width: '100%' }} />
+                <InputNumber onChange={(s) => { const d = (document.querySelector('input[data-dias]') as any)?.value; if (s && d) calcularPA(s as number, parseFloat(d)); }} />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item label="Diastólica (mmHg)">
-                <InputNumber data-dias="true" onChange={(d) => { const s = (document.querySelector('input[data-sist]') as any)?.value; if (s && d) calcularPA(parseFloat(s), d as number); }} style={{ width: '100%' }} />
+                <InputNumber data-dias="true" onChange={(d) => { const s = (document.querySelector('input[data-sist]') as any)?.value; if (s && d) calcularPA(parseFloat(s), d as number); }} />
               </Form.Item>
             </Col>
           </Row>
@@ -582,13 +595,13 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
       children: (
         <Card>
           <Form.Item label="Edad (años)">
-            <InputNumber onChange={(edad) => calcularFCMax(edad as number)} style={{ width: '100%' }} />
+            <InputNumber onChange={(edad) => calcularFCMax(edad as number)} />
           </Form.Item>
           {resultadoFCMax && (
             <>
               <Divider />
               <Statistic title="FC Máxima" value={resultadoFCMax.fc} suffix="bpm" />
-              <Row gutter={16} style={{ marginTop: 16 }}>
+              <Row gutter={16} className="calculadoras-fila-arriba">
                 <Col span={8}>
                   <Statistic title="50%" value={resultadoFCMax.intensidad_50} />
                 </Col>
@@ -614,35 +627,35 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
               <Col span={12}>
                 <Form.Item name="textura" label="Textura de Piel" rules={[{ required: true }]}>
                   <Tooltip title="0-4 puntos según textura">
-                    <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                    <InputNumber min={0} max={4} />
                   </Tooltip>
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="oreja" label="Forma de Oreja" rules={[{ required: true }]}>
                   <Tooltip title="0-4 puntos según formación">
-                    <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                    <InputNumber min={0} max={4} />
                   </Tooltip>
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="mama" label="Tamaño Glándula Mamaria" rules={[{ required: true }]}>
                   <Tooltip title="0-4 puntos">
-                    <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                    <InputNumber min={0} max={4} />
                   </Tooltip>
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="pezon" label="Formación del Pezón" rules={[{ required: true }]}>
                   <Tooltip title="0-4 puntos">
-                    <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                    <InputNumber min={0} max={4} />
                   </Tooltip>
                 </Form.Item>
               </Col>
               <Col span={24}>
                 <Form.Item name="planta" label="Pliegues Plantares" rules={[{ required: true }]}>
                   <Tooltip title="0-4 puntos según pliegues">
-                    <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                    <InputNumber min={0} max={4} />
                   </Tooltip>
                 </Form.Item>
               </Col>
@@ -654,11 +667,11 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
           {resultadoCapurro && (
             <Spin spinning={false}>
               <Divider />
-              <Badge count={resultadoCapurro.puntos} showZero color="blue" style={{ marginBottom: 16 }}>
+              <Badge count={resultadoCapurro.puntos} showZero className="calculadoras-insignia">
                 <Statistic title="Edad Gestacional" value={`${resultadoCapurro.semanas} sem + ${resultadoCapurro.dias} días`} />
               </Badge>
               <Divider />
-              <Tag color={resultadoCapurro.interpretacion === 'A término' ? 'green' : 'orange'}>
+              <Tag color={resultadoCapurro.interpretacion === 'A término' ? 'success' : 'warning'}>
                 {resultadoCapurro.interpretacion}
               </Tag>
             </Spin>
@@ -688,7 +701,7 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
               <Col span={12}>
                 <Form.Item name="movimientos_torax" label="Movimientos Tórax" rules={[{ required: true }]}>
                   <Input.Group compact>
-                    <Select defaultValue={0} style={{ width: '100%' }}>
+                    <Select defaultValue={0}>
                       <Select.Option value={0}>Rítmicos y regulares (0)</Select.Option>
                       <Select.Option value={1}>Retracción intercostal leve (1)</Select.Option>
                       <Select.Option value={2}>Retracción marcada (2)</Select.Option>
@@ -698,7 +711,7 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
               </Col>
               <Col span={12}>
                 <Form.Item name="tiraje" label="Tiraje" rules={[{ required: true }]}>
-                  <Select defaultValue={0} style={{ width: '100%' }}>
+                  <Select defaultValue={0}>
                     <Select.Option value={0}>Ausente (0)</Select.Option>
                     <Select.Option value={1}>Leve (1)</Select.Option>
                     <Select.Option value={2}>Marcado (2)</Select.Option>
@@ -744,25 +757,25 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
               <Col span={12}>
                 <Form.Item name="postura" label="Postura" rules={[{ required: true }]}>
                   <Tooltip title="Evaluación de flexión de extremidades">
-                    <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                    <InputNumber min={0} max={4} />
                   </Tooltip>
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="ventana_cuadrada" label="Ventana Cuadrada" rules={[{ required: true }]}>
                   <Tooltip title="Flexión de muñeca">
-                    <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                    <InputNumber min={0} max={4} />
                   </Tooltip>
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="rebote_brazo" label="Rebote de Brazo" rules={[{ required: true }]}>
-                  <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                  <InputNumber min={0} max={4} />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="angulo_popliteo" label="Ángulo Poplíteo" rules={[{ required: true }]}>
-                  <InputNumber min={0} max={4} style={{ width: '100%' }} />
+                  <InputNumber min={0} max={4} />
                 </Form.Item>
               </Col>
             </Row>
@@ -774,7 +787,7 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
             <>
               <Divider />
               <Statistic title="Edad Gestacional Estimada" value={resultadoBallard.edadGestacional} suffix="semanas" />
-              <Tag color={resultadoBallard.categoria === 'A término' ? 'green' : 'orange'}>
+              <Tag color={resultadoBallard.categoria === 'A término' ? 'success' : 'warning'}>
                 {resultadoBallard.categoria}
               </Tag>
             </>

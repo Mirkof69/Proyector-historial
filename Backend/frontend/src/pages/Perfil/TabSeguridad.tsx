@@ -16,14 +16,14 @@ const TabSeguridad: React.FC<TabSeguridadProps> = ({ form, updating, onFinish })
       description="Asegúrese de usar una contraseña robusta con al menos 8 caracteres, letras, números y caracteres especiales."
       type="warning"
       showIcon
-      style={{ marginBottom: 20 }}
+      className="perfil-page__aviso"
     />
 
     <Form
       form={form}
       layout="vertical"
       onFinish={onFinish}
-      style={{ maxWidth: 500 }}
+      className="perfil-page__formulario-clave"
     >
       <Form.Item
         name="currentPassword"

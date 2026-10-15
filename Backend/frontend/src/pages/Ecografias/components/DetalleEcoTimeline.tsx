@@ -18,7 +18,7 @@ const DetalleEcoTimeline: React.FC<DetalleEcoTimelineProps> = ({ ecografia }) =>
         Línea de Tiempo del Estudio
       </Space>
     }
-    style={{ marginBottom: 16 }}
+    className="u-mb-4"
   >
     <Timeline
       items={[
@@ -40,7 +40,7 @@ const DetalleEcoTimeline: React.FC<DetalleEcoTimelineProps> = ({ ecografia }) =>
               <br />
               <Text type="secondary">{dayjs(ecografia.fecha_ecografia).format('DD/MM/YYYY HH:mm')}</Text>
               <br />
-              <Space style={{ marginTop: 4 }}>
+              <Space className="u-mt-1">
                 <Checkbox checked disabled>Biometría completa</Checkbox>
                 <Checkbox checked={!!ecografia.anatomia} disabled>Evaluación anatómica</Checkbox>
                 <Checkbox checked={!!ecografia.anexos} disabled>Anexos evaluados</Checkbox>

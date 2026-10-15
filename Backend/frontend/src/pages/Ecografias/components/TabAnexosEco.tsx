@@ -16,13 +16,13 @@ const TabAnexosEco: React.FC = () => (
       <Col xs={24} md={12}>
         <Title level={5}>Líquido Amniótico y Cordón</Title>
         <Form.Item name={['anexos', 'liquido_amniotico_normal']} valuePropName="checked"><Checkbox>Líquido Amniótico Normal</Checkbox></Form.Item>
-        <Row gutter={16}><Col span={12}><Form.Item name="indice_liquido_amniotico" label="ILA (cm)"><InputNumber step={0.1} style={{ width: '100%' }} /></Form.Item></Col><Col span={12}><Form.Item name="bolsillo_maximo" label="Bolsillo Máx (cm)"><InputNumber step={0.1} style={{ width: '100%' }} /></Form.Item></Col></Row>
+        <Row gutter={16}><Col xs={24} md={12}><Form.Item name="indice_liquido_amniotico" label="ILA (cm)"><InputNumber step={0.1} className="u-ancho" /></Form.Item></Col><Col xs={24} md={12}><Form.Item name="bolsillo_maximo" label="Bolsillo Máx (cm)"><InputNumber step={0.1} className="u-ancho" /></Form.Item></Col></Row>
         <Form.Item name={['anexos', 'numero_vasos_cordon']} label="Vasos del Cordón"><Radio.Group><Radio value={3}>3 Vasos</Radio><Radio value={2}>2 Vasos (AUU)</Radio></Radio.Group></Form.Item>
         <Form.Item name={['anexos', 'circular_cordon']} valuePropName="checked"><Checkbox>Circular de Cordón</Checkbox></Form.Item>
       </Col>
     </Row>
     <Divider />
-    <Row gutter={24}><Col xs={24} md={12}><Form.Item name={['anexos', 'longitud_cervical']} label="Longitud Cervical (mm)"><InputNumber style={{ width: '100%' }} /></Form.Item></Col></Row>
+    <Row gutter={24}><Col xs={24} md={12}><Form.Item name={['anexos', 'longitud_cervical']} label="Longitud Cervical (mm)"><InputNumber className="u-ancho" /></Form.Item></Col></Row>
   </Card>
 );
 

@@ -1,50 +1,122 @@
-﻿/* =============================================================================
-   CALENDARIO-CITAS.CSS
-   ============================================================================= */
+﻿/* Calendario de citas — contrato: docs/DISENO_INTERFAZ.md */
 
-.calendario-citas-container {
-  padding: 30px;
-  background-color: var(--bg-secondary, #f4f7fe);
-  min-height: 100vh;
+.calendario-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
 }
 
-.calendario-header {
-  margin-bottom: 30px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  padding: 20px 30px;
-  border-radius: 16px;
-  box-shadow: 0 3px 10px rgba(112, 144, 176, 0.08);
+.calendario-page__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-4);
 }
 
-.calendario-card {
-  border-radius: 16px;
-  box-shadow: 0 20px 27px 0 rgba(112, 144, 176, 0.05);
-  border: none;
-  background: var(--color-cardBg, #ffffff);
+.calendario-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
 }
 
-.ant-picker-calendar {
-  border-radius: 12px;
+.calendario-page__cargando {
+  padding: var(--esp-6) 0;
+  text-align: center;
+  color: var(--color-texto-2);
 }
 
-.cita-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  margin: 2px 0;
+/* Cifras del mes */
+.calendario-page__cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--esp-4);
 }
 
+.calendario-page__cifras .ant-statistic-title {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-weight: var(--peso-medio);
+}
+
+.calendario-page__cifras .ant-statistic-title .anticon {
+  color: var(--color-texto-3);
+}
+
+.calendario-page__cifras .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+}
+
+.calendario-page__cifra--peligro .ant-statistic-content {
+  color: var(--color-peligro);
+}
+
+/* Filtros y leyenda */
+.calendario-page__filtros {
+  margin-bottom: var(--esp-4);
+}
+
+.calendario-page__control {
+  width: 100%;
+}
+
+.calendario-page__ayuda {
+  font-size: var(--texto-xs);
+}
+
+.calendario-page__leyenda.ant-alert {
+  margin-bottom: var(--esp-4);
+}
+
+/* Celda del día: cuántas citas y en qué estado */
+.calendario-page__dia {
+  width: 100%;
+}
+
+.calendario-page__dia .ant-badge-status-text {
+  font-size: var(--texto-xs);
+}
+
+/* Modal de citas del día: hora en un cuadro con el color del estado */
 .cita-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 18px;
-  font-weight: bold;
+  border-radius: var(--radio-lg);
+  border: 1px solid var(--color-borde);
+  background-color: var(--color-superficie-2);
+  color: var(--color-texto);
+  font-size: var(--texto-md);
+  font-weight: var(--peso-fuerte);
+  font-variant-numeric: tabular-nums;
+}
+
+.cita-avatar--pendiente {
+  background-color: var(--color-aviso-suave);
+  border-color: var(--color-aviso-borde);
+  color: var(--color-aviso);
+}
+
+.cita-avatar--confirmada {
+  background-color: var(--color-info-suave);
+  border-color: var(--color-info-borde);
+  color: var(--color-info);
+}
+
+.cita-avatar--completada {
+  background-color: var(--color-exito-suave);
+  border-color: var(--color-exito-borde);
+  color: var(--color-exito);
+}
+
+.cita-avatar--cancelada {
+  background-color: var(--color-peligro-suave);
+  border-color: var(--color-peligro-borde);
+  color: var(--color-peligro);
+}
+
+.calendario-page__lista-dia {
+  width: 100%;
 }

@@ -28,7 +28,7 @@ const SAVE_ICON = <SaveOutlined />;
 const ConfiguracionHorarios: React.FC<ConfiguracionHorariosProps> = ({ horarios, setHorarios, saving, onSave }) => {
 
   return (
-    <Card className="shadow-sm">
+    <Card>
       <Alert
         message="Control de Agenda"
         description={
@@ -42,7 +42,7 @@ const ConfiguracionHorarios: React.FC<ConfiguracionHorariosProps> = ({ horarios,
         }
         type="info"
         showIcon
-        style={{ marginBottom: 24 }}
+        className="configuracion-page__aviso"
       />
 
       <List
@@ -77,14 +77,14 @@ const ConfiguracionHorarios: React.FC<ConfiguracionHorariosProps> = ({ horarios,
                       placeholder="Cierre"
                     />
                   </Space>
-                ) : <Tag color="red">CERRADO</Tag>
+                ) : <Tag>CERRADO</Tag>
               }
             />
           </List.Item>
         )}
       />
 
-      <div style={{ marginTop: 24, textAlign: 'right' }}>
+      <div className="configuracion-page__acciones">
         <Button type="primary" icon={SAVE_ICON} onClick={onSave} loading={saving}>
           Actualizar Horarios
         </Button>

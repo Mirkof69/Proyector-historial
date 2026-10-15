@@ -46,7 +46,7 @@ const TabComparacionEmbarazos: React.FC<TabComparacionEmbarazosProps> = ({ embar
         dataSource={todosLosEmbarazos}
         rowKey="id"
         columns={[
-          { title: 'Embarazo', render: (_, e, idx) => (<Space>{idx === 0 && <Tag color="blue">ACTUAL</Tag>}<Text>#{(historialEmbarazos.length + 1) - idx}</Text></Space>) },
+          { title: 'Embarazo', render: (_, e, idx) => (<Space>{idx === 0 && <Tag>ACTUAL</Tag>}<Text>#{(historialEmbarazos.length + 1) - idx}</Text></Space>) },
           { title: 'FUM', dataIndex: 'fecha_ultima_menstruacion', render: (t) => dayjs(t).format('DD/MM/YYYY') },
           { title: 'FPP', dataIndex: 'fecha_probable_parto', render: (t) => dayjs(t).format('DD/MM/YYYY') },
           { title: 'Paridad', render: (_, e) => e ? `G${e.gestas_previas || 0} P${e.partos_previos || 0} C${e.cesareas_previas || 0} A${e.abortos_previos || 0}` : '-' },
@@ -65,7 +65,7 @@ const TabComparacionEmbarazos: React.FC<TabComparacionEmbarazosProps> = ({ embar
                   <XAxis dataKey="embarazo" />
                   <YAxis domain={RIESGO_DOMAIN} ticks={RIESGO_TICKS} tickFormatter={formatRiesgoTick} />
                   <RechartsTooltip />
-                  <Line type="monotone" dataKey="riesgo" stroke="#ff4d4f" strokeWidth={2} dot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="riesgo" stroke="var(--grafico-5)" strokeWidth={2} dot={{ r: 5 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             ) : <Empty description="No hay datos para graficar" image={Empty.PRESENTED_IMAGE_SIMPLE} />}

@@ -21,31 +21,30 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
   totalResults, urgentResultsCount, pacientesResults, embarazosResults, citasResults,
   ecografiasResults, laboratorioResults, evolucionesResults, consultoriosResults,
 }) => (
-  <Row gutter={16} style={{ marginTop: 16, marginBottom: 16 }}>
+  <Row gutter={[16, 16]} className="busqueda-cifras">
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Total"
           value={totalResults}
           prefix={<SearchOutlined />}
-          valueStyle={{ color: '#1890ff', fontSize: 20 }}
         />
       </Card>
     </Col>
     {urgentResultsCount > 0 && (
       <Col xs={24} sm={12} md={6} lg={3}>
-        <Card size="small">
+        <Card size="small" className="stat-card">
           <Statistic
             title="Urgentes"
             value={urgentResultsCount}
             prefix={<AlertOutlined />}
-            valueStyle={{ color: '#ff4d4f', fontSize: 20 }}
+            className="cifra--peligro"
           />
         </Card>
       </Col>
     )}
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Pacientes"
           value={pacientesResults.length}
@@ -54,7 +53,7 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Embarazos"
           value={embarazosResults.length}
@@ -63,7 +62,7 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Citas"
           value={citasResults.length}
@@ -72,7 +71,7 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Ecografías"
           value={ecografiasResults.length}
@@ -81,7 +80,7 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Laboratorio"
           value={laboratorioResults.length}
@@ -90,7 +89,7 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Notas de evolución"
           value={evolucionesResults.length}
@@ -99,7 +98,7 @@ const GlobalSearchStats: React.FC<GlobalSearchStatsProps> = ({
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6} lg={3}>
-      <Card size="small">
+      <Card size="small" className="stat-card">
         <Statistic
           title="Consultorios"
           value={consultoriosResults.length}

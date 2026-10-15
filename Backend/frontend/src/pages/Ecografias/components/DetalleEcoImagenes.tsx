@@ -20,7 +20,7 @@ const DetalleEcoImagenes: React.FC<DetalleEcoImagenesProps> = ({ ecografia, id, 
         Imágenes Ecográficas {ecografia.imagenes && ecografia.imagenes.length > 0 && `(${ecografia.imagenes.length})`}
       </Space>
     }
-    style={{ marginBottom: 16 }}
+    className="u-mb-4"
   >
     {/* Sección de subida de imágenes */}
     <Upload
@@ -36,7 +36,7 @@ const DetalleEcoImagenes: React.FC<DetalleEcoImagenesProps> = ({ ecografia, id, 
       showUploadList={false}
       accept="image/*"
     >
-      <Button icon={<UploadOutlined />} type="dashed" block style={{ marginBottom: 16 }}>
+      <Button icon={<UploadOutlined />} type="dashed" block className="u-mb-4">
         <PlusOutlined /> Subir Nueva Imagen
       </Button>
     </Upload>
@@ -53,26 +53,26 @@ const DetalleEcoImagenes: React.FC<DetalleEcoImagenesProps> = ({ ecografia, id, 
                 <Image
                   src={img.url_imagen || (typeof img.imagen === 'string' ? img.imagen : '')}
                   alt={img.titulo || `Imagen ${index + 1}`}
-                  style={{ height: 200, objectFit: 'cover', borderRadius: '8px 8px 0 0' }}
+                  className="eco-miniatura"
                   fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFcgJS9sIqAwAAAABJRU5ErkJggg=="
                 />
               }
             >
               <Card.Meta
                 title={
-                  <Text ellipsis style={{ fontSize: 12 }}>
+                  <Text ellipsis className="u-t-xs">
                     {img.titulo || `Imagen ${index + 1}`}
                   </Text>
                 }
                 description={
-                  <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                  <Space direction="vertical" size={0} className="u-ancho">
                     {img.tipo_imagen && (
-                      <Tag color="blue" style={{ fontSize: '12px' }}>
+                      <Tag color="processing" className="u-t-xs">
                         {img.tipo_imagen.replace('_', ' ').toUpperCase()}
                       </Tag>
                     )}
                     {img.descripcion && (
-                      <Text type="secondary" style={{ fontSize: '12px' }} ellipsis>
+                      <Text type="secondary" className="u-t-xs" ellipsis>
                         {img.descripcion}
                       </Text>
                     )}

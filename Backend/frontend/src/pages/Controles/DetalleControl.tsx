@@ -47,6 +47,8 @@ import {
   buildRecomendaciones, buildIndicadoresCalidad, buildComparacion,
 } from './detalleControlUtils';
 import AlertasControl from './components/AlertasControl';
+import '../Embarazos/paginaClinica.css';
+import './Controles.css';
 import RecomendacionesMedicas from './components/RecomendacionesMedicas';
 import DetalleControlStats from './components/DetalleControlStats';
 import DetalleControlTabs from './components/DetalleControlTabs';
@@ -217,7 +219,7 @@ const DetalleControl: React.FC = () => {
   // ========== RENDERIZADO CONDICIONAL ==========
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+      <div className="pagina-clinica pc-cargando">
         <Spin size="large" tip="Cargando datos del control…"><div /></Spin>
       </div>
     );
@@ -225,9 +227,9 @@ const DetalleControl: React.FC = () => {
 
   if (!control || !embarazo || !paciente) {
     return (
-      <Card>
+      <Card className="pagina-clinica">
         <Empty description="No se encontró el control prenatal" />
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
+        <div className="u-centro u-mt-4">
           <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleBack}>
             Volver a Controles
           </Button>
@@ -261,7 +263,7 @@ const DetalleControl: React.FC = () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   return (
-    <div style={{ padding: '0 24px 24px' }}>
+    <div className="pagina-clinica controles-detalle">
       {/* ========== ALERTAS MÉDICAS ========== */}
       <AlertasControl control={control} />
 
@@ -271,7 +273,7 @@ const DetalleControl: React.FC = () => {
       )}
 
       {/* ========== ENCABEZADO CON NAVEGACIÓN ========== */}
-      <Card style={{ marginBottom: 16 }}>
+      <Card className="u-mb-4 controles-detalle__barra">
         <Row justify="space-between" align="middle">
           <Col>
             <Space size="large">
@@ -280,13 +282,13 @@ const DetalleControl: React.FC = () => {
               </Button>
               <div>
                 <Space>
-                  <Title level={3} style={{ margin: 0 }}>
+                  <Title level={2} className="pc-cabecera__titulo">
                     Control Prenatal #{control.numero_control}
                   </Title>
                   <Badge
                     count={controlesEmbarazo.length}
                     showZero
-                    style={{ backgroundColor: '#52c41a' }}
+                    className="pc-insignia"
                     title={`Total de controles: ${controlesEmbarazo.length}`}
                   />
                 </Space>

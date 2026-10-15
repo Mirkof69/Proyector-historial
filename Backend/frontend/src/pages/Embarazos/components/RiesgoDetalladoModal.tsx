@@ -14,10 +14,10 @@ interface RiesgoDetalladoModalProps {
 const RiesgoDetalladoModal: React.FC<RiesgoDetalladoModalProps> = ({
   open, loadingRiesgo, riesgoDetallado, onClose,
 }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={
       <Space>
-        <SafetyOutlined style={{ color: '#ff4d4f' }} />
+        <SafetyOutlined className="u-c-peligro" />
         <span>Análisis de Riesgo Obstétrico Detallado</span>
       </Space>
     }
@@ -35,7 +35,7 @@ const RiesgoDetalladoModal: React.FC<RiesgoDetalladoModalProps> = ({
   >
     <Spin spinning={loadingRiesgo}>
       {riesgoDetallado ? (
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <Space direction="vertical" className="u-ancho" size="large">
           <Alert
             message={`Nivel de Riesgo: ${riesgoDetallado.nivel_riesgo?.toUpperCase()}`}
             description={`Puntaje total: ${riesgoDetallado.puntaje_total || 0} puntos`}
@@ -56,13 +56,13 @@ const RiesgoDetalladoModal: React.FC<RiesgoDetalladoModalProps> = ({
               renderItem={(factor: any) => (
                 <List.Item key={`factor-${factor.nombre || factor.descripcion}`}>
                   <List.Item.Meta
-                    avatar={<WarningOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />}
+                    avatar={<WarningOutlined className="u-c-peligro u-t-lg" />}
                     title={<Text strong>{factor.nombre || factor.descripcion}</Text>}
                     description={
                       <Space direction="vertical" size={0}>
                         <Text type="secondary">{factor.detalle || factor.observaciones}</Text>
                         {factor.puntaje && (
-                          <Tag color="red">Puntaje: {factor.puntaje} puntos</Tag>
+                          <Tag color="error">Puntaje: {factor.puntaje} puntos</Tag>
                         )}
                       </Space>
                     }
@@ -86,7 +86,7 @@ const RiesgoDetalladoModal: React.FC<RiesgoDetalladoModalProps> = ({
                renderItem={(recomendacion: string, index: number) => (
                  <List.Item key={`rec-${recomendacion.substring(0, 30)}`}>
                   <List.Item.Meta
-                    avatar={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: 18 }} />}
+                    avatar={<CheckCircleOutlined className="u-c-exito u-t-lg" />}
                     title={`Recomendación ${index + 1}`}
                     description={recomendacion}
                   />

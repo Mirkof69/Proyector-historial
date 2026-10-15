@@ -1,0 +1,450 @@
+/* =============================================================================
+   TOKENS — Fetal Medical Bolivia
+   =============================================================================
+   Única fuente de verdad de color, tipografía, espacio, radio y sombra en CSS.
+   Contrato: docs/DISENO_INTERFAZ.md. Los MISMOS valores viven en
+   src/config/antd-theme-tokens.ts para Ant Design (un test los compara).
+
+   Por qué `html:root` y `html.<tema>` y no `:root` a secas
+   ---------------------------------------------------------
+   Algunas hojas de página declaran variables en `:root` (DashboardHome.css,
+   LandingPage.css, IaMedica.css). Al cargarse DESPUÉS que esta hoja, con la
+   misma especificidad, pisaban el tema de toda la aplicación: tras visitar el
+   panel principal, --text-secondary pasaba a un gris casi blanco en todas las
+   pantallas. Con `html:root` (0,1,1) el tema gana siempre a un `:root` (0,1,0)
+   de página, sin `!important`.
+
+   Este es el ÚNICO archivo CSS donde se permiten colores fijos.
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   1. TEMA CLARO (por defecto) + escalas que no dependen del tema
+   --------------------------------------------------------------------------- */
+html:root {
+  color-scheme: light;
+
+  /* Marca */
+  --color-primario: #155E75;
+  --color-primario-hover: #0E4C61;
+  --color-primario-suave: #E3F1F5;
+  --color-sobre-primario: #FFFFFF; /* texto sobre fondo primario */
+
+  /* Superficies */
+  --color-fondo: #F4F6F8;
+  --color-superficie: #FFFFFF;
+  --color-superficie-2: #F8FAFB;
+  --color-hover: #EEF2F5;          /* fila / elemento bajo el puntero */
+  --color-borde: #DDE3E8;
+  --color-borde-suave: #EBEFF2;
+  --color-borde-fuerte: #C5CED6;   /* hover de controles */
+  --color-mascara: rgba(13, 19, 24, 0.45);
+
+  /* Texto */
+  --color-texto: #15212B;
+  --color-texto-2: #4D5D6A;
+  --color-texto-3: #7A8995;
+
+  /* Semánticos: estado, nunca decoración */
+  --color-exito: #1E7B4F;
+  --color-exito-suave: #E7F4EC;
+  --color-exito-borde: #A9D5BC;
+  --color-aviso: #A35F00;
+  --color-aviso-suave: #FDF3E1;
+  --color-aviso-borde: #EBC98A;
+  --color-peligro: #B42318;
+  --color-peligro-suave: #FDECEA;
+  --color-peligro-borde: #F0B2AB;
+  --color-info: #1D5FA8;
+  --color-info-suave: #E8F0FA;
+  --color-info-borde: #A9C4E6;
+
+  /* Series de gráficas (categóricas, distinguibles entre sí) */
+  --grafico-1: #155E75;
+  --grafico-2: #3B6FC4;
+  --grafico-3: #B7791F;
+  --grafico-4: #2E8B57;
+  --grafico-5: #C2410C;
+  --grafico-6: #7357B5;
+
+  /* Visor de imagen médica: negro en todos los temas */
+  --color-visor-fondo: #0A0A0F;
+
+  /* Sombra: solo para lo que flota (menús, modales, notificaciones) */
+  --sombra-flotante: 0 6px 16px rgba(21, 33, 43, 0.12), 0 1px 3px rgba(21, 33, 43, 0.08);
+  --sombra-baja: 0 1px 2px rgba(21, 33, 43, 0.06);
+
+  /* Tipografía */
+  --fuente: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --fuente-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --texto-xs: 12px;
+  --texto-sm: 13px;
+  --texto-base: 14px;
+  --texto-md: 16px;
+  --texto-lg: 18px;
+  --texto-xl: 22px;
+  --texto-2xl: 28px;
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-fuerte: 600;
+  --interlineado: 1.5;
+  --interlineado-titulo: 1.25;
+
+  /* Espacio (múltiplos de 4) */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+
+  /* Radio */
+  --radio-sm: 4px;
+  --radio: 6px;
+  --radio-lg: 8px;
+
+  /* Movimiento */
+  --duracion-rapida: 120ms;
+  --duracion: 160ms;
+  --duracion-lenta: 240ms;
+  --curva: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Estructura */
+  --alto-cabecera: 56px;
+  --ancho-menu: 248px;
+}
+
+/* «Normal» = claro con fondo blanco puro */
+html.normal,
+html[data-theme="normal"] {
+  --color-fondo: #FFFFFF;
+}
+
+/* ---------------------------------------------------------------------------
+   2. TEMA OSCURO
+   --------------------------------------------------------------------------- */
+html.dark,
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-primario: #5BB6CC;
+  --color-primario-hover: #7FC8DA;
+  --color-primario-suave: #14313A;
+  --color-sobre-primario: #0D1318;
+
+  --color-fondo: #0D1318;
+  --color-superficie: #141C22;
+  --color-superficie-2: #1A242C;
+  --color-hover: #1F2A33;
+  --color-borde: #2A3640;
+  --color-borde-suave: #202B33;
+  --color-borde-fuerte: #3A4954;
+  --color-mascara: rgba(0, 0, 0, 0.6);
+
+  --color-texto: #E5ECF1;
+  --color-texto-2: #A7B5C0;
+  --color-texto-3: #7D8C97;
+
+  --color-exito: #4CC38A;
+  --color-exito-suave: #13291F;
+  --color-exito-borde: #1F5138;
+  --color-aviso: #E3A33B;
+  --color-aviso-suave: #2E2210;
+  --color-aviso-borde: #5C4419;
+  --color-peligro: #F2766B;
+  --color-peligro-suave: #33171A;
+  --color-peligro-borde: #6B2A27;
+  --color-info: #6AA6E8;
+  --color-info-suave: #13233A;
+  --color-info-borde: #274A73;
+
+  --grafico-1: #5BB6CC;
+  --grafico-2: #7AA2EC;
+  --grafico-3: #E3A33B;
+  --grafico-4: #5CC28A;
+  --grafico-5: #F08A5D;
+  --grafico-6: #A78BDA;
+
+  --sombra-flotante: 0 6px 16px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --sombra-baja: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------------------------------------------------------------------------
+   3. TEMA MOCA (oscuro cálido)
+   --------------------------------------------------------------------------- */
+html.mocha,
+html[data-theme="mocha"] {
+  color-scheme: dark;
+
+  --color-primario: #D9A56B;
+  --color-primario-hover: #E6BC8A;
+  --color-primario-suave: #3A2C1D;
+  --color-sobre-primario: #16130F;
+
+  --color-fondo: #16130F;
+  --color-superficie: #1E1A15;
+  --color-superficie-2: #26211B;
+  --color-hover: #2C261F;
+  --color-borde: #3A332A;
+  --color-borde-suave: #2C261F;
+  --color-borde-fuerte: #4A4236;
+  --color-mascara: rgba(0, 0, 0, 0.6);
+
+  --color-texto: #EDE6DC;
+  --color-texto-2: #BFB3A3;
+  --color-texto-3: #968B7C;
+
+  --color-exito: #7CC48F;
+  --color-exito-suave: #1C2A1F;
+  --color-exito-borde: #355A3E;
+  --color-aviso: #E3A33B;
+  --color-aviso-suave: #33260F;
+  --color-aviso-borde: #644A1C;
+  --color-peligro: #EF7F6E;
+  --color-peligro-suave: #3A1D18;
+  --color-peligro-borde: #6E3329;
+  --color-info: #82AEE0;
+  --color-info-suave: #1A2638;
+  --color-info-borde: #34506F;
+
+  --grafico-1: #D9A56B;
+  --grafico-2: #82AEE0;
+  --grafico-3: #C9B458;
+  --grafico-4: #7CC48F;
+  --grafico-5: #EF7F6E;
+  --grafico-6: #B49AD6;
+
+  --sombra-flotante: 0 6px 16px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.35);
+  --sombra-baja: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   4. ALIAS DE COMPATIBILIDAD
+   ---------------------------------------------------------------------------
+   Nombres de variable que las páginas usan hoy (inventario con
+   `grep var(--` sobre src/). Cada uno apunta a un token del contrato, así las
+   pantallas aún no migradas cambian solas con el tema. Código NUEVO: usar los
+   nombres --color-*, --esp-*, --radio-*, --texto-*, nunca estos.
+   Se declaran en `html:root` para ganar también a los `:root` de página. */
+html:root {
+  /* Fondos */
+  --bg-primary: var(--color-fondo);
+  --bg-secondary: var(--color-superficie-2);
+  --bg-tertiary: var(--color-borde-suave);
+  --bg-hover: var(--color-hover);
+  --bg-active: var(--color-borde-suave);
+  --bg-elevated: var(--color-superficie);
+  --bg-card: var(--color-superficie);
+  --bg-modal: var(--color-superficie);
+  --bg-input: var(--color-superficie);
+  --bg-sidebar: var(--color-superficie);
+  --bg-header: var(--color-superficie);
+  --bg-overlay: var(--color-mascara);
+  --bg-gradient-start: var(--color-superficie-2);
+  --bg-gradient-end: var(--color-fondo);
+  --color-bg: var(--color-fondo);
+  --color-bg-primary: var(--color-fondo);
+  --color-bg-secondary: var(--color-superficie-2);
+  --color-bg-tertiary: var(--color-borde-suave);
+  --color-bg-hover: var(--color-hover);
+  --color-bg-active: var(--color-borde-suave);
+  --color-bg-elevated: var(--color-superficie);
+  --color-surface: var(--color-superficie);
+  --color-cardBg: var(--color-superficie);
+
+  /* Texto */
+  --text-primary: var(--color-texto);
+  --text-secondary: var(--color-texto-2);
+  --text-tertiary: var(--color-texto-3);
+  --text-disabled: var(--color-texto-3);
+  --text-inverse: var(--color-superficie);
+  --text-on-brand: var(--color-sobre-primario);
+  --text-link: var(--color-primario);
+  --text-link-hover: var(--color-primario-hover);
+  --color-text: var(--color-texto);
+  --color-text-primary: var(--color-texto);
+  --color-text-secondary: var(--color-texto-2);
+  --color-text-tertiary: var(--color-texto-3);
+  --color-text-disabled: var(--color-texto-3);
+  --logo-text-color: var(--color-texto);
+
+  /* Bordes */
+  --border-color: var(--color-borde);
+  --border-color-light: var(--color-borde-suave);
+  --border-color-dark: var(--color-borde-fuerte);
+  --border-subtle: var(--color-borde-suave);
+  --border-hover: var(--color-borde-fuerte);
+  --border-focus: var(--color-primario);
+  --border-error: var(--color-peligro);
+  --border-success: var(--color-exito);
+  --color-border: var(--color-borde);
+  --color-border-light: var(--color-borde-suave);
+  --color-border-dark: var(--color-borde-fuerte);
+  --chart-grid: var(--color-borde-suave);
+
+  /* Marca (sin degradados: los antiguos degradados son ahora color plano) */
+  --color-primary: var(--color-primario);
+  --color-primary-hover: var(--color-primario-hover);
+  --color-primary-light: var(--color-primario-suave);
+  --color-primary-dark: var(--color-primario-hover);
+  --color-primary-gradient: var(--color-primario);
+  --gradient-primary: var(--color-primario);
+  --gradient-success: var(--color-exito);
+  --gradient-warning: var(--color-aviso);
+  --gradient-error: var(--color-peligro);
+  --primary-color: var(--color-primario);
+  --ant-primary-color: var(--color-primario);
+  --color-prenatal: var(--color-primario);
+
+  /* Semánticos */
+  --color-success: var(--color-exito);
+  --color-success-hover: var(--color-exito);
+  --color-success-light: var(--color-exito-suave);
+  --color-success-border: var(--color-exito-borde);
+  --success-color: var(--color-exito);
+  --success-bg: var(--color-exito-suave);
+  --color-low-risk: var(--color-exito);
+  --color-warning: var(--color-aviso);
+  --color-warning-hover: var(--color-aviso);
+  --color-warning-light: var(--color-aviso-suave);
+  --color-warning-border: var(--color-aviso-borde);
+  --warning-color: var(--color-aviso);
+  --color-danger: var(--color-peligro);
+  --color-danger-hover: var(--color-peligro);
+  --color-danger-light: var(--color-peligro-suave);
+  --color-error: var(--color-peligro);
+  --color-error-light: var(--color-peligro-suave);
+  --color-error-text: var(--color-peligro);
+  --color-error-border: var(--color-peligro-borde);
+  --error-color: var(--color-peligro);
+  --error-bg: var(--color-peligro-suave);
+  --color-critical: var(--color-peligro);
+  --color-high-risk: var(--color-peligro);
+  --color-info-light: var(--color-info-suave);
+  --color-info-border: var(--color-info-borde);
+  --info-color: var(--color-info);
+
+  /* «Glassmorphism» retirado: superficie plana con borde */
+  --glass-bg: var(--color-superficie);
+  --glass-border: var(--color-borde);
+  --glass-shadow: none;
+  --glass-backdrop: none;
+
+  /* Sombras: planas salvo lo que flota */
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-card: none;
+  --shadow-inner: none;
+  --shadow-md: var(--sombra-baja);
+  --shadow-card-hover: var(--sombra-baja);
+  --shadow-lg: var(--sombra-flotante);
+  --shadow-xl: var(--sombra-flotante);
+  --shadow-2xl: var(--sombra-flotante);
+
+  /* Tipografía */
+  --font-family: var(--fuente);
+  --font-family-base: var(--fuente);
+  --font-family-display: var(--fuente);
+  --font-family-mono: var(--fuente-mono);
+  --font-family-code: var(--fuente-mono);
+  --font-size-xs: var(--texto-xs);
+  --font-size-sm: var(--texto-sm);
+  --font-size-base: var(--texto-base);
+  --font-size-lg: var(--texto-md);
+  --font-size-xl: var(--texto-lg);
+  --font-size-2xl: var(--texto-xl);
+  --font-size-3xl: var(--texto-2xl);
+  --font-size-4xl: var(--texto-2xl);
+  --font-weight-light: var(--peso-normal);
+  --font-weight-normal: var(--peso-normal);
+  --font-weight-medium: var(--peso-medio);
+  --font-weight-semibold: var(--peso-fuerte);
+  --font-weight-bold: var(--peso-fuerte); /* Plex se carga hasta 600 */
+  --line-height-tight: var(--interlineado-titulo);
+  --line-height-normal: var(--interlineado);
+  --line-height-relaxed: 1.7;
+  --logo-font-size: var(--texto-md);
+
+  /* Espacio */
+  --spacing-xs: var(--esp-1);
+  --spacing-sm: var(--esp-2);
+  --spacing-md: var(--esp-4);
+  --spacing-lg: var(--esp-5);
+  --spacing-xl: var(--esp-6);
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --space-3: var(--esp-3);
+  --space-4: var(--esp-4);
+  --space-6: var(--esp-5);
+  --space-8: var(--esp-6);
+
+  /* Radio (nada de 12–24 px: el máximo es --radio-lg) */
+  --radius-xs: var(--radio-sm);
+  --radius-sm: var(--radio-sm);
+  --radius-md: var(--radio);
+  --radius-lg: var(--radio-lg);
+  --radius-xl: var(--radio-lg);
+  --radius-2xl: var(--radio-lg);
+  --radius-full: 9999px;
+  --border-radius-sm: var(--radio-sm);
+  --border-radius-md: var(--radio);
+  --border-radius-lg: var(--radio-lg);
+  --border-radius-round: 9999px;
+
+  /* Movimiento: SOLO duraciones o SOLO curvas, para que
+     `transition: all var(--transition-base) var(--transition-ease)` sea válido */
+  --transition-ultra-fast: 80ms;
+  --transition-fast: var(--duracion-rapida);
+  --transition-base: var(--duracion);
+  --transition-slow: var(--duracion-lenta);
+  --transition-ease: var(--curva);
+  --transition-bounce: var(--curva);
+  --transition-spring: var(--duracion-lenta) var(--curva);
+  --ease-bounce: var(--curva);
+
+  /* Barras de desplazamiento */
+  --scrollbar-width: 10px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: var(--color-borde-fuerte);
+  --scrollbar-thumb-hover: var(--color-texto-3);
+
+  /* Medidas y capas */
+  --input-height-lg: 40px;
+  --content-max-width: 1440px;
+  --width-lg: 512px;
+  --width-4xl: 896px;
+  --width-5xl: 1024px;
+  --width-6xl: 1152px;
+  --width-7xl: 1280px;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-maximum: 9999;
+
+  /* Panel principal (DashboardHome.css fijaba estos en :root solo para el
+     tema claro; en oscuro dejaban el fondo del panel casi blanco). */
+  --bg-app: var(--color-fondo);
+  --bg-glass: var(--color-superficie);
+  --primary-light: var(--color-primario-suave);
+  --primary-dark: var(--color-primario-hover);
+
+  /* IA médica (IaMedica.css fijaba una paleta oscura en :root que pintaba
+     tarjetas negras también en el tema claro). Ahora sigue al tema. */
+  --ia-bg: var(--color-superficie);
+  --ia-bg-alt: var(--color-superficie-2);
+  --ia-border: var(--color-borde);
+  --ia-text: var(--color-texto);
+  --ia-text-secondary: var(--color-texto-2);
+  --ia-text-tertiary: var(--color-texto-3);
+  --ia-danger: var(--color-peligro);
+  --ia-danger-bg: var(--color-peligro-suave);
+  --ia-warning: var(--color-aviso);
+  --ia-warning-bg: var(--color-aviso-suave);
+  --ia-success: var(--color-exito);
+  --ia-success-bg: var(--color-exito-suave);
+  --ia-info: var(--color-info);
+  --ia-info-bg: var(--color-info-suave);
+}

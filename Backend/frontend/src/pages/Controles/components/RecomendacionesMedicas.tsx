@@ -10,11 +10,11 @@ interface RecomendacionesMedicasProps {
 }
 
 const RecomendacionesMedicas: React.FC<RecomendacionesMedicasProps> = ({ recomendaciones }) => (
-  <Card style={{ marginBottom: 16, borderColor: '#faad14' }}>
-    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+  <Card className="u-mb-4 controles-recomendaciones">
+    <Space direction="vertical" size="middle" className="u-ancho">
       <Space>
-        <MedicineBoxFilled style={{ fontSize: 20, color: '#faad14' }} />
-        <Title level={5} style={{ margin: 0 }}>
+        <MedicineBoxFilled className="u-t-lg u-c-aviso" />
+        <Title level={5} className="u-m-0">
           Recomendaciones Médicas ({recomendaciones.length})
         </Title>
       </Space>
@@ -26,14 +26,7 @@ const RecomendacionesMedicas: React.FC<RecomendacionesMedicasProps> = ({ recomen
               avatar={
                 <Avatar
                   icon={item.icono}
-                  style={{
-                    backgroundColor:
-                      item.tipo === 'urgente'
-                        ? '#ff4d4f'
-                        : item.tipo === 'importante'
-                          ? '#faad14'
-                          : '#1890ff',
-                  }}
+                  className={`controles-recomendacion__icono controles-recomendacion__icono--${item.tipo === 'urgente' ? 'peligro' : item.tipo === 'importante' ? 'aviso' : 'info'}`}
                 />
               }
               title={

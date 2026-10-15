@@ -28,7 +28,7 @@ export const columnsIMC = [
     key: 'ganancia',
     width: 120,
     render: (ganancia: number) => (
-      <span style={{ color: ganancia >= 0 ? '#52c41a' : '#f5222d', fontWeight: 'bold' }}>
+      <span className="calc-valor-estado" style={{ color: ganancia >= 0 ? 'var(--color-exito)' : 'var(--color-peligro)' }}>
         {ganancia >= 0 ? '+' : ''}{ganancia.toFixed(1)}
       </span>
     )

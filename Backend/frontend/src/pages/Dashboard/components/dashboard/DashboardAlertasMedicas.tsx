@@ -1,6 +1,6 @@
 import React from 'react';
 import { Col, Card, Space, Badge, List, Avatar, Tag, Button, Typography, Empty } from 'antd';
-import { WarningOutlined, ExclamationCircleOutlined, ThunderboltOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { WarningOutlined, ExclamationCircleOutlined, ThunderboltOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
@@ -28,14 +28,14 @@ const DashboardAlertasMedicas: React.FC<DashboardAlertasProps> = ({ alertasMedic
   return (
     <Col xs={24} lg={12}>
       <Card
-        title={<Space><WarningOutlined style={{ color: '#fa8c16' }} /><span>Alertas Médicas Activas</span></Space>}
+        title={<Space><WarningOutlined className="dashboard-alertas__icono-titulo" /><span>Alertas Médicas Activas</span></Space>}
         className="shadow-card"
-        extra={<Badge count={alertasMedicas.length} showZero style={{ backgroundColor: '#fa8c16' }} />}
+        extra={<Badge count={alertasMedicas.length} showZero className="dashboard-alertas__contador" />}
       >
         {alertasMedicas.length === 0 ? (
           <Empty
             description="No hay alertas médicas activas"
-            style={{ padding: '20px 0' }}
+            className="dashboard-alertas__vacio"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />
         ) : (
@@ -43,16 +43,11 @@ const DashboardAlertasMedicas: React.FC<DashboardAlertasProps> = ({ alertasMedic
             dataSource={alertasMedicas}
             rowKey={(alerta) => alerta._uniqueKey || `alerta-fallback-${alerta.id}`}
             renderItem={(alerta: AlertaMedica) => (
-              <List.Item style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <List.Item>
                 <List.Item.Meta
                   avatar={
                     <Avatar
-                      style={{
-                        backgroundColor:
-                          alerta.tipo === 'critica' ? '#ff4d4f' :
-                          alerta.tipo === 'urgente' ? '#fa8c16' :
-                          alerta.tipo === 'moderada' ? '#faad14' : '#52c41a'
-                      }}
+                      className={`dashboard-alerta__avatar dashboard-alerta__avatar--${alerta.tipo}`}
                       icon={
                         alerta.tipo === 'critica' ? <ExclamationCircleOutlined /> :
                         alerta.tipo === 'urgente' ? <WarningOutlined /> :
@@ -61,30 +56,28 @@ const DashboardAlertasMedicas: React.FC<DashboardAlertasProps> = ({ alertasMedic
                     />
                   }
                   title={
-                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                      <Text strong style={{ fontSize: 13 }}>{alerta.titulo}</Text>
+                    <div className="dashboard-alerta__cabecera">
+                      <Text strong className="dashboard-alerta__titulo">{alerta.titulo}</Text>
                       <Tag
                         color={
-                          alerta.tipo === 'critica' ? 'red' :
-                          alerta.tipo === 'urgente' ? 'orange' :
-                          alerta.tipo === 'moderada' ? 'gold' : 'blue'
+                          alerta.tipo === 'critica' ? 'error' :
+                          alerta.tipo === 'urgente' || alerta.tipo === 'moderada' ? 'warning' : 'processing'
                         }
-                        style={{ fontSize: 12 }}
                       >
                         {alerta.tipo.toUpperCase()}
                       </Tag>
-                    </Space>
+                    </div>
                   }
                   description={
                     <div>
-                      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                      <Text type="secondary" className="dashboard-alerta__mensaje">
                         {alerta.mensaje.length > 80 ? `${alerta.mensaje.substring(0, 80)}...` : alerta.mensaje}
                       </Text>
                       <Space size={4}>
                         {alerta.paciente_nombre && (
-                          <Text type="secondary" style={{ fontSize: 12 }}>👤 {alerta.paciente_nombre}</Text>
+                          <Text type="secondary" className="dashboard-alerta__meta"><UserOutlined /> {alerta.paciente_nombre}</Text>
                         )}
-                        <Text type="secondary" style={{ fontSize: 12 }}>• {dayjs(alerta.fecha_creacion).fromNow()}</Text>
+                        <Text type="secondary" className="dashboard-alerta__meta">• {dayjs(alerta.fecha_creacion).fromNow()}</Text>
                       </Space>
                     </div>
                   }
@@ -108,7 +101,7 @@ const DashboardAlertasMedicas: React.FC<DashboardAlertasProps> = ({ alertasMedic
           />
         )}
         {alertasMedicas.length > 0 && (
-          <div style={{ marginTop: 16, textAlign: 'center' }}>
+          <div className="dashboard-alertas__pie">
             <Button type="link" onClick={() => navigate('/dashboard/pacientes?filter=alert')}>
               Ver todas las alertas →
             </Button>

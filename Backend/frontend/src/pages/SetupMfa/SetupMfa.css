@@ -1,11 +1,188 @@
-.mfa-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* =============================================================================
+   CONFIGURACIÓN DE MFA (SetupMfa)
+   =============================================================================
+   Contrato: docs/DISENO_INTERFAZ.md. Sigue el tema activo; todo bajo .setup-mfa.
+   ============================================================================= */
+
+.setup-mfa.ant-layout {
+  min-height: 100vh;
+  background-color: var(--color-fondo);
+}
+
+.setup-mfa .setup-mfa__cabecera.ant-layout-header {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  height: var(--alto-cabecera);
+  padding: 0 var(--esp-5);
+  line-height: normal;
+  background-color: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.setup-mfa .setup-mfa__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radio);
+  background-color: var(--color-primario);
+  color: var(--color-sobre-primario);
+}
+
+.setup-mfa .setup-mfa__marca {
+  font-size: var(--texto-md);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setup-mfa .setup-mfa__espacio {
+  flex: 1;
+}
+
+.setup-mfa .setup-mfa__contenido.ant-layout-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--esp-5) var(--esp-4);
+}
+
+.setup-mfa .setup-mfa__tarjeta.ant-card {
+  width: 100%;
+  max-width: 620px;
+  border: 1px solid var(--color-borde);
+}
+
+.setup-mfa .setup-mfa__tarjeta > .ant-card-body {
+  padding: var(--esp-6);
+}
+
+.setup-mfa .setup-mfa__titulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-2);
+  margin-bottom: var(--esp-5);
+  text-align: center;
+}
+
+.setup-mfa .setup-mfa__titulo h3.ant-typography,
+.setup-mfa .setup-mfa__titulo .ant-typography {
+  margin: 0;
+}
+
+.setup-mfa .mfa-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px;
-  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radio-lg);
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+  font-size: 24px;
+}
+
+.setup-mfa .setup-mfa__pasos {
+  margin-bottom: var(--esp-5);
+}
+
+.setup-mfa .setup-mfa__bloque {
+  margin-bottom: var(--esp-5);
+  text-align: left;
+}
+
+.setup-mfa .setup-mfa__paso {
+  text-align: center;
+}
+
+.setup-mfa .setup-mfa__cargando {
+  padding: var(--esp-6) 0;
+}
+
+.setup-mfa .setup-mfa__ancho {
+  width: 100%;
+}
+
+.setup-mfa .setup-mfa__qr {
+  display: inline-block;
+  margin-bottom: var(--esp-5);
+  padding: var(--esp-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie);
+}
+
+.setup-mfa .setup-mfa__qr img {
+  display: block;
+  width: 200px;
+  height: 200px;
+}
+
+.setup-mfa .setup-mfa__ayuda.ant-typography {
+  margin-bottom: var(--esp-2);
+}
+
+.setup-mfa .setup-mfa__secreto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  margin-bottom: var(--esp-5);
+}
+
+.setup-mfa .setup-mfa__secreto code {
+  font-family: var(--fuente-mono);
+  font-size: var(--texto-sm);
+  letter-spacing: 0.05em;
+  user-select: all;
+  word-break: break-all;
+}
+
+.setup-mfa .setup-mfa__otp.ant-input-affix-wrapper input {
+  font-family: var(--fuente-mono);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+
+.setup-mfa .setup-mfa__acciones {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.setup-mfa .setup-mfa__exito {
+  padding: var(--esp-5) 0;
+  text-align: center;
+}
+
+.setup-mfa .setup-mfa__exito-icono {
+  margin-bottom: var(--esp-4);
+  font-size: 48px;
+  color: var(--color-exito);
+}
+
+.setup-mfa .setup-mfa__pie {
+  display: block;
+  font-size: var(--texto-xs);
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .setup-mfa .setup-mfa__cabecera.ant-layout-header {
+    padding: 0 var(--esp-4);
+  }
+
+  .setup-mfa .setup-mfa__tarjeta > .ant-card-body {
+    padding: var(--esp-5) var(--esp-4);
+  }
 }

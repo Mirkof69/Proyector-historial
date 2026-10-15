@@ -33,9 +33,9 @@ interface AccionDeSesion {
   endpoint?: string;
 }
 
+// Color solo para lo que es un estado (entrada, baja); el resto, neutro.
 const COLOR_ACCION: Record<string, string> = {
-  LOGIN: 'green', LOGOUT: 'default', CREAR: 'blue', EDITAR: 'gold', DESACTIVAR: 'red',
-  EXPORTAR: 'purple', ANALISIS_CNN: 'cyan', CONSULTA_IA: 'cyan',
+  LOGIN: 'success', LOGOUT: 'default', DESACTIVAR: 'error',
 };
 
 const navegadorCorto = (ua: string | null) => {
@@ -59,7 +59,7 @@ const DetalleSesion: React.FC<{ sid: string }> = ({ sid }) => {
   if (!acciones) return <Text type="secondary">Cargando…</Text>;
   return (
     <Timeline
-      style={{ marginTop: 8 }}
+      className="auditoria-page__linea-tiempo"
       items={acciones.map((a) => ({
         color: a.accion === 'LOGIN' ? 'green' : a.accion === 'LOGOUT' ? 'gray' : 'blue',
         children: (
@@ -67,7 +67,7 @@ const DetalleSesion: React.FC<{ sid: string }> = ({ sid }) => {
             <Text code>{dayjs(a.fecha).format('HH:mm:ss')}</Text>
             <Tag color={COLOR_ACCION[a.accion] || 'default'}>{a.accion_display || a.accion}</Tag>
             <Text>{a.modulo}</Text>
-            {a.endpoint && <Text type="secondary" style={{ fontSize: 12 }}>{a.endpoint}</Text>}
+            {a.endpoint && <Text type="secondary" className="auditoria-page__secundario texto-mono">{a.endpoint}</Text>}
           </Space>
         ),
       }))}
@@ -139,7 +139,7 @@ const SesionesAuditoria: React.FC = () => {
       render: (_: unknown, s: Sesion) => (
         <Space direction="vertical" size={0}>
           <Text strong>{s.usuario_nombre || 'Desconocido'}</Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>{s.usuario_rol}</Text>
+          <Text type="secondary" className="auditoria-page__secundario">{s.usuario_rol}</Text>
         </Space>
       ),
     },
@@ -151,13 +151,13 @@ const SesionesAuditoria: React.FC = () => {
     { title: 'Navegador', dataIndex: 'navegador', key: 'navegador', render: navegadorCorto },
     {
       title: 'Estado', dataIndex: 'cerrada', key: 'estado',
-      render: (c: boolean) => <Tag color={c ? 'default' : 'green'}>{c ? 'Cerrada' : 'Abierta'}</Tag>,
+      render: (c: boolean) => <Tag color={c ? 'default' : 'success'}>{c ? 'Cerrada' : 'Abierta'}</Tag>,
     },
   ];
 
   return (
     <>
-      <Space wrap style={{ marginBottom: 16 }}>
+      <div className="auditoria-page__filtros auditoria-page__filtros--inicio">
         <RangePicker value={rango} format="DD/MM/YYYY" allowClear
           onChange={(v) => setRango(v && v[0] && v[1] ? [v[0], v[1]] : null)} />
         <Space>
@@ -166,8 +166,8 @@ const SesionesAuditoria: React.FC = () => {
         </Space>
         <Button icon={<ReloadOutlined />} onClick={() => cargar(pagina)} loading={cargando}>Recargar</Button>
         <Button icon={<DownloadOutlined />} onClick={exportar} disabled={!total}>Exportar Excel</Button>
-      </Space>
-      {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
+      </div>
+      {error && <Alert type="error" showIcon message={error} className="auditoria-page__error" />}
       <Table
         rowKey="sesion_id"
         columns={columnas}

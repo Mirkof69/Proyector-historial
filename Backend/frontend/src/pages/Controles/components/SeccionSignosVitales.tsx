@@ -23,16 +23,16 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
       </Space>
     </Divider>
 
-    <Card size="small" style={{ marginBottom: 16, backgroundColor: '#f0f5ff' }}>
+    <Card size="small" className="u-mb-4 controles-signos">
       <Row gutter={16}>
-        <Col span={6}>
+        <Col xs={12} md={6}>
           <Form.Item
             name="peso_actual"
             label="Peso Actual (kg)"
             rules={[{ required: true, message: 'Requerido' }]}
           >
             <InputNumber
-              style={{ width: '100%' }}
+              className="u-ancho"
               min={30}
               max={200}
               step={0.1}
@@ -41,10 +41,10 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             />
           </Form.Item>
         </Col>
-        <Col span={6}>
+        <Col xs={12} md={6}>
           <Form.Item name="peso_pregestacional" label="Peso Pregestacional (kg)">
             <InputNumber
-              style={{ width: '100%' }}
+              className="u-ancho"
               min={30}
               max={200}
               step={0.1}
@@ -53,19 +53,19 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             />
           </Form.Item>
           {gananciaCalculada && (
-            <Text type="success" style={{ fontSize: 12 }}>
+            <Text type="success" className="u-t-xs">
               ✓ Ganancia: {gananciaCalculada}
             </Text>
           )}
         </Col>
-        <Col span={6}>
+        <Col xs={12} md={6}>
           <Form.Item
             name="talla"
             label="Talla (cm)"
             tooltip="Talla materna. Se auto-completa del registro del embarazo si está disponible."
           >
             <InputNumber
-              style={{ width: '100%' }}
+              className="u-ancho"
               min={130}
               max={200}
               placeholder="160"
@@ -81,15 +81,15 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             />
           </Form.Item>
           {imcCalculado && (
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" className="u-t-xs">
               IMC: {imcCalculado}
             </Text>
           )}
         </Col>
-        <Col span={6}>
+        <Col xs={12} md={6}>
           <Form.Item name="temperatura" label="Temperatura (°C)">
             <InputNumber
-              style={{ width: '100%' }}
+              className="u-ancho"
               min={35}
               max={42}
               step={0.1}
@@ -101,7 +101,7 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
       </Row>
 
       <Row gutter={16}>
-        <Col span={6}>
+        <Col xs={12} md={6}>
           <Form.Item
             name="presion_arterial_sistolica"
             label="PA Sistólica (mmHg)"
@@ -116,7 +116,7 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             ]}
           >
             <InputNumber
-              style={{ width: '100%' }}
+              className="u-ancho"
               min={70}
               max={220}
               placeholder="120"
@@ -124,7 +124,7 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             />
           </Form.Item>
         </Col>
-        <Col span={6}>
+        <Col xs={12} md={6}>
           <Form.Item
             name="presion_arterial_diastolica"
             label="PA Diastólica (mmHg)"
@@ -139,7 +139,7 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             ]}
           >
             <InputNumber
-              style={{ width: '100%' }}
+              className="u-ancho"
               min={40}
               max={140}
               placeholder="80"
@@ -147,15 +147,15 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
             />
           </Form.Item>
           {pamCalculada && (
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" className="u-t-xs">
               {pamCalculada}
             </Text>
           )}
         </Col>
-        <Col span={6}>
+        <Col xs={12} md={6}>
           <Form.Item name="frecuencia_cardiaca" label="Frecuencia Cardíaca (lpm)">
             <InputNumber
-              style={{ width: '100%' }}
+              className="u-ancho"
               min={40}
               max={200}
               placeholder="80"

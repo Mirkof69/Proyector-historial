@@ -39,7 +39,7 @@ export const buildControlesColumns = (deps: ControlesColumnsDeps) => {
       key: 'id_clinico',
       width: 120,
       render: (_: any, record: ControlPrenatal) => (
-        <Tag color="blue">{getIdClinicoPaciente(record)}</Tag>
+        <Tag color="processing">{getIdClinicoPaciente(record)}</Tag>
       ),
     },
     {
@@ -63,7 +63,7 @@ export const buildControlesColumns = (deps: ControlesColumnsDeps) => {
       key: 'edad_gestacional',
       width: 100,
       render: (_: any, record: ControlPrenatal) => (
-        <Tag color="cyan">{getEdadGestacional(record)}</Tag>
+        <Tag>{getEdadGestacional(record)}</Tag>
       ),
     },
     {
@@ -108,9 +108,9 @@ export const buildControlesColumns = (deps: ControlesColumnsDeps) => {
         if (!imc) return <Text type="secondary">-</Text>;
         const clasificacion = clasificarIMC(imc);
         return (
-          <Space direction="vertical" size={0} style={{ width: '100%' }}>
-            <Text strong style={{ fontSize: 14 }}>{imc.toFixed(1)}</Text>
-            <Tag color={clasificacion.color} style={{ fontSize: '12px', margin: 0, padding: '0 4px' }}>
+          <Space direction="vertical" size={0} className="u-ancho">
+            <Text strong className="u-t-base">{imc.toFixed(1)}</Text>
+            <Tag color={clasificacion.color} className="controles-tag-imc">
               {clasificacion.texto}
             </Tag>
           </Space>
@@ -138,13 +138,13 @@ export const buildControlesColumns = (deps: ControlesColumnsDeps) => {
         return record.tiene_alertas ? (
           <Tooltip title={`${alertas.length} alertas detectadas`}>
             <Badge count={alertas.length} offset={[0, 0]}>
-              <WarningOutlined style={{ color: 'red', fontSize: 18 }} />
+              <WarningOutlined className="controles-icono-alerta controles-icono-alerta--peligro" />
             </Badge>
           </Tooltip>
         ) : (
           <Tooltip title="Sin alertas">
-            <Badge count={0} showZero color="green">
-              <CheckCircleOutlined style={{ color: 'green', fontSize: 18 }} />
+            <Badge count={0} showZero className="pc-insignia pc-insignia--exito">
+              <CheckCircleOutlined className="controles-icono-alerta controles-icono-alerta--exito" />
             </Badge>
           </Tooltip>
         );

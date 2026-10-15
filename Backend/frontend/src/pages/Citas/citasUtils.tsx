@@ -42,7 +42,7 @@ export const exclamationIcon = <ExclamationCircleOutlined />;
 export const getEstadoTag = (estado: EstadoCita) => {
   const configs: Record<EstadoCita, EstadoCitaConfig> = {
     agendada: {
-      color: 'blue',
+      color: 'default',
       icon: calendarIcon4,
       text: 'Agendada',
     },
@@ -57,7 +57,7 @@ export const getEstadoTag = (estado: EstadoCita) => {
       text: 'En Espera',
     },
     en_consulta: {
-      color: 'purple',
+      color: 'processing',
       icon: medicineBoxIcon2,
       text: 'En Consulta',
     },
@@ -88,10 +88,11 @@ export const getEstadoTag = (estado: EstadoCita) => {
 
 export const getTipoColor = (tipo: TipoCita): string => {
   const colores: Record<TipoCita, string> = {
-    primera_vez: 'cyan',
-    control: 'blue',
-    urgencia: 'red',
-    seguimiento: 'green',
+    // Solo la urgencia es un estado; el resto, etiqueta neutra.
+    primera_vez: 'default',
+    control: 'default',
+    urgencia: 'error',
+    seguimiento: 'default',
   };
   return colores[tipo] || 'default';
 };

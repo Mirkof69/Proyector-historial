@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Card, Form, Alert } from 'antd';
 import { HeartOutlined } from '@ant-design/icons';
-import './SufrimientoFetal.css';
+import './calculadoraAvanzada.css';
+import CabeceraCalculadora from './components/CabeceraCalculadora';
 import { FormularioBienestarFetal } from './components/FormularioBienestarFetal';
 import { ResultadosBienestarFetal } from './components/ResultadosBienestarFetal';
 
@@ -93,7 +94,7 @@ const evaluarCTG = (datos: DatosSufrimiento): { categoria: string; interpretacio
     return {
       categoria: 'Categoría I - Normal',
       interpretacion: 'CTG normal. Predice fuertemente ausencia de acidemia fetal. Continuar vigilancia rutinaria.',
-      color: '#52c41a'
+      color: 'var(--color-exito)'
     };
   }
 
@@ -110,7 +111,7 @@ const evaluarCTG = (datos: DatosSufrimiento): { categoria: string; interpretacio
     return {
       categoria: 'Categoría III - Anormal',
       interpretacion: '🚨 CTG ANORMAL. Alta probabilidad de acidemia fetal. Requiere ACCIÓN INMEDIATA: reanimación intrauterina, preparación para parto urgente.',
-      color: '#ff4d4f'
+      color: 'var(--color-peligro)'
     };
   }
 
@@ -135,7 +136,7 @@ const evaluarCTG = (datos: DatosSufrimiento): { categoria: string; interpretacio
   return {
     categoria: 'Categoría II - Indeterminado',
     interpretacion: interpretacion_cat2,
-    color: '#faad14'
+    color: 'var(--color-aviso)'
   };
 };
 
@@ -156,16 +157,16 @@ const calcularBPP = (datos: DatosSufrimiento) => {
 
   if (score >= 8) {
     interpretacion = 'Normal. Riesgo bajo de asfixia perinatal. Continuar vigilancia según protocolo.';
-    color = '#52c41a';
+    color = 'var(--color-exito)';
   } else if (score === 6) {
     interpretacion = 'Equívoco/Sospechoso. Riesgo moderado. Repetir en 24 horas, considerar maduración pulmonar si <34 semanas.';
-    color = '#faad14';
+    color = 'var(--color-aviso)';
   } else if (score === 4) {
     interpretacion = 'Anormal. Alto riesgo de asfixia. Considerar finalización del embarazo si ≥36 semanas. Maduración + vigilancia estrecha si <36 semanas.';
-    color = '#ff7875';
+    color = 'var(--color-peligro)';
   } else {
     interpretacion = '🚨 Anormal Severo. Muy alto riesgo de asfixia perinatal. Considerar FINALIZACIÓN INMEDIATA independiente de edad gestacional.';
-    color = '#ff4d4f';
+    color = 'var(--color-peligro)';
   }
 
   return {
@@ -240,25 +241,25 @@ const calcularSufrimiento = (datos: DatosSufrimiento): ResultadoSufrimiento => {
 
   // Determinar nivel de riesgo global
   let nivel_riesgo = 'Bajo';
-  let color_riesgo = '#52c41a';
+  let color_riesgo = 'var(--color-exito)';
   let accion_inmediata = '';
 
   // Clasificación por riesgo
   if (ctg.categoria.includes('III') || bpp.score <= 2 || (doppler.doppler_anormal && !datos.ductus_venoso_normal)) {
     nivel_riesgo = 'MUY ALTO - CRÍTICO';
-    color_riesgo = '#ff4d4f';
+    color_riesgo = 'var(--color-peligro)';
     accion_inmediata = '🚨 ACCIÓN INMEDIATA REQUERIDA';
   } else if (ctg.categoria.includes('II') || bpp.score <= 4 || doppler.doppler_anormal) {
     nivel_riesgo = 'ALTO';
-    color_riesgo = '#ff7875';
+    color_riesgo = 'var(--color-peligro)';
     accion_inmediata = 'Vigilancia estrecha y preparación para intervención';
   } else if (bpp.score === 6) {
     nivel_riesgo = 'MODERADO';
-    color_riesgo = '#faad14';
+    color_riesgo = 'var(--color-aviso)';
     accion_inmediata = 'Repetir evaluación en 24 horas';
   } else {
     nivel_riesgo = 'Bajo';
-    color_riesgo = '#52c41a';
+    color_riesgo = 'var(--color-exito)';
     accion_inmediata = 'Continuar vigilancia rutinaria';
   }
 
@@ -407,21 +408,18 @@ const SufrimientoFetal: React.FC = () => {
   };
 
   return (
-    <div className="sufrimiento-fetal-page">
-      <Card
-        title={
-          <>
-            <HeartOutlined style={{ marginRight: 8, color: '#eb2f96' }} />
-            Evaluación Integral de Bienestar Fetal
-          </>
-        }
-      >
+    <div className="calc-pagina sufrimiento-fetal-page">
+      <CabeceraCalculadora
+        icono={<HeartOutlined />}
+        titulo="Evaluación Integral de Bienestar Fetal"
+        descripcion="CTG + Perfil Biofísico Manning + Doppler Fetal"
+      />
+      <Card>
         <Alert
-          message="CTG + Perfil Biofísico Manning + Doppler Fetal"
-          description="Evaluación completa según ACOG para CTG (Categorías I/II/III), Perfil Biofísico de Manning (0-10 puntos), y estudios Doppler (AU, ACM, DV, CPR) para determinar el nivel de riesgo fetal y la necesidad de intervención."
+          message="Evaluación completa según ACOG para CTG (Categorías I/II/III), Perfil Biofísico de Manning (0-10 puntos), y estudios Doppler (AU, ACM, DV, CPR) para determinar el nivel de riesgo fetal y la necesidad de intervención."
           type="info"
           showIcon
-          style={{ marginBottom: 16 }}
+          className="calc-bloque"
         />
 
         <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{

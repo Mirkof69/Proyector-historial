@@ -108,7 +108,7 @@ const GraficoAlturaUterina: React.FC<Props> = ({
                     </Text>
                     <br />
                     <Text type="secondary">
-                        Diferencia: <Text strong style={{ color: hayDiscordancia ? '#ff4d4f' : '#52c41a' }}>
+                        Diferencia: <Text strong style={{ color: hayDiscordancia ? 'var(--color-peligro)' : 'var(--color-exito)' }}>
                             {discordancia > 0 ? '+' : ''}{(safeNum(ultimoControl.altura_uterina) - safeNum(ultimoControl.semana)).toFixed(1)} cm
                         </Text>
                     </Text>
@@ -136,8 +136,8 @@ const GraficoAlturaUterina: React.FC<Props> = ({
                 <AreaChart data={dataConRangos} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
                         <linearGradient id="colorRangoAU" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#52c41a" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#52c41a" stopOpacity={0.1} />
+                            <stop offset="5%" stopColor="var(--color-exito)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="var(--color-exito)" stopOpacity={0.1} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -169,14 +169,14 @@ const GraficoAlturaUterina: React.FC<Props> = ({
                         type="monotone"
                         dataKey="limite_inferior"
                         stroke="none"
-                        fill="#fff"
+                        fill="var(--color-superficie)"
                         name=""
                     />
 
                     <Line
                         type="monotone"
                         dataKey="altura_esperada"
-                        stroke="#52c41a"
+                        stroke="var(--color-exito)"
                         strokeWidth={2}
                         strokeDasharray="5 5"
                         dot={false}
@@ -186,9 +186,9 @@ const GraficoAlturaUterina: React.FC<Props> = ({
                     <Line
                         type="monotone"
                         dataKey="altura_uterina"
-                        stroke="#1890ff"
+                        stroke="var(--color-primario)"
                         strokeWidth={3}
-                        dot={{ r: 5, fill: '#1890ff' }}
+                        dot={{ r: 5, fill: 'var(--color-primario)' }}
                         name="Altura Uterina"
                     />
 
@@ -196,13 +196,13 @@ const GraficoAlturaUterina: React.FC<Props> = ({
                         <>
                             <ReferenceLine
                                 y={ultimoControl.semana - 4}
-                                stroke="#ff4d4f"
+                                stroke="var(--color-peligro)"
                                 strokeDasharray="3 3"
                                 label={{ value: 'Alerta RCIU', position: 'left' }}
                             />
                             <ReferenceLine
                                 y={ultimoControl.semana + 4}
-                                stroke="#ff4d4f"
+                                stroke="var(--color-peligro)"
                                 strokeDasharray="3 3"
                                 label={{ value: 'Alerta Macrosomía', position: 'left' }}
                             />
@@ -212,7 +212,7 @@ const GraficoAlturaUterina: React.FC<Props> = ({
             </ResponsiveContainer>
             </Suspense>
 
-            <div style={{ marginTop: 16, fontSize: '12px', color: '#8c8c8c' }}>
+            <div style={{ marginTop: 16, fontSize: '12px', color: 'var(--color-texto-2)' }}>
                 <Text type="secondary">
                     <strong>Nota:</strong> La altura uterina debe medirse desde el borde superior de la sínfisis púbica
                     hasta el fondo uterino con la paciente en decúbito supino y vejiga vacía.

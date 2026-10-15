@@ -37,19 +37,19 @@ export const SeccionParto: React.FC<SeccionPartoProps> = ({ form, calcularAlerta
       <Row gutter={16}>
         <Col span={8}>
           <Form.Item name="fecha_ingreso" label="Fecha de Ingreso">
-            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
           </Form.Item>
         </Col>
 
         <Col span={8}>
           <Form.Item name="fecha_inicio_trabajo_parto" label="Inicio Trabajo de Parto">
-            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
           </Form.Item>
         </Col>
 
         <Col span={8}>
           <Form.Item name="fecha_parto" label="Fecha del Parto" rules={[{ required: true, message: 'Ingrese fecha del parto' }]}>
-            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
           </Form.Item>
         </Col>
       </Row>
@@ -62,7 +62,7 @@ export const SeccionParto: React.FC<SeccionPartoProps> = ({ form, calcularAlerta
             rules={[{ required: true, message: 'Ingrese semanas' }, { type: 'number', min: 10, max: 45, message: 'Semanas debe estar entre 10 y 45' }]}
           >
             <InputNumber
-              style={{ width: '100%' }}
+              className="partos-ancho"
               onChange={(value) => {
                 const dias = form.getFieldValue('dias_gestacion');
                 if (value !== null && dias !== undefined) calcularAlertasYRecomendaciones(`${value}+${dias}`);
@@ -78,7 +78,7 @@ export const SeccionParto: React.FC<SeccionPartoProps> = ({ form, calcularAlerta
             rules={[{ required: true, message: 'Ingrese días' }, { type: 'number', min: 0, max: 6, message: 'Días debe estar entre 0 y 6' }]}
           >
             <InputNumber
-              style={{ width: '100%' }}
+              className="partos-ancho"
               onChange={(value) => {
                 const semanas = form.getFieldValue('semanas_gestacion');
                 if (semanas !== undefined && value !== null) calcularAlertasYRecomendaciones(`${semanas}+${value}`);
@@ -135,12 +135,12 @@ export const SeccionParto: React.FC<SeccionPartoProps> = ({ form, calcularAlerta
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item name="duracion_trabajo_parto_horas" label="Duración Trabajo de Parto (horas)">
-            <InputNumber min={0} step={0.5} style={{ width: '100%' }} />
+            <InputNumber min={0} step={0.5} className="partos-ancho" />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item name="duracion_periodo_expulsivo_minutos" label="Duración Periodo Expulsivo (minutos)">
-            <InputNumber min={0} step={1} style={{ width: '100%' }} />
+            <InputNumber min={0} step={1} className="partos-ancho" />
           </Form.Item>
         </Col>
       </Row>
@@ -185,7 +185,7 @@ export const SeccionParto: React.FC<SeccionPartoProps> = ({ form, calcularAlerta
             <Checkbox>Hemorragia postparto</Checkbox>
           </Form.Item>
           <Form.Item name="perdida_sanguinea_estimada" label="Pérdida de Sangre Estimada (mL)">
-            <InputNumber min={0} step={100} style={{ width: '100%' }} />
+            <InputNumber min={0} step={100} className="partos-ancho" />
           </Form.Item>
         </Col>
       </Row>
@@ -212,7 +212,7 @@ export const SeccionParto: React.FC<SeccionPartoProps> = ({ form, calcularAlerta
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item name="peso_placenta" label="Peso de Placenta (gramos)">
-            <InputNumber min={0} step={10} style={{ width: '100%' }} />
+            <InputNumber min={0} step={10} className="partos-ancho" />
           </Form.Item>
         </Col>
       </Row>

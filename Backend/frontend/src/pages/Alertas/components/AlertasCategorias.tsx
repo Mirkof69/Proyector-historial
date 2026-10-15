@@ -17,11 +17,9 @@ const AlertasCategorias: React.FC<AlertasCategoriasProps> = ({ alertas }) => (
         <span>Análisis Detallado por Categoría</span>
       </Space>
     }
-    style={{ marginTop: 24 }}
   >
     <Tabs
       defaultActiveKey="signos_vitales"
-      type="card"
       items={[
         {
           key: 'signos_vitales',
@@ -36,7 +34,7 @@ const AlertasCategorias: React.FC<AlertasCategoriasProps> = ({ alertas }) => (
               renderItem={alerta => (
                 <List.Item key={alerta.id}>
                   <List.Item.Meta
-                    avatar={<Avatar style={{ backgroundColor: getTipoConfig(alerta.tipo).color }} icon={getTipoConfig(alerta.tipo).icon} />}
+                    avatar={<Avatar className={getTipoConfig(alerta.tipo).clase} icon={getTipoConfig(alerta.tipo).icon} />}
                     title={alerta.titulo}
                     description={`${alerta.paciente_nombre || 'Sin paciente'} - ${alerta.descripcion}`}
                   />
@@ -59,7 +57,7 @@ const AlertasCategorias: React.FC<AlertasCategoriasProps> = ({ alertas }) => (
               renderItem={alerta => (
                 <List.Item key={alerta.id}>
                   <List.Item.Meta
-                    avatar={<Avatar style={{ backgroundColor: getTipoConfig(alerta.tipo).color }} icon={getTipoConfig(alerta.tipo).icon} />}
+                    avatar={<Avatar className={getTipoConfig(alerta.tipo).clase} icon={getTipoConfig(alerta.tipo).icon} />}
                     title={alerta.titulo}
                     description={`${alerta.paciente_nombre || 'Sin paciente'} - ${alerta.descripcion}`}
                   />
@@ -82,7 +80,7 @@ const AlertasCategorias: React.FC<AlertasCategoriasProps> = ({ alertas }) => (
               renderItem={alerta => (
                 <List.Item key={alerta.id}>
                   <List.Item.Meta
-                    avatar={<Avatar style={{ backgroundColor: getTipoConfig(alerta.tipo).color }} icon={getTipoConfig(alerta.tipo).icon} />}
+                    avatar={<Avatar className={getTipoConfig(alerta.tipo).clase} icon={getTipoConfig(alerta.tipo).icon} />}
                     title={alerta.titulo}
                     description={`${alerta.paciente_nombre || 'Sin paciente'} - ${alerta.descripcion}`}
                   />
@@ -105,7 +103,7 @@ const AlertasCategorias: React.FC<AlertasCategoriasProps> = ({ alertas }) => (
               renderItem={alerta => (
                 <List.Item key={alerta.id}>
                   <List.Item.Meta
-                    avatar={<Avatar style={{ backgroundColor: getTipoConfig(alerta.tipo).color }} icon={getTipoConfig(alerta.tipo).icon} />}
+                    avatar={<Avatar className={getTipoConfig(alerta.tipo).clase} icon={getTipoConfig(alerta.tipo).icon} />}
                     title={alerta.titulo}
                     description={`${alerta.paciente_nombre || 'Sin paciente'} - ${alerta.descripcion}`}
                   />

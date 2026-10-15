@@ -23,10 +23,10 @@ export const columnasHistorialHemorragia = [
     dataIndex: 'gravedad',
     key: 'gravedad',
     render: (gravedad: string) => {
-      let color = 'green';
-      if (gravedad === 'Severa') color = 'red';
-      else if (gravedad === 'Masiva') color = 'volcano';
-      else if (gravedad === 'Moderada') color = 'orange';
+      let color = 'success';
+      if (gravedad === 'Severa') color = 'error';
+      else if (gravedad === 'Masiva') color = 'error';
+      else if (gravedad === 'Moderada') color = 'warning';
       return <Tag color={color}>{gravedad}</Tag>;
     }
   },

@@ -8,21 +8,25 @@ interface DashboardTendenciasProps {
 }
 
 const DashboardTendencias: React.FC<DashboardTendenciasProps> = ({ chartData }) => (
-  <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+  <Row gutter={[16, 16]}>
     <Col span={24}>
-      <Card className="shadow-card">
+      <Card
+        className="shadow-card"
+        title="Estadísticas y Alertas en Tiempo Real"
+        extra={<span className="texto-secundario">{`Tendencias diarias de ${dayjs().format('MMMM YYYY')}`}</span>}
+      >
         <MedicalAreaChart
           type="area"
           data={chartData}
           series={[
-            { dataKey: 'pacientes', name: 'Nuevos Pacientes', color: '#722ed1' },
-            { dataKey: 'citas', name: 'Citas Atendidas', color: '#f5222d' }
+            { dataKey: 'pacientes', name: 'Nuevos Pacientes', color: 'var(--grafico-1)' },
+            { dataKey: 'citas', name: 'Citas Atendidas', color: 'var(--grafico-2)' }
           ]}
           xAxisKey="name"
           height={300}
           title="Estadísticas y Alertas en Tiempo Real"
           subtitle={`Tendencias diarias de ${dayjs().format('MMMM YYYY')}`}
-          colors={['#722ed1', '#f5222d']}
+          colors={['var(--grafico-1)', 'var(--grafico-2)']}
           key="chart-tendencias-full"
         />
       </Card>

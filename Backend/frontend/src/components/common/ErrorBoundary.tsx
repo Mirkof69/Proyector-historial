@@ -60,7 +60,7 @@ class ErrorBoundary extends Component<Props, State> {
         >
           <Result
             status="error"
-            icon={<WarningOutlined style={{ fontSize: 72, color: '#ff4d4f' }} />}
+            icon={<WarningOutlined style={{ fontSize: 72, color: 'var(--color-peligro)' }} />}
             title="Error Inesperado en la Aplicacion"
             subTitle="El sistema ha encontrado un problema tecnico. Por favor, intente recargar la pagina o volver al inicio."
             extra={[
@@ -86,17 +86,17 @@ class ErrorBoundary extends Component<Props, State> {
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <div style={{ marginTop: 24, textAlign: 'left', maxWidth: 700, margin: '24px auto 0' }}>
                 <Paragraph strong>Detalles del Error (solo desarrollo):</Paragraph>
-                <Paragraph code style={{ fontSize: 12, background: '#fafafa', padding: 16, borderRadius: 8 }}>
+                <Paragraph code style={{ fontSize: 12, background: 'var(--color-superficie-2)', padding: 16, borderRadius: 8 }}>
                   {this.state.error.toString()}
                 </Paragraph>
                 {this.state.errorInfo && (
                   <details style={{ marginTop: 12 }}>
-                    <summary style={{ cursor: 'pointer', color: '#1890ff' }}>
+                    <summary style={{ cursor: 'pointer', color: 'var(--color-primario)' }}>
                       Ver Component Stack
                     </summary>
                     <pre
                       style={{
-                        background: '#fafafa',
+                        background: 'var(--color-superficie-2)',
                         padding: 12,
                         borderRadius: 4,
                         overflow: 'auto',

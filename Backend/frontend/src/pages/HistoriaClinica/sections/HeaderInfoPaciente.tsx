@@ -30,31 +30,31 @@ const HeaderInfoPaciente: React.FC<HeaderInfoPacienteProps> = React.memo(({
   setModalProtocolosVisible, setDrawerTimelineVisible, setModalComparacionVisible,
   setDrawerAlertasVisible,
 }) => (
-  <Card className="header-paciente" variant="borderless" style={{ background: 'var(--bg-secondary, #f0f5ff)', marginBottom: 16 }}>
-    <Row align="middle" gutter={24}>
-      <Col flex="100px">
-        <Avatar size={80} icon={<UserOutlined />} src={paciente?.foto_perfil} style={{ border: '2px solid #1890ff' }} />
+  <Card className="header-paciente">
+    <Row align="middle" gutter={[24, 16]}>
+      <Col flex="none">
+        <Avatar size={64} icon={<UserOutlined />} src={paciente?.foto_perfil} className="header-paciente__avatar" />
       </Col>
-      <Col flex="auto">
-        <Title level={3} style={{ marginBottom: 0 }}>
+      <Col flex="auto" className="header-paciente__datos">
+        <Title level={2} className="header-paciente__nombre">
           {paciente?.nombre} {paciente?.apellido_paterno || paciente?.apellidos || ''}
-          <Tag color={paciente?.activo ? 'green' : 'red'} style={{ marginLeft: 10, fontSize: 12, verticalAlign: 'middle' }}>
+          <Tag color={paciente?.activo ? 'success' : 'error'} className="header-paciente__tag-estado">
             {paciente?.activo ? 'ACTIVA' : 'INACTIVA'}
           </Tag>
         </Title>
-        <Space split={verticalDivider}>
+        <Space split={verticalDivider} wrap className="header-paciente__info">
           <Text><CalendarOutlined /> {paciente?.edad} años</Text>
-          <Text>CI: {paciente?.ci}</Text>
-          <Text>GS: <Tag color="volcano">{(paciente as any)?.grupo_sanguineo || paciente?.tipo_sangre} {paciente?.factor_rh}</Tag></Text>
+          <Text>CI: <span className="texto-mono">{paciente?.ci}</span></Text>
+          <Text>GS: <Tag>{(paciente as any)?.grupo_sanguineo || paciente?.tipo_sangre} {paciente?.factor_rh}</Tag></Text>
           <Text><PhoneOutlined /> {paciente?.telefono}</Text>
         </Space>
-        <div style={{ marginTop: 8 }}>
+        <div className="header-paciente__alergias">
           <Text type="secondary">Alergias: </Text>
-          {paciente?.alergias ? <Tag color="red">{paciente.alergias}</Tag> : <Tag>Niega</Tag>}
+          {paciente?.alergias ? <Tag color="error">{paciente.alergias}</Tag> : <Tag>Niega</Tag>}
         </div>
       </Col>
       <Col>
-        <Space direction="vertical" align="end">
+        <Space direction="vertical" align="end" className="header-paciente__actions">
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate(`/dashboard/controles/nuevo?embarazo=${embarazoActivo?.id}`)} disabled={!embarazoActivo}>
             Nuevo Control
           </Button>

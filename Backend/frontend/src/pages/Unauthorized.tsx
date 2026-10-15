@@ -1,5 +1,5 @@
 import React from 'react';
-import { Result, Button, Typography, Card, Alert } from 'antd';
+import { Result, Button, Typography, Alert } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import {
   LockOutlined,
@@ -9,12 +9,16 @@ import {
 } from '@ant-design/icons';
 import { authService } from '../services/authService';
 
-const lockIcon = <LockOutlined style={{ color: '#ff4d4f' }} />;
+import './NotFound.css';
+
+const { Paragraph, Text } = Typography;
+
+const lockIcon = <LockOutlined className="pagina-estado__icono-403" />;
 const safetyCertIcon = <SafetyCertificateOutlined />;
 
 const unauthorizedSubTitle = (user: { nombre?: string; rol?: string } | null) => (
-  <div style={{ margin: '20px 0' }}>
-    <Paragraph style={{ fontSize: 16 }}>
+  <div className="pagina-estado__texto">
+    <Paragraph>
       Lo sentimos, <strong>{user?.nombre || 'Usuario'}</strong>. No tienes los permisos necesarios para acceder a esta sección.
     </Paragraph>
 
@@ -29,12 +33,10 @@ const unauthorizedSubTitle = (user: { nombre?: string; rol?: string } | null) =>
       type="error"
       showIcon
       icon={safetyCertIcon}
-      style={{ textAlign: 'left', maxWidth: 500, margin: '0 auto' }}
+      className="pagina-estado__aviso"
     />
   </div>
 );
-
-const { Paragraph, Text } = Typography;
 
 const Unauthorized: React.FC = () => {
   const navigate = useNavigate();
@@ -46,43 +48,24 @@ const Unauthorized: React.FC = () => {
   };
 
   return (
-    <div className="unauthorized-container animate-fade-in" style={{
-      height: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      background: 'linear-gradient(135deg, #fff1f0 0%, #fff 100%)' // Fondo rojizo sutil para alerta
-    }}>
-      <Card
-        variant="borderless"
-        style={{
-          maxWidth: 700,
-          width: '90%',
-          borderRadius: 16,
-          boxShadow: '0 10px 30px rgba(255, 77, 79, 0.15)', // Sombra rojiza
-          textAlign: 'center',
-          borderTop: '6px solid #ff4d4f'
-        }}
-      >
+    <div className="pagina-estado page-container">
+      <div className="pagina-estado__tarjeta">
         <Result
-          status="403"
+          status="error"
           icon={lockIcon}
-          title={<span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>Acceso Restringido (403)</span>}
+          title={<span className="pagina-estado__titulo-403">Acceso Restringido (403)</span>}
           subTitle={unauthorizedSubTitle(user)}
           extra={
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 20 }}>
+            <div className="pagina-estado__acciones">
               <Button
                 type="primary"
-                size="large"
                 icon={<HomeOutlined />}
                 onClick={() => navigate('/')}
-                style={{ minWidth: 150, background: '#ff4d4f', borderColor: '#ff4d4f' }}
               >
                 Ir al Dashboard
               </Button>
 
               <Button
-                size="large"
                 icon={<LogoutOutlined />}
                 onClick={handleLogout}
               >
@@ -92,14 +75,12 @@ const Unauthorized: React.FC = () => {
           }
         />
 
-        <div style={{ marginTop: 30 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Si crees que esto es un error, contacta al Administrador del Sistema.
-            <br />
-            Ref: SEC-403-ACCESS-DENIED
-          </Text>
+        <div className="pagina-estado__pie">
+          Si crees que esto es un error, contacta al Administrador del Sistema.
+          <br />
+          Ref: SEC-403-ACCESS-DENIED
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

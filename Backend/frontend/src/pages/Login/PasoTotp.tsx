@@ -16,7 +16,7 @@ interface PasoTotpProps {
 const PasoTotp: React.FC<PasoTotpProps> = ({ form, loading, onFinish, onBack }) => (
   <>
     <div className="login-form-header">
-      <div className="login-icon-circle" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <div className="login-icon-circle">
         <KeyOutlined />
       </div>
       <Title level={3} className="login-title">
@@ -33,7 +33,7 @@ const PasoTotp: React.FC<PasoTotpProps> = ({ form, loading, onFinish, onBack }) 
       description="Si el código expiró, espere el siguiente y vuelva a intentarlo."
       type="warning"
       showIcon
-      style={{ marginBottom: 20, borderRadius: 8 }}
+      className="login-aviso-totp"
     />
 
     <Form<TotpForm>
@@ -58,12 +58,7 @@ const PasoTotp: React.FC<PasoTotpProps> = ({ form, loading, onFinish, onBack }) 
           autoComplete="one-time-code"
           inputMode="numeric"
           pattern="\d{6}"
-          style={{
-            letterSpacing: '0.05em',
-            fontSize: '1.4rem',
-            fontWeight: 700,
-            textAlign: 'center',
-          }}
+          className="login-otp"
           disabled={loading}
           onChange={(e) => {
             const val = e.target.value.replace(/\D/g, '');
@@ -75,7 +70,7 @@ const PasoTotp: React.FC<PasoTotpProps> = ({ form, loading, onFinish, onBack }) 
         />
       </Form.Item>
 
-      <Form.Item style={{ marginBottom: 12 }}>
+      <Form.Item className="login-otp-item">
         <Button
           type="primary"
           htmlType="submit"
@@ -95,7 +90,7 @@ const PasoTotp: React.FC<PasoTotpProps> = ({ form, loading, onFinish, onBack }) 
         block
         onClick={onBack}
         disabled={loading}
-        style={{ color: 'var(--color-text-secondary, #888)' }}
+        className="login-volver"
       >
         Volver al inicio de sesión
       </Button>

@@ -49,49 +49,45 @@ const KPIs: React.FC = () => {
   return (
     <Spin spinning={loading}>
       <Card
-        title={<span><RiseOutlined style={{ marginRight: 8 }} />Indicadores Clave (KPIs)</span>}
+        title={<span><RiseOutlined /> Indicadores Clave (KPIs)</span>}
         extra={<Button icon={<DownloadOutlined />} onClick={handleExportarExcel}>Exportar Excel</Button>}
       >
         {kpis?.kpis ? (
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 16]} className="reportes-cifras">
             <Col xs={24} sm={12} md={6}>
-              <Card>
+              <Card size="small">
                 <Statistic
                   title="Pacientes Activos"
                   value={kpis.kpis.pacientes_activos?.valor || 0}
                   prefix={<UserOutlined />}
-                  valueStyle={{ color: '#1890ff' }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card>
+              <Card size="small">
                 <Statistic
                   title="Embarazos Activos"
                   value={kpis.kpis.embarazos_activos?.valor || 0}
                   prefix={<MedicineBoxOutlined />}
-                  valueStyle={{ color: '#722ed1' }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card>
+              <Card size="small">
                 <Statistic
                   title="Citas del Día"
                   value={kpis.kpis.citas_dia?.valor || 0}
                   prefix={<CalendarOutlined />}
-                  valueStyle={{ color: '#52c41a' }}
                   suffix={`/ ${kpis.kpis.citas_dia?.completadas || 0} completadas`}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card>
+              <Card size="small" className={(kpis.alertas?.embarazos_alto_riesgo || 0) > 0 ? 'reportes-cifra--peligro' : undefined}>
                 <Statistic
                   title="Alertas Alto Riesgo"
                   value={kpis.alertas?.embarazos_alto_riesgo || 0}
                   prefix={<WarningOutlined />}
-                  valueStyle={{ color: '#ff4d4f' }}
                 />
               </Card>
             </Col>

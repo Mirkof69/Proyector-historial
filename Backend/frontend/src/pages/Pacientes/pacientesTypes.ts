@@ -30,7 +30,7 @@ export interface Paciente {
     embarazos_activos?: boolean;
     fecha_registro?: string;
     foto_perfil?: string; // URL simulada
-    _uniqueRowKey?: string; // ✅ Para evitar warnings de keys duplicadas
+    _uniqueRowKey?: string; // Para evitar warnings de keys duplicadas
 }
 
 // Filtros avanzados

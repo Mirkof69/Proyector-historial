@@ -13,7 +13,7 @@ interface DetalleControlHistorialProps {
 
 const DetalleControlHistorial: React.FC<DetalleControlHistorialProps> = ({ controlesEmbarazo, control }) => (
   <Collapse
-    style={{ marginTop: 16 }}
+    className="u-mt-4"
     items={[
       {
         key: '1',
@@ -21,7 +21,7 @@ const DetalleControlHistorial: React.FC<DetalleControlHistorialProps> = ({ contr
           <Space>
             <ClockCircleOutlined />
             <Text strong>Historial Completo de Controles</Text>
-            <Badge count={controlesEmbarazo.length} style={{ backgroundColor: '#1890ff' }} />
+            <Badge count={controlesEmbarazo.length} className="pc-insignia" />
           </Space>
         ),
         children: (
@@ -31,9 +31,9 @@ const DetalleControlHistorial: React.FC<DetalleControlHistorialProps> = ({ contr
               color: ctrl.id === control.id ? 'green' : 'blue',
               dot:
                 ctrl.id === control.id ? (
-                  <CheckCircleOutlined style={{ fontSize: 16 }} />
+                  <CheckCircleOutlined className="u-t-md" />
                 ) : (
-                  <HeartOutlined style={{ fontSize: 16 }} />
+                  <HeartOutlined className="u-t-md" />
                 ),
               label: dayjs(ctrl.fecha_control).format('DD/MM/YYYY'),
               children: (
@@ -41,7 +41,7 @@ const DetalleControlHistorial: React.FC<DetalleControlHistorialProps> = ({ contr
                   <Text strong={ctrl.id === control.id}>
                     Control #{ctrl.numero_control}
                     {ctrl.id === control.id && (
-                      <Tag color="green" style={{ marginLeft: 8 }}>
+                      <Tag color="success" className="u-ml-2">
                         ACTUAL
                       </Tag>
                     )}

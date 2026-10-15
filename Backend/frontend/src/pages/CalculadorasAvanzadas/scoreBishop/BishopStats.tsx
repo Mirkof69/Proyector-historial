@@ -10,29 +10,29 @@ interface BishopStatsProps {
 }
 
 const BishopStats: React.FC<BishopStatsProps> = ({ total, promedio, tasaFavorable, ultimoScore }) => (
-  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+  <Row gutter={[16, 16]} className="calc-fila-stats">
     <Col xs={24} sm={12} md={6}>
-      <Card>
-        <Statistic title="Total Evaluaciones" value={total} prefix={<HistoryOutlined />} valueStyle={{ color: '#1890ff' }} />
+      <Card className="calc-stat-card">
+        <Statistic title="Total Evaluaciones" value={total} prefix={<HistoryOutlined />} />
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
-        <Statistic title="Promedio Score" value={promedio} suffix="/ 13" valueStyle={{ color: '#722ed1' }} />
+      <Card className="calc-stat-card">
+        <Statistic title="Promedio Score" value={promedio} suffix="/ 13" />
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
-        <Statistic title="Tasa Favorable" value={tasaFavorable} suffix="%" prefix={<TrophyOutlined />} valueStyle={{ color: '#52c41a' }} />
+      <Card className="calc-stat-card">
+        <Statistic title="Tasa Favorable" value={tasaFavorable} suffix="%" prefix={<TrophyOutlined />} />
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="calc-stat-card">
         <Statistic
           title="Último Score"
           value={ultimoScore}
           suffix="puntos"
-          valueStyle={{ color: ultimoScore >= 8 ? '#52c41a' : '#fa8c16' }}
+          valueStyle={{ color: ultimoScore >= 8 ? 'var(--color-exito)' : 'var(--color-aviso)' }}
         />
       </Card>
     </Col>

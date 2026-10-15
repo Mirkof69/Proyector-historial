@@ -14,7 +14,7 @@ interface DatosGeneralesLabProps {
 }
 
 const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposExamen, onTipoExamenChange }) => (
-  <Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}
+  <Collapse defaultActiveKey={['1']} className="laboratorio-separado"
     items={[{
       key: '1',
       label: 'Datos Generales',
@@ -67,7 +67,7 @@ const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposE
                 rules={[{ required: true }]}
               >
                 <DatePicker
-                  style={{ width: '100%' }}
+                  className="laboratorio-ancho"
                   format="DD/MM/YYYY"
                   showTime
                 />
@@ -80,7 +80,7 @@ const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposE
                   <Space>
                     Prioridad
                     <Tooltip title="Seleccione la urgencia con la que se requiere el resultado">
-                      <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                      <InfoCircleOutlined className="laboratorio-page__info" />
                     </Tooltip>
                   </Space>
                 }
@@ -108,12 +108,12 @@ const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposE
           <Row gutter={[16, 0]}>
             <Col xs={24} md={12}>
               <Form.Item name="fecha_muestra" label="Fecha de Toma de Muestra">
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" showTime />
+                <DatePicker className="laboratorio-ancho" format="DD/MM/YYYY" showTime />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
               <Form.Item name="fecha_resultado" label="Fecha de Resultado">
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" showTime />
+                <DatePicker className="laboratorio-ancho" format="DD/MM/YYYY" showTime />
               </Form.Item>
             </Col>
           </Row>

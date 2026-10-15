@@ -13,12 +13,14 @@ import { useAntdApp } from "../../hooks/useMessage";
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 import {
-  Empty,Card,
+  Empty,
+  Card,
   Table,
   Button,
-  Space,
   Modal,
-  Alert} from 'antd';
+  Alert,
+  Typography,
+} from 'antd';
 import {
   PlusOutlined,
   ReloadOutlined,
@@ -33,12 +35,15 @@ import DICOMViewer from '../../components/DICOMViewer';
 import api from '../../services/api';
 import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
 import { descargarArchivo } from '../../utils/descargarArchivo';
+import '../Embarazos/paginaClinica.css';
 import './Ecografias.css';
 import { filtrosEcografiaReducer } from './ecografiasUtils';
 import { buildColumnsEcografias } from './ecografiasColumns';
 import EcografiasStats from './components/EcografiasStats';
 import EcografiasFiltros from './components/EcografiasFiltros';
 import EcografiaVistaRapidaDrawer from './components/EcografiaVistaRapidaDrawer';
+
+const { Title } = Typography;
 
 const URL_ECOGRAFIAS = '/ecografias/';
 
@@ -138,21 +143,22 @@ const Ecografias: React.FC = () => {
 
   const handleEliminar = (ecografia: any) => {
     modal.confirm({
+      className: 'capa-clinica',
       title: '⚠️ ¿Confirmar eliminación permanente?',
       icon: <ExclamationCircleOutlined />,
       content: (
         <div>
           <p><strong>Se eliminará la ecografía:</strong></p>
-          <ul style={{ marginLeft: 20 }}>
+          <ul className="u-ml-5">
             <li>Paciente: {ecografia.paciente_nombre || 'No especificado'}</li>
             <li>Fecha: {dayjs(ecografia.fecha_ecografia).format('DD/MM/YYYY')}</li>
             <li>Tipo: {ecografia.tipo_ecografia || 'No especificado'}</li>
             <li>Edad Gestacional: {ecografia.edad_gestacional_semanas || 0}+{ecografia.edad_gestacional_dias || 0} semanas</li>
           </ul>
-          <p style={{ color: '#ff4d4f', fontWeight: 'bold', marginTop: 16 }}>
+          <p className="u-c-peligro u-fuerte u-mt-4">
             ⚠️ ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
           </p>
-          <p style={{ marginTop: 16 }}>
+          <p className="u-mt-4">
             Se perderán todos los datos de esta ecografía obstétrica, incluyendo mediciones fetales, diagnósticos y observaciones.
           </p>
         </div>
@@ -200,45 +206,47 @@ const Ecografias: React.FC = () => {
   // RENDER
   // ==========================================================================
   return (
-    <div className="ecografias-container page-container">
+    <div className="pagina-clinica ecografias-page page-container">
+      {/* ENCABEZADO DE PÁGINA */}
+      <div className="pc-cabecera">
+        <div className="pc-cabecera__texto">
+          <Title level={2} className="pc-cabecera__titulo">
+            <FileImageOutlined className="pc-cabecera__icono" />
+            Ecografías Registradas
+          </Title>
+          <p className="pc-cabecera__descripcion">
+            Estudios ecográficos obstétricos por trimestre, con biometría e imágenes.
+          </p>
+        </div>
+        <div className="pc-cabecera__acciones">
+          <Button icon={<ReloadOutlined />} onClick={cargarEcografias}>
+            Actualizar
+          </Button>
+          <Button
+            icon={<FileExcelOutlined />}
+            onClick={handleExportExcel}
+          >
+            Exportar Excel
+          </Button>
+          <Button
+            icon={<FileImageOutlined />}
+            onClick={() => setDicomViewerVisible(true)}
+          >
+            Visor DICOM
+          </Button>
+          {canAdd('ecografia') && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevo}>
+              Nueva Ecografía
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* ESTADÍSTICAS */}
       <EcografiasStats estadisticas={estadisticas} />
 
       {/* TABLA */}
-      <Card
-        title={
-          <Space>
-            <FileImageOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-            <span>Ecografías Registradas</span>
-          </Space>
-        }
-        extra={
-          <Space>
-            <Button icon={<ReloadOutlined />} onClick={cargarEcografias}>
-              Actualizar
-            </Button>
-            <Button
-              icon={<FileExcelOutlined />}
-              onClick={handleExportExcel}
-              style={{ backgroundColor: '#52c41a', color: 'white', borderColor: '#52c41a' }}
-            >
-              Exportar Excel
-            </Button>
-            <Button
-              icon={<FileImageOutlined />}
-              onClick={() => setDicomViewerVisible(true)}
-              style={{ backgroundColor: '#722ed1', color: 'white', borderColor: '#722ed1' }}
-            >
-              🔬 Visor DICOM
-            </Button>
-            {canAdd('ecografia') && (
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleNuevo}>
-                Nueva Ecografía
-              </Button>
-            )}
-          </Space>
-        }
-      >
+      <Card>
         {/* FILTROS */}
         <EcografiasFiltros filtros={filtros} dispatchFiltros={dispatchFiltros} limpiarFiltros={limpiarFiltros} />
 
@@ -253,7 +261,7 @@ const Ecografias: React.FC = () => {
                 Reintentar
               </Button>
             }
-            style={{ marginBottom: 16 }}
+            className="u-mb-4"
           />
         )}
 
@@ -266,7 +274,6 @@ const Ecografias: React.FC = () => {
           pagination={listado.paginacion}
           onChange={listado.onChange}
           scroll={{ x: 1200 }}
-          bordered
         />
       </Card>
 
@@ -282,14 +289,14 @@ const Ecografias: React.FC = () => {
         canChange={canChange}
       />
 
-      {/* ✨ MODAL CON VISOR DICOM */}
-      <Modal
+      {/* MODAL CON VISOR DICOM */}
+      <Modal rootClassName="capa-clinica"
         title="Visor de Imágenes DICOM"
         open={dicomViewerVisible}
         onCancel={() => setDicomViewerVisible(false)}
         width={1400}
         footer={null}
-        style={{ top: 20 }}
+        className="ecografias-modal-alto"
       >
         {ecografiaSeleccionada && (
           <DICOMViewer

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col, Space } from 'antd';
+import { Card, Space } from 'antd';
 import { BarChartOutlined, SafetyOutlined } from '@ant-design/icons';
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
@@ -15,29 +15,26 @@ interface VacunasGraficasProps {
 }
 
 const VacunasGraficas: React.FC<VacunasGraficasProps> = ({ graficoPorMes, graficoPorTipo }) => (
-  <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
-    <Col xs={24} lg={14}>
-      <Card title={<Space><BarChartOutlined /> Histórico de Aplicaciones</Space>} size="small" className="chart-card">
+  <div className="vacunas-page__graficas">
+      <Card title={<Space><BarChartOutlined /> Histórico de Aplicaciones</Space>} size="small">
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={graficoPorMes}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} />
             <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} />
-            <RechartsTooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-            <Bar dataKey="cantidad" fill="#3b82f6" radius={BAR_RADIUS} barSize={40} />
+            <RechartsTooltip cursor={{ fill: 'var(--color-hover)' }} />
+            <Bar dataKey="cantidad" fill="var(--grafico-1)" radius={BAR_RADIUS} barSize={40} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
-    </Col>
-    <Col xs={24} lg={10}>
-      <Card title={<Space><SafetyOutlined /> Distribución por Inmunógeno</Space>} size="small" className="chart-card">
+      <Card title={<Space><SafetyOutlined /> Distribución por Inmunógeno</Space>} size="small">
         <ResponsiveContainer width="100%" height={260}>
           <PieChart>
             <Pie
               data={graficoPorTipo}
               innerRadius={60}
               outerRadius={80}
-              paddingAngle={5}
+              paddingAngle={2}
               dataKey="value"
             >
               {graficoPorTipo.map((entry) => (
@@ -49,8 +46,7 @@ const VacunasGraficas: React.FC<VacunasGraficasProps> = ({ graficoPorMes, grafic
           </PieChart>
         </ResponsiveContainer>
       </Card>
-    </Col>
-  </Row>
+  </div>
 );
 
 export default VacunasGraficas;

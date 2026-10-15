@@ -6,7 +6,7 @@ import {
 import {
   SearchOutlined, FolderOpenOutlined, MedicineBoxOutlined, HeartOutlined,
   WomanOutlined, ManOutlined, CloseCircleOutlined, CalendarOutlined,
-  FileTextOutlined, BookOutlined, RiseOutlined,
+  FileTextOutlined, BookOutlined, RiseOutlined, LinkOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Paciente, getEstadoCivilConGenero } from '../pacientesTypes';
@@ -65,18 +65,18 @@ const PacienteDrawer: React.FC<PacienteDrawerProps> = ({
             <Avatar
               size={80}
               icon={<WomanOutlined />}
-              style={{ backgroundColor: '#ffadd2', marginBottom: 10 }}
+              style={{ backgroundColor: token.colorPrimaryBg, color: token.colorPrimary, marginBottom: 8 }}
             />
             <Title level={3} style={{ margin: 0 }}>{selectedPaciente.nombre_completo}</Title>
             <Text type="secondary">{selectedPaciente.id_clinico}</Text>
             <div style={{ marginTop: 10 }}>
               {selectedPaciente.activo ? (
-                <Tag color="green">ACTIVO</Tag>
+                <Tag color="success">ACTIVO</Tag>
               ) : (
-                <Tag color="red" icon={CLOSE_CIRCLE_ICON_2}>INACTIVO</Tag>
+                <Tag color="error" icon={CLOSE_CIRCLE_ICON_2}>INACTIVO</Tag>
               )}
-              {selectedPaciente.embarazos_activos && <Tag color="purple">GESTANTE</Tag>}
-              <Tag icon={WOMAN_ICON} color="pink">Femenino</Tag>
+              {selectedPaciente.embarazos_activos && <Tag color="processing">GESTANTE</Tag>}
+              <Tag icon={WOMAN_ICON}>Femenino</Tag>
             </div>
           </div>
 
@@ -93,11 +93,11 @@ const PacienteDrawer: React.FC<PacienteDrawerProps> = ({
             <Descriptions.Item label="Email">{selectedPaciente.email || 'N/A'}</Descriptions.Item>
             <Descriptions.Item label="Tipo de Sangre">
               {selectedPaciente.tipo_sangre ? (
-                <Tag color="red" style={{ fontSize: 14, fontWeight: 'bold' }}>{selectedPaciente.tipo_sangre}</Tag>
+                <Tag>{selectedPaciente.tipo_sangre}</Tag>
               ) : 'N/A'}
             </Descriptions.Item>
             <Descriptions.Item label="Estado Civil">
-              <Tag color="blue">
+              <Tag>
                 {getEstadoCivilConGenero(selectedPaciente.estado_civil, selectedPaciente.genero)}
               </Tag>
             </Descriptions.Item>
@@ -117,11 +117,10 @@ const PacienteDrawer: React.FC<PacienteDrawerProps> = ({
               {selectedPaciente.imc ? (
                 <Tag
                   color={
-                    selectedPaciente.imc < 18.5 ? 'orange' :
-                      selectedPaciente.imc < 25 ? 'green' :
-                        selectedPaciente.imc < 30 ? 'gold' : 'red'
+                    selectedPaciente.imc < 18.5 ? 'warning' :
+                      selectedPaciente.imc < 25 ? 'success' :
+                        selectedPaciente.imc < 30 ? 'warning' : 'error'
                   }
-                  style={{ fontSize: 14, fontWeight: 'bold' }}
                 >
                   {selectedPaciente.imc}
                   {' - '}
@@ -133,7 +132,7 @@ const PacienteDrawer: React.FC<PacienteDrawerProps> = ({
             </Descriptions.Item>
           </Descriptions>
 
-          <Divider orientation="left">🔗 Acceso Rápido a Módulos</Divider>
+          <Divider orientation="left"><LinkOutlined /> Acceso Rápido a Módulos</Divider>
           <Card size="small" style={{ marginBottom: 16 }}>
             <Space direction="vertical" style={{ width: '100%' }} size="small">
               <Button

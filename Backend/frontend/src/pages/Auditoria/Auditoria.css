@@ -1,0 +1,75 @@
+/* Auditoría y registro de accesos (Auditoria, AccessLogs, SesionesAuditoria)
+   — contrato: docs/DISENO_INTERFAZ.md */
+
+.auditoria-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.auditoria-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
+}
+
+.auditoria-page__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+/* Cifras: superficie + borde, etiqueta 13/500, cifra 28/600 tabular */
+.auditoria-page__cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--esp-4);
+}
+
+.auditoria-page__cifras .ant-statistic-title {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-weight: var(--peso-medio);
+}
+
+.auditoria-page__cifras .ant-statistic-title .anticon {
+  color: var(--color-texto-3);
+}
+
+.auditoria-page__cifras .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+}
+
+.auditoria-page__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+  margin-bottom: var(--esp-4);
+}
+
+.auditoria-page__filtros--inicio {
+  justify-content: flex-start;
+}
+
+.auditoria-page__buscar {
+  width: 250px;
+  max-width: 100%;
+}
+
+.auditoria-page__tipo {
+  width: 180px;
+  max-width: 100%;
+}
+
+.auditoria-page__error.ant-alert {
+  margin-bottom: var(--esp-4);
+}
+
+.auditoria-page__secundario {
+  font-size: var(--texto-xs);
+}
+
+.auditoria-page__linea-tiempo.ant-timeline {
+  margin-top: var(--esp-2);
+}

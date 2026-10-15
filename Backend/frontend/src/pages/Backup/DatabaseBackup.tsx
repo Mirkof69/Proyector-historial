@@ -2,8 +2,8 @@ import React, { useReducer, useEffect, useState } from 'react';
 import { backupService, Backup } from '../../services/backupService';
 import {
     Table, Button, Tooltip, Space,
-    Card, Row, Col, Statistic, Empty, Spin,
-    Popconfirm, Input, Alert
+    Card, Statistic, Empty, Spin,
+    Popconfirm, Input, Alert, Typography
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
@@ -21,6 +21,8 @@ import 'dayjs/locale/es';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import './DatabaseBackup.css';
+
+const { Title, Text } = Typography;
 
 dayjs.extend(relativeTime);
 dayjs.locale('es');
@@ -137,7 +139,7 @@ const DatabaseBackup: React.FC = () => {
         setConfirmacionRestaurar('');
         modal.confirm({
             title: '¿Restaurar base de datos?',
-            icon: <WarningOutlined style={{ color: 'red' }} />,
+            icon: <WarningOutlined className="backup-page__icono-peligro" />,
             width: 520,
             content: (
                 <div>
@@ -147,7 +149,7 @@ const DatabaseBackup: React.FC = () => {
                         message="Para confirmar, escriba RESTAURAR en el campo de abajo"
                         type="warning"
                         showIcon
-                        style={{ marginBottom: 12 }}
+                        className="backup-page__aviso-restaurar"
                     />
                     <Input
                         placeholder="RESTAURAR"
@@ -176,13 +178,13 @@ const DatabaseBackup: React.FC = () => {
             title: 'Archivo',
             dataIndex: 'filename',
             key: 'filename',
-            render: (text: string) => <span style={{ fontWeight: 500 }}>{text}</span>
+            render: (text: string) => <span className="backup-page__archivo">{text}</span>
         },
         {
             title: 'Tamaño',
             dataIndex: 'size',
             key: 'size',
-            render: (size: number) => `${(size / (1024 * 1024)).toFixed(2)} MB`
+            render: (size: number) => <span className="tabular-nums">{`${(size / (1024 * 1024)).toFixed(2)} MB`}</span>
         },
         {
             title: 'Fecha',
@@ -204,7 +206,7 @@ const DatabaseBackup: React.FC = () => {
                     <Tooltip title="Descargar">
                         <Button
                             type="text"
-                            className="action-btn download"
+                            className="backup-page__accion--descargar"
                             icon={<CloudDownloadOutlined />}
                             onClick={() => handleDownload(record.filename)}
                         />
@@ -212,7 +214,7 @@ const DatabaseBackup: React.FC = () => {
                     <Tooltip title="Restaurar">
                         <Button
                             type="text"
-                            className="action-btn restore"
+                            className="backup-page__accion--restaurar"
                             icon={<HistoryOutlined />}
                             onClick={() => handleRestore(record.filename)}
                             loading={restoring === record.filename}
@@ -228,7 +230,7 @@ const DatabaseBackup: React.FC = () => {
                         <Tooltip title="Eliminar">
                             <Button
                                 type="text"
-                                className="action-btn delete"
+                                className="backup-page__accion--eliminar"
                                 icon={<DeleteOutlined />}
                             />
                         </Tooltip>
@@ -239,13 +241,13 @@ const DatabaseBackup: React.FC = () => {
     ];
 
     return (
-        <div className="backup-page fade-in">
-            <div className="backup-header">
+        <div className="backup-page page-container">
+            <header className="backup-page__cabecera">
                 <div>
-                    <h2>Copias de Seguridad</h2>
-                    <div style={{ color: 'var(--text-secondary)' }}>
+                    <Title level={2}>Copias de Seguridad</Title>
+                    <Text type="secondary">
                         Gestión y restauración de base de datos
-                    </div>
+                    </Text>
                 </div>
                 <Space>
                     <Button
@@ -264,45 +266,33 @@ const DatabaseBackup: React.FC = () => {
                         Crear Backup
                     </Button>
                 </Space>
-            </div>
+            </header>
 
             <Spin spinning={loading}>
-                <Row gutter={[16, 16]} className="backup-stats-row">
-                    <Col xs={24} sm={12} md={8}>
-                        <Card>
-                            <Statistic
-                                title="Total Backups"
-                                value={backups.length}
-                                prefix={<DatabaseOutlined style={{ color: '#1890ff' }} />}
-                                valueStyle={{ color: '#1890ff' }}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} md={8}>
-                        <Card>
-                            <Statistic
-                                title="Espacio Usado"
-                                value={(totalSizeBytes / (1024 * 1024)).toFixed(2)}
-                                suffix="MB"
-                                prefix={<HddOutlined style={{ color: '#722ed1' }} />}
-                                valueStyle={{ color: '#722ed1' }}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} md={8}>
-                        <Card>
-                            <Statistic
-                                title="Último Backup"
-                                value={ultimoBackup ? dayjs(ultimoBackup).fromNow() : 'Nunca'}
-                                prefix={<HistoryOutlined style={{ color: '#fa8c16' }} />}
-                                valueStyle={{ color: '#fa8c16', fontSize: 16 }}
-                            />
-                        </Card>
-                    </Col>
-                </Row>
+                <div className="backup-page__cifras">
+                    <Card size="small">
+                        <Statistic
+                            title={<><DatabaseOutlined />Total Backups</>}
+                            value={backups.length}
+                        />
+                    </Card>
+                    <Card size="small">
+                        <Statistic
+                            title={<><HddOutlined />Espacio Usado</>}
+                            value={(totalSizeBytes / (1024 * 1024)).toFixed(2)}
+                            suffix="MB"
+                        />
+                    </Card>
+                    <Card size="small" className="backup-page__cifra-texto">
+                        <Statistic
+                            title={<><HistoryOutlined />Último Backup</>}
+                            value={ultimoBackup ? dayjs(ultimoBackup).fromNow() : 'Nunca'}
+                        />
+                    </Card>
+                </div>
             </Spin>
 
-            <div className="backup-table-card">
+            <Card>
                 <Table
                     columns={columns}
                     dataSource={backups}
@@ -312,8 +302,9 @@ const DatabaseBackup: React.FC = () => {
                     locale={{
                         emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay backups disponibles" />
                     }}
+                    scroll={{ x: 560 }}
                 />
-            </div>
+            </Card>
         </div>
     );
 };

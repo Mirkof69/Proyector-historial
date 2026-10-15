@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Badge, Row, Col, Tag, Statistic } from 'antd';
+import { Card, Statistic } from 'antd';
 import {
   BellOutlined,
   MailOutlined,
@@ -12,52 +12,20 @@ interface NotificacionesStatsProps {
 }
 
 const NotificacionesStats: React.FC<NotificacionesStatsProps> = ({ stats }) => (
-  <Row gutter={[16, 16]} className="notification-stats-row">
-    <Col xs={24} sm={12} md={6}>
-      <Card>
-        <Statistic
-          title="Total Notificaciones"
-          value={stats.total}
-          prefix={<BellOutlined />}
-          valueStyle={{ color: '#1890ff' }}
-        />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6}>
-      <Badge count={stats.nuevas} overflowCount={99}>
-        <Card style={{ width: '100%' }}>
-          <Statistic
-            title="No Leídas"
-            value={stats.nuevas}
-            prefix={<MailOutlined />}
-            valueStyle={{ color: '#faad14' }}
-          />
-        </Card>
-      </Badge>
-    </Col>
-    <Col xs={24} sm={12} md={6}>
-      <Card>
-        <Statistic
-          title="Alertas Urgentes"
-          value={stats.alertas}
-          prefix={<PhoneOutlined />}
-          valueStyle={{ color: '#ff4d4f' }}
-          suffix={<Tag color="red">Urgente</Tag>}
-        />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6}>
-      <Card>
-        <Statistic
-          title="Informativas"
-          value={stats.info}
-          prefix={<InfoCircleOutlined />}
-          valueStyle={{ color: '#52c41a' }}
-          suffix={<Tag color="green">Info</Tag>}
-        />
-      </Card>
-    </Col>
-  </Row>
+  <div className="notifications-page__cifras">
+    <Card size="small">
+      <Statistic title={<><BellOutlined />Total Notificaciones</>} value={stats.total} />
+    </Card>
+    <Card size="small" className={stats.nuevas > 0 ? 'notifications-page__cifra--aviso' : undefined}>
+      <Statistic title={<><MailOutlined />No Leídas</>} value={stats.nuevas} />
+    </Card>
+    <Card size="small" className={stats.alertas > 0 ? 'notifications-page__cifra--peligro' : undefined}>
+      <Statistic title={<><PhoneOutlined />Alertas Urgentes</>} value={stats.alertas} />
+    </Card>
+    <Card size="small">
+      <Statistic title={<><InfoCircleOutlined />Informativas</>} value={stats.info} />
+    </Card>
+  </div>
 );
 
 export default NotificacionesStats;

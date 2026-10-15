@@ -13,14 +13,14 @@ const SeccionEdadGestacional: React.FC = () => (
     </Divider>
 
     <Row gutter={16}>
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item
           name="edad_gestacional_semanas"
           label="Semanas de Gestación"
           rules={[{ required: true, message: 'Requerido' }]}
         >
           <InputNumber
-            style={{ width: '100%' }}
+            className="u-ancho"
             min={0}
             max={42}
             suffix="semanas"
@@ -28,10 +28,10 @@ const SeccionEdadGestacional: React.FC = () => (
           />
         </Form.Item>
       </Col>
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item name="edad_gestacional_dias" label="Días adicionales">
           <InputNumber
-            style={{ width: '100%' }}
+            className="u-ancho"
             min={0}
             max={6}
             suffix="días"

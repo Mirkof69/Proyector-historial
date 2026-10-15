@@ -17,9 +17,9 @@ const PasoVistaPrevia: React.FC<PasoVistaPreviaProps> = ({ loading, vistaPrevia 
     </Paragraph>
 
     {loading ? (
-      <div style={{ textAlign: 'center', padding: '50px 0' }}>
+      <div className="reportes-cargando">
         <Spin size="large" />
-        <div style={{ marginTop: 16 }}>Generando vista previa…</div>
+        <div className="reportes-arriba">Generando vista previa…</div>
       </div>
     ) : vistaPrevia ? (
       <Card>
@@ -28,7 +28,7 @@ const PasoVistaPrevia: React.FC<PasoVistaPreviaProps> = ({ loading, vistaPrevia 
             {vistaPrevia.tipo_nombre}
           </Descriptions.Item>
           <Descriptions.Item label="Formato">
-            <Tag color={vistaPrevia.formato === 'pdf' ? 'red' : 'green'}>
+            <Tag color={vistaPrevia.formato === 'pdf' ? 'error' : 'success'}>
               {vistaPrevia.formato?.toUpperCase()}
             </Tag>
           </Descriptions.Item>
@@ -52,7 +52,7 @@ const PasoVistaPrevia: React.FC<PasoVistaPreviaProps> = ({ loading, vistaPrevia 
           description={`El reporte incluirá ${vistaPrevia.total_registros} registros del período seleccionado.`}
           type="info"
           showIcon
-          style={{ marginTop: 16 }}
+          className="reportes-arriba"
         />
       </Card>
     ) : (

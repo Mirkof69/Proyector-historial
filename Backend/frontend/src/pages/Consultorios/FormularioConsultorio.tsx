@@ -13,6 +13,7 @@ import {Card, Form, Input, Select, InputNumber, Button, Switch,
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { consultoriosService } from '../../services/consultoriosService';
+import './Consultorios.css';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -63,7 +64,7 @@ const FormularioConsultorio: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className="consultorios-pagina">
       <Card
         title={
           <Space>

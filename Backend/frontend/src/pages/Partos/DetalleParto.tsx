@@ -20,9 +20,6 @@ import {Card,
   Space,
   Tag,
   Alert,
-  Row,
-  Col,
-  Divider,
   Spin,
   Typography} from "antd";
 import {
@@ -33,9 +30,7 @@ import {
   FileExcelOutlined,
   FileTextOutlined,
   DeleteOutlined,
-  MedicineBoxOutlined,
   ExclamationCircleOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -43,7 +38,7 @@ import { partosService, Parto } from '../../services/partosService';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
 import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
-import './DetalleParto.css';
+import './Partos.css';
 import { handleImprimir, getApgarInterpretacion } from './detallePartoUtils';
 import { descargarArchivo } from '../../utils/descargarArchivo';
 import DetallePartoAbortoView from './components/DetallePartoAbortoView';
@@ -73,7 +68,7 @@ const DetalleParto: React.FC = () => {
     return () => { isMounted.current = false; };
   }, []);
 
-  // ✅ DETECTAR SI ES ABORTO O PARTO SEGÚN LOS CAMPOS REGISTRADOS
+  // DETECTAR SI ES ABORTO O PARTO SEGÚN LOS CAMPOS REGISTRADOS
   const esAborto = () => {
     // Si tiene tipo_aborto registrado, ES UN ABORTO
     if ((parto as any)?.tipo_aborto) {
@@ -209,11 +204,11 @@ const DetalleParto: React.FC = () => {
     const semanas = parseInt(parts[0]);
 
     if (semanas < 37) {
-      return { text: 'Pretérmino', color: 'orange' };
+      return { text: 'Pretérmino', color: 'warning' };
     } else if (semanas >= 37 && semanas <= 42) {
-      return { text: 'A término', color: 'green' };
+      return { text: 'A término', color: 'success' };
     } else {
-      return { text: 'Postérmino', color: 'red' };
+      return { text: 'Postérmino', color: 'error' };
     }
   };
 
@@ -222,9 +217,9 @@ const DetalleParto: React.FC = () => {
   // ==========================================================================
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+      <div className="partos-page__cargando">
         <Spin size="large" />
-        <div style={{ marginTop: 16, fontSize: 16 }}>Cargando datos del parto…</div>
+        <div className="partos-page__cargando-texto">Cargando datos del parto…</div>
       </div>
     );
   }
@@ -238,7 +233,7 @@ const DetalleParto: React.FC = () => {
           type="error"
           showIcon
         />
-        <Button onClick={handleVolver} style={{ marginTop: 16 }}>
+        <Button onClick={handleVolver} className="partos-arriba">
           Volver al listado
         </Button>
       </Card>
@@ -252,41 +247,26 @@ const DetalleParto: React.FC = () => {
   const categoriaEG = getEdadGestacionalCategoria();
 
   return (
-    <div className="detalle-parto-container">
-      {/* HEADER */}
-      <Card className="header-card">
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Space>
+    <div className="partos-page page-container">
+      {/* ENCABEZADO */}
+      <header className="partos-page__cabecera">
+        <div>
+          <Title level={2}>
+            {esAborto() ? 'Registro de Aborto' : 'Registro de Parto'} {paciente && `- ${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`}
+          </Title>
+          <div className="partos-page__meta">
+            <Text type="secondary" className="tabular-nums">
+              {dayjs(parto.fecha_parto).format('DD/MM/YYYY HH:mm')}
+            </Text>
+            {paciente?.id_clinico && (
+              <Tag className="texto-mono">ID: {paciente.id_clinico}</Tag>
+            )}
+          </div>
+        </div>
+            <Space wrap className="no-print">
               <Button icon={ARROW_LEFT_ICON_3} onClick={handleVolver}>
                 Volver
               </Button>
-              <Divider type="vertical" />
-              {esAborto() ? (
-                <WarningOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
-              ) : (
-                <MedicineBoxOutlined style={{ fontSize: 24, color: '#722ed1' }} />
-              )}
-              <div>
-                <Title level={4} style={{ margin: 0 }}>
-                  {esAborto() ? 'Registro de Aborto' : 'Registro de Parto'} {paciente && `- ${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`}
-                </Title>
-                <Space>
-                  <Text type="secondary">
-                    {dayjs(parto.fecha_parto).format('DD/MM/YYYY HH:mm')}
-                  </Text>
-                  {paciente?.id_clinico && (
-                    <>
-                      <Divider type="vertical" />
-                      <Tag color="blue">ID: {paciente.id_clinico}</Tag>
-                    </>
-                  )}
-                </Space>
-              </div>
-            </Space>
-          </Col>
-          <Col>
-            <Space>
               <Button icon={PRINTER_ICON_2} onClick={handleImprimir}>
                 Imprimir
               </Button>
@@ -321,14 +301,12 @@ const DetalleParto: React.FC = () => {
                 Eliminar
               </Button>
             </Space>
-          </Col>
-        </Row>
-      </Card>
+      </header>
 
       {/* ALERTAS DE COMPLICACIONES */}
       {(parto.complicaciones_maternas || (rn?.complicaciones_neonatales)) && (
         <Alert
-          message="⚠️ Atención: Complicaciones Registradas"
+          message="Atención: Complicaciones Registradas"
           description={
             <Space direction="vertical">
               {parto.complicaciones_maternas && (
@@ -341,7 +319,6 @@ const DetalleParto: React.FC = () => {
           }
           type="warning"
           showIcon
-          style={{ marginBottom: 16 }}
         />
       )}
 

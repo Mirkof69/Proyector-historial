@@ -10,20 +10,20 @@ export interface Clasificacion {
 }
 
 export const getClasificacionIMC = (imc: number): Clasificacion => {
-  if (imc < 18.5) return { text: 'Bajo peso', color: 'blue' };
-  if (imc < 25) return { text: 'Normal', color: 'green' };
-  if (imc < 30) return { text: 'Sobrepeso', color: 'orange' };
-  if (imc < 35) return { text: 'Obesidad I', color: 'volcano' };
-  if (imc < 40) return { text: 'Obesidad II', color: 'red' };
+  if (imc < 18.5) return { text: 'Bajo peso', color: 'processing' };
+  if (imc < 25) return { text: 'Normal', color: 'success' };
+  if (imc < 30) return { text: 'Sobrepeso', color: 'warning' };
+  if (imc < 35) return { text: 'Obesidad I', color: 'warning' };
+  if (imc < 40) return { text: 'Obesidad II', color: 'error' };
   return { text: 'Obesidad III', color: 'red-inverse' };
 };
 
 export const getClasificacionPresion = (sistolica: number, diastolica: number): Clasificacion => {
   if (sistolica >= 180 || diastolica >= 120) return { text: 'Crisis Hipertensiva', color: 'red-inverse' };
-  if (sistolica >= 140 || diastolica >= 90) return { text: 'Hipertensión Stage 2', color: 'red' };
-  if (sistolica >= 130 || diastolica >= 80) return { text: 'Hipertensión Stage 1', color: 'volcano' };
-  if (sistolica >= 120 && diastolica < 80) return { text: 'Elevada', color: 'orange' };
-  return { text: 'Normal', color: 'green' };
+  if (sistolica >= 140 || diastolica >= 90) return { text: 'Hipertensión Stage 2', color: 'error' };
+  if (sistolica >= 130 || diastolica >= 80) return { text: 'Hipertensión Stage 1', color: 'warning' };
+  if (sistolica >= 120 && diastolica < 80) return { text: 'Elevada', color: 'warning' };
+  return { text: 'Normal', color: 'success' };
 };
 
 export const computarAlertasTriaje = (triaje: TriajeEnfermeria): string[] => {

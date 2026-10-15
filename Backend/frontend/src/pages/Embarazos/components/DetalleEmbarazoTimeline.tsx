@@ -19,7 +19,7 @@ interface DetalleEmbarazoTimelineProps {
 const DetalleEmbarazoTimeline: React.FC<DetalleEmbarazoTimelineProps> = ({
   embarazo, eg, trimestre, diasRestantes, controles, ultimoControl,
 }) => (
-  <Card title={<><CalendarOutlined /> Línea de Tiempo del Embarazo</>} style={{ marginTop: 16 }}>
+  <Card title={<><CalendarOutlined /> Línea de Tiempo del Embarazo</>} className="u-mt-4">
     <Timeline
       mode="left"
       items={[
@@ -46,9 +46,9 @@ const DetalleEmbarazoTimeline: React.FC<DetalleEmbarazoTimelineProps> = ({
           )
         },
         {
-          color: trimestre.color,
+          color: 'blue',
           label: dayjs().format('DD/MM/YYYY'),
-          dot: <ClockCircleOutlined style={{ fontSize: 16 }} />,
+          dot: <ClockCircleOutlined className="u-t-md" />,
           children: (
             <>
               <strong>Edad Gestacional Actual</strong>
@@ -60,7 +60,7 @@ const DetalleEmbarazoTimeline: React.FC<DetalleEmbarazoTimelineProps> = ({
         },
         ...(controles.length > 0 ? [
           {
-            color: 'cyan',
+            color: 'blue',
             label: dayjs(ultimoControl!.fecha_control).format('DD/MM/YYYY'),
             children: (
               <>
@@ -72,7 +72,7 @@ const DetalleEmbarazoTimeline: React.FC<DetalleEmbarazoTimelineProps> = ({
           }
         ] : []),
         {
-          color: 'purple',
+          color: 'gray',
           label: dayjs(embarazo.fecha_probable_parto).format('DD/MM/YYYY'),
           children: (
             <>

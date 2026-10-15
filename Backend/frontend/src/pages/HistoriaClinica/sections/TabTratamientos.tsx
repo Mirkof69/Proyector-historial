@@ -29,7 +29,6 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
               title="Total Tratamientos"
               value={totalTratamientos}
               prefix={<MedicineBoxOutlined />}
-              valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
@@ -38,7 +37,6 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
             <Statistic
               title="Activos"
               value={tratamientosActivos}
-              valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
@@ -47,7 +45,6 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
             <Statistic
               title="Suspendidos"
               value={tratamientosSuspendidos}
-              valueStyle={{ color: '#8c8c8c' }}
             />
           </Card>
         </Col>
@@ -128,7 +125,7 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
                   <Descriptions bordered size="small" column={3}>
                     <Descriptions.Item label="Medicamento Completo" span={3}>
                       <Text strong style={{ fontSize: 16 }}>{record.medicamento}</Text>
-                      {!record.activo && <Tag color="red" style={{ marginLeft: 8 }}>SUSPENDIDO</Tag>}
+                      {!record.activo && <Tag color="error" style={{ marginLeft: 8 }}>SUSPENDIDO</Tag>}
                     </Descriptions.Item>
 
                     <Descriptions.Item label="Dosis Prescrita">
@@ -155,11 +152,11 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
                       <Descriptions.Item label="Fecha de Finalización" span={3}>
                         {dayjs(record.fecha_fin).format('DD/MM/YYYY')}
                         {dayjs(record.fecha_fin).isAfter(dayjs()) ? (
-                          <Tag color="green" style={{ marginLeft: 8 }}>
+                          <Tag color="success" style={{ marginLeft: 8 }}>
                             {dayjs(record.fecha_fin).diff(dayjs(), 'days')} días restantes
                           </Tag>
                         ) : (
-                          <Tag color="red" style={{ marginLeft: 8 }}>Tratamiento finalizado</Tag>
+                          <Tag color="error" style={{ marginLeft: 8 }}>Tratamiento finalizado</Tag>
                         )}
                       </Descriptions.Item>
                     )}
@@ -198,7 +195,7 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
 
                 {/* TRAZABILIDAD */}
                 <Col span={24} style={{ marginTop: 16 }}>
-                  <Card size="small" title="Trazabilidad" style={{ background: '#fafafa' }}>
+                  <Card size="small" title="Trazabilidad" className="historia-trazabilidad">
                     <Space split={verticalDivider} size="large" wrap>
                       <Space direction="vertical" size={0}>
                         <Text type="secondary">Prescrito por:</Text>
@@ -206,7 +203,7 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
                           <UserOutlined /> {record.medico?.nombre || record.medico?.username || 'Sistema'}
                         </Text>
                         {record.medico?.especialidad && (
-                          <Tag color="purple">{record.medico.especialidad}</Tag>
+                          <Tag>{record.medico.especialidad}</Tag>
                         )}
                       </Space>
 
@@ -229,7 +226,7 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
                       {!record.activo && record.fecha_suspension && (
                         <Space direction="vertical" size={0}>
                           <Text type="secondary">Fecha de suspensión:</Text>
-                          <Text strong style={{ color: '#f5222d' }}>
+                          <Text strong type="danger">
                             <CloseCircleOutlined /> {dayjs(record.fecha_suspension).format('DD/MM/YYYY HH:mm:ss')}
                           </Text>
                         </Space>

@@ -17,7 +17,7 @@ const columnsHistorial = [
     dataIndex: 'puntaje',
     key: 'puntaje',
     render: (puntaje: number) => (
-      <Tag color={puntaje >= 8 ? 'green' : puntaje >= 6 ? 'orange' : 'red'}>
+      <Tag color={puntaje >= 8 ? 'success' : puntaje >= 6 ? 'warning' : 'error'}>
         <strong>{puntaje}</strong>
       </Tag>
     ),
@@ -35,7 +35,7 @@ const columnsHistorial = [
 ];
 
 const BishopHistorial: React.FC<{ historial: HistorialBishop[] }> = ({ historial }) => (
-  <Card title="Historial de Evaluaciones" style={{ marginTop: 24 }}>
+  <Card title="Historial de Evaluaciones" className="calc-bloque-arriba">
     <Table
       columns={columnsHistorial}
       dataSource={historial}

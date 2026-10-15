@@ -96,7 +96,7 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
   let interacciones: string[] = [];
   let categoria_fda = '';
   let interpretacion = '';
-  let color = '#52c41a';
+  let color = 'var(--color-exito)';
 
   switch (valores.medicamento) {
     case 'oxitocina':
@@ -139,7 +139,7 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
       precauciones = ['Riesgo rotura uterina', 'Taquisistolia', 'Sufrimiento fetal', 'Fiebre', 'Escalofríos'];
       interacciones = ['Oxitocina (NO usar simultáneamente)', 'NSAIDs (reducen efecto)'];
       interpretacion = 'Misoprostol: Prostaglandina E1. Efectivo para inducción y HPP. NUNCA con oxitocina simultánea.';
-      color = '#fa8c16';
+      color = 'var(--color-aviso)';
       break;
 
     case 'metilergonovina':
@@ -156,7 +156,7 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
       precauciones = ['Monitoreo PA', 'Riesgo crisis hipertensiva', 'Vasoespasmo coronario', 'Náuseas/vómitos'];
       interacciones = ['Inhibidores CYP3A4 (aumentan toxicidad)', 'Vasoconstrictores (potencian efecto)'];
       interpretacion = 'Metilergonovina: Ergotamina. CONTRAINDICADA EN HIPERTENSIÓN. Solo usar tras alumbramiento.';
-      color = '#f5222d';
+      color = 'var(--color-peligro)';
       break;
 
     case 'sulfato_mg':
@@ -171,10 +171,10 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
 
       if (clcr < 20) {
         ajuste_renal = 'CONTRAINDICADO si CLCr <20 mL/min. Riesgo toxicidad severa.';
-        color = '#f5222d';
+        color = 'var(--color-peligro)';
       } else if (clcr < 50) {
         ajuste_renal = 'Reducir dosis 50%. Monitoreo estricto niveles séricos y reflejos.';
-        color = '#fa8c16';
+        color = 'var(--color-aviso)';
       } else {
         ajuste_renal = 'Sin ajuste necesario. Monitoreo de reflejos, FR, diuresis.';
       }
@@ -193,7 +193,7 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
         'Cálculo no disponible para este medicamento — consulte tablas de '
         + 'referencia oficiales (protocolos MSP/OMS). La dosificación '
         + 'automática de este fármaco requiere validación médica pendiente.';
-      color = '#999';
+      color = 'var(--color-texto-3)';
   }
 
   // Agregar alertas según CLCr
@@ -204,10 +204,10 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
 
   // Alerta embarazo
   if (valores.es_embarazada && categoria_fda === 'X') {
-    color = '#f5222d';
+    color = 'var(--color-peligro)';
     contraindicaciones.push('CONTRAINDICADO EN EMBARAZO (FDA X)');
   } else if (valores.es_embarazada && categoria_fda === 'D') {
-    color = '#fa8c16';
+    color = 'var(--color-aviso)';
     precauciones.push('Categoría FDA D - usar solo si beneficio supera riesgo');
   }
 
@@ -233,18 +233,18 @@ export const calcularDosis = (valores: DatosPaciente): ResultadoDosis => {
 export const getDataDosisRango = (resultado: ResultadoDosis | null) => {
   if (!resultado) return [];
   return [
-    { categoria: 'Dosis Mínima', valor: resultado.dosis_min, color: '#52c41a' },
-    { categoria: 'Dosis Calculada', valor: resultado.dosis_calculada, color: '#1890ff' },
-    { categoria: 'Dosis Máxima', valor: resultado.dosis_max, color: '#f5222d' }
+    { categoria: 'Dosis Mínima', valor: resultado.dosis_min, color: 'var(--color-exito)' },
+    { categoria: 'Dosis Calculada', valor: resultado.dosis_calculada, color: 'var(--grafico-1)' },
+    { categoria: 'Dosis Máxima', valor: resultado.dosis_max, color: 'var(--color-peligro)' }
   ].filter(item => item.valor > 0);
 };
 
 export const getDataAlertas = (resultado: ResultadoDosis | null) => {
   if (!resultado) return [];
   return [
-    { tipo: 'Contraindicaciones', cantidad: resultado.contraindicaciones.length, color: '#f5222d' },
-    { tipo: 'Precauciones', cantidad: resultado.precauciones.length, color: '#fa8c16' },
-    { tipo: 'Interacciones', cantidad: resultado.interacciones.length, color: '#faad14' }
+    { tipo: 'Contraindicaciones', cantidad: resultado.contraindicaciones.length, color: 'var(--color-peligro)' },
+    { tipo: 'Precauciones', cantidad: resultado.precauciones.length, color: 'var(--color-aviso)' },
+    { tipo: 'Interacciones', cantidad: resultado.interacciones.length, color: 'var(--color-aviso)' }
   ];
 };
 

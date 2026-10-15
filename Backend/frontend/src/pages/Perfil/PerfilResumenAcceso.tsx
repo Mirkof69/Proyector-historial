@@ -7,9 +7,7 @@ import { Usuario } from './perfilTypes';
 const PerfilResumenAcceso: React.FC<{ user: Usuario }> = ({ user }) => (
   <Card
     title="Información de Acceso"
-    variant="borderless"
-    className="shadow-sm"
-    style={{ marginBottom: 24 }}
+    className="perfil-page__resumen"
   >
     <Descriptions column={1} size="small" bordered>
       <Descriptions.Item label={<><IdcardOutlined /> ID Usuario</>}>

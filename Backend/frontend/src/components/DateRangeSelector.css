@@ -1,59 +1,34 @@
-/**
- * =============================================================================
- * DATE RANGE SELECTOR - TEMA OSCURO
- * =============================================================================
- */
+/* =============================================================================
+   DATE RANGE SELECTOR (components/DateRangeSelector.tsx)
+   ============================================================================= */
 
 .date-range-selector {
-    padding: 16px;
-    background: var(--bg-elevated, #141414);
-    border-radius: 8px;
-    box-shadow: none;
-    border: 1px solid var(--border-subtle, #2a2a2a);
+  padding: var(--esp-4);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
 }
 
 .date-range-presets {
-    margin-bottom: 12px;
+  margin-bottom: var(--esp-3);
 }
 
-.preset-button {
-    transition: all 0.2s ease;
-    border-radius: 6px;
-    background: var(--bg-secondary, #1a1a1a);
-    border-color: var(--border-color, #2a2a2a);
-    color: var(--text-primary, #f9fafb);
+/* Atajo activo: mismo lenguaje que el menú (primario suave + texto primario) */
+.preset-button.active,
+.preset-button.active:hover {
+  background-color: var(--color-primario-suave);
+  border-color: var(--color-primario);
+  color: var(--color-primario);
 }
 
-.preset-button:hover {
-    background: var(--bg-hover, #202020);
-    border-color: var(--primary-color, #5c6bc0);
-    color: var(--text-primary, #f9fafb);
-}
-
-.preset-button.active {
-    background: var(--primary-color, #5c6bc0);
-    border-color: var(--primary-color, #5c6bc0);
-    color: #fff;
-}
-
-.date-range-custom {
-    padding-top: 8px;
-    border-top: 1px solid var(--border-subtle, #2a2a2a);
-}
-
+.date-range-custom,
 .date-range-compare {
-    padding-top: 8px;
-    border-top: 1px solid var(--border-subtle, #2a2a2a);
+  padding-top: var(--esp-2);
+  border-top: 1px solid var(--color-borde-suave);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-    .date-range-selector {
-        padding: 12px;
-    }
-
-    .preset-button {
-        font-size: 12px;
-        padding: 4px 12px;
-    }
+  .date-range-selector {
+    padding: var(--esp-3);
+  }
 }

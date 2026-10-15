@@ -27,6 +27,7 @@ const HistorialDrawer: React.FC<HistorialDrawerProps> = ({
     onClose={onClose}
     open={historialVisible}
     width={700}
+    rootClassName="calculadoras-historial"
     extra={
       <Space>
         <Tooltip title="Descargar historial">
@@ -61,7 +62,7 @@ const HistorialDrawer: React.FC<HistorialDrawerProps> = ({
   >
     {historial.length > 0 ? (
       <>
-        <Alert message="Vista de Tabla" type="info" showIcon style={{ marginBottom: 16 }} />
+        <Alert message="Vista de Tabla" type="info" showIcon className="calculadoras-historial__aviso" />
         <Table
           dataSource={historial}
           rowKey="id"
@@ -119,7 +120,7 @@ const HistorialDrawer: React.FC<HistorialDrawerProps> = ({
             children: (
               <>
                 <p><strong>{item.tipo}</strong></p>
-                <p style={{ fontSize: 12, color: '#666' }}>{item.fecha}</p>
+                <p className="calculadoras-historial__fecha">{item.fecha}</p>
               </>
             ),
             color: 'blue'

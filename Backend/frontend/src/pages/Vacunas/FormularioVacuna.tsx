@@ -215,8 +215,7 @@ const FormularioVacuna: React.FC = () => {
   const viasAdministracion = vacunasService.getViasAdministracion();
 
   return (
-    <div className="animate-fade-in" style={{ padding: '24px' }}>
-      <Card className="shadow-card overflow-hidden">
+    <div className="vacunas-page page-container">
         <FormularioVacunaHeader
           esEdicion={!!id}
           submitting={submitting}
@@ -225,7 +224,7 @@ const FormularioVacuna: React.FC = () => {
         />
 
         {loading ? (
-          <Skeleton active paragraph={{ rows: 12 }} style={{ padding: '24px' }} />
+          <Card><Skeleton active paragraph={{ rows: 12 }} /></Card>
         ) : (
           <Form
             form={form}
@@ -236,7 +235,6 @@ const FormularioVacuna: React.FC = () => {
               numero_dosis: 1,
               via_administracion: 'intramuscular',
             }}
-            className="premium-form"
           >
             <Row gutter={24}>
               <Col xs={24} lg={16}>
@@ -264,7 +262,6 @@ const FormularioVacuna: React.FC = () => {
             </Row>
           </Form>
         )}
-      </Card>
     </div>
   );
 };

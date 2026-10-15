@@ -1,0 +1,226 @@
+/* =============================================================================
+   LAYOUT — armazón de la aplicación (menú lateral, cabecera, contenido, pie)
+   =============================================================================
+   Componentes: src/components/layout/{MainLayout,SidebarContent,LayoutHeader,
+   NotificationDropdown}.tsx. Los colores del Menu, Layout y Drawer vienen de
+   los tokens de Ant Design; aquí solo estructura y piezas propias.
+   ============================================================================= */
+
+/* ---------- Menú lateral ---------- */
+.app-sider.ant-layout-sider {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  z-index: 10;
+  border-inline-end: 1px solid var(--color-borde);
+}
+
+.app-sider .ant-menu-inline,
+.app-sider .ant-menu-vertical,
+.app-drawer .ant-menu-inline {
+  border-inline-end: 0;
+}
+
+.sidebar-logo-container {
+  height: var(--alto-cabecera);
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: 0 var(--esp-5);
+  border-bottom: 1px solid var(--color-borde);
+  background-color: var(--color-superficie);
+}
+
+.sidebar-logo-container--colapsado {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar-logo-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radio);
+  background-color: var(--color-primario);
+  color: var(--color-sobre-primario);
+  font-size: var(--texto-md);
+}
+
+.sidebar-logo-text {
+  color: var(--color-texto);
+  font-size: var(--texto-md);
+  font-weight: var(--peso-fuerte);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Etiquetas de grupo del menú: pequeñas y discretas */
+.app-sider .ant-menu-item-group-title,
+.app-drawer .ant-menu-item-group-title {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+  letter-spacing: 0.02em;
+  color: var(--color-texto-3);
+}
+
+/* ---------- Cabecera ---------- */
+.site-header.ant-layout-header {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  height: var(--alto-cabecera);
+  line-height: var(--alto-cabecera);
+  padding: 0 var(--esp-4);
+  background-color: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.site-header__acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.site-header__boton.ant-btn {
+  width: 36px;
+  height: 36px;
+  font-size: var(--texto-md);
+}
+
+.user-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-1) var(--esp-3) var(--esp-1) var(--esp-1);
+  border-radius: var(--radio);
+  border: 1px solid transparent;
+  cursor: pointer;
+  line-height: 1.2;
+  transition: background-color var(--duracion) var(--curva), border-color var(--duracion) var(--curva);
+}
+
+.user-dropdown-trigger:hover,
+.user-dropdown-trigger:focus-visible {
+  background-color: var(--color-hover);
+  border-color: var(--color-borde);
+}
+
+.user-dropdown-trigger__avatar.ant-avatar {
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+}
+
+.user-dropdown-trigger__datos {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-dropdown-trigger__nombre {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+.user-dropdown-trigger__rol {
+  font-size: var(--texto-xs);
+  color: var(--color-texto-2);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 576px) {
+  .user-dropdown-trigger__datos {
+    display: none;
+  }
+}
+
+/* ---------- Contenido y pie ---------- */
+.app-content.ant-layout-content {
+  margin: var(--esp-5) var(--esp-4);
+  min-height: 280px;
+  position: relative;
+  min-width: 0; /* deja que las tablas anchas se desplacen dentro */
+}
+
+.page-content-fade {
+  animation: fadeIn var(--duracion-lenta) var(--curva);
+}
+
+.app-footer.ant-layout-footer {
+  padding: var(--esp-4) 0;
+  text-align: center;
+  font-size: var(--texto-xs);
+  color: var(--color-texto-3);
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .app-content.ant-layout-content {
+    margin: var(--esp-4) var(--esp-3);
+  }
+}
+
+/* ---------- Panel de notificaciones (desplegable de la campana) ---------- */
+.notif-panel {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  max-height: 500px;
+  overflow: auto;
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-flotante);
+}
+
+.notif-panel__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: 1px solid var(--color-borde-suave);
+}
+
+.notif-panel__vacio {
+  padding: var(--esp-5);
+  text-align: center;
+}
+
+.notif-panel .ant-list-item.notif-panel__item {
+  padding: var(--esp-3) var(--esp-4);
+  cursor: pointer;
+}
+
+.notif-panel__item--no-leida {
+  background-color: var(--color-primario-suave);
+}
+
+.notif-panel__icono {
+  font-size: var(--texto-lg);
+  color: var(--color-texto-2);
+}
+
+.notif-panel__icono--info { color: var(--color-info); }
+.notif-panel__icono--warning { color: var(--color-aviso); }
+.notif-panel__icono--success { color: var(--color-exito); }
+.notif-panel__icono--error { color: var(--color-peligro); }
+
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+}
+
+.notif-badge--normal .ant-badge-count {
+  background-color: var(--color-aviso);
+}
+
+.notif-badge--urgente .ant-badge-count {
+  background-color: var(--color-peligro);
+}

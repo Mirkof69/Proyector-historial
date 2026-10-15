@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Button, Dropdown, Avatar, Space } from 'antd';
+import { Layout, Button, Dropdown, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   MenuUnfoldOutlined, MenuFoldOutlined, BgColorsOutlined, UserOutlined,
@@ -16,76 +16,68 @@ interface LayoutHeaderProps {
   user: any;
   themeMenuItems: MenuProps['items'];
   userMenuItems: MenuProps['items'];
-  textColor: string;
-  primaryColor: string;
 }
 
+/** Cabecera: botón del menú lateral a la izquierda; tema, avisos y perfil a la derecha. */
 const LayoutHeader: React.FC<LayoutHeaderProps> = ({
   isMobile, collapsed, onToggleCollapsed, onOpenMobileDrawer,
-  user, themeMenuItems, userMenuItems, textColor, primaryColor,
+  user, themeMenuItems, userMenuItems,
 }) => (
-  <Header className="site-layout-background site-header">
+  <Header className="site-header">
     {/* IZQUIERDA: TRIGGER SIDEBAR */}
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      {isMobile ? (
-        <Button
-          type="text"
-          icon={<MenuUnfoldOutlined />}
-          onClick={onOpenMobileDrawer}
-          style={{ fontSize: '18px', width: 46, height: 46 }}
-          aria-label="Abrir menu de navegacion"
-        />
-      ) : (
-        <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={onToggleCollapsed}
-          style={{ fontSize: '18px', width: 46, height: 46 }}
-          aria-label={collapsed ? 'Expandir menu lateral' : 'Colapsar menu lateral'}
-        />
-      )}
-
-      <span style={{ marginLeft: 16, fontSize: 16, fontWeight: 500, color: textColor }} />
-    </div>
+    {isMobile ? (
+      <Button
+        type="text"
+        className="site-header__boton"
+        icon={<MenuUnfoldOutlined />}
+        onClick={onOpenMobileDrawer}
+        aria-label="Abrir menu de navegacion"
+      />
+    ) : (
+      <Button
+        type="text"
+        className="site-header__boton"
+        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        onClick={onToggleCollapsed}
+        aria-label={collapsed ? 'Expandir menu lateral' : 'Colapsar menu lateral'}
+      />
+    )}
 
     {/* DERECHA: HERRAMIENTAS Y PERFIL */}
-    <Space size="large">
+    <div className="site-header__acciones">
       {/* Selector de Tema */}
-      <Dropdown menu={{ items: themeMenuItems }} placement="bottomRight" arrow>
-        <Button type="text" icon={<BgColorsOutlined />} shape="circle" />
+      <Dropdown menu={{ items: themeMenuItems }} placement="bottomRight">
+        <Button
+          type="text"
+          className="site-header__boton"
+          icon={<BgColorsOutlined />}
+          aria-label="Tema y tamaño de texto"
+        />
       </Dropdown>
 
       {/* Notificaciones */}
       <NotificationDropdown />
 
       {/* Perfil de Usuario */}
-      <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          cursor: 'pointer',
-          padding: '4px 12px',
-          borderRadius: 20,
-          background: 'rgba(0,0,0,0.04)',
-          transition: 'background 0.3s, transform 0.3s'
-        }} className="user-dropdown-trigger">
+      <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+        <div className="user-dropdown-trigger">
           <Avatar
             size="small"
+            className="user-dropdown-trigger__avatar"
             src={user?.foto_perfil}
             icon={<UserOutlined />}
-            style={{ backgroundColor: primaryColor || '#1890ff', marginRight: 8 }}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2', marginRight: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: textColor }}>
+          <div className="user-dropdown-trigger__datos">
+            <span className="user-dropdown-trigger__nombre">
               {user?.nombre || 'Usuario'}
             </span>
-            <span style={{ fontSize: 12, color: '#999' }}>
+            <span className="user-dropdown-trigger__rol">
               {user?.rol?.toUpperCase() || 'INVITADO'}
             </span>
           </div>
         </div>
       </Dropdown>
-    </Space>
+    </div>
   </Header>
 );
 

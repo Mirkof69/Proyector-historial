@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Row, Col, Card, Typography, Form, Input, Select, Button } from 'antd';
 import { useAntdApp } from '../../../hooks/useMessage';
-import { PhoneOutlined, MailOutlined, CheckCircleOutlined, SendOutlined } from '@ant-design/icons';
+import { PhoneOutlined, MailOutlined, SendOutlined } from '@ant-design/icons';
 import { soporteService } from '../../../services/soporteService';
 
 const { Title, Paragraph, Text } = Typography;
@@ -26,7 +26,6 @@ const AyudaSoporteTecnico: React.FC<AyudaSoporteTecnicoProps> = ({ form }) => {
       });
       message.success({
         content: '¡Ticket enviado con éxito! Un técnico lo contactará pronto.',
-        icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
         duration: 5,
       });
       form.resetFields();
@@ -38,7 +37,7 @@ const AyudaSoporteTecnico: React.FC<AyudaSoporteTecnicoProps> = ({ form }) => {
   };
 
   return (
-    <Row gutter={48} style={{ padding: 20 }}>
+    <Row gutter={[48, 24]} className="ayuda-page__seccion">
       <Col xs={24} md={12}>
         <Title level={3}>¿Necesitas ayuda especializada?</Title>
         <Paragraph>
@@ -46,20 +45,18 @@ const AyudaSoporteTecnico: React.FC<AyudaSoporteTecnicoProps> = ({ form }) => {
           por favor completa el formulario. El equipo de TI responderá en menos de 24 horas.
         </Paragraph>
 
-        <div style={{ marginTop: 40 }}>
-          <div style={{ display: 'flex', marginBottom: 24 }}>
-            <PhoneOutlined style={{ fontSize: 24, color: '#1890ff', marginRight: 16 }} />
-            <div>
+        <div className="ayuda-page__contactos">
+          <div className="ayuda-page__contacto">
+            <PhoneOutlined />
+            <div className="ayuda-page__contacto-datos">
               <Text strong>Línea Directa TI</Text>
-              <br />
-              <Text type="secondary">+591 2 222-3333 (Int. 105)</Text>
+              <Text type="secondary" className="tabular-nums">+591 2 222-3333 (Int. 105)</Text>
             </div>
           </div>
-          <div style={{ display: 'flex' }}>
-            <MailOutlined style={{ fontSize: 24, color: '#1890ff', marginRight: 16 }} />
-            <div>
+          <div className="ayuda-page__contacto">
+            <MailOutlined />
+            <div className="ayuda-page__contacto-datos">
               <Text strong>Correo Electrónico</Text>
-              <br />
               <Text type="secondary">soporte@fetalmedical.com</Text>
             </div>
           </div>
@@ -67,7 +64,7 @@ const AyudaSoporteTecnico: React.FC<AyudaSoporteTecnicoProps> = ({ form }) => {
       </Col>
 
       <Col xs={24} md={12}>
-        <Card title="Crear Ticket de Soporte" bordered className="shadow-sm">
+        <Card title="Crear Ticket de Soporte">
           <Form form={form} layout="vertical" onFinish={onFinishTicket}>
             <Form.Item name="asunto" label="Asunto" rules={[{ required: true, message: 'Por favor ingrese un asunto' }]}>
               <Input placeholder="Ej: Error al guardar ecografía" />
@@ -96,7 +93,7 @@ const AyudaSoporteTecnico: React.FC<AyudaSoporteTecnicoProps> = ({ form }) => {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sendingTicket} block size="large">
+              <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sendingTicket} block>
                 Enviar Solicitud
               </Button>
             </Form.Item>

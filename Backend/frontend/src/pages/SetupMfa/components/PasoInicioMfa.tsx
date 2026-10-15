@@ -10,18 +10,18 @@ interface PasoInicioMfaProps {
 }
 
 const PasoInicioMfa: React.FC<PasoInicioMfaProps> = ({ loading, onComenzar }) => (
-  <div style={{ textAlign: 'center' }}>
+  <div className="setup-mfa__paso">
     <Alert
       message="¿Por qué necesito MFA?"
       description="Como médico o administrador, accede a datos clínicos sensibles. MFA añade una segunda capa de seguridad que protege a sus pacientes."
       type="info"
       showIcon
-      style={{ marginBottom: 24, textAlign: 'left' }}
+      className="setup-mfa__bloque"
     />
     <Paragraph>
       Necesitará instalar <strong>Google Authenticator</strong> o <strong>Authy</strong> en su teléfono.
     </Paragraph>
-    <Space direction="vertical" style={{ width: '100%' }}>
+    <Space direction="vertical" className="setup-mfa__ancho">
       <Button
         type="primary"
         size="large"
@@ -29,7 +29,6 @@ const PasoInicioMfa: React.FC<PasoInicioMfaProps> = ({ loading, onComenzar }) =>
         icon={<QrcodeOutlined />}
         loading={loading}
         onClick={onComenzar}
-        style={{ borderRadius: 8 }}
       >
         Comenzar configuración
       </Button>

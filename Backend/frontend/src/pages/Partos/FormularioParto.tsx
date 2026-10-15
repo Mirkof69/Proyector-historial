@@ -20,8 +20,9 @@ import { SeccionAborto } from './sections/SeccionAborto';
 import { SeccionParto } from './sections/SeccionParto';
 import { SeccionRecienNacido } from './sections/SeccionRecienNacido';
 import { AlertasYRecomendaciones } from './components/AlertasYRecomendaciones';
+import './Partos.css';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const ARROW_LEFT_ICON_6 = <ArrowLeftOutlined />;
 const CLOSE_ICON_3 = <CloseOutlined />;
@@ -267,21 +268,23 @@ const FormularioParto: React.FC = () => {
     }
   };
 
-  if (loadingDataRef.current) return <div style={{ textAlign: 'center', padding: '100px' }}><Spin size="large" tip="Cargando…"><div /></Spin></div>;
+  if (loadingDataRef.current) return <div className="partos-page__cargando"><Spin size="large" tip="Cargando…"><div /></Spin></div>;
 
   return (
-    <div>
-      <Button icon={ARROW_LEFT_ICON_6} onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>Volver</Button>
-      <Card
-        title={
-          <Space>
-            <Badge count={esAborto ? 'Aborto' : 'Parto'} style={{ backgroundColor: esAborto ? '#ff4d4f' : '#52c41a' }}>
-              {tipoEvento === 'aborto' ? <WarningOutlined style={{ color: '#ff4d4f', fontSize: 24 }} /> : <HeartOutlined style={{ fontSize: 24 }} />}
+    <div className="partos-page page-container">
+      <header className="partos-page__cabecera">
+        <div>
+          <Title level={2}>{modoEdicion ? 'Editar' : 'Registro de'} {tipoEvento === 'aborto' ? 'Aborto' : 'Parto'}</Title>
+          <div className="partos-page__meta">
+            <Badge className={`partos-evento ${esAborto ? 'partos-evento--aborto' : 'partos-evento--parto'}`} count={esAborto ? 'Aborto' : 'Parto'}>
+              {tipoEvento === 'aborto' ? <WarningOutlined className="partos-evento__icono partos-peligro" /> : <HeartOutlined className="partos-evento__icono" />}
             </Badge>
-            <Title level={4} style={{ margin: 0 }}>{modoEdicion ? 'Editar' : 'Registro de'} {tipoEvento === 'aborto' ? 'Aborto' : 'Parto'}</Title>
-          </Space>
-        }
-      >
+            <Text type="secondary">Datos del evento obstétrico, del parto y del recién nacido.</Text>
+          </div>
+        </div>
+        <Button icon={ARROW_LEFT_ICON_6} onClick={() => navigate(-1)}>Volver</Button>
+      </header>
+      <Card>
         <Form form={form} layout="vertical" onFinish={handleSave} initialValues={{ tipo_parto: 'vaginal_espontaneo', parto_finalizado: true }}>
           <SeccionEmbarazoEvento
             embarazoId={embarazoId}
@@ -302,7 +305,7 @@ const FormularioParto: React.FC = () => {
             </>
           )}
 
-          <div style={{ marginTop: 24, textAlign: 'right' }}>
+          <div className="partos-acciones-formulario">
             <Space>
               <Button onClick={() => navigate(-1)} icon={CLOSE_ICON_3}>Cancelar</Button>
               <Button type="primary" htmlType="submit" icon={SAVE_ICON_5} loading={loading}>Guardar</Button>

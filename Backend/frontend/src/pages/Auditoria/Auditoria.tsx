@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Typography, Spin, Input, Row, Col, Statistic } from 'antd';
+import { Card, Table, Tag, Button, Space, Typography, Spin, Input, Statistic } from 'antd';
 import {
-  SearchOutlined, ReloadOutlined, AuditOutlined,
+  SearchOutlined, ReloadOutlined,
   FileTextOutlined, ClockCircleOutlined, TeamOutlined, AppstoreOutlined,
   FileExcelOutlined,
 } from '@ant-design/icons';
@@ -9,7 +9,9 @@ import dayjs from 'dayjs';
 import api from '../../services/api';
 import { descargarArchivo } from '../../utils/descargarArchivo';
 
-const { Text } = Typography;
+import './Auditoria.css';
+
+const { Text, Title } = Typography;
 
 interface AuditoriaUsuario {
   id: number;
@@ -42,18 +44,12 @@ interface EstadisticaModulo {
   deletes: number;
 }
 
+// Color solo donde la acción es un estado que hay que ver (fallos, bajas);
+// el resto va en la etiqueta neutra.
 const accionColors: Record<string, string> = {
-  LOGIN: 'purple',
-  LOGOUT: 'default',
-  LOGIN_FALLIDO: 'red',
-  CREAR: 'green',
-  crear: 'green',
-  EDITAR: 'blue',
-  actualizar: 'blue',
-  VER: 'cyan',
-  DESACTIVAR: 'orange',
-  eliminar: 'red',
-  EXPORTAR: 'gold',
+  LOGIN_FALLIDO: 'error',
+  DESACTIVAR: 'warning',
+  eliminar: 'error',
 };
 
 const moduloColumns = [
@@ -108,29 +104,26 @@ const Auditoria: React.FC = () => {
         <Tag color={accionColors[record.accion] || 'default'}>{v || record.accion}</Tag>
       ),
     },
-    { title: 'Módulo', dataIndex: 'modulo', key: 'modulo', render: (v: string) => <Tag color="geekblue">{v || '-'}</Tag> },
+    { title: 'Módulo', dataIndex: 'modulo', key: 'modulo', render: (v: string) => <Tag>{v || '-'}</Tag> },
     { title: 'Fecha', dataIndex: 'fecha', key: 'fecha', render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY HH:mm:ss') : '-' },
   ];
 
   return (
-    <div className="page-container" style={{ padding: 24 }}>
+    <div className="auditoria-page page-container">
+      <header className="auditoria-page__cabecera">
+        <Title level={2}>Auditoría</Title>
+        <Text type="secondary">Quién hizo qué y cuándo en el sistema. Los registros no se pueden modificar.</Text>
+      </header>
       <Spin spinning={loading}>
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={6}>
-            <Card><Statistic title="Total de registros" value={stats?.total_registros ?? 0} prefix={<FileTextOutlined />} /></Card>
-          </Col>
-          <Col span={6}>
-            <Card><Statistic title="Últimas 24 horas" value={stats?.ultimas_24h ?? 0} prefix={<ClockCircleOutlined />} /></Card>
-          </Col>
-          <Col span={6}>
-            <Card><Statistic title="Usuarios activos" value={stats?.usuarios_activos ?? 0} prefix={<TeamOutlined />} /></Card>
-          </Col>
-          <Col span={6}>
-            <Card><Statistic title="Módulos activos" value={stats?.modulos_activos ?? 0} prefix={<AppstoreOutlined />} /></Card>
-          </Col>
-        </Row>
+        <div className="auditoria-page__contenido">
+        <div className="auditoria-page__cifras">
+          <Card size="small"><Statistic title={<><FileTextOutlined />Total de registros</>} value={stats?.total_registros ?? 0} /></Card>
+          <Card size="small"><Statistic title={<><ClockCircleOutlined />Últimas 24 horas</>} value={stats?.ultimas_24h ?? 0} /></Card>
+          <Card size="small"><Statistic title={<><TeamOutlined />Usuarios activos</>} value={stats?.usuarios_activos ?? 0} /></Card>
+          <Card size="small"><Statistic title={<><AppstoreOutlined />Módulos activos</>} value={stats?.modulos_activos ?? 0} /></Card>
+        </div>
 
-        <Card title="Actividad por módulo" style={{ marginBottom: 16 }}>
+        <Card title="Actividad por módulo">
           <Table
             columns={moduloColumns}
             dataSource={statsModulo}
@@ -142,16 +135,16 @@ const Auditoria: React.FC = () => {
         </Card>
 
         <Card
-          title={<span><AuditOutlined style={{ marginRight: 8 }} />Registros recientes</span>}
+          title="Registros recientes"
           extra={
-            <Space>
+            <Space wrap>
               <Input
                 placeholder="Buscar por usuario o módulo..."
                 prefix={<SearchOutlined />}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 onPressEnter={() => cargarTodo(search)}
-                style={{ width: 250 }}
+                className="auditoria-page__buscar"
                 allowClear
               />
               <Button icon={<ReloadOutlined />} onClick={() => cargarTodo(search)} loading={loading}>Recargar</Button>
@@ -169,8 +162,10 @@ const Auditoria: React.FC = () => {
             rowKey="id"
             pagination={{ pageSize: 20, showTotal: (t) => `Total ${t} registros` }}
             locale={{ emptyText: 'No hay registros de auditoría' }}
+            scroll={{ x: 640 }}
           />
         </Card>
+        </div>
       </Spin>
     </div>
   );

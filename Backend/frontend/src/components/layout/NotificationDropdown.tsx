@@ -8,7 +8,10 @@
 
 import React, { useState } from 'react';
 import { Badge, Dropdown, List, Button, Typography, Space, Tag, Empty, Spin } from 'antd';
-import { BellOutlined } from '@ant-design/icons';
+import {
+  BellOutlined, InfoCircleOutlined, WarningOutlined, CheckCircleOutlined,
+  CloseCircleOutlined, NotificationOutlined,
+} from '@ant-design/icons';
 import { Notificacion } from '../../services/notificacionesService';
 import { useNotifications } from '../../contexts/NotificationsContext';
 import dayjs from 'dayjs';
@@ -30,15 +33,18 @@ const getTipoColor = (tipo: string): string => {
   return colors[tipo] || 'default';
 };
 
-const getTipoIcon = (tipo: string): string => {
-  const icons: Record<string, string> = {
-    info: 'ℹ️',
-    warning: '⚠️',
-    success: '✅',
-    error: '❌',
-  };
-  return icons[tipo] || '📢';
+const TIPO_ICONO: Record<string, React.ReactNode> = {
+  info: <InfoCircleOutlined />,
+  warning: <WarningOutlined />,
+  success: <CheckCircleOutlined />,
+  error: <CloseCircleOutlined />,
 };
+
+const getTipoIcon = (tipo: string): React.ReactNode => (
+  <span className={`notif-panel__icono notif-panel__icono--${tipo}`} aria-hidden="true">
+    {TIPO_ICONO[tipo] ?? <NotificationOutlined />}
+  </span>
+);
 
 /**
  * La campana del encabezado.
@@ -78,8 +84,8 @@ const NotificationDropdown: React.FC = () => {
   };
 
   const menuContent = (
-    <div style={{ width: 380, maxHeight: 500, overflow: 'auto' }}>
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="notif-panel">
+      <div className="notif-panel__cabecera">
         <Text strong>Notificaciones</Text>
         {noLeidas > 0 && (
           <Button type="link" size="small" onClick={handleMarcarTodasLeidas}>
@@ -89,11 +95,11 @@ const NotificationDropdown: React.FC = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 24 }}>
+        <div className="notif-panel__vacio">
           <Spin />
         </div>
       ) : notificaciones.length === 0 ? (
-        <div style={{ padding: 24 }}>
+        <div className="notif-panel__vacio">
           <Empty description="No hay notificaciones" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         </div>
       ) : (
@@ -101,23 +107,19 @@ const NotificationDropdown: React.FC = () => {
           dataSource={notificaciones}
           renderItem={(item) => (
             <List.Item
-              style={{
-                backgroundColor: item.leida ? 'transparent' : '#f0f5ff',
-                cursor: 'pointer',
-                padding: '12px 16px',
-              }}
+              className={`notif-panel__item${item.leida ? '' : ' notif-panel__item--no-leida'}`}
               onClick={() => !item.leida && handleMarcarLeida(item.id)}
             >
               <List.Item.Meta
                 avatar={
                   <Badge dot={!item.leida}>
-                    <span style={{ fontSize: 18 }}>{getTipoIcon(item.tipo)}</span>
+                    {getTipoIcon(item.tipo)}
                   </Badge>
                 }
                 title={
                   <Space>
-                    <Text strong style={{ fontSize: 14 }}>{item.titulo}</Text>
-                    <Tag color={getTipoColor(item.tipo)} style={{ fontSize: 12 }}>
+                    <Text strong>{item.titulo}</Text>
+                    <Tag color={getTipoColor(item.tipo)}>
                       {item.tipo.toUpperCase()}
                     </Tag>
                   </Space>
@@ -149,9 +151,14 @@ const NotificationDropdown: React.FC = () => {
       open={open}
       onOpenChange={handleOpenChange}
       placement="bottomRight"
-      arrow
     >
-      <Button type="text" shape="circle" icon={<BellOutlined />} style={{ position: 'relative' }}>
+      <Button
+        type="text"
+        className="site-header__boton"
+        icon={<BellOutlined />}
+        style={{ position: 'relative' }}
+        aria-label={noLeidas > 0 ? `Notificaciones: ${noLeidas} pendientes` : 'Notificaciones'}
+      >
         {noLeidas > 0 && (
           <Badge
             count={noLeidas}
@@ -165,12 +172,7 @@ const NotificationDropdown: React.FC = () => {
                 ? `${noLeidas} pendientes, ${urgentes} urgentes`
                 : `${noLeidas} pendientes`
             }
-            style={{
-              position: 'absolute',
-              top: -4,
-              right: -4,
-              backgroundColor: urgentes > 0 ? '#ff4d4f' : '#fa8c16',
-            }}
+            className={`notif-badge ${urgentes > 0 ? 'notif-badge--urgente' : 'notif-badge--normal'}`}
           />
         )}
       </Button>

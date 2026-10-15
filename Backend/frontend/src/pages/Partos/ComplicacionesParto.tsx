@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Table, Tag, Typography, Alert } from 'antd';
 import { WarningOutlined } from '@ant-design/icons';
+import './Partos.css';
 
 const { Text } = Typography;
 
@@ -20,7 +21,8 @@ const data: Complicacion[] = [
   { key: '5', tipo: 'Laceración Cervical', descripcion: 'Laceración menor en cuello uterino', severidad: 'baja', manejo: 'Observación y sutura si es necesario' },
 ];
 
-const severidadColor = { baja: 'blue', media: 'orange', alta: 'red', critica: 'magenta' };
+// Color de Tag por token: la severidad es un estado.
+const severidadColor = { baja: 'default', media: 'warning', alta: 'error', critica: 'error' };
 
 const ComplicacionesParto: React.FC = () => {
   const columns = [
@@ -36,13 +38,13 @@ const ComplicacionesParto: React.FC = () => {
   const criticas = data.filter(c => c.severidad === 'critica' || c.severidad === 'alta');
 
   return (
-    <Card title={<span><WarningOutlined style={{ color: '#ff4d4f', marginRight: 8 }} />Complicaciones del Parto</span>}>
+    <Card title={<span><WarningOutlined className="partos-icono-titulo partos-peligro" />Complicaciones del Parto</span>}>
       {criticas.length > 0 && (
         <Alert
           message={`${criticas.length} complicaciones de severidad alta o crítica detectadas`}
           type="error"
           showIcon
-          style={{ marginBottom: 16 }}
+          className="partos-separado"
         />
       )}
       <Table columns={columns} dataSource={data} rowKey="key" pagination={false} bordered />

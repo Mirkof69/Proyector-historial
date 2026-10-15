@@ -18,6 +18,8 @@ import {
 import dayjs from 'dayjs';
 import { Cita } from '../../services/citasService';
 
+import './Citas.css';
+
 const { Title, Text } = Typography;
 
 interface FichaCitaProps {
@@ -26,12 +28,12 @@ interface FichaCitaProps {
 
 const getEstadoColor = (estado: string): string => {
   const colors: Record<string, string> = {
-    agendada: 'blue',
-    confirmada: 'green',
-    en_espera: 'orange',
-    en_consulta: 'purple',
-    completada: 'cyan',
-    cancelada: 'red',
+    agendada: 'default',
+    confirmada: 'processing',
+    en_espera: 'warning',
+    en_consulta: 'processing',
+    completada: 'success',
+    cancelada: 'error',
     no_asistio: 'default',
   };
   return colors[estado] || 'default';
@@ -49,9 +51,9 @@ const getTipoCitaLabel = (tipo: string): string => {
 
 export const FichaCita: React.FC<FichaCitaProps> = ({ cita }) => {
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ textAlign: 'center', marginBottom: 24, padding: 16, background: '#f5f5f5' }}>
-        <Title level={4} style={{ margin: 0 }}>
+    <div className="citas-ficha">
+      <div className="citas-ficha__cabecera">
+        <Title level={4}>
           Ficha de Cita Médica
         </Title>
         <Text type="secondary">Comprobante de programación</Text>
@@ -112,8 +114,8 @@ export const FichaCita: React.FC<FichaCitaProps> = ({ cita }) => {
 
         <Divider />
 
-        <div style={{ textAlign: 'center' }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
+        <div className="citas-ficha__pie">
+          <Text type="secondary">
             Fecha de registro: {cita.fecha_creacion ? dayjs(cita.fecha_creacion).format('DD/MM/YYYY HH:mm') : '-'}
           </Text>
         </div>

@@ -1,53 +1,154 @@
-/* ===================================================================== */
-/* ALERTAS MÉDICAS - ESTILOS */
-/* ===================================================================== */
+/* Alertas médicas, sistema de alertas, configuración y detalle
+   — contrato: docs/DISENO_INTERFAZ.md */
 
 .alertas-page {
-  animation: fadeIn 0.5s ease-in;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  min-width: 0;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.alertas-page__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-4);
 }
 
-/* Tarjetas de estadísticas */
-.alertas-page .stat-card {
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.alertas-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
 }
 
-.alertas-page .stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+.alertas-page__cargando {
+  padding: var(--esp-6);
+  text-align: center;
 }
 
-/* Filas críticas en tabla */
-.alerta-critica-row {
-  background-color: #fff1f0 !important;
+/* ---------- Cifras ---------- */
+.alertas-page__cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--esp-4);
 }
 
-.alerta-critica-row:hover {
-  background-color: #ffe7e6 !important;
+.alertas-page__cifras .ant-statistic-title {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-weight: var(--peso-medio);
 }
 
-/* Animación de pulso para alertas críticas */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
+.alertas-page__cifras .ant-statistic-title .anticon {
+  color: var(--color-texto-3);
 }
 
-.alerta-critica-row td {
-  animation: pulse 2s infinite;
+.alertas-page__cifras .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+}
+
+/* Cifras que son un estado */
+.alertas-page__cifra--peligro .ant-statistic-content {
+  color: var(--color-peligro);
+}
+
+.alertas-page__cifra--aviso .ant-statistic-content {
+  color: var(--color-aviso);
+}
+
+/* ---------- Gráficas ---------- */
+.alertas-page__graficas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--esp-4);
+}
+
+.alertas-page__graficas--ancha {
+  grid-template-columns: 1fr;
+}
+
+/* ---------- Filtros ---------- */
+.alertas-page__buscar {
+  width: 300px;
+  max-width: 100%;
+}
+
+.alertas-page__selector {
+  width: 170px;
+}
+
+.alertas-page__control {
+  width: 100%;
+}
+
+.alertas-page__fila-filtros {
+  margin-bottom: var(--esp-4);
+}
+
+/* ---------- Tabla ---------- */
+.alertas-page .alerta-critica-row > td {
+  background-color: var(--color-peligro-suave);
+}
+
+.alertas-page .alerta-critica-row:hover > td {
+  background-color: var(--color-peligro-suave);
+}
+
+.alertas-page__titulo-fila {
+  font-weight: var(--peso-medio);
+}
+
+/* ---------- Avatar del nivel de alerta ---------- */
+.alerta-nivel.ant-avatar {
+  background-color: var(--color-superficie-2);
+  color: var(--color-texto-2);
+  border: 1px solid var(--color-borde);
+}
+
+.alerta-nivel--critica.ant-avatar,
+.alerta-nivel--alta.ant-avatar {
+  background-color: var(--color-peligro-suave);
+  color: var(--color-peligro);
+  border-color: var(--color-peligro-borde);
+}
+
+.alerta-nivel--media.ant-avatar {
+  background-color: var(--color-aviso-suave);
+  color: var(--color-aviso);
+  border-color: var(--color-aviso-borde);
+}
+
+.alerta-nivel--baja.ant-avatar {
+  background-color: var(--color-info-suave);
+  color: var(--color-info);
+  border-color: var(--color-info-borde);
+}
+
+/* ---------- Detalle (cajón, modal y pantalla) ---------- */
+.alerta-detalle__bloque {
+  margin-top: var(--esp-5);
+}
+
+.alerta-detalle__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  margin-top: var(--esp-5);
+}
+
+.alerta-detalle__fecha {
+  font-size: var(--texto-xs);
+  color: var(--color-texto-3);
+}
+
+.alerta-detalle__origen {
+  font-size: var(--texto-xs);
+}
+
+.alerta-detalle__aviso.ant-alert {
+  margin-bottom: var(--esp-4);
+}
+
+.alertas-page__formulario {
+  max-width: 600px;
 }

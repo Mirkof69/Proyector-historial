@@ -15,6 +15,7 @@ import StatsCards from './components/StatsCards';
 import SearchBar from './components/SearchBar';
 import AntecedentesFormFields from './components/AntecedentesFormFields';
 import { incluyeTexto } from '../../utils/texto';
+import './Antecedentes.css';
 
 dayjs.locale(es);
 
@@ -140,7 +141,7 @@ const Antecedentes: React.FC = () => {
       render: (_: any, record: any) => {
         const formula = record.formula_obstetrica ||
           `G${record.gestas ?? 0}P${record.partos ?? 0}A${record.abortos ?? 0}C${record.cesareas ?? 0}`;
-        return <Tag color="blue">{formula}</Tag>;
+        return <Tag>{formula}</Tag>;
       },
     },
     { title: 'Gestas', dataIndex: 'gestas', render: (val: number) => val ?? '-' },
@@ -150,7 +151,7 @@ const Antecedentes: React.FC = () => {
     {
       title: 'Ciclos', dataIndex: 'ciclos_menstruales',
       render: (val: string) => {
-        const colors: Record<string, string> = { regular: 'green', irregular: 'orange', amenorrea: 'red' };
+        const colors: Record<string, string> = { regular: 'success', irregular: 'warning', amenorrea: 'error' };
         return val ? <Tag color={colors[val] || 'default'}>{val}</Tag> : '-';
       },
     },
@@ -190,7 +191,13 @@ const Antecedentes: React.FC = () => {
   ];
 
   return (
-    <div className="page-container" style={{ padding: '24px' }}>
+    <div className="page-container antecedentes-pagina">
+      <header className="pagina-encabezado">
+        <div className="pagina-encabezado__texto">
+          <h2 className="pagina-encabezado__titulo">Antecedentes Gineco-Obstétricos</h2>
+          <p className="pagina-encabezado__descripcion">Gestas, partos, abortos y ciclos menstruales registrados por paciente.</p>
+        </div>
+      </header>
       <StatsCards stats={stats} />
       <SearchBar
         searchText={searchText}

@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Notificacion } from '../../../services/notificacionesService';
-import { getTypeIcon, getTypeLabel, getTypeClass } from '../notificacionesUtils';
+import { getTypeIcon, getTypeLabel, getTypeClass, getTypeTagColor, getTypeAvatarClass } from '../notificacionesUtils';
 
 const { Text } = Typography;
 
@@ -67,29 +67,15 @@ const NotificacionesListView: React.FC<NotificacionesListViewProps> = ({
         <List.Item.Meta
           avatar={
             <Badge dot={!item.leida}>
-              <Avatar
-                icon={getTypeIcon(item.tipo)}
-                style={{
-                  backgroundColor:
-                    ['error', 'warning'].includes(item.tipo) ? '#ff4d4f' :
-                    item.tipo === 'success' ? '#52c41a' :
-                    ['cita'].includes(item.tipo) ? '#1890ff' :
-                    ['examen'].includes(item.tipo) ? '#faad14' : '#13c2c2'
-                }}
-              />
+              <Avatar icon={getTypeIcon(item.tipo)} className={getTypeAvatarClass(item.tipo)} />
             </Badge>
           }
           title={
             <Space>
-              <button type="button" onClick={() => handleViewDetails(item)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewDetails(item); } }}><Text strong={!item.leida}>
+              <button type="button" onClick={() => handleViewDetails(item)} className="notifications-page__contenido" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewDetails(item); } }}><Text strong={!item.leida}>
                 {item.titulo}
               </Text></button>
-              <Tag color={
-                ['error', 'warning'].includes(item.tipo) ? 'red' :
-                item.tipo === 'success' ? 'green' :
-                ['cita'].includes(item.tipo) ? 'blue' :
-                ['examen'].includes(item.tipo) ? 'orange' : 'cyan'
-              }>
+              <Tag color={getTypeTagColor(item.tipo)}>
                 {getTypeLabel(item.tipo)}
               </Tag>
             </Space>
@@ -98,8 +84,8 @@ const NotificacionesListView: React.FC<NotificacionesListViewProps> = ({
             <div>
               <Text type="secondary">{item.mensaje}</Text>
               <br />
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                <ClockCircleOutlined style={{ marginRight: 4 }} />
+              <Text type="secondary" className="notifications-page__fecha notifications-page__fecha--xs">
+                <ClockCircleOutlined />
                 {dayjs(item.fecha_creacion).fromNow()}
               </Text>
             </div>

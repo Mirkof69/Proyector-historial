@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Tag, Typography, Alert } from 'antd';
-import { ReloadOutlined, ExperimentOutlined } from '@ant-design/icons';
+import { ReloadOutlined } from '@ant-design/icons';
+import './Laboratorio.css';
 import { laboratorioService, ValorReferencia } from '../../services/laboratorioService';
 
 const { Text } = Typography;
@@ -33,30 +34,35 @@ const ValoresReferencia: React.FC = () => {
     { title: 'Unidad', dataIndex: 'unidad', key: 'unidad' },
     {
       title: 'Rango Normal', dataIndex: 'rango_normal', key: 'rango',
-      render: (v: string) => v ? <Tag color="green">{v}</Tag> : '-',
+      render: (v: string) => v ? <Tag color="success">{v}</Tag> : '-',
     },
     {
       title: 'Crítico Bajo', dataIndex: 'es_critico_bajo', key: 'critico_bajo',
-      render: (v: number) => v != null ? <Tag color="red">{v}</Tag> : '-',
+      render: (v: number) => v != null ? <Tag color="error">{v}</Tag> : '-',
     },
     {
       title: 'Crítico Alto', dataIndex: 'es_critico_alto', key: 'critico_alto',
-      render: (v: number) => v != null ? <Tag color="red">{v}</Tag> : '-',
+      render: (v: number) => v != null ? <Tag color="error">{v}</Tag> : '-',
     },
     { title: 'Condición', dataIndex: 'condicion', key: 'condicion', render: (v: string) => v || '-' },
   ];
 
   return (
-    <Card
-      title={<span><ExperimentOutlined style={{ marginRight: 8 }} />Valores de Referencia</span>}
-      extra={<Button icon={<ReloadOutlined />} onClick={cargarValores} loading={loading}>Recargar</Button>}
-    >
+    <div className="laboratorio-page page-container">
+      <header className="laboratorio-page__cabecera">
+        <div>
+          <Typography.Title level={2}>Valores de Referencia</Typography.Title>
+          <Typography.Text type="secondary">Rangos normales y críticos de cada parámetro de laboratorio.</Typography.Text>
+        </div>
+        <Button icon={<ReloadOutlined />} onClick={cargarValores} loading={loading}>Recargar</Button>
+      </header>
+    <Card>
       <Alert
         message="Valores de referencia para exámenes de laboratorio"
         description="Estos rangos son referenciales y pueden variar según el laboratorio y la población."
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="laboratorio-separado"
       />
       <Table
         columns={columns}
@@ -65,8 +71,10 @@ const ValoresReferencia: React.FC = () => {
         loading={loading}
         pagination={{ pageSize: 20 }}
         locale={{ emptyText: 'No hay valores de referencia registrados' }}
+        scroll={{ x: 720 }}
       />
     </Card>
+    </div>
   );
 };
 

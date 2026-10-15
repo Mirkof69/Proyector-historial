@@ -18,23 +18,23 @@ const VisorSettingsDrawer: React.FC<VisorSettingsDrawerProps> = ({
   settingsVisible, brightness, contrast, showMeasurements, showAnnotations,
   dispatch,
 }) => (
-  <Drawer
+  <Drawer rootClassName="capa-clinica"
     title={<><SettingOutlined /> Configuración del Visor</>}
     placement="right"
     onClose={() => dispatch({ type: 'SET_SETTINGS_VISIBLE', payload: false })}
     open={settingsVisible}
     width={400}
   >
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space direction="vertical" size="large" className="u-ancho">
       <div>
         <Title level={5}>Calidad de Imagen</Title>
-        <Divider style={{ margin: '8px 0' }} />
+        <Divider className="u-mv-2" />
 
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" className="u-ancho">
           <div>
             <Text>Interpolación:</Text>
             <Select
-              style={{ width: '100%', marginTop: 8 }}
+              className="u-ancho u-mt-2"
               defaultValue="bilinear"
               options={[
                 { value: 'nearest', label: 'Nearest Neighbor' },
@@ -46,7 +46,7 @@ const VisorSettingsDrawer: React.FC<VisorSettingsDrawerProps> = ({
 
           <div>
             <Text>Resolución de Renderizado:</Text>
-            <Radio.Group defaultValue="high" style={{ marginTop: 8, width: '100%' }}>
+            <Radio.Group defaultValue="high" className="u-mt-2 u-ancho">
               <Radio.Button value="low">Baja</Radio.Button>
               <Radio.Button value="medium">Media</Radio.Button>
               <Radio.Button value="high">Alta</Radio.Button>
@@ -57,16 +57,16 @@ const VisorSettingsDrawer: React.FC<VisorSettingsDrawerProps> = ({
 
       <div>
         <Title level={5}>Herramientas</Title>
-        <Divider style={{ margin: '8px 0' }} />
+        <Divider className="u-mv-2" />
 
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" className="u-ancho">
           <div>
             <Text>Grosor de línea (mediciones):</Text>
             <InputNumber
               min={1}
               max={10}
               defaultValue={2}
-              style={{ width: '100%', marginTop: 8 }}
+              className="u-ancho u-mt-2"
               suffix="px"
             />
           </div>
@@ -77,12 +77,12 @@ const VisorSettingsDrawer: React.FC<VisorSettingsDrawerProps> = ({
               min={10}
               max={30}
               defaultValue={14}
-              style={{ width: '100%', marginTop: 8 }}
+              className="u-ancho u-mt-2"
               suffix="px"
             />
           </div>
 
-          <div style={{ marginTop: 16 }}>
+          <div className="u-mt-4">
             <Radio.Group value={[showMeasurements, showAnnotations]}>
               <Space direction="vertical">
                 <Radio
@@ -105,31 +105,31 @@ const VisorSettingsDrawer: React.FC<VisorSettingsDrawerProps> = ({
 
       <div>
         <Title level={5}><ExperimentOutlined /> Análisis de Imagen</Title>
-        <Divider style={{ margin: '8px 0' }} />
+        <Divider className="u-mv-2" />
 
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Space direction="vertical" size="middle" className="u-ancho">
           <Statistic
             title="Brillo Promedio"
             value={brightness}
             suffix="%"
-            valueStyle={{ fontSize: 20 }}
+            className="u-cifra-media"
           />
           <Progress
             percent={brightness}
             status="active"
-            strokeColor={{ from: '#108ee9', to: '#87d068' }}
+            strokeColor="var(--color-primario)"
           />
 
           <Statistic
             title="Contraste"
             value={contrast}
             suffix="%"
-            valueStyle={{ fontSize: 20 }}
+            className="u-cifra-media"
           />
           <Progress
             percent={contrast}
             status="active"
-            strokeColor={{ from: '#ffd666', to: '#ff4d4f' }}
+            strokeColor="var(--color-primario)"
           />
 
         </Space>

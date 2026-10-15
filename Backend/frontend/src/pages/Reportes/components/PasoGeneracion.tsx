@@ -22,9 +22,9 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
 }) => (
   <div>
     {generando ? (
-      <div style={{ textAlign: 'center', padding: '50px 0' }}>
-        <LoadingOutlined style={{ fontSize: 64, color: '#1890ff' }} />
-        <Title level={3} style={{ marginTop: 24 }}>
+      <div className="reportes-cargando">
+        <LoadingOutlined className="reportes-icono-grande reportes-texto-primario" />
+        <Title level={3} className="reportes-arriba">
           Generando Reporte…
         </Title>
         <Paragraph type="secondary">
@@ -33,13 +33,12 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
         <Progress
           percent={progresoGeneracion}
           status="active"
-          strokeColor={{ from: '#108ee9', to: '#87d068' }}
-          style={{ marginBottom: 32 }}
+          className="reportes-separado"
         />
 
         <Timeline
           mode="alternate"
-          style={{ textAlign: 'left', marginTop: 24 }}
+          className="reportes-arriba reportes-izquierda"
           items={[
             {
               color: progresoGeneracion > 0 ? 'green' : 'gray',
@@ -47,8 +46,8 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
                 <>
                   <Text strong>Validando datos</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {progresoGeneracion > 0 ? '✓ Completado' : 'En espera...'}
+                  <Text type="secondary" className="reportes-texto-ayuda">
+                    {progresoGeneracion > 0 ? 'Completado' : 'En espera...'}
                   </Text>
                 </>
               )
@@ -59,8 +58,8 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
                 <>
                   <Text strong>Consultando base de datos</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {progresoGeneracion > 30 ? '✓ Completado' : progresoGeneracion > 0 ? '⟳ En proceso...' : 'En espera...'}
+                  <Text type="secondary" className="reportes-texto-ayuda">
+                    {progresoGeneracion > 30 ? 'Completado' : progresoGeneracion > 0 ? 'En proceso...' : 'En espera...'}
                   </Text>
                 </>
               )
@@ -71,8 +70,8 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
                 <>
                   <Text strong>Procesando información</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {progresoGeneracion > 60 ? '✓ Completado' : progresoGeneracion > 30 ? '⟳ En proceso...' : 'En espera...'}
+                  <Text type="secondary" className="reportes-texto-ayuda">
+                    {progresoGeneracion > 60 ? 'Completado' : progresoGeneracion > 30 ? 'En proceso...' : 'En espera...'}
                   </Text>
                 </>
               )
@@ -83,8 +82,8 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
                 <>
                   <Text strong>Generando archivo</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {progresoGeneracion > 90 ? '✓ Completado' : progresoGeneracion > 60 ? '⟳ En proceso...' : 'En espera...'}
+                  <Text type="secondary" className="reportes-texto-ayuda">
+                    {progresoGeneracion > 90 ? 'Completado' : progresoGeneracion > 60 ? 'En proceso...' : 'En espera...'}
                   </Text>
                 </>
               )
@@ -95,8 +94,8 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
                 <>
                   <Text strong>Finalizado</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {progresoGeneracion === 100 ? '✓ Listo para descargar' : 'En espera...'}
+                  <Text type="secondary" className="reportes-texto-ayuda">
+                    {progresoGeneracion === 100 ? 'Listo para descargar' : 'En espera...'}
                   </Text>
                 </>
               )
@@ -105,9 +104,9 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
         />
       </div>
     ) : reporteGenerado ? (
-      <div style={{ textAlign: 'center', padding: '50px 0' }}>
+      <div className="reportes-cargando">
         <CheckCircleOutlined
-          style={{ fontSize: 64, color: reporteGenerado.estado === 'completado' ? '#52c41a' : '#1890ff', marginBottom: 24 }}
+          className={`reportes-icono-grande ${reporteGenerado.estado === 'completado' ? 'reportes-texto-exito' : 'reportes-texto-primario'}`}
         />
         <Title level={3}>
           {reporteGenerado.estado === 'completado' ? '¡Reporte Listo!' : 'Solicitud de Reporte Creada'}
@@ -118,13 +117,13 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
             : 'La solicitud se registró correctamente y se está procesando. Podrá descargarlo cuando el estado cambie a "Completado".'}
         </Paragraph>
 
-        <Card style={{ marginTop: 24, textAlign: 'left' }}>
+        <Card className="reportes-arriba reportes-izquierda">
           <Descriptions column={1} bordered>
             <Descriptions.Item label="Tipo de Reporte">
               {reporteGenerado.tipo_reporte_nombre}
             </Descriptions.Item>
             <Descriptions.Item label="Formato">
-              <Tag color={reporteGenerado.formato === 'pdf' ? 'red' : 'green'}>
+              <Tag color={reporteGenerado.formato === 'pdf' ? 'error' : 'success'}>
                 {reporteGenerado.formato?.toUpperCase()}
               </Tag>
             </Descriptions.Item>
@@ -139,7 +138,7 @@ const PasoGeneracion: React.FC<PasoGeneracionProps> = ({
           </Descriptions>
         </Card>
 
-        <Space size="large" style={{ marginTop: 32 }}>
+        <Space size="large" className="reportes-arriba">
           <Button
             type="primary"
             size="large"

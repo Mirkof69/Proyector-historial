@@ -19,15 +19,15 @@ const InfoAdicionalLab: React.FC<InfoAdicionalLabProps> = ({ examen }) => (
     <Descriptions column={1} bordered size="small">
       {examen.dias_desde_solicitud !== undefined && (
         <Descriptions.Item label="Días desde solicitud">
-          <Badge count={examen.dias_desde_solicitud} showZero color={examen.dias_desde_solicitud > 3 ? 'red' : 'blue'} />
+          <Badge count={examen.dias_desde_solicitud} showZero className={`laboratorio-page__dias ${examen.dias_desde_solicitud > 3 ? 'laboratorio-page__dias--vencido' : 'laboratorio-page__dias--a-tiempo'}`} />
         </Descriptions.Item>
       )}
       {examen.esta_vencido !== undefined && (
         <Descriptions.Item label="Estado de tiempo">
           {examen.esta_vencido ? (
-            <Tag color="red">Vencido</Tag>
+            <Tag color="error">Vencido</Tag>
           ) : (
-            <Tag color="green">A tiempo</Tag>
+            <Tag color="success">A tiempo</Tag>
           )}
         </Descriptions.Item>
       )}

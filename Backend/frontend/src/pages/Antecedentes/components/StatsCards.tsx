@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Statistic } from 'antd';
+import { Row, Col, Card, Statistic } from 'antd';
 
 interface StatsCardsProps {
   stats: {
@@ -11,18 +11,18 @@ interface StatsCardsProps {
 }
 
 const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => (
-  <Row gutter={16} style={{ marginBottom: '24px' }}>
-    <Col span={6}>
-      <Statistic title="Total Registros" value={stats.total} />
+  <Row gutter={[16, 16]}>
+    <Col xs={12} md={6}>
+      <Card className="stat-card"><Statistic title="Total Registros" value={stats.total} /></Card>
     </Col>
-    <Col span={6}>
-      <Statistic title="Con Gestas" value={stats.conGestas} />
+    <Col xs={12} md={6}>
+      <Card className="stat-card"><Statistic title="Con Gestas" value={stats.conGestas} /></Card>
     </Col>
-    <Col span={6}>
-      <Statistic title="Con Partos" value={stats.conPartos} />
+    <Col xs={12} md={6}>
+      <Card className="stat-card"><Statistic title="Con Partos" value={stats.conPartos} /></Card>
     </Col>
-    <Col span={6}>
-      <Statistic title="Con Abortos" value={stats.conAbortos} />
+    <Col xs={12} md={6}>
+      <Card className="stat-card"><Statistic title="Con Abortos" value={stats.conAbortos} /></Card>
     </Col>
   </Row>
 );

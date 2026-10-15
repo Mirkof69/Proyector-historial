@@ -51,10 +51,10 @@ const EstadisticasDrawer: React.FC<EstadisticasDrawerProps> = ({
                 valueStyle={{
                   color:
                     (estadisticas.tasa_ocupacion || 0) >= 80
-                      ? '#cf1322'
+                      ? 'var(--color-peligro)'
                       : (estadisticas.tasa_ocupacion || 0) >= 60
-                      ? '#faad14'
-                      : '#3f8600',
+                      ? 'var(--color-aviso)'
+                      : 'var(--color-exito)',
                 }}
               />
             </Card>
@@ -76,7 +76,6 @@ const EstadisticasDrawer: React.FC<EstadisticasDrawerProps> = ({
               <Statistic
                 title="Consultas"
                 value={estadisticas.total_consultas || 0}
-                valueStyle={{ color: '#1890ff' }}
               />
             </Card>
           </Col>
@@ -85,7 +84,6 @@ const EstadisticasDrawer: React.FC<EstadisticasDrawerProps> = ({
               <Statistic
                 title="Procedimientos"
                 value={estadisticas.total_procedimientos || 0}
-                valueStyle={{ color: '#722ed1' }}
               />
             </Card>
           </Col>
@@ -94,7 +92,6 @@ const EstadisticasDrawer: React.FC<EstadisticasDrawerProps> = ({
               <Statistic
                 title="Emergencias"
                 value={estadisticas.total_emergencias || 0}
-                valueStyle={{ color: '#cf1322' }}
               />
             </Card>
           </Col>

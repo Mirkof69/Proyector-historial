@@ -1,0 +1,97 @@
+/* =============================================================================
+   CONSULTORIOS — listado, detalle y formulario
+   =============================================================================
+   Contrato: docs/DISENO_INTERFAZ.md. Todo bajo .consultorios-pagina; colores solo con
+   var(--…). Modales y cajones (portal) usan los tokens de Ant Design.
+   ============================================================================= */
+
+.consultorios-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+/* ---------- Encabezado de página ---------- */
+.consultorios-pagina .pagina-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.consultorios-pagina .pagina-encabezado__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.consultorios-pagina .pagina-encabezado__titulo,
+.consultorios-pagina h2.pagina-encabezado__titulo.ant-typography {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  color: var(--color-texto);
+}
+
+.consultorios-pagina .pagina-encabezado__descripcion {
+  margin: 0;
+  color: var(--color-texto-2);
+}
+
+/* ---------- Tarjetas de cifras ---------- */
+.consultorios-pagina .stat-card.ant-card {
+  height: 100%;
+}
+
+.consultorios-pagina .stat-card .ant-statistic-title,
+.consultorios-pagina .stat-card__etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.consultorios-pagina .stat-card__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.consultorios-pagina .stat-card__etiqueta .anticon,
+.consultorios-pagina .stat-card .ant-statistic-content-prefix {
+  color: var(--color-texto-3);
+}
+
+.consultorios-pagina .stat-card .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+/* Cifra que es un estado */
+.consultorios-pagina .cifra--peligro .ant-statistic-content { color: var(--color-peligro); }
+.consultorios-pagina .cifra--aviso .ant-statistic-content { color: var(--color-aviso); }
+.consultorios-pagina .cifra--exito .ant-statistic-content { color: var(--color-exito); }
+
+.consultorios-pagina .consultorios-detalle__cabecera {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.consultorios-pagina.consultorios-cargando {
+  align-items: center;
+}
+
+.consultorios-pagina .consultorios-busqueda {
+  width: 300px;
+  max-width: 100%;
+}
+
+/* Icono de la cifra: discreto, a escala de la etiqueta */
+.consultorios-pagina .stat-card .ant-statistic-content-prefix {
+  margin-inline-end: var(--esp-2);
+  font-size: var(--texto-md);
+  color: var(--color-texto-3);
+}

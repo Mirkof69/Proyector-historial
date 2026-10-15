@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col, Statistic } from 'antd';
+import { Card, Statistic } from 'antd';
 import {
   CalendarOutlined,
   ClockCircleOutlined,
@@ -20,68 +20,26 @@ interface CitasStatsProps {
 }
 
 const CitasStats: React.FC<CitasStatsProps> = ({ estadisticas }) => (
-  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card hoverable>
-        <Statistic
-          title="Total Citas"
-          value={estadisticas.total}
-          prefix={<CalendarOutlined />}
-          valueStyle={{ color: '#1890ff' }}
-        />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card hoverable>
-        <Statistic
-          title="Por Confirmar"
-          value={estadisticas.agendadas}
-          valueStyle={{ color: '#faad14' }}
-          prefix={<ClockCircleOutlined />}
-        />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card hoverable>
-        <Statistic
-          title="Confirmadas"
-          value={estadisticas.confirmadas}
-          valueStyle={{ color: '#1890ff' }}
-          prefix={<CheckCircleOutlined />}
-        />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card hoverable>
-        <Statistic
-          title="En Espera"
-          value={estadisticas.en_espera}
-          valueStyle={{ color: '#faad14' }}
-          prefix={<UserOutlined />}
-        />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card hoverable>
-        <Statistic
-          title="Hoy"
-          value={estadisticas.hoy}
-          valueStyle={{ color: '#722ed1' }}
-          prefix={<CalendarOutlined />}
-        />
-      </Card>
-    </Col>
-    <Col xs={24} sm={12} md={6} lg={4}>
-      <Card hoverable>
-        <Statistic
-          title="Atrasadas"
-          value={estadisticas.atrasadas}
-          valueStyle={{ color: '#ff4d4f' }}
-          prefix={<WarningOutlined />}
-        />
-      </Card>
-    </Col>
-  </Row>
+  <div className="citas-page__cifras">
+    <Card size="small">
+      <Statistic title={<><CalendarOutlined />Total Citas</>} value={estadisticas.total} />
+    </Card>
+    <Card size="small">
+      <Statistic title={<><ClockCircleOutlined />Por Confirmar</>} value={estadisticas.agendadas} />
+    </Card>
+    <Card size="small">
+      <Statistic title={<><CheckCircleOutlined />Confirmadas</>} value={estadisticas.confirmadas} />
+    </Card>
+    <Card size="small">
+      <Statistic title={<><UserOutlined />En Espera</>} value={estadisticas.en_espera} />
+    </Card>
+    <Card size="small">
+      <Statistic title={<><CalendarOutlined />Hoy</>} value={estadisticas.hoy} />
+    </Card>
+    <Card size="small" className={estadisticas.atrasadas > 0 ? 'citas-page__cifra--peligro' : undefined}>
+      <Statistic title={<><WarningOutlined />Atrasadas</>} value={estadisticas.atrasadas} />
+    </Card>
+  </div>
 );
 
 export default CitasStats;

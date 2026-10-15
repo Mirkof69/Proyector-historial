@@ -44,7 +44,7 @@ const DicomInfoModal: React.FC<DicomInfoModalProps> = ({
       </Card>
 
       <Alert
-        message="⚠️ Nota Importante"
+        message="Nota importante"
         description="Este visor es para fines de visualización y anotación. Para diagnóstico oficial, consulte con un radiólogo certificado."
         type="warning"
         showIcon

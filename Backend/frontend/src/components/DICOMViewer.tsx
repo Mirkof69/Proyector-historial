@@ -287,10 +287,10 @@ const DICOMViewer: React.FC<DICOMViewerProps> = ({
             }
           >
             <div style={{
-              border: '2px solid #d9d9d9',
+              border: '2px solid var(--color-borde)',
               borderRadius: 4,
               padding: 8,
-              background: '#0a0a0f',
+              background: 'var(--color-visor-fondo)',
               textAlign: 'center',
               minHeight: 500
             }}>

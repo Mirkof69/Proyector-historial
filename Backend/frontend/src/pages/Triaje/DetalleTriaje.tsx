@@ -12,6 +12,7 @@ import TriajeHeader from './components/TriajeHeader';
 import TriajeAlertasClinicas from './components/TriajeAlertasClinicas';
 import EvaluacionClinicaTriaje from './components/EvaluacionClinicaTriaje';
 import PanelRiesgoClinico from './components/PanelRiesgoClinico';
+import './Triaje.css';
 
 const DetalleTriaje: React.FC = () => {
   const navigate = useNavigate();
@@ -41,8 +42,8 @@ const DetalleTriaje: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: 24 }}>
-        <Card className="shadow-card">
+      <div className="triaje-pagina">
+        <Card>
           <Skeleton active avatar paragraph={{ rows: 10 }} />
         </Card>
       </div>
@@ -51,7 +52,7 @@ const DetalleTriaje: React.FC = () => {
 
   if (!triaje) {
     return (
-      <div style={{ padding: 24 }}>
+      <div className="triaje-pagina">
         <Alert
           message="Triaje no encontrado"
           description="No se pudo encontrar el registro solicitado o ha sido eliminado."
@@ -71,10 +72,10 @@ const DetalleTriaje: React.FC = () => {
   const clasificacionPresion = getClasificacionPresion(triaje.presion_sistolica, triaje.presion_diastolica);
 
   return (
-    <div className="animate-fade-in" style={{ padding: 24 }}>
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+    <div className="triaje-pagina">
+      <Row gutter={[16, 16]}>
         <Col span={24}>
-          <Card className="shadow-card overflow-hidden">
+          <Card>
             <TriajeHeader
               triaje={triaje}
               onVolver={() => navigate('/dashboard/triaje')}

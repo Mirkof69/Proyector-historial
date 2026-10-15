@@ -45,7 +45,7 @@ const EvaluacionClinicaTriaje: React.FC<EvaluacionClinicaTriajeProps> = ({
       </Descriptions.Item>
       <Descriptions.Item label="Temperatura">
         <Text strong>{triaje.temperatura}°C</Text>
-        {triaje.temperatura >= 38 && <Tag color="red" style={{ marginLeft: 8 }}>Febrícula/Fiebre</Tag>}
+        {triaje.temperatura >= 38 && <Tag color="error" style={{ marginLeft: 8 }}>Febrícula/Fiebre</Tag>}
       </Descriptions.Item>
       <Descriptions.Item label="Frecuencia Cardíaca">
         <Text strong>{triaje.frecuencia_cardiaca} bpm</Text>
@@ -56,13 +56,13 @@ const EvaluacionClinicaTriaje: React.FC<EvaluacionClinicaTriajeProps> = ({
       {triaje.saturacion_oxigeno && (
         <Descriptions.Item label="Saturación O₂">
           <Text strong>{triaje.saturacion_oxigeno}%</Text>
-          {triaje.saturacion_oxigeno < 95 && <Tag color="red">Hipoxia</Tag>}
+          {triaje.saturacion_oxigeno < 95 && <Tag color="error">Hipoxia</Tag>}
         </Descriptions.Item>
       )}
       {triaje.dolor_escala !== null && triaje.dolor_escala !== undefined && (
         <Descriptions.Item label="Escala de Dolor">
           <Text strong>{triaje.dolor_escala}/10</Text>
-          <Tag color={triaje.dolor_escala! >= 7 ? 'red' : triaje.dolor_escala! >= 4 ? 'orange' : 'green'}>
+          <Tag color={triaje.dolor_escala! >= 7 ? 'error' : triaje.dolor_escala! >= 4 ? 'warning' : 'success'}>
             {triaje.dolor_escala! >= 7 ? 'Severo' : triaje.dolor_escala! >= 4 ? 'Moderado' : 'Leve'}
           </Tag>
         </Descriptions.Item>
@@ -87,9 +87,9 @@ const EvaluacionClinicaTriaje: React.FC<EvaluacionClinicaTriajeProps> = ({
       {triaje.imc && (
         <Descriptions.Item label="Estado Nutricional (IMC)" span={3}>
           <Space size="large">
-            <Text strong style={{ fontSize: '1.2em' }}>{Number(triaje.imc).toFixed(2)}</Text>
+            <Text strong className="cifra">{Number(triaje.imc).toFixed(2)}</Text>
             {clasificacionIMC && (
-              <Tag color={clasificacionIMC.color} style={{ padding: '4px 12px', fontSize: '1em' }}>
+              <Tag color={clasificacionIMC.color}>
                 {clasificacionIMC.text.toUpperCase()}
               </Tag>
             )}
@@ -108,7 +108,7 @@ const EvaluacionClinicaTriaje: React.FC<EvaluacionClinicaTriajeProps> = ({
         </div>
       </Descriptions.Item>
       <Descriptions.Item label="Nivel de Conciencia">
-        <Tag color="geekblue" style={{ fontSize: '1.1em', padding: '5px 15px' }}>
+        <Tag>
           {(triaje.nivel_conciencia || 'alerta').toUpperCase()}
         </Tag>
       </Descriptions.Item>

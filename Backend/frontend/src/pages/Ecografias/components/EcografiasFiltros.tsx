@@ -14,7 +14,7 @@ interface EcografiasFiltrosProps {
 }
 
 const EcografiasFiltros: React.FC<EcografiasFiltrosProps> = ({ filtros, dispatchFiltros, limpiarFiltros }) => (
-  <Space direction="vertical" size="middle" style={{ width: '100%', marginBottom: 16 }}>
+  <Space direction="vertical" size="middle" className="u-ancho u-mb-4">
     <Row gutter={[16, 16]}>
       <Col xs={24} sm={12} md={8}>
         <Input
@@ -28,7 +28,7 @@ const EcografiasFiltros: React.FC<EcografiasFiltrosProps> = ({ filtros, dispatch
       <Col xs={24} sm={12} md={6}>
         <Select
           placeholder="Filtrar por tipo"
-          style={{ width: '100%' }}
+          className="u-ancho"
           value={filtros.filtroTipo}
           onChange={(val) => dispatchFiltros({ type: 'SET_TIPO', payload: val })}
           allowClear
@@ -44,7 +44,7 @@ const EcografiasFiltros: React.FC<EcografiasFiltrosProps> = ({ filtros, dispatch
       </Col>
       <Col xs={24} sm={12} md={8}>
         <RangePicker
-          style={{ width: '100%' }}
+          className="u-ancho"
           format="DD/MM/YYYY"
           value={filtros.filtroFecha}
           onChange={(dates) => dispatchFiltros({ type: 'SET_FECHA', payload: dates as [dayjs.Dayjs, dayjs.Dayjs] })}

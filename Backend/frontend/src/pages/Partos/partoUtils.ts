@@ -10,31 +10,31 @@ export const computarAlertasEdadGestacional = (semanas: number, dias: number): A
   if (semanas < 20) {
     alertasTemp.push({
       tipo: 'critica', nivel: 'error', categoria: 'edad_gestacional',
-      mensaje: `⚠️ ABORTO: Edad gestacional muy temprana (${semanas}+${dias} semanas)`,
+      mensaje: `ABORTO: Edad gestacional muy temprana (${semanas}+${dias} semanas)`,
       recomendacion: 'Protocolo de aborto. Manejo de duelo. Apoyo psicológico.',
     });
   } else if (semanas < 28) {
     alertasTemp.push({
       tipo: 'critica', nivel: 'error', categoria: 'edad_gestacional',
-      mensaje: `🚨 PREMATURO EXTREMO: ${semanas}+${dias} semanas`,
+      mensaje: `PREMATURO EXTREMO: ${semanas}+${dias} semanas`,
       recomendacion: 'Requiere UCIN nivel III. Surfactante. Soporte ventilatorio.',
     });
   } else if (semanas < 32) {
     alertasTemp.push({
       tipo: 'critica', nivel: 'error', categoria: 'edad_gestacional',
-      mensaje: `⚠️ MUY PREMATURO: ${semanas}+${dias} semanas`,
+      mensaje: `MUY PREMATURO: ${semanas}+${dias} semanas`,
       recomendacion: 'Requiere UCIN. Monitoreo intensivo neonatal.',
     });
   } else if (semanas < 37) {
     alertasTemp.push({
       tipo: 'moderada', nivel: 'warning', categoria: 'edad_gestacional',
-      mensaje: `⚠️ PREMATURO: ${semanas}+${dias} semanas`,
+      mensaje: `PREMATURO: ${semanas}+${dias} semanas`,
       recomendacion: 'Vigilancia neonatal. Riesgo de SDR. Considerar corticoides.',
     });
   } else if (semanas >= 42) {
     alertasTemp.push({
       tipo: 'moderada', nivel: 'warning', categoria: 'edad_gestacional',
-      mensaje: `⚠️ POST-TÉRMINO: ${semanas}+${dias} semanas`,
+      mensaje: `POST-TÉRMINO: ${semanas}+${dias} semanas`,
       recomendacion: 'Evaluación urgente. Considerar inducción. Monitoreo fetal continuo.',
     });
   }

@@ -10,7 +10,8 @@ import BishopStats from './scoreBishop/BishopStats';
 import BishopForm from './scoreBishop/BishopForm';
 import BishopResultado from './scoreBishop/BishopResultado';
 import BishopHistorial from './scoreBishop/BishopHistorial';
-import './ScoreBishop.css';
+import './calculadoraAvanzada.css';
+import CabeceraCalculadora from './components/CabeceraCalculadora';
 
 const ScoreBishop: React.FC = () => {
   const { message } = useAntdApp();
@@ -56,14 +57,12 @@ const ScoreBishop: React.FC = () => {
     : 0;
 
   return (
-    <div className="score-bishop-page" style={{ padding: 24 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1><CalculatorOutlined /> Score de Bishop - Maduración Cervical</h1>
-        <p style={{ color: '#666' }}>
-          Evaluación cuantitativa de favorabilidad del cérvix para inducción del parto (0-13 puntos)
-        </p>
-      </div>
+    <div className="calc-pagina score-bishop-page">
+      <CabeceraCalculadora
+        icono={<CalculatorOutlined />}
+        titulo="Score de Bishop - Maduración Cervical"
+        descripcion="Evaluación cuantitativa de favorabilidad del cérvix para inducción del parto (0-13 puntos)"
+      />
 
       {/* Estadísticas globales */}
       <BishopStats

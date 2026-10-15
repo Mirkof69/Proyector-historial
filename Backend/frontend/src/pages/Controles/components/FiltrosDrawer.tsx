@@ -22,7 +22,7 @@ const FiltrosDrawer: React.FC<FiltrosDrawerProps> = ({
   filtrosDrawerVisible, formHasChanges, form, onClose,
   handleFormChange, dispatchFiltros, dispatchUI,
 }) => (
-  <Drawer
+  <Drawer rootClassName="capa-clinica"
     title={
       <Space>
         Filtros Avanzados
@@ -35,7 +35,7 @@ const FiltrosDrawer: React.FC<FiltrosDrawerProps> = ({
     width={320}
   >
     <Form form={form} layout="vertical" onValuesChange={handleFormChange}>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <Space direction="vertical" className="u-ancho" size="large">
         <div>
           <Text strong>Rango de Fechas</Text>
           {/* Dentro de Form.Item para que «Limpiar Filtros» (form.resetFields)
@@ -43,7 +43,7 @@ const FiltrosDrawer: React.FC<FiltrosDrawerProps> = ({
               pantalla aunque el filtro ya no se aplicara. */}
           <Form.Item name="rangoFechas" noStyle>
             <RangePicker
-              style={{ width: '100%', marginTop: 8 }}
+              className="u-ancho u-mt-2"
               format="DD/MM/YYYY"
               onChange={(dates) => {
                 handleFormChange();
@@ -58,7 +58,7 @@ const FiltrosDrawer: React.FC<FiltrosDrawerProps> = ({
           <Text strong>Estado de Alerta</Text>
           <Form.Item name="conAlertas" noStyle>
             <Select
-              style={{ width: '100%', marginTop: 8 }}
+              className="u-ancho u-mt-2"
               placeholder="Todos"
               allowClear
               onChange={(val) => {
@@ -79,7 +79,7 @@ const FiltrosDrawer: React.FC<FiltrosDrawerProps> = ({
               («<13», «13-28», «>28») no coincidían en las semanas 13 y 28. */}
           <Form.Item name="trimestre" noStyle>
             <Select
-              style={{ width: '100%', marginTop: 8 }}
+              className="u-ancho u-mt-2"
               placeholder="Todos"
               allowClear
               onChange={(val) => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag, Badge, Button, Space, Drawer, Descriptions, Timeline } from 'antd';
+import { Tag, Badge, Button, Drawer, Descriptions, Timeline } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { AlertaMedica } from '../../../services/reportesService';
@@ -65,8 +65,8 @@ const AlertaMedicaDetalleDrawer: React.FC<AlertaMedicaDetalleDrawerProps> = ({
         </Descriptions>
 
         {selectedAlerta.estado !== 'resuelta' && selectedAlerta.estado !== 'descartada' && (
-          <div style={{ marginTop: 24 }}>
-            <Space style={{ width: '100%' }} direction="vertical">
+          <div className="alerta-detalle__acciones">
+            <>
               <Button
                 type="primary"
                 icon={<CheckOutlined />}
@@ -85,12 +85,12 @@ const AlertaMedicaDetalleDrawer: React.FC<AlertaMedicaDetalleDrawerProps> = ({
               >
                 Cerrar sin Resolver
               </Button>
-            </Space>
+            </>
           </div>
         )}
 
         {/* Timeline de Historial */}
-        <div style={{ marginTop: 32 }}>
+        <div className="alerta-detalle__bloque">
           <h4>Historial de Actividad</h4>
           <Timeline
             items={[
@@ -99,10 +99,10 @@ const AlertaMedicaDetalleDrawer: React.FC<AlertaMedicaDetalleDrawerProps> = ({
                 children: (
                   <>
                     <p><strong>Alerta Creada</strong></p>
-                    <p style={{ fontSize: 12, color: '#999' }}>
+                    <p className="alerta-detalle__fecha">
                       {dayjs(selectedAlerta.fecha_creacion).format('DD/MM/YYYY HH:mm:ss')}
                     </p>
-                    <p style={{ fontSize: 12 }}>Origen: {selectedAlerta.modulo_origen_display || selectedAlerta.modulo_origen}</p>
+                    <p className="alerta-detalle__origen">Origen: {selectedAlerta.modulo_origen_display || selectedAlerta.modulo_origen}</p>
                   </>
                 ),
               },
@@ -113,7 +113,7 @@ const AlertaMedicaDetalleDrawer: React.FC<AlertaMedicaDetalleDrawerProps> = ({
                       children: (
                         <>
                           <p><strong>Alerta Resuelta</strong></p>
-                          <p style={{ fontSize: 12, color: '#999' }}>
+                          <p className="alerta-detalle__fecha">
                             {selectedAlerta.fecha_resolucion ? dayjs(selectedAlerta.fecha_resolucion).format('DD/MM/YYYY HH:mm:ss') : ''}
                           </p>
                         </>
@@ -127,7 +127,7 @@ const AlertaMedicaDetalleDrawer: React.FC<AlertaMedicaDetalleDrawerProps> = ({
 
         {/* Botón para ver paciente */}
         {selectedAlerta.paciente_id && (
-          <div style={{ marginTop: 24 }}>
+          <div className="alerta-detalle__bloque">
             <Button
               type="dashed"
               block

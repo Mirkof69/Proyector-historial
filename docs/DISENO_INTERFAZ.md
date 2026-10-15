@@ -131,7 +131,24 @@ texto `#EDE6DC`, primario `#D9A56B`). Contraste de texto ≥ 4,5:1 en los cuatro
 
 ## Verificación
 
-- `npx playwright test tests/pantallas.spec.js`: recorre 67 pantallas × 2 temas;
+- `npx playwright test tests/pantallas.spec.js`: recorre 68 pantallas × 2 temas;
   falla si hay error de JavaScript, error 500, pantalla en blanco o desborde
   horizontal, y guarda capturas en `e2e/test-results/pantallas/`.
 - `npx tsc --noEmit`, `CI=true npx react-scripts test`, `npm run build`.
+
+## Resultado medido (14/10/2026)
+
+| | Antes | Después |
+|---|---|---|
+| Líneas de CSS | 18.886 en 49 archivos | 7.675 |
+| `!important` | ~600 | 13 (movimiento reducido, impresión y el tooltip de Recharts; comentados) |
+| Degradados, desenfoques, emojis de interfaz | en casi todas las pantallas | 0 |
+| Colores fijos fuera de `tokens.css` / `antd-theme-tokens.ts` | 728 en CSS + cientos en línea | 0 |
+| Pantallas sin error (68 × claro/oscuro) | 132/134 | 136/136 |
+
+Hallazgos de paso: cinco hojas de estilo (Pacientes, Embarazos, Controles,
+Citas, Laboratorio) nunca se importaban; otras (Usuarios, NotFound,
+calculadoras) redefinían `.ant-btn`, `.ant-table` o animaciones para toda la
+aplicación; varias páginas declaraban variables en `:root` y cambiaban el tema
+de las demás pantallas al cargarse.
+

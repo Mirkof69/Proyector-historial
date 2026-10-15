@@ -91,7 +91,7 @@ const GraficoTendenciaLaboratorio: React.FC<Props> = ({
         <Alert
           message={
             estadoActual.includes('critico')
-              ? '⚠️ Valor Actual en Rango Crítico'
+              ? 'Valor actual en rango crítico'
               : 'Valor Actual Fuera del Rango Normal'
           }
           description={
@@ -129,7 +129,7 @@ const GraficoTendenciaLaboratorio: React.FC<Props> = ({
               <ReferenceArea
                 y1={valorMinimo}
                 y2={valorMaximo}
-                fill="#52c41a"
+                fill="var(--color-exito)"
                 fillOpacity={0.1}
                 label={{ value: 'Rango Normal', position: 'insideTopRight', fontSize: 12 }}
               />
@@ -138,13 +138,13 @@ const GraficoTendenciaLaboratorio: React.FC<Props> = ({
             {valorMinimo !== undefined && (
               <ReferenceLine
                 y={valorMinimo}
-                stroke="#52c41a"
+                stroke="var(--color-exito)"
                 strokeDasharray="5 5"
                 label={{
                   value: `Mín: ${valorMinimo}`,
                   position: 'right',
                   fontSize: 12,
-                  fill: '#52c41a'
+                  fill: 'var(--color-exito)'
                 }}
               />
             )}
@@ -152,13 +152,13 @@ const GraficoTendenciaLaboratorio: React.FC<Props> = ({
             {valorMaximo !== undefined && (
               <ReferenceLine
                 y={valorMaximo}
-                stroke="#52c41a"
+                stroke="var(--color-exito)"
                 strokeDasharray="5 5"
                 label={{
                   value: `Máx: ${valorMaximo}`,
                   position: 'right',
                   fontSize: 12,
-                  fill: '#52c41a'
+                  fill: 'var(--color-exito)'
                 }}
               />
             )}
@@ -166,13 +166,13 @@ const GraficoTendenciaLaboratorio: React.FC<Props> = ({
             {criticoBajo !== undefined && (
               <ReferenceLine
                 y={criticoBajo}
-                stroke="#ff4d4f"
+                stroke="var(--color-peligro)"
                 strokeDasharray="3 3"
                 label={{
                   value: `Crítico Bajo: ${criticoBajo}`,
                   position: 'right',
                   fontSize: 12,
-                  fill: '#ff4d4f'
+                  fill: 'var(--color-peligro)'
                 }}
               />
             )}
@@ -180,33 +180,33 @@ const GraficoTendenciaLaboratorio: React.FC<Props> = ({
             {criticoAlto !== undefined && (
               <ReferenceLine
                 y={criticoAlto}
-                stroke="#ff4d4f"
+                stroke="var(--color-peligro)"
                 strokeDasharray="3 3"
                 label={{
                   value: `Crítico Alto: ${criticoAlto}`,
                   position: 'right',
                   fontSize: 12,
-                  fill: '#ff4d4f'
+                  fill: 'var(--color-peligro)'
                 }}
               />
             )}
 
             <ReferenceLine
               y={promedio}
-              stroke="#1890ff"
+              stroke="var(--color-primario)"
               strokeDasharray="10 5"
               label={{
                 value: `Promedio: ${promedio.toFixed(2)}`,
                 position: 'left',
                 fontSize: 12,
-                fill: '#1890ff'
+                fill: 'var(--color-primario)'
               }}
             />
 
             <Area
               type="monotone"
               dataKey="valor"
-              fill="#8884d8"
+              fill="var(--grafico-2)"
               fillOpacity={0.2}
               stroke="none"
               name={`Área de ${parametro}`}
@@ -215,9 +215,9 @@ const GraficoTendenciaLaboratorio: React.FC<Props> = ({
             <Line
               type="monotone"
               dataKey="valor"
-              stroke="#8884d8"
+              stroke="var(--grafico-2)"
               strokeWidth={3}
-              dot={{ r: 6, fill: '#8884d8' }}
+              dot={{ r: 6, fill: 'var(--grafico-2)' }}
               activeDot={{ r: 8 }}
               name={`${parametro} (${unidad})`}
             />

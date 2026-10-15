@@ -8,6 +8,7 @@
  */
 
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+import { PALETAS, type Paleta } from '../config/antd-theme-tokens';
 
 // Tipos
 type Theme = 'light' | 'dark' | 'normal' | 'mocha';
@@ -52,68 +53,30 @@ interface ThemeContextType {
   setFontScale: (scale: FontScale) => void;
 }
 
-// Definición de colores para cada tema
+// Colores de cada tema para el código que los necesite en JS. Salen de la
+// misma paleta que Ant Design y tokens.css (contrato docs/DISENO_INTERFAZ.md).
+// En componentes, preferir las variables CSS de tokens.css o theme.useToken() de Ant Design.
+const aColores = (p: Paleta): ThemeColors => ({
+  primary: p.primario,
+  secondary: p.texto2,
+  background: p.fondo,
+  surface: p.superficie,
+  text: p.texto,
+  textSecondary: p.texto2,
+  border: p.borde,
+  error: p.peligro,
+  warning: p.aviso,
+  success: p.exito,
+  info: p.info,
+  headerBg: p.superficie,
+  sidebarBg: p.superficie,
+});
+
 const themeColors: Record<Theme, ThemeColors> = {
-  light: {
-    primary: '#1890ff',
-    secondary: '#52c41a',
-    background: '#f0f2f5',
-    surface: '#ffffff',
-    text: '#262626',
-    textSecondary: '#8c8c8c',
-    border: '#d9d9d9',
-    error: '#ff4d4f',
-    warning: '#faad14',
-    success: '#52c41a',
-    info: '#1890ff',
-    headerBg: '#ffffff',
-    sidebarBg: '#001529'
-  },
-  normal: {
-    primary: '#1890ff',
-    secondary: '#52c41a',
-    background: '#f0f2f5',
-    surface: '#ffffff',
-    text: '#262626',
-    textSecondary: '#8c8c8c',
-    border: '#d9d9d9',
-    error: '#ff4d4f',
-    warning: '#faad14',
-    success: '#52c41a',
-    info: '#1890ff',
-    headerBg: '#ffffff',
-    sidebarBg: '#001529'
-  },
-  dark: {
-    primary: '#177ddc',
-    secondary: '#49aa19',
-    background: '#141414',
-    surface: '#1f1f1f',
-    text: '#e8e8e8',
-    textSecondary: '#a6a6a6',
-    border: '#434343',
-    error: '#a61d24',
-    warning: '#d89614',
-    success: '#49aa19',
-    info: '#177ddc',
-    headerBg: '#1f1f1f',
-    sidebarBg: '#000c17'
-  },
-  mocha: {
-    primary: '#d4a574',
-    secondary: '#8b7355',
-    background: '#2b2420',
-    surface: '#3a3330',
-    text: '#f5e6d3',
-    textSecondary: '#c4b5a0',
-    border: '#5a504a',
-    error: '#d97757',
-    warning: '#e6b85c',
-    success: '#9ac273',
-    info: '#7eb3d4',
-    headerBg: '#3a3330',
-    sidebarBg: '#1a1614'
-  }
+  light: aColores(PALETAS.light),
+  normal: aColores(PALETAS.normal),
+  dark: aColores(PALETAS.dark),
+  mocha: aColores(PALETAS.mocha),
 };
 
 // Crear contexto (exportado para hooks que usan useContext internamente)
@@ -146,7 +109,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const [theme, setThemeState] = useState<Theme>(() => {
     const savedTheme = initialSavedTheme as Theme;
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+    if (savedTheme && savedTheme in themeColors) {
       return savedTheme;
     }
 
@@ -176,13 +139,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     // Actualizar meta theme-color para Android/iOS
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      const themeColors: Record<Theme, string> = {
-        light: '#ffffff',
-        normal: '#ffffff',
-        dark: '#0a0a0a',
-        mocha: '#2b2420'
-      };
-      metaThemeColor.setAttribute('content', themeColors[theme]);
+      metaThemeColor.setAttribute('content', themeColors[theme].headerBg);
     }
   }, [theme]);
 

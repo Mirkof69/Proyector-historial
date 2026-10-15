@@ -10,8 +10,8 @@ interface PanelRiesgoClinicoProps {
 }
 
 const PanelRiesgoClinico: React.FC<PanelRiesgoClinicoProps> = ({ triaje, onVerHistorial }) => (
-  <Card title="Panel de Riesgo Clínico" className="gradient-card" style={{ height: '100%' }}>
-    <Space direction="vertical" style={{ width: '100%' }} size="large">
+  <Card title="Panel de Riesgo Clínico" className="triaje-panel-riesgo">
+    <Space direction="vertical" className="triaje-ancho" size="large">
       <div className="stat-indicator">
         <Text type="secondary">Estabilidad Hemodinámica</Text>
         <Progress
@@ -26,7 +26,6 @@ const PanelRiesgoClinico: React.FC<PanelRiesgoClinicoProps> = ({ triaje, onVerHi
         <Progress
           percent={triaje.temperatura >= 38 ? 100 : (triaje.temperatura / 40) * 100}
           status={triaje.temperatura >= 38 ? 'exception' : 'active'}
-          strokeColor={{ '0%': '#108ee9', '100%': '#87d068' }}
           strokeWidth={12}
         />
       </div>
@@ -37,19 +36,19 @@ const PanelRiesgoClinico: React.FC<PanelRiesgoClinicoProps> = ({ triaje, onVerHi
           type="dashboard"
           percent={triaje.saturacion_oxigeno || 0}
           width={100}
-          strokeColor={triaje.saturacion_oxigeno && triaje.saturacion_oxigeno < 95 ? '#ff4d4f' : '#52c41a'}
+          strokeColor={triaje.saturacion_oxigeno && triaje.saturacion_oxigeno < 95 ? 'var(--color-peligro)' : 'var(--color-exito)'}
         />
       </div>
 
-      <Card size="small" style={{ background: 'rgba(255,255,255,0.5)', border: 'none' }}>
-        <div style={{ textAlign: 'center' }}>
+      <Card size="small" className="triaje-prioridad">
+        <div>
           <Text type="secondary">Estado de Priorización</Text>
-          <div style={{ marginTop: 8 }}>
+          <div className="triaje-prioridad__valor">
             <Tag color={
-              triaje.prioridad === 'urgente' ? 'red' :
-                triaje.prioridad === 'alto' ? 'volcano' :
-                  triaje.prioridad === 'normal' ? 'blue' : 'green'
-            } style={{ fontSize: '1.2em', padding: '8px 20px', width: '100%', textAlign: 'center' }}>
+              triaje.prioridad === 'urgente' ? 'error' :
+                triaje.prioridad === 'alto' ? 'warning' :
+                  triaje.prioridad === 'normal' ? 'processing' : 'success'
+            } className="triaje-prioridad__tag">
               {(triaje.prioridad || 'NORMAL').toUpperCase()}
             </Tag>
           </div>

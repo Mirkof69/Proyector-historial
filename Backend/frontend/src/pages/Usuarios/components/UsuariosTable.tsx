@@ -42,8 +42,8 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
       dataIndex: 'foto_url',
       key: 'foto_url',
       width: 80,
-      render: (foto_url: string | null, record: Usuario) => (
-        <Avatar size={40} src={foto_url} icon={userIcon} style={{ backgroundColor: configuracionDeRol(record.rol).color }} />
+      render: (foto_url: string | null) => (
+        <Avatar size={40} src={foto_url} icon={userIcon} className="usuarios-page__avatar" />
       ),
     },
     {
@@ -53,7 +53,7 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
       render: (_: any, record: Usuario) => (
         <Space direction="vertical" size={0}>
           <Text strong>{record.nombre_completo || `${record.nombre} ${record.apellido_paterno}`}</Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>{record.iniciales || ''}</Text>
+          <Text type="secondary" className="usuarios-page__iniciales">{record.iniciales || ''}</Text>
         </Space>
       ),
     },
@@ -71,7 +71,7 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
         const config = configuracionDeRol(rol);
         return (
           <Space direction="vertical" size={2}>
-            <Tag color={config.color} icon={config.icono}>{config.nombre}</Tag>
+            <Tag icon={config.icono}>{config.nombre}</Tag>
             {record.cargo_nombre && <Text type="secondary">{record.cargo_nombre}</Text>}
           </Space>
         );

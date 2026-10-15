@@ -32,6 +32,7 @@ import {
     Col,
     Checkbox,
     Progress,
+    Typography,
     theme
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
@@ -71,10 +72,12 @@ import AnalisisDemograficoModal from './components/AnalisisDemograficoModal';
 import ComparacionModal from './components/ComparacionModal';
 import ImportarPacientesModal from './components/ImportarPacientesModal';
 import AgendaDrawer from './components/AgendaDrawer';
+import './Pacientes.css';
 
 // Configuración regional
 dayjs.locale('es');
 const { Option } = Select;
+const { Title, Text } = Typography;
 
 // =============================================================================
 // 2. COMPONENTE PRINCIPAL
@@ -387,54 +390,68 @@ const Pacientes: React.FC = () => {
     // =============================================================================
 
     return (
-        <div className="pacientes-module animate-fade-in">
+        <div className="pacientes-module pacientes-pagina">
 
-            {/* --- HEADER Y ESTADÍSTICAS --- */}
-            <div style={{ marginBottom: 24 }}>
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Total Pacientes" value={resumen.total} prefix={<TeamOutlined />} />
-                            <Progress percent={100} showInfo={false} strokeColor={token.colorPrimary} size="small" />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Embarazos Activos" value={resumen.embarazadas} prefix={<HeartOutlined style={{ color: token.colorError }} />} valueStyle={{ color: token.colorError }} />
-                            <Progress percent={resumen.total ? (resumen.embarazadas / resumen.total) * 100 : 0} showInfo={false} strokeColor={token.colorError} size="small" />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Nuevos este Mes" value={resumen.nuevos_mes} prefix={<PlusOutlined style={{ color: token.colorSuccess }} />} valueStyle={{ color: token.colorSuccess }} />
-                            <Progress percent={resumen.nuevos_mes > 0 ? 100 : 0} showInfo={false} strokeColor={token.colorSuccess} size="small" />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card variant="borderless" className="stats-card shadow-sm">
-                            <AnimatedStatistic title="Promedio Edad" value={resumen.promedio_edad} suffix="años" prefix={<InfoCircleOutlined style={{ color: token.colorWarning }} />} />
-                        </Card>
-                    </Col>
-                </Row>
-            </div>
+            {/* --- ENCABEZADO DE PÁGINA --- */}
+            <header className="pacientes-encabezado">
+                <div className="pacientes-encabezado__texto">
+                    <Title level={2} className="pacientes-encabezado__titulo">Pacientes</Title>
+                    <Text className="pacientes-encabezado__descripcion">
+                        Registro, búsqueda y seguimiento de las pacientes del establecimiento.
+                    </Text>
+                </div>
+                {canAdd('paciente') && (
+                    <Button type="primary" icon={PLUS_ICON_5} onClick={handleOpenCreate} size="large">
+                        Nueva Paciente
+                    </Button>
+                )}
+            </header>
+
+            {/* --- ESTADÍSTICAS --- */}
+            <Row gutter={[16, 16]}>
+                <Col xs={24} sm={12} lg={6}>
+                    <Card className="stat-card">
+                        <AnimatedStatistic title={<span className="stat-card__etiqueta"><TeamOutlined />Total Pacientes</span>} value={resumen.total} />
+                        <Progress percent={100} status="normal" showInfo={false} size="small" />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                    <Card className="stat-card">
+                        <AnimatedStatistic title={<span className="stat-card__etiqueta"><HeartOutlined />Embarazos Activos</span>} value={resumen.embarazadas} />
+                        <Progress percent={resumen.total ? (resumen.embarazadas / resumen.total) * 100 : 0} showInfo={false} size="small" />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                    <Card className="stat-card">
+                        <AnimatedStatistic title={<span className="stat-card__etiqueta"><PlusOutlined />Nuevos este Mes</span>} value={resumen.nuevos_mes} />
+                        <Progress percent={resumen.nuevos_mes > 0 ? 100 : 0} status="normal" showInfo={false} size="small" />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                    <Card className="stat-card">
+                        <AnimatedStatistic title={<span className="stat-card__etiqueta"><InfoCircleOutlined />Promedio Edad</span>} value={resumen.promedio_edad} suffix="años" />
+                    </Card>
+                </Col>
+            </Row>
 
             {/* --- BARRA DE HERRAMIENTAS --- */}
-            <Card variant="borderless" className="shadow-card" style={{ marginBottom: 24 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <Card className="pacientes-herramientas">
+                <div className="pacientes-herramientas__fila">
                     {/* Izquierda: Búsqueda y Filtros */}
                     <Space size="middle" wrap>
                         <Input
                             placeholder="Buscar por nombre, CI o ID..."
-                            prefix={<SearchOutlined style={{ color: token.colorTextQuaternary }} />}
+                            prefix={<SearchOutlined className="texto-ayuda" />}
                             onChange={e => setSearchText(e.target.value)}
-                            style={{ width: 300 }}
+                            className="pacientes-herramientas__busqueda"
                             size="large"
                             allowClear
                         />
-                            <Button
-                                icon={FILTER_ICON_2}
-                                onClick={() => setShowFilters(!showFilters)}
-                            type={showFilters ? 'primary' : 'default'}
+                        <Button
+                            icon={FILTER_ICON_2}
+                            onClick={() => setShowFilters(!showFilters)}
+                            aria-pressed={showFilters}
+                            className={showFilters ? 'pacientes-filtro--activo' : undefined}
                         >
                             Filtros Avanzados
                         </Button>
@@ -445,7 +462,7 @@ const Pacientes: React.FC = () => {
                         )}
                     </Space>
 
-                    {/* Derecha: Acciones Principales */}
+                    {/* Derecha: Acciones */}
                     <Space wrap>
                         <Button icon={BAR_CHART_ICON} onClick={() => setModalAnalisisDemograficoVisible(true)}>
                             Análisis Demográfico
@@ -458,37 +475,32 @@ const Pacientes: React.FC = () => {
                         </Button>
                         <Button icon={FILE_EXCEL_ICON_2} onClick={() => setModalImportarVisible(true)}>Importar Excel</Button>
                         <Button icon={EXPORT_ICON_3} onClick={handleExport}>Exportar CSV</Button>
-                        <Button icon={FILE_EXCEL_ICON_2} onClick={handleExportExcel} style={{ backgroundColor: token.colorSuccess, color: 'white', borderColor: token.colorSuccess }}>
+                        <Button icon={FILE_EXCEL_ICON_2} onClick={handleExportExcel}>
                             Exportar Excel
                         </Button>
-                        <Button icon={FILE_PDF_ICON_4} onClick={handleExportPDF} style={{ backgroundColor: token.colorError, color: 'white', borderColor: token.colorError }}>
+                        <Button icon={FILE_PDF_ICON_4} onClick={handleExportPDF}>
                             Exportar PDF
                         </Button>
                         <Button icon={RELOAD_ICON_2} onClick={loadPacientes} loading={loading}>Recargar</Button>
-                        {canAdd('paciente') && (
-                            <Button type="primary" icon={PLUS_ICON_5} onClick={handleOpenCreate} size="large">
-                                Nueva Paciente
-                            </Button>
-                        )}
                     </Space>
                 </div>
 
                 {/* Panel de Filtros Avanzados (Colapsable) */}
                 {showFilters && (
-                    <div style={{ marginTop: 20, paddingTop: 20, borderTop: `1px solid ${token.colorBorderSecondary}` }} className="animate-slide-down">
+                    <div className="pacientes-herramientas__filtros">
                         {/* Sin filtro de género: todas las pacientes son femeninas
                             (sistema exclusivamente gineco-obstétrico). */}
                         <Row gutter={[16, 16]}>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={6}>
                                 <Input
                                     placeholder="Ciudad"
                                     onChange={(e) => setFilters(prev => ({ ...prev, ciudad: e.target.value }))}
                                 />
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={6}>
                                 <Select
                                     placeholder="Estado"
-                                    style={{ width: '100%' }}
+                                    className="pacientes-ancho-completo"
                                     allowClear
                                     onChange={(val) => setFilters(prev => ({ ...prev, estado: val }))}
                                 >
@@ -496,7 +508,7 @@ const Pacientes: React.FC = () => {
                                     <Option value="inactivo">Inactivos</Option>
                                 </Select>
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={6}>
                                 <Checkbox onChange={(e) => setFilters(prev => ({ ...prev, tieneEmbarazo: e.target.checked }))}>
                                     Solo con Embarazo Activo
                                 </Checkbox>
@@ -507,8 +519,8 @@ const Pacientes: React.FC = () => {
             </Card>
 
             {/* --- TABLA DE DATOS --- */}
-            <Card variant="borderless" className="shadow-card" styles={{ body: { padding: 0 } }}>
-                {listado.error && <Alert type="error" showIcon message={listado.error} style={{ margin: 12 }} />}
+            <Card className="pacientes-tabla" styles={{ body: { padding: 0 } }}>
+                {listado.error && <Alert type="error" showIcon message={listado.error} className="pacientes-tabla__error" />}
                 <Table
                     rowKey="id"
                     dataSource={listado.datos}

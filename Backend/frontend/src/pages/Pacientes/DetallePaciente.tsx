@@ -26,6 +26,7 @@ import { ecografiasService } from '../../services/ecografiasService';
 import { Embarazo } from '../../services/embarazosService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import DetallePacienteStats from './components/DetallePacienteStats';
+import './Pacientes.css';
 import DetallePacienteGraficas from './components/DetallePacienteGraficas';
 import DetallePacienteInfo from './components/DetallePacienteInfo';
 import DetallePacienteTabs from './components/DetallePacienteTabs';
@@ -157,7 +158,7 @@ const DetallePaciente: React.FC = () => {
 
   if (loadingRef.current) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
+      <div className="pacientes-cargando">
         <Spin size="large" tip="Cargando historial clínico completo del paciente…"><div /></Spin>
       </div>
     );
@@ -168,21 +169,21 @@ const DetallePaciente: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '24px', backgroundColor: 'var(--bg-secondary)' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Space>
+    <div className="pacientes-pagina pacientes-detalle">
+      {/* Encabezado de página */}
+      <header className="pacientes-encabezado">
+        <Space wrap>
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(FRONTEND_ROUTES.DASHBOARD.PACIENTES)}>
             Volver
           </Button>
-          <Title level={2} style={{ margin: 0 }}>
+          <Title level={2} className="pacientes-encabezado__titulo">
             <UserOutlined /> {paciente.nombre_completo}
           </Title>
-          <Tag color={paciente.activo ? 'green' : 'red'}>
+          <Tag color={paciente.activo ? 'success' : 'error'}>
             {paciente.activo ? 'ACTIVO' : 'INACTIVO'}
           </Tag>
         </Space>
-        <Space>
+        <Space wrap>
           <Button icon={<EditOutlined />} onClick={handleEdit}>
             Editar
           </Button>
@@ -195,7 +196,7 @@ const DetallePaciente: React.FC = () => {
             Historia Clínica PDF
           </Button>
         </Space>
-      </div>
+      </header>
 
       {/* Estadísticas Generales */}
       <DetallePacienteStats stats={stats} />

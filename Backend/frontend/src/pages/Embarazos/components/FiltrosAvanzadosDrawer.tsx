@@ -17,7 +17,7 @@ interface FiltrosAvanzadosDrawerProps {
 const FiltrosAvanzadosDrawer: React.FC<FiltrosAvanzadosDrawerProps> = ({
   visible, onClose, vistaComparacion, mostrarFinalizados, dispatch, message,
 }) => (
-  <Drawer
+  <Drawer rootClassName="capa-clinica"
     title={
       <Space>
         <FilterOutlined />
@@ -72,7 +72,7 @@ const FiltrosAvanzadosDrawer: React.FC<FiltrosAvanzadosDrawerProps> = ({
         />
       </Form.Item>
 
-      <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+      <Space className="u-ancho u-fin">
         <Button onClick={onClose}>
           Cancelar
         </Button>

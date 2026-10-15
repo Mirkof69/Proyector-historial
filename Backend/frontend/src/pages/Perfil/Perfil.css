@@ -1,0 +1,92 @@
+/* Mi perfil — contrato: docs/DISENO_INTERFAZ.md */
+
+.perfil-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  max-width: 1200px;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.perfil-page__cargando {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cabecera: avatar + nombre (22/600) + correo + estado */
+.perfil-page__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-5);
+  padding: var(--esp-5);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+}
+
+.perfil-page__avatar.ant-avatar {
+  flex-shrink: 0;
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+  border: 1px solid var(--color-borde);
+}
+
+.perfil-page__datos {
+  min-width: 0;
+}
+
+.perfil-page__datos h2.ant-typography {
+  margin: 0 0 var(--esp-1);
+}
+
+.perfil-page__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  margin-top: var(--esp-3);
+}
+
+.perfil-page__etiquetas .ant-tag {
+  margin-inline-end: 0;
+}
+
+/* ---------- Pestañas ---------- */
+.perfil-page__progreso.ant-progress {
+  margin-bottom: var(--esp-3);
+}
+
+.perfil-page__subir {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.perfil-page__subir .anticon {
+  font-size: var(--texto-xl);
+}
+
+.perfil-page__ayuda {
+  display: block;
+  margin-top: var(--esp-1);
+  font-size: var(--texto-xs);
+}
+
+.perfil-page__aviso.ant-alert {
+  margin-bottom: var(--esp-5);
+}
+
+.perfil-page__formulario-clave {
+  max-width: 500px;
+}
+
+@media (min-width: 992px) {
+  .perfil-page__resumen {
+    position: sticky;
+    top: calc(var(--alto-cabecera) + var(--esp-4));
+  }
+}

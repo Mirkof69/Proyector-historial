@@ -8,11 +8,9 @@ export const handleImprimir = () => {
 
 export const getViaPartoColor = (via: string) => {
   const colores: Record<string, string> = {
-    vaginal_espontaneo: 'green',
-    vaginal_instrumentado: 'blue',
-    cesarea_electiva: 'orange',
-    cesarea_urgencia: 'red',
-    cesarea_emergencia: 'volcano',
+    // Solo la urgencia es un estado; la vía en sí va en neutro.
+    cesarea_urgencia: 'warning',
+    cesarea_emergencia: 'error',
   };
   return colores[via] || 'default';
 };
@@ -29,10 +27,10 @@ export const getApgarInterpretacion = (apgar: number) => {
 
 export const getClasificacionPeso = (peso: number) => {
   if (peso < 2500) {
-    return { text: 'Bajo peso', color: 'orange' };
+    return { text: 'Bajo peso', color: 'warning' };
   } else if (peso >= 2500 && peso <= 4000) {
-    return { text: 'Peso adecuado', color: 'green' };
+    return { text: 'Peso adecuado', color: 'success' };
   } else {
-    return { text: 'Macrosomía', color: 'red' };
+    return { text: 'Macrosomía', color: 'error' };
   }
 };

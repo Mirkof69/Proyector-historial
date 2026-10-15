@@ -61,8 +61,8 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
                   <YAxis label={HGB_LABEL} domain={HGB_DOMAIN} />
                   <RechartsTooltip />
                   <Legend />
-                  <ReferenceArea y1={11} y2={14} fill="#52c41a" fillOpacity={0.1} />
-                  <Line type="monotone" dataKey="valor" stroke="#ff4d4f" strokeWidth={2} name="Hemoglobina (g/dL)" dot={{ fill: '#ff4d4f', r: 5 }} />
+                  <ReferenceArea y1={11} y2={14} fill="var(--color-exito)" fillOpacity={0.1} />
+                  <Line type="monotone" dataKey="valor" stroke="var(--grafico-5)" strokeWidth={2} name="Hemoglobina (g/dL)" dot={{ fill: 'var(--grafico-5)', r: 5 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </Card>
@@ -78,9 +78,9 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
                   <YAxis label={{ value: 'mg/dL', angle: -90, position: 'insideLeft' }} />
                   <RechartsTooltip />
                   <Legend />
-                  <ReferenceArea y1={70} y2={100} fill="#52c41a" fillOpacity={0.1} />
-                  <ReferenceArea y1={125} y2={200} fill="#ff4d4f" fillOpacity={0.1} />
-                  <Line type="monotone" dataKey="valor" stroke="#faad14" strokeWidth={2} name="Glucosa (mg/dL)" dot={{ fill: '#faad14', r: 5 }} />
+                  <ReferenceArea y1={70} y2={100} fill="var(--color-exito)" fillOpacity={0.1} />
+                  <ReferenceArea y1={125} y2={200} fill="var(--color-peligro)" fillOpacity={0.1} />
+                  <Line type="monotone" dataKey="valor" stroke="var(--grafico-3)" strokeWidth={2} name="Glucosa (mg/dL)" dot={{ fill: 'var(--grafico-3)', r: 5 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </Card>
@@ -96,8 +96,8 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
                   <YAxis label={HCT_LABEL} domain={HCT_DOMAIN} />
                   <RechartsTooltip />
                   <Legend />
-                  <ReferenceArea y1={33} y2={44} fill="#52c41a" fillOpacity={0.1} />
-                  <Line type="monotone" dataKey="valor" stroke="#1890ff" strokeWidth={2} name="Hematocrito (%)" dot={{ fill: '#1890ff', r: 5 }} />
+                  <ReferenceArea y1={33} y2={44} fill="var(--color-exito)" fillOpacity={0.1} />
+                  <Line type="monotone" dataKey="valor" stroke="var(--grafico-2)" strokeWidth={2} name="Hematocrito (%)" dot={{ fill: 'var(--grafico-2)', r: 5 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </Card>
@@ -113,7 +113,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
         bordered
         columns={[
           { title: 'Fecha Toma', dataIndex: 'fecha_toma', render: (t) => dayjs(t).format('DD/MM/YY'), width: 100, sorter: (a: any, b: any) => new Date(a.fecha_toma).getTime() - new Date(b.fecha_toma).getTime() },
-          { title: 'Categoría', dataIndex: 'categoria', render: (t) => <Tag color="blue">{t || 'General'}</Tag>, width: 120, filters: [{ text: 'Hematología', value: 'HEMATOLOGIA' }, { text: 'Química', value: 'QUIMICA' }, { text: 'Inmunología', value: 'INMUNOLOGIA' }, { text: 'Microbiología', value: 'MICROBIOLOGIA' }], onFilter: (value: any, record: any) => record.categoria === value },
+          { title: 'Categoría', dataIndex: 'categoria', render: (t) => <Tag>{t || 'General'}</Tag>, width: 120, filters: [{ text: 'Hematología', value: 'HEMATOLOGIA' }, { text: 'Química', value: 'QUIMICA' }, { text: 'Inmunología', value: 'INMUNOLOGIA' }, { text: 'Microbiología', value: 'MICROBIOLOGIA' }], onFilter: (value: any, record: any) => record.categoria === value },
           { title: 'Examen', dataIndex: 'tipo_examen_nombre', render: (n, r: any) => n ?? r.tipo_examen, width: 200 },
           { title: 'Resultado', dataIndex: 'resultado', render: (t, r: any) => (<Text strong type={r.es_anormal ? 'danger' : 'success'}>{t} {r.unidad || ''}</Text>), width: 120 },
           { title: 'Valores Ref.', dataIndex: 'valores_referencia', responsive: ['md'] as any, width: 120 },
@@ -122,11 +122,11 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
         ]}
         expandable={{
           expandedRowRender: (record: any) => (
-            <div style={{ padding: '16px 24px', background: '#fafafa' }}>
+            <div className="historia-detalle-fila">
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <Descriptions bordered column={3} size="small">
-                    <Descriptions.Item label="Categoría" span={1}><Tag color="blue">{record.categoria || 'General'}</Tag></Descriptions.Item>
+                    <Descriptions.Item label="Categoría" span={1}><Tag>{record.categoria || 'General'}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Tipo de Examen" span={2}><Text strong>{record.tipo_examen_nombre ?? record.tipo_examen}</Text></Descriptions.Item>
                     <Descriptions.Item label="Fecha de Toma" span={1}>{dayjs(record.fecha_toma).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
                     <Descriptions.Item label="Resultado" span={1}><Text strong style={{ fontSize: 16 }} type={record.es_anormal ? 'danger' : 'success'}>{record.resultado} {record.unidad || ''}</Text></Descriptions.Item>
@@ -140,7 +140,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
                   </Descriptions>
                 </Col>
                 <Col span={24}>
-                  <Card size="small" title="Trazabilidad" style={{ background: '#f0f2f5' }}>
+                  <Card size="small" title="Trazabilidad" className="historia-trazabilidad">
                     <Space split={verticalDivider} size="large">
                       <Space direction="vertical" size={0}><Text type="secondary">Registrado por:</Text><Text strong><UserOutlined /> {record.medico?.nombre || record.medico?.username || 'Sistema'}</Text></Space>
                       <Space direction="vertical" size={0}><Text type="secondary">Fecha de registro:</Text><Text strong><ClockCircleOutlined /> {record.fecha_registro ? dayjs(record.fecha_registro).format('DD/MM/YYYY HH:mm:ss') : '-'}</Text></Space>

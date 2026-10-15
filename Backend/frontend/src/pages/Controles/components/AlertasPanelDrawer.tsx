@@ -30,14 +30,14 @@ const AlertasPanelDrawer: React.FC<AlertasPanelDrawerProps> = ({
   showAlertasPanel, onClose, total, totalConAlertas, controlesConAlertas,
   detectarAlertas, getNombrePaciente, handleQuickView,
 }) => (
-  <Drawer
+  <Drawer rootClassName="capa-clinica"
     title={
       <Space>
         <WarningOutlined />
         Panel de Alertas
         <Badge
           count={totalConAlertas}
-          style={{ backgroundColor: '#ff4d4f' }}
+          className="pc-insignia pc-insignia--peligro"
         />
       </Space>
     }
@@ -46,7 +46,7 @@ const AlertasPanelDrawer: React.FC<AlertasPanelDrawerProps> = ({
     open={showAlertasPanel}
     width={400}
   >
-    <Space direction="vertical" style={{ width: '100%' }} size="middle">
+    <Space direction="vertical" className="u-ancho" size="middle">
       <Alert
         message="Resumen de Alertas"
         description={`Se encontraron ${totalConAlertas} controles con alertas médicas de un total de ${total} controles (con los filtros aplicados).`}
@@ -81,7 +81,7 @@ const AlertasPanelDrawer: React.FC<AlertasPanelDrawerProps> = ({
               </Button>
             }
           >
-            <Space direction="vertical" style={{ width: '100%' }} size="small">
+            <Space direction="vertical" className="u-ancho" size="small">
               <Text type="secondary">
                 Control #{control.numero_control} -{' '}
                 {dayjs(control.fecha_control).format('DD/MM/YYYY')}
@@ -92,11 +92,11 @@ const AlertasPanelDrawer: React.FC<AlertasPanelDrawerProps> = ({
                   message={alerta}
                   type="warning"
                   showIcon
-                  style={{ fontSize: 12 }}
+                  className="u-t-xs"
                 />
               ))}
               {alertas.length > 2 && (
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text type="secondary" className="u-t-xs">
                   +{alertas.length - 2} alertas más…
                 </Text>
               )}

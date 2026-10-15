@@ -21,7 +21,6 @@ import { buildMainMenuItems } from './mainMenuItems';
 import { buildThemeMenuItems, buildUserMenuItems } from './headerMenus';
 import SidebarContent from './SidebarContent';
 import LayoutHeader from './LayoutHeader';
-import './MainLayout.css';
 
 const { Sider, Content, Footer } = Layout;
 
@@ -37,7 +36,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
   const location = useLocation();
   const user = authService.getCurrentUser();
 
-  const { theme, themeName, setTheme, fontScale, setFontScale } = useTheme();
+  const { setTheme, fontScale, setFontScale } = useTheme();
 
   // Estados locales
   const [collapsed, setCollapsed] = useState(false);
@@ -75,11 +74,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
   const themeMenuItems = buildThemeMenuItems(setTheme, fontScale, setFontScale);
   const userMenuItems = buildUserMenuItems(navigate, handleUserLogout);
 
-  const isLightTheme = themeName === 'normal' || themeName === 'light';
-
   const sidebar = (
     <SidebarContent
-      isLightTheme={isLightTheme}
       collapsed={collapsed}
       selectedKey={location.pathname}
       menuItems={menuItems}
@@ -88,23 +84,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
   );
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="app-shell" style={{ minHeight: '100vh' }}>
       {/* SIDEBAR DESKTOP */}
       {!isMobile && (
         <Sider
+          className="app-sider"
           trigger={null}
           collapsible
           collapsed={collapsed}
-          width={250}
-          style={{
-            overflow: 'auto',
-            height: '100vh',
-            position: 'sticky',
-            top: 0,
-            left: 0,
-            zIndex: 10,
-            background: 'var(--bg-sidebar, #001529)'
-          }}
+          width={248}
         >
           {sidebar}
         </Sider>
@@ -113,16 +101,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
       {/* SIDEBAR MOBILE (Drawer) */}
       {isMobile && (
         <Drawer
+          className="app-drawer"
           placement="left"
           onClose={() => setMobileDrawerVisible(false)}
           open={mobileDrawerVisible}
-          styles={{
-            body: {
-              padding: 0,
-              background: isLightTheme ? '#ffffff' : '#001529'
-            }
-          }}
-          width={250}
+          styles={{ body: { padding: 0 } }}
+          width={248}
           closable={false}
         >
           {sidebar}
@@ -130,7 +114,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
       )}
 
       {/* CONTENEDOR CENTRAL */}
-      <Layout className="site-layout" style={{ transition: 'transform 0.2s' }}>
+      <Layout className="site-layout">
         <LayoutHeader
           isMobile={isMobile}
           collapsed={collapsed}
@@ -139,27 +123,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
           user={user}
           themeMenuItems={themeMenuItems}
           userMenuItems={userMenuItems}
-          textColor={theme.colors.text}
-          primaryColor={theme.colors.primary}
         />
 
         {/* CONTENIDO DE LA PÁGINA (CHILDREN) */}
-        <Content
-          style={{
-            margin: '24px 16px',
-            padding: 0,
-            minHeight: 280,
-            background: 'transparent',
-            position: 'relative'
-          }}
-          className="page-content-fade"
-        >
+        <Content className="app-content page-content-fade">
           {children}
         </Content>
 
         {/* FOOTER */}
-        <Footer style={{ textAlign: 'center', color: 'var(--text-tertiary, #bfbfbf)', padding: '16px 0' }}>
-          Fetal Medical System ©{currentYear} • Versión 1.5.0 • <SafetyCertificateOutlined /> Conexión Segura
+        <Footer className="app-footer">
+          Fetal Medical System ©{currentYear} · Versión 1.5.0 · <SafetyCertificateOutlined /> Conexión segura
         </Footer>
       </Layout>
     </Layout>

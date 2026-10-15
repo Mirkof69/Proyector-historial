@@ -97,7 +97,7 @@ const HistorialImportaciones: React.FC<{ onCambio?: () => void }> = ({ onCambio 
       >
         <Text>Se borrarán los {anulando?.resultados} resultados de «{anulando?.nombre_archivo}» y los exámenes que
           quedaron vacíos. Queda registrado quién lo hizo y por qué.</Text>
-        <Input.TextArea style={{ marginTop: 12 }} rows={3} value={motivo} onChange={(e) => setMotivo(e.target.value)}
+        <Input.TextArea className="laboratorio-arriba" rows={3} value={motivo} onChange={(e) => setMotivo(e.target.value)}
           placeholder="Motivo (por ejemplo: archivo de otro día)" maxLength={500} />
       </Modal>
     </>

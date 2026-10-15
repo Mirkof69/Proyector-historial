@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Tag, Button, Typography, Alert, Spin } from 'antd';
-import { ReloadOutlined, ExperimentOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { ReloadOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import './Laboratorio.css';
 import { useParams } from 'react-router-dom';
 import { laboratorioService, ResultadoLaboratorio } from '../../services/laboratorioService';
 
@@ -40,9 +41,9 @@ const ResultadosLaboratorio: React.FC = () => {
     {
       title: 'Estado', key: 'estado',
       render: (_: unknown, r: ResultadoLaboratorio) => {
-        if (r.es_critico) return <Tag color="magenta" icon={<WarningOutlined />}>CRÍTICO</Tag>;
-        if (!r.es_normal) return <Tag color="orange" icon={<WarningOutlined />}>ANORMAL</Tag>;
-        return <Tag color="green" icon={<CheckCircleOutlined />}>NORMAL</Tag>;
+        if (r.es_critico) return <Tag color="error" icon={<WarningOutlined />}>CRÍTICO</Tag>;
+        if (!r.es_normal) return <Tag color="warning" icon={<WarningOutlined />}>ANORMAL</Tag>;
+        return <Tag color="success" icon={<CheckCircleOutlined />}>NORMAL</Tag>;
       },
     },
   ];
@@ -56,15 +57,20 @@ const ResultadosLaboratorio: React.FC = () => {
   }
 
   return (
-    <Card
-      title={<span><ExperimentOutlined style={{ marginRight: 8 }} />Resultados de Laboratorio</span>}
-      extra={<Button icon={<ReloadOutlined />} onClick={cargarResultados} loading={loading}>Recargar</Button>}
-    >
+    <div className="laboratorio-page page-container">
+      <header className="laboratorio-page__cabecera">
+        <div>
+          <Typography.Title level={2}>Resultados de Laboratorio</Typography.Title>
+          <Typography.Text type="secondary">Valores medidos del examen y su comparación con el rango de referencia.</Typography.Text>
+        </div>
+        <Button icon={<ReloadOutlined />} onClick={cargarResultados} loading={loading}>Recargar</Button>
+      </header>
+    <Card>
       {criticos.length > 0 && (
-        <Alert message={`${criticos.length} resultado(s) crítico(s) detectados`} type="error" showIcon style={{ marginBottom: 16 }} />
+        <Alert message={`${criticos.length} resultado(s) crítico(s) detectados`} type="error" showIcon className="laboratorio-separado" />
       )}
       {anormales.length > 0 && (
-        <Alert message={`${anormales.length} resultado(s) anormal(es) detectados`} type="warning" showIcon style={{ marginBottom: 16 }} />
+        <Alert message={`${anormales.length} resultado(s) anormal(es) detectados`} type="warning" showIcon className="laboratorio-separado" />
       )}
       <Spin spinning={loading}>
         <Table
@@ -73,10 +79,10 @@ const ResultadosLaboratorio: React.FC = () => {
           rowKey={(r) => r.id || r.valor_referencia}
           pagination={false}
           locale={{ emptyText: 'No hay resultados registrados' }}
-          bordered
         />
       </Spin>
     </Card>
+    </div>
   );
 };
 

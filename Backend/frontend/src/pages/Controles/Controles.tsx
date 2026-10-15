@@ -18,8 +18,6 @@ import {
   Input,
   Space,
   Card,
-  Row,
-  Col,
   Tag,
   Typography,
   Badge,
@@ -58,9 +56,11 @@ import { buildControlesColumns } from './controlesColumns';
 import FiltrosDrawer from './components/FiltrosDrawer';
 import VistaRapidaModal from './components/VistaRapidaModal';
 import AlertasPanelDrawer from './components/AlertasPanelDrawer';
+import '../Embarazos/paginaClinica.css';
+import './Controles.css';
 
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const Controles: React.FC = () => {
   const navigate = useNavigate();
@@ -202,20 +202,21 @@ const Controles: React.FC = () => {
   const handleDelete = useCallback(
     async (control: any) => {
       modal.confirm({
+        className: 'capa-clinica',
         title: '⚠️ ¿Confirmar eliminación permanente?',
         content: (
           <div>
             <p><strong>Se eliminará el control prenatal:</strong></p>
-            <ul style={{ marginLeft: 20 }}>
+            <ul className="u-ml-5">
               <li>Paciente: {control.paciente_nombre}</li>
               <li>Control #{control.numero_control}</li>
               <li>Fecha: {control.fecha_control}</li>
               <li>Semanas gestación: {control.semanas_gestacion}</li>
             </ul>
-            <p style={{ color: '#ff4d4f', fontWeight: 'bold', marginTop: 16 }}>
+            <p className="u-c-peligro u-fuerte u-mt-4">
               ⚠️ ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
             </p>
-            <p style={{ marginTop: 16 }}>
+            <p className="u-mt-4">
               Se perderán todos los datos de este control prenatal.
             </p>
           </div>
@@ -319,79 +320,83 @@ const Controles: React.FC = () => {
     canDelete
   ]); // Fix: dependencies were already there but ensured format is clean
   return (
-    <div className="page-container" style={{ padding: '0 24px 24px' }}>
-      <Card>
-        {/* Barra superior de información y extensión */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
-          <Space wrap>
-            <Title level={3} style={{ margin: 0 }}>
-              <MedicineBoxOutlined /> Controles Prenatales
-            </Title>
-            <Text type="secondary">Gestión y seguimiento de controles</Text>
-            <Tag color="blue">
-              Total: {resumen.total.toLocaleString('es-BO')}
-            </Tag>
-            {resumen.con_alertas > 0 && <Tag color="red">Con alertas: {resumen.con_alertas.toLocaleString('es-BO')}</Tag>}
-            {lastLoaded && (
-              <Tag color="geekblue">Última carga: {lastLoaded}</Tag>
-            )}
-          </Space>
-              <Space>
-                <Badge dot={showAlertasPanel}>
-                  <Button
-                    icon={<WarningOutlined />}
-                    onClick={handleShowAlertasPanel}
-                    danger={showAlertasPanel}
-                  >
-                    Alertas
-                  </Button>
-                </Badge>
-                <Badge dot={autoSaveEnabled} color="green">
-                  <Button
-                    icon={<CheckCircleOutlined />}
-                    onClick={handleToggleAutoSave}
-                    type={autoSaveEnabled ? 'primary' : 'default'}
-                  >
-                    Auto-guardar
-                  </Button>
-                </Badge>
-                <Button
-                  icon={<FilterOutlined />}
-                  onClick={() => dispatchUI({ type: 'SET_FILTROS_DRAWER_VISIBLE', payload: true })}
-                >
-                  Filtros
-                </Button>
-                <Button
-                  icon={<ExportOutlined />}
-                  onClick={handleExportExcel}
-                  disabled={resumen.total === 0}
-                >
-                  Exportar Excel
-                </Button>
-                {canAdd('controlprenatal') && (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleCreate}
-                  >
-                    Nuevo Control
-                  </Button>
-                )}
-              </Space>
+    <div className="pagina-clinica controles-page page-container">
+      {/* Encabezado de página */}
+      <div className="pc-cabecera">
+        <div className="pc-cabecera__texto">
+          <Title level={2} className="pc-cabecera__titulo">
+            <MedicineBoxOutlined className="pc-cabecera__icono" /> Controles Prenatales
+          </Title>
+          <p className="pc-cabecera__descripcion">Gestión y seguimiento de controles</p>
         </div>
-        <Row style={{ marginBottom: 8 }}>
-          <Col span={24}>
+        <div className="pc-cabecera__acciones">
+          <Badge dot={showAlertasPanel}>
+            <Button
+              icon={<WarningOutlined />}
+              onClick={handleShowAlertasPanel}
+              danger={showAlertasPanel}
+            >
+              Alertas
+            </Button>
+          </Badge>
+          <Badge dot={autoSaveEnabled} color="var(--color-exito)">
+            <Button
+              icon={<CheckCircleOutlined />}
+              onClick={handleToggleAutoSave}
+              aria-pressed={autoSaveEnabled}
+              className={autoSaveEnabled ? 'controles-autoguardado--activo' : undefined}
+            >
+              Auto-guardar
+            </Button>
+          </Badge>
+          <Button
+            icon={<FilterOutlined />}
+            onClick={() => dispatchUI({ type: 'SET_FILTROS_DRAWER_VISIBLE', payload: true })}
+          >
+            Filtros
+          </Button>
+          <Button
+            icon={<ExportOutlined />}
+            onClick={handleExportExcel}
+            disabled={resumen.total === 0}
+          >
+            Exportar Excel
+          </Button>
+          {canAdd('controlprenatal') && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+            >
+              Nuevo Control
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Card>
+        <div className="pc-barra">
+          <div className="pc-barra__filtros">
             <Input
+              className="pc-barra__buscar controles-buscar"
               placeholder="Buscar por paciente (nombre o CI), ID clínico..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => dispatchUI({ type: 'SET_SEARCH_TEXT', payload: e.target.value })}
               allowClear
-              style={{ maxWidth: 420 }}
             />
-          </Col>
-        </Row>
-        {listado.error && <Alert type="error" showIcon message={listado.error} style={{ marginBottom: 12 }} />}
+          </div>
+          <Space wrap size={[8, 8]}>
+            <Tag className="cifra">
+              Total: {resumen.total.toLocaleString('es-BO')}
+            </Tag>
+            {resumen.con_alertas > 0 && <Tag color="error" className="cifra">Con alertas: {resumen.con_alertas.toLocaleString('es-BO')}</Tag>}
+            {lastLoaded && (
+              <Tag>Última carga: {lastLoaded}</Tag>
+            )}
+          </Space>
+        </div>
+        {listado.error && <Alert type="error" showIcon message={listado.error} className="u-mb-3" />}
         <Table
           columns={columns}
           dataSource={listado.datos}

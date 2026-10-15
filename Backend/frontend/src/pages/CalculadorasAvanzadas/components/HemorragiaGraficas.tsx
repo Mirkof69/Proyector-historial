@@ -24,7 +24,7 @@ interface HemorragiaGraficasProps {
 const HemorragiaGraficas: React.FC<HemorragiaGraficasProps> = ({ resultado, form, historial }) => (
   <>
     <Divider>
-      <LineChartOutlined /> Análisis Gráfico
+      <span className="calc-titulo-seccion"><LineChartOutlined /> Análisis Gráfico</span>
     </Divider>
     <Row gutter={[16, 16]}>
       <Col xs={24} lg={12}>
@@ -75,9 +75,9 @@ const HemorragiaGraficas: React.FC<HemorragiaGraficasProps> = ({ resultado, form
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="valor" fill="#ff4d4f" name="Valor Actual" />
-              <Line type="monotone" dataKey="referencia" stroke="#52c41a" name="Referencia" strokeWidth={2} />
-              <Area type="monotone" dataKey="normal_max" fill="#95de64" stroke="#95de64" fillOpacity={0.3} name="Rango Normal" />
+              <Bar dataKey="valor" fill="var(--grafico-1)" name="Valor Actual" />
+              <Line type="monotone" dataKey="referencia" stroke="var(--color-texto-2)" name="Referencia" strokeWidth={2} />
+              <Area type="monotone" dataKey="normal_max" fill="var(--color-exito)" stroke="var(--color-exito)" fillOpacity={0.15} name="Rango Normal" />
             </ComposedChart>
           </ResponsiveContainer>
         </Card>
@@ -106,7 +106,7 @@ const HemorragiaGraficas: React.FC<HemorragiaGraficasProps> = ({ resultado, form
     </Row>
 
     {historial.length > 0 && (
-      <Card title="Historial de Evaluaciones" style={{ marginTop: 16 }}>
+      <Card title="Historial de Evaluaciones" className="calc-bloque-arriba">
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={[...historial].reverse()}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -115,8 +115,8 @@ const HemorragiaGraficas: React.FC<HemorragiaGraficasProps> = ({ resultado, form
             <YAxis yAxisId="right" orientation="right" label={PERDIDA_LABEL} />
             <Tooltip />
             <Legend />
-            <Line yAxisId="left" type="monotone" dataKey="shock_index" stroke="#ff4d4f" name="Shock Index" strokeWidth={2} />
-            <Line yAxisId="right" type="monotone" dataKey="perdida_ml" stroke="#1890ff" name="Pérdida (ml)" strokeWidth={2} />
+            <Line yAxisId="left" type="monotone" dataKey="shock_index" stroke="var(--grafico-1)" name="Shock Index" strokeWidth={2} />
+            <Line yAxisId="right" type="monotone" dataKey="perdida_ml" stroke="var(--grafico-2)" name="Pérdida (ml)" strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
 
@@ -126,7 +126,7 @@ const HemorragiaGraficas: React.FC<HemorragiaGraficasProps> = ({ resultado, form
           rowKey={(record) => record.fecha}
           pagination={{ pageSize: 5 }}
           size="small"
-          style={{ marginTop: 16 }}
+          className="calc-bloque-arriba"
         />
       </Card>
     )}

@@ -61,6 +61,8 @@ import SeccionEdadGestacional from './components/SeccionEdadGestacional';
 import SeccionSignosVitales from './components/SeccionSignosVitales';
 import SeccionExamenObstetrico from './components/SeccionExamenObstetrico';
 import ModalConfirmacionSalida from './components/ModalConfirmacionSalida';
+import '../Embarazos/paginaClinica.css';
+import './Controles.css';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -433,9 +435,9 @@ const FormularioControl: React.FC = () => {
             content: (
               <div>
                 <p><strong>Se encontraron los siguientes errores:</strong></p>
-                <ul style={{ marginTop: 12 }}>
+                <ul className="u-mt-3">
                   {errorList.map((err) => (
-                    <li key={err} style={{ marginBottom: 8 }}>{err}</li>
+                    <li key={err} className="u-mb-2">{err}</li>
                   ))}
                 </ul>
               </div>
@@ -482,30 +484,33 @@ const FormularioControl: React.FC = () => {
     : '';
 
   return (
-    <div style={{ padding: '0 24px 24px' }}>
-      <Button icon={<ArrowLeftOutlined />} onClick={handleCancelWithConfirmation} style={{ marginBottom: 16 }}>
-        Volver a la lista
-      </Button>
-
-      <Card
-        title={
-          <Space>
-            <MedicineBoxOutlined />
-            <Title level={4} style={{ margin: 0 }}>
-              {isEditing ? 'Editar Control Prenatal' : 'Nuevo Control Prenatal'}
-            </Title>
-          </Space>
-        }
-        extra={
+    <div className="pagina-clinica controles-formulario">
+      <div className="pc-cabecera">
+        <div className="pc-cabecera__texto">
+          <Title level={2} className="pc-cabecera__titulo">
+            <MedicineBoxOutlined className="pc-cabecera__icono" />
+            {isEditing ? 'Editar Control Prenatal' : 'Nuevo Control Prenatal'}
+          </Title>
+          <p className="pc-cabecera__descripcion">
+            Signos vitales, examen obstétrico y alertas clínicas del control.
+          </p>
+        </div>
+        <div className="pc-cabecera__acciones">
+          <Button icon={<ArrowLeftOutlined />} onClick={handleCancelWithConfirmation}>
+            Volver a la lista
+          </Button>
           <Button
             type="text"
             icon={<CloseOutlined />}
             onClick={handleCancelWithConfirmation}
             danger
             title="Cerrar formulario"
+            aria-label="Cerrar formulario"
           />
-        }
-      >
+        </div>
+      </div>
+
+      <Card>
         <FormControlAlertasHeader
           selectedEmbarazo={selectedEmbarazo}
           nombrePacienteSel={nombrePacienteSel}
@@ -551,7 +556,7 @@ const FormularioControl: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+            <Space className="u-ancho u-fin">
               <Button onClick={handleCancelWithConfirmation} size="large">
                 Cancelar
               </Button>

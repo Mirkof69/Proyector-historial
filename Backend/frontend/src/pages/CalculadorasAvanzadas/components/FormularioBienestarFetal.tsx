@@ -22,7 +22,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             name="edad_gestacional"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={24} max={42} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={24} max={42} step={0.1} />
           </Form.Item>
         </Col>
 
@@ -33,7 +33,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Percentil según curvas de crecimiento"
           >
-            <InputNumber min={1} max={99} style={{ width: '100%' }} />
+            <InputNumber min={1} max={99} />
           </Form.Item>
         </Col>
 
@@ -48,7 +48,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Frecuencia cardíaca fetal basal (normal 110-160)"
           >
-            <InputNumber min={80} max={200} style={{ width: '100%' }} />
+            <InputNumber min={80} max={200} />
           </Form.Item>
         </Col>
 
@@ -59,7 +59,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Amplitud de variabilidad (normal 6-25 lpm)"
           >
-            <InputNumber min={0} max={50} style={{ width: '100%' }} />
+            <InputNumber min={0} max={50} />
           </Form.Item>
         </Col>
 
@@ -70,7 +70,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Número de aceleraciones ≥15 lpm por ≥15 seg (reactivo: ≥2)"
           >
-            <InputNumber min={0} max={20} style={{ width: '100%' }} />
+            <InputNumber min={0} max={20} />
           </Form.Item>
         </Col>
 
@@ -95,7 +95,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             name="contracciones_10min"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={0} max={10} style={{ width: '100%' }} />
+            <InputNumber min={0} max={10} />
           </Form.Item>
         </Col>
 
@@ -105,7 +105,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             message="Cada componente: 2 puntos si normal, 0 si anormal. Total 0-10 puntos."
             type="info"
             showIcon
-            style={{ marginBottom: 16 }}
+            className="calc-bloque"
           />
         </Col>
 
@@ -167,7 +167,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Índice de Líquido Amniótico. Normal ≥5 cm (2 pts), <5 cm (0 pts)"
           >
-            <InputNumber min={0} max={30} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={0} max={30} step={0.1} />
           </Form.Item>
         </Col>
 
@@ -191,7 +191,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Arteria Umbilical - Índice de Pulsatilidad (normal <1.4)"
           >
-            <InputNumber min={0} max={3} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={0} max={3} step={0.1} />
           </Form.Item>
         </Col>
 
@@ -202,7 +202,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Arteria Umbilical - Índice de Resistencia (normal <0.7)"
           >
-            <InputNumber min={0} max={1} step={0.01} style={{ width: '100%' }} />
+            <InputNumber min={0} max={1} step={0.01} />
           </Form.Item>
         </Col>
 
@@ -213,7 +213,7 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Arteria Cerebral Media - PI (normal >1.0, <1.0 = centralización)"
           >
-            <InputNumber min={0} max={4} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={0} max={4} step={0.1} />
           </Form.Item>
         </Col>
 

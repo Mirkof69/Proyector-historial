@@ -27,7 +27,7 @@ const CitasQuickActions: React.FC<CitasQuickActionsProps> = ({
   onActualizar,
   onNuevaCita,
 }) => (
-  <Space>
+  <Space wrap>
     <Button icon={<CalendarOutlined />} onClick={onVerCalendario}>
       Ver Calendario
     </Button>

@@ -1,0 +1,152 @@
+/* Centro de ayuda — contrato: docs/DISENO_INTERFAZ.md */
+
+.ayuda-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.ayuda-page__miga {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primario);
+  cursor: pointer;
+  font: inherit;
+}
+
+.ayuda-page__miga:hover {
+  color: var(--color-primario-hover);
+}
+
+.ayuda-page__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.ayuda-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
+}
+
+.ayuda-page__buscar {
+  width: 420px;
+  max-width: 100%;
+}
+
+.ayuda-page__buscar .anticon-search {
+  color: var(--color-texto-3);
+}
+
+.ayuda-page__seccion {
+  padding: var(--esp-2) 0;
+}
+
+/* ---------- Guías rápidas ---------- */
+.ayuda-page__novedad.ant-alert {
+  margin-bottom: var(--esp-5);
+}
+
+.ayuda-page__guia.ant-card {
+  height: 100%;
+  cursor: pointer;
+  transition: border-color var(--duracion) var(--curva);
+}
+
+.ayuda-page__guia.ant-card:hover,
+.ayuda-page__guia.ant-card:focus-visible {
+  border-color: var(--color-primario);
+}
+
+.ayuda-page__guia-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--esp-3);
+  border-radius: var(--radio);
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+  font-size: var(--texto-lg);
+}
+
+.ayuda-page__guia h4.ant-typography {
+  margin-top: 0;
+}
+
+.ayuda-page__enlace.ant-btn {
+  padding: 0;
+}
+
+.ayuda-page__video-icono {
+  font-size: var(--texto-xl);
+  color: var(--color-texto-2);
+}
+
+.ayuda-page__titulo-enlace {
+  color: var(--color-primario);
+  cursor: pointer;
+}
+
+/* ---------- Preguntas frecuentes ---------- */
+.ayuda-page__faq {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+}
+
+.ayuda-page__faq h4.ant-typography {
+  margin-bottom: var(--esp-2);
+}
+
+.ayuda-page__pregunta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.ayuda-page__sin-resultados {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-6) var(--esp-4);
+  text-align: center;
+}
+
+/* ---------- Documentación ---------- */
+.ayuda-page__pdf.ant-avatar {
+  background-color: var(--color-peligro-suave);
+  color: var(--color-peligro);
+}
+
+/* ---------- Soporte ---------- */
+.ayuda-page__contactos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  margin-top: var(--esp-5);
+}
+
+.ayuda-page__contacto {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-4);
+}
+
+.ayuda-page__contacto > .anticon {
+  font-size: var(--texto-xl);
+  color: var(--color-primario);
+}
+
+.ayuda-page__contacto-datos {
+  display: flex;
+  flex-direction: column;
+}

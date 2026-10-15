@@ -1,13 +1,14 @@
 import React, { Suspense, lazy } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Button, Card, Col, Row, Space, Tabs, Typography } from 'antd';
-import { BarChartOutlined, PrinterOutlined } from '@ant-design/icons';
+import { Button, Card, Space, Tabs, Typography } from 'antd';
+import { PrinterOutlined } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { GlobalLoader } from '../../components/common/GlobalLoader';
 import {
   AuditoriaReportes, GenerarReporte, Indicadores, KPIs, Reportes, Statistics,
 } from '../../routes/lazyPages';
 import { FiltroFechasReportes, ProveedorRangoReportes } from './rangoReportes';
+import './Reportes.css';
 
 const NatalidadMorbilidad = lazy(() => import('./NatalidadMorbilidad'));
 const ReporteIA = lazy(() => import('./ReporteIA'));
@@ -46,26 +47,17 @@ const CentroReportes: React.FC = () => {
 
   return (
     <ProveedorRangoReportes>
-    <div className="page-container" style={{ padding: 24 }}>
-      <Card style={{ marginBottom: 16 }}>
-        <Row justify="space-between" align="middle" gutter={[16, 12]}>
-          <Col>
-            <Space align="center">
-              <BarChartOutlined style={{ fontSize: 28 }} />
-              <div>
-                <Title level={3} style={{ margin: 0 }}>Centro de reportes</Title>
-                <Text type="secondary">Natalidad, morbilidad, IA, KPIs, estadísticas por fecha, PDF y auditoría.</Text>
-              </div>
-            </Space>
-          </Col>
-          <Col className="no-print">
-            <Space wrap>
-              <FiltroFechasReportes />
-              <Button icon={<PrinterOutlined />} onClick={() => window.print()}>Imprimir</Button>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+    <div className="reportes-page page-container">
+      <header className="reportes-page__cabecera">
+        <div>
+          <Title level={2}>Centro de reportes</Title>
+          <Text type="secondary">Natalidad, morbilidad, IA, KPIs, estadísticas por fecha, PDF y auditoría.</Text>
+        </div>
+        <Space wrap className="no-print">
+          <FiltroFechasReportes />
+          <Button icon={<PrinterOutlined />} onClick={() => window.print()}>Imprimir</Button>
+        </Space>
+      </header>
       {visibles.length === 0 ? (
         <Card><Text>Su rol no tiene acceso a ningún reporte.</Text></Card>
       ) : (

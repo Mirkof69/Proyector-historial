@@ -22,7 +22,7 @@ export const buildColumnsResultados = () => [
     width: 150,
     render: (record: any) => (
       <Space direction="vertical" size={0}>
-        <Text strong style={{ fontSize: 16 }}>
+        <Text strong className="laboratorio-page__valor">
           {record.valor_numerico || record.valor_texto}{' '}
           {record.unidad && record.unidad !== 'cualitativo' && `${record.unidad}`}
         </Text>
@@ -34,7 +34,7 @@ export const buildColumnsResultados = () => [
     key: 'rango',
     width: 200,
     render: (record: any) => (
-      <Space direction="vertical" size={4} style={{ width: '100%' }}>
+      <Space direction="vertical" size={4} className="laboratorio-ancho">
         <Text type="secondary">{record.rango_referencia || 'N/A'}</Text>
         {record.valor_numerico && record.rango_referencia && (
           <Progress
@@ -55,24 +55,24 @@ export const buildColumnsResultados = () => [
       <Space direction="vertical" size={0}>
         {record.es_critico && (
           <>
-            <Tag color="red" icon={<WarningOutlined />}>CRÍTICO</Tag>
-            <Text type="danger" style={{ fontSize: 12 }}>
+            <Tag color="error" icon={<WarningOutlined />}>CRÍTICO</Tag>
+            <Text type="danger" className="laboratorio-page__detalle-valor">
               Requiere atención inmediata
             </Text>
           </>
         )}
         {!record.es_critico && !record.es_normal && (
           <>
-            <Tag color="orange" icon={<ExclamationCircleOutlined />}>ANORMAL</Tag>
-            <Text type="warning" style={{ fontSize: 12 }}>
+            <Tag color="warning" icon={<ExclamationCircleOutlined />}>ANORMAL</Tag>
+            <Text type="warning" className="laboratorio-page__detalle-valor">
               {interpretarResultado(record)}
             </Text>
           </>
         )}
         {record.es_normal && (
           <>
-            <Tag color="green" icon={<CheckCircleOutlined />}>NORMAL</Tag>
-            <Text style={{ fontSize: 12, color: '#52c41a' }}>
+            <Tag color="success" icon={<CheckCircleOutlined />}>NORMAL</Tag>
+            <Text className="laboratorio-page__detalle-valor laboratorio-page__detalle-valor--exito">
               Dentro del rango esperado
             </Text>
           </>

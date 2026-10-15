@@ -30,15 +30,8 @@ const VisorToolPanel: React.FC<VisorToolPanelProps> = ({
   tools, rotation, hasGradCam, showGradCam, dispatch,
   handleZoomIn, handleZoomOut, handleResetView, handleExportImage, handlePrint,
 }) => (
-  <Col
-    style={{
-      width: 80,
-      background: '#141414',
-      borderRight: '1px solid #434343',
-      padding: '16px 8px'
-    }}
-  >
-    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+  <Col className="visor-herramientas">
+    <Space direction="vertical" size="middle" className="u-ancho">
       {tools.map(tool => (
         <Tooltip key={tool.name} title={tool.tooltip} placement="right">
           <Button
@@ -46,24 +39,24 @@ const VisorToolPanel: React.FC<VisorToolPanelProps> = ({
             icon={tool.icon}
             onClick={() => dispatch({ type: 'SET_ACTIVE_TOOL', payload: tool.name })}
 
-            style={{ width: '100%' }}
+            className="u-ancho"
             size="large"
           />
         </Tooltip>
       ))}
-      <Divider style={{ margin: '8px 0', background: '#434343' }} />
+      <Divider className="visor-separador" />
       <Tooltip title="Zoom In" placement="right">
-        <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} style={{ width: '100%' }} />
+        <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} className="u-ancho" />
       </Tooltip>
       <Tooltip title="Zoom Out" placement="right">
-        <Button icon={<ZoomOutOutlined />} onClick={handleZoomOut} style={{ width: '100%' }} />
+        <Button icon={<ZoomOutOutlined />} onClick={handleZoomOut} className="u-ancho" />
       </Tooltip>
       <Tooltip title="Rotar Izquierda" placement="right">
         <Button
           icon={<RotateLeftOutlined />}
           onClick={() => dispatch({ type: 'SET_ROTATION', payload: rotation - 90 })}
 
-          style={{ width: '100%' }}
+          className="u-ancho"
         />
       </Tooltip>
       <Tooltip title="Rotar Derecha" placement="right">
@@ -71,13 +64,13 @@ const VisorToolPanel: React.FC<VisorToolPanelProps> = ({
           icon={<RotateRightOutlined />}
           onClick={() => dispatch({ type: 'SET_ROTATION', payload: rotation + 90 })}
 
-          style={{ width: '100%' }}
+          className="u-ancho"
         />
       </Tooltip>
       <Tooltip title="Resetear Vista" placement="right">
-        <Button icon={<UndoOutlined />} onClick={handleResetView} style={{ width: '100%' }} />
+        <Button icon={<UndoOutlined />} onClick={handleResetView} className="u-ancho" />
       </Tooltip>
-      <Divider style={{ margin: '8px 0', background: '#434343' }} />
+      <Divider className="visor-separador" />
 
       {hasGradCam && (
         <Tooltip title={showGradCam ? "Ocultar Grad-CAM" : "Mostrar Grad-CAM (Heatmap)"} placement="right">
@@ -86,17 +79,17 @@ const VisorToolPanel: React.FC<VisorToolPanelProps> = ({
             type={showGradCam ? "primary" : "default"}
             danger={showGradCam}
             onClick={() => dispatch({ type: 'SET_SHOW_GRADCAM', payload: !showGradCam })}
-            style={{ width: '100%' }}
+            className="u-ancho"
           />
         </Tooltip>
       )}
 
-      <Divider style={{ margin: '8px 0', background: '#434343' }} />
+      <Divider className="visor-separador" />
       <Tooltip title="Exportar" placement="right">
-        <Button icon={<DownloadOutlined />} onClick={handleExportImage} style={{ width: '100%' }} />
+        <Button icon={<DownloadOutlined />} onClick={handleExportImage} className="u-ancho" />
       </Tooltip>
       <Tooltip title="Imprimir" placement="right">
-        <Button icon={<PrinterOutlined />} onClick={handlePrint} style={{ width: '100%' }} />
+        <Button icon={<PrinterOutlined />} onClick={handlePrint} className="u-ancho" />
       </Tooltip>
     </Space>
   </Col>

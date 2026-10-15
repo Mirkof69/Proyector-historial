@@ -10,9 +10,9 @@ export interface RegistroVacunaExtended extends RegistroVacuna {
   tipo_vacuna_nombre?: string;
 }
 
-export const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B9D', '#C45AFF'];
-export const FULL_WIDTH_STYLE = { width: '100%' as const };
-export const AXIS_TICK_STYLE = { fill: '#64748b', fontSize: 12 };
+// Series de gráficas del tema (tokens.css): cambian solas con el tema.
+export const COLORS = ['var(--grafico-1)', 'var(--grafico-2)', 'var(--grafico-3)', 'var(--grafico-4)', 'var(--grafico-5)', 'var(--grafico-6)'];
+export const AXIS_TICK_STYLE = { fill: 'var(--color-texto-2)', fontSize: 12 };
 export const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 
 // ── Estado de filtros (reducer a nivel de módulo: identidad estable) ─────────

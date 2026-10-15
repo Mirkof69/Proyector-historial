@@ -9,7 +9,7 @@ const SeccionClasificacionEmbarazo: React.FC<{ form: FormInstance }> = ({ form }
     <Divider orientation="left">Clasificacion del Embarazo</Divider>
 
     <Row gutter={16}>
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item name="tipo_embarazo" label="Tipo de Embarazo" initialValue="simple">
           <Select placeholder="Seleccione tipo">
             <Option value="simple">Simple</Option>
@@ -19,7 +19,7 @@ const SeccionClasificacionEmbarazo: React.FC<{ form: FormInstance }> = ({ form }
         </Form.Item>
       </Col>
 
-      <Col span={12}>
+      <Col xs={24} md={12}>
         <Form.Item
           name="riesgo_embarazo"
           label={
@@ -79,27 +79,27 @@ const SeccionClasificacionEmbarazo: React.FC<{ form: FormInstance }> = ({ form }
     <Divider orientation="left">Historial Obstetrico</Divider>
 
     <Row gutter={16}>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="numero_abortos"
           label="Numero de Abortos"
           rules={[{ type: 'number', min: 0, message: 'Debe ser número positivo o cero' }]}
         >
-          <InputNumber style={{ width: '100%' }} placeholder="0" min={0} onChange={() => form.validateFields(['numero_gesta'])} />
+          <InputNumber className="u-ancho" placeholder="0" min={0} onChange={() => form.validateFields(['numero_gesta'])} />
         </Form.Item>
       </Col>
 
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="numero_cesareas"
           label="Numero de Cesareas"
           rules={[{ type: 'number', min: 0, message: 'Debe ser número positivo o cero' }]}
         >
-          <InputNumber style={{ width: '100%' }} placeholder="0" min={0} />
+          <InputNumber className="u-ancho" placeholder="0" min={0} />
         </Form.Item>
       </Col>
 
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Form.Item
           name="numero_para"
           label="Numero de Para"
@@ -116,7 +116,7 @@ const SeccionClasificacionEmbarazo: React.FC<{ form: FormInstance }> = ({ form }
             })
           ]}
         >
-          <InputNumber style={{ width: '100%' }} placeholder="0" min={0} onChange={() => form.validateFields(['numero_gesta'])} />
+          <InputNumber className="u-ancho" placeholder="0" min={0} onChange={() => form.validateFields(['numero_gesta'])} />
         </Form.Item>
       </Col>
     </Row>

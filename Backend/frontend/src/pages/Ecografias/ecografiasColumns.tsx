@@ -26,8 +26,8 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
     render: (_: any, record: Ecografia) => (
       <Space direction="vertical" size={0}>
         <Space>
-          <UserOutlined style={{ color: '#1890ff' }} />
-          <span style={{ fontWeight: 500 }}>{record.paciente_nombre || 'No especificado'}</span>
+          <UserOutlined className="u-c-primario" />
+          <span className="u-medio">{record.paciente_nombre || 'No especificado'}</span>
         </Space>
       </Space>
     ),
@@ -52,16 +52,8 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
     key: 'tipo_ecografia',
     width: 150,
     render: (tipo: string) => {
-      const colores: Record<string, string> = {
-        primer_trimestre: 'cyan',
-        segundo_trimestre: 'blue',
-        tercer_trimestre: 'purple',
-        morfologica: 'green',
-        doppler: 'orange',
-        genetica: 'gold',
-        '4d': 'magenta',
-      };
-      return <Tag color={colores[tipo] || 'default'}>{tipo?.replace('_', ' ').toUpperCase()}</Tag>;
+      // Tipo de estudio: categoría, no estado → etiqueta neutra.
+      return <Tag>{tipo?.replace('_', ' ').toUpperCase()}</Tag>;
     },
   },
   {
@@ -113,7 +105,7 @@ export const buildColumnsEcografias = ({ handleVerVistaRapida, handleEditar, han
       if ((record as any).tiene_analisis_ia) {
         return (
           <Tooltip title="Tiene análisis IA">
-            <RobotOutlined style={{ color: '#722ed1', fontSize: 18 }} />
+            <RobotOutlined className="u-c-primario u-t-lg" />
           </Tooltip>
         );
       }

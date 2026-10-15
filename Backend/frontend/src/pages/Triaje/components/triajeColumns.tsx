@@ -48,10 +48,10 @@ export const buildTriajeColumns = (
     render: (prioridad: string) => {
       if (!prioridad) return <Tag>Sin prioridad</Tag>;
       const config: { [key: string]: { color: string; icon: React.ReactNode } } = {
-        urgente: { color: 'red', icon: <AlertOutlined /> },
-        alto: { color: 'orange', icon: <WarningOutlined /> },
-        normal: { color: 'blue', icon: <ClockCircleOutlined /> },
-        bajo: { color: 'green', icon: <CheckCircleOutlined /> },
+        urgente: { color: 'error', icon: <AlertOutlined /> },
+        alto: { color: 'warning', icon: <WarningOutlined /> },
+        normal: { color: 'processing', icon: <ClockCircleOutlined /> },
+        bajo: { color: 'success', icon: <CheckCircleOutlined /> },
       };
       const { color, icon } = config[prioridad] || { color: 'default', icon: null };
       return <Tag color={color} icon={icon}>{prioridad.toUpperCase()}</Tag>;
@@ -91,8 +91,6 @@ export const buildTriajeColumns = (
       <Space>
         <Tooltip title="Ver detalles">
           <Button
-            type="primary"
-            ghost
             size="small"
             icon={<EyeOutlined />}
             onClick={() => navigate(`/dashboard/triaje/${record.id}`)}
@@ -109,7 +107,6 @@ export const buildTriajeColumns = (
           <Tooltip title="Completar">
             <Button
               size="small"
-              type="primary"
               icon={<CheckCircleOutlined />}
               onClick={() => onComplete(record.id!)}
             />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Form, InputNumber, Button, Row, Col, Alert, Select, Divider, Checkbox } from 'antd';
-import { HeartOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { ThunderboltOutlined } from '@ant-design/icons';
 import type { FormInstance } from 'antd';
 
 const { Option } = Select;
@@ -12,20 +12,12 @@ interface HemorragiaFormProps {
 }
 
 const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading }) => (
-  <Card
-    title={
-      <span>
-        <HeartOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
-        Evaluación de Hemorragia Obstétrica
-      </span>
-    }
-  >
+  <Card>
     <Alert
-      message="Protocolo 4 T's para Hemorragia Postparto"
-      description="Evaluación sistemática: TONO (atonía), TRAUMA (laceraciones), TEJIDO (retención), TROMBINA (coagulopatía). Incluye Shock Index y Protocolo de Transfusión Masiva."
+      message="Evaluación sistemática: TONO (atonía), TRAUMA (laceraciones), TEJIDO (retención), TROMBINA (coagulopatía). Incluye Shock Index y Protocolo de Transfusión Masiva."
       type="info"
       showIcon
-      style={{ marginBottom: 16 }}
+      className="calc-bloque"
     />
 
     <Form
@@ -63,7 +55,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="frecuencia_cardiaca"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={40} max={200} style={{ width: '100%' }} />
+            <InputNumber min={40} max={200} />
           </Form.Item>
         </Col>
 
@@ -73,7 +65,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="presion_sistolica"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={50} max={200} style={{ width: '100%' }} />
+            <InputNumber min={50} max={200} />
           </Form.Item>
         </Col>
 
@@ -83,7 +75,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="presion_diastolica"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={30} max={120} style={{ width: '100%' }} />
+            <InputNumber min={30} max={120} />
           </Form.Item>
         </Col>
 
@@ -93,7 +85,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="frecuencia_respiratoria"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={8} max={40} style={{ width: '100%' }} />
+            <InputNumber min={8} max={40} />
           </Form.Item>
         </Col>
 
@@ -103,7 +95,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="temperatura"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={34} max={42} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={34} max={42} step={0.1} />
           </Form.Item>
         </Col>
 
@@ -113,7 +105,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="saturacion_o2"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={70} max={100} style={{ width: '100%' }} />
+            <InputNumber min={70} max={100} />
           </Form.Item>
         </Col>
 
@@ -128,7 +120,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             rules={[{ required: true, message: 'Requerido' }]}
             tooltip="Volumen total estimado de sangre perdida"
           >
-            <InputNumber min={0} max={5000} step={50} style={{ width: '100%' }} />
+            <InputNumber min={0} max={5000} step={50} />
           </Form.Item>
         </Col>
 
@@ -138,7 +130,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="tiempo_minutos"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={0} max={360} style={{ width: '100%' }} />
+            <InputNumber min={0} max={360} />
           </Form.Item>
         </Col>
 
@@ -203,7 +195,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="hemoglobina_inicial"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={5} max={18} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={5} max={18} step={0.1} />
           </Form.Item>
         </Col>
 
@@ -213,7 +205,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="hemoglobina_actual"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={3} max={18} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={3} max={18} step={0.1} />
           </Form.Item>
         </Col>
 
@@ -223,7 +215,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="plaquetas"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={10000} max={500000} step={1000} style={{ width: '100%' }} />
+            <InputNumber min={10000} max={500000} step={1000} />
           </Form.Item>
         </Col>
 
@@ -233,7 +225,7 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             name="fibrinogeno"
             rules={[{ required: true, message: 'Requerido' }]}
           >
-            <InputNumber min={50} max={600} style={{ width: '100%' }} />
+            <InputNumber min={50} max={600} />
           </Form.Item>
         </Col>
 

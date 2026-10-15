@@ -22,66 +22,60 @@ interface DetalleEmbarazoStatsProps {
 const DetalleEmbarazoStats: React.FC<DetalleEmbarazoStatsProps> = ({
   eg, diasRestantes, progreso, trimestre, embarazo, controles, controlesConAlertas,
 }) => (
-  <Row gutter={16} style={{ marginBottom: 16 }}>
+  <Row gutter={[16, 16]} className="pc-cifras">
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Edad Gestacional"
           value={eg.semanas}
           suffix={`semanas + ${eg.dias}d`}
           prefix={<CalendarOutlined />}
-          valueStyle={{ color: '#1890ff' }}
         />
-        <Tag color={trimestre.color} style={{ marginTop: 8 }}>
+        <Tag color={trimestre.color} className="u-mt-2">
           {trimestre.texto}
         </Tag>
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Días hasta FPP"
           value={diasRestantes}
           suffix="días"
           prefix={<ClockCircleOutlined />}
-          valueStyle={{ color: diasRestantes < 30 ? '#ff4d4f' : '#52c41a' }}
+          valueStyle={{ color: diasRestantes < 30 ? 'var(--color-peligro)' : 'var(--color-exito)' }}
         />
-        <Text type="secondary" style={{ fontSize: 12 }}>
+        <Text type="secondary" className="u-t-xs">
           {dayjs(embarazo.fecha_probable_parto).format('DD/MM/YYYY')}
         </Text>
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Progreso Gestacional"
           value={progreso}
           suffix="%"
           prefix={<LineChartOutlined />}
-          valueStyle={{ color: '#3f8600' }}
         />
         <Progress
           percent={progreso}
           showInfo={false}
-          strokeColor={{
-            '0%': '#87d068',
-            '50%': '#1890ff',
-            '100%': '#722ed1',
-          }}
-          style={{ marginTop: 8 }}
+          strokeColor="var(--color-primario)"
+          className="u-mt-2"
         />
       </Card>
     </Col>
     <Col xs={24} sm={12} md={6}>
-      <Card>
+      <Card className="pc-cifra">
         <Statistic
           title="Controles Realizados"
           value={controles.length}
           prefix={<MedicineBoxOutlined />}
-          valueStyle={{ color: controles.length >= trimestre.numero * 3 ? '#52c41a' : '#faad14' }}
+          valueStyle={{ color: controles.length >= trimestre.numero * 3 ? 'var(--color-exito)' : 'var(--color-aviso)' }}
         />
         {controlesConAlertas > 0 && (
-          <Badge count={controlesConAlertas} style={{ marginTop: 8 }}>
+          <Badge count={controlesConAlertas} className="u-mt-2">
             <Tag color="error">Con alertas</Tag>
           </Badge>
         )}

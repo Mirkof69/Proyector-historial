@@ -8,6 +8,7 @@ import { useAntdApp } from '../../hooks/useMessage';
 import { SearchOutlined, ClearOutlined, UserOutlined } from '@ant-design/icons';
 import { api } from '../../services/api';
 import { FRONTEND_ROUTES } from '../../config/routes';
+import './Busqueda.css';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -69,24 +70,24 @@ const BusquedaAvanzada: React.FC = () => {
     ];
 
     return (
-        <div className="page-container" style={{ padding: 24 }}>
+        <div className="page-container busqueda-pagina">
             <Card title={<Space><SearchOutlined /> Búsqueda Avanzada de Pacientes</Space>}>
                 <Form form={form} layout="vertical" onFinish={handleBuscar}>
                     <Row gutter={16}>
-                        <Col span={8}><Form.Item label="Nombre/Apellido" name="nombre"><Input placeholder="Búsqueda fuzzy" /></Form.Item></Col>
-                        <Col span={8}><Form.Item label="ID Clínico" name="id_clinico"><Input placeholder="HC-XXX" /></Form.Item></Col>
-                        <Col span={8}><Form.Item label="CI" name="ci"><Input placeholder="Cédula" /></Form.Item></Col>
+                        <Col xs={24} md={8}><Form.Item label="Nombre/Apellido" name="nombre"><Input placeholder="Búsqueda fuzzy" /></Form.Item></Col>
+                        <Col xs={24} md={8}><Form.Item label="ID Clínico" name="id_clinico"><Input placeholder="HC-XXX" /></Form.Item></Col>
+                        <Col xs={24} md={8}><Form.Item label="CI" name="ci"><Input placeholder="Cédula" /></Form.Item></Col>
                     </Row>
 
                     <Row gutter={16}>
-                        <Col span={12}><Form.Item label="Rango de Registro" name="fecha_rango"><RangePicker style={{ width: '100%' }} /></Form.Item></Col>
-                        <Col span={6}><Form.Item label="Edad Mínima" name="edad_min"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
-                        <Col span={6}><Form.Item label="Edad Máxima" name="edad_max"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
+                        <Col xs={24} md={12}><Form.Item label="Rango de Registro" name="fecha_rango"><RangePicker style={{ width: '100%' }} /></Form.Item></Col>
+                        <Col xs={12} md={6}><Form.Item label="Edad Mínima" name="edad_min"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
+                        <Col xs={12} md={6}><Form.Item label="Edad Máxima" name="edad_max"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
                     </Row>
 
                     {/* Sin filtro de género: todas las pacientes son femeninas. */}
                     <Row gutter={16}>
-                        <Col span={8}>
+                        <Col xs={24} md={8}>
                             <Form.Item label="Estado Civil" name="estado_civil">
                                 <Select placeholder="Seleccionar" allowClear>
                                     <Option value="soltera">Soltera</Option>
@@ -97,7 +98,7 @@ const BusquedaAvanzada: React.FC = () => {
                                 </Select>
                             </Form.Item>
                         </Col>
-                        <Col span={8}>
+                        <Col xs={24} md={8}>
                             <Form.Item label="Filtros Especiales" style={{ marginBottom: 0 }}>
                                 <Form.Item name="embarazo_activo" valuePropName="checked"><Checkbox>Embarazo Activo</Checkbox></Form.Item>
                                 <Form.Item name="riesgo_alto" valuePropName="checked"><Checkbox>Alto Riesgo</Checkbox></Form.Item>
@@ -113,7 +114,7 @@ const BusquedaAvanzada: React.FC = () => {
             </Card>
 
             {total > 0 && (
-                <Card title={`Resultados (${total})`} style={{ marginTop: 24 }}>
+                <Card title={`Resultados (${total})`}>
                     <Table columns={columns} dataSource={resultados} rowKey="id" pagination={{ pageSize: 20 }} locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin resultados — ajuste los filtros de búsqueda" /> }} />
                 </Card>
             )}

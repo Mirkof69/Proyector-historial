@@ -23,7 +23,7 @@ const InfoAdicionalLab: React.FC<InfoAdicionalLabProps> = ({ data, unidad, valor
   }, [unidad]);
 
   return (
-    <div style={{ marginTop: 16, padding: '12px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+    <div style={{ marginTop: 16, padding: '12px', backgroundColor: 'var(--color-superficie-2)', borderRadius: '4px' }}>
       <Space direction="vertical" size={4} style={{ width: '100%' }}>
         <Text strong>Interpretación:</Text>
         <Text style={{ fontSize: 13 }}>
@@ -64,7 +64,7 @@ const InfoAdicionalLab: React.FC<InfoAdicionalLabProps> = ({ data, unidad, valor
                 <Line
                   type="monotone"
                   dataKey="valor"
-                  stroke="#1890ff"
+                  stroke="var(--color-primario)"
                   strokeWidth={2}
                   dot={false}
                   name="Tendencia"

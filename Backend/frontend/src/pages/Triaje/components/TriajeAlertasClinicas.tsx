@@ -15,7 +15,7 @@ const TriajeAlertasClinicas: React.FC<TriajeAlertasClinicasProps> = ({ alertas }
     <Alert
       message={<Text strong>Intervención Requerida / Alertas Clínicas</Text>}
       description={
-        <ul style={{ margin: 0, paddingLeft: 20 }}>
+        <ul className="triaje-alertas__lista">
           {alertas.map((alerta) => (
             <li key={alerta}>{alerta}</li>
           ))}
@@ -23,8 +23,8 @@ const TriajeAlertasClinicas: React.FC<TriajeAlertasClinicasProps> = ({ alertas }
       }
       type="error"
       showIcon
-      icon={<WarningOutlined className="status-pulse" />}
-      style={{ marginBottom: 24, borderRadius: '8px' }}
+      icon={<WarningOutlined />}
+      className="triaje-alertas"
     />
   );
 };

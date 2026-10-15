@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Notificacion } from '../../../services/notificacionesService';
-import { getTypeIcon, getTypeLabel } from '../notificacionesUtils';
+import { getTypeIcon, getTypeLabel, getTypeTagColor, getTypeAvatarClass } from '../notificacionesUtils';
 
 const { Text } = Typography;
 
@@ -28,7 +28,7 @@ const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
   <Drawer
     title={
       <Space>
-        <Avatar icon={selectedNotification ? getTypeIcon(selectedNotification.tipo) : <BellOutlined />} />
+        <Avatar icon={selectedNotification ? getTypeIcon(selectedNotification.tipo) : <BellOutlined />} className={getTypeAvatarClass(selectedNotification?.tipo ?? '')} />
         <Text strong>Detalles de Notificación</Text>
       </Space>
     }
@@ -41,17 +41,12 @@ const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
       <div>
         <Descriptions bordered column={1} size="small">
           <Descriptions.Item label="Tipo">
-            <Tag color={
-              ['error', 'warning'].includes(selectedNotification.tipo) ? 'red' :
-              selectedNotification.tipo === 'success' ? 'green' :
-              ['cita'].includes(selectedNotification.tipo) ? 'blue' :
-              ['examen'].includes(selectedNotification.tipo) ? 'orange' : 'cyan'
-            }>
+            <Tag color={getTypeTagColor(selectedNotification.tipo)}>
               {getTypeLabel(selectedNotification.tipo)}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Estado">
-            <Tag color={selectedNotification.leida ? 'default' : 'gold'}>
+            <Tag color={selectedNotification.leida ? 'default' : 'warning'}>
               {selectedNotification.leida ? 'Leída' : 'No Leída'}
             </Tag>
           </Descriptions.Item>
@@ -64,7 +59,7 @@ const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
           <Descriptions.Item label="Fecha de Creación">
             <Space direction="vertical" size={0}>
               <Text>{dayjs(selectedNotification.fecha_creacion).format('DD/MM/YYYY HH:mm:ss')}</Text>
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text type="secondary" className="notifications-page__fecha--xs">
                 ({dayjs(selectedNotification.fecha_creacion).fromNow()})
               </Text>
             </Space>
@@ -74,7 +69,7 @@ const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
           </Descriptions.Item>
         </Descriptions>
 
-        <Space style={{ marginTop: 24, width: '100%', justifyContent: 'flex-end' }}>
+        <div className="notificacion-detalle__acciones">
           {!selectedNotification.leida && (
             <Button
               type="primary"
@@ -97,7 +92,7 @@ const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
           >
             Eliminar
           </Button>
-        </Space>
+        </div>
       </div>
     )}
   </Drawer>

@@ -17,11 +17,11 @@ interface NotificacionesFiltrosProps {
 const NotificacionesFiltros: React.FC<NotificacionesFiltrosProps> = ({
   filtros, dispatchFiltros, filteredCount, total,
 }) => (
-  <Card className="filters-card" styles={{ body: { padding: '16px 24px' } }}>
+  <Card>
     <Row gutter={[16, 16]} align="middle">
       <Col xs={24} md={6}>
         <Input
-          prefix={<SearchOutlined style={{ color: 'var(--text-tertiary)' }} />}
+          prefix={<SearchOutlined />}
           placeholder="Buscar en notificaciones..."
           value={filtros.searchText}
           onChange={e => dispatchFiltros({ type: 'SET_SEARCH', payload: e.target.value })}
@@ -30,7 +30,7 @@ const NotificacionesFiltros: React.FC<NotificacionesFiltrosProps> = ({
       </Col>
       <Col xs={24} md={6}>
         <RangePicker
-          style={{ width: '100%' }}
+          className="notifications-page__control"
           placeholder={['Fecha inicio', 'Fecha fin']}
           value={filtros.dateRange}
           onChange={(dates) => dispatchFiltros({ type: 'SET_DATE_RANGE', payload: dates })}
@@ -40,7 +40,7 @@ const NotificacionesFiltros: React.FC<NotificacionesFiltrosProps> = ({
       <Col xs={24} md={4}>
         <Select
           placeholder="Tipo"
-          style={{ width: '100%' }}
+          className="notifications-page__control"
           allowClear
           value={filtros.filterType}
           onChange={(val) => dispatchFiltros({ type: 'SET_TYPE', payload: val })}
@@ -56,7 +56,7 @@ const NotificacionesFiltros: React.FC<NotificacionesFiltrosProps> = ({
       <Col xs={24} md={4}>
         <Select
           placeholder="Estado"
-          style={{ width: '100%' }}
+          className="notifications-page__control"
           value={filtros.filterRead}
           onChange={(val) => dispatchFiltros({ type: 'SET_READ', payload: val })}
         >
@@ -65,8 +65,8 @@ const NotificacionesFiltros: React.FC<NotificacionesFiltrosProps> = ({
           <Option value="leidas">Leídas</Option>
         </Select>
       </Col>
-      <Col xs={24} md={4} style={{ textAlign: 'right' }}>
-        <Text type="secondary">
+      <Col xs={24} md={4}>
+        <Text type="secondary" className="notifications-page__conteo">
           Mostrando {filteredCount} de {total}
         </Text>
       </Col>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Form } from 'antd';
-import './HemorragiaObstetrica.css';
+import { HeartOutlined } from '@ant-design/icons';
+import './calculadoraAvanzada.css';
+import CabeceraCalculadora from './components/CabeceraCalculadora';
 import {
   DatosHemorragia, ResultadoHemorragia, RegistroHemorragia,
   calcularHemorragia, getCausaTexto,
@@ -55,7 +57,12 @@ const HemorragiaObstetrica: React.FC = () => {
   };
 
   return (
-    <div className="hemorragia-obstetrica-page">
+    <div className="calc-pagina hemorragia-obstetrica-page">
+      <CabeceraCalculadora
+        icono={<HeartOutlined />}
+        titulo="Evaluación de Hemorragia Obstétrica"
+        descripcion="Protocolo 4 T's para Hemorragia Postparto"
+      />
       <HemorragiaForm form={form} onFinish={onFinish} loading={loading} />
 
       {resultado && (

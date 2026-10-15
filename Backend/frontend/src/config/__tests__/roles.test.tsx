@@ -35,7 +35,7 @@ describe('catálogo de roles', () => {
     ROLES_DEL_BACKEND.forEach((rol) => {
       const config = configuracionDeRol(rol);
       expect(config.nombre).toBeTruthy();
-      expect(config.color).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(config.color).toMatch(/^var\(--[a-z0-9-]+\)$/);
     });
   });
 
@@ -44,9 +44,9 @@ describe('catálogo de roles', () => {
     // 'default', 'blue' y compañía funcionan en el Tag pero dejan el avatar
     // sin fondo, porque no son colores CSS.
     Object.values(ROLES).forEach((config) => {
-      expect(config.color).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(config.color).toMatch(/^var\(--[a-z0-9-]+\)$/);
     });
-    expect(configuracionDeRol('rol_que_no_existe').color).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(configuracionDeRol('rol_que_no_existe').color).toMatch(/^var\(--[a-z0-9-]+\)$/);
   });
 });
 

@@ -32,6 +32,7 @@ import SeccionInfoConsultaNota from './components/SeccionInfoConsultaNota';
 import SeccionSignosVitalesNota from './components/SeccionSignosVitalesNota';
 import SeccionObstetricosNota from './components/SeccionObstetricosNota';
 import SeccionExamenDiagnosticoNota from './components/SeccionExamenDiagnosticoNota';
+import './NotasEvolucion.css';
 
 const FormularioNotaEvolucion: React.FC = () => {
   const { message } = useAntdApp();
@@ -237,18 +238,18 @@ const FormularioNotaEvolucion: React.FC = () => {
         });
 
         setNotaAnterior({
-          mensaje: `✓ Datos cargados desde: ${fuentesTraducidas.join(', ')}`,
+          mensaje: `Datos cargados desde: ${fuentesTraducidas.join(', ')}`,
           tipo: 'success'
         });
       } else {
         setNotaAnterior({
-          mensaje: 'ℹ No tiene datos anteriores registrados',
+          mensaje: 'No tiene datos anteriores registrados',
           tipo: 'info'
         });
       }
     } catch (error) {
       setNotaAnterior({
-        mensaje: '⚠ No se pudieron cargar todos los datos del paciente',
+        mensaje: 'No se pudieron cargar todos los datos del paciente',
         tipo: 'warning'
       });
     } finally {
@@ -317,12 +318,12 @@ const FormularioNotaEvolucion: React.FC = () => {
   const tiposConsulta = notasEvolucionService.getTiposConsulta();
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="notas-pagina">
       <Card
         title={
           <Space>
-            <FileTextOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-            <span style={{ fontSize: 20, fontWeight: 600 }}>
+            <FileTextOutlined className="notas-icono" />
+            <span className="notas-formulario__titulo">
               {id ? 'Editar Nota de Evolución' : 'Nueva Nota de Evolución Médica'}
             </span>
           </Space>

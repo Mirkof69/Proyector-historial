@@ -1,20 +1,19 @@
 /**
- * Las superficies flotantes se estilan por tokens, no por CSS con !important.
+ * Ant Design y las variables CSS dicen lo mismo, en los cuatro temas.
  *
  * Por qué existe este test
  * ------------------------
- * `src/styles/` acumuló 389 declaraciones `!important`, casi todas peleando
- * contra Ant Design. La razón era real y no un descuido: Ant Design 5 inyecta
- * sus estilos en tiempo de ejecución, DESPUÉS de las hojas estáticas, así que
- * una regla CSS normal nunca le gana.
+ * El sistema de diseño (docs/DISENO_INTERFAZ.md) tiene DOS fuentes de verdad
+ * que deben coincidir: `src/styles/tokens.css` (variables CSS que usan las
+ * hojas de página) y `src/config/antd-theme-tokens.ts` (tokens que Ant Design
+ * aplica a sus componentes). Antes se contradecían: el CSS imponía un color
+ * con `!important` y el token de Ant Design decía otro; lo que se veía
+ * dependía del orden de carga. Llegó a haber ~600 `!important`.
  *
- * La salida no es escribir mejor CSS: es dejar de pelear. Los mismos valores
- * puestos como tokens de `ConfigProvider` los aplica el propio Ant Design, sin
- * conflicto y sin `!important`.
- *
- * Este test fija esa migración para las superficies flotantes —tooltip,
- * notificación, popover, mensaje y desplegables—, que eran las que más
- * `!important` gastaban. Si alguien las devuelve al CSS, falla.
+ * Además fija lo que se arregló a la vista:
+ *   - las superficies oscuras son oscuras y el texto se lee (≥ 4,5:1),
+ *   - el botón primario es plano (sin degradado ni sombra),
+ *   - la capa CSS global no vuelve a pelear con Ant Design por colores.
  *
  * Cada caso declara el resultado ESPERADO y lo compara con el OBTENIDO.
  */
@@ -22,198 +21,216 @@
 import fs from 'fs';
 import path from 'path';
 
-import { getThemeTokens } from '../antd-theme-tokens';
+import { getThemeTokens, PALETAS, NombreTema } from '../antd-theme-tokens';
 
-// Los objetos de tema no se exportan (son detalle interno del módulo): se
-// obtienen por la función pública, que es como los consume la aplicación.
-const temaOscuro = getThemeTokens('dark');
+const DIR_ESTILOS = path.join(__dirname, '..', '..', 'styles');
+const TEMAS: NombreTema[] = ['light', 'normal', 'dark', 'mocha'];
+const OSCUROS: NombreTema[] = ['dark', 'mocha'];
 
-/** Superficies flotantes que antes se pintaban con !important en el CSS. */
-const SUPERFICIES_FLOTANTES = ['Tooltip', 'Notification', 'Popover', 'Message', 'Dropdown'];
+type Componentes = Record<string, Record<string, unknown>>;
+const componentes = (t: NombreTema) => getThemeTokens(t).components as Componentes;
+const token = (t: NombreTema) => getThemeTokens(t).token as Record<string, unknown>;
 
-/** Componentes de superficie migrados desde theme-dark-fixes.css a tokens. */
-const COMPONENTES_MIGRADOS = [
-  'Input', 'Card', 'Modal', 'Table', 'Select', 'Pagination', 'Tag', 'Drawer',
-  'DatePicker', 'Descriptions', 'Button',
-];
+/* ---------- utilidades de color ---------- */
 
-/** Clases CSS de esas superficies, tal como las nombra Ant Design. */
-const CLASES_FLOTANTES = [
-  'ant-tooltip-inner',
-  'ant-notification-notice',
-  'ant-popover-inner',
-  'ant-message-notice-content',
-  'ant-select-dropdown',
-  'ant-dropdown-menu',
-];
-
-/** Clases de superficie migradas en la segunda pasada. */
-const CLASES_MIGRADAS = [
-  'ant-input',
-  'ant-card',
-  'ant-card-head',
-  'ant-modal-content',
-  'ant-modal-header',
-  'ant-table-thead',
-  'ant-select-selector',
-  'ant-tag',
-  'ant-drawer-header',
-  'ant-picker-panel-container',
-  'ant-picker-header',
-  'ant-descriptions-bordered',
-  'ant-pagination-item-active',
-  'ant-select-item-option-selected',
-  'ant-btn-text',
-];
-
-const RUTA_CSS = path.join(__dirname, '..', '..', 'styles', 'theme-dark-fixes.css');
-
-/**
- * Lee el CSS sin comentarios.
- *
- * Hace falta porque los comentarios explican POR QUÉ ya no se usa
- * `!important`, y esa palabra dentro de un comentario haría fallar al test
- * sin que hubiera ninguna regla real.
- */
-function leerCssSinComentarios(): string {
-  return fs.readFileSync(RUTA_CSS, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+function luminancia(hex: string): number {
+  const limpio = hex.replace('#', '');
+  const [r, g, b] = [0, 2, 4]
+    .map((i) => parseInt(limpio.substr(i, 2), 16) / 255)
+    .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** Declaraciones con !important dentro de los bloques de una clase. */
-function importantesDe(clase: string): string[] {
-  const css = leerCssSinComentarios();
-  return [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
-    // Limite exacto de clase: `.ant-notification-notice` no debe capturar
-    // `.ant-notification-notice-message`, que es el titulo y conserva su
-    // propia tipografia (no es una superficie, no se migro a tokens).
-    .filter(([, selector]) => new RegExp(`\.${clase}(?![\w-])`).test(selector))
-    .flatMap(([, , cuerpo]) =>
-      cuerpo
-        .split('\n')
-        .filter((linea) => linea.includes('!important'))
-        .map((linea) => linea.trim()),
-    );
+function contraste(a: string, b: string): number {
+  const [x, y] = [luminancia(a), luminancia(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
 }
 
-describe('tokens de Ant Design', () => {
-  describe('tema oscuro', () => {
-    it.each(SUPERFICIES_FLOTANTES)('%s tiene entrada propia en components', (componente) => {
-      expect(temaOscuro.components).toHaveProperty(componente);
-    });
+/* ---------- lectura de tokens.css ---------- */
 
-    it('cada superficie flotante define su fondo', () => {
-      // ESPERADO: colorBgElevated en todas, salvo Tooltip, que en Ant Design
-      // usa colorBgSpotlight para lo mismo.
-      const comps = temaOscuro.components as Record<string, Record<string, unknown>>;
-      for (const nombre of SUPERFICIES_FLOTANTES) {
-        const tieneFondo = 'colorBgElevated' in comps[nombre] || 'colorBgSpotlight' in comps[nombre];
-        expect(tieneFondo).toBe(true);
+const CSS_TOKENS = fs
+  .readFileSync(path.join(DIR_ESTILOS, 'tokens.css'), 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, '');
+
+/** Variables declaradas en el primer bloque cuyo selector contiene `selector`. */
+function bloque(selector: string): Record<string, string> {
+  const regla = [...CSS_TOKENS.matchAll(/([^{}]+)\{([^}]*)\}/g)].find(([, sel]) =>
+    sel.split(',').map((s) => s.trim()).includes(selector),
+  );
+  if (!regla) throw new Error(`tokens.css no tiene el bloque ${selector}`);
+  const vars: Record<string, string> = {};
+  for (const [, nombre, valor] of regla[2].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
+    vars[nombre] = valor.trim();
+  }
+  return vars;
+}
+
+/** Variables CSS efectivas de un tema (claro + sobrescrituras del tema). */
+function variablesDe(tema: NombreTema): Record<string, string> {
+  const claro = bloque('html:root');
+  if (tema === 'light') return claro;
+  return { ...claro, ...bloque(`html.${tema}`) };
+}
+
+/** Pareja token de Ant Design ↔ variable CSS que deben valer lo mismo. */
+const PAREJAS: Array<[string, string]> = [
+  ['colorPrimary', '--color-primario'],
+  ['colorLinkHover', '--color-primario-hover'],
+  ['colorPrimaryBg', '--color-primario-suave'],
+  ['colorTextLightSolid', '--color-sobre-primario'],
+  ['colorBgLayout', '--color-fondo'],
+  ['colorBgContainer', '--color-superficie'],
+  ['colorFillAlter', '--color-superficie-2'],
+  ['colorBorder', '--color-borde'],
+  ['colorSplit', '--color-borde-suave'],
+  ['colorText', '--color-texto'],
+  ['colorTextSecondary', '--color-texto-2'],
+  ['colorTextTertiary', '--color-texto-3'],
+  ['colorSuccess', '--color-exito'],
+  ['colorSuccessBg', '--color-exito-suave'],
+  ['colorWarning', '--color-aviso'],
+  ['colorWarningBg', '--color-aviso-suave'],
+  ['colorError', '--color-peligro'],
+  ['colorErrorBg', '--color-peligro-suave'],
+  ['colorInfo', '--color-info'],
+  ['colorInfoBg', '--color-info-suave'],
+];
+
+describe('Ant Design y tokens.css coinciden', () => {
+  it.each(TEMAS)('tema %s: cada token de Ant Design vale lo mismo que su variable CSS', (tema) => {
+    const css = variablesDe(tema);
+    const antd = token(tema);
+    const distintos = PAREJAS
+      .filter(([t, v]) => String(antd[t]).toLowerCase() !== String(css[v]).toLowerCase())
+      .map(([t, v]) => `${t}=${antd[t]} ≠ ${v}=${css[v]}`);
+    // ESPERADO: ninguna diferencia.
+    expect(distintos).toEqual([]);
+  });
+
+  it('los valores del contrato están donde dice el documento', () => {
+    expect(token('light').colorPrimary).toBe('#155E75');
+    expect(token('dark').colorPrimary).toBe('#5BB6CC');
+    expect(token('mocha').colorPrimary).toBe('#D9A56B');
+    expect(token('light').colorBgLayout).toBe('#F4F6F8');
+    expect(token('normal').colorBgLayout).toBe('#FFFFFF');
+    expect(token('mocha').colorBgLayout).toBe('#16130F');
+  });
+
+  it('usa IBM Plex Sans y los radios 6/8/4', () => {
+    const t = token('light');
+    expect(String(t.fontFamily)).toMatch(/^'IBM Plex Sans'/);
+    expect([t.borderRadius, t.borderRadiusLG, t.borderRadiusSM]).toEqual([6, 8, 4]);
+  });
+});
+
+describe('legibilidad en los cuatro temas', () => {
+  it.each(TEMAS)('tema %s: texto principal y secundario ≥ 4,5:1 sobre superficie', (tema) => {
+    const p = PALETAS[tema];
+    expect(contraste(p.texto, p.superficie)).toBeGreaterThanOrEqual(4.5);
+    expect(contraste(p.texto2, p.superficie)).toBeGreaterThanOrEqual(4.5);
+    expect(contraste(p.texto2, p.superficie2)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(TEMAS)('tema %s: el texto del botón primario se lee sobre el primario', (tema) => {
+    const p = PALETAS[tema];
+    expect(contraste(p.sobrePrimario, p.primario)).toBeGreaterThanOrEqual(4.5);
+    expect((componentes(tema).Button as Record<string, string>).primaryColor).toBe(p.sobrePrimario);
+  });
+
+  it.each(OSCUROS)('tema %s: las superficies son oscuras de verdad', (tema) => {
+    // Antes el tema oscuro pintaba tarjetas casi blancas o transparentes
+    // según qué hoja ganara. ESPERADO: luminancia baja en todas.
+    const c = componentes(tema);
+    const superficies = [
+      token(tema).colorBgLayout,
+      token(tema).colorBgContainer,
+      token(tema).colorBgElevated,
+      c.Card.colorBgContainer,
+      c.Table.colorBgContainer,
+      c.Table.headerBg,
+      c.Modal.contentBg,
+      c.Layout.siderBg,
+      c.Layout.headerBg,
+      c.Menu.itemBg,
+    ] as string[];
+    for (const color of superficies) {
+      expect(color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(luminancia(color)).toBeLessThan(0.05);
+    }
+  });
+});
+
+describe('dirección visual', () => {
+  it.each(TEMAS)('tema %s: botón primario plano, sin sombra', (tema) => {
+    const boton = componentes(tema).Button;
+    expect(boton.primaryShadow).toBe('none');
+    expect(boton.defaultShadow).toBe('none');
+  });
+
+  it.each(TEMAS)('tema %s: el menú activo usa primario-suave y texto primario', (tema) => {
+    const menu = componentes(tema).Menu;
+    expect(menu.itemSelectedBg).toBe(PALETAS[tema].primarioSuave);
+    expect(menu.itemSelectedColor).toBe(PALETAS[tema].primario);
+  });
+
+  it('cada superficie flotante tiene fondo y sombra propios en todos los temas', () => {
+    for (const tema of TEMAS) {
+      const c = componentes(tema);
+      for (const nombre of ['Notification', 'Popover', 'Message', 'Dropdown', 'Select', 'DatePicker']) {
+        expect(c[nombre]).toHaveProperty('colorBgElevated');
+        expect(c[nombre]).toHaveProperty('boxShadowSecondary');
       }
-    });
-
-    it.each(COMPONENTES_MIGRADOS)('%s define sus colores como token', (componente) => {
-      // ESPERADO: entrada propia con al menos una propiedad de superficie.
-      // Antes vivian en theme-dark-fixes.css a base de !important.
-      const comps = temaOscuro.components as Record<string, Record<string, unknown>>;
-      expect(comps).toHaveProperty(componente);
-      const props = Object.keys(comps[componente]);
-      const tieneSuperficie = props.some((k) => /^(color|header|footer|content|default|selector|row|border|box)/i.test(k));
-      expect(tieneSuperficie).toBe(true);
-    });
-
-    it('los tokens de Table ya no estan muertos', () => {
-      // Antes decian '#141428' pero el CSS los pisaba con !important, asi que
-      // lo que se veia era rgba(26,26,26,0.8). Ahora coinciden con la pantalla.
-      const table = (temaOscuro.components as Record<string, Record<string, string>>).Table;
-      expect(table.headerBg).toContain('rgba');
-      expect(table.colorBgContainer).toContain('rgba');
-    });
-
-    it('el desplegable de Select también', () => {
-      const select = (temaOscuro.components as Record<string, Record<string, unknown>>).Select;
-      expect(select).toHaveProperty('colorBgElevated');
-    });
-  });
-
-  describe('el CSS ya no pelea por esas superficies', () => {
-    it.each(CLASES_FLOTANTES)('%s no usa ningún !important', (clase) => {
-      // ESPERADO: lista vacía. Fondo, color, borde y sombra los aplica ahora
-      // Ant Design desde los tokens.
-      expect(importantesDe(clase)).toEqual([]);
-    });
-
-    it.each(CLASES_MIGRADAS)('%s no usa !important en propiedades de superficie', (clase) => {
-      // ESPERADO: ninguna. Fondo, color, borde y sombra los aplica Ant Design
-      // desde los tokens; lo que queda (tipografia, desenfoque, tamanos) no
-      // entra en conflicto con Ant Design.
-      const superficie = /^(background|background-color|color|border|border-color|border-bottom|border-top|box-shadow)\s*:/;
-      const conflictivas = importantesDe(clase).filter((d) => superficie.test(d));
-      expect(conflictivas).toEqual([]);
-    });
-
-    it('conserva el desenfoque, que es lo que los tokens no pueden dar', () => {
-      // `backdrop-filter` no existe como token de Ant Design, así que se
-      // queda en CSS — y nunca necesitó !important, porque Ant Design
-      // tampoco lo define y no había nada que sobrescribir.
-      const css = leerCssSinComentarios();
-      const bloque = /\.ant-tooltip-inner[^{]*\{([^}]*)\}/.exec(css);
-      expect(bloque).not.toBeNull();
-      expect(bloque![1]).toContain('backdrop-filter');
-    });
-  });
-
-  describe('selección de tema', () => {
-    it('dark y mocha comparten el tema oscuro', () => {
-      expect(getThemeTokens('dark')).toBe(getThemeTokens('mocha'));
-    });
-
-    it('light y normal comparten el tema claro', () => {
-      expect(getThemeTokens('light')).toBe(getThemeTokens('normal'));
-    });
-
-    it('el tema claro y el oscuro son distintos', () => {
-      expect(getThemeTokens('light')).not.toBe(getThemeTokens('dark'));
-    });
+      expect(c.Tooltip).toHaveProperty('colorBgSpotlight');
+    }
   });
 });
 
-describe('tema claro', () => {
-  const temaClaro = getThemeTokens('light');
-
-  it('los tokens de Table coinciden con lo que ve el usuario', () => {
-    // `headerBg` decia '#fafafa' pero antd-overrides.css imponia '#f9fafb'
-    // con !important: el token estaba MUERTO y lo que se veia era el CSS.
-    // Ahora coinciden, y el !important sobra.
-    const table = (temaClaro.components as Record<string, Record<string, string>>).Table;
-    expect(table.headerBg).toBe('#f9fafb');
-    expect(table.headerColor).toBe('#111827');
-    expect(table.rowSelectedBg).toBe('rgba(37, 99, 235, 0.08)');
+describe('selección de tema', () => {
+  it('los cuatro temas tienen configuración propia', () => {
+    const configs = new Set(TEMAS.map((t) => getThemeTokens(t)));
+    expect(configs.size).toBe(4);
   });
 
-  it('define el pie de tabla, que solo existia en el CSS', () => {
-    const table = (temaClaro.components as Record<string, Record<string, string>>).Table;
-    expect(table.footerBg).toBeDefined();
-    expect(table.footerColor).toBeDefined();
+  it('devuelve el mismo objeto en cada llamada (estable entre renders)', () => {
+    expect(getThemeTokens('dark')).toBe(getThemeTokens('dark'));
+  });
+
+  it('normal es el claro con fondo blanco', () => {
+    const claro = token('light');
+    const normal = token('normal');
+    expect(normal.colorPrimary).toBe(claro.colorPrimary);
+    expect(normal.colorText).toBe(claro.colorText);
+    expect(normal.colorBgLayout).toBe('#FFFFFF');
   });
 });
 
-describe('antd-overrides.css ya no pelea por la tabla', () => {
-  const RUTA_OVERRIDES = path.join(__dirname, '..', '..', 'styles', 'antd-overrides.css');
-  const COLOR = /^\s*(background|background-color|color|border-color)\s*:/;
+describe('la capa CSS global no pelea con Ant Design', () => {
+  const HOJAS = fs.readdirSync(DIR_ESTILOS).filter((f) => f.endsWith('.css'));
+  const sinComentarios = (f: string) =>
+    fs.readFileSync(path.join(DIR_ESTILOS, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 
-  it('las reglas de .ant-table no usan !important en colores', () => {
-    const css = fs.readFileSync(RUTA_OVERRIDES, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-    const conflictivas = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
-      .filter(([, selector]) => selector.includes('.ant-table'))
-      .flatMap(([, , cuerpo]) =>
-        cuerpo
-          .split('\n')
-          .filter((linea) => linea.includes('!important') && COLOR.test(linea))
-          .map((linea) => linea.trim()),
-      );
-
-    // ESPERADO: ninguna. Los colores de la tabla los aplica Ant Design desde
-    // los tokens, en los dos temas.
+  it('ninguna regla global sobre .ant-* usa !important en colores, fondos, bordes o sombras', () => {
+    const PROPIEDAD = /^\s*(background|background-color|color|border|border-color|box-shadow)\s*:/;
+    const conflictivas = HOJAS.flatMap((f) =>
+      [...sinComentarios(f).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+        .filter(([, selector]) => selector.includes('.ant-'))
+        .flatMap(([, , cuerpo]) => cuerpo.split('\n'))
+        .filter((linea) => linea.includes('!important') && PROPIEDAD.test(linea))
+        .map((linea) => `${f}: ${linea.trim()}`),
+    );
+    // ESPERADO: ninguna. Esos valores los aplica Ant Design desde los tokens.
     expect(conflictivas).toEqual([]);
+  });
+
+  it('no queda ningún degradado ni desenfoque en la capa global', () => {
+    const encontrados = HOJAS.filter((f) => /gradient\(|backdrop-filter/.test(sinComentarios(f)));
+    expect(encontrados).toEqual([]);
+  });
+
+  it('solo tokens.css contiene colores fijos', () => {
+    const conHex = HOJAS
+      .filter((f) => f !== 'tokens.css')
+      .filter((f) => /#[0-9a-fA-F]{3,8}\b/.test(sinComentarios(f)));
+    expect(conHex).toEqual([]);
   });
 });

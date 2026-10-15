@@ -179,10 +179,10 @@ export const GestionHorariosModal: React.FC<GestionHorariosModalProps> = ({
         <Alert message="Seleccione un usuario para gestionar sus horarios" type="warning" showIcon />
       ) : (
         <>
-          <Card title={editingId ? 'Editar Horario' : 'Nuevo Horario'} size="small" style={{ marginBottom: 16 }}>
+          <Card title={editingId ? 'Editar Horario' : 'Nuevo Horario'} size="small" className="citas-separado">
             <Form form={form} layout="inline" onFinish={handleGuardar} initialValues={{ activo: true }}>
               <Form.Item name="dia_semana" label="Día" rules={[{ required: true, message: 'Seleccione un día' }]}>
-                <Select style={{ width: 150 }} options={DIAS_SEMANA} />
+                <Select className="citas-dia" options={DIAS_SEMANA} />
               </Form.Item>
               <Form.Item name="hora_inicio" label="Inicio" rules={[{ required: true, message: 'Seleccione hora' }]}>
                 <TimePicker format="HH:mm" />
@@ -205,7 +205,7 @@ export const GestionHorariosModal: React.FC<GestionHorariosModalProps> = ({
           </Card>
 
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: 20 }}>
+            <div className="citas-page__cargando">
               <Spin />
             </div>
           ) : (

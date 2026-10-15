@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Button, Modal, Result, Space, Statistic, Steps, Table, Tag, Typography, Upload } from 'antd';
+import { Alert, Button, Modal, Result, Space, Statistic, Steps, Table, Tag, Typography, Upload, theme } from 'antd';
 import { DownloadOutlined, InboxOutlined } from '@ant-design/icons';
 import api from '../../../services/api';
 import { descargarArchivo } from '../../../utils/descargarArchivo';
@@ -23,10 +23,10 @@ interface ResultadoImportacion {
 }
 
 const ETIQUETA: Record<EstadoFila, { color: string; texto: string }> = {
-  valida: { color: 'green', texto: 'Lista para importar' },
-  creada: { color: 'green', texto: 'Registrada' },
-  error: { color: 'red', texto: 'Con errores' },
-  duplicada: { color: 'orange', texto: 'Ya registrada' },
+  valida: { color: 'success', texto: 'Lista para importar' },
+  creada: { color: 'success', texto: 'Registrada' },
+  error: { color: 'error', texto: 'Con errores' },
+  duplicada: { color: 'warning', texto: 'Ya registrada' },
 };
 
 interface Props {
@@ -42,6 +42,7 @@ interface Props {
  * confirmar, y solo se guardan las filas sin errores.
  */
 const ImportarPacientesModal: React.FC<Props> = ({ open, onClose, onImportado }) => {
+  const { token } = theme.useToken();
   const [archivo, setArchivo] = useState<File | null>(null);
   const [previa, setPrevia] = useState<ResultadoImportacion | null>(null);
   const [final, setFinal] = useState<ResultadoImportacion | null>(null);
@@ -88,7 +89,7 @@ const ImportarPacientesModal: React.FC<Props> = ({ open, onClose, onImportado })
       render: (e: EstadoFila, f: FilaImportacion) => (
         <Space direction="vertical" size={0}>
           <Tag color={ETIQUETA[e].color}>{ETIQUETA[e].texto}</Tag>
-          {f.id_clinico && <Text type="secondary" style={{ fontSize: 12 }}>{f.id_clinico}</Text>}
+          {f.id_clinico && <Text type="secondary" className="texto-mono">{f.id_clinico}</Text>}
         </Space>
       ),
     },
@@ -173,8 +174,8 @@ const ImportarPacientesModal: React.FC<Props> = ({ open, onClose, onImportado })
           <Space size="large" style={{ marginBottom: 16 }} wrap>
             <Statistic title="Filas leídas" value={resumen.total} />
             <Statistic title={paso === 2 ? 'Registradas' : 'Listas'} value={paso === 2 ? resumen.creada : resumen.valida}
-              valueStyle={{ color: '#16a34a' }} />
-            <Statistic title="Con errores" value={resumen.error} valueStyle={{ color: resumen.error ? '#dc2626' : undefined }} />
+              valueStyle={{ color: token.colorSuccess }} />
+            <Statistic title="Con errores" value={resumen.error} valueStyle={{ color: resumen.error ? token.colorError : undefined }} />
             <Statistic title="Ya registradas" value={resumen.duplicada} />
           </Space>
           <Table

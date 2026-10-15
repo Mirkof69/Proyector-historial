@@ -31,8 +31,6 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({ onLogin, onScrollToSectio
         </Button>
         <Divider type="vertical" />
         <Button
-          type="primary"
-          size="large"
           icon={<LoginOutlined />}
           onClick={onLogin}
           className="btn-login"

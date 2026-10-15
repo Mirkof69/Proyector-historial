@@ -37,9 +37,9 @@ interface ResumenCompletitudProps {
 }
 
 const CONFIG_ESTADO: Record<EstadoItem, { color: string; icono: React.ReactNode; texto: string }> = {
-  completo: { color: 'green', icono: <CheckCircleOutlined />, texto: 'Completo' },
-  desactualizado: { color: 'orange', icono: <ClockCircleOutlined />, texto: 'Desactualizado' },
-  faltante: { color: 'red', icono: <MinusCircleOutlined />, texto: 'Sin registros' },
+  completo: { color: 'success', icono: <CheckCircleOutlined />, texto: 'Completo' },
+  desactualizado: { color: 'warning', icono: <ClockCircleOutlined />, texto: 'Desactualizado' },
+  faltante: { color: 'error', icono: <MinusCircleOutlined />, texto: 'Sin registros' },
 };
 
 const diasDesde = (fecha?: string): number | null => {
@@ -174,15 +174,14 @@ const ResumenCompletitud: React.FC<ResumenCompletitudProps> = ({
   return (
     <Card
       size="small"
-      style={{ marginBottom: 16 }}
       title={
-        <Space>
+        <Space wrap>
           <Text strong>Completitud de la historia clínica</Text>
           <Progress
             type="circle"
             size={28}
             percent={porcentaje}
-            strokeColor={porcentaje === 100 ? '#52c41a' : porcentaje >= 60 ? '#faad14' : '#f5222d'}
+            strokeColor={porcentaje === 100 ? 'var(--color-exito)' : porcentaje >= 60 ? 'var(--color-aviso)' : 'var(--color-peligro)'}
           />
           {faltantes.length > 0 && (
             <Text type="secondary" style={{ fontWeight: 400 }}>

@@ -23,6 +23,7 @@ import {
 } from './globalSearchUtils';
 import GlobalSearchStats from './components/GlobalSearchStats';
 import GlobalSearchResults from './components/GlobalSearchResults';
+import './Busqueda.css';
 
 const { Search } = Input;
 const { Title, Text } = Typography;
@@ -153,12 +154,12 @@ const GlobalSearch: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className="busqueda-pagina">
       {/* Cabecera con búsqueda */}
       <Card>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div>
-            <Title level={2}>
+        <Space direction="vertical" size="large" className="busqueda-ancho">
+          <div className="pagina-encabezado__texto">
+            <Title level={2} className="pagina-encabezado__titulo">
               <SearchOutlined /> Búsqueda Global del Sistema
             </Title>
             <Text type="secondary">
@@ -173,7 +174,7 @@ const GlobalSearch: React.FC = () => {
             size="large"
             onSearch={handleSearch}
             loading={loading}
-            style={{ maxWidth: 800 }}
+            className="busqueda-caja"
           />
 
           <Segmented
@@ -188,13 +189,13 @@ const GlobalSearch: React.FC = () => {
 
           {recentSearches.length > 0 && !searchQuery && (
             <div>
-              <Text type="secondary" style={{ fontSize: 12 }}>Búsquedas recientes:</Text>
-              <div style={{ marginTop: 8 }}>
+              <Text type="secondary" className="busqueda-nota">Búsquedas recientes:</Text>
+              <div className="busqueda-recientes">
                 <Space wrap>
                   {recentSearches.map((search) => (
                     <Tag
                       key={search}
-                      style={{ cursor: 'pointer' }}
+                      className="busqueda-reciente"
                       onClick={() => handleSearch(search)}
                     >
                       {search}

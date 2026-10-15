@@ -15,6 +15,7 @@ import {Button,
   Row,
   Col,
   Modal} from "antd";
+import './Citas.css';
 import {
   CalendarOutlined,
   WarningOutlined,
@@ -61,23 +62,23 @@ const DetalleCita: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: 24, textAlign: 'center' }}>
+      <div className="citas-page__cargando">
         <Spin size="large" />
-        <div style={{ marginTop: 16 }}>Cargando información de la cita…</div>
+        <div className="citas-arriba">Cargando información de la cita…</div>
       </div>
     );
   }
 
   if (!cita) {
     return (
-      <div style={{ padding: 24 }}>
+      <div className="citas-page">
         <Alert
           message="Cita no encontrada"
           description="No se pudo encontrar la información de la cita solicitada."
           type="error"
           showIcon
         />
-        <Button onClick={handleVolver} style={{ marginTop: 16 }}>
+        <Button onClick={handleVolver} className="citas-arriba">
           Volver a Citas
         </Button>
       </div>
@@ -90,26 +91,24 @@ const DetalleCita: React.FC = () => {
   const esHoy = dayjs(cita.fecha_cita).isSame(dayjs(), 'day');
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="citas-page page-container">
       {esAtrasada && (
         <Alert
-          message="⚠️ Cita Atrasada"
+          message="Cita Atrasada"
           description="Esta cita ya pasó su fecha programada y aún no ha sido completada."
           type="error"
           showIcon
           icon={<WarningOutlined />}
-          style={{ marginBottom: 16 }}
         />
       )}
 
       {esHoy && !esAtrasada && ['agendada', 'confirmada', 'en_espera'].includes(cita.estado) && (
         <Alert
-          message="📅 Cita de Hoy"
+          message="Cita de Hoy"
           description="Esta cita está programada para hoy."
           type="info"
           showIcon
           icon={<CalendarOutlined />}
-          style={{ marginBottom: 16 }}
         />
       )}
 

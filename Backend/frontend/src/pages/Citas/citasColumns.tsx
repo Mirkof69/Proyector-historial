@@ -37,24 +37,24 @@ export const buildCitasColumns = ({
       return (
         <Space direction="vertical" size="small">
           <Space>
-            <CalendarOutlined style={{ color: atrasada ? '#ff4d4f' : hoy ? '#1890ff' : '#52c41a' }} />
-            <span style={{ color: atrasada ? '#ff4d4f' : 'inherit', fontWeight: hoy ? 600 : 500 }}>
+            <span className={`citas-page__fecha${atrasada ? ' citas-page__fecha--atrasada' : hoy ? ' citas-page__fecha--hoy' : ''}`}>
+              <CalendarOutlined />
               {dayjs(record.fecha_cita).format('DD/MM/YYYY')}
             </span>
           </Space>
           <Space>
-            <ClockCircleOutlined style={{ color: atrasada ? '#ff4d4f' : '#52c41a' }} />
-            <span style={{ color: atrasada ? '#ff4d4f' : 'inherit' }}>
+            <span className={`citas-page__fecha${atrasada ? ' citas-page__fecha--atrasada' : ''}`}>
+              <ClockCircleOutlined />
               {record.hora_cita.substring(0, 5)}
             </span>
           </Space>
           {atrasada && (
-            <Tag icon={<WarningOutlined />} color="error" style={{ margin: 0 }}>
+            <Tag icon={<WarningOutlined />} color="error" className="citas-sin-margen">
               Atrasada
             </Tag>
           )}
           {hoy && !atrasada && (
-            <Tag icon={<CalendarOutlined />} color="processing" style={{ margin: 0 }}>
+            <Tag icon={<CalendarOutlined />} color="processing" className="citas-sin-margen">
               Hoy
             </Tag>
           )}
@@ -73,7 +73,7 @@ export const buildCitasColumns = ({
           <strong>{record.paciente_info?.nombre_completo || 'No especificado'}</strong>
         </Space>
         {record.paciente_info?.id_clinico && (
-          <small style={{ color: '#8c8c8c' }}>ID: {record.paciente_info?.id_clinico}</small>
+          <small className="citas-page__secundario texto-mono">ID: {record.paciente_info?.id_clinico}</small>
         )}
         {record.paciente_info?.telefono && (
           <Space size="small">

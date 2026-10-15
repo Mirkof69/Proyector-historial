@@ -14,19 +14,19 @@ const RiesgoCromosomicoForm: React.FC<RiesgoCromosomicoFormProps> = ({ form, onF
   <Card title={
     <>
       <LineChartOutlined /> Datos Maternos y Biomarcadores
-      {usandoDatosEjemplo && <Tag color="blue" style={{ marginLeft: 8 }}>Datos de Ejemplo</Tag>}
+      {usandoDatosEjemplo && <Tag color="processing" className="calc-etiqueta-ejemplo">Datos de Ejemplo</Tag>}
     </>
   }>
     <Form form={form} layout="vertical" onFinish={onFinish}>
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item label="Edad Materna (años)" name="edad" rules={[{ required: true }]} initialValue={32}>
-            <InputNumber min={15} max={50} style={{ width: '100%' }} />
+            <InputNumber min={15} max={50} />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item label="Semanas Gestación" name="semanas" rules={[{ required: true }]} initialValue={12.5} tooltip="11+0 a 13+6 semanas">
-            <InputNumber min={11} max={14} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={11} max={14} step={0.1} />
           </Form.Item>
         </Col>
       </Row>
@@ -40,7 +40,7 @@ const RiesgoCromosomicoForm: React.FC<RiesgoCromosomicoFormProps> = ({ form, onF
         initialValue={2.2}
         tooltip="Medida del espacio translúcido en región nucal fetal, 11-13+6 semanas"
       >
-        <InputNumber min={0.5} max={8.0} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={0.5} max={8.0} step={0.1} />
       </Form.Item>
 
       <Divider>Biomarcadores Séricos</Divider>
@@ -52,7 +52,7 @@ const RiesgoCromosomicoForm: React.FC<RiesgoCromosomicoFormProps> = ({ form, onF
         initialValue={1.2}
         tooltip="Proteína plasmática A asociada al embarazo"
       >
-        <InputNumber min={0.1} max={10} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={0.1} max={10} step={0.1} />
       </Form.Item>
 
       <Form.Item
@@ -62,7 +62,7 @@ const RiesgoCromosomicoForm: React.FC<RiesgoCromosomicoFormProps> = ({ form, onF
         initialValue={42}
         tooltip="Subunidad beta libre de gonadotropina coriónica humana"
       >
-        <InputNumber min={1} max={200} step={0.1} style={{ width: '100%' }} />
+        <InputNumber min={1} max={200} step={0.1} />
       </Form.Item>
 
       <Divider>Factores de Riesgo Adicionales</Divider>
@@ -80,7 +80,7 @@ const RiesgoCromosomicoForm: React.FC<RiesgoCromosomicoFormProps> = ({ form, onF
         </Col>
       </Row>
 
-      <Form.Item style={{ marginTop: 24 }}>
+      <Form.Item className="calc-enviar">
         <Button type="primary" htmlType="submit" block size="large" icon={<ExperimentOutlined />}>
           Calcular Riesgo Combinado
         </Button>

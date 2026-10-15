@@ -55,11 +55,11 @@ export const buildConsultoriosColumns = (deps: ConsultoriosColumnsDeps) => {
       width: 150,
       render: (tipo: TipoConsultorio) => {
         const colors: Record<string, string> = {
-          'general': 'blue',
-          'especializado': 'purple',
-          'procedimientos': 'orange',
-          'consulta_rapida': 'cyan',
-          'emergencias': 'red',
+          'general': 'default',
+          'especializado': 'default',
+          'procedimientos': 'default',
+          'consulta_rapida': 'default',
+          'emergencias': 'default',
         };
         return <Tag color={colors[tipo] || 'default'}>{tipo}</Tag>;
       },
@@ -86,9 +86,9 @@ export const buildConsultoriosColumns = (deps: ConsultoriosColumnsDeps) => {
       key: 'equipamiento',
       render: (_: any, record: Consultorio) => (
         <Space size="small">
-          {record.tiene_camilla && <Tooltip title="Camilla"><Tag color="green">C</Tag></Tooltip>}
-          {record.tiene_escritorio && <Tooltip title="Escritorio"><Tag color="blue">E</Tag></Tooltip>}
-          {record.tiene_computadora && <Tooltip title="Computadora"><Tag color="purple">PC</Tag></Tooltip>}
+          {record.tiene_camilla && <Tooltip title="Camilla"><Tag>C</Tag></Tooltip>}
+          {record.tiene_escritorio && <Tooltip title="Escritorio"><Tag>E</Tag></Tooltip>}
+          {record.tiene_computadora && <Tooltip title="Computadora"><Tag>PC</Tag></Tooltip>}
         </Space>
       ),
     },

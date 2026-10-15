@@ -9,11 +9,9 @@ const { Text } = Typography;
 // ── Helpers puros de clasificación (identidad estable) ───────────────────────
 const getViaPartoColor = (via: string) => {
   const colores: Record<string, string> = {
-    vaginal_espontaneo: 'green',
-    vaginal_instrumentado: 'blue',
-    cesarea_electiva: 'orange',
-    cesarea_urgencia: 'red',
-    cesarea_emergencia: 'volcano',
+    // Solo la urgencia es un estado; la vía en sí va en neutro.
+    cesarea_urgencia: 'warning',
+    cesarea_emergencia: 'error',
   };
   return colores[via] || 'default';
 };
@@ -56,7 +54,7 @@ export const buildPartosColumns = (
     dataIndex: 'id',
     key: 'id',
     width: 100,
-    render: (id: number) => <Tag color="blue">#{id}</Tag>,
+    render: (id: number) => <span className="texto-mono">#{id}</span>,
   },
   {
     title: 'CI Paciente',
@@ -64,7 +62,7 @@ export const buildPartosColumns = (
     width: 120,
     render: (_: any, record: Parto) => (
       record.paciente_info?.cedula_identidad ? (
-        <Tag color="geekblue">{record.paciente_info.cedula_identidad}</Tag>
+        <Text type="secondary" className="texto-mono">{record.paciente_info.cedula_identidad}</Text>
       ) : <Text type="secondary">-</Text>
     ),
   },
@@ -87,7 +85,7 @@ export const buildPartosColumns = (
     width: 160,
     render: (text: string) => (
       <Space>
-        <CalendarOutlined style={{ color: '#1890ff' }} />
+        <CalendarOutlined className="texto-ayuda" />
         {dayjs(text).format('DD/MM/YYYY HH:mm')}
       </Space>
     ),
@@ -103,13 +101,13 @@ export const buildPartosColumns = (
       const tipoParto = record.tipo_parto;
 
       if (tipoAborto) {
-        return <Tag color="orange">{getTipoAbortoLabel(tipoAborto)}</Tag>;
+        return <Tag color="warning">{getTipoAbortoLabel(tipoAborto)}</Tag>;
       } else if (tipoParto) {
         return <Tag color={getViaPartoColor(tipoParto)}>{getViaPartoLabel(tipoParto)}</Tag>;
       } else {
         const isAborto = esAborto(record.edad_gestacional_parto);
         return (
-          <Tag color={isAborto ? "orange" : "default"}>
+          <Tag color={isAborto ? "warning" : "default"}>
             {isAborto ? 'ABORTO' : 'Sin clasificar'}
           </Tag>
         );
@@ -141,7 +139,7 @@ export const buildPartosColumns = (
       const rn = record.recien_nacidos && record.recien_nacidos.length > 0 ? record.recien_nacidos[0] : null;
       if (!rn || !rn.sexo) return <Text type="secondary">-</Text>;
       return (
-        <Tag color={rn.sexo === 'masculino' ? 'blue' : 'magenta'}>
+        <Tag>
           {rn.sexo === 'masculino' ? 'Masculino' : 'Femenino'}
         </Tag>
       );
@@ -157,9 +155,9 @@ export const buildPartosColumns = (
 
       const peso = rn.peso_nacimiento;
       let color = 'default';
-      if (peso < 2500) color = 'orange';
-      else if (peso >= 2500 && peso <= 4000) color = 'green';
-      else color = 'red';
+      if (peso < 2500) color = 'warning';
+      else if (peso >= 2500 && peso <= 4000) color = 'success';
+      else color = 'error';
 
       return <Tag color={color}>{peso}g</Tag>;
     },
@@ -174,7 +172,7 @@ export const buildPartosColumns = (
         </Tooltip>
         {canChange('parto') && (
           <Tooltip title="Editar">
-            <Button type="primary" icon={<EditOutlined />} onClick={() => onEdit(record.id!)} size="small" ghost />
+            <Button icon={<EditOutlined />} onClick={() => onEdit(record.id!)} size="small" aria-label="Editar" />
           </Tooltip>
         )}
         {canDelete('parto') && (

@@ -16,7 +16,6 @@ import {Card,
   Alert,
   Row,
   Col,
-  Divider,
   Spin,
   Typography} from "antd";
 import {
@@ -40,8 +39,10 @@ import DetalleEcoTimeline from './components/DetalleEcoTimeline';
 import DetalleEcoTabs from './components/DetalleEcoTabs';
 import DetalleEcoImagenes from './components/DetalleEcoImagenes';
 import DetalleEcoInfoAdicional from './components/DetalleEcoInfoAdicional';
+import '../Embarazos/paginaClinica.css';
+import './Ecografias.css';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const handleImprimir = () => {
   window.print();
@@ -87,6 +88,7 @@ const DetalleEcografia: React.FC = () => {
 
   const handleEliminar = () => {
     modal.confirm({
+      className: 'capa-clinica',
       title: '¿Eliminar esta ecografía?',
       icon: <ExclamationCircleOutlined />,
       content: 'Esta acción no se puede deshacer.',
@@ -122,23 +124,23 @@ const DetalleEcografia: React.FC = () => {
   // ==========================================================================
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+      <div className="pagina-clinica pc-cargando">
         <Spin size="large" />
-        <div style={{ marginTop: 16 }}>Cargando datos de la ecografía…</div>
+        <div className="u-mt-4">Cargando datos de la ecografía…</div>
       </div>
     );
   }
 
   if (!ecografia) {
     return (
-      <Card>
+      <Card className="pagina-clinica">
         <Alert
           message="Ecografía no encontrada"
           description="No se encontró la ecografía solicitada."
           type="error"
           showIcon
         />
-        <Button onClick={handleVolver} style={{ marginTop: 16 }}>
+        <Button onClick={handleVolver} className="u-mt-4">
           Volver al listado
         </Button>
       </Card>
@@ -146,29 +148,24 @@ const DetalleEcografia: React.FC = () => {
   }
 
   return (
-    <div className="detalle-ecografia-container">
-      {/* HEADER */}
-      <Card className="header-card">
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Space>
-              <Button icon={<ArrowLeftOutlined />} onClick={handleVolver}>
-                Volver
-              </Button>
-              <Divider type="vertical" />
-              <FileImageOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-              <div>
-                <Title level={4} style={{ margin: 0 }}>
-                  Detalle de Ecografía
-                </Title>
-                <Text type="secondary">
-                  {dayjs(ecografia.fecha_ecografia).format('DD/MM/YYYY')}
-                </Text>
-              </div>
-            </Space>
-          </Col>
-          <Col>
-            <Space>
+    <div className="pagina-clinica ecografias-detalle">
+      {/* ENCABEZADO DE PÁGINA */}
+      <div className="pc-cabecera">
+        <div className="pc-cabecera__texto">
+          <Title level={2} className="pc-cabecera__titulo">
+            <FileImageOutlined className="pc-cabecera__icono" />
+            Detalle de Ecografía
+          </Title>
+          <p className="pc-cabecera__descripcion">
+            {dayjs(ecografia.fecha_ecografia).format('DD/MM/YYYY')}
+          </p>
+        </div>
+        <Button icon={<ArrowLeftOutlined />} onClick={handleVolver}>
+          Volver
+        </Button>
+      </div>
+
+      <Space wrap className="u-mb-4">
               <Button icon={<PrinterOutlined />} onClick={handleImprimir}>
                 Imprimir
               </Button>
@@ -205,10 +202,7 @@ const DetalleEcografia: React.FC = () => {
               <Button danger icon={<DeleteOutlined />} onClick={handleEliminar}>
                 Eliminar
               </Button>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+      </Space>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>

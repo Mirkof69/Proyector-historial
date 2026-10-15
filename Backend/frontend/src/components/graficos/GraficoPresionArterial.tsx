@@ -33,7 +33,7 @@ const clasificarPresion = (sistolica: number, diastolica: number) => {
     if (sistolica >= 160 || diastolica >= 110) {
         return {
             categoria: 'Preeclampsia Severa',
-            color: '#cf1322',
+            color: 'error',
             riesgo: 'crítico',
             accion: 'Hospitalización inmediata - Riesgo de eclampsia'
         };
@@ -43,7 +43,7 @@ const clasificarPresion = (sistolica: number, diastolica: number) => {
     if (sistolica >= 140 || diastolica >= 90) {
         return {
             categoria: 'Hipertensión Gestacional',
-            color: '#ff4d4f',
+            color: 'error',
             riesgo: 'alto',
             accion: 'Control en 48-72h - Descartar preeclampsia'
         };
@@ -53,7 +53,7 @@ const clasificarPresion = (sistolica: number, diastolica: number) => {
     if ((sistolica >= 130 && sistolica < 140) || (diastolica >= 85 && diastolica < 90)) {
         return {
             categoria: 'Pre-hipertensión',
-            color: '#faad14',
+            color: 'warning',
             riesgo: 'moderado',
             accion: 'Monitoreo frecuente - Control en 1 semana'
         };
@@ -62,7 +62,7 @@ const clasificarPresion = (sistolica: number, diastolica: number) => {
     // Normal: < 130/85
     return {
         categoria: 'Normal',
-        color: '#52c41a',
+        color: 'success',
         riesgo: 'bajo',
         accion: 'Continuar controles rutinarios'
     };
@@ -169,7 +169,7 @@ const GraficoPresionArterial: React.FC<Props> = ({
                     <ReferenceArea
                         y1={160}
                         y2={180}
-                        fill="#cf1322"
+                        fill="var(--color-peligro)"
                         fillOpacity={0.1}
                         label={{ value: 'Preeclampsia Severa', position: 'insideTopRight' }}
                     />
@@ -177,32 +177,32 @@ const GraficoPresionArterial: React.FC<Props> = ({
                     <ReferenceArea
                         y1={140}
                         y2={160}
-                        fill="#ff4d4f"
+                        fill="var(--color-peligro)"
                         fillOpacity={0.1}
                     />
 
                     <ReferenceArea
                         y1={130}
                         y2={140}
-                        fill="#faad14"
+                        fill="var(--color-aviso)"
                         fillOpacity={0.1}
                     />
 
                     <ReferenceLine
                         y={140}
-                        stroke="#ff4d4f"
+                        stroke="var(--color-peligro)"
                         strokeDasharray="3 3"
                         label={{ value: 'Hipertensión (140)', position: 'right' }}
                     />
                     <ReferenceLine
                         y={90}
-                        stroke="#ff4d4f"
+                        stroke="var(--color-peligro)"
                         strokeDasharray="3 3"
                         label={{ value: 'Hipertensión (90)', position: 'right' }}
                     />
                     <ReferenceLine
                         y={160}
-                        stroke="#cf1322"
+                        stroke="var(--color-peligro)"
                         strokeDasharray="5 5"
                         label={{ value: 'Severa (160)', position: 'right' }}
                     />
@@ -210,24 +210,24 @@ const GraficoPresionArterial: React.FC<Props> = ({
                     <Line
                         type="monotone"
                         dataKey="sistolica"
-                        stroke="#ff7875"
+                        stroke="var(--grafico-5)"
                         strokeWidth={3}
-                        dot={{ r: 5, fill: '#ff7875' }}
+                        dot={{ r: 5, fill: 'var(--grafico-5)' }}
                         name="Presión Sistólica"
                     />
                     <Line
                         type="monotone"
                         dataKey="diastolica"
-                        stroke="#1890ff"
+                        stroke="var(--color-primario)"
                         strokeWidth={3}
-                        dot={{ r: 5, fill: '#1890ff' }}
+                        dot={{ r: 5, fill: 'var(--color-primario)' }}
                         name="Presión Diastólica"
                     />
                 </LineChart>
             </ResponsiveContainer>
             </Suspense>
 
-            <div style={{ marginTop: 16, fontSize: '12px', color: '#8c8c8c' }}>
+            <div style={{ marginTop: 16, fontSize: '12px', color: 'var(--color-texto-2)' }}>
                 <Space direction="vertical" size={4}>
                     <Text type="secondary">
                         <strong>Criterios diagnósticos:</strong>

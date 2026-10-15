@@ -15,15 +15,12 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Card,
   Form,
   Button,
   Upload,
   Spin,
   Typography,
   Tabs,
-  Row,
-  Col,
   Space,
   Modal,
 } from 'antd';
@@ -52,6 +49,8 @@ import TabBiometriaEco from './components/TabBiometriaEco';
 import TabAnatomiaEco from './components/TabAnatomiaEco';
 import TabAnexosEco from './components/TabAnexosEco';
 import TabImagenesConclusionesEco from './components/TabImagenesConclusionesEco';
+import '../Embarazos/paginaClinica.css';
+import './Ecografias.css';
 
 const { Title } = Typography;
 
@@ -414,51 +413,46 @@ const FormularioEcografia: React.FC = () => {
       showDownloadIcon: false,
     },
     progress: {
-      strokeColor: {
-        '0%': '#108ee9',
-        '100%': '#87d068',
-      },
+      strokeColor: 'var(--color-primario)',
       strokeWidth: 3,
       format: (percent) => `${Math.round(percent || 0)}%`,
     },
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: 50 }}><Spin size="large" /></div>;
+    return <div className="pagina-clinica pc-cargando"><Spin size="large" /></div>;
   }
 
   return (
-    <div className="formulario-ecografia-container">
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        {/* HEADER */}
-        <Card>
-          <Row justify="space-between" align="middle">
-            <Col>
-              <Space>
-                <Button
-                  icon={ARROW_LEFT_ICON_5}
-                  onClick={() => navigate(FRONTEND_ROUTES.DASHBOARD.ECOGRAFIAS)}
-                >
-                  Volver
-                </Button>
-                <Title level={4} style={{ margin: 0 }}>
-                  {isEditing ? 'Editar Ecografía' : 'Nueva Ecografía Obstétrica'}
-                </Title>
-              </Space>
-            </Col>
-            <Col>
-              <Button
-                type="primary"
-                icon={SAVE_ICON_4}
-                loading={submitting}
-                onClick={() => form.submit()}
-                size="large"
-              >
-                Guardar Ecografía
-              </Button>
-            </Col>
-          </Row>
-        </Card>
+    <div className="pagina-clinica ecografias-formulario">
+      <Space direction="vertical" size="large" className="u-ancho">
+        {/* ENCABEZADO DE PÁGINA */}
+        <div className="pc-cabecera u-mb-0">
+          <div className="pc-cabecera__texto">
+            <Title level={2} className="pc-cabecera__titulo">
+              {isEditing ? 'Editar Ecografía' : 'Nueva Ecografía Obstétrica'}
+            </Title>
+            <p className="pc-cabecera__descripcion">
+              Datos generales, biometría, anatomía, anexos e imágenes del estudio.
+            </p>
+          </div>
+          <div className="pc-cabecera__acciones">
+            <Button
+              icon={ARROW_LEFT_ICON_5}
+              onClick={() => navigate(FRONTEND_ROUTES.DASHBOARD.ECOGRAFIAS)}
+            >
+              Volver
+            </Button>
+            <Button
+              type="primary"
+              icon={SAVE_ICON_4}
+              loading={submitting}
+              onClick={() => form.submit()}
+            >
+              Guardar Ecografía
+            </Button>
+          </div>
+        </div>
 
         <Form
           form={form}
@@ -549,32 +543,17 @@ const FormularioEcografia: React.FC = () => {
       </Space>
 
       {/* MODAL DE VISTA PREVIA DE IMÁGENES */}
-      <Modal
+      <Modal rootClassName="capa-clinica"
         open={previewVisible}
         title={previewTitle}
         footer={null}
         onCancel={handleCancelPreview}
         width="80%"
-        style={{ top: 20 }}
-        styles={{
-          body: {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '24px',
-            maxHeight: '80vh',
-            overflow: 'auto',
-          },
-        }}
+        className="ecografias-modal-alto eco-vista-previa"
       >
         <img
           alt={previewTitle}
-          style={{
-            width: '100%',
-            maxWidth: '100%',
-            height: 'auto',
-            objectFit: 'contain',
-          }}
+          className="eco-vista-previa__imagen"
           src={previewImage}
         />
       </Modal>

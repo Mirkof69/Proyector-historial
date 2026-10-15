@@ -23,13 +23,13 @@ const TabAntecedentes: React.FC<TabAntecedentesProps> = ({
         <Card
           title={
             <Space>
-              <WomanOutlined style={{ color: '#722ed1' }} />
+              <WomanOutlined className="historia-icono" />
               <span>Antecedentes Gineco-Obstétricos</span>
             </Space>
           }
           extra={
             antecedenteGineco && (
-              <Tag color="purple" style={{ fontSize: 16, padding: '4px 12px' }}>
+              <Tag style={{ fontSize: 16, padding: '4px 12px' }}>
                 Fórmula: {antecedenteGineco.gestas || 0}G-{antecedenteGineco.partos || 0}P-{antecedenteGineco.abortos || 0}A-{antecedenteGineco.cesareas || 0}C
               </Tag>
             )
@@ -55,19 +55,19 @@ const TabAntecedentes: React.FC<TabAntecedentesProps> = ({
                   : 'No registra'}
               </Descriptions.Item>
               <Descriptions.Item label="Gestas" span={1}>
-                <Tag color="blue">{antecedenteGineco.gestas || 0}</Tag>
+                <Tag>{antecedenteGineco.gestas || 0}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Partos" span={1}>
-                <Tag color="green">{antecedenteGineco.partos || 0}</Tag>
+                <Tag>{antecedenteGineco.partos || 0}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Abortos" span={1}>
-                <Tag color="orange">{antecedenteGineco.abortos || 0}</Tag>
+                <Tag>{antecedenteGineco.abortos || 0}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Cesáreas" span={1}>
-                <Tag color="red">{antecedenteGineco.cesareas || 0}</Tag>
+                <Tag>{antecedenteGineco.cesareas || 0}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Hijos Vivos" span={2}>
-                <Tag color="cyan">{antecedenteGineco.hijos_vivos || 0}</Tag>
+                <Tag>{antecedenteGineco.hijos_vivos || 0}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Anticonceptivo Actual" span={1}>
                 {antecedenteGineco.metodo_anticonceptivo_actual || 'No usa'}
@@ -100,7 +100,7 @@ const TabAntecedentes: React.FC<TabAntecedentesProps> = ({
         <Card
           title={
             <Space>
-              <MedicineBoxOutlined style={{ color: '#f5222d' }} />
+              <MedicineBoxOutlined className="historia-icono" />
               <span>Antecedentes Patológicos</span>
             </Space>
           }
@@ -109,7 +109,7 @@ const TabAntecedentes: React.FC<TabAntecedentesProps> = ({
             <>
               <Descriptions bordered column={3} size="small" style={{ marginBottom: 16 }}>
                 <Descriptions.Item label="Tipo de Antecedente" span={3}>
-                  <Tag color={antecedentePatologico.tipo === 'personal' ? 'blue' : 'purple'}>
+                  <Tag>
                     {antecedentePatologico.tipo === 'personal' ? 'Personal' : 'Heredofamiliar'}
                   </Tag>
                 </Descriptions.Item>
@@ -119,9 +119,9 @@ const TabAntecedentes: React.FC<TabAntecedentesProps> = ({
               <Descriptions bordered column={2} size="small" style={{ marginBottom: 16 }}>
                 <Descriptions.Item label="Tiene Alergias" span={2}>
                   {antecedentePatologico.tiene_alergias ? (
-                    <Tag color="red" icon={<WarningOutlined />}>SÍ - REVISAR DETALLE</Tag>
+                    <Tag color="error" icon={<WarningOutlined />}>SÍ - REVISAR DETALLE</Tag>
                   ) : (
-                    <Tag color="green">No</Tag>
+                    <Tag color="success">No</Tag>
                   )}
                 </Descriptions.Item>
                 {antecedentePatologico.tiene_alergias && (
@@ -142,15 +142,15 @@ const TabAntecedentes: React.FC<TabAntecedentesProps> = ({
               <Divider orientation="left">Enfermedades Crónicas</Divider>
               <Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
                 {[
-                  { key: 'diabetes', label: 'Diabetes', color: 'orange' },
-                  { key: 'hipertension', label: 'Hipertensión', color: 'red' },
-                  { key: 'cardiopatias', label: 'Cardiopatías', color: 'magenta' },
-                  { key: 'nefropatias', label: 'Nefropatías', color: 'purple' },
-                  { key: 'trastornos_coagulacion', label: 'Trastornos Coagulación', color: 'volcano' },
-                  { key: 'anemia', label: 'Anemia', color: 'gold' },
-                  { key: 'lupus', label: 'Lupus', color: 'geekblue' },
-                  { key: 'artritis_reumatoide', label: 'Artritis Reumatoide', color: 'cyan' },
-                  { key: 'asma', label: 'Asma', color: 'blue' },
+                  { key: 'diabetes', label: 'Diabetes', color: 'warning' },
+                  { key: 'hipertension', label: 'Hipertensión', color: 'error' },
+                  { key: 'cardiopatias', label: 'Cardiopatías', color: 'warning' },
+                  { key: 'nefropatias', label: 'Nefropatías', color: 'warning' },
+                  { key: 'trastornos_coagulacion', label: 'Trastornos Coagulación', color: 'warning' },
+                  { key: 'anemia', label: 'Anemia', color: 'warning' },
+                  { key: 'lupus', label: 'Lupus', color: 'warning' },
+                  { key: 'artritis_reumatoide', label: 'Artritis Reumatoide', color: 'warning' },
+                  { key: 'asma', label: 'Asma', color: 'warning' },
                 ].map(enf =>
                   antecedentePatologico[enf.key as keyof AntecedentePatologico] && (
                     <Col key={enf.key}>
@@ -172,10 +172,10 @@ const TabAntecedentes: React.FC<TabAntecedentesProps> = ({
               <Divider orientation="left">Antecedentes Obstétricos Específicos</Divider>
               <Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
                 {[
-                  { key: 'preeclampsia_previa', label: 'Preeclampsia Previa', color: 'red' },
-                  { key: 'eclampsia_previa', label: 'Eclampsia Previa', color: 'red' },
-                  { key: 'diabetes_gestacional_previa', label: 'Diabetes Gestacional Previa', color: 'orange' },
-                  { key: 'hemorragia_postparto_previa', label: 'Hemorragia Postparto Previa', color: 'volcano' },
+                  { key: 'preeclampsia_previa', label: 'Preeclampsia Previa', color: 'error' },
+                  { key: 'eclampsia_previa', label: 'Eclampsia Previa', color: 'error' },
+                  { key: 'diabetes_gestacional_previa', label: 'Diabetes Gestacional Previa', color: 'warning' },
+                  { key: 'hemorragia_postparto_previa', label: 'Hemorragia Postparto Previa', color: 'warning' },
                 ].map(ant =>
                   antecedentePatologico[ant.key as keyof AntecedentePatologico] && (
                     <Col key={ant.key}>

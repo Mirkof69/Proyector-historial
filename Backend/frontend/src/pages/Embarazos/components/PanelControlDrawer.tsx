@@ -31,7 +31,7 @@ interface PanelControlDrawerProps {
 const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
   visible, onClose, proximosPartos, stats, canAdd, handleOpenCreate,
 }) => (
-  <Drawer
+  <Drawer rootClassName="capa-clinica"
     title="Panel de Control Obstétrico"
     placement="bottom"
     height="80%"
@@ -42,7 +42,7 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
     <Row gutter={[24, 24]}>
       <Col span={8}>
         <Card title="Indicadores Clave (KPI)" size="small">
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical" className="u-ancho">
             <Statistic title="Tasa de Captación Temprana" value={78} suffix="%" prefix={<RiseOutlined />} />
             <Progress percent={78} status="active" />
             <Text type="secondary">Meta MSP: ≥ 80%</Text>
@@ -50,12 +50,12 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
             <Divider />
 
             <Statistic title="Promedio Controles por Embarazo" value={6.4} prefix={<CheckCircleOutlined />} />
-            <Progress percent={(6.4 / 8) * 100} status="active" strokeColor="#52c41a" />
+            <Progress percent={(6.4 / 8) * 100} status="active" strokeColor="var(--color-exito)" />
             <Text type="secondary">Meta MSP: ≥ 5 controles</Text>
 
             <Divider />
 
-            <Statistic title="Tasa de Complicaciones" value={12} suffix="%" valueStyle={{ color: '#cf1322' }} />
+            <Statistic title="Tasa de Complicaciones" value={12} suffix="%" className="u-cifra-peligro" />
             <Progress percent={12} status="exception" />
             <Text type="secondary">Objetivo: {'<'} 15%</Text>
           </Space>
@@ -65,21 +65,21 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
       <Col span={8}>
         <Card title="Análisis Temporal" size="small">
           <Text strong>Embarazos por Trimestre Actual:</Text>
-          <div style={{ marginTop: 16 }}>
+          <div className="u-mt-4">
             <Row gutter={8}>
               <Col span={8}>
-                <Card size="small" style={{ textAlign: 'center', background: '#e6f7ff' }}>
-                  <Statistic title="1T" value={stats.primerTrimestre} valueStyle={{ fontSize: 24 }} />
+                <Card size="small" className="u-centro">
+                  <Statistic title="1T" value={stats.primerTrimestre} className="pc-cifra-media" />
                 </Card>
               </Col>
               <Col span={8}>
-                <Card size="small" style={{ textAlign: 'center', background: '#f0f5ff' }}>
-                  <Statistic title="2T" value={stats.segundoTrimestre} valueStyle={{ fontSize: 24 }} />
+                <Card size="small" className="u-centro">
+                  <Statistic title="2T" value={stats.segundoTrimestre} className="pc-cifra-media" />
                 </Card>
               </Col>
               <Col span={8}>
-                <Card size="small" style={{ textAlign: 'center', background: '#fff7e6' }}>
-                  <Statistic title="3T" value={stats.tercerTrimestre} valueStyle={{ fontSize: 24 }} />
+                <Card size="small" className="u-centro">
+                  <Statistic title="3T" value={stats.tercerTrimestre} className="pc-cifra-media" />
                 </Card>
               </Col>
             </Row>
@@ -103,7 +103,7 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
 
       <Col span={8}>
         <Card title="Acciones Rápidas" size="small">
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical" className="u-ancho">
             {canAdd('embarazo') && (
               <Button icon={plusOutlinedIcon9} type="primary" block onClick={handleOpenCreate}>
                 Nuevo Embarazo
@@ -134,31 +134,31 @@ const PanelControlDrawer: React.FC<PanelControlDrawerProps> = ({
 
     <Row gutter={[16, 16]}>
       <Col span={6}>
-        <Card size="small" hoverable style={{ textAlign: 'center' }}>
-          <BookOutlined style={{ fontSize: 32, color: '#1890ff', marginBottom: 8 }} />
+        <Card size="small" hoverable className="u-centro">
+          <BookOutlined className="u-t-2xl u-c-primario u-mb-2" />
           <div><Text strong>Protocolos MSP</Text></div>
-          <div><Text type="secondary" style={{ fontSize: 12 }}>Guías Clínicas</Text></div>
+          <div><Text type="secondary" className="u-t-xs">Guías Clínicas</Text></div>
         </Card>
       </Col>
       <Col span={6}>
-        <Card size="small" hoverable style={{ textAlign: 'center' }}>
-          <SafetyCertificateOutlined style={{ fontSize: 32, color: '#52c41a', marginBottom: 8 }} />
+        <Card size="small" hoverable className="u-centro">
+          <SafetyCertificateOutlined className="u-t-2xl u-c-primario u-mb-2" />
           <div><Text strong>Normativas OMS</Text></div>
-          <div><Text type="secondary" style={{ fontSize: 12 }}>Referencias Internacionales</Text></div>
+          <div><Text type="secondary" className="u-t-xs">Referencias Internacionales</Text></div>
         </Card>
       </Col>
       <Col span={6}>
-        <Card size="small" hoverable style={{ textAlign: 'center' }}>
-          <DatabaseOutlined style={{ fontSize: 32, color: '#722ed1', marginBottom: 8 }} />
+        <Card size="small" hoverable className="u-centro">
+          <DatabaseOutlined className="u-t-2xl u-c-primario u-mb-2" />
           <div><Text strong>Base de Datos</Text></div>
-          <div><Text type="secondary" style={{ fontSize: 12 }}>Estadísticas Históricas</Text></div>
+          <div><Text type="secondary" className="u-t-xs">Estadísticas Históricas</Text></div>
         </Card>
       </Col>
       <Col span={6}>
-        <Card size="small" hoverable style={{ textAlign: 'center' }}>
-          <TeamOutlined style={{ fontSize: 32, color: '#fa8c16', marginBottom: 8 }} />
+        <Card size="small" hoverable className="u-centro">
+          <TeamOutlined className="u-t-2xl u-c-primario u-mb-2" />
           <div><Text strong>Equipo Médico</Text></div>
-          <div><Text type="secondary" style={{ fontSize: 12 }}>Contactos y Turnos</Text></div>
+          <div><Text type="secondary" className="u-t-xs">Contactos y Turnos</Text></div>
         </Card>
       </Col>
     </Row>

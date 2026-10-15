@@ -1,0 +1,100 @@
+/* =============================================================================
+   NOTAS DE EVOLUCIÓN — listado y formulario
+   =============================================================================
+   Contrato: docs/DISENO_INTERFAZ.md. Todo bajo .notas-pagina; colores solo con
+   var(--…). Modales y cajones (portal) usan los tokens de Ant Design.
+   ============================================================================= */
+
+.notas-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+/* ---------- Encabezado de página ---------- */
+.notas-pagina .pagina-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.notas-pagina .pagina-encabezado__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.notas-pagina .pagina-encabezado__titulo,
+.notas-pagina h2.pagina-encabezado__titulo.ant-typography {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  line-height: var(--interlineado-titulo);
+  color: var(--color-texto);
+}
+
+.notas-pagina .pagina-encabezado__descripcion {
+  margin: 0;
+  color: var(--color-texto-2);
+}
+
+/* ---------- Tarjetas de cifras ---------- */
+.notas-pagina .stat-card.ant-card {
+  height: 100%;
+}
+
+.notas-pagina .stat-card .ant-statistic-title,
+.notas-pagina .stat-card__etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.notas-pagina .stat-card__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.notas-pagina .stat-card__etiqueta .anticon,
+.notas-pagina .stat-card .ant-statistic-content-prefix {
+  color: var(--color-texto-3);
+}
+
+.notas-pagina .stat-card .ant-statistic-content {
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+/* Cifra que es un estado */
+.notas-pagina .cifra--peligro .ant-statistic-content { color: var(--color-peligro); }
+.notas-pagina .cifra--aviso .ant-statistic-content { color: var(--color-aviso); }
+.notas-pagina .cifra--exito .ant-statistic-content { color: var(--color-exito); }
+
+.notas-pagina .notas-filtro-tipo {
+  width: 200px;
+  max-width: 100%;
+}
+
+.notas-pagina .notas-error {
+  margin-bottom: var(--esp-3);
+}
+
+.notas-pagina .notas-icono {
+  color: var(--color-primario);
+}
+
+.notas-pagina .notas-formulario__titulo {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-fuerte);
+}
+
+@media (max-width: 768px) {
+  .notas-pagina .notas-filtro-tipo {
+    width: 100%;
+  }
+}

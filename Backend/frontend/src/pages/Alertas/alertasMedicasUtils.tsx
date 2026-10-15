@@ -31,12 +31,13 @@ export const getSeveridadIcon = (prioridad: string) => {
 export const renderPieLabel = ({ name, percent }: { name: string; percent: number }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`;
 
 export const getSeveridadColor = (prioridad: string) => {
+  // Color de Tag por token: la prioridad es un estado clínico.
   const colors: any = {
-    baja: 'blue',
-    media: 'orange',
-    alta: 'red',
-    critica: 'magenta',
-    emergencia: 'red'
+    baja: 'processing',
+    media: 'warning',
+    alta: 'error',
+    critica: 'error',
+    emergencia: 'error'
   };
   return colors[prioridad] || 'default';
 };
@@ -50,10 +51,10 @@ export const getSeveridadData = (alertas: AlertaMedica[]) => {
     critica: alertas.filter(a => a.prioridad === 'critica' || a.prioridad === 'emergencia').length
   };
   return [
-    { name: 'Baja', value: counts.baja, color: '#1890ff' },
-    { name: 'Media', value: counts.media, color: '#fa8c16' },
-    { name: 'Alta', value: counts.alta, color: '#f5222d' },
-    { name: 'Crítica', value: counts.critica, color: '#eb2f96' }
+    { name: 'Baja', value: counts.baja, color: 'var(--color-info)' },
+    { name: 'Media', value: counts.media, color: 'var(--color-aviso)' },
+    { name: 'Alta', value: counts.alta, color: 'var(--grafico-5)' },
+    { name: 'Crítica', value: counts.critica, color: 'var(--color-peligro)' }
   ];
 };
 

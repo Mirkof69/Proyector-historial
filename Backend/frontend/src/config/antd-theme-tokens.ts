@@ -1,385 +1,489 @@
 /**
  * =============================================================================
- * ANT DESIGN THEME TOKENS - CONFIGURACIÓN SIMPLIFICADA
+ * TOKENS DE ANT DESIGN — Fetal Medical Bolivia
  * =============================================================================
- * Sistema de tokens para ConfigProvider de Ant Design
- * Soporte completo de modo claro y oscuro
- * Compatible con clase .dark en <html>
- * Colores coordinados para contexto médico gineco-obstétrico
+ * Contrato: docs/DISENO_INTERFAZ.md. Los colores son los MISMOS que
+ * src/styles/tokens.css (variables CSS); un test
+ * (config/__tests__/antdThemeTokens.test.ts) compara los dos archivos.
+ *
+ * Dirección: superficies planas separadas por borde de 1 px, sin degradados,
+ * sombra solo en lo que flota, un único acento (el primario). El elemento
+ * activo del menú usa --color-primario-suave de fondo y texto primario.
+ *
+ * Todo lo que se puede decir con un token se dice aquí: Ant Design 5 inyecta
+ * sus estilos en tiempo de ejecución, y pelear con él desde CSS obligaba a
+ * usar `!important`.
  * =============================================================================
  */
 
 import { ThemeConfig, theme } from 'antd';
 
-// Medical color palette - coordinated for clinical context
-const MEDICAL_PRIMARY = '#1890ff';
-const MEDICAL_SUCCESS = '#52c41a';
-const MEDICAL_WARNING = '#faad14';
-const MEDICAL_ERROR = '#ff4d4f';
-const MEDICAL_INFO = '#1890ff';
+export type NombreTema = 'light' | 'dark' | 'normal' | 'mocha';
 
-/**
- * TEMA CLARO (LIGHT MODE)
- */
-const lightThemeTokens: ThemeConfig = {
-  algorithm: theme.defaultAlgorithm,
-  token: {
-    // Colores principales - coordinated medical palette
-    colorPrimary: MEDICAL_PRIMARY,
-    colorSuccess: MEDICAL_SUCCESS,
-    colorWarning: MEDICAL_WARNING,
-    colorError: MEDICAL_ERROR,
-    colorInfo: MEDICAL_INFO,
-    colorLink: MEDICAL_PRIMARY,
-    colorLinkHover: '#1d4ed8',
-    colorLinkActive: '#1e40af',
+/** Paleta de un tema. Nombres en el mismo orden que tokens.css. */
+export interface Paleta {
+  primario: string;
+  primarioHover: string;
+  primarioSuave: string;
+  sobrePrimario: string;
+  anilloFoco: string;
+  fondo: string;
+  superficie: string;
+  superficie2: string;
+  hover: string;
+  borde: string;
+  bordeSuave: string;
+  bordeFuerte: string;
+  mascara: string;
+  texto: string;
+  texto2: string;
+  texto3: string;
+  exito: string;
+  exitoSuave: string;
+  exitoBorde: string;
+  aviso: string;
+  avisoSuave: string;
+  avisoBorde: string;
+  peligro: string;
+  peligroSuave: string;
+  peligroBorde: string;
+  info: string;
+  infoSuave: string;
+  infoBorde: string;
+  sombraFlotante: string;
+  sombraBaja: string;
+}
 
-    // Textos
-    colorText: '#1a1a2e',
-    colorTextSecondary: '#595959',
-    colorTextTertiary: '#8c8c8c',
-    colorTextQuaternary: '#bfbfbf',
+const CLARO: Paleta = {
+  primario: '#155E75',
+  primarioHover: '#0E4C61',
+  primarioSuave: '#E3F1F5',
+  sobrePrimario: '#FFFFFF',
+  anilloFoco: 'rgba(21, 94, 117, 0.18)',
+  fondo: '#F4F6F8',
+  superficie: '#FFFFFF',
+  superficie2: '#F8FAFB',
+  hover: '#EEF2F5',
+  borde: '#DDE3E8',
+  bordeSuave: '#EBEFF2',
+  bordeFuerte: '#C5CED6',
+  mascara: 'rgba(13, 19, 24, 0.45)',
+  texto: '#15212B',
+  texto2: '#4D5D6A',
+  texto3: '#7A8995',
+  exito: '#1E7B4F',
+  exitoSuave: '#E7F4EC',
+  exitoBorde: '#A9D5BC',
+  aviso: '#A35F00',
+  avisoSuave: '#FDF3E1',
+  avisoBorde: '#EBC98A',
+  peligro: '#B42318',
+  peligroSuave: '#FDECEA',
+  peligroBorde: '#F0B2AB',
+  info: '#1D5FA8',
+  infoSuave: '#E8F0FA',
+  infoBorde: '#A9C4E6',
+  sombraFlotante: '0 6px 16px rgba(21, 33, 43, 0.12), 0 1px 3px rgba(21, 33, 43, 0.08)',
+  sombraBaja: '0 1px 2px rgba(21, 33, 43, 0.06)',
+};
 
-    colorBgBase: '#ffffff',
-    colorBgContainer: '#ffffff',
-    colorBgElevated: '#ffffff',
-    colorBgLayout: '#f0f5ff',
-    colorBgSpotlight: '#e6f4ff',
-    colorBgMask: 'rgba(0, 0, 0, 0.45)',
+const OSCURO: Paleta = {
+  primario: '#5BB6CC',
+  primarioHover: '#7FC8DA',
+  primarioSuave: '#14313A',
+  sobrePrimario: '#0D1318',
+  anilloFoco: 'rgba(91, 182, 204, 0.28)',
+  fondo: '#0D1318',
+  superficie: '#141C22',
+  superficie2: '#1A242C',
+  hover: '#1F2A33',
+  borde: '#2A3640',
+  bordeSuave: '#202B33',
+  bordeFuerte: '#3A4954',
+  mascara: 'rgba(0, 0, 0, 0.6)',
+  texto: '#E5ECF1',
+  texto2: '#A7B5C0',
+  texto3: '#7D8C97',
+  exito: '#4CC38A',
+  exitoSuave: '#13291F',
+  exitoBorde: '#1F5138',
+  aviso: '#E3A33B',
+  avisoSuave: '#2E2210',
+  avisoBorde: '#5C4419',
+  peligro: '#F2766B',
+  peligroSuave: '#33171A',
+  peligroBorde: '#6B2A27',
+  info: '#6AA6E8',
+  infoSuave: '#13233A',
+  infoBorde: '#274A73',
+  sombraFlotante: '0 6px 16px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3)',
+  sombraBaja: '0 1px 2px rgba(0, 0, 0, 0.3)',
+};
 
-    colorBorder: '#d9d9d9',
-    colorBorderSecondary: '#f0f0f0',
-    colorSplit: '#d9d9d9',
-
-    // Rellenos
-    colorFill: 'rgba(0, 0, 0, 0.04)',
-    colorFillSecondary: 'rgba(0, 0, 0, 0.02)',
-    colorFillTertiary: 'rgba(0, 0, 0, 0.01)',
-    colorFillQuaternary: 'rgba(0, 0, 0, 0.01)',
-
-    // Tipografía
-    fontSize: 14,
-    fontSizeHeading1: 38,
-    fontSizeHeading2: 30,
-    fontSizeHeading3: 24,
-    fontSizeHeading4: 20,
-    fontSizeHeading5: 16,
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-
-    // Línea de altura
-    lineHeight: 1.5715,
-    lineHeightHeading1: 1.21,
-    lineHeightHeading2: 1.35,
-    lineHeightHeading3: 1.35,
-    lineHeightHeading4: 1.4,
-    lineHeightHeading5: 1.5,
-
-    // Radio de bordes - slightly more rounded for modern feel
-    borderRadius: 8,
-    borderRadiusLG: 12,
-    borderRadiusSM: 6,
-    borderRadiusXS: 4,
-
-    // Control
-    controlHeight: 36,
-    controlHeightLG: 44,
-    controlHeightSM: 28,
-
-    // Motion - smooth transitions
-    motionUnit: 0.1,
-    motionBase: 0,
-    motionEaseInOut: 'cubic-bezier(0.645, 0.045, 0.355, 1)',
-    motionEaseOut: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
-    motionDurationFast: '0.1s',
-    motionDurationMid: '0.2s',
-    motionDurationSlow: '0.3s',
-
-    // Sombras
-    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
-    boxShadowSecondary: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
-    boxShadowTertiary: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
-
-    // Z-index
-    zIndexBase: 0,
-    zIndexPopupBase: 1000,
-
-    // Wireframe
-    wireframe: false,
+/** Paleta de cada tema. `normal` = claro con fondo blanco; `mocha` = oscuro cálido. */
+export const PALETAS: Record<NombreTema, Paleta> = {
+  light: CLARO,
+  normal: { ...CLARO, fondo: '#FFFFFF' },
+  dark: OSCURO,
+  mocha: {
+    primario: '#D9A56B',
+    primarioHover: '#E6BC8A',
+    primarioSuave: '#3A2C1D',
+    sobrePrimario: '#16130F',
+    anilloFoco: 'rgba(217, 165, 107, 0.28)',
+    fondo: '#16130F',
+    superficie: '#1E1A15',
+    superficie2: '#26211B',
+    hover: '#2C261F',
+    borde: '#3A332A',
+    bordeSuave: '#2C261F',
+    bordeFuerte: '#4A4236',
+    mascara: 'rgba(0, 0, 0, 0.6)',
+    texto: '#EDE6DC',
+    texto2: '#BFB3A3',
+    texto3: '#968B7C',
+    exito: '#7CC48F',
+    exitoSuave: '#1C2A1F',
+    exitoBorde: '#355A3E',
+    aviso: '#E3A33B',
+    avisoSuave: '#33260F',
+    avisoBorde: '#644A1C',
+    peligro: '#EF7F6E',
+    peligroSuave: '#3A1D18',
+    peligroBorde: '#6E3329',
+    info: '#82AEE0',
+    infoSuave: '#1A2638',
+    infoBorde: '#34506F',
+    sombraFlotante: '0 6px 16px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.35)',
+    sombraBaja: '0 1px 2px rgba(0, 0, 0, 0.35)',
   },
-  components: {
-    Button: {
-      borderRadius: 8,
-      fontWeight: 500,
+};
+
+export const FUENTE = "'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif";
+export const FUENTE_MONO = "'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace";
+
+/** Construye la configuración de Ant Design a partir de una paleta. */
+const construirTema = (p: Paleta, oscuro: boolean): ThemeConfig => {
+  const control = {
+    colorBgContainer: p.superficie,
+    colorBorder: p.borde,
+    hoverBorderColor: p.bordeFuerte,
+    activeBorderColor: p.primario,
+    activeShadow: `0 0 0 2px ${p.anilloFoco}`,
+    colorText: p.texto,
+    colorTextPlaceholder: p.texto3,
+  };
+  const flotante = {
+    colorBgElevated: p.superficie,
+    boxShadowSecondary: p.sombraFlotante,
+  };
+
+  return {
+    algorithm: oscuro ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    token: {
+      // Semillas (de ellas deriva el algoritmo los tonos intermedios)
+      colorPrimary: p.primario,
+      colorSuccess: p.exito,
+      colorWarning: p.aviso,
+      colorError: p.peligro,
+      colorInfo: p.info,
+      colorLink: p.primario,
+      colorTextBase: p.texto,
+      colorBgBase: p.superficie,
+
+      colorLinkHover: p.primarioHover,
+      colorLinkActive: p.primarioHover,
+      colorPrimaryBg: p.primarioSuave,
+      colorPrimaryBgHover: p.primarioSuave,
+
+      // Estados: fondo suave + borde, igual que --color-*-suave / -borde
+      colorSuccessBg: p.exitoSuave,
+      colorSuccessBorder: p.exitoBorde,
+      colorWarningBg: p.avisoSuave,
+      colorWarningBorder: p.avisoBorde,
+      colorErrorBg: p.peligroSuave,
+      colorErrorBorder: p.peligroBorde,
+      colorInfoBg: p.infoSuave,
+      colorInfoBorder: p.infoBorde,
+
+      // Texto
+      colorText: p.texto,
+      colorTextHeading: p.texto,
+      colorTextSecondary: p.texto2,
+      colorTextLabel: p.texto2,
+      colorTextDescription: p.texto2,
+      colorTextTertiary: p.texto3,
+      colorTextQuaternary: p.texto3,
+      colorTextPlaceholder: p.texto3,
+      colorTextDisabled: p.texto3,
+      // Texto sobre el primario (botón principal, casilla marcada, paso
+      // activo…). En los temas oscuros el primario es claro: texto oscuro.
+      colorTextLightSolid: p.sobrePrimario,
+
+      // Superficies
+      colorBgLayout: p.fondo,
+      colorBgContainer: p.superficie,
+      colorBgElevated: p.superficie,
+      colorBgSpotlight: p.texto,
+      colorBgMask: p.mascara,
+      colorFillAlter: p.superficie2,
+      colorFillContent: p.hover,
+      colorBorder: p.borde,
+      colorBorderSecondary: p.borde,
+      colorSplit: p.bordeSuave,
+      controlItemBgHover: p.hover,
+      controlItemBgActive: p.primarioSuave,
+      controlItemBgActiveHover: p.primarioSuave,
+      controlOutline: p.anilloFoco,
+      controlOutlineWidth: 2,
+
+      // Tipografía (escala del contrato: 12 · 13 · 14 · 16 · 18 · 22 · 28)
+      fontFamily: FUENTE,
+      fontFamilyCode: FUENTE_MONO,
+      fontSize: 14,
+      fontSizeSM: 12,
+      fontSizeLG: 16,
+      fontSizeXL: 18,
+      fontSizeHeading1: 28,
+      fontSizeHeading2: 22,
+      fontSizeHeading3: 18,
+      fontSizeHeading4: 16,
+      fontSizeHeading5: 14,
+      fontWeightStrong: 600,
+
+      // Radio: 4 · 6 · 8 (nada de 12–24 px)
+      borderRadius: 6,
+      borderRadiusLG: 8,
+      borderRadiusSM: 4,
+      borderRadiusXS: 2,
+
+      // Controles
       controlHeight: 36,
-      controlHeightLG: 44,
+      controlHeightLG: 40,
       controlHeightSM: 28,
+
+      // Sombra solo en lo que flota
+      boxShadow: p.sombraFlotante,
+      boxShadowSecondary: p.sombraFlotante,
+      boxShadowTertiary: p.sombraBaja,
+
+      motionDurationFast: '0.12s',
+      motionDurationMid: '0.16s',
+      motionDurationSlow: '0.24s',
+
+      wireframe: false,
     },
-    Card: {
-      borderRadius: 12,
-      borderRadiusLG: 16,
+    components: {
+      Layout: {
+        bodyBg: p.fondo,
+        headerBg: p.superficie,
+        headerColor: p.texto,
+        headerHeight: 56,
+        headerPadding: '0 16px',
+        siderBg: p.superficie,
+        lightSiderBg: p.superficie,
+        triggerBg: p.superficie,
+        triggerColor: p.texto2,
+        footerBg: 'transparent',
+        footerPadding: '16px 0',
+      },
+      Menu: {
+        itemBg: p.superficie,
+        subMenuItemBg: p.superficie,
+        popupBg: p.superficie,
+        itemColor: p.texto2,
+        itemHoverColor: p.texto,
+        itemHoverBg: p.hover,
+        itemActiveBg: p.primarioSuave,
+        itemSelectedBg: p.primarioSuave,
+        itemSelectedColor: p.primario,
+        horizontalItemSelectedColor: p.primario,
+        groupTitleColor: p.texto3,
+        groupTitleFontSize: 12,
+        itemBorderRadius: 6,
+        subMenuItemBorderRadius: 6,
+        itemMarginInline: 8,
+        itemHeight: 36,
+        iconSize: 16,
+        collapsedIconSize: 16,
+        activeBarBorderWidth: 0,
+        activeBarWidth: 0,
+        // Menús con theme="dark" (si alguno queda) siguen la misma paleta
+        darkItemBg: p.superficie,
+        darkSubMenuItemBg: p.superficie,
+        darkPopupBg: p.superficie,
+        darkItemColor: p.texto2,
+        darkItemHoverColor: p.texto,
+        darkItemHoverBg: p.hover,
+        darkItemSelectedBg: p.primarioSuave,
+        darkItemSelectedColor: p.primario,
+        darkGroupTitleColor: p.texto3,
+      },
+      Button: {
+        fontWeight: 500,
+        primaryColor: p.sobrePrimario,
+        primaryShadow: 'none',
+        defaultShadow: 'none',
+        dangerShadow: 'none',
+        defaultBg: p.superficie,
+        defaultColor: p.texto,
+        defaultBorderColor: p.borde,
+        defaultHoverBg: p.superficie,
+        defaultHoverBorderColor: p.primario,
+        defaultHoverColor: p.primario,
+        textHoverBg: p.hover,
+        colorText: p.texto,
+      },
+      Card: {
+        colorBgContainer: p.superficie,
+        colorBorderSecondary: p.borde,
+        colorText: p.texto,
+        headerBg: 'transparent',
+        headerFontSize: 16,
+        headerFontSizeSM: 14,
+        borderRadiusLG: 8,
+        boxShadowTertiary: p.sombraBaja,
+      },
+      Table: {
+        colorBgContainer: p.superficie,
+        colorText: p.texto,
+        headerBg: p.superficie2,
+        headerColor: p.texto,
+        headerSplitColor: p.borde,
+        headerSortActiveBg: p.hover,
+        headerSortHoverBg: p.hover,
+        bodySortBg: p.superficie2,
+        rowHoverBg: p.hover,
+        rowSelectedBg: p.primarioSuave,
+        rowSelectedHoverBg: p.primarioSuave,
+        rowExpandedBg: p.superficie2,
+        footerBg: p.superficie2,
+        footerColor: p.texto2,
+        borderColor: p.bordeSuave,
+        fixedHeaderSortActiveBg: p.hover,
+        // Filas de ~46 px (contrato: 44–48)
+        cellPaddingBlock: 12,
+        cellPaddingInline: 16,
+        headerBorderRadius: 8,
+      },
+      Input: { ...control },
+      InputNumber: { ...control },
+      Select: {
+        ...control,
+        ...flotante,
+        selectorBg: p.superficie,
+        optionSelectedBg: p.primarioSuave,
+        optionSelectedColor: p.texto,
+        optionSelectedFontWeight: 500,
+        optionActiveBg: p.hover,
+      },
+      DatePicker: {
+        ...control,
+        ...flotante,
+        cellActiveWithRangeBg: p.primarioSuave,
+        cellHoverBg: p.hover,
+      },
+      Modal: {
+        contentBg: p.superficie,
+        headerBg: p.superficie,
+        footerBg: 'transparent',
+        titleColor: p.texto,
+        titleFontSize: 16,
+        colorText: p.texto,
+        borderRadiusLG: 8,
+        boxShadow: p.sombraFlotante,
+      },
+      Drawer: {
+        colorBgElevated: p.superficie,
+        colorText: p.texto,
+        colorSplit: p.borde,
+      },
+      Tag: {
+        defaultBg: p.superficie2,
+        defaultColor: p.texto2,
+        colorBorder: p.borde,
+        borderRadiusSM: 4,
+      },
+      Tabs: {
+        itemColor: p.texto2,
+        itemHoverColor: p.texto,
+        itemSelectedColor: p.primario,
+        itemActiveColor: p.primario,
+        inkBarColor: p.primario,
+        cardBg: p.superficie2,
+        titleFontSize: 14,
+      },
+      Descriptions: {
+        labelBg: p.superficie2,
+        titleColor: p.texto,
+        labelColor: p.texto2,
+        contentColor: p.texto,
+        colorSplit: p.borde,
+      },
+      Statistic: {
+        titleFontSize: 13,
+        contentFontSize: 28,
+      },
+      Form: {
+        labelColor: p.texto,
+        labelFontSize: 13,
+        labelRequiredMarkColor: p.peligro,
+      },
+      Pagination: {
+        itemActiveBg: p.superficie,
+        itemBg: p.superficie,
+        colorBgContainer: p.superficie,
+        colorBorder: p.borde,
+      },
+      Progress: {
+        defaultColor: p.primario,
+        remainingColor: p.bordeSuave,
+      },
+      Collapse: {
+        headerBg: p.superficie2,
+        contentBg: p.superficie,
+      },
+      Timeline: {
+        dotBg: p.superficie,
+        tailColor: p.borde,
+      },
+      Calendar: {
+        fullBg: p.superficie,
+        fullPanelBg: p.superficie,
+        itemActiveBg: p.primarioSuave,
+      },
+      Segmented: {
+        itemSelectedBg: p.superficie,
+        trackBg: p.superficie2,
+      },
+      Alert: {
+        withDescriptionIconSize: 20,
+      },
+      // Superficies flotantes: superficie + borde de la sombra flotante, sin
+      // desenfoques ni transparencias.
+      Tooltip: {
+        // Tooltip invertido: fondo de texto, letra de superficie (≥ 12:1).
+        colorBgSpotlight: p.texto,
+        colorTextLightSolid: p.superficie,
+      },
+      Notification: { ...flotante },
+      Popover: { ...flotante },
+      Message: { contentBg: p.superficie, ...flotante },
+      Dropdown: { ...flotante },
     },
-    Input: {
-      borderRadius: 8,
-      controlHeight: 36,
-    },
-    Select: {
-      borderRadius: 8,
-      controlHeight: 36,
-    },
-    Modal: {
-      borderRadiusLG: 16,
-    },
-    Tabs: {
-      borderRadius: 8,
-    },
-    // Los valores salen de antd-overrides.css, donde vivian con !important.
-    // Varios de los que habia aqui estaban MUERTOS: headerBg decia '#fafafa'
-    // pero el CSS imponia '#f9fafb', asi que lo que se veia era el segundo.
-    // Ahora el token coincide con lo que ve el usuario.
-    Table: {
-      colorBgContainer: '#ffffff',
-      headerBg: '#f9fafb',
-      headerColor: '#111827',
-      colorText: '#6b7280',
-      rowHoverBg: '#f5f5f5',
-      rowSelectedBg: 'rgba(37, 99, 235, 0.08)',
-      rowSelectedHoverBg: 'rgba(37, 99, 235, 0.12)',
-      footerBg: '#f9fafb',
-      footerColor: '#6b7280',
-      borderColor: '#f0f0f0',
-    },
-  },
+  };
+};
+
+const TEMAS: Record<NombreTema, ThemeConfig> = {
+  light: construirTema(PALETAS.light, false),
+  normal: construirTema(PALETAS.normal, false),
+  dark: construirTema(PALETAS.dark, true),
+  mocha: construirTema(PALETAS.mocha, true),
 };
 
 /**
- * TEMA OSCURO (DARK MODE)
+ * Configuración de Ant Design para un tema (light | dark | normal | mocha).
+ * Devuelve siempre el mismo objeto por tema (estable entre renders).
  */
-const darkThemeTokens: ThemeConfig = {
-  algorithm: theme.darkAlgorithm,
-  token: {
-    // Colores principales - adjusted for dark mode
-    colorPrimary: '#40a9ff',
-    colorSuccess: '#73d13d',
-    colorWarning: '#ffc53d',
-    colorError: '#ff7875',
-    colorInfo: '#40a9ff',
-    colorLink: '#69c0ff',
-    colorLinkHover: '#91d5ff',
-    colorLinkActive: '#40a9ff',
-
-    colorText: '#e8e8e8',
-    colorTextSecondary: '#bfbfbf',
-    colorTextTertiary: '#8c8c8c',
-    colorTextQuaternary: '#595959',
-
-    colorBgBase: '#0a0a1a',
-    colorBgContainer: '#141428',
-    colorBgElevated: '#141428',
-    colorBgLayout: '#0d0d20',
-    colorBgSpotlight: '#1a1a3e',
-    colorBgMask: 'rgba(0, 0, 0, 0.75)',
-
-    colorBorder: '#2a2a4a',
-    colorBorderSecondary: '#1a1a3e',
-    colorSplit: '#2a2a4a',
-
-    // Rellenos
-    colorFill: 'rgba(255, 255, 255, 0.08)',
-    colorFillSecondary: 'rgba(255, 255, 255, 0.04)',
-    colorFillTertiary: 'rgba(255, 255, 255, 0.02)',
-    colorFillQuaternary: 'rgba(255, 255, 255, 0.01)',
-
-    // Tipografía
-    fontSize: 14,
-    fontSizeHeading1: 38,
-    fontSizeHeading2: 30,
-    fontSizeHeading3: 24,
-    fontSizeHeading4: 20,
-    fontSizeHeading5: 16,
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-
-    // Línea de altura
-    lineHeight: 1.5715,
-    lineHeightHeading1: 1.21,
-    lineHeightHeading2: 1.35,
-    lineHeightHeading3: 1.35,
-    lineHeightHeading4: 1.4,
-    lineHeightHeading5: 1.5,
-
-    // Radio de bordes
-    borderRadius: 8,
-    borderRadiusLG: 12,
-    borderRadiusSM: 6,
-    borderRadiusXS: 4,
-
-    // Control
-    controlHeight: 36,
-    controlHeightLG: 44,
-    controlHeightSM: 28,
-
-    // Motion
-    motionUnit: 0.1,
-    motionBase: 0,
-    motionEaseInOut: 'cubic-bezier(0.645, 0.045, 0.355, 1)',
-    motionEaseOut: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
-    motionDurationFast: '0.1s',
-    motionDurationMid: '0.2s',
-    motionDurationSlow: '0.3s',
-
-    // Sombras (más sutiles en dark)
-    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4)',
-    boxShadowSecondary: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5)',
-    boxShadowTertiary: '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5)',
-
-    // Z-index
-    zIndexBase: 0,
-    zIndexPopupBase: 1000,
-
-    // Wireframe
-    wireframe: false,
-  },
-  components: {
-    Button: {
-      borderRadius: 8,
-      fontWeight: 500,
-      controlHeight: 36,
-      controlHeightLG: 44,
-      controlHeightSM: 28,
-      textHoverBg: 'rgba(255, 255, 255, 0.08)',
-      colorText: '#d1d5db',
-    },
-    Select: {
-      borderRadius: 8,
-      controlHeight: 36,
-      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
-      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
-      selectorBg: 'rgba(26, 26, 26, 0.6)',
-      colorBorder: 'rgba(255, 255, 255, 0.12)',
-      colorText: '#f9fafb',
-      // Opcion seleccionada dentro del desplegable.
-      optionSelectedBg: 'rgba(59, 130, 246, 0.2)',
-      optionSelectedColor: '#60a5fa',
-      optionSelectedFontWeight: 600,
-    },
-    Modal: {
-      borderRadiusLG: 16,
-      contentBg: 'rgba(20, 20, 20, 0.85)',
-      headerBg: 'rgba(26, 26, 26, 0.6)',
-      footerBg: 'rgba(26, 26, 26, 0.6)',
-      colorText: '#f9fafb',
-    },
-    Tabs: {
-      borderRadius: 8,
-    },
-    // Table: los valores de aqui estaban MUERTOS. theme-dark-fixes.css los
-    // pisaba con !important, asi que lo que se veia en pantalla eran los del
-    // CSS (rgba(26,26,26,0.8)), no estos. Se alinean a lo que el usuario ve.
-    Table: {
-      colorBgContainer: 'rgba(20, 20, 20, 0.7)',
-      headerBg: 'rgba(26, 26, 26, 0.8)',
-      headerColor: '#f9fafb',
-      headerSplitColor: 'rgba(255, 255, 255, 0.12)',
-      rowHoverBg: 'rgba(42, 42, 42, 0.5)',
-      rowSelectedBg: 'rgba(59, 130, 246, 0.12)',
-      rowSelectedHoverBg: 'rgba(59, 130, 246, 0.18)',
-      footerBg: 'rgba(26, 26, 26, 0.8)',
-      footerColor: '#d1d5db',
-      borderColor: 'rgba(255, 255, 255, 0.06)',
-      colorText: '#d1d5db',
-    },
-    // Los siguientes tambien salen de theme-dark-fixes.css, donde vivian a
-    // base de !important porque Ant Design 5 inyecta sus estilos DESPUES de
-    // las hojas estaticas y una regla normal no le gana. Como tokens los
-    // aplica el propio Ant Design, sin pelea. Lo unico que se queda en CSS es
-    // `backdrop-filter`, que Ant Design no expone.
-    Input: {
-      borderRadius: 8,
-      controlHeight: 36,
-      colorBgContainer: 'rgba(26, 26, 26, 0.6)',
-      colorBorder: 'rgba(255, 255, 255, 0.12)',
-      colorText: '#f9fafb',
-    },
-    Card: {
-      borderRadius: 12,
-      borderRadiusLG: 16,
-      colorBgContainer: 'rgba(20, 20, 20, 0.7)',
-      colorBorderSecondary: 'rgba(255, 255, 255, 0.1)',
-      colorText: '#f9fafb',
-      headerBg: 'rgba(26, 26, 26, 0.6)',
-    },
-    Pagination: {
-      colorBgContainer: 'rgba(26, 26, 26, 0.6)',
-      colorBorder: 'rgba(255, 255, 255, 0.12)',
-      // Pagina activa: el azul de marca sobre fondo oscuro.
-      itemActiveBg: 'rgba(59, 130, 246, 0.3)',
-      colorPrimary: '#3b82f6',
-      colorPrimaryBorder: '#3b82f6',
-    },
-    Tag: {
-      defaultBg: 'rgba(42, 42, 42, 0.6)',
-      defaultColor: '#d1d5db',
-      colorBorder: 'rgba(255, 255, 255, 0.12)',
-    },
-    Drawer: {
-      colorBgElevated: 'rgba(20, 20, 20, 0.85)',
-      colorText: '#f9fafb',
-      colorSplit: 'rgba(255, 255, 255, 0.08)',
-    },
-    DatePicker: {
-      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
-      colorBorder: 'rgba(255, 255, 255, 0.12)',
-      colorText: '#f9fafb',
-      colorTextHeading: '#f9fafb',
-      colorSplit: 'rgba(255, 255, 255, 0.08)',
-      cellActiveWithRangeBg: 'rgba(42, 42, 42, 0.7)',
-      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
-    },
-    Descriptions: {
-      colorFillAlter: 'rgba(26, 26, 26, 0.6)',
-      colorSplit: 'rgba(255, 255, 255, 0.08)',
-      colorText: '#f9fafb',
-    },
-    // Superficies flotantes (tooltip, popover, notificaciones, desplegables).
-    //
-    // Estos valores vivian en theme-dark-fixes.css a base de `!important`:
-    // seis por componente, unos 40 en total. Hacia falta porque Ant Design 5
-    // inyecta sus estilos en tiempo de ejecucion, DESPUES de las hojas
-    // estaticas, asi que una regla CSS normal nunca le ganaba.
-    //
-    // Aqui no hay pelea: son los tokens que el propio Ant Design usa para
-    // pintarse. Lo unico que se queda en CSS es `backdrop-filter`, que Ant
-    // Design no expone como token — y que nunca necesito `!important`, porque
-    // Ant Design tampoco lo define y no habia nada que sobrescribir.
-    Tooltip: {
-      colorBgSpotlight: 'rgba(20, 20, 20, 0.95)',
-      colorTextLightSolid: '#f9fafb',
-    },
-    Notification: {
-      colorBgElevated: 'rgba(20, 20, 20, 0.9)',
-      boxShadowSecondary: '0 8px 32px 0 rgba(0, 0, 0, 0.7)',
-    },
-    Popover: {
-      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
-      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
-    },
-    Message: {
-      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
-      boxShadowSecondary: '0 4px 12px 0 rgba(0, 0, 0, 0.5)',
-    },
-    Dropdown: {
-      colorBgElevated: 'rgba(20, 20, 20, 0.95)',
-      boxShadowSecondary: '0 8px 24px 0 rgba(0, 0, 0, 0.6)',
-    },
-  },
-};
-
-/**
- * ALGORITMO PARA SELECCIONAR TEMA
- * Retorna el tema apropiado basado en el nombre
- */
-export const getThemeTokens = (themeName: 'light' | 'dark' | 'normal' | 'mocha'): ThemeConfig => {
-  if (themeName === 'dark' || themeName === 'mocha') {
-    return darkThemeTokens;
-  }
-  return lightThemeTokens;
-};
+export const getThemeTokens = (themeName: NombreTema): ThemeConfig =>
+  TEMAS[themeName] ?? TEMAS.light;

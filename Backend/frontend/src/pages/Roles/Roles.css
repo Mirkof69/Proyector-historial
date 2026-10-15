@@ -1,0 +1,40 @@
+/* Cargos y permisos (lista, formulario y detalle) — contrato: docs/DISENO_INTERFAZ.md */
+
+.roles-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+}
+
+.roles-page__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.roles-page__cabecera h2.ant-typography {
+  margin: 0 0 var(--esp-1);
+}
+
+.roles-page__cargando {
+  padding: var(--esp-6);
+  text-align: center;
+}
+
+.roles-page__formulario {
+  max-width: 680px;
+}
+
+.roles-page__aviso.ant-alert {
+  margin-bottom: var(--esp-4);
+}
+
+/* Casillas de módulos: rejilla que se reparte sola según el ancho */
+.roles-page__modulos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--esp-2);
+}

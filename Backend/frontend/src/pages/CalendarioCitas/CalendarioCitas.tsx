@@ -12,7 +12,7 @@ import React, { useEffect, useReducer, useCallback, useMemo } from 'react';
 import { Card, Calendar, Badge, Button, Space, Typography, Tooltip, Spin } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import type { Dayjs } from 'dayjs';
-import { CalendarOutlined, ArrowLeftOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import {  ArrowLeftOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -123,11 +123,11 @@ const CalendarioCitas: React.FC = () => {
 
     return (
       <div className="calendar-day-content">
-        <Space direction="vertical" size={2} style={{ width: '100%' }}>
-          {pendientes > 0 && <Badge status="warning" text={`${pendientes} Pendiente${pendientes > 1 ? 's' : ''}`} style={{ fontSize: 12 }} />}
-          {confirmadas > 0 && <Badge status="processing" text={`${confirmadas} Confirmada${confirmadas > 1 ? 's' : ''}`} style={{ fontSize: 12 }} />}
-          {completadas > 0 && <Badge status="success" text={`${completadas} Completada${completadas > 1 ? 's' : ''}`} style={{ fontSize: 12 }} />}
-          {canceladas > 0 && <Badge status="error" text={`${canceladas} Cancelada${canceladas > 1 ? 's' : ''}`} style={{ fontSize: 12 }} />}
+        <Space direction="vertical" size={2} className="calendario-page__dia">
+          {pendientes > 0 && <Badge status="warning" text={`${pendientes} Pendiente${pendientes > 1 ? 's' : ''}`} />}
+          {confirmadas > 0 && <Badge status="processing" text={`${confirmadas} Confirmada${confirmadas > 1 ? 's' : ''}`} />}
+          {completadas > 0 && <Badge status="success" text={`${completadas} Completada${completadas > 1 ? 's' : ''}`} />}
+          {canceladas > 0 && <Badge status="error" text={`${canceladas} Cancelada${canceladas > 1 ? 's' : ''}`} />}
         </Space>
       </div>
     );
@@ -167,18 +167,15 @@ const CalendarioCitas: React.FC = () => {
   // RENDER PRINCIPAL
   // ==========================================================================
   return (
-    <div className="calendario-citas-container">
-      <Card
-        title={
-          <Space>
-            <CalendarOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-            <Title level={3} style={{ margin: 0 }}>
-              Calendario de Citas - {mesActual.format('MMMM YYYY')}
-            </Title>
-          </Space>
-        }
-        extra={
-          <Space>
+    <div className="calendario-page page-container">
+      <header className="calendario-page__cabecera">
+        <div>
+          <Title level={2}>
+            Calendario de Citas - {mesActual.format('MMMM YYYY')}
+          </Title>
+          <Text type="secondary">Haga clic en un día para ver sus citas.</Text>
+        </div>
+          <Space wrap>
             <Tooltip title="Regresar a la vista anterior">
               <Button icon={<ArrowLeftOutlined />} onClick={handleVolver}>
                 Volver
@@ -195,9 +192,11 @@ const CalendarioCitas: React.FC = () => {
               </Button>
             </Tooltip>
           </Space>
-        }
-      >
-        <EstadisticasMes {...estadisticas} />
+      </header>
+
+      <EstadisticasMes {...estadisticas} />
+
+      <Card>
 
         <FiltrosLeyendaCitas
           filtroEstado={filtroEstado}
@@ -209,9 +208,9 @@ const CalendarioCitas: React.FC = () => {
 
         {/* CALENDARIO */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '100px 0' }}>
+          <div className="calendario-page__cargando">
             <Spin size="large" />
-            <div style={{ marginTop: 16 }}>Cargando calendario…</div>
+            <div>Cargando calendario…</div>
           </div>
         ) : (
           <Calendar

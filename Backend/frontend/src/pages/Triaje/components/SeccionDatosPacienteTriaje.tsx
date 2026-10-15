@@ -73,10 +73,10 @@ const SeccionDatosPacienteTriaje: React.FC<SeccionDatosPacienteTriajeProps> = ({
               rules={[{ required: true }]}
             >
               <Select size="large">
-                <Option value="urgente"><Tag color="red">URGENTE</Tag></Option>
-                <Option value="alto"><Tag color="orange">ALTO</Tag></Option>
-                <Option value="normal"><Tag color="blue">NORMAL</Tag></Option>
-                <Option value="bajo"><Tag color="green">BAJO</Tag></Option>
+                <Option value="urgente"><Tag color="error">URGENTE</Tag></Option>
+                <Option value="alto"><Tag color="warning">ALTO</Tag></Option>
+                <Option value="normal"><Tag color="processing">NORMAL</Tag></Option>
+                <Option value="bajo"><Tag color="success">BAJO</Tag></Option>
               </Select>
             </Form.Item>
           </Col>

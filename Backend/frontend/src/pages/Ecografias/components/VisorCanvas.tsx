@@ -38,18 +38,9 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
   invert, activeTool, windowWidth, windowLevel, currentImageIndex, totalImages,
   showGradCam, hasGradCam, playingCine, measurements, handleCanvasClick, dispatch,
 }) => (
-  <Col flex="auto" style={{ display: 'flex', flexDirection: 'column' }}>
+  <Col flex="auto" className="u-flex u-columna">
     {/* Canvas principal */}
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#0a0a0f',
-        position: 'relative'
-      }}
-    >
+    <div className="visor-lienzo">
       <canvas
         ref={canvasRef}
         width={512}
@@ -73,7 +64,6 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
           transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
           filter: `brightness(${brightness}%) contrast(${contrast}%) ${invert ? 'invert(1)' : ''}`,
           cursor: activeTool === 'pan' ? 'move' : activeTool === 'zoom' ? 'zoom-in' : 'crosshair',
-          border: '1px solid #434343'
         }}
       />
 
@@ -111,22 +101,12 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
 
       {/* Placeholder para imagen DICOM - Solo si no hay imagen */}
       {!ecografia?.imagen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            color: '#666',
-            pointerEvents: 'none'
-          }}
-        >
-          <FileImageOutlined style={{ fontSize: 64, marginBottom: 16 }} />
-          <div style={{ fontSize: 16 }}>
+        <div className="visor-marcador">
+          <FileImageOutlined className="u-t-icono u-mb-4" />
+          <div className="u-t-md">
             Viewer DICOM Placeholder
           </div>
-          <div style={{ fontSize: 12, marginTop: 8 }}>
+          <div className="u-t-xs u-mt-2">
             Integrar con cornerstone.js o OHIF Viewer
           </div>
         </div>
@@ -136,21 +116,19 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
     {/* Controles inferiores */}
     <Card
       size="small"
-      style={{ borderRadius: 0, background: '#141414' }}
-      styles={{ body: { padding: '12px 16px' } }}
+      className="visor-controles"
     >
       <Tabs
         type="card"
         size="small"
-        tabBarStyle={{ marginBottom: 0 }}
         items={[
           {
             key: '1',
             label: 'Ajustes de Imagen',
             children: (
               <Row gutter={16} align="middle">
-                <Col span={6}>
-                  <Text style={{ color: '#fff', fontSize: 12 }}>Brillo: {brightness}%</Text>
+                <Col xs={12} md={6}>
+                  <Text className="u-t-xs">Brillo: {brightness}%</Text>
                   <Slider
                     min={0}
                     max={200}
@@ -159,8 +137,8 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
 
                   />
                 </Col>
-                <Col span={6}>
-                  <Text style={{ color: '#fff', fontSize: 12 }}>Contraste: {contrast}%</Text>
+                <Col xs={12} md={6}>
+                  <Text className="u-t-xs">Contraste: {contrast}%</Text>
                   <Slider
                     min={0}
                     max={200}
@@ -169,8 +147,8 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
 
                   />
                 </Col>
-                <Col span={6}>
-                  <Text style={{ color: '#fff', fontSize: 12 }}>Window Width: {windowWidth}</Text>
+                <Col xs={12} md={6}>
+                  <Text className="u-t-xs">Window Width: {windowWidth}</Text>
                   <Slider
                     min={1}
                     max={200}
@@ -179,8 +157,8 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
 
                   />
                 </Col>
-                <Col span={6}>
-                  <Text style={{ color: '#fff', fontSize: 12 }}>Window Level: {windowLevel}</Text>
+                <Col xs={12} md={6}>
+                  <Text className="u-t-xs">Window Level: {windowLevel}</Text>
                   <Slider
                     min={0}
                     max={100}
@@ -227,7 +205,7 @@ const VisorCanvas: React.FC<VisorCanvasProps> = ({
                   {playingCine ? 'Pausar' : 'Reproducir'} Cine
                 </Button>
                 <Slider
-                  style={{ width: 200 }}
+                  className="visor-deslizador"
                   min={0}
                   max={totalImages - 1}
                   value={currentImageIndex}

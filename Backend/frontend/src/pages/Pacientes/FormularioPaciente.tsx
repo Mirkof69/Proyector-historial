@@ -23,6 +23,7 @@ import SeccionDatosContactoPaciente from './components/SeccionDatosContactoPacie
 import SeccionInfoMedicaPaciente from './components/SeccionInfoMedicaPaciente';
 import SeccionAdminEmergenciaPaciente from './components/SeccionAdminEmergenciaPaciente';
 import SeccionConsentimientoPaciente from './components/SeccionConsentimientoPaciente';
+import './Pacientes.css';
 
 const { Title } = Typography;
 
@@ -246,18 +247,18 @@ const FormularioPaciente: React.FC = () => {
 
   if (loadingData) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px' }}>
+      <div className="pacientes-cargando">
         <Spin size="large" tip="Cargando datos del paciente…"><div /></Spin>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="pacientes-pagina pacientes-formulario">
       <Button
         icon={<ArrowLeftOutlined />}
         onClick={handleCancel}
-        style={{ marginBottom: 16 }}
+        className="pacientes-formulario__volver"
       >
         Volver a la lista
       </Button>
@@ -266,7 +267,7 @@ const FormularioPaciente: React.FC = () => {
         title={
           <Space>
             <UserOutlined />
-            <Title level={4} style={{ margin: 0 }}>
+            <Title level={4} className="pacientes-formulario__titulo">
               {isEditing ? 'Editar Paciente' : 'Nuevo Paciente'}
             </Title>
           </Space>
@@ -277,7 +278,7 @@ const FormularioPaciente: React.FC = () => {
           description="Los campos marcados con asterisco (*) son obligatorios. El ID Clinico se genera automaticamente."
           type="info"
           showIcon
-          style={{ marginBottom: 16 }}
+          className="pacientes-formulario__aviso"
         />
 
         <Form
@@ -298,8 +299,8 @@ const FormularioPaciente: React.FC = () => {
 
           {!isEditing && <SeccionConsentimientoPaciente />}
 
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+          <Form.Item className="pacientes-formulario__acciones">
+            <Space wrap>
               <Button icon={<CloseOutlined />} onClick={handleCancel} size="large">
                 Cancelar
               </Button>
@@ -310,7 +311,6 @@ const FormularioPaciente: React.FC = () => {
                   loading={loading}
                   icon={<SaveOutlined />}
                   size="large"
-                  style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
                 >
                   Guardar y Nuevo
                 </Button>

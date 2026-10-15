@@ -36,7 +36,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
   onPacienteChange, onVacunaChange, onFechaAplicacionChange, onDosisChange,
 }) => (
   <>
-    <Card title={<Space><UserOutlined /> Identificación y Biológico</Space>} className="form-section-card">
+    <Card title={<Space><UserOutlined /> Identificación y Biológico</Space>} >
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="Paciente" name="paciente" rules={[{ required: true, message: 'Requerido' }]}>
@@ -83,7 +83,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
           message={historialVacunacion.mensaje}
           type={historialVacunacion.tipo}
           showIcon
-          style={{ marginBottom: 20, borderRadius: '8px' }}
+          className="vacunas-form__aviso"
         />
       )}
 
@@ -93,7 +93,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
             <DatePicker
               showTime
               format="DD/MM/YYYY HH:mm"
-              style={{ width: '100%' }}
+              className="vacunas-ancho"
               size="large"
               onChange={onFechaAplicacionChange}
             />
@@ -103,7 +103,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
           <Form.Item label="Número de Dosis" name="numero_dosis" rules={[{ required: true, message: 'Requerido' }]}>
             <InputNumber
               min={1}
-              style={{ width: '100%' }}
+              className="vacunas-ancho"
               size="large"
               onChange={onDosisChange}
             />
@@ -112,7 +112,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
       </Row>
     </Card>
 
-    <Card title={<Space><MedicineBoxOutlined /> Logística y Aplicación</Space>} className="form-section-card" style={{ marginTop: 24 }}>
+    <Card title={<Space><MedicineBoxOutlined /> Logística y Aplicación</Space>} className="vacunas-arriba">
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="Laboratorio / Fabricante" name="laboratorio" rules={[{ required: true, message: 'Requerido' }]}>
@@ -129,9 +129,9 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="Vía de Administración" name="via_administracion" rules={[{ required: true, message: 'Requerido' }]}>
-            <Radio.Group buttonStyle="solid" style={{ width: '100%' }}>
+            <Radio.Group buttonStyle="solid" className="vacunas-form__vias">
               {viasAdministracion.map(v => (
-                <Radio.Button key={v.value} value={v.value} style={{ width: '33.33%', textAlign: 'center' }}>
+                <Radio.Button key={v.value} value={v.value}>
                   {v.label}
                 </Radio.Button>
               ))}
@@ -152,16 +152,16 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
       </Row>
     </Card>
 
-    <Card title={<Space><ClockCircleOutlined /> Seguimiento y Observaciones</Space>} className="form-section-card" style={{ marginTop: 24 }}>
+    <Card title={<Space><ClockCircleOutlined /> Seguimiento y Observaciones</Space>} className="vacunas-arriba">
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="Próxima Dosis (Programación)" name="proxima_dosis_fecha">
-            <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} size="large" />
+            <DatePicker format="DD/MM/YYYY" className="vacunas-ancho" size="large" />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
           {proximaDosisCalculada && (
-            <div style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd', marginTop: '28px' }}>
+            <div className="vacunas-form__nota">
               <Text type="secondary"><CalendarOutlined /> Sugerencia por esquema: </Text>
               <Text strong>{dayjs(proximaDosisCalculada).format('DD/MM/YYYY')}</Text>
             </div>

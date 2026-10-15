@@ -32,15 +32,15 @@ const TabNotasEvolucion: React.FC<TabNotasEvolucionProps> = ({ notas, setDrawerN
         renderItem={(nota) => (
           <Card
             key={nota.id}
-            style={{ marginBottom: 16, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+            className="historia-nota-card"
             styles={{ body: { padding: 0 } }}
           >
-            <div style={{ padding: '12px 16px', background: '#fafafa', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="historia-nota-card__cabecera">
               <Space>
                 <Tag color={
-                  nota.tipo === 'URGENCIA' ? 'red' :
-                  nota.tipo === 'JUNTA_MEDICA' ? 'purple' :
-                  nota.tipo === 'TELECONSULTA' ? 'cyan' : 'blue'
+                  nota.tipo === 'URGENCIA' ? 'error' :
+                  nota.tipo === 'JUNTA_MEDICA' ? 'default' :
+                  nota.tipo === 'TELECONSULTA' ? 'default' : 'default'
                 }>
                   {nota.tipo}
                 </Tag>
@@ -66,12 +66,12 @@ const TabNotasEvolucion: React.FC<TabNotasEvolucionProps> = ({ notas, setDrawerN
               </div>
               <div>
                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>PLAN DE MANEJO:</Text>
-                <div style={{ background: '#f6ffed', padding: '8px 12px', borderRadius: 4, boxShadow: 'inset 3px 0 0 #b7eb8f' }}>
+                <div className="historia-nota-card__plan">
                   <Text italic>{nota.plan}</Text>
                 </div>
               </div>
             </div>
-            <Card variant="borderless" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color, #f0f0f0)', padding: '8px 16px' }}>
+            <Card variant="borderless" className="historia-nota-card__pie">
               <Space split={verticalDivider} size="large" wrap>
                 <Space direction="vertical" size={0}>
                   <Text type="secondary">Signos Vitales:</Text>
@@ -92,7 +92,7 @@ const TabNotasEvolucion: React.FC<TabNotasEvolucionProps> = ({ notas, setDrawerN
                 {nota.semanas_gestacion && (
                   <Space direction="vertical" size={0}>
                     <Text type="secondary">Edad gestacional:</Text>
-                    <Text strong style={{ color: '#722ed1' }}>
+                    <Text strong>
                       {nota.semanas_gestacion} semanas
                     </Text>
                     {nota.dias_gestacion && (

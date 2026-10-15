@@ -28,6 +28,7 @@ import MantenimientoFormModal from './components/MantenimientoFormModal';
 import EstadisticasDrawer from './components/EstadisticasDrawer';
 import DisponibilidadModal from './components/DisponibilidadModal';
 import { incluyeTexto } from '../../utils/texto';
+import './Consultorios.css';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -449,7 +450,13 @@ const Consultorios: React.FC = () => {
   });
 
   return (
-    <div className="page-container" style={{ padding: '24px' }}>
+    <div className="page-container consultorios-pagina">
+      <header className="pagina-encabezado">
+        <div className="pagina-encabezado__texto">
+          <h2 className="pagina-encabezado__titulo">Consultorios</h2>
+          <p className="pagina-encabezado__descripcion">Disponibilidad, reservas y mantenimiento de los consultorios del establecimiento.</p>
+        </div>
+      </header>
       {/* Estadísticas */}
       <ConsultoriosStats stats={stats} />
 
@@ -462,13 +469,13 @@ const Consultorios: React.FC = () => {
             children: (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
                 {/* Filtros y acciones */}
-                <Row gutter={16} align="middle">
+                <Row gutter={[16, 16]} align="middle">
                   <Col flex="auto">
-                    <Space>
+                    <Space wrap>
                       <Search
                         placeholder="Buscar por código, nombre o área"
                         allowClear
-                        style={{ width: 300 }}
+                        className="consultorios-busqueda"
                         onChange={(e) => setSearchText(e.target.value)}
                         prefix={<SearchOutlined />}
                       />
@@ -499,7 +506,7 @@ const Consultorios: React.FC = () => {
                     </Space>
                   </Col>
                   <Col>
-                    <Space>
+                    <Space wrap>
                       <Button
                         type="primary"
                         icon={<PlusOutlined />}

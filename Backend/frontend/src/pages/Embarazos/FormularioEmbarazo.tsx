@@ -18,6 +18,7 @@ import dayjs from 'dayjs';
 import SeccionDatosGeneralesEmbarazo from './components/SeccionDatosGeneralesEmbarazo';
 import SeccionClasificacionEmbarazo from './components/SeccionClasificacionEmbarazo';
 import SeccionAntropometriaEmbarazo from './components/SeccionAntropometriaEmbarazo';
+import './paginaClinica.css';
 
 const { Title } = Typography;
 
@@ -197,28 +198,30 @@ const FormularioEmbarazo: React.FC = () => {
 
   if (loadingData) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px' }}>
+      <div className="pagina-clinica pc-cargando">
         <Spin size="large" tip="Cargando datos del embarazo…"><div /></Spin>
       </div>
     );
   }
 
   return (
-    <div>
-      <Button icon={ARROW_LEFT_ICON_4} onClick={handleCancel} style={{ marginBottom: 16 }}>
-        Volver a la lista
-      </Button>
+    <div className="pagina-clinica embarazo-formulario">
+      <div className="pc-cabecera">
+        <div className="pc-cabecera__texto">
+          <Title level={2} className="pc-cabecera__titulo">
+            <HeartOutlined className="pc-cabecera__icono" />
+            {isEditing ? 'Editar Embarazo' : 'Nuevo Embarazo'}
+          </Title>
+          <p className="pc-cabecera__descripcion">
+            FUM, clasificación obstétrica y antropometría pregestacional.
+          </p>
+        </div>
+        <Button icon={ARROW_LEFT_ICON_4} onClick={handleCancel}>
+          Volver a la lista
+        </Button>
+      </div>
 
-      <Card
-        title={
-          <Space>
-            <HeartOutlined />
-            <Title level={4} style={{ margin: 0 }}>
-              {isEditing ? 'Editar Embarazo' : 'Nuevo Embarazo'}
-            </Title>
-          </Space>
-        }
-      >
+      <Card>
         {alertasRiesgo.length > 0 && (
           <Alert
             message="Alertas detectadas"
@@ -232,7 +235,7 @@ const FormularioEmbarazo: React.FC = () => {
             type="warning"
             showIcon
             icon={WARNING_ICON_5}
-            style={{ marginBottom: 16 }}
+            className="u-mb-4"
           />
         )}
 
@@ -266,8 +269,8 @@ const FormularioEmbarazo: React.FC = () => {
 
           <SeccionAntropometriaEmbarazo imcCalculado={imcCalculado} onCalcularIMC={calcularIMC} />
 
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+          <Form.Item className="u-mb-0">
+            <Space className="u-ancho u-fin">
               <Button icon={CLOSE_ICON_2} onClick={handleCancel} size="large">
                 Cancelar
               </Button>

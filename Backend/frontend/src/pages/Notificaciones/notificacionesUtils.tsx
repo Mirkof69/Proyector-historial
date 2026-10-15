@@ -62,6 +62,34 @@ export const getTypeLabel = (type: string) => {
   }
 };
 
+/**
+ * Tono de estado de cada tipo. Solo alerta, advertencia y éxito son estados;
+ * cita, examen, documento e información van en neutro (contrato de diseño:
+ * los colores semánticos no decoran).
+ */
+export type TonoNotificacion = 'peligro' | 'aviso' | 'exito' | 'neutro';
+
+export const getTypeTone = (type: string): TonoNotificacion => {
+  switch (type) {
+    case 'error': return 'peligro';
+    case 'warning': return 'aviso';
+    case 'success': return 'exito';
+    default: return 'neutro';
+  }
+};
+
+/** Color de `Tag` de Ant Design (por token) para cada tono. */
+export const getTypeTagColor = (type: string): string => {
+  const colores: Record<TonoNotificacion, string> = {
+    peligro: 'error', aviso: 'warning', exito: 'success', neutro: 'default',
+  };
+  return colores[getTypeTone(type)];
+};
+
+/** Clase del avatar del tipo (Notificaciones.css). */
+export const getTypeAvatarClass = (type: string) =>
+  `notificacion-tipo notificacion-tipo--${getTypeTone(type)}`;
+
 export const getTypeClass = (type: string) => {
   switch (type) {
     case 'error': return 'alerta';

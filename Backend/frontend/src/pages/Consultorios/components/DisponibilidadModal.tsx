@@ -77,7 +77,7 @@ const DisponibilidadModal: React.FC<DisponibilidadModalProps> = ({
               )}
             </div>
             {resultadoDisponibilidad.motivo && (
-              <div style={{ fontSize: 12, color: '#666' }}>
+              <div className="texto-secundario">
                 {resultadoDisponibilidad.motivo}
               </div>
             )}

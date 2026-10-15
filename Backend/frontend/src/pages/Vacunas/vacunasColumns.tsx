@@ -25,13 +25,13 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
     render: (_, record) => (
       <Space size="middle">
         <Badge dot status={getEstadoDosis(record).color as any} offset={[-5, 30]}>
-          <div className="avatar-placeholder" style={{ backgroundColor: '#f0f5ff', padding: '8px', borderRadius: '8px' }}>
-            <UserOutlined style={{ color: '#1890ff', fontSize: '1.2em' }} />
+          <div className="vacunas-page__avatar">
+            <UserOutlined />
           </div>
         </Badge>
         <div>
           <Text strong className="block">{record.paciente_info?.nombre_completo || record.paciente_nombre}</Text>
-          <Text type="secondary" style={{ fontSize: '0.85em' }}>ID: {record.paciente_info?.id_clinico || '-'}</Text>
+          <Text type="secondary" className="vacunas-page__secundario texto-mono">ID: {record.paciente_info?.id_clinico || '-'}</Text>
         </div>
       </Space>
     )
@@ -44,9 +44,9 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
       <Space direction="vertical" size={0}>
         <Text strong>{record.tipo_vacuna_info?.nombre || record.tipo_vacuna_nombre}</Text>
         <Space>
-          <Tag color="cyan">Dosis {record.numero_dosis}</Tag>
+          <Tag>Dosis {record.numero_dosis}</Tag>
           {record.tipo_vacuna_info?.dosis_requeridas && (
-            <small style={{ color: '#999' }}>de {record.tipo_vacuna_info?.dosis_requeridas}</small>
+            <Text type="secondary" className="vacunas-page__secundario">de {record.tipo_vacuna_info?.dosis_requeridas}</Text>
           )}
         </Space>
       </Space>
@@ -60,7 +60,7 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
     render: (fecha) => (
       <Space direction="vertical" size={0}>
         <Text>{dayjs(fecha).format('DD/MM/YYYY')}</Text>
-        <Text type="secondary" style={{ fontSize: '0.8em' }}>{dayjs(fecha).fromNow()}</Text>
+        <Text type="secondary" className="vacunas-page__secundario">{dayjs(fecha).fromNow()}</Text>
       </Space>
     )
   },
@@ -72,11 +72,11 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
       const estado = getEstadoDosis(record);
       return (
         <Space direction="vertical" size={2}>
-          <Tag color={estado.color} style={{ borderRadius: '12px' }}>
+          <Tag color={estado.color}>
             {estado.texto.toUpperCase()}
           </Tag>
           {record.proxima_dosis_fecha && (
-            <Text strong style={{ fontSize: '0.9em' }}>
+            <Text strong className="vacunas-page__fecha">
               {dayjs(record.proxima_dosis_fecha).format('DD/MM/YYYY')}
             </Text>
           )}
@@ -108,7 +108,6 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
             type="text"
             icon={<FilePdfOutlined />}
             onClick={() => handleVerCarnet(record)}
-            className="action-btn-pdf"
           />
         </Tooltip>
         <Tooltip title="Detalles">
@@ -116,7 +115,6 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
             type="text"
             icon={<EyeOutlined />}
             onClick={() => handleVerDetalle(record.id)}
-            className="action-btn-view"
           />
         </Tooltip>
         <Tooltip title="Editar">
@@ -124,7 +122,6 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
             type="text"
             icon={<EditOutlined />}
             onClick={() => handleEditar(record.id)}
-            className="action-btn-edit"
           />
         </Tooltip>
         <Tooltip title="Eliminar">
@@ -133,7 +130,6 @@ export const buildColumnsVacunas = ({ handleVerCarnet, handleVerDetalle, handleE
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleEliminar(record)}
-            className="action-btn-delete"
           />
         </Tooltip>
       </Space>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Row, Col, Statistic, Alert, Space } from 'antd';
-import { HeartOutlined, WarningOutlined, MedicineBoxOutlined } from '@ant-design/icons';
+import { HeartOutlined, WarningOutlined, MedicineBoxOutlined, AlertOutlined, OrderedListOutlined } from '@ant-design/icons';
 import { ResultadoHemorragia } from '../hemorragiaObstetricaUtils';
 
 interface HemorragiaResultadoProps {
@@ -9,9 +9,9 @@ interface HemorragiaResultadoProps {
 
 const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) => (
   <>
-    <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+    <Row gutter={[16, 16]} className="calc-bloque-arriba">
       <Col xs={24} sm={12} md={6}>
-        <Card>
+        <Card className="calc-stat-card">
           <Statistic
             title="Shock Index"
             value={resultado.shock_index.toFixed(2)}
@@ -23,7 +23,7 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
       </Col>
 
       <Col xs={24} sm={12} md={6}>
-        <Card>
+        <Card className="calc-stat-card">
           <Statistic
             title="Gravedad"
             value={resultado.gravedad}
@@ -34,22 +34,21 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
       </Col>
 
       <Col xs={24} sm={12} md={6}>
-        <Card>
+        <Card className="calc-stat-card">
           <Statistic
             title="Pérdida de Volemia"
             value={resultado.porcentaje_perdida.toFixed(1)}
-            valueStyle={{ color: resultado.porcentaje_perdida > 30 ? '#ff4d4f' : '#faad14' }}
+            valueStyle={{ color: resultado.porcentaje_perdida > 30 ? 'var(--color-peligro)' : 'var(--color-aviso)' }}
             suffix="%"
           />
         </Card>
       </Col>
 
       <Col xs={24} sm={12} md={6}>
-        <Card>
+        <Card className="calc-stat-card">
           <Statistic
             title="Volumen a Reponer"
             value={resultado.volumen_compensar.toFixed(0)}
-            valueStyle={{ color: '#1890ff' }}
             suffix="ml"
             prefix={<MedicineBoxOutlined />}
           />
@@ -57,7 +56,7 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
       </Col>
     </Row>
 
-    <Card title="Interpretación Clínica" style={{ marginTop: 16 }}>
+    <Card title="Interpretación Clínica" className="calc-bloque-arriba">
       <Alert
         message={`Estado: ${resultado.estado_hemodinamico} | Riesgo de Shock: ${resultado.riesgo_shock}`}
         description={resultado.interpretacion}
@@ -69,18 +68,18 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
     {resultado.requiere_ptm && (
       <Card
         title={
-          <span style={{ color: '#ff4d4f' }}>
-            🚨 PROTOCOLO DE TRANSFUSIÓN MASIVA (PTM) ACTIVADO
+          <span className="calc-titulo-peligro">
+            <AlertOutlined /> PROTOCOLO DE TRANSFUSIÓN MASIVA (PTM) ACTIVADO
           </span>
         }
-        style={{ marginTop: 16 }}
+        className="calc-bloque-arriba"
       >
         <Alert
           message="CRITERIOS CUMPLIDOS PARA PTM"
           description="Transfusión agresiva necesaria. Ratio 1:1:1 (GR:PFC:Plaq). Contactar Banco de Sangre INMEDIATAMENTE."
           type="error"
           showIcon
-          style={{ marginBottom: 16 }}
+          className="calc-bloque"
         />
 
         <Row gutter={[16, 16]}>
@@ -89,7 +88,6 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
               title="Glóbulos Rojos"
               value={resultado.protocolo_ptm.globulos_rojos}
               suffix="unidades"
-              valueStyle={{ color: '#ff4d4f' }}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -97,7 +95,6 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
               title="Plasma Fresco"
               value={resultado.protocolo_ptm.plasma}
               suffix="unidades"
-              valueStyle={{ color: '#faad14' }}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -105,7 +102,6 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
               title="Plaquetas"
               value={resultado.protocolo_ptm.plaquetas}
               suffix="unidades"
-              valueStyle={{ color: '#1890ff' }}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -113,15 +109,14 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
               title="Crioprecipitado"
               value={resultado.protocolo_ptm.crioprecipitado}
               suffix="unidades"
-              valueStyle={{ color: '#722ed1' }}
             />
           </Col>
         </Row>
       </Card>
     )}
 
-    <Card title="🚨 Medidas Inmediatas" style={{ marginTop: 16 }}>
-      <Space direction="vertical" style={{ width: '100%' }}>
+    <Card title={<span className="calc-titulo-seccion"><AlertOutlined /> Medidas Inmediatas</span>} className="calc-bloque-arriba">
+      <Space direction="vertical" className="calc-pila">
         {resultado.medidas_inmediatas.map((medida) => (
           <Alert
             key={`medida-${medida}`}
@@ -133,8 +128,8 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
       </Space>
     </Card>
 
-    <Card title="📋 Intervenciones Escalonadas" style={{ marginTop: 16 }}>
-      <Space direction="vertical" style={{ width: '100%' }}>
+    <Card title={<span className="calc-titulo-seccion"><OrderedListOutlined /> Intervenciones Escalonadas</span>} className="calc-bloque-arriba">
+      <Space direction="vertical" className="calc-pila">
         {resultado.intervenciones_sugeridas.map((intervencion) => (
           <Alert
             key={`interv-${intervencion}`}

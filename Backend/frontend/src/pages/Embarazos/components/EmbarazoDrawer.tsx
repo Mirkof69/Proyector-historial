@@ -5,8 +5,7 @@ import {
 } from 'antd';
 import {
   UserOutlined, MedicineBoxOutlined, HeartOutlined, ExperimentOutlined,
-  FileTextOutlined, CalendarOutlined, BookOutlined, WomanOutlined,
-} from '@ant-design/icons';
+  FileTextOutlined, CalendarOutlined, BookOutlined, WomanOutlined, LinkOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { EmbarazoExtendido, EmbarazosAction, RISK_COLORS, RISK_LABELS } from '../embarazosReducer';
 
@@ -30,7 +29,7 @@ interface EmbarazoDrawerProps {
 const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
   drawerVisible, selectedEmbarazo, dispatch, navigate,
 }) => (
-  <Drawer
+  <Drawer rootClassName="capa-clinica"
     className="embarazo-resumen-drawer"
     title="Resumen del Embarazo"
     placement="right"
@@ -46,22 +45,22 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
     {selectedEmbarazo ? (
       <div className="drawer-content">
         <div className="drawer-header-section">
-          <Avatar size={64} icon={userOutlinedIcon4} style={{ backgroundColor: '#1890ff', marginBottom: 10 }} />
-          <Title level={3} style={{ margin: 0 }}>{selectedEmbarazo?.paciente_nombre}</Title>
+          <Avatar size={64} icon={userOutlinedIcon4} className="pc-avatar u-mb-2" />
+          <Title level={3} className="u-m-0">{selectedEmbarazo?.paciente_nombre}</Title>
           <Text type="secondary">Gesta {selectedEmbarazo?.numero_gesta} • {(selectedEmbarazo?.tipo_embarazo || 'simple').toUpperCase()}</Text>
-          <div style={{ marginTop: 12 }}>
-            <Tag color={(RISK_COLORS as any)[selectedEmbarazo?.riesgo_embarazo || 'bajo']} style={{ padding: '4px 12px', fontSize: 14 }}>
+          <div className="u-mt-3">
+            <Tag color={(RISK_COLORS as any)[selectedEmbarazo?.riesgo_embarazo || 'bajo']} className="u-p-etiqueta u-t-base">
               {(RISK_LABELS as any)[selectedEmbarazo?.riesgo_embarazo || 'bajo'] || 'Sin especificar'}
             </Tag>
           </div>
         </div>
 
-        <Descriptions title="Estado Actual" bordered column={1} size="small" className="drawer-descriptions" style={{ marginBottom: 24 }}>
+        <Descriptions title="Estado Actual" bordered column={1} size="small" className="drawer-descriptions u-mb-5" >
           <Descriptions.Item label="Edad Gestacional">
-            <span style={{ fontSize: 16, fontWeight: 'bold', color: '#1890ff' }}>
+            <span className="u-t-md u-fuerte u-c-primario">
               {selectedEmbarazo?.edad_gestacional_semanas_num} semanas
             </span>
-            <span style={{ marginLeft: 8, color: '#999' }}>+ {selectedEmbarazo?.edad_gestacional_dias_num} días</span>
+            <span className="u-ml-2 u-c-texto-3">+ {selectedEmbarazo?.edad_gestacional_dias_num} días</span>
           </Descriptions.Item>
           <Descriptions.Item label="Trimestre Actual">
             {selectedEmbarazo?.trimestre_actual}º Trimestre
@@ -71,27 +70,27 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
           </Descriptions.Item>
         </Descriptions>
 
-        <Descriptions title="Datos Antropométricos Pregestacionales" bordered column={1} size="small" className="drawer-descriptions" style={{ marginBottom: 24 }}>
+        <Descriptions title="Datos Antropométricos Pregestacionales" bordered column={1} size="small" className="drawer-descriptions u-mb-5" >
           <Descriptions.Item label="Peso Pregestacional">
-            <span style={{ fontSize: 14, fontWeight: 'bold' }}>
+            <span className="u-t-base u-fuerte">
               {selectedEmbarazo?.peso_pregestacional ? `${selectedEmbarazo?.peso_pregestacional} kg` : 'No registrado'}
             </span>
           </Descriptions.Item>
           <Descriptions.Item label="Talla Materna">
-            <span style={{ fontSize: 14, fontWeight: 'bold' }}>
+            <span className="u-t-base u-fuerte">
               {selectedEmbarazo?.talla_materna ? `${selectedEmbarazo?.talla_materna} cm` : 'No registrado'}
             </span>
           </Descriptions.Item>
           <Descriptions.Item label="IMC Pregestacional">
-            <span style={{ fontSize: 14, fontWeight: 'bold' }}>
+            <span className="u-t-base u-fuerte">
               {selectedEmbarazo?.imc_pregestacional ?
                 <>
                   {selectedEmbarazo?.imc_pregestacional.toFixed(1)}
                   <Tag color={
-                    selectedEmbarazo?.imc_pregestacional < 18.5 ? 'blue' :
-                      selectedEmbarazo?.imc_pregestacional < 25 ? 'green' :
-                        selectedEmbarazo?.imc_pregestacional < 30 ? 'orange' : 'red'
-                  } style={{ marginLeft: 8 }}>
+                    selectedEmbarazo?.imc_pregestacional < 18.5 ? 'warning' :
+                      selectedEmbarazo?.imc_pregestacional < 25 ? 'success' :
+                        selectedEmbarazo?.imc_pregestacional < 30 ? 'warning' : 'error'
+                  } className="u-ml-2">
                     {selectedEmbarazo?.imc_pregestacional < 18.5 ? 'Bajo peso' :
                       selectedEmbarazo?.imc_pregestacional < 25 ? 'Normal' :
                         selectedEmbarazo?.imc_pregestacional < 30 ? 'Sobrepeso' : 'Obesidad'}
@@ -124,14 +123,14 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
           ]}
         />
 
-        <Divider orientation="left">🔗 Acceso Rápido a Módulos</Divider>
-        <Card size="small" style={{ marginBottom: 16 }}>
-          <Space direction="vertical" style={{ width: '100%' }} size="small">
+        <Divider orientation="left"><LinkOutlined /> Acceso Rápido a Módulos</Divider>
+        <Card size="small" className="u-mb-4">
+          <Space direction="vertical" className="u-ancho" size="small">
             <Button
               type="link"
               icon={userOutlinedIcon4}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false });
                 navigate(`/dashboard/pacientes?id=${selectedEmbarazo?.paciente}`);
@@ -143,7 +142,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
               type="link"
               icon={medicineBoxOutlinedIcon7}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false });
                 navigate(`/dashboard/controles?embarazo=${selectedEmbarazo?.id}`);
@@ -155,7 +154,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
               type="link"
               icon={experimentOutlinedIcon3}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false });
                 navigate(`/dashboard/ecografias?embarazo=${selectedEmbarazo?.id}`);
@@ -167,7 +166,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
               type="link"
               icon={fileTextOutlinedIcon8}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false });
                 navigate(`/dashboard/laboratorio?embarazo=${selectedEmbarazo?.id}`);
@@ -179,7 +178,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
               type="link"
               icon={calendarOutlinedIcon8}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false });
                 navigate(`/dashboard/citas?embarazo=${selectedEmbarazo?.id}`);
@@ -191,7 +190,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
               type="link"
               icon={heartOutlinedIcon7}
               block
-              style={{ textAlign: 'left' }}
+              className="u-izquierda"
               onClick={() => {
                 dispatch({ type: 'SET_DRAWER_VISIBLE', payload: false });
                 navigate(`/dashboard/partos?embarazo=${selectedEmbarazo?.id}`);
@@ -199,7 +198,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
             >
               Ver Información de Parto
             </Button>
-            <Divider style={{ margin: '8px 0' }} />
+            <Divider className="u-mv-2" />
             <Button
               type="primary"
               icon={bookOutlinedIcon3}
@@ -220,7 +219,7 @@ const EmbarazoDrawer: React.FC<EmbarazoDrawerProps> = ({
           type="info"
         />
 
-        <div style={{ marginTop: 30 }}>
+        <div className="u-mt-6">
           <Row gutter={16}>
             <Col span={12}>
               <Statistic title="Partos Previos" value={selectedEmbarazo.partos_previos} prefix={<WomanOutlined />} />

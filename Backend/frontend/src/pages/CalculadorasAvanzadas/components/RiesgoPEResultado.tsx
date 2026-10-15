@@ -11,15 +11,15 @@ interface RiesgoPEResultadoProps {
 
 const RiesgoPEResultado: React.FC<RiesgoPEResultadoProps> = ({ resultado }) => (
   <>
-    <Card title={<><SafetyOutlined /> Estadísticas del Riesgo</>} style={{ marginBottom: 16 }}>
-      <Row gutter={16}>
+    <Card title={<><SafetyOutlined /> Estadísticas del Riesgo</>} className="calc-bloque">
+      <Row gutter={[16, 16]}>
         <Col span={12}>
           <Statistic
             title="Riesgo PE Precoz (<34 sem)"
             value={resultado.riesgo_pe_precoz}
             precision={2}
             suffix="%"
-            valueStyle={{ color: resultado.riesgo_pe_precoz >= 10 ? '#f5222d' : resultado.riesgo_pe_precoz >= 5 ? '#fa8c16' : '#52c41a' }}
+            valueStyle={{ color: resultado.riesgo_pe_precoz >= 10 ? 'var(--color-peligro)' : resultado.riesgo_pe_precoz >= 5 ? 'var(--color-aviso)' : 'var(--color-exito)' }}
           />
         </Col>
         <Col span={12}>
@@ -28,7 +28,7 @@ const RiesgoPEResultado: React.FC<RiesgoPEResultadoProps> = ({ resultado }) => (
             value={resultado.riesgo_pe_tardia}
             precision={2}
             suffix="%"
-            valueStyle={{ color: resultado.riesgo_pe_tardia >= 15 ? '#f5222d' : resultado.riesgo_pe_tardia >= 5 ? '#fa8c16' : '#52c41a' }}
+            valueStyle={{ color: resultado.riesgo_pe_tardia >= 15 ? 'var(--color-peligro)' : resultado.riesgo_pe_tardia >= 5 ? 'var(--color-aviso)' : 'var(--color-exito)' }}
           />
         </Col>
         <Col span={12}>
@@ -36,7 +36,7 @@ const RiesgoPEResultado: React.FC<RiesgoPEResultadoProps> = ({ resultado }) => (
             title="PlGF MoM"
             value={resultado.plgf_mom}
             precision={2}
-            valueStyle={{ color: resultado.plgf_mom < 0.7 ? '#f5222d' : '#52c41a' }}
+            valueStyle={{ color: resultado.plgf_mom < 0.7 ? 'var(--color-peligro)' : 'var(--color-exito)' }}
           />
         </Col>
         <Col span={12}>
@@ -44,7 +44,7 @@ const RiesgoPEResultado: React.FC<RiesgoPEResultadoProps> = ({ resultado }) => (
             title="Ratio sFlt-1/PlGF"
             value={resultado.ratio_sflt_plgf}
             precision={1}
-            valueStyle={{ color: resultado.ratio_sflt_plgf > 85 ? '#f5222d' : resultado.ratio_sflt_plgf > 38 ? '#fa8c16' : '#52c41a' }}
+            valueStyle={{ color: resultado.ratio_sflt_plgf > 85 ? 'var(--color-peligro)' : resultado.ratio_sflt_plgf > 38 ? 'var(--color-aviso)' : 'var(--color-exito)' }}
           />
         </Col>
       </Row>
@@ -53,16 +53,16 @@ const RiesgoPEResultado: React.FC<RiesgoPEResultadoProps> = ({ resultado }) => (
     <Alert
       message={resultado.clasificacion}
       description={
-        <div>
-          <p style={{ marginBottom: 8 }}><strong>Interpretación:</strong> {resultado.interpretacion}</p>
-          <p style={{ marginBottom: 8 }}><strong>Recomendación:</strong> {resultado.recomendacion}</p>
-          <p style={{ marginBottom: 0 }}><strong>Seguimiento:</strong> {resultado.seguimiento}</p>
+        <div className="calc-parrafos">
+          <p><strong>Interpretación:</strong> {resultado.interpretacion}</p>
+          <p><strong>Recomendación:</strong> {resultado.recomendacion}</p>
+          <p><strong>Seguimiento:</strong> {resultado.seguimiento}</p>
         </div>
       }
       type={resultado.riesgo_pe_precoz >= 10 ? 'error' : resultado.riesgo_pe_precoz >= 5 ? 'warning' : 'success'}
       showIcon
       icon={resultado.riesgo_pe_precoz >= 10 ? <WarningOutlined /> : resultado.aspirina_indicada ? <MedicineBoxOutlined /> : <SafetyOutlined />}
-      style={{ marginBottom: 16 }}
+      className="calc-bloque"
     />
 
     {resultado.aspirina_indicada && (
@@ -72,7 +72,7 @@ const RiesgoPEResultado: React.FC<RiesgoPEResultadoProps> = ({ resultado }) => (
         type="info"
         showIcon
         icon={MEDICINE_BOX_ICON_5}
-        style={{ marginBottom: 16 }}
+        className="calc-bloque"
       />
     )}
   </>

@@ -170,7 +170,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 40 }}>
+      <div className="usuario-form__cargando">
         <Spin size="large" />
       </div>
     );
@@ -184,7 +184,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
         label="Foto de Perfil"
         extra="Formatos aceptados: JPG, PNG. Tamaño máximo: 2MB"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="usuario-form__foto">
           <Avatar size={64} icon={<UserOutlined />} src={fotoPreview} />
           <Upload
             accept="image/*"

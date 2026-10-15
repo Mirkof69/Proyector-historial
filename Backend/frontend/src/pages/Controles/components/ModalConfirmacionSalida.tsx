@@ -9,10 +9,10 @@ interface ModalConfirmacionSalidaProps {
 }
 
 const ModalConfirmacionSalida: React.FC<ModalConfirmacionSalidaProps> = ({ open, onOk, onCancel }) => (
-  <Modal
+  <Modal rootClassName="capa-clinica"
     title={
       <Space>
-        <WarningOutlined style={{ color: '#faad14' }} />
+        <WarningOutlined className="u-c-aviso" />
         <span>¿Salir sin guardar?</span>
       </Space>
     }

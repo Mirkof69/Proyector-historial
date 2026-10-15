@@ -142,7 +142,7 @@ export const ModalRegistroPacienteCompleto: React.FC<{
     <Modal
       title={
         <Space>
-          <UserOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+          <UserOutlined style={{ fontSize: 20, color: 'var(--color-primario)' }} />
           <span style={{ fontSize: 18, fontWeight: 600 }}>
             {pacienteEditar ? 'Editar Paciente' : 'Registro Completo de Paciente'}
           </span>
@@ -165,19 +165,19 @@ export const ModalRegistroPacienteCompleto: React.FC<{
               <Card
                 size="small"
                 style={{
-                  backgroundColor: currentStep === index ? '#e6f7ff' : currentStep > index ? '#f6ffed' : '#fafafa',
-                  borderColor: currentStep === index ? '#1890ff' : currentStep > index ? '#52c41a' : '#d9d9d9',
+                  backgroundColor: currentStep === index ? 'var(--color-primario-suave)' : currentStep > index ? 'var(--color-exito-suave)' : 'var(--color-superficie-2)',
+                  borderColor: currentStep === index ? 'var(--color-primario)' : currentStep > index ? 'var(--color-exito-borde)' : 'var(--color-borde)',
                   cursor: 'pointer'
                 }}
                 onClick={() => setCurrentStep(index)}
               >
                 <Space>
                   {currentStep > index ? (
-                    <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 20 }} />
+                    <CheckCircleOutlined style={{ color: 'var(--color-exito)', fontSize: 20 }} />
                   ) : (
                     <span style={{
                       fontSize: 20,
-                      color: currentStep === index ? '#1890ff' : '#8c8c8c'
+                      color: currentStep === index ? 'var(--color-primario)' : 'var(--color-texto-3)'
                     }}>
                       {step.icon}
                     </span>
@@ -256,8 +256,7 @@ export const BotonRegistroPacienteRapido: React.FC<{
           ...style,
           height: 48,
           fontSize: 16,
-          fontWeight: 600,
-          boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)'
+          fontWeight: 600
         }}
       >
         Registrar Nuevo Paciente

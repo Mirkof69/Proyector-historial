@@ -169,31 +169,31 @@ export const calcularCrecimiento = (valores: DatosBiometria): ResultadoCrecimien
 
   if (percentil < 3) {
     clasificacion = '🔴 RCIU (Restricción del Crecimiento Intrauterino)';
-    color = '#f5222d';
+    color = 'var(--color-peligro)';
     categoria = 'RCIU';
     interpretacion = `Peso fetal estimado <p3 (${percentil.toFixed(1)}). Restricción severa del crecimiento intrauterino. Requiere evaluación urgente.`;
     recomendacion = 'Doppler de arterias umbilical, cerebral media y ductus venoso. Evaluación del líquido amniótico. Considerar monitoreo fetal intensivo y posible interrupción según edad gestacional y hallazgos Doppler.';
   } else if (percentil < 10) {
     clasificacion = '🟠 PEG (Pequeño para Edad Gestacional)';
-    color = '#fa8c16';
+    color = 'var(--color-aviso)';
     categoria = 'PEG';
     interpretacion = `Peso fetal estimado entre p3-p10 (${percentil.toFixed(1)}). Pequeño para edad gestacional. Riesgo intermedio.`;
     recomendacion = 'Doppler umbilical y seguimiento semanal. Evaluar diferencial entre constitucional y patológico mediante Doppler y líquido amniótico. Controles cada 7-14 días.';
   } else if (percentil >= 10 && percentil <= 90) {
     clasificacion = '🟢 NORMAL';
-    color = '#52c41a';
+    color = 'var(--color-exito)';
     categoria = 'NORMAL';
     interpretacion = `Peso fetal estimado dentro de rango normal (p${percentil.toFixed(1)}). Crecimiento adecuado para edad gestacional.`;
     recomendacion = 'Continuar con seguimiento prenatal habitual. Próxima ecografía según protocolo estándar.';
   } else if (percentil > 90 && percentil < 97) {
     clasificacion = '🟡 GEG (Grande para Edad Gestacional)';
-    color = '#faad14';
+    color = 'var(--color-aviso)';
     categoria = 'GEG';
     interpretacion = `Peso fetal estimado entre p90-p97 (${percentil.toFixed(1)}). Grande para edad gestacional.`;
     recomendacion = 'Descartar diabetes gestacional (curva de glucosa si no se ha realizado). Seguimiento ecográfico cada 3-4 semanas. Evaluar vía de parto según evolución y estimación de peso al término.';
   } else {
     clasificacion = '🔴 MACROSOMÍA';
-    color = '#f5222d';
+    color = 'var(--color-peligro)';
     categoria = 'MACROSOMIA';
     interpretacion = `Peso fetal estimado >p97 (${percentil.toFixed(1)}). Macrosomía fetal. Riesgo de complicaciones al parto.`;
     recomendacion = 'Optimizar control glucémico si diabetes gestacional. Seguimiento ecográfico cada 2-3 semanas. Discutir vía de parto (cesárea electiva si EFW >4500g o >4000g con diabetes). Prevenir distocia de hombros.';
@@ -275,9 +275,9 @@ export const getDataProporcionesFetales = (datosBiometria: DatosBiometria | null
   const fl_hc = datosBiometria.fl / datosBiometria.hc;
 
   return [
-    { ratio: 'HC/AC', valor: hc_ac, normal_min: 0.95, normal_max: 1.15, color: hc_ac >= 0.95 && hc_ac <= 1.15 ? '#52c41a' : '#faad14' },
-    { ratio: 'FL/AC', valor: fl_ac, normal_min: 0.20, normal_max: 0.24, color: fl_ac >= 0.20 && fl_ac <= 0.24 ? '#52c41a' : '#faad14' },
-    { ratio: 'FL/HC', valor: fl_hc, normal_min: 0.18, normal_max: 0.22, color: fl_hc >= 0.18 && fl_hc <= 0.22 ? '#52c41a' : '#faad14' }
+    { ratio: 'HC/AC', valor: hc_ac, normal_min: 0.95, normal_max: 1.15, color: hc_ac >= 0.95 && hc_ac <= 1.15 ? 'var(--color-exito)' : 'var(--color-aviso)' },
+    { ratio: 'FL/AC', valor: fl_ac, normal_min: 0.20, normal_max: 0.24, color: fl_ac >= 0.20 && fl_ac <= 0.24 ? 'var(--color-exito)' : 'var(--color-aviso)' },
+    { ratio: 'FL/HC', valor: fl_hc, normal_min: 0.18, normal_max: 0.22, color: fl_hc >= 0.18 && fl_hc <= 0.22 ? 'var(--color-exito)' : 'var(--color-aviso)' }
   ];
 };
 

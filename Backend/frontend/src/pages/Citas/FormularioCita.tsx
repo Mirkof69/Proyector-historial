@@ -13,16 +13,14 @@ import {
   Form,
   Button,
   Card,
-  Space,
   Alert,
   Spin,
   Steps,
   Modal,
+  Typography,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
-import {
-  CalendarOutlined,
-} from '@ant-design/icons';
+import './Citas.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { pacientesService } from '../../services/pacientesService';
@@ -217,32 +215,29 @@ const FormularioCita: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card
-        title={
-          <Space>
-            <CalendarOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-            <span style={{ fontSize: 20, fontWeight: 600 }}>
-              {id ? 'Editar Cita' : 'Nueva Cita Médica'}
-            </span>
-          </Space>
-        }
-        extra={
-          <Alert
-            message={id ? 'Modo Edición' : 'Modo Creación'}
-            type={id ? 'warning' : 'info'}
-            showIcon
-          />
-        }
-      >
+    <div className="citas-page page-container">
+      <header className="citas-page__cabecera">
+        <div>
+          <Typography.Title level={2}>
+            {id ? 'Editar Cita' : 'Nueva Cita Médica'}
+          </Typography.Title>
+          <Typography.Text type="secondary">Paciente y médico, fecha y hora, y detalles de la consulta.</Typography.Text>
+        </div>
+        <Alert
+          message={id ? 'Modo Edición' : 'Modo Creación'}
+          type={id ? 'warning' : 'info'}
+          showIcon
+        />
+      </header>
+      <Card>
         {state.loading && !id ? (
-          <div style={{ textAlign: 'center', padding: 40 }}>
+          <div className="citas-page__cargando">
             <Spin size="large" />
-            <div style={{ marginTop: 16 }}>Cargando…</div>
+            <div className="citas-arriba">Cargando…</div>
           </div>
         ) : (
           <>
-            <Steps current={state.currentStep} items={steps} style={{ marginBottom: 24 }} />
+            <Steps current={state.currentStep} items={steps} className="citas-separado" />
 
             <Form
               form={form}

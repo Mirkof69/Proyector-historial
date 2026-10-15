@@ -31,7 +31,7 @@ const StepDetalles: React.FC<StepDetallesProps> = ({
         }
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        className="citas-separado"
       />
     )}
     <Row gutter={16}>

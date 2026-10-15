@@ -24,8 +24,8 @@ interface AlertasFiltrosProps {
 const AlertasFiltros: React.FC<AlertasFiltrosProps> = ({
   busqueda, filtroTipo, filtroEstado, rangoFechas, loading, dispatch, cargarAlertas,
 }) => (
-  <Card style={{ marginBottom: 24 }}>
-    <Row gutter={16} style={{ marginBottom: 16 }}>
+  <Card>
+    <Row gutter={[16, 16]} className="alertas-page__fila-filtros">
       <Col xs={24} md={8}>
         <Search
           placeholder="Buscar alertas..."
@@ -41,7 +41,7 @@ const AlertasFiltros: React.FC<AlertasFiltrosProps> = ({
           value={filtroTipo}
           onChange={(val) => dispatch({ type: 'SET_FILTRO_TIPO', payload: val })}
           allowClear
-          style={{ width: '100%' }}
+          className="alertas-page__control"
         >
           <Option value="critica">
             <FireOutlined /> Crítica
@@ -66,7 +66,7 @@ const AlertasFiltros: React.FC<AlertasFiltrosProps> = ({
           value={filtroEstado}
           onChange={(val) => dispatch({ type: 'SET_FILTRO_ESTADO', payload: val })}
           allowClear
-          style={{ width: '100%' }}
+          className="alertas-page__control"
         >
           <Option value="activa">Activas</Option>
           <Option value="en_proceso">En Proceso</Option>
@@ -99,7 +99,7 @@ const AlertasFiltros: React.FC<AlertasFiltrosProps> = ({
     <Row gutter={16}>
       <Col xs={24} md={12}>
         <RangePicker
-          style={{ width: '100%' }}
+          className="alertas-page__control"
           placeholder={['Fecha inicio', 'Fecha fin']}
           value={rangoFechas}
           onChange={(dates) => dispatch({ type: 'SET_RANGO_FECHAS', payload: dates || [null, null] })}

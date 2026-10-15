@@ -17,22 +17,22 @@ const FormDosis: React.FC<FormDosisProps> = ({ form, onFinish }) => (
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item label="Peso (kg)" name="peso" rules={[{ required: true }]} initialValue={70}>
-            <InputNumber min={40} max={150} style={{ width: '100%' }} />
+            <InputNumber min={40} max={150} />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item label="Edad (años)" name="edad" rules={[{ required: true }]} initialValue={30}>
-            <InputNumber min={15} max={50} style={{ width: '100%' }} />
+            <InputNumber min={15} max={50} />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item label="Creatinina (mg/dL)" name="creatinina" rules={[{ required: true }]} initialValue={0.9}>
-            <InputNumber min={0.3} max={10} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={0.3} max={10} step={0.1} />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item label="Semanas Gestación" name="semanas" initialValue={28}>
-            <InputNumber min={0} max={42} step={0.1} style={{ width: '100%' }} />
+            <InputNumber min={0} max={42} step={0.1} />
           </Form.Item>
         </Col>
       </Row>
@@ -47,7 +47,7 @@ const FormDosis: React.FC<FormDosisProps> = ({ form, onFinish }) => (
         type="info"
         showIcon
         icon={<InfoCircleOutlined />}
-        style={{ marginBottom: 12 }}
+        className="calc-bloque"
         message="Cálculo automático disponible solo para medicamentos verificados"
         description="Los medicamentos marcados como «Cálculo no disponible» aún no tienen fórmula de dosificación validada en el sistema: consulte las tablas de referencia oficiales (protocolos MSP/OMS) para dosificarlos."
       />
@@ -58,7 +58,7 @@ const FormDosis: React.FC<FormDosisProps> = ({ form, onFinish }) => (
             <Option key={med.value} value={med.value} disabled={!med.disponible}>
               {med.label}
               {!med.disponible && (
-                <Tag color="default" style={{ marginLeft: 8, fontSize: 11 }}>
+                <Tag color="default" className="calc-etiqueta-ejemplo">
                   Cálculo no disponible — consulte tablas de referencia
                 </Tag>
               )}
@@ -79,7 +79,7 @@ const FormDosis: React.FC<FormDosisProps> = ({ form, onFinish }) => (
         </Select>
       </Form.Item>
 
-      <Form.Item style={{ marginTop: 24 }}>
+      <Form.Item className="calc-enviar">
         <Button type="primary" htmlType="submit" block size="large" icon={<MedicineBoxOutlined />}>
           Calcular Dosis
         </Button>

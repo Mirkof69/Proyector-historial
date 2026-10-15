@@ -20,14 +20,12 @@ import path from 'path';
 
 const DIRECTORIO = path.join(__dirname, '..');
 
-/** Archivos que el código importa de verdad (verificado con grep). */
+/** Capa global que importa src/index.tsx (contrato docs/DISENO_INTERFAZ.md). */
 const ARCHIVOS_CARGADOS = [
-  'variables-claude.css',
-  'theme-enhancements.css',
-  'theme-dark-fixes.css',
-  'global-theme.css',
-  'antd-overrides.css',
-  'theme-dark.css',
+  'tokens.css',
+  'base.css',
+  'antd.css',
+  'layout.css',
 ];
 
 type Definiciones = Map<string, Map<string, string>>;
@@ -79,6 +77,43 @@ describe('tokens de diseño', () => {
     // desde ningún sitio: al auditar los conflictos aparecían como reales.
     const muerto = path.join(DIRECTORIO, 'variables-clinical-dark.css');
     expect(fs.existsSync(muerto)).toBe(false);
+  });
+
+  it('las hojas que se peleaban entre sí ya no existen', () => {
+    // 4.900 líneas en seis archivos que existían para corregirse unos a otros.
+    const retiradas = [
+      'global-theme.css', 'antd-overrides.css', 'theme-dark.css',
+      'theme-dark-fixes.css', 'theme-enhancements.css', 'variables-claude.css',
+    ].filter((f) => fs.existsSync(path.join(DIRECTORIO, f)));
+    expect(retiradas).toEqual([]);
+  });
+
+  it('toda variable CSS que se usa en src/ está definida en algún sitio', () => {
+    // Los alias de compatibilidad de tokens.css cubren los nombres antiguos
+    // (--text-primary, --bg-elevated…). Una variable sin definir hace que la
+    // propiedad entera se ignore: texto invisible o tarjetas sin fondo.
+    const SRC = path.join(DIRECTORIO, '..');
+    const usadas = new Set<string>();
+    const definidas = new Set<string>();
+    const recorrer = (dir: string) => {
+      for (const nombre of fs.readdirSync(dir)) {
+        const ruta = path.join(dir, nombre);
+        if (fs.statSync(ruta).isDirectory()) {
+          recorrer(ruta);
+        } else if (/\.(css|tsx?)$/.test(nombre) && !/\.test\.tsx?$/.test(nombre)) {
+          const texto = fs.readFileSync(ruta, 'utf8');
+          for (const m of texto.matchAll(/var\((--[\w-]+)/g)) usadas.add(m[1]);
+          for (const m of texto.matchAll(/(--[\w-]+)['"]?\s*:/g)) definidas.add(m[1]);
+        }
+      }
+    };
+    recorrer(SRC);
+    // Un nombre que acaba en «-» es un prefijo de plantilla (`var(--grafico-${n})`)
+    // o texto de un comentario, no una variable.
+    const sinDefinir = [...usadas]
+      .filter((v) => !v.endsWith('-') && !definidas.has(v))
+      .sort();
+    expect(sinDefinir).toEqual([]);
   });
 
   it('define las variables de transición que usan los componentes', () => {
