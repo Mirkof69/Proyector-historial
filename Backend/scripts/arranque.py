@@ -1,6 +1,7 @@
 """Ayudante de INICIAR.bat: lo que en un .bat sería frágil, aquí en Python.
 
     python scripts/arranque.py build-vigente       0 si build/ está al día con src/, 1 si hay que compilar
+    python scripts/arranque.py dependencias        0 si node_modules está al día con package.json, 1 si falta instalar
     python scripts/arranque.py detener             cierra lo que escucha en 3000, 8000, 8001 y 8010
     python scripts/arranque.py esperar URL SEG     0 cuando la URL responde (cualquier código < 500)
     python scripts/arranque.py red [--produccion]  IP de este equipo y si está habilitada para la clínica
@@ -38,7 +39,61 @@ def build_vigente() -> int:
     return 0
 
 
+def dependencias() -> int:
+    """node_modules vale si existe y npm lo instaló después del último cambio de package.json.
+
+    package-lock.json no se versiona (Backend/.gitignore), así que `npm ci` no
+    sirve; y un equipo con node_modules viejo no recibía paquetes nuevos (p. ej.
+    las fuentes IBM Plex del 14/10/2026) y el build fallaba.
+    """
+    marca = FRONTEND / "node_modules" / ".package-lock.json"
+    if not marca.exists():
+        print("    Faltan las dependencias del frontend.")
+        return 1
+    if (FRONTEND / "package.json").stat().st_mtime > marca.stat().st_mtime:
+        print("    package.json cambió: se instalan las dependencias nuevas.")
+        return 1
+    return 0
+
+
+# Lo que identifica una ventana de servicio que abrió INICIAR.bat (`cmd /k ...`).
+MARCAS_SERVICIO = ("waitress", "uvicorn", "servir_produccion", "npm start", "redis-server")
+
+
+def _es_ventana_de_servicio(proceso) -> bool:
+    try:
+        if proceso.name().lower() != "cmd.exe":
+            return False
+        linea = " ".join(proceso.cmdline()).lower()
+    except Exception:
+        return False
+    return "/k" in linea and str(BACKEND).lower() in linea.replace("/", "\\") \
+        and any(m in linea for m in MARCAS_SERVICIO)
+
+
+def _cerrar_arbol(proceso) -> None:
+    import psutil
+
+    for hijo in proceso.children(recursive=True):
+        try:
+            hijo.kill()
+        except psutil.Error:
+            pass
+    try:
+        proceso.kill()
+    except psutil.Error:
+        pass
+
+
 def detener() -> int:
+    """Cierra los servicios del sistema Y sus ventanas.
+
+    Antes se cerraba solo el proceso que escuchaba el puerto: la ventana
+    `cmd /k` que lo contenía quedaba abierta y vacía, se acumulaban corrida tras
+    corrida (13 el 14/10/2026) y mantenían bloqueado el log del arranque.
+    Ahora se cierra la ventana de servicio que contiene a cada proceso, y las
+    ventanas huérfanas de corridas anteriores.
+    """
     import psutil
 
     cerrados = 0
@@ -48,14 +103,18 @@ def detener() -> int:
             try:
                 proceso = psutil.Process(conexion.pid)
                 nombre = proceso.name()
-                for hijo in proceso.children(recursive=True):
-                    hijo.kill()
-                proceso.kill()
+                ventana = next((a for a in proceso.parents() if _es_ventana_de_servicio(a)), None)
+                _cerrar_arbol(ventana or proceso)
                 cerrados += 1
                 print(f"    cerrado puerto {conexion.laddr.port} ({nombre}, pid {conexion.pid})")
             except psutil.Error:
                 pass
-    if not cerrados:
+    huerfanas = [p for p in psutil.process_iter() if _es_ventana_de_servicio(p)]
+    for ventana in huerfanas:
+        _cerrar_arbol(ventana)
+    if huerfanas:
+        print(f"    cerradas {len(huerfanas)} ventanas de servicio que habían quedado abiertas")
+    if not cerrados and not huerfanas:
         print("    No había servicios del sistema corriendo.")
     return 0
 
@@ -209,6 +268,8 @@ if __name__ == "__main__":
     accion = sys.argv[1] if len(sys.argv) > 1 else ""
     if accion == "build-vigente":
         sys.exit(build_vigente())
+    if accion == "dependencias":
+        sys.exit(dependencias())
     if accion == "detener":
         sys.exit(detener())
     if accion == "esperar":

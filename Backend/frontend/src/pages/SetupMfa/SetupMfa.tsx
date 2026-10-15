@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { Layout, Card, Typography, Steps, Alert, Form, Divider, Tag } from "antd";
 import {
@@ -74,12 +74,20 @@ const SetupMfa: React.FC = () => {
     }
   }, [inicial]);
 
+  // Cada pedido de QR genera un secreto NUEVO en el servidor. Si se pidiera dos
+  // veces al entrar (React lo hace en desarrollo con StrictMode, o un remontaje),
+  // la pantalla podía mostrar un secreto y el servidor guardar el otro: el código
+  // de Google Authenticator salía «inválido» (visto en la E2E el 14/10/2026).
+  const qrPedido = useRef(false);
+
   useEffect(() => {
     // Protección de ruta: sin sesión y sin venir del login, fuera.
     if (!authService.isAuthenticated() && !inicial) {
       navigate(FRONTEND_ROUTES.LOGIN, { replace: true });
       return;
     }
+    if (qrPedido.current) return;
+    qrPedido.current = true;
     requestSetup();
   }, [requestSetup, navigate, inicial]);
 
@@ -98,7 +106,7 @@ const SetupMfa: React.FC = () => {
         if (inicial) refreshAuth();
         setDone(true);
         setCurrentStep(3);
-        message.success({ content: '✅ MFA activado correctamente. Su cuenta ahora está protegida.', duration: 3 });
+        message.success({ content: 'MFA activado correctamente. Su cuenta ahora está protegida.', duration: 3 });
         setTimeout(() => navigate(FRONTEND_ROUTES.DASHBOARD.HOME, { replace: true }), 2500);
       }
     } catch (err: any) {
@@ -125,31 +133,23 @@ const SetupMfa: React.FC = () => {
   // RENDER
   // ──────────────────────────────────────────────────────────────────────────
   return (
-    <Layout style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)' }}>
-      <Header style={{ background: 'transparent', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-        <HeartOutlined style={{ color: '#ff6b8a', fontSize: 22, marginRight: 10 }} />
-        <span style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>Fetal Medical Foundation</span>
-        <span style={{ flex: 1 }} />
-        <Tag color="gold" icon={<SafetyOutlined />}>Configuración de Seguridad</Tag>
+    <Layout className="setup-mfa">
+      <Header className="setup-mfa__cabecera">
+        <span className="setup-mfa__logo"><HeartOutlined aria-hidden /></span>
+        <span className="setup-mfa__marca">Fetal Medical Foundation</span>
+        <span className="setup-mfa__espacio" />
+        <Tag color="warning" icon={<SafetyOutlined />}>Configuración de Seguridad</Tag>
       </Header>
 
-      <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '24px' }}>
-        <Card
-          style={{
-            width: '100%',
-            maxWidth: 620,
-            borderRadius: 16,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-          }}
-          styles={{ body: { padding: 36 } }}
-        >
+      <Content className="setup-mfa__contenido">
+        <Card className="setup-mfa__tarjeta">
           {/* Título */}
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div className="setup-mfa__titulo">
             <div className="mfa-icon">
-              <SafetyOutlined style={{ color: '#fff' }} />
+              <SafetyOutlined />
             </div>
-            <Title level={3} style={{ margin: 0 }}>Activar Autenticación de Dos Factores</Title>
-            <Paragraph type="secondary" style={{ marginTop: 8 }}>
+            <Title level={3}>Activar Autenticación de Dos Factores</Title>
+            <Paragraph type="secondary">
               Su rol requiere MFA. Complete estos pasos para proteger su cuenta.
             </Paragraph>
           </div>
@@ -157,7 +157,7 @@ const SetupMfa: React.FC = () => {
           {/* Steps */}
           <Steps
             current={currentStep}
-            style={{ marginBottom: 28 }}
+            className="setup-mfa__pasos"
             size="small"
             items={[
               { title: 'Inicio', icon: <SafetyOutlined /> },
@@ -175,7 +175,7 @@ const SetupMfa: React.FC = () => {
               showIcon
               closable
               onClose={() => setError(null)}
-              style={{ marginBottom: 20 }}
+              className="setup-mfa__bloque"
             />
           )}
 
@@ -207,7 +207,7 @@ const SetupMfa: React.FC = () => {
           )}
 
           <Divider />
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', textAlign: 'center' }}>
+          <Text type="secondary" className="setup-mfa__pie">
             <SafetyOutlined /> MFA protege sus datos y los de sus pacientes (Ley 3871)
           </Text>
         </Card>

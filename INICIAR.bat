@@ -116,7 +116,8 @@ echo [6/8] Frontend compilado...
 if not errorlevel 1 goto front_ok
 echo     Compilando ^(unos minutos^)...
 cd /d "%BACK%\frontend"
-if not exist node_modules call npm ci
+"%PY%" "%BACK%\scripts\arranque.py" dependencias
+if errorlevel 1 call npm install --no-audit --no-fund
 call npm run build > "%BACK%\logs\build_frontend.log" 2>&1
 if errorlevel 1 (
     echo ERROR al compilar el frontend: ver Backend\logs\build_frontend.log
