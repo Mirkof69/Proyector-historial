@@ -6,7 +6,7 @@ import {
   TeamOutlined, SettingOutlined, HistoryOutlined, ExperimentOutlined, CalendarOutlined,
   BarChartOutlined, SoundOutlined, ApartmentOutlined, QuestionCircleOutlined,
   SafetyCertificateOutlined, FileProtectOutlined, MedicineBoxTwoTone, AlertOutlined, EditOutlined,
-  SafetyOutlined, FileTextOutlined, RobotOutlined,
+  SafetyOutlined, FileTextOutlined, RobotOutlined, ReadOutlined,
 } from '@ant-design/icons';
 import { authService } from '../../services/authService';
 
@@ -18,6 +18,7 @@ const checkPermission = (user: any, itemKey: string): boolean => {
     // Clínicos: recepción no los ve (el backend también se los niega).
     '/dashboard/historia-clinica': 'view_controlprenatal',
     '/dashboard/ia-medica': 'view_imagenecografica',
+    '/dashboard/ia-guia': 'view_imagenecografica',
     '/dashboard/ia-asistente': 'view_consultaia',
     '/dashboard/triaje': 'view_triajeenfermeria',
     '/dashboard/pacientes': 'view_paciente',
@@ -90,6 +91,7 @@ export const buildMainMenuItems = (user: any, navigate: NavigateFunction): MenuP
       { key: '/dashboard/ecografias', icon: <SoundOutlined />, label: 'Ecografías' },
       { key: '/dashboard/laboratorios', icon: <ExperimentOutlined />, label: 'Laboratorio' },
       { key: '/dashboard/ia-medica/imagenes', icon: <RobotOutlined />, label: 'Análisis CNN (IA)' },
+      { key: '/dashboard/ia-guia', icon: <ReadOutlined />, label: 'Guía de IA' },
     ].filter(item => checkPermission(user, item.key as string)),
   },
   {

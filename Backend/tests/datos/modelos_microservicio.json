@@ -1,0 +1,1454 @@
+{
+ "plano_anatomico_fetal_planes": {
+  "disponible": true,
+  "metricas_prueba": {
+   "imagenes_prueba": 5271,
+   "madres_prueba": 896,
+   "exactitud": 0.927,
+   "auc_medio": 0.992,
+   "cabezas_otro_hospital_reconocidas": 0.931,
+   "cabezas_primer_trimestre_reconocidas": 0.588
+  },
+  "sha256": "e6bf36fd3d8c461d59112c495de021421d7773f3029d7d60c3d10ae9e994ccf4"
+ },
+ "circunferencia_cefalica_hc18": {
+  "disponible": true,
+  "metricas_prueba": {
+   "imagenes_prueba": 146,
+   "madres_prueba": 117,
+   "r2": 0.978,
+   "error_medio_mm": 7.0,
+   "error_mediano_mm": 5.4,
+   "error_medio_semanas": 0.62
+  },
+  "sha256": "77b3c24bfbe976947b756a5665aa18c786825dfc864e0266c312e51c26e3eea9"
+ },
+ "anomalias_cerebrales_fetales": {
+  "disponible": true,
+  "metricas_prueba": {
+   "umbral": 0.5,
+   "unidad": "imagen original (copias aumentadas promediadas)",
+   "excluidas_por_duplicado": {
+    "pacientes": 31,
+    "imagenes": 0
+   },
+   "todas_fuera_de_pliegue": {
+    "sensibilidad": {
+     "valor": 0.991,
+     "ic95": [
+      0.968,
+      1.0
+     ]
+    },
+    "especificidad": {
+     "valor": 1.0,
+     "ic95": [
+      1.0,
+      1.0
+     ]
+    },
+    "vpp": {
+     "valor": 1.0,
+     "ic95": [
+      1.0,
+      1.0
+     ]
+    },
+    "vpn": {
+     "valor": 0.999,
+     "ic95": [
+      0.997,
+      1.0
+     ]
+    },
+    "tasa_falsos_positivos": {
+     "valor": 0.0,
+     "ic95": [
+      0.0,
+      0.0
+     ]
+    },
+    "exactitud": {
+     "valor": 0.999,
+     "ic95": [
+      0.998,
+      1.0
+     ]
+    },
+    "auc": {
+     "valor": 1.0,
+     "ic95": [
+      1.0,
+      1.0
+     ]
+    },
+    "vp": 109,
+    "fn": 1,
+    "vn": 1222,
+    "fp": 0
+   },
+   "solo_roboflow": {
+    "sensibilidad": {
+     "valor": 0.991,
+     "ic95": [
+      0.97,
+      1.0
+     ]
+    },
+    "especificidad": {
+     "valor": 1.0,
+     "ic95": [
+      1.0,
+      1.0
+     ]
+    },
+    "vpp": {
+     "valor": 1.0,
+     "ic95": [
+      1.0,
+      1.0
+     ]
+    },
+    "vpn": {
+     "valor": 0.99,
+     "ic95": [
+      0.968,
+      1.0
+     ]
+    },
+    "tasa_falsos_positivos": {
+     "valor": 0.0,
+     "ic95": [
+      0.0,
+      0.0
+     ]
+    },
+    "exactitud": {
+     "valor": 0.995,
+     "ic95": [
+      0.986,
+      1.0
+     ]
+    },
+    "auc": {
+     "valor": 1.0,
+     "ic95": [
+      1.0,
+      1.0
+     ]
+    },
+    "vp": 109,
+    "fn": 1,
+    "vn": 102,
+    "fp": 0
+   },
+   "n": {
+    "anomalias": 110,
+    "normales_roboflow": 102,
+    "normales_fetal_planes": 1120,
+    "externas": 1866,
+    "pacientes_externos": 651
+   },
+   "externa_falsos_positivos": {
+    "valor": 0.0005,
+    "ic95": [
+     0.0,
+     0.002
+    ],
+    "fp": 1,
+    "n": 1866,
+    "por_ecografo": {
+     "Aloka": {
+      "fp": 0,
+      "n": 360
+     },
+     "Other": {
+      "fp": 0,
+      "n": 64
+     },
+     "Voluson E6": {
+      "fp": 1,
+      "n": 1289
+     },
+     "Voluson S10": {
+      "fp": 0,
+      "n": 153
+     }
+    }
+   },
+   "familia_entre_anomalias": {
+    "exactitud": 0.673,
+    "ic95": [
+     0.582,
+     0.755
+    ],
+    "sensibilidad_por_familia": {
+     "ventriculomegalia_hidrocefalia": {
+      "aciertos": 47,
+      "n": 56
+     },
+     "fosa_posterior": {
+      "aciertos": 7,
+      "n": 15
+     },
+     "encefalocele": {
+      "aciertos": 6,
+      "n": 12
+     },
+     "lesion_quistica_vascular": {
+      "aciertos": 14,
+      "n": 27
+     }
+    },
+    "matriz_confusion": {
+     "filas_real_columnas_predicha": [
+      "ventriculomegalia_hidrocefalia",
+      "fosa_posterior",
+      "encefalocele",
+      "lesion_quistica_vascular"
+     ],
+     "valores": [
+      [
+       47,
+       3,
+       2,
+       4
+      ],
+      [
+       5,
+       7,
+       0,
+       3
+      ],
+      [
+       2,
+       2,
+       6,
+       2
+      ],
+      [
+       11,
+       1,
+       1,
+       14
+      ]
+     ]
+    }
+   },
+   "deteccion_por_anomalia_fina": {
+    "anold-chiari-malformation": {
+     "detectadas": 4,
+     "n": 4
+    },
+    "arachnoid-cyst": {
+     "detectadas": 9,
+     "n": 9
+    },
+    "cerebellah-hypoplasia": {
+     "detectadas": 8,
+     "n": 8
+    },
+    "colphocephaly": {
+     "detectadas": 5,
+     "n": 6
+    },
+    "encephalocele": {
+     "detectadas": 12,
+     "n": 12
+    },
+    "holoprosencephaly": {
+     "detectadas": 1,
+     "n": 1
+    },
+    "hydracenphaly": {
+     "detectadas": 2,
+     "n": 2
+    },
+    "intracranial-hemorrdge": {
+     "detectadas": 5,
+     "n": 5
+    },
+    "intracranial-tumor": {
+     "detectadas": 1,
+     "n": 1
+    },
+    "m-magna": {
+     "detectadas": 3,
+     "n": 3
+    },
+    "mild-ventriculomegaly": {
+     "detectadas": 21,
+     "n": 21
+    },
+    "moderate-ventriculomegaly": {
+     "detectadas": 19,
+     "n": 19
+    },
+    "polencephaly": {
+     "detectadas": 8,
+     "n": 8
+    },
+    "severe-ventriculomegaly": {
+     "detectadas": 8,
+     "n": 8
+    },
+    "vein-of-galen": {
+     "detectadas": 3,
+     "n": 3
+    }
+   },
+   "auc_por_pliegue": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0,
+    "4": 1.0
+   },
+   "otro_hospital_hc18": {
+    "valor": 0.002,
+    "fp": 2,
+    "n": 999,
+    "ic95": [
+     0.0,
+     0.005
+    ],
+    "por_trimestre": {
+     "primero": {
+      "fp": 1,
+      "n": 153
+     },
+     "segundo": {
+      "fp": 1,
+      "n": 701
+     },
+     "tercero": {
+      "fp": 0,
+      "n": 145
+     }
+    }
+   },
+   "prueba_estilo": {
+    "original": {
+     "falsas_alarmas": 0,
+     "n": 300,
+     "tasa": 0.0
+    },
+    "lavada": {
+     "falsas_alarmas": 0,
+     "n": 300,
+     "tasa": 0.0
+    },
+    "fondo_gris": {
+     "falsas_alarmas": 0,
+     "n": 300,
+     "tasa": 0.0
+    },
+    "reescalada": {
+     "falsas_alarmas": 0,
+     "n": 300,
+     "tasa": 0.0
+    },
+    "borrosa": {
+     "falsas_alarmas": 0,
+     "n": 300,
+     "tasa": 0.0
+    },
+    "todo_junto": {
+     "falsas_alarmas": 0,
+     "n": 300,
+     "tasa": 0.0
+    },
+    "foto_de_pantalla": {
+     "falsas_alarmas": 6,
+     "n": 300,
+     "tasa": 0.02
+    }
+   },
+   "prueba_estilo_v1": {
+    "original": {
+     "falsas_alarmas": 0,
+     "n": 300,
+     "tasa": 0.0
+    },
+    "lavada": {
+     "falsas_alarmas": 1,
+     "n": 300,
+     "tasa": 0.0033
+    },
+    "fondo_gris": {
+     "falsas_alarmas": 1,
+     "n": 300,
+     "tasa": 0.0033
+    },
+    "reescalada": {
+     "falsas_alarmas": 1,
+     "n": 300,
+     "tasa": 0.0033
+    },
+    "borrosa": {
+     "falsas_alarmas": 2,
+     "n": 300,
+     "tasa": 0.0067
+    },
+    "todo_junto": {
+     "falsas_alarmas": 139,
+     "n": 300,
+     "tasa": 0.4633
+    },
+    "foto_de_pantalla": {
+     "falsas_alarmas": 6,
+     "n": 300,
+     "tasa": 0.02
+    }
+   }
+  },
+  "sha256": "001c56003a66c9b94f8d72021fe1b9529dcaca3a63bb4d272b848124f4af7ed7"
+ },
+ "segmentacion_cabeza": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "cabeza",
+   "dataset": "Large-Scale Fetal Head Biometry (Zenodo 8265464) Â· FETAL_PLANES_DB",
+   "particion": "por paciente 70/15/15",
+   "imagenes_prueba": 413,
+   "pacientes_prueba": 155,
+   "epoca_elegida": 20,
+   "dice_validacion": 0.8044,
+   "dice_prueba": {
+    "craneo": {
+     "medio": 0.9676,
+     "mediano": 0.9742,
+     "imagenes": 409
+    },
+    "csp": {
+     "medio": 0.7569,
+     "mediano": 0.8414,
+     "imagenes": 164
+    },
+    "ventriculo_lateral": {
+     "medio": 0.7075,
+     "mediano": 0.7701,
+     "imagenes": 129
+    }
+   },
+   "dice_prueba_medio": 0.8107,
+   "medidas_prueba": {
+    "imagenes": 413,
+    "hc_error_medio_mm": 5.3,
+    "hc_error_mediano_mm": 2.95,
+    "hc_error_relativo_medio": 0.0549,
+    "dbp_error_medio_mm": 1.61,
+    "dbp_error_relativo_medio": 0.0643
+   },
+   "prueba_externa_hc18": {
+    "imagenes": 999,
+    "sin_cabeza_detectada": 0,
+    "hc_error_medio_mm": 4.41,
+    "hc_error_mediano_mm": 2.78,
+    "hc_error_relativo_medio": 0.0369,
+    "dentro_de_5_por_ciento": 0.9229,
+    "r2": 0.9818,
+    "por_trimestre_error_medio_mm": {
+     "primero": 8.99,
+     "segundo": 3.38,
+     "tercero": 4.51
+    },
+    "mismas_146_de_prueba_que_la_red_de_regresion": {
+     "imagenes": 146,
+     "hc_error_medio_mm": 4.13
+    }
+   }
+  },
+  "sha256": "e15e1596a88b1c5d09cd6dfa85332340deb237e3cff1260ea847a9a80ab700ad"
+ },
+ "segmentacion_torax": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "torax",
+   "dataset": "FOCUS (Zenodo 14597550)",
+   "particion": "oficial de FOCUS (sin id de paciente)",
+   "imagenes_prueba": 50,
+   "pacientes_prueba": 50,
+   "epoca_elegida": 64,
+   "dice_validacion": 0.9294,
+   "dice_prueba": {
+    "torax": {
+     "medio": 0.9284,
+     "mediano": 0.9325,
+     "imagenes": 50
+    },
+    "corazon": {
+     "medio": 0.9269,
+     "mediano": 0.9351,
+     "imagenes": 50
+    }
+   },
+   "dice_prueba_medio": 0.9276,
+   "indice_cardiotoracico_prueba": {
+    "ict_circunferencias_error_medio": 0.02,
+    "ict_circunferencias_experto_medio": 0.4898,
+    "ict_areas_error_medio": 0.0191,
+    "ict_areas_experto_medio": 0.2341,
+    "imagenes": 50
+   }
+  },
+  "sha256": "4dff274a875abde066c7b4cd52859ef1d0ab4187696d4c9322192143cf7129ce"
+ },
+ "segmentacion_abdomen": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "abdomen",
+   "dataset": "Fetal Abdominal Structures Segmentation (Mendeley Data)",
+   "particion": "por paciente 70/15/15",
+   "imagenes_prueba": 245,
+   "pacientes_prueba": 26,
+   "epoca_elegida": 30,
+   "dice_validacion": 0.7367,
+   "dice_prueba": {
+    "higado": {
+     "medio": 0.8428,
+     "mediano": 0.8851,
+     "imagenes": 245
+    },
+    "estomago": {
+     "medio": 0.7056,
+     "mediano": 0.8218,
+     "imagenes": 238
+    },
+    "vena_umbilical": {
+     "medio": 0.7665,
+     "mediano": 0.8264,
+     "imagenes": 245
+    },
+    "aorta": {
+     "medio": 0.6858,
+     "mediano": 0.8,
+     "imagenes": 243
+    }
+   },
+   "dice_prueba_medio": 0.7502,
+   "marcadores_plano_abdominal": {
+    "estomago": {
+     "sensibilidad": 0.9185,
+     "especificidad": 0.8333,
+     "con_estructura": 233,
+     "sin_estructura": 12
+    },
+    "vena_umbilical": {
+     "sensibilidad": 0.9794,
+     "especificidad": 0.0,
+     "con_estructura": 243,
+     "sin_estructura": 2
+    }
+   }
+  },
+  "sha256": "c57c0cca3942d785a94686500e21fe3f918f99c075f2d53af9a11c09754d91a6"
+ },
+ "segmentacion_intraparto": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "intraparto",
+   "dataset": "IUGC MICCAI 2024 (ecografÃ­a intraparto transperineal)",
+   "particion": "prueba oficial del desafÃ­o (otros aÃ±os y exÃ¡menes); validaciÃ³n por examen",
+   "imagenes_prueba": 300,
+   "pacientes_prueba": 240,
+   "epoca_elegida": 26,
+   "dice_validacion": 0.9004,
+   "dice_prueba": {
+    "sinfisis_pubis": {
+     "medio": 0.8414,
+     "mediano": 0.8622,
+     "imagenes": 300
+    },
+    "cabeza_fetal": {
+     "medio": 0.9278,
+     "mediano": 0.9334,
+     "imagenes": 300
+    }
+   },
+   "dice_prueba_medio": 0.8846,
+   "angulo_progresion_prueba": {
+    "imagenes": 300,
+    "sin_estructuras": 0,
+    "aop_error_medio_grados": 6.7,
+    "aop_error_mediano_grados": 4.73,
+    "aop_dentro_de_5_grados": 0.5367,
+    "aop_dentro_de_10_grados": 0.7733,
+    "piso_del_metodo_mascara_experto_error_medio": 3.38,
+    "acuerdo_corte_120_grados": 0.94,
+    "casos_aop_120_o_mas": 23,
+    "sensibilidad_aop_120": 0.6522,
+    "especificidad_aop_120": 0.9639
+   }
+  },
+  "sha256": "31882d639edbda7dde5de29af5679180e70702f1c37b12f81d848e7ced96dc03"
+ },
+ "segmentacion_ovario": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "ovario",
+   "dataset": "MMOTU OTU_2d (Beijing Shijitan Hospital; Figshare 25058690 / Zenodo 21128657)",
+   "particion": "prueba oficial por paciente, sin las casi copias de entrenamiento ni las de diagnÃ³stico contradictorio; validaciÃ³n 15 % de los grupos de entrenamiento",
+   "imagenes_prueba": 436,
+   "pacientes_prueba": 434,
+   "epoca_elegida": 59,
+   "dice_validacion": 0.8712,
+   "dice_prueba": {
+    "lesion_ovarica": {
+     "medio": 0.8457,
+     "mediano": 0.9233,
+     "imagenes": 436
+    }
+   },
+   "dice_prueba_medio": 0.8457,
+   "lesion_ovarica_prueba": {
+    "imagenes": 436,
+    "iou_medio": 0.7678,
+    "lesion_encontrada_iou_0_5": 0.8807,
+    "por_clase_encontrada": {
+     "carcinoma_seroso_alto_grado": 0.6923,
+     "cistoadenoma_mucinoso": 0.9688,
+     "cistoadenoma_seroso": 0.9524,
+     "ovario_normal": 0.7143,
+     "quiste_endometriosico": 0.9118,
+     "quiste_simple": 0.9474,
+     "teratoma": 0.92,
+     "tumor_celulas_teca": 0.8667
+    }
+   }
+  },
+  "sha256": "69614585ec928c65a0596073832462349be7bca43f4650223735534215d471ac"
+ },
+ "segmentacion_mioma": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "mioma",
+   "dataset": "Uterine fibroid ultrasound images (Mendeley Data n2zcmcypgb v2)",
+   "particion": "por paciente 70/15/15 (paciente anonimizada)",
+   "imagenes_prueba": 128,
+   "pacientes_prueba": 118,
+   "epoca_elegida": 37,
+   "dice_validacion": 0.8844,
+   "dice_prueba": {
+    "mioma": {
+     "medio": 0.876,
+     "mediano": 0.8946,
+     "imagenes": 128
+    }
+   },
+   "dice_prueba_medio": 0.876,
+   "mioma_prueba": {
+    "imagenes": 128,
+    "iou_caja_medio": 0.7755,
+    "iou_caja_mediano": 0.8088,
+    "mioma_encontrado_iou_0_5": 0.9688,
+    "mioma_encontrado_iou_0_3": 0.9922
+   }
+  },
+  "sha256": "b0c46afe40cd4c9f9020030b49176f66776216c503c3ca298b33927b99e51430"
+ },
+ "clasificador_ovario": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "ovario",
+   "dataset": "MMOTU OTU_2d Â· Beijing Shijitan Hospital Â· etiquetas con informe de anatomÃ­a patolÃ³gica (27 especialistas)",
+   "particion": "prueba oficial por paciente sin casi copias de entrenamiento ni diagnÃ³sticos contradictorios",
+   "variantes_validacion": {
+    "imagen": 0.6941,
+    "roi": 0.7114
+   },
+   "variante_elegida": "roi_b0+imagen_b0",
+   "prueba_imagen": {
+    "imagenes": 436,
+    "exactitud": 0.6606,
+    "exactitud_balanceada": 0.5531,
+    "f1_macro": 0.5683,
+    "auc_macro_ovr": 0.894,
+    "exactitud_ic95": [
+     0.6147,
+     0.7018
+    ],
+    "exactitud_balanceada_ic95": [
+     0.4976,
+     0.6095
+    ],
+    "por_clase": {
+     "quiste_endometriosico": {
+      "casos": 102,
+      "sensibilidad": 0.8235,
+      "valor_predictivo_positivo": 0.7059
+     },
+     "cistoadenoma_seroso": {
+      "casos": 63,
+      "sensibilidad": 0.5238,
+      "valor_predictivo_positivo": 0.5789
+     },
+     "teratoma": {
+      "casos": 100,
+      "sensibilidad": 0.76,
+      "valor_predictivo_positivo": 0.7238
+     },
+     "tumor_celulas_teca": {
+      "casos": 30,
+      "sensibilidad": 0.4333,
+      "valor_predictivo_positivo": 0.5909
+     },
+     "quiste_simple": {
+      "casos": 19,
+      "sensibilidad": 0.4211,
+      "valor_predictivo_positivo": 0.6154
+     },
+     "ovario_normal": {
+      "casos": 77,
+      "sensibilidad": 0.7013,
+      "valor_predictivo_positivo": 0.7013
+     },
+     "cistoadenoma_mucinoso": {
+      "casos": 32,
+      "sensibilidad": 0.5312,
+      "valor_predictivo_positivo": 0.4857
+     },
+     "carcinoma_seroso_alto_grado": {
+      "casos": 13,
+      "sensibilidad": 0.2308,
+      "valor_predictivo_positivo": 0.375
+     }
+    },
+    "matriz_confusion": {
+     "filas_real_columnas_predicha": [
+      "quiste_endometriosico",
+      "cistoadenoma_seroso",
+      "teratoma",
+      "tumor_celulas_teca",
+      "quiste_simple",
+      "ovario_normal",
+      "cistoadenoma_mucinoso",
+      "carcinoma_seroso_alto_grado"
+     ],
+     "valores": [
+      [
+       84,
+       2,
+       9,
+       1,
+       0,
+       2,
+       3,
+       1
+      ],
+      [
+       9,
+       33,
+       4,
+       3,
+       2,
+       4,
+       8,
+       0
+      ],
+      [
+       7,
+       7,
+       76,
+       2,
+       0,
+       7,
+       1,
+       0
+      ],
+      [
+       4,
+       1,
+       4,
+       13,
+       1,
+       4,
+       2,
+       1
+      ],
+      [
+       1,
+       3,
+       2,
+       1,
+       8,
+       2,
+       1,
+       1
+      ],
+      [
+       5,
+       5,
+       7,
+       1,
+       2,
+       54,
+       1,
+       2
+      ],
+      [
+       8,
+       4,
+       1,
+       0,
+       0,
+       2,
+       17,
+       0
+      ],
+      [
+       1,
+       2,
+       2,
+       1,
+       0,
+       2,
+       2,
+       3
+      ]
+     ]
+    },
+    "malignidad": {
+     "casos_malignos": 13,
+     "casos_no_malignos": 423,
+     "auc": 0.8542,
+     "umbral_fijado_de_antemano": 0.25,
+     "sensibilidad": 0.5385,
+     "especificidad": 0.9787,
+     "alarmas": 16,
+     "falsas_alarmas": 9
+    }
+   },
+   "prueba_roi": {
+    "imagenes": 436,
+    "exactitud": 0.6881,
+    "exactitud_balanceada": 0.613,
+    "f1_macro": 0.61,
+    "auc_macro_ovr": 0.8851,
+    "exactitud_ic95": [
+     0.6468,
+     0.7294
+    ],
+    "exactitud_balanceada_ic95": [
+     0.552,
+     0.6711
+    ],
+    "por_clase": {
+     "quiste_endometriosico": {
+      "casos": 102,
+      "sensibilidad": 0.7451,
+      "valor_predictivo_positivo": 0.8352
+     },
+     "cistoadenoma_seroso": {
+      "casos": 63,
+      "sensibilidad": 0.6508,
+      "valor_predictivo_positivo": 0.5125
+     },
+     "teratoma": {
+      "casos": 100,
+      "sensibilidad": 0.78,
+      "valor_predictivo_positivo": 0.8764
+     },
+     "tumor_celulas_teca": {
+      "casos": 30,
+      "sensibilidad": 0.4333,
+      "valor_predictivo_positivo": 0.65
+     },
+     "quiste_simple": {
+      "casos": 19,
+      "sensibilidad": 0.5263,
+      "valor_predictivo_positivo": 0.5882
+     },
+     "ovario_normal": {
+      "casos": 77,
+      "sensibilidad": 0.7922,
+      "valor_predictivo_positivo": 0.7093
+     },
+     "cistoadenoma_mucinoso": {
+      "casos": 32,
+      "sensibilidad": 0.4375,
+      "valor_predictivo_positivo": 0.4
+     },
+     "carcinoma_seroso_alto_grado": {
+      "casos": 13,
+      "sensibilidad": 0.5385,
+      "valor_predictivo_positivo": 0.3889
+     }
+    },
+    "matriz_confusion": {
+     "filas_real_columnas_predicha": [
+      "quiste_endometriosico",
+      "cistoadenoma_seroso",
+      "teratoma",
+      "tumor_celulas_teca",
+      "quiste_simple",
+      "ovario_normal",
+      "cistoadenoma_mucinoso",
+      "carcinoma_seroso_alto_grado"
+     ],
+     "valores": [
+      [
+       76,
+       5,
+       3,
+       1,
+       3,
+       7,
+       5,
+       2
+      ],
+      [
+       2,
+       41,
+       4,
+       3,
+       1,
+       4,
+       7,
+       1
+      ],
+      [
+       2,
+       11,
+       78,
+       1,
+       1,
+       5,
+       0,
+       2
+      ],
+      [
+       2,
+       2,
+       1,
+       13,
+       0,
+       5,
+       5,
+       2
+      ],
+      [
+       0,
+       5,
+       1,
+       0,
+       10,
+       2,
+       1,
+       0
+      ],
+      [
+       5,
+       2,
+       2,
+       1,
+       2,
+       61,
+       1,
+       3
+      ],
+      [
+       3,
+       13,
+       0,
+       1,
+       0,
+       0,
+       14,
+       1
+      ],
+      [
+       1,
+       1,
+       0,
+       0,
+       0,
+       2,
+       2,
+       7
+      ]
+     ]
+    },
+    "malignidad": {
+     "casos_malignos": 13,
+     "casos_no_malignos": 423,
+     "auc": 0.8114,
+     "umbral_fijado_de_antemano": 0.25,
+     "sensibilidad": 0.5385,
+     "especificidad": 0.9716,
+     "alarmas": 19,
+     "falsas_alarmas": 12
+    }
+   },
+   "prueba": {
+    "imagenes": 436,
+    "exactitud": 0.6858,
+    "exactitud_balanceada": 0.6044,
+    "f1_macro": 0.618,
+    "auc_macro_ovr": 0.9099,
+    "exactitud_ic95": [
+     0.6422,
+     0.7271
+    ],
+    "exactitud_balanceada_ic95": [
+     0.5444,
+     0.6633
+    ],
+    "por_clase": {
+     "quiste_endometriosico": {
+      "casos": 102,
+      "sensibilidad": 0.8039,
+      "valor_predictivo_positivo": 0.7593
+     },
+     "cistoadenoma_seroso": {
+      "casos": 63,
+      "sensibilidad": 0.619,
+      "valor_predictivo_positivo": 0.5571
+     },
+     "teratoma": {
+      "casos": 100,
+      "sensibilidad": 0.72,
+      "valor_predictivo_positivo": 0.7742
+     },
+     "tumor_celulas_teca": {
+      "casos": 30,
+      "sensibilidad": 0.4333,
+      "valor_predictivo_positivo": 0.619
+     },
+     "quiste_simple": {
+      "casos": 19,
+      "sensibilidad": 0.4737,
+      "valor_predictivo_positivo": 0.6923
+     },
+     "ovario_normal": {
+      "casos": 77,
+      "sensibilidad": 0.7922,
+      "valor_predictivo_positivo": 0.7262
+     },
+     "cistoadenoma_mucinoso": {
+      "casos": 32,
+      "sensibilidad": 0.5312,
+      "valor_predictivo_positivo": 0.4722
+     },
+     "carcinoma_seroso_alto_grado": {
+      "casos": 13,
+      "sensibilidad": 0.4615,
+      "valor_predictivo_positivo": 0.5455
+     }
+    },
+    "matriz_confusion": {
+     "filas_real_columnas_predicha": [
+      "quiste_endometriosico",
+      "cistoadenoma_seroso",
+      "teratoma",
+      "tumor_celulas_teca",
+      "quiste_simple",
+      "ovario_normal",
+      "cistoadenoma_mucinoso",
+      "carcinoma_seroso_alto_grado"
+     ],
+     "valores": [
+      [
+       82,
+       3,
+       6,
+       1,
+       1,
+       5,
+       2,
+       2
+      ],
+      [
+       5,
+       39,
+       4,
+       3,
+       1,
+       3,
+       8,
+       0
+      ],
+      [
+       7,
+       11,
+       72,
+       1,
+       0,
+       7,
+       1,
+       1
+      ],
+      [
+       3,
+       1,
+       3,
+       13,
+       0,
+       4,
+       4,
+       2
+      ],
+      [
+       0,
+       4,
+       2,
+       1,
+       9,
+       2,
+       1,
+       0
+      ],
+      [
+       5,
+       2,
+       4,
+       2,
+       2,
+       61,
+       1,
+       0
+      ],
+      [
+       5,
+       9,
+       1,
+       0,
+       0,
+       0,
+       17,
+       0
+      ],
+      [
+       1,
+       1,
+       1,
+       0,
+       0,
+       2,
+       2,
+       6
+      ]
+     ]
+    },
+    "malignidad": {
+     "casos_malignos": 13,
+     "casos_no_malignos": 423,
+     "auc": 0.8652,
+     "umbral_fijado_de_antemano": 0.25,
+     "sensibilidad": 0.5385,
+     "especificidad": 0.9764,
+     "alarmas": 17,
+     "falsas_alarmas": 10
+    }
+   },
+   "ronda_2": {
+    "tarea": "ovario",
+    "ronda": 2,
+    "candidatas": {
+     "A": "roi_b0",
+     "B": "roi_b2",
+     "C": "roi_b0+imagen_b0",
+     "D": "roi_b2+imagen_b0"
+    },
+    "validacion_exactitud_balanceada": {
+     "A": 0.7114,
+     "B": 0.6572,
+     "C": 0.741,
+     "D": 0.7431
+    },
+    "elegida": "C",
+    "prueba_por_candidata": {
+     "A": {
+      "exactitud": 0.6881,
+      "exactitud_balanceada": 0.613,
+      "f1_macro": 0.61,
+      "malignidad": {
+       "casos_malignos": 13,
+       "casos_no_malignos": 423,
+       "auc": 0.8114,
+       "umbral_fijado_de_antemano": 0.25,
+       "sensibilidad": 0.5385,
+       "especificidad": 0.9716,
+       "alarmas": 19,
+       "falsas_alarmas": 12
+      }
+     },
+     "B": {
+      "exactitud": 0.6606,
+      "exactitud_balanceada": 0.5596,
+      "f1_macro": 0.5806,
+      "malignidad": {
+       "casos_malignos": 13,
+       "casos_no_malignos": 423,
+       "auc": 0.8007,
+       "umbral_fijado_de_antemano": 0.25,
+       "sensibilidad": 0.3077,
+       "especificidad": 0.9953,
+       "alarmas": 6,
+       "falsas_alarmas": 2
+      }
+     },
+     "C": {
+      "exactitud": 0.6858,
+      "exactitud_balanceada": 0.6044,
+      "f1_macro": 0.618,
+      "malignidad": {
+       "casos_malignos": 13,
+       "casos_no_malignos": 423,
+       "auc": 0.8652,
+       "umbral_fijado_de_antemano": 0.25,
+       "sensibilidad": 0.5385,
+       "especificidad": 0.9764,
+       "alarmas": 17,
+       "falsas_alarmas": 10
+      }
+     },
+     "D": {
+      "exactitud": 0.7087,
+      "exactitud_balanceada": 0.6209,
+      "f1_macro": 0.6478,
+      "malignidad": {
+       "casos_malignos": 13,
+       "casos_no_malignos": 423,
+       "auc": 0.8743,
+       "umbral_fijado_de_antemano": 0.25,
+       "sensibilidad": 0.3846,
+       "especificidad": 0.9929,
+       "alarmas": 8,
+       "falsas_alarmas": 3
+      }
+     }
+    }
+   }
+  },
+  "sha256": "f058db7528848bcda1ebdee1ac331772a391a96f580b0848d627d072fab8d56c"
+ },
+ "clasificador_ovario_pco": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "ovario_pco",
+   "dataset": "Borna et al. 2025 (Frontiers in Physiology): 301 ecografÃ­as transvaginales de pacientes distintas, una ginecobstetra",
+   "particion": "5 pliegues estratificados; mÃ©tricas fuera de pliegue (cada imagen predicha por un modelo que no la vio)",
+   "prueba": {
+    "imagenes": 295,
+    "exactitud": 0.8,
+    "exactitud_balanceada": 0.809,
+    "f1_macro": 0.8041,
+    "auc_macro_ovr": 0.9114,
+    "exactitud_ic95": [
+     0.7525,
+     0.8441
+    ],
+    "exactitud_balanceada_ic95": [
+     0.7567,
+     0.8585
+    ],
+    "por_clase": {
+     "normal": {
+      "casos": 41,
+      "sensibilidad": 0.8293,
+      "valor_predictivo_positivo": 0.8095
+     },
+     "foliculo_dominante": {
+      "casos": 141,
+      "sensibilidad": 0.766,
+      "valor_predictivo_positivo": 0.8438
+     },
+     "poliquistico": {
+      "casos": 113,
+      "sensibilidad": 0.8319,
+      "valor_predictivo_positivo": 0.752
+     }
+    },
+    "matriz_confusion": {
+     "filas_real_columnas_predicha": [
+      "normal",
+      "foliculo_dominante",
+      "poliquistico"
+     ],
+     "valores": [
+      [
+       34,
+       3,
+       4
+      ],
+      [
+       6,
+       108,
+       27
+      ],
+      [
+       2,
+       17,
+       94
+      ]
+     ]
+    }
+   }
+  },
+  "sha256": "ef0fcb4085fad22e04c4b918bdd7803da2fddffbf35d253d61488421434a7c3e"
+ },
+ "biometria_femur": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "femur",
+   "dataset": "Multicentre Fetal Biometry 2026 (UCL RDR 10.5522/04/30819911)",
+   "particion": "oficial por paciente (_Train/_Test) sin las pacientes de UCLH que aparecÃ­an en los dos lados; validaciÃ³n 15 % de las pacientes de entrenamiento",
+   "fuga_en_la_particion_oficial": {
+    "pacientes_en_ambos_lados": [
+     "ucl031",
+     "ucl034",
+     "ucl050",
+     "ucl056"
+    ],
+    "imagenes_de_prueba_quitadas": 9
+   },
+   "imagenes_prueba": 353,
+   "pacientes_prueba": 271,
+   "epoca_elegida": 64,
+   "error_relativo_validacion": 0.036,
+   "prueba": {
+    "imagenes": 353,
+    "fl": {
+     "imagenes": 353,
+     "error_relativo_medio": 0.0278,
+     "dentro_de_5_por_ciento": 0.9235,
+     "imagenes_con_mm": 348,
+     "error_medio_mm": 1.29,
+     "error_mediano_mm": 0.58
+    }
+   },
+   "por_sitio": {
+    "Barcelona (FETAL_PLANES)": {
+     "imagenes": 323,
+     "fl": {
+      "imagenes": 323,
+      "error_relativo_medio": 0.0287,
+      "dentro_de_5_por_ciento": 0.9195,
+      "imagenes_con_mm": 323,
+      "error_medio_mm": 1.33,
+      "error_mediano_mm": 0.58
+     }
+    },
+    "Londres (UCLH)": {
+     "imagenes": 30,
+     "fl": {
+      "imagenes": 30,
+      "error_relativo_medio": 0.0177,
+      "dentro_de_5_por_ciento": 0.9667,
+      "imagenes_con_mm": 25,
+      "error_medio_mm": 0.8,
+      "error_mediano_mm": 0.57
+     }
+    }
+   }
+  },
+  "sha256": "86ff47d37d65c0ec31c294f9276cf376140d7bc71a60cc064b168d4fac6a5185"
+ },
+ "biometria_abdomen": {
+  "disponible": true,
+  "metricas_prueba": {
+   "tarea": "abdomen",
+   "dataset": "Multicentre Fetal Biometry 2026 (UCL RDR 10.5522/04/30819911)",
+   "particion": "oficial por paciente (_Train/_Test) sin las pacientes de UCLH que aparecÃ­an en los dos lados; validaciÃ³n 15 % de las pacientes de entrenamiento",
+   "fuga_en_la_particion_oficial": {
+    "pacientes_en_ambos_lados": [
+     "ucl005",
+     "ucl031",
+     "ucl034",
+     "ucl035",
+     "ucl056"
+    ],
+    "imagenes_de_prueba_quitadas": 21
+   },
+   "imagenes_prueba": 140,
+   "pacientes_prueba": 118,
+   "epoca_elegida": 60,
+   "error_relativo_validacion": 0.0294,
+   "prueba": {
+    "imagenes": 140,
+    "tad": {
+     "imagenes": 140,
+     "error_relativo_medio": 0.0322,
+     "dentro_de_5_por_ciento": 0.8786,
+     "imagenes_con_mm": 134,
+     "error_medio_mm": 2.31,
+     "error_mediano_mm": 1.29
+    },
+    "apad": {
+     "imagenes": 140,
+     "error_relativo_medio": 0.036,
+     "dentro_de_5_por_ciento": 0.8643,
+     "imagenes_con_mm": 134,
+     "error_medio_mm": 2.39,
+     "error_mediano_mm": 1.01
+    },
+    "ca": {
+     "imagenes": 134,
+     "error_relativo_medio": 0.0288,
+     "dentro_de_5_por_ciento": 0.8881,
+     "imagenes_con_mm": 134,
+     "error_medio_mm": 6.05,
+     "error_mediano_mm": 2.92
+    }
+   },
+   "por_sitio": {
+    "Barcelona (FETAL_PLANES)": {
+     "imagenes": 125,
+     "tad": {
+      "imagenes": 125,
+      "error_relativo_medio": 0.0344,
+      "dentro_de_5_por_ciento": 0.864,
+      "imagenes_con_mm": 125,
+      "error_medio_mm": 2.42,
+      "error_mediano_mm": 1.4
+     },
+     "apad": {
+      "imagenes": 125,
+      "error_relativo_medio": 0.0392,
+      "dentro_de_5_por_ciento": 0.848,
+      "imagenes_con_mm": 125,
+      "error_medio_mm": 2.51,
+      "error_mediano_mm": 1.03
+     },
+     "ca": {
+      "imagenes": 125,
+      "error_relativo_medio": 0.0301,
+      "dentro_de_5_por_ciento": 0.88,
+      "imagenes_con_mm": 125,
+      "error_medio_mm": 6.33,
+      "error_mediano_mm": 2.99
+     }
+    },
+    "Londres (UCLH)": {
+     "imagenes": 15,
+     "tad": {
+      "imagenes": 15,
+      "error_relativo_medio": 0.0144,
+      "dentro_de_5_por_ciento": 1.0,
+      "imagenes_con_mm": 9,
+      "error_medio_mm": 0.85,
+      "error_mediano_mm": 0.5
+     },
+     "apad": {
+      "imagenes": 15,
+      "error_relativo_medio": 0.0093,
+      "dentro_de_5_por_ciento": 1.0,
+      "imagenes_con_mm": 9,
+      "error_medio_mm": 0.77,
+      "error_mediano_mm": 0.49
+     },
+     "ca": {
+      "imagenes": 9,
+      "error_relativo_medio": 0.0111,
+      "dentro_de_5_por_ciento": 1.0,
+      "imagenes_con_mm": 9,
+      "error_medio_mm": 2.18,
+      "error_mediano_mm": 2.0
+     }
+    }
+   }
+  },
+  "sha256": "2922d01580fe938e4fe80eeb4da3c1146a925f66836e4363a7f33eed3e7b3f68"
+ }
+}

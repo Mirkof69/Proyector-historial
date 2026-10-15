@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAntdApp } from "../../hooks/useMessage";
 import {Card,
   Button,
@@ -16,24 +17,21 @@ import {Card,
   Typography,
   Alert,
   Tooltip,
-  Badge,
   Divider,
   Switch} from "antd";
 import {
   RobotOutlined,
-  ThunderboltOutlined,
-  SafetyOutlined,
   DeleteOutlined,
-  LineChartOutlined,
   BulbOutlined,
   BugOutlined,
   CloseCircleOutlined,
-  EyeOutlined
+  EyeOutlined,
+  ReadOutlined,
 } from '@ant-design/icons';
 import useSystemDiagnostics from '../../hooks/useSystemDiagnostics';
 import statisticsService, { DashboardStats } from '../../services/statisticsService';
 import './IAAsistenteMedico.css';
-import { Mensaje, loadInitialMessages, procesarConsultaLocal } from './iaAsistenteUtils';
+import { CLAVE_HISTORIAL, Mensaje, crearMensajeBienvenida, loadInitialMessages, procesarConsultaLocal } from './iaAsistenteUtils';
 import IAStatsPanel from './components/IAStatsPanel';
 import IAAnalisisRapidos from './components/IAAnalisisRapidos';
 import IAChatMessages from './components/IAChatMessages';
@@ -50,12 +48,9 @@ export const IAAsistenteMedico: React.FC = () => {
   const { message } = useAntdApp();
   const [inputTexto, setInputTexto] = useState('');
   const [cargando, setCargando] = useState(false);
-  const [estadisticasIA, setEstadisticasIA] = useState({
-    analisisRealizados: 0,
-    alertasGeneradas: 0,
-    recomendacionesDadas: 0,
-    precision: 94.5
-  });
+  // Solo se cuentan las consultas: antes había una «precisión 94,5 %» fija.
+  const [consultasSesion, setConsultasSesion] = useState(0);
+  const navigate = useNavigate();
   const dashboardContextRef = useRef<DashboardStats | null>(null);
 
   const {
@@ -76,8 +71,8 @@ export const IAAsistenteMedico: React.FC = () => {
       try {
         const stats = await statisticsService.getDashboardStatistics();
         dashboardContextRef.current = stats;
-      } catch (error) {
-        console.error("Error cargando contexto para IA:", error);
+      } catch {
+        // Sin contexto del panel la consulta sigue funcionando.
       }
     };
     loadContext();
@@ -85,8 +80,8 @@ export const IAAsistenteMedico: React.FC = () => {
 
   const persistAndScroll = useCallback((msgs: Mensaje[]) => {
     if (msgs.length > 0) {
-      localStorage.setItem('ia_chat_history:v1', JSON.stringify(msgs));
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      try { localStorage.setItem(CLAVE_HISTORIAL, JSON.stringify(msgs)); } catch { /* almacenamiento bloqueado */ }
+      messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
     }
   }, []);
 
@@ -98,7 +93,7 @@ export const IAAsistenteMedico: React.FC = () => {
       const errorMessage: Mensaje = {
         id: `sistema-error-${Date.now()}`,
         tipo: 'sistema',
-        contenido: `🔧 **ERROR DETECTADO AUTOMÁTICAMENTE**\n\n${interpretation}`,
+        contenido: `Error detectado automáticamente\n\n${interpretation}`,
         timestamp: new Date(),
         categoria: 'alerta'
       };
@@ -110,43 +105,35 @@ export const IAAsistenteMedico: React.FC = () => {
       });
       message.error(`Error ${lastError.details.status || 'del sistema'} detectado - Ver IA Assistant`);
     }
-  }, [systemErrors, isMonitoring, interpretError, persistAndScroll]);
+  }, [systemErrors, isMonitoring, interpretError, persistAndScroll, message]);
 
   // Función para limpiar el historial
   const limpiarHistorial = () => {
-    localStorage.removeItem('ia_chat_history');
-    setMensajes([]);
-    setTimeout(() => {
-      const mensajeBienvenida: Mensaje = {
-        id: `ia-${Date.now()}`,
-        tipo: 'ia',
-        contenido: `¡Historial limpiado! 🧹
-
-¿En qué puedo ayudarte ahora?`,
-        timestamp: new Date(),
-        categoria: 'informacion',
-        confianza: 100,
-      };
-      setMensajes(prev => {
-        const newMessages = [mensajeBienvenida];
-        persistAndScroll(newMessages);
-        return newMessages;
-      });
-    }, 100);
+    // Antes borraba «ia_chat_history» y el historial se guarda en «ia_chat_history:v1».
+    try { localStorage.removeItem(CLAVE_HISTORIAL); } catch { /* almacenamiento bloqueado */ }
+    const bienvenida = [crearMensajeBienvenida()];
+    setMensajes(bienvenida);
+    persistAndScroll(bienvenida);
   };
 
   const procesarConsultaIA = async (consulta: string): Promise<{
     respuesta: string;
+    fuente: 'base_conocimiento' | 'sin_conexion';
+    tema?: string;
     consultaId?: number;
-    confianza?: number;
     tiempoRespuesta?: number;
   }> => {
     const { iaMedicaService } = await import('../../services/iaMedicaService');
 
     try {
+      // Solo dentro de la ficha de una paciente (/pacientes/:id). Antes, fuera de
+      // ella, indexOf daba -1, se leía el primer tramo vacío y Number('') = 0:
+      // se mandaba paciente_id = 0 y el backend respondía 500 en cada consulta.
       const pathParts = window.location.pathname.split('/');
-      const pacienteIdString = pathParts[pathParts.indexOf('pacientes') + 1];
-      const paciente_id = !isNaN(Number(pacienteIdString)) ? Number(pacienteIdString) : undefined;
+      const pos = pathParts.indexOf('pacientes');
+      const pacienteIdString = pos >= 0 ? pathParts[pos + 1] : '';
+      const paciente_id = /^\d+$/.test(pacienteIdString ?? '') && Number(pacienteIdString) > 0
+        ? Number(pacienteIdString) : undefined;
 
       const contextoRico = {
         total_pacientes: dashboardContextRef.current?.total_pacientes || 0,
@@ -162,38 +149,34 @@ export const IAAsistenteMedico: React.FC = () => {
         contexto: contextoRico
       });
 
-      let respuestaFormateada = resultado.consulta.respuesta_ia;
-
-      if (resultado.nlp_info && resultado.nlp_info.keywords.length > 0) {
-        respuestaFormateada += `\n\n---\n📊 **Información de Procesamiento:**\n`;
-        respuestaFormateada += `• Confianza técnica: ${resultado.nlp_info.confianza.toFixed(1)}%\n`;
-        respuestaFormateada += `• Etiquetas: ${resultado.nlp_info.keywords.join(', ')}`;
+      // El backend responde 200 con `fallback: true` cuando el microservicio no está.
+      if (resultado.fallback) {
+        return { respuesta: procesarConsultaLocal(consulta), fuente: 'sin_conexion' };
       }
-
       return {
-        respuesta: respuestaFormateada,
+        respuesta: resultado.consulta.respuesta_ia,
+        fuente: 'base_conocimiento',
+        tema: resultado.consulta.categoria,
         consultaId: resultado.consulta.id,
-        confianza: resultado.consulta.confianza,
-        tiempoRespuesta: resultado.consulta.tiempo_respuesta_ms
+        tiempoRespuesta: resultado.consulta.tiempo_respuesta_ms,
       };
-    } catch (error) {
-      console.error('Error al consultar IA:', error);
-      const consultaLower = consulta.toLowerCase();
-      return {
-        respuesta: procesarConsultaLocal(consultaLower),
-        confianza: 85
-      };
+    } catch {
+      return { respuesta: procesarConsultaLocal(consulta), fuente: 'sin_conexion' };
     }
   };
 
 
-  const enviarMensaje = async () => {
-    if (!inputTexto.trim()) return;
+  // Recibe el texto: las «consultas rápidas» lo pasan directo. Antes ponían el
+  // texto en el campo y llamaban a enviarMensaje con un setTimeout, pero esa
+  // función ya había leído el campo vacío y no enviaba nada.
+  const enviarMensaje = async (texto: string = inputTexto) => {
+    const consulta = texto.trim();
+    if (!consulta) return;
 
     const mensajeUsuario: Mensaje = {
       id: `user-${Date.now()}`,
       tipo: 'usuario',
-      contenido: inputTexto,
+      contenido: consulta,
       timestamp: new Date()
     };
 
@@ -206,7 +189,7 @@ export const IAAsistenteMedico: React.FC = () => {
     setCargando(true);
 
     try {
-      const resultadoIA = await procesarConsultaIA(inputTexto);
+      const resultadoIA = await procesarConsultaIA(consulta);
 
       const mensajeIA: Mensaje = {
         id: `ia-${Date.now()}`,
@@ -214,7 +197,8 @@ export const IAAsistenteMedico: React.FC = () => {
         contenido: resultadoIA.respuesta,
         timestamp: new Date(),
         categoria: 'analisis',
-        confianza: resultadoIA.confianza || 88,
+        fuente: resultadoIA.fuente,
+        tema: resultadoIA.tema,
         consultaId: resultadoIA.consultaId,
         tiempoRespuesta: resultadoIA.tiempoRespuesta
       };
@@ -225,16 +209,7 @@ export const IAAsistenteMedico: React.FC = () => {
         return newMessages;
       });
 
-      setEstadisticasIA(prev => ({
-        ...prev,
-        analisisRealizados: prev.analisisRealizados + 1,
-        recomendacionesDadas: prev.recomendacionesDadas + (resultadoIA.respuesta.includes('Recomend') ? 1 : 0),
-        alertasGeneradas: prev.alertasGeneradas + (resultadoIA.respuesta.includes('⚠️') || resultadoIA.respuesta.includes('🚨') ? 1 : 0),
-        precision: resultadoIA.confianza || prev.precision
-      }));
-
-    } catch (error) {
-      console.error('Error procesando IA:', error);
+      if (resultadoIA.fuente === 'base_conocimiento') setConsultasSesion((n) => n + 1);
     } finally {
       setCargando(false);
     }
@@ -248,14 +223,13 @@ export const IAAsistenteMedico: React.FC = () => {
       laboratorio: 'Interpretación de laboratorios prenatal'
     };
 
-    setInputTexto(consultas[tipo] || '');
-    setTimeout(() => enviarMensaje(), 100);
+    if (consultas[tipo]) enviarMensaje(consultas[tipo]);
   };
 
   const collapseErrorLabel = useMemo(
     () => (
       <Space>
-        <BugOutlined style={{ color: '#ff4d4f' }} />
+        <BugOutlined className="mensaje-icono alarma" />
         <Text strong>Errores Capturados ({systemErrors.length})</Text>
         {criticalErrors > 0 && <Tag color="error">CRÍTICOS: {criticalErrors}</Tag>}
         {highErrors > 0 && <Tag color="warning">ALTOS: {highErrors}</Tag>}
@@ -269,28 +243,22 @@ export const IAAsistenteMedico: React.FC = () => {
       className="ia-asistente-medico"
       title={
         <Space>
-          <Badge dot status="processing">
-            <Avatar
-              icon={<RobotOutlined />}
-              style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-            />
-          </Badge>
+          <Avatar icon={<RobotOutlined />} className="ia-asistente-avatar" />
           <div>
-            <Title level={5} style={{ margin: 0 }}>Asistente Médico IA</Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              <ThunderboltOutlined /> Análisis en tiempo real
+            <Title level={5} className="ia-asistente-titulo">Asistente de consulta</Title>
+            <Text type="secondary" className="ia-asistente-subtitulo">
+              Base de conocimiento obstétrica
             </Text>
           </div>
         </Space>
       }
       extra={
-        <Space>
-          <Tag icon={<SafetyOutlined />} color="success">
-            Precisión {estadisticasIA.precision}%
-          </Tag>
-          <Tag icon={<LineChartOutlined />} color="processing">
-            {estadisticasIA.analisisRealizados} análisis
-          </Tag>
+        <Space wrap>
+          <Tooltip title="Qué modelos de IA tiene el sistema y cuánto aciertan">
+            <Button size="small" icon={<ReadOutlined />} onClick={() => navigate('/dashboard/ia-guia')}>
+              Guía de IA
+            </Button>
+          </Tooltip>
           <Tooltip title="Borrar historial de chat">
             <Button
               type="text"
@@ -317,8 +285,8 @@ export const IAAsistenteMedico: React.FC = () => {
           )}
           <Tooltip title={isMonitoring ? 'Desactivar monitoreo' : 'Activar monitoreo de sistema'}>
             <Space>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {isMonitoring ? 'Monitor ON' : 'Monitor OFF'}
+              <Text type="secondary" className="ia-asistente-subtitulo">
+                {isMonitoring ? 'Monitor activo' : 'Monitor apagado'}
               </Text>
               <Switch
                 checked={isMonitoring}
@@ -331,15 +299,14 @@ export const IAAsistenteMedico: React.FC = () => {
           </Tooltip>
         </Space>
       }
-      style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
     >
       {hasErrors && (
         <IAErroresCollapse systemErrors={systemErrors} collapseErrorLabel={collapseErrorLabel} />
       )}
 
-      <IAStatsPanel estadisticasIA={estadisticasIA} />
+      <IAStatsPanel consultas={consultasSesion} />
 
-      <Divider style={{ margin: '12px 0' }} />
+      <Divider className="ia-asistente-divisor" />
 
       <IAAnalisisRapidos analizarRapido={analizarRapido} />
 
@@ -353,12 +320,11 @@ export const IAAsistenteMedico: React.FC = () => {
       />
 
       <Alert
-        message="IA Experimental"
-        description="Este asistente usa algoritmos de IA para análisis médico. Siempre verificar con criterio clínico profesional."
+        message="Apoyo, no diagnóstico"
+        description="Las respuestas resumen guías clínicas. La decisión es del médico (Ley 3131)."
         type="info"
         showIcon
         icon={<BulbOutlined />}
-        style={{ marginTop: 12 }}
       />
     </Card>
   );

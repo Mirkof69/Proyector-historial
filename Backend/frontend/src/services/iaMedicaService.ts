@@ -121,8 +121,27 @@ export interface ModeloCatalogo {
   disponible: boolean;
   metrica_principal: string | null;
   datos_reales: boolean;
+  /** Con qué datos se entrenó y midió (nombre del dataset). */
+  datos?: string | null;
   version?: string;
   huella?: string | null;
+}
+
+/** Modelo que se entrenó, se midió y NO pasó a servicio (ia_medica/services/catalogo_modelos.py). */
+export interface ModeloDescartado {
+  codigo: string;
+  nombre: string;
+  tipo: string;
+  datos: string;
+  metrica: string;
+  motivo: string;
+}
+
+/** GET /api/ia/imagenes/modelos/ */
+export interface RespuestaModelos {
+  modelos_builtin: ModeloCatalogo[];
+  modelos_descartados?: ModeloDescartado[];
+  total: number;
 }
 
 export interface EstadisticasIA {
@@ -253,15 +272,17 @@ export const iaMedicaService = {
   },
 
   // Obtener modelos configurados
-  getModelos: async () => {
-    const response = await api.get('/ia/imagenes/modelos/');
+  getModelos: async (): Promise<RespuestaModelos> => {
+    const response = await api.get<RespuestaModelos>('/ia/imagenes/modelos/');
     return response.data;
   },
 
-  // Análisis completo EfficientNet-B4 con Grad-CAM + SHAP (microservicio FastAPI)
+  // Análisis completo con las redes medidas: plano → U-Net de ese plano → medidas.
+  // Con el tamaño de píxel (del ecógrafo o del DICOM) las medidas salen en mm.
   analyzeWithAI: async (
     file?: File,
     ecografiaId?: string,
+    tamanoPixelMm?: number | null,
   ): Promise<{ status: string; ai_analysis: InformeRedesMedidas; message: string }> => {
     const formData = new FormData();
     if (file) {
@@ -269,6 +290,9 @@ export const iaMedicaService = {
     }
     if (ecografiaId) {
       formData.append('ecografia_id', ecografiaId);
+    }
+    if (tamanoPixelMm) {
+      formData.append('tamano_pixel_mm', String(tamanoPixelMm));
     }
     const response = await api.post('/ecografias/analyze-with-ai/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

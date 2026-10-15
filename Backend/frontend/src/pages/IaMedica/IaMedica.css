@@ -1,155 +1,201 @@
-/* Paleta oscura mate fija — no depende de variables de tema (que en este
-   entorno no se aplican de forma confiable a todos los componentes/portales).
-   Colores deliberadamente apagados, sin brillos ni tonos saturados. */
-:root {
-  --ia-bg: #161616;
-  --ia-bg-alt: #1c1c1c;
-  --ia-border: #2e2e2e;
-  --ia-text: #e3e3e3;
-  --ia-text-secondary: #a3a3a3;
-  --ia-text-tertiary: #767676;
-  --ia-danger: #b35c5c;
-  --ia-danger-bg: #2a1818;
-  --ia-warning: #b08d57;
-  --ia-warning-bg: #2a2418;
-  --ia-success: #5a8f6b;
-  --ia-success-bg: #182a1e;
-  --ia-info: #5b8db8;
-  --ia-info-bg: #182530;
-}
+/* IA médica — hoja de la página. Contrato: docs/DISENO_INTERFAZ.md.
+   Solo tokens (var(--color-…), --esp-*, --radio*, --texto-*). Antes esta hoja
+   declaraba una paleta oscura fija en :root y las tarjetas de cifras salían
+   negras sobre el tema claro. Las clases van con prefijo «ia-» o dentro de un
+   contenedor de la página para no pisar otras pantallas. */
 
 .ia-medica-container {
-  padding: 24px;
+  padding: var(--esp-5);
   max-width: 1400px;
   margin: 0 auto;
+  display: grid;
+  /* minmax(0, 1fr): sin esto la columna crecía hasta el ancho mínimo de las
+     pestañas y la página desbordaba 151 px en un teléfono. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--esp-5);
 }
 
 .ia-medica-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  align-items: flex-start;
+  gap: var(--esp-4);
 }
 
 .ia-medica-header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--ia-text);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--esp-3);
+  text-wrap: balance;
 }
 
-.stats-grid {
+.ia-medica-header p {
+  margin: var(--esp-1) 0 0;
+  color: var(--color-texto-2);
+}
+
+.ia-medica-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+/* Tarjetas de cifras: superficie, borde, etiqueta 13/500, cifra 28/600 tabular */
+.ia-cifras {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: var(--esp-4);
 }
 
-.stat-card {
-  background: var(--ia-bg);
-  border: 1px solid var(--ia-border);
-  border-radius: 12px;
-  padding: 20px;
+.ia-cifra {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: var(--esp-4);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--esp-4);
 }
 
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.ia-cifra-icono {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radio);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--texto-lg);
+  background: var(--color-primario-suave);
+  color: var(--color-primario);
+  flex-shrink: 0;
 }
 
-.stat-icon.primary { background: #23253a; color: #7b85c9; }
-.stat-icon.success { background: var(--ia-success-bg); color: var(--ia-success); }
-.stat-icon.warning { background: var(--ia-warning-bg); color: var(--ia-warning); }
-.stat-icon.danger { background: var(--ia-danger-bg); color: var(--ia-danger); }
+.ia-cifra-icono.exito { background: var(--color-exito-suave); color: var(--color-exito); }
+.ia-cifra-icono.aviso { background: var(--color-aviso-suave); color: var(--color-aviso); }
 
-.stat-content h3 {
-  font-size: 14px;
-  color: var(--ia-text-secondary);
-  margin: 0 0 4px 0;
-  font-weight: 500;
+.ia-cifra h3 {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+  margin: 0 0 var(--esp-1);
 }
 
-.stat-content p {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--ia-text);
+.ia-cifra p {
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
   margin: 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 
+/* Redes entrenadas con ecografías reales */
+.ia-redes-columna {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--esp-3);
+  align-content: start;
+}
+
+.ia-redes-etiqueta {
+  display: block;
+  margin-bottom: var(--esp-1);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.ia-ayuda {
+  font-size: var(--texto-xs);
+  color: var(--color-texto-2);
+  margin: var(--esp-1) 0 0;
+}
+
+.ia-nota-metrica {
+  margin: var(--esp-3) 0 0;
+  font-size: var(--texto-xs);
+  color: var(--color-texto-2);
+}
+
+.ia-barras {
+  margin-top: var(--esp-3);
+  display: grid;
+  gap: var(--esp-1);
+}
+
+.ia-barra {
+  display: grid;
+  grid-template-columns: minmax(8rem, 14rem) 1fr;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.ia-valor-alarma .ant-statistic-content {
+  color: var(--color-peligro);
+}
+
+/* Galería */
 .gallery-container {
-  background: var(--ia-bg);
-  border: 1px solid var(--ia-border);
-  border-radius: 12px;
-  padding: 24px;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: var(--esp-5);
 }
 
 .gallery-toolbar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-}
-
-.gallery-toolbar .ant-typography {
-  color: var(--ia-text) !important;
+  gap: var(--esp-3);
+  margin-bottom: var(--esp-5);
 }
 
 .image-card {
-  border-radius: 12px;
+  border-radius: var(--radio-lg);
   overflow: hidden;
-  border: 1px solid var(--ia-border);
-  background: var(--ia-bg-alt);
-  transition: all 0.3s ease;
+  border: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+  transition: border-color var(--duracion-rapida, 120ms) ease;
 }
 
 .image-card:hover {
-  border-color: #3a3a3a;
+  border-color: var(--color-borde-fuerte);
 }
 
 .image-card-header {
   height: 200px;
   overflow: hidden;
   position: relative;
-  background: #000;
+  background: var(--color-visor-fondo);
 }
 
 .image-card-header img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.9;
-}
-
-.image-card:hover .image-card-header img {
-  opacity: 1;
 }
 
 .image-status-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: var(--esp-3);
+  right: var(--esp-3);
 }
 
 .image-card-body {
-  padding: 16px;
+  padding: var(--esp-4);
 }
 
 .image-title {
-  font-weight: 600;
-  color: var(--ia-text);
-  margin-bottom: 8px;
-  font-size: 16px;
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+  margin-bottom: var(--esp-2);
+  font-size: var(--texto-md);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -158,22 +204,22 @@
 .image-meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
-  color: var(--ia-text-secondary);
-  margin-bottom: 16px;
+  gap: var(--esp-1);
+  font-size: var(--texto-sm);
+  color: var(--color-texto-2);
+  margin-bottom: var(--esp-4);
 }
 
 .image-meta span {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--esp-2);
 }
 
 .cnn-result {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--ia-border);
+  margin-top: var(--esp-3);
+  padding-top: var(--esp-3);
+  border-top: 1px solid var(--color-borde-suave);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -182,56 +228,48 @@
 .cnn-score {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
+  gap: var(--esp-2);
+  font-weight: var(--peso-fuerte);
+  font-variant-numeric: tabular-nums;
 }
 
-.cnn-score.normal { color: var(--ia-success); }
-.cnn-score.warning { color: var(--ia-warning); }
-.cnn-score.danger { color: var(--ia-danger); }
+.cnn-score.normal { color: var(--color-exito); }
+.cnn-score.warning { color: var(--color-aviso); }
+.cnn-score.danger { color: var(--color-peligro); }
 
 .image-card-footer {
-  padding: 12px 16px;
-  background: var(--ia-bg-alt);
-  border-top: 1px solid var(--ia-border);
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--color-superficie-2);
+  border-top: 1px solid var(--color-borde-suave);
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: var(--esp-1);
 }
 
-/* Modal de Análisis CNN */
-.cnn-analysis-modal .ant-modal-content,
-.cnn-analysis-modal .ant-modal-header {
-  background: var(--ia-bg) !important;
-  border-radius: 16px;
+.ia-enlace-ecografia.ant-btn-link {
+  color: var(--color-exito);
 }
 
-.cnn-analysis-modal .ant-modal-title {
-  color: var(--ia-text) !important;
-}
-
-.cnn-analysis-modal .ant-modal-body {
-  color: var(--ia-text);
-}
-
-.cnn-analysis-modal .ant-modal-close {
-  color: var(--ia-text-secondary) !important;
-}
-
+/* Modal del análisis legado (se abre en un portal: se ajusta por su clase) */
 .analysis-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: var(--esp-5);
 }
 
 @media (max-width: 768px) {
   .analysis-container {
     grid-template-columns: 1fr;
   }
+
+  .ia-medica-container {
+    padding: var(--esp-4);
+  }
 }
 
 .image-preview-section {
-  background: #000;
-  border-radius: 12px;
+  background: var(--color-visor-fondo);
+  border-radius: var(--radio-lg);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -249,67 +287,76 @@
 .results-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--esp-4);
   max-height: 600px;
   overflow-y: auto;
-  padding-right: 12px;
+  padding-right: var(--esp-3);
 }
 
 .result-header {
-  padding: 16px;
-  border-radius: 12px;
+  padding: var(--esp-4);
+  border-radius: var(--radio-lg);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--esp-4);
+  border: 1px solid var(--color-borde);
 }
 
-.result-header.normal { background: var(--ia-success-bg); border: 1px solid var(--ia-success); }
-.result-header.warning { background: var(--ia-warning-bg); border: 1px solid var(--ia-warning); }
-.result-header.danger { background: var(--ia-danger-bg); border: 1px solid var(--ia-danger); }
+.result-header.normal { background: var(--color-exito-suave); border-color: var(--color-exito-borde); }
+.result-header.warning { background: var(--color-aviso-suave); border-color: var(--color-aviso-borde); }
+.result-header.danger { background: var(--color-peligro-suave); border-color: var(--color-peligro-borde); }
 
 .result-icon {
-  font-size: 32px;
+  font-size: var(--texto-2xl);
 }
 
-.result-header.normal .result-icon { color: var(--ia-success); }
-.result-header.warning .result-icon { color: var(--ia-warning); }
-.result-header.danger .result-icon { color: var(--ia-danger); }
+.result-header.normal .result-icon { color: var(--color-exito); }
+.result-header.warning .result-icon { color: var(--color-aviso); }
+.result-header.danger .result-icon { color: var(--color-peligro); }
 
 .result-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--ia-text);
+  margin: 0 0 var(--esp-1);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
 }
 
 .result-info p {
   margin: 0;
-  color: var(--ia-text-secondary);
-  font-size: 14px;
+  color: var(--color-texto-2);
+  font-size: var(--texto-base);
 }
 
 .findings-list {
-  background: var(--ia-bg-alt);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid var(--ia-border);
+  background: var(--color-superficie-2);
+  border-radius: var(--radio-lg);
+  padding: var(--esp-4);
+  border: 1px solid var(--color-borde);
+}
+
+.findings-list.alarma {
+  border-color: var(--color-peligro-borde);
 }
 
 .findings-list h4 {
-  margin: 0 0 12px 0;
-  font-size: 15px;
-  color: var(--ia-text);
+  margin: 0 0 var(--esp-3);
+  font-size: var(--texto-md);
+  color: var(--color-texto);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--esp-2);
+}
+
+.findings-list.alarma h4 {
+  color: var(--color-peligro);
 }
 
 .finding-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px dashed var(--ia-border);
+  padding: var(--esp-2) 0;
+  border-bottom: 1px solid var(--color-borde-suave);
 }
 
 .finding-item:last-child {
@@ -317,103 +364,72 @@
 }
 
 .finding-name {
-  font-weight: 500;
-  color: var(--ia-text);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto);
 }
 
 .finding-conf {
-  color: var(--ia-text-secondary);
-  font-size: 13px;
+  color: var(--color-texto-2);
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .recommendations-box {
-  background: var(--ia-info-bg);
-  border: 1px solid var(--ia-info);
-  border-radius: 12px;
-  padding: 16px;
+  background: var(--color-info-suave);
+  border: 1px solid var(--color-info-borde);
+  border-radius: var(--radio-lg);
+  padding: var(--esp-4);
 }
 
 .recommendations-box h4 {
-  color: var(--ia-text);
-  margin: 0 0 12px 0;
+  color: var(--color-texto);
+  margin: 0 0 var(--esp-3);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--esp-2);
 }
 
 .recommendations-box ul {
   margin: 0;
-  padding-left: 20px;
-  color: var(--ia-text-secondary);
+  padding-left: var(--esp-5);
+  color: var(--color-texto-2);
 }
 
 .recommendations-box li {
-  margin-bottom: 8px;
+  margin-bottom: var(--esp-2);
 }
 
-/* Grad-CAM overlay badge */
-.gradcam-badge {
-  position: absolute;
-  bottom: 6px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 3px;
+.ia-icono-narrativa {
+  color: var(--color-primario);
+  margin-right: var(--esp-2);
 }
 
-/* Forzar componentes Ant Design dentro del modal a fondo oscuro mate:
-   Table y Alert traen fondo blanco fijo en su tema por defecto y no
-   siguen el resto de la pagina aqui. */
-.cnn-analysis-modal .ant-table,
-.cnn-analysis-modal .ant-table-container,
-.cnn-analysis-modal .ant-table-cell,
-.cnn-analysis-modal .ant-table-thead > tr > th,
-.cnn-analysis-modal .ant-table-tbody > tr > td {
-  background: var(--ia-bg-alt) !important;
-  color: var(--ia-text) !important;
-  border-color: var(--ia-border) !important;
+@media (prefers-reduced-motion: reduce) {
+  .image-card {
+    transition: none;
+  }
 }
 
-.cnn-analysis-modal .ant-table-tbody > tr:hover > td {
-  background: #232323 !important;
+.ia-ctg-clase.ant-tag {
+  font-size: var(--texto-md);
+  padding: var(--esp-1) var(--esp-3);
 }
 
-.cnn-analysis-modal .ant-alert {
-  background: var(--ia-bg-alt) !important;
-  border-color: var(--ia-border) !important;
+.ia-ancho-completo {
+  width: 100%;
 }
 
-.cnn-analysis-modal .ant-alert-message,
-.cnn-analysis-modal .ant-alert-description {
-  color: var(--ia-text) !important;
+.ia-sin-margen {
+  margin: 0;
 }
 
-.cnn-analysis-modal .ant-alert-info {
-  background: var(--ia-info-bg) !important;
-  border-color: var(--ia-info) !important;
+.ia-texto-secundario {
+  margin: 0;
+  color: var(--color-texto-2);
 }
 
-.cnn-analysis-modal .ant-alert-warning {
-  background: var(--ia-warning-bg) !important;
-  border-color: var(--ia-warning) !important;
-}
-
-.cnn-analysis-modal .ant-alert-error {
-  background: var(--ia-danger-bg) !important;
-  border-color: var(--ia-danger) !important;
-}
-
-.cnn-analysis-modal .ant-descriptions-item-label,
-.cnn-analysis-modal .ant-descriptions-item-content {
-  color: var(--ia-text) !important;
-}
-
-.cnn-analysis-modal .ant-divider {
-  border-color: var(--ia-border) !important;
-}
-
-.cnn-analysis-modal .ant-divider-inner-text {
-  color: var(--ia-text) !important;
+.ia-medica-pila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--esp-5);
 }

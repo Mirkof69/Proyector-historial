@@ -25,7 +25,19 @@ const ModalCnnLegado: React.FC<ModalCnnLegadoProps> = ({
     width={1000}
     footer={[
       <Button key="close" onClick={() => dispatch({ type: 'SET_IS_MODAL_VISIBLE', payload: false })}>Cerrar</Button>,
-      <Button key="export" type="primary" icon={<DownloadOutlined />}>Exportar Reporte</Button>
+      // Antes este botón no tenía acción: no exportaba nada.
+      <Button key="export" type="primary" icon={<DownloadOutlined />} disabled={!selectedAnalysis}
+        onClick={() => {
+          if (!selectedAnalysis) return;
+          const blob = new Blob([JSON.stringify(selectedAnalysis.analisis, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `analisis_ia_${selectedAnalysis.imagen?.id ?? 'imagen'}.json`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }}>
+        Exportar informe (JSON)
+      </Button>
     ]}
     className="cnn-analysis-modal"
   >
@@ -78,8 +90,8 @@ const ModalCnnLegado: React.FC<ModalCnnLegadoProps> = ({
           </div>
 
           {selectedAnalysis.analisis.anomalias_detectadas.length > 0 && (
-            <div className="findings-list" style={{ borderColor: '#fecaca' }}>
-              <h4 style={{ color: '#dc2626' }}><WarningOutlined /> Anomalías Detectadas</h4>
+            <div className="findings-list alarma">
+              <h4><WarningOutlined /> Anomalías Detectadas</h4>
               {selectedAnalysis.analisis.anomalias_detectadas.map((anom: any) => (
                 <div className="finding-item" key={anom.tipo}>
                   <span className="finding-name">{anom.tipo.replace('_', ' ')}</span>

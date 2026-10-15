@@ -9,9 +9,9 @@ interface IAAnalisisRapidosProps {
 }
 
 const IAAnalisisRapidos: React.FC<IAAnalisisRapidosProps> = ({ analizarRapido }) => (
-  <div style={{ marginBottom: 16 }}>
-    <Text strong>Análisis Rápidos:</Text>
-    <div style={{ marginTop: 8 }}>
+  <div className="ia-asistente-rapidos">
+    <Text strong>Consultas rápidas</Text>
+    <div>
       <Space wrap>
         <Button
           size="small"

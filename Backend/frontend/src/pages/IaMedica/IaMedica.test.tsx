@@ -90,4 +90,25 @@ describe('IaMedica - análisis con redes medidas', () => {
     expect(await screen.findByText('Sin medidas para este plano')).toBeInTheDocument();
     expect(screen.queryByText(/mm ±/)).not.toBeInTheDocument();
   });
+
+  it('el informe completo se pide desde la tarjeta de redes, sin paciente, con el tamaño de píxel', async () => {
+    // jsdom no implementa las URL de objeto: la vista previa local de la imagen las usa.
+    URL.createObjectURL = jest.fn(() => 'blob:vista-previa');
+    URL.revokeObjectURL = jest.fn();
+    (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
+      medidas: { circunferencia_cefalica_mm: 87.5, margen_hc_mm: 4.41 },
+    }));
+    renderPagina();
+    // antd esconde el <input type=file>; el primero es el de la tarjeta de redes (el de la galería pide paciente).
+    // eslint-disable-next-line testing-library/no-node-access
+    const entrada = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const archivo = new File(['png'], 'cabeza.png', { type: 'image/png' });
+    await userEvent.upload(entrada, archivo);
+    await userEvent.type(screen.getByLabelText(/Tamaño de píxel/), '0.075');
+    await userEvent.click(screen.getByRole('button', { name: /Informe completo/ }));
+    expect(await screen.findByText('87.5 mm ± 4.41')).toBeInTheDocument();
+    expect(iaMedicaService.analyzeWithAI).toHaveBeenCalledWith(archivo, undefined, 0.075);
+    // Sin imagen guardada no se ofrece la redacción con el LLM local (necesita el id de la imagen).
+    expect(screen.queryByRole('button', { name: /Redactar informe/ })).not.toBeInTheDocument();
+  });
 });

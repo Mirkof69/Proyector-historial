@@ -93,6 +93,13 @@ flowchart LR
 | ~~Cáncer cervicouterino por factores de riesgo~~ · ~~Riesgo materno~~ | Tablas UCI | — | AUC 0,60 · 71 % balanceada | **Evaluados y descartados** (no superan la referencia) |
 | ~~EfficientNet-B4 «14 patologías»~~ | — | Etiquetas no verificables | Sin métrica válida | **Retirada el 01/10/2026** |
 
+Para el usuario clínico (dónde se usa cada modelo y cuánto creerle):
+[13 · Guía de IA para el usuario](13_guia_ia_usuario.md), que es también la
+pantalla «Guía de IA» del sistema. Esa pantalla y la pestaña «Modelos y
+métricas» leen las cifras de `GET /api/ia/imagenes/modelos/`
+(`ia_medica/services/catalogo_modelos.py`), que ahora incluye las 13 redes del
+microservicio y los 7 modelos descartados.
+
 Detalles: `Backend/Microservicio_IA/README.md`, `datos/CATALOGO.md`,
 `entrenamiento/segmentacion/salidas/<tarea>/metricas.json`,
 `entrenamiento/patologias_cerebrales/INFORME.md`, `entrenamiento/ginecologia/` e `ia_medica/ml/cardiotocografia.py`.

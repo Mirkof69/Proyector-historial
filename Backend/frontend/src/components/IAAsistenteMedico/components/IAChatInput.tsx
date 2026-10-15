@@ -12,11 +12,12 @@ interface IAChatInputProps {
 }
 
 const IAChatInput: React.FC<IAChatInputProps> = ({ inputTexto, setInputTexto, enviarMensaje, cargando }) => (
-  <Space.Compact style={{ width: '100%' }}>
+  <Space.Compact className="ia-asistente-entrada">
     <TextArea
       value={inputTexto}
       onChange={(e) => setInputTexto(e.target.value)}
-      placeholder="Pregunta al Asistente IA... (ej: ¿Cómo detectar preeclampsia?)"
+      placeholder="Escriba su consulta (p. ej.: ¿cómo detectar preeclampsia?)"
+      aria-label="Consulta al asistente"
       autoSize={{ minRows: 1, maxRows: 3 }}
       onPressEnter={(e) => {
         if (!e.shiftKey) {
@@ -28,7 +29,7 @@ const IAChatInput: React.FC<IAChatInputProps> = ({ inputTexto, setInputTexto, en
     <Button
       type="primary"
       icon={<SendOutlined />}
-      onClick={enviarMensaje}
+      onClick={() => enviarMensaje()}
       loading={cargando}
     >
       Enviar

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Alert, Button, Card, Col, Descriptions, Form, InputNumber, Progress, Row, Space, Spin, Tag, Typography,
+  Alert, Button, Card, Col, Descriptions, Form, InputNumber, Progress, Row, Space, Spin, Tag, Typography, theme,
 } from 'antd';
 import { ExperimentOutlined } from '@ant-design/icons';
 import api from '../../../services/api';
@@ -22,7 +22,7 @@ interface Resultado {
   advertencias: string[];
 }
 
-const COLOR: Record<string, string> = { normal: 'green', sospechosa: 'orange', patologica: 'red' };
+const COLOR: Record<string, string> = { normal: 'success', sospechosa: 'warning', patologica: 'error' };
 const pct = (v?: number) => (v === undefined ? '—' : `${(v * 100).toFixed(1)} %`);
 
 /**
@@ -33,6 +33,10 @@ const pct = (v?: number) => (v === undefined ? '—' : `${(v * 100).toFixed(1)} 
  */
 const CardiotocografiaIA: React.FC = () => {
   const { message } = useAntdApp();
+  const { token } = theme.useToken();
+  const colorBarra: Record<string, string> = {
+    normal: token.colorSuccess, sospechosa: token.colorWarning, patologica: token.colorError,
+  };
   const [variables, setVariables] = useState<Variable[]>([]);
   const [modelo, setModelo] = useState<FichaModelo | null>(null);
   const [resultado, setResultado] = useState<Resultado | null>(null);
@@ -91,12 +95,11 @@ const CardiotocografiaIA: React.FC = () => {
         {resultado && (
           <Card title="Resultado" style={{ marginBottom: 16 }}>
             <Space direction="vertical" style={{ width: '100%' }}>
-              <Tag color={COLOR[resultado.clase]} style={{ fontSize: 16, padding: '4px 12px' }}>{resultado.clase_nombre}</Tag>
+              <Tag color={COLOR[resultado.clase]} className="ia-ctg-clase">{resultado.clase_nombre}</Tag>
               {Object.entries(resultado.probabilidades).map(([clase, p]) => (
                 <div key={clase}>
                   <Text>{clase === 'patologica' ? 'Patológica' : clase === 'sospechosa' ? 'Sospechosa' : 'Normal'}</Text>
-                  <Progress percent={Math.round(p * 1000) / 10} strokeColor={COLOR[clase] === 'green' ? '#16a34a'
-                    : COLOR[clase] === 'orange' ? '#d97706' : '#dc2626'} />
+                  <Progress percent={Math.round(p * 1000) / 10} strokeColor={colorBarra[clase]} />
                 </div>
               ))}
               {resultado.advertencias.map((a) => <Alert key={a} type="info" showIcon message={a} />)}

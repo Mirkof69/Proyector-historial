@@ -12,38 +12,34 @@ interface IAChatMessagesProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }
 
+const NOMBRE_TEMA: Record<string, string> = {
+  preeclampsia: 'Preeclampsia', rciu: 'RCIU', diabetes: 'Diabetes gestacional', laboratorio: 'Laboratorio',
+  edad_gestacional: 'Edad gestacional', emergencia: 'Emergencia', general: 'General',
+};
+
 const IAChatMessages: React.FC<IAChatMessagesProps> = ({ mensajes, cargando, messagesEndRef }) => (
-  <div
-    className="chat-messages-container"
-  >
+  <div className="chat-messages-container" aria-live="polite">
     <List
       dataSource={mensajes}
       renderItem={(mensaje) => (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: mensaje.tipo === 'usuario' ? 'flex-end' : 'flex-start',
-            marginBottom: 12
-          }}
-        >
+        <div className={`mensaje-fila ${mensaje.tipo}`}>
           <div className={`mensaje-bubble ${mensaje.tipo}`}>
-            <Space direction="vertical" size={4} style={{ width: '100%' }}>
-              <Space>
+            <Space direction="vertical" size={4} className="mensaje-cuerpo">
+              <Space wrap>
                 {mensaje.tipo === 'ia' ? (
-                  <RobotOutlined style={{ color: '#722ed1' }} />
+                  <RobotOutlined className="mensaje-icono" />
                 ) : mensaje.tipo === 'sistema' ? (
-                  <BugOutlined style={{ color: '#ff4d4f' }} />
+                  <BugOutlined className="mensaje-icono alarma" />
                 ) : (
                   <UserOutlined />
                 )}
                 <Text strong className="mensaje-sender">
-                  {mensaje.tipo === 'ia' ? 'IA Médica' : mensaje.tipo === 'sistema' ? 'Sistema' : 'Tú'}
+                  {mensaje.tipo === 'ia' ? 'Asistente' : mensaje.tipo === 'sistema' ? 'Sistema' : 'Usted'}
                 </Text>
-                {mensaje.confianza && (
-                  <Tag color="green" style={{ fontSize: '12px' }}>
-                    {mensaje.confianza}% confianza
-                  </Tag>
+                {mensaje.fuente === 'base_conocimiento' && (
+                  <Tag>Base de conocimiento{mensaje.tema ? ` · ${NOMBRE_TEMA[mensaje.tema] ?? mensaje.tema}` : ''}</Tag>
                 )}
+                {mensaje.fuente === 'sin_conexion' && <Tag color="warning">Sin conexión</Tag>}
               </Space>
               <Paragraph className="mensaje-text">
                 {mensaje.contenido}
@@ -57,10 +53,10 @@ const IAChatMessages: React.FC<IAChatMessagesProps> = ({ mensajes, cargando, mes
       )}
     />
     {cargando && (
-      <div style={{ textAlign: 'center', padding: 16 }}>
+      <div className="mensaje-cargando">
         <Space>
           <Spin />
-          <Text type="secondary">IA analizando…</Text>
+          <Text type="secondary">Buscando en la base de conocimiento…</Text>
         </Space>
       </div>
     )}

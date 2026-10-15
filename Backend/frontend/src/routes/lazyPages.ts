@@ -43,6 +43,7 @@ export const DetalleCita = lazy(() => import('../pages/Citas/DetalleCita'));
 export const CalendarioCitas = lazy(() => import('../pages/CalendarioCitas/CalendarioCitas'));
 export const IAAsistenteMedico = lazy(() => import('../components/IAAsistenteMedico/IAAsistenteMedico'));
 export const IaMedica = lazy(() => import('../pages/IaMedica/IaMedica'));
+export const GuiaIA = lazy(() => import('../pages/GuiaIA/GuiaIA'));
 export const Partos = lazy(() => import('../pages/Partos/Partos'));
 export const DetalleParto = lazy(() => import('../pages/Partos/DetalleParto'));
 export const FormularioParto = lazy(() => import('../pages/Partos/FormularioParto'));

@@ -20,7 +20,7 @@ import {
   Ecografias, DetalleEcografia, FormularioEcografia, VisorDICOM, ArchivosEcografia,
   Laboratorio, DetalleLaboratorio, FormularioLaboratorio, TiposExamen, ResultadosLaboratorio,
   ValoresReferencia, Citas, FormularioCita, DetalleCita, CalendarioCitas, IAAsistenteMedico,
-  IaMedica, Partos, DetalleParto, FormularioParto, ApgarScore, ComplicacionesParto,
+  IaMedica, GuiaIA, Partos, DetalleParto, FormularioParto, ApgarScore, ComplicacionesParto,
   RecienNacidos, DetalleReporte, CentroReportes,
   Calculadoras, IndiceCalculadoras, ScoreBishop, IMCGananciaPonderal,
   RiesgoPreeclampsia, CrecimientoFetal, RiesgoCromosomico, DosisMedicamentos, HemorragiaObstetrica,
@@ -188,6 +188,8 @@ const AppRoutes: React.FC = () => {
 
           {/* MÓDULO: IA MEDICA Y CNN */}
           <Route path="ia-medica/imagenes" element={<ProtectedRoute requiredPermission="view_imagenecografica"><IaMedica /></ProtectedRoute>} />
+          {/* Guía de IA: qué hace cada modelo, su fiabilidad medida y dónde se usa (mismo permiso que IA médica) */}
+          <Route path="ia-guia" element={<ProtectedRoute requiredPermission="view_imagenecografica"><GuiaIA /></ProtectedRoute>} />
 
           {/* MÓDULO: ADMINISTRACIÓN Y SISTEMA */}
           <Route path="usuarios" element={<ProtectedRoute requiredPermission="view_usuario"><Usuarios /></ProtectedRoute>} />

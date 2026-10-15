@@ -1,9 +1,9 @@
 import React, { useReducer, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
 import { Button, Tabs } from "antd";
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  RobotOutlined, DownloadOutlined, ReloadOutlined,
+  RobotOutlined, DownloadOutlined, ReloadOutlined, ReadOutlined,
 } from '@ant-design/icons';
 import {
   iaMedicaService,
@@ -34,6 +34,7 @@ const IaMedica: React.FC = () => {
   const [vinculando, setVinculando] = React.useState(false);
   const [ecografiasVinculadas, setEcografiasVinculadas] = React.useState<Record<number, number>>({});
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const pestana = ['ecografia', 'ginecologia', 'cardiotocografia', 'modelos'].includes(params.get('pestana') || '')
     ? (params.get('pestana') as string) : 'ecografia';
 
@@ -227,7 +228,7 @@ const IaMedica: React.FC = () => {
   };
 
   const galeria = (
-    <>
+    <div className="ia-medica-pila">
       <RedesEcografiaReal />
       <GaleriaEcografias
         selectedPacienteId={selectedPacienteId}
@@ -248,18 +249,24 @@ const IaMedica: React.FC = () => {
         handleVincularClick={handleVincularClick}
         handleDelete={handleDelete}
       />
-    </>
+    </div>
   );
 
   return (
     <div className="ia-medica-container page-container">
       <div className="ia-medica-header">
-        <h1><RobotOutlined /> IA médica</h1>
         <div>
-          <Button icon={<ReloadOutlined />} onClick={fetchData} style={{ marginRight: 8 }}>
+          <h1><RobotOutlined /> IA médica</h1>
+          <p>Redes entrenadas con datos reales y medidas en pacientes que no vieron. Son apoyo a la decisión: el diagnóstico lo hace el médico.</p>
+        </div>
+        <div className="ia-medica-acciones">
+          <Button icon={<ReadOutlined />} onClick={() => navigate('/dashboard/ia-guia')}>
+            Guía de IA
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={fetchData}>
             Actualizar
           </Button>
-          <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport}>
+          <Button icon={<DownloadOutlined />} onClick={handleExport}>
             Exportar dataset
           </Button>
         </div>

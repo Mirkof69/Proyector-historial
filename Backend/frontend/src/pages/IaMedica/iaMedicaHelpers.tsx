@@ -60,7 +60,7 @@ export const renderNarrativeReport = (reporte: ReporteNarrativoIA) => {
   return (
     <div style={{ marginTop: 24, borderTop: '1px solid var(--ia-border)', paddingTop: 20 }}>
       <Divider orientation="left">
-        <FileTextOutlined style={{ color: '#722ed1', marginRight: 8 }} />
+        <FileTextOutlined className="ia-icono-narrativa" />
         Reporte narrativo
       </Divider>
 

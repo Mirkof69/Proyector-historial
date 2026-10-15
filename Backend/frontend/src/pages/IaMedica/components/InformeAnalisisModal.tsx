@@ -13,9 +13,10 @@ interface Props {
   abierto: boolean;
   informe: InformeRedesMedidas | null;
   imagenUrl: string;
-  reporteNarrativo: ReporteNarrativoIA | null;
-  generandoNarrativa: boolean;
-  onGenerarNarrativa: () => void;
+  reporteNarrativo?: ReporteNarrativoIA | null;
+  generandoNarrativa?: boolean;
+  /** Sin él (imagen que no está guardada) no se ofrece la redacción con IA local. */
+  onGenerarNarrativa?: () => void;
   onCerrar: () => void;
 }
 
@@ -85,11 +86,13 @@ const InformeAnalisisModal: React.FC<Props> = ({
       width={1100}
       footer={[
         <Button key="json" icon={<DownloadOutlined />} onClick={descargar} disabled={!informe}>Informe JSON</Button>,
-        <Button key="narrativa" icon={<FileTextOutlined />} loading={generandoNarrativa} onClick={onGenerarNarrativa} disabled={!informe}>
-          {reporteNarrativo ? 'Regenerar redacción (IA local)' : 'Redactar informe (IA local)'}
-        </Button>,
+        onGenerarNarrativa && (
+          <Button key="narrativa" icon={<FileTextOutlined />} loading={generandoNarrativa} onClick={onGenerarNarrativa} disabled={!informe}>
+            {reporteNarrativo ? 'Regenerar redacción (IA local)' : 'Redactar informe (IA local)'}
+          </Button>
+        ),
         <Button key="cerrar" type="primary" onClick={onCerrar}>Cerrar</Button>,
-      ]}
+      ].filter(Boolean)}
     >
       {informe && (
         <>

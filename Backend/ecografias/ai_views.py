@@ -45,6 +45,29 @@ def obtener_url_ia() -> str:
     return str(getattr(settings, "AI_SERVICE_URL", "http://localhost:8001")).rstrip("/")
 
 
+def respuesta_de_error_ia(respuesta) -> Response:
+    """Traduce una respuesta no-200 del microservicio a la del backend.
+
+    Un 400/404/422 (extensión no permitida, tamaño de píxel absurdo, imagen
+    ilegible) y el 503 (red sin instalar) son información para quien usa la
+    pantalla y se reenvían con su motivo. Antes el análisis completo los
+    convertía en un 500 «Error en el microservicio de IA» con el JSON crudo, y
+    la médica veía un fallo del servidor por haber elegido mal el archivo.
+    Un 5xx del microservicio es un fallo río arriba: 502.
+    """
+    try:
+        cuerpo = respuesta.json()
+        detalle = cuerpo.get("detail") or cuerpo.get("error") if isinstance(cuerpo, dict) else None
+    except ValueError:
+        detalle = None
+    detalle = detalle if isinstance(detalle, str) else (str(detalle) if detalle else (respuesta.text or "")[:300])
+    codigo = respuesta.status_code
+    if 400 <= codigo < 500 or codigo == 503:
+        return Response({"error": detalle or "El servicio de IA rechazó la imagen."}, status=codigo)
+    return Response({"error": "El servicio de IA falló al procesar la imagen.", "details": detalle},
+                    status=status.HTTP_502_BAD_GATEWAY)
+
+
 def preparar_respuesta_ia(resultado: dict) -> dict:
     """Deja el resultado del microservicio listo para viajar por la red.
 
@@ -233,13 +256,7 @@ def analyze_ultrasound_with_ai(request):
                 },
                 status=status.HTTP_200_OK,
             )
-        return Response(
-            {
-                "error": "Error en el microservicio de IA",
-                "details": ai_response.text,
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+        return respuesta_de_error_ia(ai_response)
 
     except requests.exceptions.ConnectionError:
         return Response(

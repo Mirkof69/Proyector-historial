@@ -1,0 +1,182 @@
+/* Guía de IA — contrato: docs/DISENO_INTERFAZ.md. Solo tokens. */
+
+.guia-ia {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--esp-5);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--esp-5);
+}
+
+.guia-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--esp-4);
+}
+
+.guia-titulo.ant-typography {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-fuerte);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  text-wrap: balance;
+}
+
+.guia-subtitulo.ant-typography {
+  margin: var(--esp-1) 0 0;
+  color: var(--color-texto-2);
+}
+
+.guia-indice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-5);
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+}
+
+.guia-indice a {
+  color: var(--color-primario);
+  font-weight: var(--peso-medio);
+}
+
+.guia-indice a:focus-visible {
+  outline: 2px solid var(--color-primario);
+  outline-offset: 2px;
+}
+
+.guia-seccion {
+  display: grid;
+  gap: var(--esp-4);
+  scroll-margin-top: var(--esp-6);
+}
+
+.guia-titulo-seccion.ant-typography {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-fuerte);
+  margin: 0;
+}
+
+.guia-titulo-grupo.ant-typography {
+  font-size: var(--texto-md);
+  font-weight: var(--peso-fuerte);
+  margin: 0;
+}
+
+.guia-grupo {
+  display: grid;
+  gap: var(--esp-2);
+}
+
+.guia-grupo + .guia-grupo {
+  margin-top: var(--esp-4);
+}
+
+.guia-parrafo.ant-typography {
+  margin: 0;
+  max-width: 80ch;
+}
+
+.guia-tarjeta.ant-card {
+  height: 100%;
+  border-color: var(--color-borde);
+  background: var(--color-superficie);
+}
+
+.guia-modelo-nombre {
+  white-space: normal;
+  font-size: var(--texto-md);
+  font-weight: var(--peso-fuerte);
+}
+
+.guia-tarjeta .ant-card-head-title {
+  white-space: normal;
+}
+
+.guia-datos {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(7rem, 9rem) 1fr;
+  gap: var(--esp-2) var(--esp-4);
+}
+
+.guia-datos dt {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto-2);
+}
+
+.guia-datos dd {
+  margin: 0;
+  color: var(--color-texto);
+}
+
+.guia-metrica {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--peso-medio);
+}
+
+.guia-lista {
+  margin: 0;
+  padding-left: var(--esp-4);
+}
+
+.guia-flujo {
+  list-style: none;
+  margin: var(--esp-3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--esp-2);
+}
+
+.guia-flujo-paso {
+  display: flex;
+  gap: var(--esp-2);
+  align-items: flex-start;
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+}
+
+.guia-flujo-numero {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radio-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-fuerte);
+  font-variant-numeric: tabular-nums;
+  background: var(--color-primario-suave);
+  color: var(--color-primario);
+}
+
+.guia-descartado.ant-card {
+  background: var(--color-superficie-2);
+}
+
+@media (max-width: 768px) {
+  .guia-ia {
+    padding: var(--esp-4);
+  }
+
+  .guia-datos {
+    grid-template-columns: 1fr;
+    gap: var(--esp-1);
+  }
+
+  .guia-datos dd + dt {
+    margin-top: var(--esp-2);
+  }
+}

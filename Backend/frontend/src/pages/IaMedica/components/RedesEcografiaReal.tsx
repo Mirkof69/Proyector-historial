@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
-import { Alert, Button, Card, Col, InputNumber, Progress, Row, Select, Statistic, Tag, Upload } from 'antd';
-import { ExperimentOutlined, InboxOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, Card, Col, InputNumber, Progress, Row, Select, Space, Statistic, Tag, Upload } from 'antd';
+import { ExperimentOutlined, InboxOutlined, ScanOutlined } from '@ant-design/icons';
 import {
-  iaMedicaService, ResultadoAnomaliasCerebrales, ResultadoCircunferencia, ResultadoPlano,
+  iaMedicaService, InformeRedesMedidas, ResultadoAnomaliasCerebrales, ResultadoCircunferencia, ResultadoPlano,
 } from '../../../services/iaMedicaService';
+import InformeAnalisisModal from './InformeAnalisisModal';
+import '../IaMedica.css';
 
 /**
- * Las redes entrenadas con ecografías reales anotadas por expertos: plano
- * anatómico (FETAL_PLANES_DB), circunferencia cefálica (HC18) y cribado de
- * anomalías cerebrales. Cada resultado muestra al lado el error medido en
- * imágenes que la red no vio.
+ * Las redes entrenadas con ecografías reales anotadas por expertos.
+ * - «Analizar»: plano anatómico (FETAL_PLANES_DB), cribado de anomalías
+ *   cerebrales y, con el tamaño de píxel, circunferencia cefálica por regresión (HC18).
+ * - «Informe completo»: el análisis de punta a punta (plano → U-Net de ese plano
+ *   → medidas): cabeza (HC, DBP), tórax (índice cardiotorácico), abdomen (corte
+ *   adecuado y CA por puntos) y fémur (LF por puntos). Antes este camino solo
+ *   existía en la galería, después de elegir una paciente y subir la imagen.
+ * Cada resultado muestra al lado el error medido en imágenes que la red no vio.
  */
 
 const mensajeDeError = (error: any): string =>
@@ -18,17 +24,17 @@ const mensajeDeError = (error: any): string =>
 const TarjetaPlano: React.FC<{ r: ResultadoPlano }> = ({ r }) => (
   <Card size="small" title="Plano anatómico">
     <Statistic title="La imagen muestra" value={r.plano} suffix={
-      <Tag color={r.confianza >= 0.7 ? 'green' : 'orange'}>{Math.round(r.confianza * 100)}%</Tag>
+      <Tag color={r.confianza >= 0.7 ? 'success' : 'warning'}>{Math.round(r.confianza * 100)} %</Tag>
     } />
-    <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
+    <div className="ia-barras">
       {Object.entries(r.probabilidades).map(([plano, p]) => (
-        <div key={plano} style={{ display: 'grid', gridTemplateColumns: '11rem 1fr', alignItems: 'center', gap: 8 }}>
+        <div key={plano} className="ia-barra">
           <span>{plano}</span>
           <Progress percent={Math.round(p * 1000) / 10} size="small" showInfo />
         </div>
       ))}
     </div>
-    <p style={{ marginTop: 12, marginBottom: 0, fontSize: 12, opacity: 0.75 }}>
+    <p className="ia-nota-metrica">
       Acierta el {(r.modelo.metricas_prueba.exactitud * 100).toFixed(1)}% en{' '}
       {r.modelo.metricas_prueba.imagenes_prueba.toLocaleString('es-BO')} imágenes de{' '}
       {r.modelo.metricas_prueba.madres_prueba} madres que no vio al entrenar. {r.modelo.dataset}.
@@ -48,7 +54,7 @@ const TarjetaCircunferencia: React.FC<{ r: ResultadoCircunferencia }> = ({ r }) 
           precision={r.edad_gestacional_semanas === null ? undefined : 1} suffix="semanas" />
       </Col>
     </Row>
-    <p style={{ marginTop: 12, marginBottom: 0, fontSize: 12, opacity: 0.75 }}>
+    <p className="ia-nota-metrica">
       Error medio {r.modelo.metricas_prueba.error_medio_mm} mm (R²{' '}
       {r.modelo.metricas_prueba.r2}) en {r.modelo.metricas_prueba.imagenes_prueba} imágenes de{' '}
       {r.modelo.metricas_prueba.madres_prueba} madres que no vio. Edad: {r.formula_edad}.
@@ -72,28 +78,28 @@ const TarjetaAnomalias: React.FC<{ r: ResultadoAnomaliasCerebrales }> = ({ r }) 
   return (
     <Card size="small" title="Cribado de anomalías cerebrales">
       {!r.aplicable ? (
-        <p style={{ margin: 0 }}>
+        <p className="ia-sin-margen">
           No se analiza: la imagen no parece un corte axial de la cabeza. Si lo es (una malformación
           grave puede deformarla), la red no pudo evaluarla y el resultado no descarta nada.
         </p>
       ) : (
         <>
           <Statistic
+            className={r.alarma_anomalia ? 'ia-valor-alarma' : undefined}
             title="Resultado"
             value={r.alarma_anomalia ? (r.familia_sospechada_nombre ?? 'Posible anomalía') : 'Sin alarma'}
-            valueStyle={{ color: r.alarma_anomalia ? 'var(--color-error, #b42318)' : undefined }}
-            suffix={<Tag color={r.alarma_anomalia ? 'red' : 'default'}>
+            suffix={<Tag color={r.alarma_anomalia ? 'error' : 'default'}>
               P(anomalía) {pct(r.probabilidad_anomalia ?? 0)}
             </Tag>}
           />
           {!r.alarma_anomalia && (
-            <p style={{ margin: '4px 0 0', fontSize: 12 }}>
+            <p className="ia-ayuda">
               «Sin alarma» no descarta una anomalía: la sensibilidad en ecografías clínicas aún no está medida.
             </p>
           )}
-          <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
+          <div className="ia-barras">
             {Object.entries(r.probabilidades ?? {}).map(([familia, p]) => (
-              <div key={familia} style={{ display: 'grid', gridTemplateColumns: '14rem 1fr', alignItems: 'center', gap: 8 }}>
+              <div key={familia} className="ia-barra">
                 <span>{NOMBRE_FAMILIA[familia] ?? familia}</span>
                 <Progress percent={Math.round(p * 1000) / 10} size="small" showInfo />
               </div>
@@ -101,7 +107,7 @@ const TarjetaAnomalias: React.FC<{ r: ResultadoAnomaliasCerebrales }> = ({ r }) 
           </div>
         </>
       )}
-      <p style={{ marginTop: 12, marginBottom: 0, fontSize: 12, opacity: 0.75 }}>
+      <p className="ia-nota-metrica">
         Falsas alarmas medidas en cabezas normales que la red no vio:{' '}
         {hc && <>{pct(hc.valor)} en {hc.n.toLocaleString('es-BO')} de otro hospital (HC18) y </>}
         {pct(m.externa_falsos_positivos.valor)} en {m.externa_falsos_positivos.n.toLocaleString('es-BO')} de
@@ -143,19 +149,42 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
   const [anomalias, setAnomalias] = useState<ResultadoAnomaliasCerebrales | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [analizando, setAnalizando] = useState(false);
+  const [informe, setInforme] = useState<InformeRedesMedidas | null>(null);
+  const [urlInforme, setUrlInforme] = useState('');
+  const [analizandoCompleto, setAnalizandoCompleto] = useState(false);
 
   const guardadas = imagenes ?? [];
   const usaGuardadas = guardadas.length > 0;
 
+  // La vista previa local del archivo se libera al cambiarla o al salir.
+  useEffect(() => () => { if (urlInforme.startsWith('blob:')) URL.revokeObjectURL(urlInforme); }, [urlInforme]);
+
+  const limpiar = () => { setPlano(null); setCircunferencia(null); setAnomalias(null); setError(null); };
+  const ficheroElegido = async (): Promise<File> =>
+    (usaGuardadas ? descargarComoArchivo(guardadas[elegida]) : Promise.resolve(archivo as File));
+
+  const informeCompleto = async () => {
+    if (!archivo && !usaGuardadas) return;
+    setAnalizandoCompleto(true);
+    setError(null);
+    try {
+      const fichero = await ficheroElegido();
+      const r = await iaMedicaService.analyzeWithAI(fichero, undefined, tamanoPixel);
+      setUrlInforme(usaGuardadas ? guardadas[elegida].url : URL.createObjectURL(fichero));
+      setInforme(r.ai_analysis);
+    } catch (e: any) {
+      setError(mensajeDeError(e));
+    } finally {
+      setAnalizandoCompleto(false);
+    }
+  };
+
   const analizar = async () => {
     if (!archivo && !usaGuardadas) return;
     setAnalizando(true);
-    setError(null);
-    setPlano(null);
-    setCircunferencia(null);
-    setAnomalias(null);
+    limpiar();
     try {
-      const fichero = usaGuardadas ? await descargarComoArchivo(guardadas[elegida]) : (archivo as File);
+      const fichero = await ficheroElegido();
       const [rPlano, rCirc, rAnom] = await Promise.all([
         iaMedicaService.clasificarPlano(fichero),
         tamanoPixel ? iaMedicaService.medirCircunferencia(fichero, tamanoPixel) : Promise.resolve(null),
@@ -178,15 +207,14 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
   return (
     <Card
       title={<span><ExperimentOutlined /> Redes entrenadas con ecografías reales</span>}
-      style={{ marginBottom: 24 }}
     >
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={10} style={{ display: 'grid', gap: 12, alignContent: 'start' }}>
+        <Col xs={24} md={10} className="ia-redes-columna">
           {usaGuardadas ? (
             <div>
-              <label htmlFor="imagen-guardada" style={{ display: 'block', marginBottom: 4 }}>Imagen de la ecografía</label>
-              <Select id="imagen-guardada" value={elegida} style={{ width: '100%' }}
-                onChange={(v) => { setElegida(v); setPlano(null); setCircunferencia(null); setAnomalias(null); }}
+              <label htmlFor="imagen-guardada" className="ia-redes-etiqueta">Imagen de la ecografía</label>
+              <Select id="imagen-guardada" value={elegida} className="ia-ancho-completo"
+                onChange={(v) => { setElegida(v); limpiar(); }}
                 options={guardadas.map((g, i) => ({ value: i, label: g.nombre }))} />
             </div>
           ) : (
@@ -195,7 +223,7 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
               accept=".png,.jpg,.jpeg,.bmp,.tif,.dcm,.dicom"
               maxCount={1}
               showUploadList={false}
-              beforeUpload={(f) => { setArchivo(f); setPlano(null); setCircunferencia(null); setAnomalias(null); return false; }}
+              beforeUpload={(f) => { setArchivo(f); limpiar(); return false; }}
             >
               <p className="ant-upload-drag-icon"><InboxOutlined /></p>
               <p className="ant-upload-text">{archivo ? archivo.name : 'Arrastre una ecografía o haga clic'}</p>
@@ -204,28 +232,38 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
           </div>
           )}
           <div>
-            <label htmlFor="tamano-pixel" style={{ display: 'block', marginBottom: 4 }}>
-              Tamaño de píxel (mm) — solo para medir la cabeza
+            <label htmlFor="tamano-pixel" className="ia-redes-etiqueta">
+              Tamaño de píxel (mm) — para dar las medidas en milímetros
             </label>
             <InputNumber id="tamano-pixel" min={0.01} max={2} step={0.001} value={tamanoPixel}
-              onChange={(v) => setTamanoPixel(v)} placeholder="p. ej. 0.128" style={{ width: '100%' }} />
-            <p style={{ fontSize: 12, opacity: 0.75, margin: '4px 0 0' }}>
-              Lo da el ecógrafo o la cabecera DICOM. Sin él solo se reconoce el plano.
+              onChange={(v) => setTamanoPixel(v)} placeholder="p. ej. 0.128" className="ia-ancho-completo" />
+            <p className="ia-ayuda">
+              Lo da el ecógrafo o la cabecera DICOM. Sin él se reconoce el plano y las medidas salen en píxeles.
             </p>
           </div>
-          <Button type="primary" block disabled={!archivo && !usaGuardadas}
-            loading={analizando} onClick={analizar}>
-            Analizar
-          </Button>
+          <Space direction="vertical" className="ia-ancho-completo">
+            <Button type="primary" block disabled={!archivo && !usaGuardadas}
+              loading={analizando} onClick={analizar}>
+              Analizar
+            </Button>
+            <Button block icon={<ScanOutlined />} disabled={!archivo && !usaGuardadas}
+              loading={analizandoCompleto} onClick={informeCompleto}>
+              Informe completo
+            </Button>
+            <p className="ia-ayuda">
+              «Analizar»: plano, cribado cerebral y circunferencia cefálica. «Informe completo»: la red del
+              plano dibuja las estructuras y mide (cabeza, tórax, abdomen o fémur).
+            </p>
+          </Space>
         </Col>
-        <Col xs={24} md={14} style={{ display: 'grid', gap: 12, alignContent: 'start' }}>
+        <Col xs={24} md={14} className="ia-redes-columna">
           {error && <Alert type="error" showIcon message="No se pudo analizar" description={error} />}
           {avisos.map((a) => <Alert key={a} type="warning" showIcon message={a} />)}
           {plano && <TarjetaPlano r={plano} />}
           {anomalias && <TarjetaAnomalias r={anomalias} />}
           {circunferencia && <TarjetaCircunferencia r={circunferencia} />}
           {!plano && !error && (
-            <p style={{ opacity: 0.75, margin: 0 }}>
+            <p className="ia-texto-secundario">
               Reconoce el plano (abdomen, cerebro, fémur, tórax, cuello uterino u otro); en
               los cortes de la cabeza busca anomalías cerebrales y, si indica el tamaño de
               píxel, mide la circunferencia cefálica y calcula la edad gestacional. Es apoyo
@@ -234,6 +272,12 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
           )}
         </Col>
       </Row>
+      <InformeAnalisisModal
+        abierto={!!informe}
+        informe={informe}
+        imagenUrl={urlInforme}
+        onCerrar={() => setInforme(null)}
+      />
     </Card>
   );
 };

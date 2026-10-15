@@ -157,6 +157,16 @@ Requisitos: RF-31 · Pruebas: CP-085, CP-086, CP-087
 
 Requisitos: RF-32 · Pruebas: CP-088
 
+### HU-28 · Saber qué hace cada modelo de IA y dónde usarlo
+**Como** médica, **quiero** una guía dentro del sistema que me explique cada modelo de IA, **para** saber cuándo usarlo y cuánto creerle.
+- Entiendo en pocas líneas qué es una red convolucional, una U-Net, una red de puntos y un modelo supervisado, y por qué el sistema no decide con aprendizaje no supervisado.
+- Cada modelo muestra qué hace, su fiabilidad medida en pacientes que no vio, con qué datos se entrenó y sus límites.
+- Un botón «Usar ahora» me lleva a la pantalla donde se usa ese modelo.
+- Los modelos evaluados y descartados aparecen con el motivo y no se pueden usar.
+- Si el servidor no responde, la guía lo dice y no muestra ninguna cifra.
+
+Requisitos: RF-33 · Pruebas: CP-114
+
 ## Laboratorio
 
 ### HU-10 · Carga de resultados por Excel

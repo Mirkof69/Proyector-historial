@@ -247,7 +247,13 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
                 data={"modelo": modelo},
                 timeout=60,
             )
-            resp.raise_for_status()
+            if resp.status_code != 200:
+                # Un 400/503 del microservicio llega con su motivo, no como 500.
+                from ecografias.ai_views import respuesta_de_error_ia
+
+                instancia.estado = "error"
+                instancia.save(update_fields=["estado"])
+                return respuesta_de_error_ia(resp)
             ai_result = resp.json()
 
             from .models import AnalisisCNN
@@ -396,7 +402,12 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="modelos")
     def modelos(self, _request):
-        """Lista de modelos CNN disponibles."""
+        """Modelos en servicio con su métrica medida, y los evaluados y descartados.
+
+        La Guía de IA (frontend/src/pages/GuiaIA) lee de aquí las cifras: no
+        las repite en el código de la pantalla."""
+        from .services.catalogo_modelos import descartados
+
         modelos_dinamicos = cnn_service.obtener_modelos_disponibles()
         modelos_bd = ModeloCNNConfig.objects.filter(estado="activo")
         bd_serializer = ModeloCNNConfigListSerializer(modelos_bd, many=True)
@@ -405,6 +416,7 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
             {
                 "modelos_builtin": modelos_dinamicos,
                 "modelos_personalizados": bd_serializer.data,
+                "modelos_descartados": descartados(),
                 "total": len(modelos_dinamicos) + modelos_bd.count(),
             },
         )
@@ -506,6 +518,12 @@ def consultar_ia(request):
 
         consulta = request.data.get("consulta", "")
         paciente_id = request.data.get("paciente_id")
+        # 0, "", "abc" o un id inexistente: la consulta va sin paciente. Antes
+        # un 0 pasaba directo a ConsultaIA.objects.create y daba 500.
+        try:
+            paciente_id = int(paciente_id) if paciente_id not in (None, "") and int(paciente_id) > 0 else None
+        except (TypeError, ValueError):
+            paciente_id = None
 
         if not consulta:
             return Response(
@@ -553,8 +571,11 @@ def consultar_ia(request):
                         estado="activo",
                     ).exists(),
                 }
-            except Paciente.DoesNotExist:
-                pass
+            except (Paciente.DoesNotExist, ValueError, TypeError):
+                # Una paciente que no existe (el asistente mandaba 0 desde
+                # cualquier pantalla) no puede tumbar la consulta con un 500
+                # al guardar la clave foránea: se responde sin paciente.
+                paciente_id = None
 
         try:
             start_time = time.time()

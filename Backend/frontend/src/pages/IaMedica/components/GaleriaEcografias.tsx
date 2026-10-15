@@ -118,12 +118,10 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
               <div className="image-card-footer">
                 {!img.tiene_analisis ? (
                   <Button
-                    type="primary"
                     block
                     icon={<RobotOutlined />}
                     loading={analyzingId === img.id}
                     onClick={() => handleAnalyze(img.id)}
-                    style={{ marginBottom: 4 }}
                   >
                     Analizar (legado)
                   </Button>
@@ -133,7 +131,6 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
                     block
                     icon={<EyeOutlined />}
                     onClick={() => showAnalysis(img.id)}
-                    style={{ marginBottom: 4 }}
                   >
                     Ver Resultado
                   </Button>
@@ -145,7 +142,6 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
                     icon={<ExperimentOutlined />}
                     loading={analyzingCnnId === img.id}
                     onClick={() => handleAnalyzeCNN(img)}
-                    style={{ background: '#722ed1', borderColor: '#722ed1', marginBottom: 4 }}
                   >
                     Analizar con IA
                   </Button>
@@ -156,9 +152,10 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
                       type="link"
                       block
                       icon={<NodeIndexOutlined />}
-                      style={{ color: '#52c41a', marginBottom: 4 }}
+                      className="ia-enlace-ecografia"
                       onClick={() => {
-                        window.open(`/ecografias/${ecografiasVinculadas[img.id]}`, '_blank');
+                        // La ruta es /dashboard/ecografias/:id; «/ecografias/:id» no existe y abría una página vacía.
+                        window.open(`/dashboard/ecografias/${ecografiasVinculadas[img.id]}`, '_blank');
                       }}
                     >
                       Eco #{ecografiasVinculadas[img.id]}
@@ -169,7 +166,6 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
                     block
                     icon={<LinkOutlined />}
                     onClick={() => handleVincularClick(img)}
-                    style={{ marginBottom: 4 }}
                   >
                     Vincular a Ecografía
                   </Button>
