@@ -36,14 +36,14 @@ const SeccionInfoConsultaNota: React.FC<SeccionInfoConsultaNotaProps> = ({
             onChange={handlePacienteChange}
             loading={loading}
             filterOption={(input, option) =>
-              (option?.children as unknown as string)
+              String(option?.children ?? '')
                 .toLowerCase()
                 .includes(input.toLowerCase())
             }
           >
             {pacientes.map((p) => (
               <Option key={p.id} value={p.id}>
-                {p.nombre} {p.apellido_paterno} {p.apellido_materno} - {p.ci}
+                {`${[p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ')} - ${p.ci}`}
               </Option>
             ))}
           </Select>

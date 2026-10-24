@@ -286,11 +286,15 @@ export const citasService = {
      */
     async getHorariosDisponibles(medico: number, fecha: string): Promise<HorarioDisponible[]> {
         try {
-            const response = await api.get<HorarioDisponible[]>(
+            // El backend responde {fecha, tiene_disponibilidad, horarios: [...]}; la
+            // pantalla espera solo la lista. Devolver el objeto entero hacía que
+            // elegir una fecha en «Nueva Cita» tumbara la página (`.filter` de un objeto).
+            const response = await api.get<{ horarios?: HorarioDisponible[] } | HorarioDisponible[]>(
                 `/citas/disponibilidades/horarios-disponibles/`,
                 { params: { medico_id: medico, fecha } }
             );
-            return response.data;
+            const datos = response.data;
+            return Array.isArray(datos) ? datos : datos?.horarios ?? [];
         } catch (error) {
             console.error('Error fetching horarios disponibles:', error);
             return []; // Retornar array vacío en caso de error

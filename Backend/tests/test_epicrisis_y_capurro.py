@@ -114,6 +114,16 @@ class EpicrisisTest(BaseParto):
         self.assertIn("Episiotomía", r.json()["procedimientos"])
         self.assertIn("3200 g", r.json()["resumen_clinico"])
 
+    def test_egreso_sugerido_vale_aunque_el_parto_sea_de_este_minuto(self):
+        # Antes la sugerencia truncaba los segundos de «ahora»: redactada en el
+        # mismo minuto del parto, quedaba antes del parto y no se podía guardar.
+        from partos.models import Parto
+
+        Parto.objects.filter(pk=self.parto_id).update(fecha_parto=timezone.now())
+        egreso = self.cliente().get(f"{self.URL}sugerencia/?parto={self.parto_id}").json()["fecha_egreso"]
+        r = self.cliente().post(self.URL, self.datos(fecha_egreso=egreso), format="json")
+        self.assertEqual(r.status_code, 201, r.content[:400])
+
     def test_crear_normaliza_cie10_y_calcula_dias(self):
         r = self.cliente().post(self.URL, self.datos(), format="json")
         self.assertEqual(r.status_code, 201, r.content[:400])

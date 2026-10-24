@@ -46,12 +46,12 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
               size="large"
               onChange={onPacienteChange}
               filterOption={(input, option) =>
-                (option?.children as any).toLowerCase().includes(input.toLowerCase())
+                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
               }
             >
               {pacientes.map((p) => (
                 <Option key={p.id} value={p.id}>
-                  {p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`} - {p.ci || p.id_clinico}
+                  {`${p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`} - ${p.ci || p.id_clinico}`}
                 </Option>
               ))}
             </Select>
@@ -65,7 +65,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
               size="large"
               onChange={onVacunaChange}
               filterOption={(input, option) =>
-                (option?.children as any).toLowerCase().includes(input.toLowerCase())
+                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
               }
             >
               {tiposVacunas.map((v) => (

@@ -254,7 +254,13 @@ apiClient.interceptors.response.use(
 
     // El 403 «configure su MFA» del login no es una denegación: lo atiende la
     // pantalla de login (mostrar aquí «Acceso Denegado» tapaba ese paso).
-    if (status === 403 && !(error.response?.data as any)?.mfa_setup_required) {
+    // Solo se avisa cuando la persona HIZO algo (guardar, borrar…). Las lecturas
+    // de fondo que un rol no puede ver (el Panel de recepción y enfermería pide
+    // reportes) abrían una ventana por cada una al entrar (BUG-001).
+    const esLectura = (originalRequest?.method || 'get').toLowerCase() === 'get';
+    if (status === 403 && esLectura) {
+      console.warn('Sin permiso para leer:', originalRequest?.url);
+    } else if (status === 403 && !(error.response?.data as any)?.mfa_setup_required) {
       antdGlobal.modal.error({
         title: '⛔ Acceso Denegado',
         content: 'No tienes permisos suficientes para realizar esta acción.',

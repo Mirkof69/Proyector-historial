@@ -569,7 +569,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "core.paginacion.PaginacionEstandar",
     "PAGE_SIZE": 200,
     # Manejo de excepciones
-    "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
+    # Convierte las ValidationError de los modelos (full_clean en save) en 400.
+    "EXCEPTION_HANDLER": "core.excepciones.manejar_excepcion",
     # Formatos de fecha/hora
     "DATETIME_FORMAT": "%Y-%m-%d %H:%M:%S",
     "DATE_FORMAT": "%Y-%m-%d",

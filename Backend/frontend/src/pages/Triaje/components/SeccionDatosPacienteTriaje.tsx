@@ -44,7 +44,9 @@ const SeccionDatosPacienteTriaje: React.FC<SeccionDatosPacienteTriajeProps> = ({
             >
               {pacientes.map((p) => (
                 <Option key={p.id} value={p.id}>
-                  {p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`} - {p.id_clinico || p.ci}
+                  {/* El CI va en el texto: el buscador filtra por lo que se ve, y el placeholder promete buscar por CI. */}
+                  {[p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`, p.ci && `CI ${p.ci}`, p.id_clinico]
+                    .filter(Boolean).join(' · ')}
                 </Option>
               ))}
             </Select>

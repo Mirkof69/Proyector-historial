@@ -33,13 +33,16 @@ const StepPacienteMedico: React.FC<StepPacienteMedicoProps> = ({
             placeholder="Buscar y seleccionar paciente"
             showSearch
             optionFilterProp="children"
+            // Un solo texto por opción: con varias piezas JSX `children` era un arreglo
+            // y toLowerCase() tumbaba la pantalla al primer carácter escrito.
             filterOption={(input, option) =>
-              (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())
+              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
             }
           >
             {pacientes.map((p) => (
               <Option key={p.id} value={p.id}>
-                {p.nombre} {p.apellido_paterno} {p.apellido_materno} - ID: {p.id_clinico || p.numero_documento}
+                {[[p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' '),
+                  p.ci && `CI ${p.ci}`, p.id_clinico || p.numero_documento].filter(Boolean).join(' · ')}
               </Option>
             ))}
           </Select>

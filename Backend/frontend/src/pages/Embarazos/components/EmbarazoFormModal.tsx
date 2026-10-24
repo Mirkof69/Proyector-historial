@@ -103,14 +103,14 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
                 loading={loadingMedicos}
                 allowClear
                 filterOption={(input, option) =>
-                  (option?.children as unknown as string)
-                    ?.toLowerCase()
+                  String(option?.children ?? '')
+                    .toLowerCase()
                     .includes(input.toLowerCase())
                 }
               >
                 {medicos.map(medico => (
                   <Option key={medico.id} value={medico.id}>
-                    Dr./Dra. {medico.nombre} {medico.apellido_paterno || medico.apellido || ''}
+                    {`Dr./Dra. ${medico.nombre} ${medico.apellido_paterno || medico.apellido || ''}`}
                   </Option>
                 ))}
               </Select>

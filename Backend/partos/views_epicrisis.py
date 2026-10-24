@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import HttpResponse
@@ -99,9 +100,14 @@ class EpicrisisViewSet(viewsets.ModelViewSet):
             f"RN {r.numero_gemelo or i + 1}: {r.get_sexo_display()}, {r.peso_nacimiento} g, Apgar "
             f"{r.apgar_1_minuto}/{r.apgar_5_minutos}" for i, r in enumerate(rns))
         eg = parto.edad_gestacional_parto or ""
+        # Ahora redondeado al minuto siguiente: truncar los segundos dejaba el
+        # egreso ANTES del parto si se redactaba en el mismo minuto, y el
+        # guardado fallaba con «El egreso no puede ser anterior al parto».
+        egreso = max(timezone.localtime(), timezone.localtime(parto.fecha_parto) if parto.fecha_parto else timezone.localtime())
+        egreso = egreso.replace(second=0, microsecond=0) + timedelta(minutes=1)
         return Response({
             "parto": parto.pk,
-            "fecha_egreso": timezone.localtime().replace(second=0, microsecond=0).isoformat(),
+            "fecha_egreso": egreso.isoformat(),
             "diagnostico_ingreso": f"Embarazo de {eg} semanas en trabajo de parto" if eg else "Embarazo en trabajo de parto",
             "diagnostico_egreso": f"Puerperio inmediato post parto {tipo}".strip(),
             "resumen_clinico": (f"Ingresa el {timezone.localtime(parto.fecha_ingreso or parto.fecha_parto):%d/%m/%Y %H:%M}. "
