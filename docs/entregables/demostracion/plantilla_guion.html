@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Guion de demostración — Fetal Medical Bolivia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+  :root { --tinta: #1c232b; --suave: #5b6470; --linea: #d6dbe1; --fondo: #f4f6f8; --acento: #1d4e89;
+          --ok: #1f6f3c; --okf: #e3f2e8; --no: #9a2b1f; --nof: #f8e4e1; --ref: #5b6470; --reff: #eceff2; }
+  @page { size: A4; margin: 14mm 13mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif; font-size: 10pt; line-height: 1.45;
+         color: var(--tinta); background: #fff; margin: 0; }
+  h1, h2 { font-family: "IBM Plex Serif", Georgia, serif; font-weight: 600; text-wrap: balance; }
+  h1 { font-size: 24pt; margin: 0 0 4px; color: var(--acento); }
+  h2 { font-size: 15pt; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--acento); break-after: avoid; }
+  h3 { font-size: 10.5pt; margin: 14px 0 5px; break-after: avoid; }
+  h3 small { font-weight: 400; color: var(--suave); font-size: 8.5pt; margin-left: 6px; }
+  p { margin: 4px 0 8px; max-width: 72ch; }
+  .sub { color: var(--suave); font-size: 11pt; margin-bottom: 14px; }
+  .caja { background: var(--fondo); border: 1px solid var(--linea); border-radius: 6px; padding: 10px 14px; margin: 8px 0; }
+  .caja ol, .caja ul { margin: 4px 0; padding-left: 20px; }
+  .caja li { margin: 2px 0; }
+  code { font-family: Consolas, monospace; font-size: 9pt; background: #fff; border: 1px solid var(--linea);
+         padding: 0 3px; border-radius: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin: 4px 0 8px; }
+  th { text-align: left; background: var(--fondo); font-weight: 600; letter-spacing: .02em; }
+  th, td { border: 1px solid var(--linea); padding: 4px 6px; vertical-align: top; }
+  tr { break-inside: avoid; }
+  td.n { width: 22px; text-align: center; font-weight: 700; color: var(--acento); }
+  td.decir { width: 44%; font-style: italic; color: #2c3e57; }
+  .cuenta { display: inline-block; font-size: 7.5pt; font-weight: 600; color: #fff; background: var(--acento);
+            border-radius: 3px; padding: 0 5px; margin-right: 6px; letter-spacing: .03em; }
+  table.ia { table-layout: fixed; }
+  table.ia td.arch, table.ia th:nth-child(1) { width: 24%; }
+  table.ia th:nth-child(4) { width: 23%; }
+  table.ia td.arch { font-family: Consolas, monospace; font-size: 8pt; word-break: break-all; }
+  table.ia td.res { white-space: nowrap; }
+  .chip { display: inline-block; font-size: 7.5pt; font-weight: 700; border-radius: 9px; padding: 1px 7px; }
+  .chip.ok { color: var(--ok); background: var(--okf); }
+  .chip.no { color: var(--no); background: var(--nof); }
+  .chip.ref { color: var(--ref); background: var(--reff); }
+  .ms { font-size: 7.5pt; color: var(--suave); margin-left: 5px; font-variant-numeric: tabular-nums; }
+  svg.flujo { width: 100%; height: auto; display: block; margin: 6px 0; }
+  svg .carril { font: 700 11px "IBM Plex Sans", Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+  svg .t { font: 600 10px "IBM Plex Sans", Arial, sans-serif; fill: #1c232b; }
+  svg .d { font: 400 9px "IBM Plex Sans", Arial, sans-serif; fill: #5b6470; }
+  svg .fl { stroke: #5b6470; stroke-width: 1.3; fill: none; }
+  .arq { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+  .arq div { border: 1px solid var(--linea); border-radius: 6px; padding: 8px 10px; background: #fff; }
+  .arq b { display: block; color: var(--acento); }
+  .arq .ancho { grid-column: 1 / -1; background: var(--fondo); text-align: center; }
+  .tipos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .tipos div { border-left: 3px solid var(--acento); padding: 4px 10px; background: var(--fondo); }
+  dl dt { font-weight: 700; margin-top: 8px; }
+  dl dd { margin: 2px 0 0 0; max-width: 80ch; }
+  .salto { break-before: page; }
+</style>
+</head>
+<body>
+<h1>Guion de demostración</h1>
+<div class="sub">Fetal Medical Bolivia · sistema clínico perinatal con IA · duración aproximada: 25 minutos</div>
+
+<div class="caja">
+  <b>Antes de empezar</b>
+  <ol>
+    <li>Doble clic en <code>INICIAR.bat</code> y esperar a que diga <b>LISTO</b> (base de datos, Redis, servidor, IA y pantallas).</li>
+    <li>Abrir <code>http://localhost:3000</code>. Desde otro equipo de la misma red: <code>http://192.168.1.11:3000</code> (la dirección puede cambiar si se reinicia el router).</li>
+    <li>Tener abierta la carpeta <code>Escritorio\MUESTRAS_IA_Fetal_Medical</code>: cada subcarpeta trae las imágenes, la imagen que dibujó la red y <code>RESULTADO.txt</code> con el tamaño de píxel y lo que debe salir.</li>
+    <li>Cuentas: <code>dra.garcia@fetalmedical.bo</code> (médica), <code>enf.mamani@fetalmedical.bo</code> (enfermera) y <code>admin.demo@fetalmedical.bo</code> (administrador), con la contraseña de demostración.</li>
+  </ol>
+</div>
+
+<div class="caja">
+  <b>Diagnóstico del sistema (23/10/2026, arrancado con INICIAR.bat en modo producción)</b>
+  <ul>
+    <li>Base de datos, Redis, servidor principal (8000), alertas en tiempo real (8010), servicio de IA (8001) y pantallas (3000): <b>los seis responden</b>.</li>
+    <li>Las <b>13 redes neuronales</b> cargadas en la tarjeta gráfica en 7,9 segundos; los 2 modelos de tabla, disponibles.</li>
+    <li>Prueba automática completa (Playwright): <b>164 de 164 aprobadas</b> en 4,5 minutos. Recorre las 136 pantallas en tema claro y oscuro, cada modelo de IA desde su pantalla, ginecología, parto y permisos.</li>
+    <li>Datos de demostración: 3.219 pacientes, 3.231 embarazos, 8.047 controles, 3.521 ecografías, 3.935 exámenes de laboratorio y 519 partos.</li>
+    <li>Muestras de IA pasadas en vivo: 14 modelos, 42 respuestas reales (sección 4).</li>
+  </ul>
+</div>
+
+<h2 class="salto">1. Flujo de negocio: el recorrido de una paciente</h2>
+<p>Así se cuenta el sistema: una paciente embarazada llega, pasa por recepción, enfermería y la médica, y el sistema la acompaña hasta el parto. Cada carril es un rol; los recuadros de la derecha son lo que hace el sistema solo.</p>
+{{FLUJO}}
+<p>Los números del 1 al 11 del flujo son los mismos que se nombran en la ruta de la demostración (sección 2).</p>
+
+<h2 class="salto">2. Ruta de la demostración</h2>
+<p>La columna de la derecha es lo que conviene decir en voz alta en cada pantalla.</p>
+<table>
+  <thead><tr><th>#</th><th>Pantalla y qué hacer</th><th>Qué decir</th></tr></thead>
+  <tbody>{{GUION}}</tbody>
+</table>
+
+<h2 class="salto">3. Cómo funciona por dentro</h2>
+<div class="arq">
+  <div class="ancho"><b>Navegador</b>React 18 + TypeScript + Ant Design · puerto 3000 · 136 pantallas, 4 temas</div>
+  <div><b>Servidor principal</b>Django 6 + Django REST Framework · puerto 8000. Permisos por rol, verificación en dos pasos, cifrado de datos, auditoría.</div>
+  <div><b>Base de datos</b>PostgreSQL 18 con un esquema por clínica (<code>public</code> usuarios, <code>clinica_demo</code> datos). Redis para caché y alertas en tiempo real (puerto 8010).</div>
+  <div><b>Servicio de IA</b>FastAPI + PyTorch en la tarjeta gráfica RTX 3090 · puerto 8001. 13 redes CNN; los 2 modelos de tabla corren en el servidor principal.</div>
+</div>
+<h3>Los dos tipos de inteligencia artificial del sistema</h3>
+<div class="tipos">
+  <div><b>Redes neuronales convolucionales (CNN), 13</b><br>Aprenden de imágenes etiquetadas. <i>Clasificación</i> (EfficientNet-B0): dice qué es. <i>Segmentación</i> (U-Net): pinta dónde está y sobre eso se mide. <i>Regresión</i>: devuelve el número directo. <i>Puntos de referencia</i>: ubica dos extremos y mide la distancia.</div>
+  <div><b>Aprendizaje supervisado sobre tablas, 2</b><br><i>Cardiotocografía</i>: gradient boosting sobre 21 variables del monitoreo fetal (normal, sospechosa o patológica). <i>Peso al nacer</i>: regresión Ridge sobre la biometría; solo demostración porque se midió con datos simulados.</div>
+</div>
+<p>El camino de una ecografía: la pantalla envía la imagen → el servidor revisa permisos → el servicio de IA reconoce el plano → la red de ese plano mide en píxeles → con el tamaño de píxel pasa a milímetros → Hadlock da la edad gestacional → vuelve a la historia clínica con su margen de error.</p>
+
+<h2>4. IA en vivo: lo que respondió cada modelo</h2>
+<p>Estas respuestas no están escritas a mano: salen de pasar cada muestra por el sistema encendido (<code>Backend/scripts/muestras_ia.py</code>). «Concuerda» significa misma clase que el experto o medida dentro del 5 % de la suya. Los casos que no concuerdan se dejan a la vista porque explican por qué el sistema siempre muestra el margen de error y pide la confirmación del especialista.</p>
+{{IA}}
+
+<h2 class="salto">5. Qué no hacer durante la demostración</h2>
+<p>Son fallos conocidos, documentados en el Entregable 1 de pruebas funcionales.</p>
+<table><thead><tr><th>Evitar</th><th>Por qué</th></tr></thead><tbody>{{EVITAR}}</tbody></table>
+
+<h2>6. Preguntas probables y cómo responderlas</h2>
+<dl>{{PREGUNTAS}}</dl>
+</body>
+</html>
