@@ -32,7 +32,7 @@ PASOS = [
     (6, 2, "7 · Ecografía", "sube la imagen"),
     (6, 3, "13 redes CNN", "plano → red del plano → medidas → EG"),
     (7, 2, "8 · Laboratorio", "resultados de exámenes"),
-    (7, 3, "Valor crítico → alerta", "llega a Alertas Médicas"),
+    (7, 3, "Valores fuera de rango", "marcados anormal o crítico"),
     (8, 2, "9 · Trabajo de parto", "partograma y tactos"),
     (8, 3, "IA intraparto y CTG", "ángulo de progresión · gradient boosting"),
     (9, 2, "10 · Parto y recién nacido", "registro del parto, RN, epicrisis"),
@@ -118,7 +118,7 @@ GUION = [
      "los descartados.",
      "«No subimos ningún modelo que no alcanzara un rendimiento aceptable en pacientes que no vio al entrenar.»"),
     ("dra.garcia", "Estudios Auxiliares → Laboratorio", "Mostrar el listado y resultados ya cargados (paso 8).",
-     "«Un valor crítico de laboratorio genera una alerta para la médica tratante.»"),
+     "«Cada resultado se compara con su rango de referencia: lo anormal o crítico queda marcado en la historia.»"),
     ("dra.garcia", "Gestión Clínica → Partos → abrir un parto → Trabajo de parto", "Mostrar el partograma; Registrar "
      "tacto → subir 09_unet_intraparto/intraparto_1.png (paso 9).",
      "«La U-Net encuentra la sínfisis del pubis y la cabeza fetal y mide el ángulo de progresión: cuanto mayor, más "
@@ -136,10 +136,8 @@ GUION = [
 ]
 
 EVITAR = [
-    ("Entrar como recepción delante del público", "salen 4 avisos de «Acceso Denegado» en el Panel (BUG-001)"),
     ("Equivocarse de contraseña varias veces", "el mensaje de bloqueo es confuso (BUG-002)"),
     ("Presión 139/89", "no avisa de prehipertensión (BUG-003)"),
-    ("Altura uterina 34 cm", "error 500 (BUG-004)"),
     ("IMC exactamente 25 o 30", "lo clasifica mal (BUG-005)"),
     ("Bishop 5 en la calculadora rápida", "lo muestra como «intermedio» (BUG-006)"),
     ("Escribir a mano un resultado de laboratorio o abrir el detalle del examen", "no se guarda / la pantalla falla "
@@ -173,7 +171,7 @@ PREGUNTAS = [
 def leer_resultados() -> list[tuple[str, str, list[tuple[str, str, str, str]]]]:
     """(título, carpeta, [(archivo, referencia, respuesta, resultado)]) desde cada RESULTADO.txt."""
     salida = []
-    for carpeta in sorted(p for p in MUESTRAS.iterdir() if p.is_dir()):
+    for carpeta in sorted(p for p in MUESTRAS.iterdir() if (p / "RESULTADO.txt").exists()):
         texto = (carpeta / "RESULTADO.txt").read_text(encoding="utf-8-sig")
         titulo = texto.splitlines()[0]
         casos = []

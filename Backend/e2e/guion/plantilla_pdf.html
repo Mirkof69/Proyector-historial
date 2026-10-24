@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Guion paso a paso — Fetal Medical Bolivia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+  :root { --tinta: #1c232b; --suave: #5b6470; --linea: #d6dbe1; --fondo: #f4f6f8; --acento: #1d4e89; --rojo: #c8232a;
+          --aviso: #8a5a00; --avisof: #fff4dc; }
+  @page { size: A4; margin: 11mm 12mm 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif; font-size: 9.6pt; line-height: 1.42;
+         color: var(--tinta); background: #fff; margin: 0; }
+  h1, h2 { font-family: "IBM Plex Serif", Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: 26pt; color: var(--acento); }
+  h2 { font-size: 14pt; margin: 4px 0 6px; }
+  h3 { font-size: 8.4pt; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); margin: 0 0 4px; }
+  .sub { color: var(--suave); font-size: 11pt; margin: 4px 0 14px; }
+  .caja { background: var(--fondo); border: 1px solid var(--linea); border-radius: 6px; padding: 9px 13px; margin: 8px 0; }
+  .caja ol, .caja ul { margin: 3px 0; padding-left: 18px; }
+  .caja li { margin: 2px 0; }
+  code { font-family: Consolas, monospace; font-size: 8.8pt; background: #fff; border: 1px solid var(--linea);
+         padding: 0 3px; border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; font-size: 9pt; }
+  th, td { border: 1px solid var(--linea); padding: 3px 6px; text-align: left; vertical-align: top; }
+  th { background: var(--fondo); font-weight: 600; }
+  .indice { columns: 2; padding-left: 18px; margin: 4px 0; }
+  .indice span { color: var(--suave); font-size: 8.4pt; }
+  .salto { break-before: page; }
+  svg.flujo { width: 100%; height: auto; display: block; margin: 6px 0; }
+  svg .carril { font: 700 11px "IBM Plex Sans", Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+  svg .t { font: 600 10px "IBM Plex Sans", Arial, sans-serif; fill: #1c232b; }
+  svg .d { font: 400 9px "IBM Plex Sans", Arial, sans-serif; fill: #5b6470; }
+  svg .fl { stroke: #5b6470; stroke-width: 1.3; fill: none; }
+
+  .paso { break-before: page; }
+  .paso header { display: flex; gap: 10px; align-items: center; font-size: 8.4pt; border-bottom: 2px solid var(--acento);
+                 padding-bottom: 4px; }
+  .paso header .n { font-weight: 700; color: var(--acento); }
+  .paso header .sec { color: var(--suave); }
+  .paso header .cuenta { margin-left: auto; background: var(--acento); color: #fff; border-radius: 3px; padding: 1px 7px;
+                         font-weight: 600; }
+  .captura { text-align: center; margin: 4px 0 8px; }
+  .captura img { max-width: 100%; max-height: 152mm; border: 1px solid var(--linea); border-radius: 4px; }
+  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; }
+  .hacer ol { list-style: none; padding: 0; margin: 0 0 8px; }
+  .hacer li { display: flex; gap: 7px; margin: 3px 0; }
+  .num { flex: none; width: 18px; height: 18px; border-radius: 9px; background: var(--rojo); color: #fff; font-weight: 700;
+         font-size: 8.4pt; display: inline-flex; align-items: center; justify-content: center; }
+  .hacer table th { width: 42%; }
+  .decir p { margin: 0; font-style: italic; font-size: 10.2pt; color: #22364f; background: var(--fondo);
+             border-radius: 6px; padding: 8px 11px; }
+  .nota { margin-top: 8px; background: var(--avisof); color: var(--aviso); border-radius: 6px; padding: 6px 10px; font-size: 8.8pt; }
+  dl dt { font-weight: 700; margin-top: 7px; }
+  dl dd { margin: 2px 0 0; }
+</style>
+</head>
+<body>
+<h1>Guion paso a paso</h1>
+<div class="sub">Fetal Medical Bolivia · qué tocar, qué escribir y qué decir en cada pantalla · {{TOTAL}} pasos, unos 30 minutos</div>
+
+<div class="caja">
+  <b>Antes de empezar</b>
+  <ol>
+    <li>Doble clic en <code>INICIAR.bat</code> y esperar a que diga <b>LISTO</b>.</li>
+    <li>Abrir <code>http://localhost:3000</code> en el navegador (desde otro equipo de la red: <code>http://192.168.1.11:3000</code>).</li>
+    <li>Tener abierta la carpeta <code>Escritorio\MUESTRAS_IA_Fetal_Medical</code>: las imágenes y archivos que se suben en los pasos están ahí (sobre todo en <code>00_archivos_del_guion</code>).</li>
+    <li>Las cuentas usan la contraseña de demostración: médica <code>dra.garcia@fetalmedical.bo</code>, enfermera <code>enf.mamani@fetalmedical.bo</code>, administrador <code>admin.demo@fetalmedical.bo</code>.</li>
+    <li>Los recuadros rojos de cada captura están numerados igual que la lista «Qué hacer».</li>
+  </ol>
+</div>
+
+<div class="caja">
+  <b>La paciente que se registra en vivo</b>
+  <table>
+    <tr><th>Nombre</th><td>{{PACIENTE}}</td><th>Cédula</th><td>{{CI}}</td></tr>
+    <tr><th>Nacimiento</th><td>{{NACIMIENTO}}</td><th>Teléfono / ciudad</th><td>{{TELEFONO}} · {{CIUDAD}}</td></tr>
+    <tr><th>Embarazo</th><td colspan="3">FUM = la fecha del día de la demostración menos 39 semanas (embarazo a término)</td></tr>
+  </table>
+  <p style="margin:6px 0 0">Para ensayar otra vez desde cero, la paciente se borra con
+  <code>python manage.py limpiar_datos_e2e --ci {{CI}}</code> (en la carpeta Backend).</p>
+</div>
+
+<div class="caja">
+  <b>Recorrido</b>
+  <ul class="indice">{{INDICE}}</ul>
+</div>
+
+<h2 class="salto">El flujo de negocio que se demuestra</h2>
+<p>Una paciente llega, pasa por recepción, enfermería y la médica, y el sistema la acompaña hasta el parto. Cada carril es un rol; a la derecha, lo que el sistema hace solo.</p>
+{{FLUJO}}
+
+{{PASOS}}
+
+<section class="paso">
+  <h2>Qué no hacer durante la demostración</h2>
+  <p>Fallos conocidos que siguen abiertos (Entregable 1 de pruebas funcionales).</p>
+  <table><tr><th>Evitar</th><th>Por qué</th></tr>{{EVITAR}}</table>
+  <h2 style="margin-top:16px">Preguntas probables del jurado</h2>
+  <dl>{{PREGUNTAS}}</dl>
+</section>
+</body>
+</html>

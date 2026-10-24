@@ -3,11 +3,14 @@
 Uso: python manage.py limpiar_datos_e2e --schema=clinica_demo
 
 Borra en orden (imágenes, ecografías, exámenes de laboratorio, controles,
-partos, embarazos, pacientes) porque la historia clínica está protegida contra el borrado en
+partos, triajes, antecedentes, embarazos, pacientes) porque la historia clínica está protegida contra el borrado en
 cascada. Los exámenes quedan cuando una corrida se corta antes de deshacer
 la importación del laboratorio. Los usuarios de prueba (correo @e2e.test)
 no se borran —su auditoría es inmutable (Ley 164)—: se desactivan y se les
 quita el cargo; luego se borran los cargos «E2E …». Nunca toca pacientes reales: solo las de apellido paterno «E2E».
+
+Con --ci borra además la paciente de ese CI: la del guion de demostración
+(Backend/e2e/guion), que se registra con nombre realista para ensayar en vivo.
 """
 import os
 
@@ -20,8 +23,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--schema", default="clinica_demo")
+        parser.add_argument("--ci", default="", help="CI de la paciente del guion de demostración")
 
     def handle(self, *args, **opciones):
+        from antecedentes.models import AntecedenteGinecoObstetrico, AntecedentePatologico
         from controles.models import ControlPrenatal
         from ecografias.models import Ecografia, ImagenEcografia
         from embarazos.models import Embarazo
@@ -29,12 +34,15 @@ class Command(BaseCommand):
         from pacientes.models import Paciente
         from partos.models import Parto
         from roles.models import Cargo
+        from triaje.models import TriajeEnfermeria
         from usuarios.models import Usuario
 
         with schema_context(opciones["schema"]):
             # El apellido va cifrado: no se puede filtrar en la base, se compara
             # ya descifrado.
-            ids = [p.id for p in Paciente.objects.only("id", "apellido_paterno") if p.apellido_paterno == "E2E"]
+            ci = opciones["ci"]
+            ids = [p.id for p in Paciente.objects.only("id", "apellido_paterno", "ci")
+                   if p.apellido_paterno == "E2E" or (ci and p.ci == ci)]
             for imagen in ImagenEcografia.objects.filter(ecografia__paciente_id__in=ids):
                 ruta = imagen.imagen.path if imagen.imagen else None
                 imagen.delete()
@@ -45,6 +53,10 @@ class Command(BaseCommand):
                 "exámenes": ExamenLaboratorio.objects.filter(paciente_id__in=ids).delete()[0],
                 "controles": ControlPrenatal.objects.filter(paciente_id__in=ids).delete()[0],
                 "partos": Parto.objects.filter(paciente_id__in=ids).delete()[0],
+                "triajes": TriajeEnfermeria.objects.filter(paciente_id__in=ids).delete()[0],
+                # El triaje crea los antecedentes de la paciente al abrir sus datos clínicos.
+                "antecedentes": AntecedentePatologico.objects.filter(paciente_id__in=ids).delete()[0]
+                + AntecedenteGinecoObstetrico.objects.filter(paciente_id__in=ids).delete()[0],
                 "embarazos": Embarazo.objects.filter(paciente_id__in=ids).delete()[0],
                 "pacientes": Paciente.objects.filter(id__in=ids).delete()[0],
             }

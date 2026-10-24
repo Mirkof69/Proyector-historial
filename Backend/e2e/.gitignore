@@ -1,3 +1,6 @@
 node_modules/
 reporte/
 test-results/
+
+# Salida del guion de demostración (capturas y HTML generados)
+guion/salida/
