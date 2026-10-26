@@ -64,6 +64,14 @@ class CookieAuthFlowTest(APITestCase):
         # La cookie csrftoken (double-submit) también se emite
         self.assertIn("csrftoken", response.cookies)
 
+    def test_login_actualiza_ultimo_acceso(self):
+        """«Último acceso» del perfil: el login propio no pasaba por auth.login()."""
+        self.assertIsNone(self.user.last_login)
+        self.assertEqual(self._login().status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertIsNotNone(self.user.last_login)
+        self.assertEqual(self.user.ultimo_login_ip, "127.0.0.1")
+
     # ── 2. REFRESH ──────────────────────────────────────────────────────────
     def test_refresh_with_cookie_rotates_tokens(self):
         """El refresh lee la cookie httpOnly y emite nuevas cookies."""

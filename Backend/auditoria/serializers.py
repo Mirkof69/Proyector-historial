@@ -60,10 +60,16 @@ class RegistroAuditoriaSerializer(serializers.ModelSerializer):
 
 
 class RegistroAuditoriaListSerializer(serializers.ModelSerializer):
-    """Serializer simplificado para listados (sin datos completos)"""
+    """Listado del explorador: quién, qué, dónde, cuándo, desde qué IP y con qué navegador."""
 
     usuario = UsuarioAuditoriaSerializer(read_only=True)
     accion_display = serializers.CharField(source="get_accion_display", read_only=True)
+    modulo_legible = serializers.SerializerMethodField()
+
+    def get_modulo_legible(self, obj):
+        from .modulos import legible
+
+        return legible(obj.modulo)
 
     class Meta:
         """Meta"""
@@ -75,8 +81,14 @@ class RegistroAuditoriaListSerializer(serializers.ModelSerializer):
             "accion_display",
             "registro_id",
             "usuario",
+            "usuario_nombre",
+            "usuario_rol",
             "fecha",
             "endpoint",
             "sesion_id",
+            "ip_address",
+            "user_agent",
+            "detalle",
+            "modulo_legible",
         ]
         read_only_fields = ["__all__"]

@@ -874,7 +874,10 @@ def login_view(request):
     x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
     ip = x_forwarded.split(",")[0] if x_forwarded else request.META.get("REMOTE_ADDR")
     usuario.ultimo_login_ip = ip
-    usuario.save(update_fields=["ultimo_login_ip"])
+    # Este login no pasa por django.contrib.auth.login(): last_login quedaba
+    # congelado y «Último acceso» del perfil y de Usuarios mostraba fechas viejas.
+    usuario.last_login = tz.now()
+    usuario.save(update_fields=["ultimo_login_ip", "last_login"])
 
     # Sesión de auditoría: todo lo que haga con este token queda asociado.
     sid = nuevo_sid()
@@ -950,11 +953,14 @@ def logout_view(request):
     refresh_token = request.COOKIES.get(REFRESH_COOKIE) or request.data.get(
         "refresh_token",
     )
+    usuario_del_token = None
     try:
         if refresh_token:
             token = RefreshToken(refresh_token)
             if token.get(SID_CLAIM):
                 fijar_sesion(request, token[SID_CLAIM])
+            # Con el access ya vencido request.user es anónimo: el LOGOUT quedaba sin usuario.
+            usuario_del_token = Usuario.objects.filter(pk=token.get("user_id")).first()
             token.blacklist()
     except Exception:
         pass  # token vencido/inválido: igual cerramos la sesión del navegador
@@ -966,8 +972,10 @@ def logout_view(request):
         from auditoria.models import RegistroAuditoria
 
         usuario = request.user if getattr(request, "user", None) else None
+        if not getattr(usuario, "is_authenticated", False):
+            usuario = usuario_del_token
         RegistroAuditoria.registrar(
-            usuario=usuario if getattr(usuario, "is_authenticated", False) else None,
+            usuario=usuario,
             accion="LOGOUT",
             modulo="Usuario",
             detalle="Cierre de sesión",
@@ -1033,7 +1041,10 @@ def _emitir_sesion(request, usuario, detalle: str) -> Response:
     x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
     ip = x_forwarded.split(",")[0] if x_forwarded else request.META.get("REMOTE_ADDR")
     usuario.ultimo_login_ip = ip
-    usuario.save(update_fields=["ultimo_login_ip"])
+    # Este login no pasa por django.contrib.auth.login(): last_login quedaba
+    # congelado y «Último acceso» del perfil y de Usuarios mostraba fechas viejas.
+    usuario.last_login = tz.now()
+    usuario.save(update_fields=["ultimo_login_ip", "last_login"])
 
     # Sesión de auditoría: todo lo que haga con este token queda asociado.
     sid = nuevo_sid()

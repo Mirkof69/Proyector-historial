@@ -193,7 +193,7 @@ const AppRoutes: React.FC = () => {
 
           {/* MÓDULO: ADMINISTRACIÓN Y SISTEMA */}
           <Route path="usuarios" element={<ProtectedRoute requiredPermission="view_usuario"><Usuarios /></ProtectedRoute>} />
-          <Route path="auditoria" element={<ProtectedRoute requiredPermission="view_usuario"><Auditoria /></ProtectedRoute>} />
+          <Route path="auditoria" element={<ProtectedRoute requiredPermission="view_registroauditoria"><Auditoria /></ProtectedRoute>} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="configuracion" element={<ProtectedRoute requiredPermission="view_sistemaconfiguracion"><Configuracion /></ProtectedRoute>} />
           <Route path="ayuda" element={<Ayuda />} />

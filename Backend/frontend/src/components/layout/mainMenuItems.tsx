@@ -3,7 +3,7 @@ import type { MenuProps } from 'antd';
 import type { NavigateFunction } from 'react-router-dom';
 import {
   DashboardOutlined, UserOutlined, HeartOutlined, MedicineBoxOutlined, CalculatorOutlined,
-  TeamOutlined, SettingOutlined, HistoryOutlined, ExperimentOutlined, CalendarOutlined,
+  TeamOutlined, SettingOutlined, HistoryOutlined, AuditOutlined, ExperimentOutlined, CalendarOutlined,
   BarChartOutlined, SoundOutlined, ApartmentOutlined, QuestionCircleOutlined,
   SafetyCertificateOutlined, FileProtectOutlined, MedicineBoxTwoTone, AlertOutlined, EditOutlined,
   SafetyOutlined, FileTextOutlined, RobotOutlined, ReadOutlined,
@@ -43,6 +43,7 @@ const checkPermission = (user: any, itemKey: string): boolean => {
     '/dashboard/roles': 'view_cargo',
     '/dashboard/usuarios': 'view_usuario',
     '/dashboard/access-logs': 'view_registroauditoria',
+    '/dashboard/auditoria': 'view_registroauditoria',
     '/dashboard/configuracion': 'view_sistemaconfiguracion',
     '/dashboard/backup': 'view_sistemaconfiguracion',
   };
@@ -135,6 +136,8 @@ export const buildMainMenuItems = (user: any, navigate: NavigateFunction): MenuP
   { key: '/dashboard/roles', icon: <SafetyCertificateOutlined />, label: 'Cargos y permisos' },
   { key: '/dashboard/usuarios', icon: <TeamOutlined />, label: 'Gestión de Usuarios' },
   { key: '/dashboard/access-logs', icon: <HistoryOutlined />, label: 'Logs de Acceso' },
+  // Todo lo que hace cada persona, con filtros; antes solo se llegaba desde una pestaña de Reportes.
+  { key: '/dashboard/auditoria', icon: <AuditOutlined />, label: 'Auditoría' },
   { key: '/dashboard/configuracion', icon: <SettingOutlined />, label: 'Configuración' },
   {
     key: 'ayuda',

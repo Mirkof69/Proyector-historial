@@ -158,7 +158,7 @@ const SesionesAuditoria: React.FC = () => {
   return (
     <>
       <div className="auditoria-page__filtros auditoria-page__filtros--inicio">
-        <RangePicker value={rango} format="DD/MM/YYYY" allowClear
+        <RangePicker value={rango} format={{ format: 'DD/MM/YYYY', type: 'mask' }} allowClear
           onChange={(v) => setRango(v && v[0] && v[1] ? [v[0], v[1]] : null)} />
         <Space>
           <Switch checked={soloAbiertas} onChange={setSoloAbiertas} aria-label="Solo sesiones abiertas" />

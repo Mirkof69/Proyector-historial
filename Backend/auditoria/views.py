@@ -8,6 +8,7 @@ ViewSets y endpoints para consultar registros de auditoría en tiempo real.
 from datetime import timedelta
 
 from django.db.models import Count, Max, Min, OuterRef, Q, Subquery
+from django.db.models.functions import Lower
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -18,7 +19,9 @@ from rest_framework.response import Response
 from core.permissions import PuedeVerAuditoria
 from core.exportacion import ExportarExcelMixin
 
+from .acciones import canonica, nombres_equivalentes
 from .models import RegistroAuditoria
+from .modulos import legible
 from .serializers import RegistroAuditoriaListSerializer, RegistroAuditoriaSerializer
 
 
@@ -37,6 +40,7 @@ class RegistroAuditoriaViewSet(ExportarExcelMixin, viewsets.ReadOnlyModelViewSet
         ("Módulo", "modulo"),
         ("Registro", "registro_id"),
         ("IP", "ip_address"),
+        ("Navegador", "user_agent"),
         ("Ruta", "endpoint"),
         ("Sesión", "sesion_id"),
         ("Detalle", "detalle"),
@@ -50,8 +54,11 @@ class RegistroAuditoriaViewSet(ExportarExcelMixin, viewsets.ReadOnlyModelViewSet
         filters.SearchFilter,
         filters.OrderingFilter,
     ]
-    filterset_fields = ["modulo", "accion", "usuario", "registro_id"]
-    search_fields = ["modulo", "usuario__email", "usuario__nombre", "usuario_nombre"]
+    # accion y modulo se filtran a mano en get_queryset: la acción incluye sus
+    # nombres legados y el módulo no distingue mayúsculas.
+    filterset_fields = ["usuario", "registro_id"]
+    search_fields = ["modulo", "usuario__email", "usuario__nombre", "usuario_nombre", "detalle", "endpoint",
+                     "ip_address", "registro_id"]
     ordering = ["-fecha"]
     ordering_fields = ["fecha", "modulo", "accion"]
 
@@ -65,20 +72,29 @@ class RegistroAuditoriaViewSet(ExportarExcelMixin, viewsets.ReadOnlyModelViewSet
         """Filtrado avanzado por parámetros query"""
         queryset = super().get_queryset()
 
-        # Filtrar por rango de fechas
-        fecha_inicio = self.request.query_params.get("fecha_inicio")
-        fecha_fin = self.request.query_params.get("fecha_fin")
+        p = self.request.query_params
 
-        if fecha_inicio:
-            queryset = queryset.filter(fecha__gte=fecha_inicio)
-        if fecha_fin:
-            queryset = queryset.filter(fecha__lte=fecha_fin)
-
-        # Filtrar por usuario_id
-        usuario_id = self.request.query_params.get("usuario_id")
-        if usuario_id:
-            queryset = queryset.filter(usuario_id=usuario_id)
-
+        # Rango de fechas por DÍA (AAAA-MM-DD): con fecha__lte el último día
+        # quedaba fuera, porque «2026-10-26» se leía como las 00:00.
+        if p.get("fecha_inicio"):
+            queryset = queryset.filter(fecha__date__gte=p["fecha_inicio"][:10])
+        if p.get("fecha_fin"):
+            queryset = queryset.filter(fecha__date__lte=p["fecha_fin"][:10])
+        if p.get("usuario_id"):
+            queryset = queryset.filter(usuario_id=p["usuario_id"])
+        # Quién, qué, dónde y desde qué red.
+        if p.get("accion"):
+            queryset = queryset.filter(accion__in=nombres_equivalentes(p["accion"]))
+        if p.get("modulo"):
+            queryset = queryset.filter(modulo__iexact=p["modulo"])
+        if p.get("rol"):
+            queryset = queryset.filter(usuario_rol=p["rol"])
+        if p.get("ip"):
+            queryset = queryset.filter(ip_address=p["ip"])
+        if p.get("sesion"):
+            queryset = queryset.filter(sesion_id=p["sesion"])
+        if p.get("solo_personas") == "1":  # sin las altas automáticas de los procesos del sistema
+            queryset = queryset.exclude(usuario__isnull=True)
         return queryset
 
     def _solo_admin(self, request):
@@ -143,18 +159,52 @@ class RegistroAuditoriaViewSet(ExportarExcelMixin, viewsets.ReadOnlyModelViewSet
 
         GET /api/auditoria/estadisticas-modulos/
         """
-        stats = (
-            RegistroAuditoria.objects.values("modulo")
+        # Antes contaba solo los nombres legados en minúsculas: «Control prenatal»
+        # salía con 112.818 registros y 72 creaciones. Y el mismo módulo aparecía
+        # dos veces («paciente» y «Paciente»).
+        filas = (
+            RegistroAuditoria.objects.annotate(clave=Lower("modulo")).values("clave")
             .annotate(
                 total=Count("id"),
-                creates=Count("id", filter=Q(accion="crear")),
-                updates=Count("id", filter=Q(accion="actualizar")),
-                deletes=Count("id", filter=Q(accion="eliminar")),
+                creates=Count("id", filter=Q(accion__in=nombres_equivalentes("CREAR"))),
+                updates=Count("id", filter=Q(accion__in=nombres_equivalentes("EDITAR"))),
+                deletes=Count("id", filter=Q(accion__in=[*nombres_equivalentes("DESACTIVAR"), "ELIMINAR",
+                                                         "ELIMINAR_EMBARAZO"])),
+                consultas=Count("id", filter=Q(accion="VER")),
+                ultima=Max("fecha"),
             )
             .order_by("-total")
         )
+        return Response([{"modulo": (clave := f.pop("clave")), "modulo_legible": legible(clave), **f} for f in filas])
 
-        return Response(stats)
+    @action(detail=False, methods=["get"], url_path="opciones")
+    def opciones(self, _request):
+        """Valores para los filtros del explorador: personas, acciones y módulos con registros.
+
+        Recorre toda la tabla (~500.000 filas, 9 s): se guarda 5 minutos en caché.
+        """
+        from django.core.cache import cache
+
+        guardado = cache.get("auditoria:opciones")
+        if guardado is not None:
+            return Response(guardado)
+        usuarios = (RegistroAuditoria.objects.exclude(usuario__isnull=True)
+                    .values("usuario_id").annotate(nombre=Max("usuario_nombre"), rol=Max("usuario_rol"), n=Count("id"))
+                    .order_by("nombre"))
+        acciones = {canonica(a) for a in RegistroAuditoria.objects.values_list("accion", flat=True).distinct()}
+        etiquetas = dict(RegistroAuditoria.ACCIONES)
+        modulos = RegistroAuditoria.objects.annotate(clave=Lower("modulo")).values_list("clave", flat=True).distinct()
+        datos = {
+            "usuarios": [{"id": u["usuario_id"], "nombre": u["nombre"], "rol": u["rol"], "registros": u["n"]}
+                         for u in usuarios],
+            "acciones": sorted(({"valor": a, "etiqueta": etiquetas.get(a, a)} for a in acciones if a),
+                               key=lambda x: x["etiqueta"]),
+            "modulos": sorted(({"valor": m, "etiqueta": legible(m)} for m in modulos if m),
+                              key=lambda x: x["etiqueta"]),
+            "roles": sorted({r for r in RegistroAuditoria.objects.values_list("usuario_rol", flat=True).distinct() if r}),
+        }
+        cache.set("auditoria:opciones", datos, timeout=300)
+        return Response(datos)
 
     @action(detail=False, methods=["get"], url_path="estadisticas-generales")
     def estadisticas_generales(self, _request):

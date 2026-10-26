@@ -4,3 +4,7 @@ test-results/
 
 # Salida del guion de demostración (capturas y HTML generados)
 guion/salida/
+
+# Salida de la auditoría de pantallas (capturas e informe)
+auditoria/salida/
+auditoria/corrida.log

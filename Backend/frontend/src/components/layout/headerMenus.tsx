@@ -72,7 +72,9 @@ export const buildUserMenuItems = (
     key: 'header_settings',
     icon: <SettingOutlined />,
     label: 'Ajustes de Cuenta',
-    onClick: () => navigate('/dashboard/configuracion'),
+    // Su contraseña y su MFA, para cualquier rol. Antes iba a /configuracion, que es
+    // solo del administrador: médicos y enfermeras caían en la página 403.
+    onClick: () => navigate('/dashboard/perfil?pestana=seguridad'),
   },
   { type: 'divider' },
   {

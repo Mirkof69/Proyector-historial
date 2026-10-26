@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Row, Col, Tabs, Spin, Empty, Form, Upload } from "antd";
+import { useSearchParams } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { useMessage } from '../hooks/useMessage';
@@ -16,6 +17,9 @@ const tabDatosPersonales = <span><UserOutlined /> Datos Personales</span>;
 const tabSeguridad = <span><LockOutlined /> Seguridad</span>;
 
 const Perfil: React.FC = () => {
+  // «Ajustes de Cuenta» del encabezado abre directo la pestaña Seguridad (?pestana=seguridad).
+  const [params, setParams] = useSearchParams();
+  const pestana = params.get('pestana') === 'seguridad' ? '2' : '1';
   const message = useMessage();
 
   const [loading, setLoading] = useState(false);
@@ -195,7 +199,10 @@ const Perfil: React.FC = () => {
         {/* COLUMNA DERECHA: FORMULARIOS DE EDICIÓN */}
         <Col xs={24} lg={16}>
           <Card>
-            <Tabs defaultActiveKey="1" items={[
+            <Tabs
+              activeKey={pestana}
+              onChange={(k) => setParams(k === '2' ? { pestana: 'seguridad' } : {}, { replace: true })}
+              items={[
               {
                 key: "1",
                 label: tabDatosPersonales,
