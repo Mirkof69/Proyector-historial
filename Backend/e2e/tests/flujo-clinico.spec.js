@@ -52,7 +52,9 @@ test.describe('Flujo clínico de punta a punta', () => {
     await modal.locator('#apellido_paterno').fill('E2E');
     await modal.locator('#apellido_materno').fill('Prueba');
     await modal.locator('#ci').fill(CI);
-    await modal.locator('#fecha_nacimiento').fill('12/03/1996');
+    // La fecha tiene máscara DD/MM/AAAA: se escribe como una persona, solo dígitos.
+    await modal.locator('#fecha_nacimiento').click();
+    await page.keyboard.type('12031996');
     await page.keyboard.press('Tab');
     for (let i = 0; i < 2; i += 1) await modal.getByRole('button', { name: 'Siguiente' }).click();
     // Sin consentimiento no se registra (Ley 164)

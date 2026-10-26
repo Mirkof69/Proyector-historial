@@ -1,6 +1,7 @@
 import React from 'react';
-import { Form, Input, DatePicker, Row, Col, Select, Typography, Divider } from 'antd';
+import { Form, Input, Row, Col, Select, Typography, Divider } from 'antd';
 import { UserOutlined, PhoneOutlined, MailOutlined, IdcardOutlined, WomanOutlined } from '@ant-design/icons';
+import CampoFechaNacimiento, { reglasFechaNacimiento, validateTriggerFechaNacimiento } from '../../../components/common/CampoFechaNacimiento';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -103,14 +104,11 @@ const SeccionDatosContactoPaciente: React.FC<SeccionDatosContactoPacienteProps> 
         <Form.Item
           name="fecha_nacimiento"
           label="Fecha de Nacimiento"
-          rules={[{ required: true, message: 'Seleccione la fecha' }]}
+          rules={reglasFechaNacimiento}
+          validateTrigger={validateTriggerFechaNacimiento}
           tooltip="La edad se calculara automaticamente"
         >
-          <DatePicker
-            style={{ width: '100%' }}
-            format="DD/MM/YYYY"
-            placeholder="Seleccione fecha"
-          />
+          <CampoFechaNacimiento />
         </Form.Item>
         {edadCalculada && (
           <Text type="success" style={{ fontSize: 12 }}>

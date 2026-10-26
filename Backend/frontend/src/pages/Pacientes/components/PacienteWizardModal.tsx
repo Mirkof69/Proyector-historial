@@ -1,17 +1,23 @@
 import React from 'react';
-import { Modal, Form, Input, DatePicker, Select, Row, Col, Divider, Button, Steps } from 'antd';
+import { Modal, Form, Input, Select, Row, Col, Divider, Button, Steps } from 'antd';
 import {
   UserOutlined, HomeOutlined, MedicineBoxOutlined, IdcardOutlined,
   PhoneOutlined, MailOutlined, GlobalOutlined, CheckCircleOutlined, WomanOutlined,
 } from '@ant-design/icons';
 import type { FormInstance } from 'antd';
-import dayjs from 'dayjs';
-import locale from 'antd/es/date-picker/locale/es_ES';
 import { Paciente } from '../pacientesTypes';
 import SeccionConsentimientoPaciente from './SeccionConsentimientoPaciente';
+import CampoFechaNacimiento, { reglasFechaNacimiento, validateTriggerFechaNacimiento } from '../../../components/common/CampoFechaNacimiento';
 
 const { Option } = Select;
 const { Step } = Steps;
+
+// «Siguiente» valida los campos del paso antes de avanzar: antes dejaba pasar
+// una fecha inválida y el error recién aparecía al registrar, dos pasos después.
+const CAMPOS_POR_PASO = [
+  ['nombre', 'apellido_paterno', 'apellido_materno', 'ci', 'fecha_nacimiento'],
+  ['telefono', 'email', 'direccion', 'ciudad', 'pais'],
+];
 
 const USER_ICON = <UserOutlined />;
 const HOME_ICON_2 = <HomeOutlined />;
@@ -80,13 +86,13 @@ const PacienteWizardModal: React.FC<PacienteWizardModalProps> = ({
         </Row>
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item name="fecha_nacimiento" label="Fecha de Nacimiento" rules={[{ required: true, message: 'Seleccione fecha' }]}>
-              <DatePicker
-                style={{ width: '100%' }}
-                format="DD/MM/YYYY"
-                locale={locale}
-                disabledDate={(d) => d && d > dayjs()}
-              />
+            <Form.Item
+              name="fecha_nacimiento"
+              label="Fecha de Nacimiento"
+              rules={reglasFechaNacimiento}
+              validateTrigger={validateTriggerFechaNacimiento}
+            >
+              <CampoFechaNacimiento />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -222,7 +228,12 @@ const PacienteWizardModal: React.FC<PacienteWizardModalProps> = ({
         Atrás
       </Button>
       {currentStep < 2 && (
-        <Button type="primary" onClick={() => setCurrentStep(prev => prev + 1)}>
+        <Button
+          type="primary"
+          onClick={() => form.validateFields(CAMPOS_POR_PASO[currentStep])
+            .then(() => setCurrentStep(prev => prev + 1))
+            .catch(() => undefined)}
+        >
           Siguiente
         </Button>
       )}

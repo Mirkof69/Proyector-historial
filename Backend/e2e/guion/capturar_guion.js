@@ -197,14 +197,15 @@ async function registrarPaciente() {
   await modal.locator('#apellido_paterno').fill(PACIENTE.apellido_paterno);
   await modal.locator('#apellido_materno').fill(PACIENTE.apellido_materno);
   await modal.locator('#ci').fill(PACIENTE.ci);
-  await modal.locator('#fecha_nacimiento').fill(PACIENTE.fecha_nacimiento);
+  await modal.locator('#fecha_nacimiento').click();
+  await page.keyboard.type(PACIENTE.fecha_nacimiento.replace(/\//g, ''));
   await page.keyboard.press('Tab');
   await inventario('paciente paso 1');
   await paso({
     seccion: 'Recepción: registrar a la paciente', titulo: 'Datos personales', cuenta: 'dra.garcia',
     escribir: [['Nombres', PACIENTE.nombre], ['Apellido paterno', PACIENTE.apellido_paterno],
       ['Apellido materno', PACIENTE.apellido_materno], ['Cédula de identidad', PACIENTE.ci],
-      ['Fecha de nacimiento', PACIENTE.fecha_nacimiento]],
+      ['Fecha de nacimiento', `${PACIENTE.fecha_nacimiento} (escribir solo los números: ${PACIENTE.fecha_nacimiento.replace(/\//g, '')})`]],
     clics: ['Llenar los datos personales', 'Clic en «Siguiente»'],
     decir: 'El nombre y la cédula se guardan cifrados en la base de datos: aunque alguien copiara la base, no podría leerlos.',
   }, [modal.locator('.ant-form').first(), modal.getByRole('button', { name: 'Siguiente' })]);
