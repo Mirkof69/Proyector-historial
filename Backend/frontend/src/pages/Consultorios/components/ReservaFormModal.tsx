@@ -29,7 +29,7 @@ const ReservaFormModal: React.FC<ReservaFormModalProps> = ({
         name="fecha_reserva"
         rules={[{ required: true, message: 'Seleccione la fecha' }]}
       >
-        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+        <DatePicker style={{ width: '100%' }} format={{ format: 'DD/MM/YYYY', type: 'mask' }} />
       </Form.Item>
 
       <Row gutter={16}>
@@ -39,7 +39,7 @@ const ReservaFormModal: React.FC<ReservaFormModalProps> = ({
             name="hora_inicio"
             rules={[{ required: true, message: 'Seleccione hora inicio' }]}
           >
-            <DatePicker.TimePicker style={{ width: '100%' }} format="HH:mm" />
+            <DatePicker.TimePicker style={{ width: '100%' }} format={{ format: 'HH:mm', type: 'mask' }} />
           </Form.Item>
         </Col>
         <Col span={12}>
@@ -48,7 +48,7 @@ const ReservaFormModal: React.FC<ReservaFormModalProps> = ({
             name="hora_fin"
             rules={[{ required: true, message: 'Seleccione hora fin' }]}
           >
-            <DatePicker.TimePicker style={{ width: '100%' }} format="HH:mm" />
+            <DatePicker.TimePicker style={{ width: '100%' }} format={{ format: 'HH:mm', type: 'mask' }} />
           </Form.Item>
         </Col>
       </Row>

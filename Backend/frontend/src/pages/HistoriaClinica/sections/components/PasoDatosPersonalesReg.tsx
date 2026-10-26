@@ -54,7 +54,7 @@ const PasoDatosPersonalesReg: React.FC = () => (
         >
           <DatePicker
             style={{ width: '100%' }}
-            format="DD/MM/YYYY"
+            format={{ format: 'DD/MM/YYYY', type: 'mask' }}
             placeholder="Seleccione fecha"
           />
         </Form.Item>

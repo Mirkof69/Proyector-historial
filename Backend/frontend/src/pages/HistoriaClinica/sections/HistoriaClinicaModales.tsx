@@ -161,7 +161,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
     < Drawer title="Herramientas Clínicas" placement="right" onClose={() => setDrawerCalculadoraVisible(false)} open={drawerCalculadoraVisible} >
       <Card title="Calculadora Gestacional" size="small">
         <p>Herramienta para cálculo rápido de FPP y EG por FUM.</p>
-        <DatePicker
+        <DatePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }}
           style={{ width: '100%' }}
           placeholder="Seleccionar FUM"
           onChange={(date: Dayjs | null) => {
@@ -223,7 +223,7 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
         </Form.Item>
 
         <Form.Item name="periodo" label="Período de Datos (Opcional)">
-          <DatePicker.RangePicker style={{ width: '100%' }} />
+          <DatePicker.RangePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item>

@@ -2,18 +2,11 @@
  * Gráfico: Evolución de Peso Materno
  * Muestra la evolución del peso materno a lo largo del embarazo con rangos esperados según IMC
  */
-import React, { lazy, Suspense, useCallback, useMemo } from 'react';
+import React, { Suspense, useCallback, useMemo } from 'react';
 import { Card, Typography, Alert, Spin } from 'antd';
-const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
-const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
-const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
-const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
-const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
-const ReferenceLine = lazy(() => import('recharts').then(m => ({ default: m.ReferenceLine })) as any);
-const Area = lazy(() => import('recharts').then(m => ({ default: m.Area })) as any);
-const AreaChart = lazy(() => import('recharts').then(m => ({ default: m.AreaChart })) as any);
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart } from 'recharts';
 
 const { Title, Text } = Typography;
 

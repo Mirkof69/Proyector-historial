@@ -87,10 +87,12 @@ const ConsultorioFormModal: React.FC<ConsultorioFormModalProps> = ({
             rules={[{ required: true, message: 'El tipo es requerido' }]}
           >
             <Select placeholder="Seleccione tipo">
-              <Option value="consulta">Consulta</Option>
+              <Option value="general">Consulta general</Option>
+              <Option value="ginecologia">Ginecología y Obstetricia</Option>
+              <Option value="ecografia">Ecografía</Option>
+              <Option value="laboratorio">Laboratorio</Option>
               <Option value="procedimientos">Procedimientos</Option>
-              <Option value="emergencia">Emergencia</Option>
-              <Option value="multifuncional">Multifuncional</Option>
+              <Option value="urgencias">Urgencias</Option>
             </Select>
           </Form.Item>
         </Col>

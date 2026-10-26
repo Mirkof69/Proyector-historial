@@ -36,7 +36,7 @@ const TabDatosGeneralesEco: React.FC<TabDatosGeneralesEcoProps> = ({
     <Row gutter={24}>
       <Col xs={24} md={8}>
         <Form.Item name="fecha_ecografia" label="Fecha del Estudio" rules={[{ required: true, message: 'Requerido' }]}>
-          <DatePicker className="u-ancho" format="DD/MM/YYYY" onChange={() => actualizarEdadGestacional()} disabledDate={(d) => d && d.isAfter(dayjs(), 'day')} />
+          <DatePicker className="u-ancho" format={{ format: 'DD/MM/YYYY', type: 'mask' }} onChange={() => actualizarEdadGestacional()} disabledDate={(d) => d && d.isAfter(dayjs(), 'day')} />
         </Form.Item>
       </Col>
       <Col xs={24} md={8}>

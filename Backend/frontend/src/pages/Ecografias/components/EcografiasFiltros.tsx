@@ -45,7 +45,7 @@ const EcografiasFiltros: React.FC<EcografiasFiltrosProps> = ({ filtros, dispatch
       <Col xs={24} sm={12} md={8}>
         <RangePicker
           className="u-ancho"
-          format="DD/MM/YYYY"
+          format={{ format: 'DD/MM/YYYY', type: 'mask' }}
           value={filtros.filtroFecha}
           onChange={(dates) => dispatchFiltros({ type: 'SET_FECHA', payload: dates as [dayjs.Dayjs, dayjs.Dayjs] })}
         />

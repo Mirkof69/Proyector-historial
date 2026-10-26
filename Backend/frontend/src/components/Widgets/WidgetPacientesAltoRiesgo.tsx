@@ -76,10 +76,11 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
         }
       });
 
-      //  FIX: Validar que sea array
-      const embarazosData = response?.results || response || [];
-      const embarazosAltoRiesgo = Array.isArray(embarazosData) ? embarazosData : [];
-      setTotalAltoRiesgo(embarazosAltoRiesgo.length);
+      // api.get devuelve la respuesta de axios: los datos están en .data. Se leía
+      // .results de la respuesta misma y el widget mostraba siempre 0.
+      const datos = response?.data;
+      const embarazosAltoRiesgo = Array.isArray(datos) ? datos : Array.isArray(datos?.results) ? datos.results : [];
+      setTotalAltoRiesgo(typeof datos?.count === 'number' ? datos.count : embarazosAltoRiesgo.length);
 
       // Procesar y formatear datos
       const pacientesFormateados = embarazosAltoRiesgo.slice(0, 5).map((embarazo: any) => {
@@ -111,7 +112,7 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
         return {
           id: embarazo.paciente,
           nombre_completo: embarazo.paciente_info?.nombre_completo || 'Sin nombre',
-          ci: embarazo.paciente_info?.ci || 'Sin CI',
+          ci: embarazo.paciente_info?.cedula_identidad || embarazo.paciente_info?.ci || 'Sin CI',
           embarazo_id: embarazo.id,
           riesgo: score >= 70 ? 'critico' as const : 'alto' as const,
           edad_gestacional: edadGestacional,

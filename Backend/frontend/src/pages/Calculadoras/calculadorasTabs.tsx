@@ -90,10 +90,10 @@ export const buildCalculadorasTabs = (deps: CalculadorasTabsDeps) => {
                   label="Fecha de Última Menstruación (FUM)"
                   rules={[{ required: true, message: 'Requerido' }]}
                 >
-                  <DatePicker format="DD/MM/YYYY" size="large" />
+                  <DatePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} size="large" />
                 </Form.Item>
                 <Form.Item name="fecha_actual" label="Fecha Actual (Opcional)">
-                  <DatePicker format="DD/MM/YYYY" size="large" />
+                  <DatePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} size="large" />
                 </Form.Item>
                 <Button type="primary" htmlType="submit" icon={<CalculatorOutlined />} loading={loading} size="large" block>
                   Calcular

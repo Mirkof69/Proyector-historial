@@ -49,7 +49,7 @@ const SeccionDatosControl: React.FC<SeccionDatosControlProps> = ({
           label="Fecha del Control"
           rules={[{ required: true, message: 'Requerido' }]}
         >
-          <DatePicker className="u-ancho" format="DD/MM/YYYY" size="large" />
+          <DatePicker className="u-ancho" format={{ format: 'DD/MM/YYYY', type: 'mask' }} size="large" />
         </Form.Item>
       </Col>
     </Row>

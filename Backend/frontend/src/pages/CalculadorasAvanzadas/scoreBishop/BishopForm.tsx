@@ -1,17 +1,11 @@
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Card, Form, Select, Space, Button, Spin } from 'antd';
 import type { FormInstance } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
 import { BISHOP_DOMAIN, BishopScore, ResultadoBishop } from './scoreBishopUtils';
-
-const BarChart = lazy(() => import('recharts').then(m => ({ default: m.BarChart })) as any);
-const Bar = lazy(() => import('recharts').then(m => ({ default: m.Bar })) as any);
-const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
-const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
-const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
-const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface BishopFormProps {
   form: FormInstance;

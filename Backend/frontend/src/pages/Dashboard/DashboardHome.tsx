@@ -135,21 +135,33 @@ const DashboardHome: React.FC = () => {
     }
 
     try {
+      // Solo lo que el rol puede ver: recepción y enfermería no leen auditoría ni
+      // reportes, y pedirlos igual eran llamadas 403 en cada carga del Panel.
+      // Las citas, solo las de HOY: el listado traía la primera página ordenada
+      // desde la fecha más lejana y las de hoy nunca llegaban.
       const [statsBasicas, citasData, logsResponse] = await Promise.all([
         reportesService.obtenerStatsBasicas(),
-        authService.hasPermission('view_cita') ? citasService.listar().catch(() => []) : Promise.resolve([]),
-        activityLogsService.getAccessLogs({ page_size: 5 }).catch(() => ({ results: [] }))
+        authService.hasPermission('view_cita')
+          ? citasService.listar({ fecha_cita: dayjs().format('YYYY-MM-DD') }).catch(() => [])
+          : Promise.resolve([]),
+        // Mismo criterio que el backend (core.permissions.PuedeVerAuditoria): médicos y administradores.
+        ['administrador', 'medico'].includes(authService.getCurrentUser()?.rol ?? '')
+          ? activityLogsService.getAccessLogs({ page_size: 5 }).catch(() => ({ results: [] }))
+          : Promise.resolve({ results: [] }),
       ]);
 
       let alertas: any[] = [];
-      if (statsBasicas.alertas_pendientes > 0 || statsBasicas.embarazos_riesgo_alto > 0) {
+      if (authService.hasPermission('view_alertamedica')
+          && (statsBasicas.alertas_pendientes > 0 || statsBasicas.embarazos_riesgo_alto > 0)) {
         alertas = await reportesService.getAlertasActivas().catch(() => []);
       }
 
       const hoy = dayjs().format('YYYY-MM-DD');
-      const citasHoyData = Array.isArray(citasData) ? citasData.filter((c: any) =>
-        dayjs(c.fecha_hora || c.fecha).format('YYYY-MM-DD') === hoy
-      ) : [];
+      // La API manda fecha_cita y hora_cita: con fecha_hora/fecha (que no existen)
+      // dayjs(undefined) era «ahora», toda cita pasaba por de hoy y a la hora actual.
+      const citasHoyData = Array.isArray(citasData) ? citasData
+        .filter((c: any) => (c.fecha_cita || '').slice(0, 10) === hoy)
+        .sort((a: any, b: any) => String(a.hora_cita).localeCompare(String(b.hora_cita))) : [];
 
       const stats = {
         total_pacientes: statsBasicas.total_pacientes || 0,
@@ -175,8 +187,8 @@ const DashboardHome: React.FC = () => {
 
       const citasHoyFormateadas = citasHoyData.slice(0, 5).map((cita: any, index: number) => ({
         id: cita.id,
-        paciente_nombre: cita.paciente_nombre || `Paciente ${cita.paciente}`,
-        hora: dayjs(cita.fecha_hora || cita.fecha).format('HH:mm'),
+        paciente_nombre: cita.paciente_info?.nombre_completo || cita.paciente_nombre || `Paciente ${cita.paciente}`,
+        hora: String(cita.hora_cita || '').slice(0, 5),
         motivo: cita.motivo || cita.tipo || 'Consulta',
         estado: cita.estado || 'PENDIENTE',
         _uniqueKey: `cita-${cita.id}-${index}-${Date.now()}`
@@ -204,8 +216,15 @@ const DashboardHome: React.FC = () => {
         diasData.push({ name: `Día ${dayjs().date()}`, pacientes: 0, citas: 0 });
       }
 
+      // La API de alertas trae prioridad y descripcion; la tarjeta espera tipo y mensaje.
+      // Mientras la tabla estaba vacía no se notaba; con alertas reales el Panel se caía.
+      const TIPO_POR_PRIORIDAD: Record<string, string> = {
+        emergencia: 'critica', critica: 'critica', alta: 'urgente', media: 'moderada', baja: 'info',
+      };
       const alertasConKeys = alertas.slice(0, 5).map((alerta: any, index: number) => ({
         ...alerta,
+        mensaje: alerta.mensaje ?? alerta.descripcion ?? alerta.titulo ?? '',
+        tipo: TIPO_POR_PRIORIDAD[alerta.prioridad] ?? alerta.tipo ?? 'info',
         _uniqueKey: `alerta-${alerta.id}-${index}-${Date.now()}`
       }));
 

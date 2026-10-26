@@ -134,7 +134,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
                         <RangePicker
                             value={customRange}
                             onChange={handleCustomRangeChange}
-                            format="DD/MM/YYYY"
+                            format={{ format: 'DD/MM/YYYY', type: 'mask' }}
                             placeholder={['Fecha Inicio', 'Fecha Fin']}
                             style={{ width: 300 }}
                             allowClear

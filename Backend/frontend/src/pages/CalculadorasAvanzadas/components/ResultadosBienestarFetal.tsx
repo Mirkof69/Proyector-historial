@@ -6,21 +6,10 @@ import {
   WarningOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons';
-import { lazy } from 'react';
 
-const BarChart = lazy(() => import('recharts').then(mod => ({ default: mod.BarChart })) as any);
-const Bar = lazy(() => import('recharts').then(mod => ({ default: mod.Bar })) as any);
-const PieChart = lazy(() => import('recharts').then(mod => ({ default: mod.PieChart })) as any);
-const Pie = lazy(() => import('recharts').then(mod => ({ default: mod.Pie })) as any);
-const Cell = lazy(() => import('recharts').then(mod => ({ default: mod.Cell })) as any);
-const XAxis = lazy(() => import('recharts').then(mod => ({ default: mod.XAxis })) as any);
-const YAxis = lazy(() => import('recharts').then(mod => ({ default: mod.YAxis })) as any);
-const CartesianGrid = lazy(() => import('recharts').then(mod => ({ default: mod.CartesianGrid })) as any);
-const Tooltip = lazy(() => import('recharts').then(mod => ({ default: mod.Tooltip })) as any);
-const Legend = lazy(() => import('recharts').then(mod => ({ default: mod.Legend })) as any);
-const ResponsiveContainer = lazy(() => import('recharts').then(mod => ({ default: mod.ResponsiveContainer })) as any);
-const LineChart = lazy(() => import('recharts').then(mod => ({ default: mod.LineChart })) as any);
-const Line = lazy(() => import('recharts').then(mod => ({ default: mod.Line })) as any);
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 interface ResultadoSufrimiento {
   bpp_score: number;

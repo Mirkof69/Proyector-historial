@@ -26,7 +26,7 @@ export const SeccionAborto: React.FC<SeccionAbortoProps> = ({ form, calcularAler
             label="Fecha del Evento"
             rules={[{ required: true, message: 'Ingrese fecha del evento' }]}
           >
-            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }} showTime />
           </Form.Item>
         </Col>
 

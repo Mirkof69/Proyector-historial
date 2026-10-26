@@ -105,7 +105,7 @@ const ReportesModal: React.FC<ReportesModalProps> = ({ visible, onClose }) => {
       <Card title="Reporte Estadístico General" size="small">
         <Form layout="vertical">
           <Form.Item label="Período">
-            <RangePicker className="u-ancho" />
+            <RangePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} className="u-ancho" />
           </Form.Item>
           <Form.Item label="Tipo de Análisis">
             <Select defaultValue="resumen">

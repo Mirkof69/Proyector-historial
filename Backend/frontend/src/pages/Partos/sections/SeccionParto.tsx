@@ -37,19 +37,19 @@ export const SeccionParto: React.FC<SeccionPartoProps> = ({ form, calcularAlerta
       <Row gutter={16}>
         <Col span={8}>
           <Form.Item name="fecha_ingreso" label="Fecha de Ingreso">
-            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }} showTime />
           </Form.Item>
         </Col>
 
         <Col span={8}>
           <Form.Item name="fecha_inicio_trabajo_parto" label="Inicio Trabajo de Parto">
-            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }} showTime />
           </Form.Item>
         </Col>
 
         <Col span={8}>
           <Form.Item name="fecha_parto" label="Fecha del Parto" rules={[{ required: true, message: 'Ingrese fecha del parto' }]}>
-            <DatePicker className="partos-ancho" format="DD/MM/YYYY HH:mm" showTime />
+            <DatePicker className="partos-ancho" format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }} showTime />
           </Form.Item>
         </Col>
       </Row>

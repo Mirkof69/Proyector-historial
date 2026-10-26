@@ -126,7 +126,7 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
             <Form.Item name="fecha_ultima_menstruacion" label="Fecha Última Menstruación (FUM)" rules={[{ required: true }]}>
               <DatePicker
                 className="u-ancho"
-                format="DD/MM/YYYY"
+                format={{ format: 'DD/MM/YYYY', type: 'mask' }}
                 onChange={handleFUMChange}
                 locale={locale}
                 placeholder="Seleccione fecha"
@@ -140,7 +140,7 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
           </Col>
           <Col xs={24} md={8}>
             <Form.Item name="fecha_probable_parto" label="Fecha Probable de Parto (FPP)" tooltip="Calculada automáticamente (Regla Naegele)">
-              <DatePicker className="u-ancho" format="DD/MM/YYYY" locale={locale} />
+              <DatePicker className="u-ancho" format={{ format: 'DD/MM/YYYY', type: 'mask' }} locale={locale} />
             </Form.Item>
           </Col>
           <Col xs={24} md={8}>

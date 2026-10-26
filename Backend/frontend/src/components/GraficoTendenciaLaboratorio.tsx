@@ -10,7 +10,7 @@
  * =============================================================================
  */
 
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Card, Space, Typography, Alert, Spin } from 'antd';
 import { TrophyOutlined } from '@ant-design/icons';
 import {
@@ -24,18 +24,9 @@ import {
 import CustomTooltipLab from './graficoLab/CustomTooltipLab';
 import EstadisticasLab from './graficoLab/EstadisticasLab';
 import InfoAdicionalLab from './graficoLab/InfoAdicionalLab';
-
-const ComposedChart = lazy(() => import('recharts').then(m => ({ default: m.ComposedChart })) as any);
-const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
-const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
-const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
-const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
-const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
-const ReferenceLine = lazy(() => import('recharts').then(m => ({ default: m.ReferenceLine })) as any);
-const Area = lazy(() => import('recharts').then(m => ({ default: m.Area })) as any);
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
-const ReferenceArea = lazy(() => import('recharts').then(m => ({ default: m.ReferenceArea })) as any);
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, Area, ResponsiveContainer, ReferenceArea } from 'recharts';
 
 const { Title } = Typography;
 

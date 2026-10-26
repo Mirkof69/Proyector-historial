@@ -53,24 +53,14 @@ export const buildConsultoriosColumns = (deps: ConsultoriosColumnsDeps) => {
       dataIndex: 'tipo',
       key: 'tipo',
       width: 150,
-      render: (tipo: TipoConsultorio) => {
-        const colors: Record<string, string> = {
-          'general': 'default',
-          'especializado': 'default',
-          'procedimientos': 'default',
-          'consulta_rapida': 'default',
-          'emergencias': 'default',
-        };
-        return <Tag color={colors[tipo] || 'default'}>{tipo}</Tag>;
-      },
+      render: (tipo: TipoConsultorio, record: Consultorio) => <Tag>{record.tipo_display || tipo}</Tag>,
     },
     {
       title: 'Ubicación',
       key: 'ubicacion',
       render: (_: any, record: Consultorio) => (
         <span>
-          {record.area && `${record.area}`}
-          {record.piso && ` - Piso ${record.piso}`}
+          {[record.area, record.piso].filter(Boolean).join(' · ') || '—'}
         </span>
       ),
     },
@@ -86,9 +76,10 @@ export const buildConsultoriosColumns = (deps: ConsultoriosColumnsDeps) => {
       key: 'equipamiento',
       render: (_: any, record: Consultorio) => (
         <Space size="small">
-          {record.tiene_camilla && <Tooltip title="Camilla"><Tag>C</Tag></Tooltip>}
-          {record.tiene_escritorio && <Tooltip title="Escritorio"><Tag>E</Tag></Tooltip>}
-          {record.tiene_computadora && <Tooltip title="Computadora"><Tag>PC</Tag></Tooltip>}
+          {record.tiene_camilla && <Tag>Camilla</Tag>}
+          {record.tiene_ecografo && <Tag>Ecógrafo</Tag>}
+          {record.tiene_computadora && <Tag>PC</Tag>}
+          {record.tiene_oxigeno && <Tag>Oxígeno</Tag>}
         </Space>
       ),
     },

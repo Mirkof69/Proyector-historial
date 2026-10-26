@@ -43,7 +43,7 @@ const CampoExtra: React.FC<{ campo: CampoAdicionalEpicrisis }> = ({ campo }) => 
   switch (campo.tipo) {
     case 'parrafo': return <Form.Item {...comun}><Input.TextArea rows={2} /></Form.Item>;
     case 'numero': return <Form.Item {...comun}><InputNumber className="partos-ancho" /></Form.Item>;
-    case 'fecha': return <Form.Item {...comun}><DatePicker format="DD/MM/YYYY" className="partos-ancho" /></Form.Item>;
+    case 'fecha': return <Form.Item {...comun}><DatePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} className="partos-ancho" /></Form.Item>;
     case 'si_no': return <Form.Item {...comun} valuePropName="checked" rules={[]}><Checkbox>Sí</Checkbox></Form.Item>;
     case 'opcion': return <Form.Item {...comun}><Select allowClear options={campo.opciones.map((o) => ({ value: o, label: o }))} /></Form.Item>;
     default: return <Form.Item {...comun}><Input /></Form.Item>;
@@ -166,7 +166,7 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
         <Form form={form} layout="vertical" onFinish={guardar}>
           <Row gutter={12}>
             <Col xs={24} sm={12}><Form.Item name="fecha_egreso" label="Fecha y hora de egreso" rules={[{ required: true }]}>
-              <DatePicker showTime format="DD/MM/YYYY HH:mm" className="partos-ancho" /></Form.Item></Col>
+              <DatePicker showTime format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }} className="partos-ancho" /></Form.Item></Col>
             <Col xs={12} sm={6}><Form.Item name="tipo_egreso" label="Tipo de egreso"><Select options={TIPO_EGRESO} /></Form.Item></Col>
             <Col xs={12} sm={6}><Form.Item name="condicion_materna_egreso" label="Condición de la madre"><Select options={CONDICION} /></Form.Item></Col>
             <Form.Item noStyle shouldUpdate={(a, b) => a.tipo_egreso !== b.tipo_egreso}>
@@ -199,7 +199,7 @@ const EpicrisisPanel: React.FC<{ partoId: number; puedeEditar: boolean }> = ({ p
             <Col xs={24} sm={8}><Form.Item name="signos_alarma_explicados" valuePropName="checked">
               <Checkbox>Se explicaron los signos de alarma</Checkbox></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="proximo_control" label="Próximo control">
-              <DatePicker format="DD/MM/YYYY" className="partos-ancho" /></Form.Item></Col>
+              <DatePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} className="partos-ancho" /></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="lugar_proximo_control" label="Lugar"><Input /></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="pronostico" label="Pronóstico"><Select options={PRONOSTICO} /></Form.Item></Col>
             <Col xs={12} sm={8}><Form.Item name="matricula_profesional" label="Matrícula profesional"><Input maxLength={30} /></Form.Item></Col>

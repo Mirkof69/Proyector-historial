@@ -101,7 +101,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
           ]}
           tooltip="Se calcularan automaticamente FPP y edad gestacional"
         >
-          <DatePicker className="u-ancho" format="DD/MM/YYYY" placeholder="Seleccione fecha" />
+          <DatePicker className="u-ancho" format={{ format: 'DD/MM/YYYY', type: 'mask' }} placeholder="Seleccione fecha" />
         </Form.Item>
       </Col>
 
@@ -111,7 +111,7 @@ const SeccionDatosGeneralesEmbarazo: React.FC<SeccionDatosGeneralesEmbarazoProps
           label="Fecha Probable de Parto"
           tooltip="Se calcula automaticamente (FUM + 280 dias)"
         >
-          <DatePicker className="u-ancho" format="DD/MM/YYYY" placeholder="Se completa automaticamente" disabled />
+          <DatePicker className="u-ancho" format={{ format: 'DD/MM/YYYY', type: 'mask' }} placeholder="Se completa automaticamente" disabled />
         </Form.Item>
       </Col>
     </Row>

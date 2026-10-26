@@ -30,7 +30,7 @@ const TabImagenesConclusionesEco: React.FC<TabImagenesConclusionesEcoProps> = ({
       <Form.Item name="observaciones" label="Observaciones y Recomendaciones"><TextArea rows={3} /></Form.Item>
       <Row gutter={24}>
         <Col xs={24} md={8}><Form.Item name="requiere_seguimiento" valuePropName="checked"><Checkbox>Requiere Seguimiento Especial</Checkbox></Form.Item></Col>
-        <Col xs={24} md={8}><Form.Item name="proxima_ecografia_recomendada" label="Próxima Ecografía Sugerida" tooltip="Seleccione una fecha y use el botón para agendar automáticamente"><Space.Compact className="u-ancho"><DatePicker className="eco-agendar__fecha" format="DD/MM/YYYY" /><Tooltip title="Agendar cita en el calendario"><Button icon={CALENDAR_ICON_6} onClick={handleCrearCita} className="eco-agendar__boton">Agendar</Button></Tooltip></Space.Compact></Form.Item></Col>
+        <Col xs={24} md={8}><Form.Item name="proxima_ecografia_recomendada" label="Próxima Ecografía Sugerida" tooltip="Seleccione una fecha y use el botón para agendar automáticamente"><Space.Compact className="u-ancho"><DatePicker className="eco-agendar__fecha" format={{ format: 'DD/MM/YYYY', type: 'mask' }} /><Tooltip title="Agendar cita en el calendario"><Button icon={CALENDAR_ICON_6} onClick={handleCrearCita} className="eco-agendar__boton">Agendar</Button></Tooltip></Space.Compact></Form.Item></Col>
       </Row>
     </Card>
   </div>

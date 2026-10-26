@@ -44,7 +44,7 @@ const FiltrosDrawer: React.FC<FiltrosDrawerProps> = ({
           <Form.Item name="rangoFechas" noStyle>
             <RangePicker
               className="u-ancho u-mt-2"
-              format="DD/MM/YYYY"
+              format={{ format: 'DD/MM/YYYY', type: 'mask' }}
               onChange={(dates) => {
                 handleFormChange();
                 dispatchFiltros({ type: 'SET_FECHA_DESDE', payload: dates ? dates[0] || undefined : undefined });

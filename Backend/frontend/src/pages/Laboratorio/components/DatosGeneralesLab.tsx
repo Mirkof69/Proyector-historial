@@ -68,7 +68,7 @@ const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposE
               >
                 <DatePicker
                   className="laboratorio-ancho"
-                  format="DD/MM/YYYY"
+                  format={{ format: 'DD/MM/YYYY', type: 'mask' }}
                   showTime
                 />
               </Form.Item>
@@ -108,12 +108,12 @@ const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposE
           <Row gutter={[16, 0]}>
             <Col xs={24} md={12}>
               <Form.Item name="fecha_muestra" label="Fecha de Toma de Muestra">
-                <DatePicker className="laboratorio-ancho" format="DD/MM/YYYY" showTime />
+                <DatePicker className="laboratorio-ancho" format={{ format: 'DD/MM/YYYY', type: 'mask' }} showTime />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
               <Form.Item name="fecha_resultado" label="Fecha de Resultado">
-                <DatePicker className="laboratorio-ancho" format="DD/MM/YYYY" showTime />
+                <DatePicker className="laboratorio-ancho" format={{ format: 'DD/MM/YYYY', type: 'mask' }} showTime />
               </Form.Item>
             </Col>
           </Row>

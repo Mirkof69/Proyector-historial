@@ -124,7 +124,7 @@ const Statistics: React.FC = () => {
       <div className="reportes-dashboard-header">
         <Typography.Title level={4}>Estadísticas del Sistema</Typography.Title>
         <Space wrap>
-          {!rangoCentro && <RangePicker
+          {!rangoCentro && <RangePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }}
             value={rango}
             onChange={(v) => setRango(v as [Dayjs, Dayjs] | null)}
             placeholder={['Desde', 'Hasta']}

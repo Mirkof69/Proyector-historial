@@ -25,7 +25,7 @@ const PartosToolbar: React.FC<PartosToolbarProps> = ({ filtros, dispatchFiltros,
             onChange={(e) => dispatchFiltros({ type: 'SET_SEARCH', payload: e.target.value })}
             className="partos-page__buscar"
           />
-          <RangePicker
+          <RangePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }}
             onChange={(dates) => dispatchFiltros({ type: 'SET_DATE_RANGE', payload: dates as [Dayjs, Dayjs] | null })}
             placeholder={['Desde', 'Hasta']}
           />

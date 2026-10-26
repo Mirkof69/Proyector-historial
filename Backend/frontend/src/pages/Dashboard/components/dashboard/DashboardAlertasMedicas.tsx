@@ -64,14 +64,14 @@ const DashboardAlertasMedicas: React.FC<DashboardAlertasProps> = ({ alertasMedic
                           alerta.tipo === 'urgente' || alerta.tipo === 'moderada' ? 'warning' : 'processing'
                         }
                       >
-                        {alerta.tipo.toUpperCase()}
+                        {(alerta.tipo || 'info').toUpperCase()}
                       </Tag>
                     </div>
                   }
                   description={
                     <div>
                       <Text type="secondary" className="dashboard-alerta__mensaje">
-                        {alerta.mensaje.length > 80 ? `${alerta.mensaje.substring(0, 80)}...` : alerta.mensaje}
+                        {(alerta.mensaje || '').length > 80 ? `${alerta.mensaje.substring(0, 80)}...` : alerta.mensaje}
                       </Text>
                       <Space size={4}>
                         {alerta.paciente_nombre && (

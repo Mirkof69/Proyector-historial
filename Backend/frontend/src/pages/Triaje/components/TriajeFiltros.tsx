@@ -66,7 +66,7 @@ const TriajeFiltros: React.FC<TriajeFiltrosProps> = ({
           onChange={onDateChange}
           placeholder="Fecha"
           style={{ width: '100%' }}
-          format="DD/MM/YYYY"
+          format={{ format: 'DD/MM/YYYY', type: 'mask' }}
           size="large"
         />
       </Col>

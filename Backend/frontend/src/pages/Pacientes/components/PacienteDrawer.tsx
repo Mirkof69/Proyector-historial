@@ -244,7 +244,7 @@ const PacienteDrawer: React.FC<PacienteDrawerProps> = ({
           />
 
           <Divider>Filtrar por Fechas</Divider>
-          <RangePicker style={{ width: '100%' }} />
+          <RangePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} style={{ width: '100%' }} />
         </div>
       </Spin>
     ) : (

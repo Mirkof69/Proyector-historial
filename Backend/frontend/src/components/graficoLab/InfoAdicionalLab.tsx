@@ -1,11 +1,9 @@
-import React, { lazy, Suspense, useCallback } from 'react';
+import React, { Suspense, useCallback } from 'react';
 import { Space, Typography, Tag, Spin } from 'antd';
 import { PuntoGrafico } from './graficoLabUtils';
-
-const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })) as any);
-const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { LineChart, Line, Tooltip, ResponsiveContainer } from 'recharts';
 
 const { Text } = Typography;
 

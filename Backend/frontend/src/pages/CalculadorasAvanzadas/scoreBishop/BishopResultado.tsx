@@ -1,21 +1,10 @@
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Card, Row, Col, Space, Statistic, Divider, Alert, Descriptions, Spin } from 'antd';
 import { CheckCircleOutlined, WarningOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { TENDENCIA_DOMAIN, ResultadoBishop } from './scoreBishopUtils';
-
-const BarChart = lazy(() => import('recharts').then(m => ({ default: m.BarChart })) as any);
-const Bar = lazy(() => import('recharts').then(m => ({ default: m.Bar })) as any);
-const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
-const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
-const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
-const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
-const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })) as any);
-const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
-const PieChart = lazy(() => import('recharts').then(m => ({ default: m.PieChart })) as any);
-const Pie = lazy(() => import('recharts').then(m => ({ default: m.Pie })) as any);
-const Cell = lazy(() => import('recharts').then(m => ({ default: m.Cell })) as any);
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 
 const renderPieLabel = ({ name, value }: { name: string; value: number }) => `${name}: ${value}`;
 

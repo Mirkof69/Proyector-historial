@@ -43,7 +43,7 @@ const MantenimientoFormModal: React.FC<MantenimientoFormModalProps> = ({
         name="fecha_programada"
         rules={[{ required: true, message: 'Seleccione la fecha' }]}
       >
-        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+        <DatePicker style={{ width: '100%' }} format={{ format: 'DD/MM/YYYY', type: 'mask' }} />
       </Form.Item>
 
       <Form.Item

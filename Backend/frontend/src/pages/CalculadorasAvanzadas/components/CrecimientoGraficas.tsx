@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Card, Row, Col, Divider, Table, Spin } from 'antd';
 import { BarChartOutlined, HistoryOutlined, ReadOutlined } from '@ant-design/icons';
 import {
@@ -7,23 +7,9 @@ import {
   getDataBiometria, getDataCurvasCrecimiento, getDataDistribucionPercentiles, getDataProporcionesFetales, getDataEvolucion,
 } from '../crecimientoFetalUtils';
 import { columnsCrecimiento } from './columnsCrecimiento';
-
-const BarChart = lazy(() => import('recharts').then(m => ({ default: m.BarChart })) as any);
-const Bar = lazy(() => import('recharts').then(m => ({ default: m.Bar })) as any);
-const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })) as any);
-const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
-const PieChart = lazy(() => import('recharts').then(m => ({ default: m.PieChart })) as any);
-const Pie = lazy(() => import('recharts').then(m => ({ default: m.Pie })) as any);
-const Cell = lazy(() => import('recharts').then(m => ({ default: m.Cell })) as any);
-const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
-const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
-const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
-const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
-const ComposedChart = lazy(() => import('recharts').then(m => ({ default: m.ComposedChart })) as any);
-const Area = lazy(() => import('recharts').then(m => ({ default: m.Area })) as any);
-const ReferenceLine = lazy(() => import('recharts').then(m => ({ default: m.ReferenceLine })) as any);
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Area, ReferenceLine } from 'recharts';
 
 interface CrecimientoGraficasProps {
   resultado: ResultadoCrecimiento;

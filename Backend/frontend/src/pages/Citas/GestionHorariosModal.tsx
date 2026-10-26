@@ -185,10 +185,10 @@ export const GestionHorariosModal: React.FC<GestionHorariosModalProps> = ({
                 <Select className="citas-dia" options={DIAS_SEMANA} />
               </Form.Item>
               <Form.Item name="hora_inicio" label="Inicio" rules={[{ required: true, message: 'Seleccione hora' }]}>
-                <TimePicker format="HH:mm" />
+                <TimePicker format={{ format: 'HH:mm', type: 'mask' }} />
               </Form.Item>
               <Form.Item name="hora_fin" label="Fin" rules={[{ required: true, message: 'Seleccione hora' }]}>
-                <TimePicker format="HH:mm" />
+                <TimePicker format={{ format: 'HH:mm', type: 'mask' }} />
               </Form.Item>
               <Form.Item name="activo" valuePropName="checked">
                 <Switch checkedChildren="Activo" unCheckedChildren="Inactivo" />

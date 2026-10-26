@@ -28,8 +28,9 @@ import { logger } from '../utils/logger';
 // TIPOS Y ENUMS
 // ═══════════════════════════════════════════════════════════════════════════
 
-export type TipoConsultorio = 'consulta' | 'procedimientos' | 'emergencia' | 'multifuncional';
-export type EstadoConsultorio = 'disponible' | 'ocupado' | 'mantenimiento' | 'limpieza' | 'reservado';
+// Los mismos tipos que el modelo (consultorios/models.py · tipo_consultorio).
+export type TipoConsultorio = 'general' | 'ginecologia' | 'ecografia' | 'laboratorio' | 'procedimientos' | 'urgencias';
+export type EstadoConsultorio = 'disponible' | 'ocupado' | 'mantenimiento' | 'limpieza' | 'reservado' | 'inactivo';
 type TipoEquipamiento = 'basico' | 'intermedio' | 'avanzado' | 'quirurgico';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -44,7 +45,8 @@ export interface Consultorio {
 
   // Características
   tipo: TipoConsultorio;
-  piso?: number;
+  tipo_display?: string;
+  piso?: number | string;
   area?: string;
   capacidad_personas?: number;
 
@@ -55,6 +57,8 @@ export interface Consultorio {
   // Equipamiento
   equipamiento?: TipoEquipamiento;
   tiene_camilla?: boolean;
+  tiene_ecografo?: boolean;
+  tiene_bano?: boolean;
   tiene_escritorio?: boolean;
   tiene_computadora?: boolean;
   tiene_lavamanos?: boolean;

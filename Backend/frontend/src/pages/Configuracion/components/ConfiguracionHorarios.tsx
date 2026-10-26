@@ -56,7 +56,7 @@ const ConfiguracionHorarios: React.FC<ConfiguracionHorariosProps> = ({ horarios,
                 item.activo ? (
                   <Space>
                     <TimePicker
-                      format="HH:mm"
+                      format={{ format: 'HH:mm', type: 'mask' }}
                       value={item.inicio}
                       onChange={(val) => {
                         const nh = [...horarios];
@@ -67,7 +67,7 @@ const ConfiguracionHorarios: React.FC<ConfiguracionHorariosProps> = ({ horarios,
                     />
                     <Text>a</Text>
                     <TimePicker
-                      format="HH:mm"
+                      format={{ format: 'HH:mm', type: 'mask' }}
                       value={item.fin}
                       onChange={(val) => {
                         const nh = [...horarios];

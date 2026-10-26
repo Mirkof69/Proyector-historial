@@ -47,7 +47,7 @@ const StepFechaHora: React.FC<StepFechaHoraProps> = ({
         >
           <DatePicker
             className="citas-ancho"
-            format="DD/MM/YYYY"
+            format={{ format: 'DD/MM/YYYY', type: 'mask' }}
             disabledDate={(current) => current && current < dayjs().startOf('day')}
             onChange={handleFechaChange}
           />
@@ -78,7 +78,7 @@ const StepFechaHora: React.FC<StepFechaHoraProps> = ({
         >
           <TimePicker
             className="citas-ancho"
-            format="HH:mm"
+            format={{ format: 'HH:mm', type: 'mask' }}
             minuteStep={15}
             disabled={!medicoSeleccionado || !fechaSeleccionada}
             onChange={handleHoraChange}

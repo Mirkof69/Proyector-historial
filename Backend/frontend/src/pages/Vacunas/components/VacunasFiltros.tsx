@@ -27,7 +27,7 @@ const VacunasFiltros: React.FC<VacunasFiltrosProps> = ({ filtros, dispatchFiltro
       <Col xs={24} sm={12} lg={6}>
         <RangePicker
           className="vacunas-page__control"
-          format="DD/MM/YYYY"
+          format={{ format: 'DD/MM/YYYY', type: 'mask' }}
           value={filtros.dateRange}
           onChange={(dates) => dispatchFiltros({ type: 'SET_DATE_RANGE', payload: dates as any })}
         />

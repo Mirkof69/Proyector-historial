@@ -58,7 +58,7 @@ const SeccionInfoConsultaNota: React.FC<SeccionInfoConsultaNotaProps> = ({
         >
           <DatePicker
             showTime
-            format="DD/MM/YYYY HH:mm"
+            format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }}
             style={{ width: '100%' }}
             placeholder="Seleccionar fecha"
           />

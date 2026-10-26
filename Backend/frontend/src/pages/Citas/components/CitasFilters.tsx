@@ -74,7 +74,7 @@ const CitasFilters: React.FC<CitasFiltersProps> = ({
     <Col xs={24} sm={12} md={6}>
       <RangePicker
         className="citas-ancho"
-        format="DD/MM/YYYY"
+        format={{ format: 'DD/MM/YYYY', type: 'mask' }}
         value={filtroFecha}
         onChange={(dates) => onFiltroFechaChange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
         placeholder={['Desde', 'Hasta']}

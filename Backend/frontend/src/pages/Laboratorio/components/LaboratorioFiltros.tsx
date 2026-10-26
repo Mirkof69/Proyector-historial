@@ -59,7 +59,7 @@ const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispat
       <Col xs={24} sm={12} lg={4}>
         <RangePicker
           className="laboratorio-ancho"
-          format="DD/MM/YYYY"
+          format={{ format: 'DD/MM/YYYY', type: 'mask' }}
           value={filtros.filtroFecha}
           onChange={(dates) => dispatchFiltros({ type: 'SET_FECHA', payload: dates as [Dayjs, Dayjs] })}
         />

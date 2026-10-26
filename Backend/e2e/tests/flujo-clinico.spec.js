@@ -76,7 +76,8 @@ test.describe('Flujo clínico de punta a punta', () => {
     await page.getByRole('button', { name: /Iniciar Embarazo|Registrar Primer Embarazo/ }).first().click();
     await expect(page).toHaveURL(new RegExp(`/embarazos/nuevo\\?paciente=${ids.paciente}`));
     await expect(valorDeSelect(page, 'paciente')).toContainText('Flujo E2E Prueba');
-    await page.locator('#fecha_ultima_menstruacion').fill(hace(140));
+    await page.locator('#fecha_ultima_menstruacion').click();
+    await page.keyboard.type(hace(140).replace(/\//g, ''));
     await page.keyboard.press('Tab');
     await page.getByRole('button', { name: 'Crear Embarazo' }).click();
     await expect.poll(async () => lista(await apiGet(page, `/embarazos/?paciente=${ids.paciente}`)).length).toBe(1);

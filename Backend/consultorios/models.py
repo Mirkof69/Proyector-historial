@@ -69,6 +69,19 @@ class Consultorio(models.Model):
     tiene_bano = models.BooleanField(default=False)
     tiene_camilla = models.BooleanField(default=True)
     tiene_ecografo = models.BooleanField(default=False)
+    # La pantalla de consultorios pedía estos campos y el modelo no los tenía:
+    # crear o editar un consultorio perdía esos datos o fallaba.
+    tiene_escritorio = models.BooleanField(default=True)
+    tiene_computadora = models.BooleanField(default=False)
+    tiene_lavamanos = models.BooleanField(default=False)
+    tiene_oxigeno = models.BooleanField(default=False)
+    tiene_aspirador = models.BooleanField(default=False)
+    nivel_equipamiento = models.CharField(
+        max_length=20, blank=True, default="",
+        choices=[("basico", "Básico"), ("intermedio", "Intermedio"), ("avanzado", "Avanzado"),
+                 ("quirurgico", "Quirúrgico")],
+    )
+    descripcion = models.TextField(blank=True, default="")
 
     # ============== EQUIPAMIENTO ==============
     equipamiento = models.TextField(

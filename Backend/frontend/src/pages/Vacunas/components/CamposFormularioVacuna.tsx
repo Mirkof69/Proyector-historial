@@ -92,7 +92,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
           <Form.Item label="Fecha y Hora de Aplicación" name="fecha_aplicacion" rules={[{ required: true, message: 'Requerido' }]}>
             <DatePicker
               showTime
-              format="DD/MM/YYYY HH:mm"
+              format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }}
               className="vacunas-ancho"
               size="large"
               onChange={onFechaAplicacionChange}
@@ -156,7 +156,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="Próxima Dosis (Programación)" name="proxima_dosis_fecha">
-            <DatePicker format="DD/MM/YYYY" className="vacunas-ancho" size="large" />
+            <DatePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} className="vacunas-ancho" size="large" />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>

@@ -80,7 +80,7 @@ const BusquedaAvanzada: React.FC = () => {
                     </Row>
 
                     <Row gutter={16}>
-                        <Col xs={24} md={12}><Form.Item label="Rango de Registro" name="fecha_rango"><RangePicker style={{ width: '100%' }} /></Form.Item></Col>
+                        <Col xs={24} md={12}><Form.Item label="Rango de Registro" name="fecha_rango"><RangePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} style={{ width: '100%' }} /></Form.Item></Col>
                         <Col xs={12} md={6}><Form.Item label="Edad Mínima" name="edad_min"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
                         <Col xs={12} md={6}><Form.Item label="Edad Máxima" name="edad_max"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
                     </Row>

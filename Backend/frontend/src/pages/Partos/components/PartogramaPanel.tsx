@@ -228,7 +228,7 @@ const PartogramaPanel: React.FC<Props> = ({ partoId, inicioTrabajoParto, puedeEd
           <Row gutter={12}>
             <Col xs={24} sm={12}>
               <Form.Item name="hora_registro" label="Fecha y hora" rules={[{ required: true }]}>
-                <DatePicker showTime format="DD/MM/YYYY HH:mm" className="partos-ancho"
+                <DatePicker showTime format={{ format: 'DD/MM/YYYY HH:mm', type: 'mask' }} className="partos-ancho"
                   disabledDate={(d) => d.isAfter(dayjs())} />
               </Form.Item>
             </Col>

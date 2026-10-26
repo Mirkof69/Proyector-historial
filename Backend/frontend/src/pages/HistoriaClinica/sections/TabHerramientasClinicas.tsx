@@ -101,7 +101,7 @@ const TabHerramientasClinicas: React.FC<TabHerramientasClinicasProps> = ({
       <Row gutter={16}>
         <Col span={12}>
           <Text strong>Calcular Edad Gestacional por FUM:</Text>
-          <DatePicker style={{ width: '100%', marginTop: 8 }} placeholder="Seleccionar FUM"
+          <DatePicker format={{ format: 'DD/MM/YYYY', type: 'mask' }} style={{ width: '100%', marginTop: 8 }} placeholder="Seleccionar FUM"
             onChange={(date: Dayjs | null) => {
               if (date) {
                 const eg = calcularEG(date.format('YYYY-MM-DD'));

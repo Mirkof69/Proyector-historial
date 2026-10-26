@@ -242,7 +242,8 @@ async function registrarPaciente() {
   await page.locator('.ant-modal-confirm .ant-btn-primary').click();
   await page.waitForURL(/embarazos\/nuevo/);
   await page.waitForTimeout(1500);
-  await campo('fecha_ultima_menstruacion').fill(FUM);
+  await campo('fecha_ultima_menstruacion').click();
+  await page.keyboard.type(FUM.replace(/\//g, ''));
   await page.keyboard.press('Tab');
   await page.waitForTimeout(800);
   await inventario('embarazo');
