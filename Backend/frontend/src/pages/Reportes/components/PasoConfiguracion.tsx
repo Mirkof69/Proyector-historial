@@ -103,7 +103,7 @@ const PasoConfiguracion: React.FC<PasoConfiguracionProps> = ({ tipoDetalle }) =>
             >
               <RangePicker
                 className="reportes-ancho"
-                format="DD/MM/YYYY"
+                format={{ format: 'DD/MM/YYYY', type: 'mask' }}
                 size="large"
               />
             </Form.Item>

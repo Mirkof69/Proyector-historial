@@ -26,11 +26,12 @@ export const buildColumnsNotificaciones = ({ handleViewDetails, handleMarkAsRead
     dataIndex: 'tipo',
     key: 'tipo',
     width: 150,
-    render: (tipo: string) => (
+    // tipo_display trae el nombre legible («Examen crítico»); el código crudo se veía en pantalla.
+    render: (tipo: string, registro: Notificacion & { tipo_display?: string }) => (
       <Space>
         <Avatar icon={getTypeIcon(tipo)} className={getTypeAvatarClass(tipo)} />
         <Tag color={getTypeTagColor(tipo)}>
-          {getTypeLabel(tipo)}
+          {registro.tipo_display || getTypeLabel(tipo)}
         </Tag>
       </Space>
     ),

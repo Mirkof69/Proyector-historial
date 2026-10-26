@@ -59,7 +59,7 @@ const AlertasMedicasFiltros: React.FC<AlertasMedicasFiltrosProps> = ({
       <RangePicker
         value={dateRange}
         onChange={val => setState(prev => ({ ...prev, dateRange: val }))}
-        format="DD/MM/YYYY"
+        format={{ format: 'DD/MM/YYYY', type: 'mask' }}
       />
       <Button
         icon={<ReloadOutlined />}

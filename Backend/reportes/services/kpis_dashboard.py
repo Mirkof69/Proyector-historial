@@ -24,11 +24,17 @@ def _variacion(actual: int, anterior: int) -> tuple[float, str]:
 
 
 def _altas_por_mes(qs, campo: str, hoy):
+    """(variación %, tendencia, altas de este mes, altas del mes anterior).
+
+    La variación es de ALTAS (registros nuevos), no del total activo: la
+    pantalla la mostraba bajo «Pacientes Activos» y parecía que se habían
+    perdido el 99,9 % de las pacientes. Ahora viajan los dos conteos.
+    """
     inicio_mes = hoy.replace(day=1)
     inicio_anterior = (inicio_mes - timedelta(days=1)).replace(day=1)
     este = qs.filter(**{f"{campo}__date__gte": inicio_mes}).count()
     anterior = qs.filter(**{f"{campo}__date__gte": inicio_anterior, f"{campo}__date__lt": inicio_mes}).count()
-    return _variacion(este, anterior)
+    return (*_variacion(este, anterior), este, anterior)
 
 
 def calcular_kpis_dashboard() -> dict:
@@ -42,9 +48,9 @@ def calcular_kpis_dashboard() -> dict:
     hoy = timezone.localdate()
 
     pacientes = Paciente.objects.filter(activo=True)
-    var_pac, tend_pac = _altas_por_mes(Paciente.objects.all(), "fecha_registro", hoy)
+    var_pac, tend_pac, altas_pac, altas_pac_ant = _altas_por_mes(Paciente.objects.all(), "fecha_registro", hoy)
     embarazos = Embarazo.objects.filter(estado="activo")
-    var_emb, tend_emb = _altas_por_mes(Embarazo.objects.all(), "fecha_registro", hoy)
+    var_emb, tend_emb, altas_emb, altas_emb_ant = _altas_por_mes(Embarazo.objects.all(), "fecha_registro", hoy)
 
     citas_hoy = Cita.objects.filter(fecha_cita=hoy).aggregate(
         total=Count("id"),
@@ -110,8 +116,10 @@ def calcular_kpis_dashboard() -> dict:
     return {
         "fecha_actualizacion": timezone.now().isoformat(),
         "kpis": {
-            "pacientes_activos": {"valor": pacientes.count(), "variacion_mes": var_pac, "tendencia": tend_pac},
-            "embarazos_activos": {"valor": embarazos.count(), "variacion_mes": var_emb, "tendencia": tend_emb},
+            "pacientes_activos": {"valor": pacientes.count(), "variacion_mes": var_pac, "tendencia": tend_pac,
+                                  "altas_mes": altas_pac, "altas_mes_anterior": altas_pac_ant},
+            "embarazos_activos": {"valor": embarazos.count(), "variacion_mes": var_emb, "tendencia": tend_emb,
+                                  "altas_mes": altas_emb, "altas_mes_anterior": altas_emb_ant},
             "citas_dia": {"valor": citas_hoy["total"], "completadas": citas_hoy["completadas"],
                           "pendientes": citas_hoy["pendientes"]},
             # Porcentaje de citas de la semana a las que la paciente asistió.

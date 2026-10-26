@@ -215,7 +215,7 @@ const GenerarReportePage: React.FC = () => {
 
     try {
       const blob = await reportesService.downloadReporte(reporteGenerado.id);
-      const extension = reporteGenerado.formato === 'pdf' ? 'pdf' : 'xlsx';
+      const extension = ({ pdf: 'pdf', excel: 'xlsx', csv: 'csv', json: 'json' } as Record<string, string>)[reporteGenerado.formato] || 'pdf';
       reportesService.descargarArchivo(blob, `reporte_${reporteGenerado.id}.${extension}`);
       message.success('Reporte descargado correctamente');
     } catch (error: any) {

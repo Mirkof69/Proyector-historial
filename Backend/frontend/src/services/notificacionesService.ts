@@ -38,6 +38,10 @@ export interface ResumenNotificaciones {
   urgentes: number;
   /** Las últimas, para el desplegable. */
   ultimas: Notificacion[];
+  /** Todas las no archivadas, y cuántas son urgentes/críticas o informativas (Centro de Notificaciones). */
+  total?: number;
+  urgentes_total?: number;
+  informativas?: number;
 }
 
 export const notificacionesService = {

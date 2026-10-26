@@ -34,7 +34,7 @@ const NotificacionesFiltros: React.FC<NotificacionesFiltrosProps> = ({
           placeholder={['Fecha inicio', 'Fecha fin']}
           value={filtros.dateRange}
           onChange={(dates) => dispatchFiltros({ type: 'SET_DATE_RANGE', payload: dates })}
-          format="DD/MM/YYYY"
+          format={{ format: 'DD/MM/YYYY', type: 'mask' }}
         />
       </Col>
       <Col xs={24} md={4}>

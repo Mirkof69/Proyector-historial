@@ -1,29 +1,45 @@
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Card, Spin } from 'antd';
 import { AlertaMedica } from '../../../services/reportesService';
 import {
   renderPieLabel, getSeveridadData, getModuloData, getTiempoResolucionData,
 } from '../alertasMedicasUtils';
+// Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
+// reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })) as any);
-const PieChart = lazy(() => import('recharts').then(m => ({ default: m.PieChart })) as any);
-const Pie = lazy(() => import('recharts').then(m => ({ default: m.Pie })) as any);
-const Cell = lazy(() => import('recharts').then(m => ({ default: m.Cell })) as any);
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })) as any);
-const Legend = lazy(() => import('recharts').then(m => ({ default: m.Legend })) as any);
-const BarChart = lazy(() => import('recharts').then(m => ({ default: m.BarChart })) as any);
-const Bar = lazy(() => import('recharts').then(m => ({ default: m.Bar })) as any);
-const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })) as any);
-const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })) as any);
-const CartesianGrid = lazy(() => import('recharts').then(m => ({ default: m.CartesianGrid })) as any);
-const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })) as any);
-const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })) as any);
+export interface ResumenAlertas {
+  total_alertas: number;
+  alertas_activas: number;
+  alertas_criticas_activas: number;
+  pendientes: number;
+  hoy: number;
+  por_prioridad: { prioridad: string; count: number }[];
+  por_modulo: { modulo: string; cantidad: number }[];
+}
 
 interface AlertasMedicasGraficasProps {
   alertas: AlertaMedica[];
+  resumen?: ResumenAlertas | null;
 }
 
-const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas }) => (
+const COLOR_PRIORIDAD: Record<string, [string, string]> = {
+  baja: ['Baja', 'var(--color-info)'], media: ['Media', 'var(--color-aviso)'], alta: ['Alta', 'var(--grafico-5)'],
+  critica: ['Crítica', 'var(--color-peligro)'],
+};
+
+/** Severidad de todas las alertas (resumen del servidor) o, sin él, de las cargadas. */
+const severidad = (alertas: AlertaMedica[], resumen?: ResumenAlertas | null) => {
+  if (!resumen) return getSeveridadData(alertas);
+  const cuenta: Record<string, number> = { baja: 0, media: 0, alta: 0, critica: 0 };
+  resumen.por_prioridad.forEach(({ prioridad, count }) => {
+    const clave = prioridad === 'emergencia' ? 'critica' : prioridad;
+    cuenta[clave] = (cuenta[clave] || 0) + count;
+  });
+  return Object.entries(COLOR_PRIORIDAD).map(([k, [name, color]]) => ({ name, value: cuenta[k] || 0, color }));
+};
+
+const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas, resumen }) => (
   <>
     <div className="alertas-page__graficas">
         <Card title="Alertas por Severidad">
@@ -31,7 +47,7 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={getSeveridadData(alertas)}
+                data={severidad(alertas, resumen)}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -39,7 +55,7 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
                 outerRadius={80}
                 dataKey="value"
               >
-                {getSeveridadData(alertas).map((entry) => (
+                {severidad(alertas, resumen).map((entry) => (
                   <Cell key={`cell-${entry.name}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -52,7 +68,7 @@ const AlertasMedicasGraficas: React.FC<AlertasMedicasGraficasProps> = ({ alertas
         <Card title="Alertas por Módulo">
           <Suspense fallback={<div className="alertas-page__cargando"><Spin /></div>}>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={getModuloData(alertas)}>
+            <BarChart data={resumen?.por_modulo ?? getModuloData(alertas)}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="modulo" />
               <YAxis />

@@ -42,7 +42,9 @@ const Indicadores: React.FC = () => {
   const cargarIndicadores = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get('/reportes/dashboard-kpis/');
+      // Calculados con los datos reales (reportes/services/indicadores_gestion.py); antes se leía
+      // /dashboard-kpis/, que devuelve otra forma, y la tabla salía vacía.
+      const response = await api.get('/reportes/indicadores-gestion/');
       const data = response.data?.results || response.data || [];
       setIndicadores(Array.isArray(data) ? data : []);
     } catch {

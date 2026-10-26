@@ -6,6 +6,8 @@ import { useAntdApp } from '../../hooks/useMessage';
 import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { reportesService, AlertaMedica } from '../../services/reportesService';
+import api from '../../services/api';
+import type { ResumenAlertas } from './components/AlertasMedicasGraficas';
 import dayjs from 'dayjs';
 import './AlertasMedicas.css';
 import { AlertasState } from './alertasMedicasUtils';
@@ -72,10 +74,17 @@ const AlertasMedicas: React.FC = () => {
     // eslint-disable-next-line react-doctor/exhaustive-deps
   }, [form, message]);
 
+  // Cifras y gráficos de TODAS las alertas (el listado trae solo la primera página).
+  const [resumen, setResumen] = useState<ResumenAlertas | null>(null);
+
   const cargarAlertas = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true }));
     try {
-      const data = await reportesService.listarAlertas();
+      const [data, estadisticas] = await Promise.all([
+        reportesService.listarAlertas(),
+        api.get<ResumenAlertas>('/reportes/alertas-medicas/estadisticas/').then(r => r.data).catch(() => null),
+      ]);
+      setResumen(estadisticas);
       setState(prev => ({ ...prev, alertas: data }));
     } catch (error) {
       message.error('Error al cargar alertas');
@@ -163,10 +172,10 @@ const AlertasMedicas: React.FC = () => {
   const columns = buildColumnsAlertasMedicas({ setState, marcarResuelta });
 
   // Estadísticas
-  const totalAlertas = alertas.length;
-  const alertasPendientes = alertas.filter(a => a.estado === 'activa' || a.estado === 'revisada' || a.estado === 'escalada').length;
-  const alertasCriticas = alertas.filter(a => (a.prioridad === 'critica' || a.prioridad === 'emergencia') && a.estado !== 'resuelta' && a.estado !== 'descartada').length;
-  const alertasHoy = alertas.filter(a => dayjs(a.fecha_creacion).isSame(dayjs(), 'day')).length;
+  const totalAlertas = resumen?.total_alertas ?? alertas.length;
+  const alertasPendientes = resumen?.pendientes ?? alertas.filter(a => a.estado === 'activa' || a.estado === 'revisada' || a.estado === 'escalada').length;
+  const alertasCriticas = resumen?.alertas_criticas_activas ?? alertas.filter(a => (a.prioridad === 'critica' || a.prioridad === 'emergencia') && a.estado !== 'resuelta' && a.estado !== 'descartada').length;
+  const alertasHoy = resumen?.hoy ?? alertas.filter(a => dayjs(a.fecha_creacion).isSame(dayjs(), 'day')).length;
 
   return (
     <div className="alertas-page page-container" suppressHydrationWarning>
@@ -194,7 +203,7 @@ const AlertasMedicas: React.FC = () => {
       />
 
       {/* Gráficas */}
-      <AlertasMedicasGraficas alertas={alertas} />
+      <AlertasMedicasGraficas alertas={alertas} resumen={resumen} />
 
       {/* Filtros */}
       <AlertasMedicasFiltros

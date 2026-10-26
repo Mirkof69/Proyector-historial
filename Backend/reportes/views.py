@@ -209,11 +209,18 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         """
         serializer = ReporteGeneradoCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        usuario_id = request.user.id if request.user.is_authenticated else None
+        # La FK espera el usuario, no su id: con el id cada solicitud terminaba en 500.
         reporte = serializer.save(
-            usuario_solicitante=usuario_id,
-            estado="pendiente",
+            usuario_solicitante=request.user,
+            estado="procesando",
+            fecha_procesamiento=timezone.now(),
         )
+        # Se genera en el momento: antes quedaba «pendiente» y ningún proceso lo
+        # generaba, así que la descarga nunca tenía archivo.
+        from .services.generador_reportes import generar
+
+        generar(reporte)
+        reporte.refresh_from_db()
         # Devolver detalle completo
         detalle = ReporteGeneradoSerializer(reporte)
         return Response(detalle.data, status=status.HTTP_201_CREATED)
@@ -571,13 +578,20 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
             prioridad__in=["critica", "emergencia"], estado="activa",
         ).count()
 
+        # La pantalla contaba sobre la primera página (200) y no sobre la tabla
+        # entera; estos conteos son los de todas las alertas.
+        modulos = dict(AlertaMedica.MODULOS_CHOICES)
         result = {
             "total_alertas": total,
             "alertas_activas": activas,
             "alertas_criticas_activas": criticas,
-            "por_tipo": por_tipo,
-            "por_prioridad": por_prioridad,
-            "por_estado": por_estado,
+            "pendientes": qs.filter(estado__in=["activa", "revisada", "escalada"]).count(),
+            "hoy": qs.filter(fecha_creacion__date=timezone.localdate()).count(),
+            "por_tipo": list(por_tipo),
+            "por_prioridad": list(por_prioridad),
+            "por_estado": list(por_estado),
+            "por_modulo": [{"modulo": modulos.get(f["modulo_origen"], f["modulo_origen"]), "cantidad": f["n"]}
+                           for f in qs.values("modulo_origen").annotate(n=Count("id")).order_by("-n")],
         }
 
         # Cache for 60 seconds

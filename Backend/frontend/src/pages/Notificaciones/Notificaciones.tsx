@@ -1,6 +1,6 @@
 import React, { useState, useReducer, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
-import { notificacionesService, Notificacion } from '../../services/notificacionesService';
+import { notificacionesService, Notificacion, ResumenNotificaciones } from '../../services/notificacionesService';
 import { Button, Card, Space, Dropdown, Empty, Typography, Table } from "antd";
 import {
   DeleteOutlined,
@@ -48,12 +48,15 @@ const BELL_ICON_2 = <BellOutlined />;
     dateRange: null,
   });
 
-  // Estadísticas
+  // Estadísticas de TODAS las notificaciones (resumen del servidor). Antes se
+  // contaban sobre la primera página (máx. 200) y las urgentes se buscaban por
+  // tipos «error»/«warning» que el sistema no usa: salían 200, 200, 0 y 0.
+  const [resumen, setResumen] = useState<ResumenNotificaciones | null>(null);
   const stats = {
-    total: notificaciones?.length || 0,
-    nuevas: notificaciones?.filter(n => !n.leida).length || 0,
-    alertas: notificaciones?.filter(n => n.tipo === 'error' || n.tipo === 'warning').length || 0,
-    info: notificaciones?.filter(n => n.tipo === 'info' || n.tipo === 'success').length || 0,
+    total: resumen?.total ?? notificaciones?.length ?? 0,
+    nuevas: resumen?.pendientes ?? notificaciones?.filter(n => !n.leida).length ?? 0,
+    alertas: resumen?.urgentes_total ?? 0,
+    info: resumen?.informativas ?? 0,
   };
 
   // eslint-disable-next-line react-doctor/no-initialize-state
@@ -64,6 +67,7 @@ const BELL_ICON_2 = <BellOutlined />;
   const loadNotificaciones = async () => {
     setLoading(true);
     try {
+      notificacionesService.resumen().then(setResumen).catch(() => undefined);
       const data = await notificacionesService.listar();
       // Ordenar por fecha descendente
       const sorted = data.sort((a, b) =>

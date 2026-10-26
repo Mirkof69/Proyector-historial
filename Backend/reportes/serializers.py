@@ -652,6 +652,8 @@ class AlertaMedicaResumenSerializer(serializers.ModelSerializer):
             "paciente_nombre",
             "modulo_origen",
             "modulo_origen_display",
+            "descripcion",
+            "valor_actual",
             "fecha_creacion",
             "fecha_vencimiento",
             "color_prioridad",

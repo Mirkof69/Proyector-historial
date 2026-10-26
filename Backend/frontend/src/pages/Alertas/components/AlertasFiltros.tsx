@@ -103,7 +103,7 @@ const AlertasFiltros: React.FC<AlertasFiltrosProps> = ({
           placeholder={['Fecha inicio', 'Fecha fin']}
           value={rangoFechas}
           onChange={(dates) => dispatch({ type: 'SET_RANGO_FECHAS', payload: dates || [null, null] })}
-          format="DD/MM/YYYY"
+          format={{ format: 'DD/MM/YYYY', type: 'mask' }}
         />
       </Col>
     </Row>

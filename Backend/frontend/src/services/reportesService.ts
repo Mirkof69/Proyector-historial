@@ -414,13 +414,17 @@ export interface DashboardKPIs {
   kpis: {
     pacientes_activos: {
       valor: number;
-      variacion_mes: number; // porcentaje
+      variacion_mes: number; // porcentaje de ALTAS este mes vs el anterior
       tendencia: 'up' | 'down' | 'stable';
+      altas_mes?: number;
+      altas_mes_anterior?: number;
     };
     embarazos_activos: {
       valor: number;
       variacion_mes: number;
       tendencia: 'up' | 'down' | 'stable';
+      altas_mes?: number;
+      altas_mes_anterior?: number;
     };
     citas_dia: {
       valor: number;

@@ -72,7 +72,7 @@ const RenderKPIs: React.FC<{ kpis: DashboardKPIs | null }> = ({ kpis }) => {
         <div className="reportes-kpi-card__value">{totalPacientes.toLocaleString()}</div>
         <div className="reportes-kpi-card__label">Pacientes Activos</div>
         <div className="reportes-kpi-card__meta">
-          Variaci&oacute;n: {kpis.kpis?.pacientes_activos?.variacion_mes > 0 ? '+' : ''}{kpis.kpis?.pacientes_activos?.variacion_mes}%
+          Nuevas este mes: {kpis.kpis?.pacientes_activos?.altas_mes ?? 0} · mes anterior: {kpis.kpis?.pacientes_activos?.altas_mes_anterior ?? 0}
         </div>
       </div>
 
@@ -89,7 +89,7 @@ const RenderKPIs: React.FC<{ kpis: DashboardKPIs | null }> = ({ kpis }) => {
         <div className="reportes-kpi-card__value">{totalEmbarazos.toLocaleString()}</div>
         <div className="reportes-kpi-card__label">Embarazos Activos</div>
         <div className="reportes-kpi-card__meta">
-          Variaci&oacute;n: {kpis.kpis?.embarazos_activos?.variacion_mes > 0 ? '+' : ''}{kpis.kpis?.embarazos_activos?.variacion_mes}%
+          Nuevos este mes: {kpis.kpis?.embarazos_activos?.altas_mes ?? 0} · mes anterior: {kpis.kpis?.embarazos_activos?.altas_mes_anterior ?? 0}
         </div>
       </div>
 
@@ -105,9 +105,9 @@ const RenderKPIs: React.FC<{ kpis: DashboardKPIs | null }> = ({ kpis }) => {
         <div className="reportes-kpi-card__value">
           {citasCompletadas}/{citasTotal}
         </div>
-        <div className="reportes-kpi-card__label">Citas Completadas</div>
+        <div className="reportes-kpi-card__label">Citas de hoy atendidas</div>
         <div className="reportes-kpi-card__meta">
-          Tasa de completitud: {tasaCompletadas}%
+          {citasTotal ? `${tasaCompletadas}% de las citas de hoy` : 'No hay citas agendadas para hoy'}
         </div>
       </div>
 

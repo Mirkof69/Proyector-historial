@@ -25,6 +25,7 @@ from .views_config import (
 )
 from .views_natalidad_ia import reporte_ia, reporte_natalidad, reporte_natalidad_excel
 from .views_statistics import (
+    indicadores_gestion,
     adherencia_controles_statistics_view,
     all_statistics,
     citas_statistics,
@@ -94,6 +95,7 @@ urlpatterns = [
     path("resultados-criticos/", resultados_criticos_statistics_view, name="resultados-criticos"),
     # Estadísticas avanzadas (Legacy/Internal)
     path("statistics/dashboard/", dashboard_statistics, name="dashboard-statistics"),
+    path("indicadores-gestion/", indicadores_gestion, name="indicadores-gestion"),
     path("statistics/embarazos/", embarazos_statistics, name="embarazos-statistics"),
     path("statistics/controles/", controles_statistics, name="controles-statistics"),
     path("statistics/citas/", citas_statistics, name="citas-statistics"),

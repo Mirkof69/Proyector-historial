@@ -634,3 +634,13 @@ def examenes_pendientes_statistics_view(request):
 def resultados_criticos_statistics_view(request):
     return all_statistics(request._request)
 
+
+
+@extend_schema(summary="Indicadores de gestión obstétrica con su meta (últimos 12 meses)", responses={200: dict})
+@api_view(["GET"])
+@permission_classes([FetalMedicalPermission])
+def indicadores_gestion(_request):
+    """Cobertura, calidad y resultados perinatales calculados con los datos reales."""
+    from .services.indicadores_gestion import calcular_indicadores
+
+    return Response(calcular_indicadores(), status=status.HTTP_200_OK)

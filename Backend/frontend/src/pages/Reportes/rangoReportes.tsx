@@ -71,7 +71,7 @@ export const FiltroFechasReportes: React.FC = () => {
       />
       <DatePicker.RangePicker
         value={[rango.desde, rango.hasta]}
-        format="DD/MM/YYYY"
+        format={{ format: 'DD/MM/YYYY', type: 'mask' }}
         allowClear={false}
         disabledDate={(d) => d.isAfter(dayjs(), 'day')}
         onChange={(v) => { if (v?.[0] && v[1]) elegir('personalizado', [v[0], v[1]]); }}

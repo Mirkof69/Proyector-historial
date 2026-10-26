@@ -143,9 +143,19 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         # las 7.135 a memoria para quedarse con ocho.
         ultimas = pendientes.order_by("-fecha_creacion")[: self.PENDIENTES_EN_EL_RESUMEN]
 
+        # Para las cifras del Centro de Notificaciones, que antes contaba sobre la
+        # primera página (200) y clasificaba por un campo que no es la prioridad.
+        todas = self.get_queryset().filter(archivada=False).aggregate(
+            total=Count("id"),
+            urgentes=Count("id", filter=Q(prioridad__in=[PrioridadNotificacion.URGENTE, PrioridadNotificacion.CRITICA])),
+            informativas=Count("id", filter=Q(prioridad__in=[PrioridadNotificacion.BAJA, PrioridadNotificacion.NORMAL])),
+        )
         return Response({
             "pendientes": conteos["total"] or 0,
             "urgentes": conteos["urgentes"] or 0,
+            "total": todas["total"] or 0,
+            "urgentes_total": todas["urgentes"] or 0,
+            "informativas": todas["informativas"] or 0,
             "ultimas": NotificacionListSerializer(ultimas, many=True).data,
         })
 
