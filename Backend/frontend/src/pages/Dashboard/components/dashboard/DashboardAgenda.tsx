@@ -3,6 +3,7 @@ import { Row, Col, Card, Button, List, Avatar, Space, Tag, Typography } from 'an
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import WidgetPacientesAltoRiesgo from '../../../../components/Widgets/WidgetPacientesAltoRiesgo';
+import { authService } from '../../../../services/authService';
 
 const { Text } = Typography;
 
@@ -48,9 +49,12 @@ const DashboardAgenda: React.FC<DashboardAgendaProps> = ({ citasHoy }) => {
           />
         </Card>
       </Col>
-      <Col xs={24} lg={8}>
-        <WidgetPacientesAltoRiesgo />
-      </Col>
+      {/* Datos clínicos: recepción no tiene acceso a embarazos (el widget daba 403). */}
+      {authService.hasPermission('view_embarazo') && (
+        <Col xs={24} lg={8}>
+          <WidgetPacientesAltoRiesgo />
+        </Col>
+      )}
     </Row>
   );
 };

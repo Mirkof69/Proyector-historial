@@ -6,6 +6,7 @@
  * =============================================================================
  */
 
+import { authService } from '../../services/authService';
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAntdApp } from "../../hooks/useMessage";
@@ -68,6 +69,8 @@ export const IAAsistenteMedico: React.FC = () => {
 
   useEffect(() => {
     const loadContext = async () => {
+      // Enfermería y recepción no leen /reportes/: pedirlo era un 403 en cada Panel.
+      if (['enfermera', 'recepcion'].includes(authService.getCurrentUser()?.rol ?? '')) return;
       try {
         const stats = await statisticsService.getDashboardStatistics();
         dashboardContextRef.current = stats;

@@ -44,3 +44,23 @@ class ConsultorioDesdeLaPantallaTest(TestCase):
         self.assertEqual(r.json()["estado"], "mantenimiento")
         r = self.cliente.patch(f"{URL}{c.pk}/", {"estado": "inactivo"}, format="json")
         self.assertEqual(r.json()["estado"], "inactivo")
+
+
+class ConsultoriosEnfermeriaTest(TestCase):
+    """Enfermería ve los consultorios (su menú los ofrece) pero no los modifica."""
+
+    def test_enfermera_lee_pero_no_crea(self):
+        enfermera = Usuario.objects.create_user(email="enf.cons@test.bo", nombre="Eva", apellido_paterno="Cons",
+                                                password="clave-segura-123", rol="enfermera")
+        c = APIClient()
+        c.force_authenticate(enfermera)
+        self.assertEqual(c.get(URL).status_code, 200)
+        self.assertEqual(c.post(URL, {"codigo": "X-1", "nombre": "X", "tipo": "general"}, format="json").status_code, 403)
+
+    def test_recepcion_lee_pero_no_crea(self):
+        recepcion = Usuario.objects.create_user(email="rec.cons@test.bo", nombre="Rita", apellido_paterno="Cons",
+                                                password="clave-segura-123", rol="recepcion")
+        c = APIClient()
+        c.force_authenticate(recepcion)
+        self.assertEqual(c.get(URL).status_code, 200)
+        self.assertEqual(c.post(URL, {"codigo": "X-2", "nombre": "X", "tipo": "general"}, format="json").status_code, 403)

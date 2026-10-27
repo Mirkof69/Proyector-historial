@@ -10,7 +10,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.permissions import EsSoloMedico
+from core.permissions import EsSoloMedico, RolPermiso
+
+PuedeVerConsultorios = RolPermiso(
+    ("medico", "enfermera", "recepcion", "administrador"),
+    "Solo el personal de la clínica puede ver los consultorios.",
+)
 
 from .models import (
     Consultorio,
@@ -33,6 +38,14 @@ class ConsultorioViewSet(viewsets.ModelViewSet):
     queryset = Consultorio.objects.all()
     serializer_class = ConsultorioSerializer
     permission_classes = [IsAuthenticated, EsSoloMedico]
+
+    def get_permissions(self):
+        # Enfermería y recepción ven los consultorios (su menú los ofrece y la
+        # pantalla daba 403); crear, editar o borrar sigue siendo de médicos y
+        # administradores.
+        if self.request.method in ("GET", "HEAD", "OPTIONS"):
+            return [IsAuthenticated(), PuedeVerConsultorios]
+        return super().get_permissions()
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,

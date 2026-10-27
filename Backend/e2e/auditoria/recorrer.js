@@ -14,8 +14,9 @@ const CLAVE = process.env.E2E_PASSWORD;
 const SALIDA = path.join(__dirname, 'salida');
 const CUENTAS = {
   admin: 'admin.demo@fetalmedical.bo', medico: 'dra.garcia@fetalmedical.bo', enfermera: 'enf.mamani@fetalmedical.bo',
+  recepcion: 'recep.flores@fetalmedical.bo',
 };
-const ROLES = (process.env.ROLES || 'admin,medico,enfermera').split(',');
+const ROLES = (process.env.ROLES || 'admin,medico,enfermera,recepcion').split(',');
 const TEXTO_ROTO = /\b(NaN|undefined|null|Invalid Date|\[object Object\])\b/;
 
 async function rutasDelMenu(page) {
