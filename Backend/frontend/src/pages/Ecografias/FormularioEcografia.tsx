@@ -89,6 +89,7 @@ const FormularioEcografia: React.FC = () => {
   const [selectedPaciente, setSelectedPaciente] = useState<number | null>(null);
   const [selectedEmbarazo, setSelectedEmbarazo] = useState<Embarazo | null>(null);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [pestana, setPestana] = useState('1');
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
@@ -242,6 +243,22 @@ const FormularioEcografia: React.FC = () => {
   // ==========================================================================
   // SUBMIT
   // ==========================================================================
+  // Si falta un dato en otra pestaña (p. ej. el Diagnóstico, en la última), antes
+  // «Guardar» no hacía nada y no decía por qué: se va a esa pestaña y se avisa.
+  const PESTANA_DE: Record<string, string> = { biometria: '2', anatomia: '3', anexos: '4', diagnostico: '5',
+    conclusiones: '5', recomendaciones: '5', proxima_ecografia_recomendada: '5', observaciones: '5' };
+  const onFinishFailed = ({ errorFields }: { errorFields: { name: (string | number)[]; errors: string[] }[] }) => {
+    if (!errorFields.length) return;
+    const primero = errorFields[0];
+    setPestana(PESTANA_DE[String(primero.name[0])] ?? '1');
+    setTimeout(() => form.scrollToField(primero.name, { block: 'center' }), 50);
+    const etiquetas = errorFields.map((e) => {
+      const el = document.querySelector(`label[for="${e.name.join('_')}"]`);
+      return el?.textContent?.trim() || String(e.name[e.name.length - 1]).replace(/_/g, ' ');
+    });
+    message.error(`Falta completar: ${[...new Set(etiquetas)].join(', ')}`);
+  };
+
   const onFinish = async (values: any) => {
     setSubmitting(true);
     try {
@@ -458,6 +475,7 @@ const FormularioEcografia: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={onFinish}
+          onFinishFailed={onFinishFailed}
           initialValues={{
             fecha_ecografia: dayjs(),
             tipo_ecografia: 'primer_trimestre',
@@ -488,7 +506,8 @@ const FormularioEcografia: React.FC = () => {
           }}
         >
           <Tabs
-            defaultActiveKey="1"
+            activeKey={pestana}
+            onChange={setPestana}
             type="card"
             size="large"
             items={[

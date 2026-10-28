@@ -1,4 +1,5 @@
 import React from 'react';
+import BotonSiguiente from './BotonSiguiente';
 import { Form, Select, DatePicker, TimePicker, Button, Space, Row, Col, Alert, Divider } from 'antd';
 import { CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -120,9 +121,7 @@ const StepFechaHora: React.FC<StepFechaHoraProps> = ({
         </Button>
       </Col>
       <Col>
-        <Button type="primary" onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 2 })}>
-          Siguiente
-        </Button>
+        <BotonSiguiente campos={['fecha_cita', 'hora_cita']} alAvanzar={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 2 })} />
       </Col>
     </Row>
   </>

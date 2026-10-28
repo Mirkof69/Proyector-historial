@@ -32,3 +32,15 @@ export const filtrarOpcion = (entrada: string, opcion?: { label?: unknown; child
     const texto = Array.isArray(visible) ? visible.filter((p) => typeof p === 'string').join(' ') : String(visible ?? '');
     return incluyeTexto(texto, entrada);
 };
+
+/**
+ * Personal para elegir en un Select: primero las cuentas reales y por nombre;
+ * las de las pruebas de QA (correo «.test») al final, para que no tapen a las demás.
+ */
+export const ordenarPersonal = <T extends { email?: string; nombre?: string; apellido_paterno?: string }>(lista: T[]): T[] =>
+    [...lista].sort((a, b) => {
+        const pruebaA = (a.email ?? '').endsWith('.test') ? 1 : 0;
+        const pruebaB = (b.email ?? '').endsWith('.test') ? 1 : 0;
+        if (pruebaA !== pruebaB) return pruebaA - pruebaB;
+        return `${a.nombre ?? ''} ${a.apellido_paterno ?? ''}`.localeCompare(`${b.nombre ?? ''} ${b.apellido_paterno ?? ''}`, 'es');
+    });

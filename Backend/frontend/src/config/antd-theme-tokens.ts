@@ -267,6 +267,11 @@ const construirTema = (p: Paleta, oscuro: boolean): ThemeConfig => {
       boxShadowSecondary: p.sombraFlotante,
       boxShadowTertiary: p.sombraBaja,
 
+      // Sin animaciones de Ant Design: en el Chrome del consultorio los
+      // desplegables (buscador de paciente, campana, menú del perfil,
+      // calendario) quedaban atascados en la animación de entrada, invisibles
+      // y «temblando», aunque existían en la página. Aparecen al instante.
+      motion: false,
       motionDurationFast: '0.12s',
       motionDurationMid: '0.16s',
       motionDurationSlow: '0.24s',

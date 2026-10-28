@@ -52,7 +52,8 @@ const FormularioCita: React.FC = () => {
         type: 'SET_INITIAL_DATA',
         payload: {
           pacientes: [],
-          medicos: usuariosData.filter((u: any) => u.rol === 'medico' || u.rol === 'administrador'),
+          // Solo médicos: la cuenta de administración no atiende citas.
+          medicos: usuariosData.filter((u: any) => u.rol === 'medico' && u.activo !== false),
           consultorios: consultoriosData.filter((c: any) => c.activo && !c.en_mantenimiento),
         },
       });

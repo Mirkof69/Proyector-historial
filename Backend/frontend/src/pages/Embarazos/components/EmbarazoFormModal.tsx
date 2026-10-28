@@ -8,7 +8,7 @@ import type { FormInstance } from 'antd';
 import { Dayjs } from 'dayjs';
 import locale from 'antd/es/date-picker/locale/es_ES';
 import { EmbarazoExtendido, EmbarazosAction, PacienteOption } from '../embarazosReducer';
-import { filtrarOpcion } from '../../../utils/texto';
+import { filtrarOpcion, ordenarPersonal } from '../../../utils/texto';
 
 const { Option } = Select;
 const checkCircleOutlinedIcon7 = <CheckCircleOutlined />;
@@ -105,7 +105,7 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
                 allowClear
                 filterOption={filtrarOpcion}
               >
-                {medicos.map(medico => (
+                {ordenarPersonal(medicos).map(medico => (
                   <Option key={medico.id} value={medico.id}>
                     {`Dr./Dra. ${medico.nombre} ${medico.apellido_paterno || medico.apellido || ''}`}
                   </Option>

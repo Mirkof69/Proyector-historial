@@ -1,5 +1,7 @@
 import React from 'react';
-import { Form, Select, Button, Space, Row, Col, Divider } from 'antd';
+import BotonSiguiente from './BotonSiguiente';
+import { filtrarOpcion, ordenarPersonal } from '../../../utils/texto';
+import { Form, Select, Space, Row, Col, Divider } from 'antd';
 import { UserOutlined, MedicineBoxOutlined, HomeOutlined } from '@ant-design/icons';
 import { FormularioCitaAction } from '../formularioCitaUtils';
 import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
@@ -46,16 +48,15 @@ const StepPacienteMedico: React.FC<StepPacienteMedicoProps> = ({
           rules={[{ required: true, message: 'Seleccione el médico' }]}
         >
           <Select
-            placeholder="Seleccionar médico"
+            placeholder="Escriba o elija el médico"
+            showSearch
+            filterOption={filtrarOpcion}
             onChange={handleMedicoChange}
-          >
-            {medicos.map((m) => (
-              <Option key={m.id} value={m.id}>
-                Dr(a). {m.nombre} {m.apellido_paterno}
-                {m.especialidad && ` - ${m.especialidad}`}
-              </Option>
-            ))}
-          </Select>
+            options={ordenarPersonal(medicos).map((m) => ({
+              value: m.id,
+              label: `Dr(a). ${m.nombre} ${m.apellido_paterno ?? ''}${m.especialidad ? ` - ${m.especialidad}` : ''}`,
+            }))}
+          />
         </Form.Item>
       </Col>
     </Row>
@@ -100,9 +101,7 @@ const StepPacienteMedico: React.FC<StepPacienteMedicoProps> = ({
     <Divider />
     <Row justify="end">
       <Col>
-        <Button type="primary" onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 1 })}>
-          Siguiente
-        </Button>
+        <BotonSiguiente campos={['paciente', 'medico', 'tipo_cita']} alAvanzar={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 1 })} />
       </Col>
     </Row>
   </>
