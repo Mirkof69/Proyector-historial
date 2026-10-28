@@ -87,7 +87,9 @@ import {
   interpretarNST,
   actualizarProtocolos,
   calcularTendencias,
-  nombreExamen
+  nombreExamen,
+  normalizarLaboratorio,
+  valoresDeLaboratorio,
 } from './utils';
 import TabVacunas from './sections/TabVacunas';
 import {
@@ -300,7 +302,7 @@ const HistoriaClinica: React.FC = () => {
       const ecosRaw = resEcos.data.results || resEcos.data;
       const labsRaw = resLabs.data.results || resLabs.data;
       const ecosData = Array.isArray(ecosRaw) ? ecosRaw : [];
-      const labsData = Array.isArray(labsRaw) ? labsRaw : [];
+      const labsData = (Array.isArray(labsRaw) ? labsRaw : []).map(normalizarLaboratorio);
 
       if (isMounted.current) {
         // El serializer de /vacunas/registros/ usa OTROS nombres que el tipo
@@ -319,7 +321,7 @@ const HistoriaClinica: React.FC = () => {
         setPartos(Array.isArray(partosData) ? partosData : []);
         setControles(controlesArray.sort((a: any, b: any) => new Date(a.fecha_control || a.fecha || 0).getTime() - new Date(b.fecha_control || b.fecha || 0).getTime()));
         setEcografias(Array.isArray(ecosData) ? ecosData : []);
-        setLaboratorios(Array.isArray(labsData) ? labsData : []);
+        setLaboratorios(labsData);
         setTratamientos([]);
       }
 
@@ -712,22 +714,13 @@ const HistoriaClinica: React.FC = () => {
     // Agrupar laboratorios por tipo de examen
     const agrupados: { [key: string]: Array<{ fecha: string; valor: number; referencia: string }> } = {};
 
-    laboratorios.forEach(lab => {
-      // Solo procesar laboratorios cuantitativos
-      const valorNumerico = parseFloat(lab.resultado);
-      if (!isNaN(valorNumerico)) {
-        // Agrupar por NOMBRE del examen: `tipo_examen` es la PK numerica,
-        // asi que agrupaba por id y el grafico mostraba "1", "2"...
-        const claveExamen = nombreExamen(lab);
-        if (!agrupados[claveExamen]) {
-          agrupados[claveExamen] = [];
-        }
-        agrupados[claveExamen].push({
-          fecha: lab.fecha_toma,
-          valor: valorNumerico,
-          referencia: lab.valores_referencia
-        });
+    // Agrupar por parámetro medido (Hemoglobina, Glucosa…): un examen como el
+    // hemograma trae varios valores y solo los numéricos tienen tendencia.
+    valoresDeLaboratorio(laboratorios).forEach(v => {
+      if (!agrupados[v.nombre]) {
+        agrupados[v.nombre] = [];
       }
+      agrupados[v.nombre].push({ fecha: v.fecha, valor: v.valor, referencia: v.referencia });
     });
 
     const tendencias: Array<{ examen: string; valores: Array<{ fecha: string; valor: number; referencia: string }>; tendencia: 'MEJORANDO' | 'EMPEORANDO' | 'ESTABLE' }> = Object.keys(agrupados).map(examen => {

@@ -555,7 +555,7 @@ class RecienNacidoAdmin(admin.ModelAdmin):
         """Get evaluacion estado"""
         evaluacion = obj.get_evaluacion_estado_general()
         if "normal" in evaluacion:
-            return format_html('<span style="color: #27ae60;">✅ Normal</span>')
+            return format_html('<span style="color: #27ae60;">Normal</span>')
         return format_html('<span style="color: #e74c3c;"> Con problemas</span>')
 
 
@@ -739,7 +739,7 @@ class PartogramaRegistroAdmin(admin.ModelAdmin):
         """Get alertas badge"""
         alertas = obj.get_alertas_activas()
         if "Sin alertas" in alertas[0]:
-            return format_html('<span style="color: #27ae60;">✅ Normal</span>')
+            return format_html('<span style="color: #27ae60;">Normal</span>')
         return format_html(
             '<span style="color: #e74c3c;"> {} alertas</span>', len(alertas),
         )
@@ -883,7 +883,7 @@ class ComplicacionPartoAdmin(admin.ModelAdmin):
             "severa": "#e74c3c",
             "critica": "#c0392b",
         }
-        icon = icons.get(obj.severidad, "⚪")
+        icon = icons.get(obj.severidad, "")
         color = colors.get(obj.severidad, "#95a5a6")
         return format_html(
             '<span style="color: {}; font-weight: bold; font-size: 16px;">{} {}</span>',
@@ -995,7 +995,7 @@ class ApgarScoreDetalladoAdmin(admin.ModelAdmin):
         score = obj.score_total
         if score >= 8:
             color = "#27ae60"
-            emoji = "✅"
+            emoji = ""
         elif score >= 6:
             color = "#f39c12"
             emoji = ""

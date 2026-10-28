@@ -3,6 +3,7 @@ import { Card, Form, Row, Col, InputNumber, Switch, Divider, Select, Button, Tag
 import type { FormInstance } from 'antd';
 import { MedicineBoxOutlined, ExperimentOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { medicamentos, DatosPaciente } from './dosisMedicamentosUtils';
+import { filtrarOpcion } from '../../../utils/texto';
 
 const { Option } = Select;
 
@@ -53,7 +54,7 @@ const FormDosis: React.FC<FormDosisProps> = ({ form, onFinish }) => (
       />
 
       <Form.Item label="Medicamento" name="medicamento" rules={[{ required: true }]} initialValue="oxitocina">
-        <Select showSearch optionFilterProp="children">
+        <Select showSearch filterOption={filtrarOpcion}>
           {medicamentos.map(med => (
             <Option key={med.value} value={med.value} disabled={!med.disponible}>
               {med.label}

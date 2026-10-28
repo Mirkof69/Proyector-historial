@@ -320,11 +320,11 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         return CitaDetailSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(creado_por=self.request.user, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar modificado_por y updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar modificado_por y updated_by al actualizar"""
         serializer.save(modificado_por=self.request.user, updated_by=self.request.user)
 
     def get_queryset(self):

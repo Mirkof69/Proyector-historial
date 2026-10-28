@@ -1,8 +1,8 @@
 """=============================================================================
 MÓDULO: EMBARAZOS - SERIALIZERS V3.0 FINAL CORREGIDO
 =============================================================================
-✅ BASADO EN EL MODELO REAL - SOLO CAMPOS QUE EXISTEN
-✅ Sin errores de campos inexistentes
+BASADO EN EL MODELO REAL - SOLO CAMPOS QUE EXISTEN
+Sin errores de campos inexistentes
 =============================================================================
 """
 
@@ -35,7 +35,7 @@ def fecha_referencia_eg(embarazo):
 
 
 class EmbarazoSerializer(serializers.ModelSerializer):
-    """✅ Serializer completo - SOLO CAMPOS DEL MODELO REAL
+    """Serializer completo - SOLO CAMPOS DEL MODELO REAL
     """
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -72,7 +72,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         """Meta"""
         model = Embarazo
         fields = [
-            # ✅ CAMPOS REALES DEL MODELO
+            # CAMPOS REALES DEL MODELO
             "id",
             "uuid",
             "paciente",
@@ -89,20 +89,20 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             "medico_responsable",
             "fecha_registro",
             "fecha_modificacion",
-            # ✅ CAMPOS ANTROPOMÉTRICOS
+            # CAMPOS ANTROPOMÉTRICOS
             "peso_pregestacional",
             "talla_materna",
-            # ✅ TRAZABILIDAD
+            # TRAZABILIDAD
             "created_by",
             "updated_by",
             "created_by_display",
             "updated_by_display",
             "datacion",
-            # ✅ ALIAS PARA FRONTEND
+            # ALIAS PARA FRONTEND
             "partos_previos",
             "cesareas_previas",
             "abortos_previos",
-            # ✅ CAMPOS CALCULADOS
+            # CAMPOS CALCULADOS
             "paciente_info",
             "paciente_nombre",
             "edad_gestacional",
@@ -128,7 +128,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     def get_paciente_info(self, obj):
-        """✅ Información completa del paciente"""
+        """Información completa del paciente"""
         paciente = obj.paciente
         apellido_materno = (
             f" {paciente.apellido_materno}" if paciente.apellido_materno else ""
@@ -155,15 +155,15 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             "telefono": paciente.telefono if hasattr(paciente, "telefono") else None,
             "peso_kg": float(paciente.peso_kg)
             if paciente.peso_kg
-            else None,  # ✅ AGREGADO
+            else None,  # AGREGADO
             "altura_cm": float(paciente.altura_cm)
             if paciente.altura_cm
-            else None,  # ✅ AGREGADO
-            "imc": paciente.imc,  # ✅ AGREGADO - Usa la propiedad calculada del modelo
+            else None,  # AGREGADO
+            "imc": paciente.imc,  # AGREGADO - Usa la propiedad calculada del modelo
         }
 
     def get_paciente_nombre(self, obj):
-        """✅ Nombre completo formato estándar"""
+        """Nombre completo formato estándar"""
         paciente = obj.paciente
         apellido_materno = (
             f" {paciente.apellido_materno}" if paciente.apellido_materno else ""
@@ -171,7 +171,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return f"{paciente.id_clinico} - {paciente.nombre} {paciente.apellido_paterno}{apellido_materno}"
 
     def get_edad_gestacional(self, obj):
-        """✅ Edad gestacional detallada"""
+        """Edad gestacional detallada"""
         if not obj.fecha_ultima_menstruacion:
             return None
 
@@ -205,7 +205,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         }
 
     def get_semanas_gestacion(self, obj):
-        """✅ Formato corto semanas+días"""
+        """Formato corto semanas+días"""
         hoy = fecha_referencia_eg(obj)
         if obj.fecha_ultima_menstruacion and hoy:
             diferencia = (hoy - obj.fecha_ultima_menstruacion).days
@@ -215,7 +215,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return None
 
     def get_semanas_restantes(self, obj):
-        """✅ Semanas hasta FPP"""
+        """Semanas hasta FPP"""
         if not obj.fecha_probable_parto:
             return None
 
@@ -227,7 +227,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return diferencia // 7
 
     def get_dias_restantes(self, obj):
-        """✅ Días exactos hasta FPP"""
+        """Días exactos hasta FPP"""
         if not obj.fecha_probable_parto:
             return None
 
@@ -238,7 +238,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return (obj.fecha_probable_parto - today).days
 
     def get_trimestre_actual(self, obj):
-        """✅ Número de trimestre (1, 2 o 3)"""
+        """Número de trimestre (1, 2 o 3)"""
         hoy = fecha_referencia_eg(obj)
         if not obj.fecha_ultima_menstruacion or not hoy:
             return None
@@ -253,7 +253,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return 3
 
     def get_clasificacion_riesgo(self, obj):
-        """✅ Texto descriptivo del riesgo"""
+        """Texto descriptivo del riesgo"""
         clasificaciones = {
             "bajo": "Riesgo Bajo - Control prenatal estándar",
             "medio": "Riesgo Moderado - Control prenatal frecuente",
@@ -262,7 +262,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return clasificaciones.get(obj.riesgo_embarazo, "No especificado")
 
     def get_estado_embarazo(self, obj):
-        """✅ Texto descriptivo del estado"""
+        """Texto descriptivo del estado"""
         estados = {
             "activo": "Embarazo Activo",
             "finalizado": "Embarazo Finalizado",
@@ -271,11 +271,11 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return estados.get(obj.estado, obj.estado)
 
     def get_imc_pregestacional(self, obj):
-        """✅ Retorna el IMC pregestacional calculado"""
+        """Retorna el IMC pregestacional calculado"""
         return obj.imc_pregestacional  # Usa la propiedad del modelo
 
     def get_created_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que creó el registro"""
+        """TRAZABILIDAD: Información del usuario que creó el registro"""
         if obj.created_by:
             return {
                 "id": obj.created_by.id,
@@ -294,7 +294,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return datacion(obj)
 
     def get_updated_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que actualizó el registro"""
+        """TRAZABILIDAD: Información del usuario que actualizó el registro"""
         if obj.updated_by:
             return {
                 "id": obj.updated_by.id,
@@ -313,13 +313,13 @@ class EmbarazoSerializer(serializers.ModelSerializer):
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     def validate_paciente(self, value):
-        """✅ Validar que el paciente existe"""
+        """Validar que el paciente existe"""
         if not Paciente.objects.filter(id=value.id).exists():
             raise serializers.ValidationError("El paciente seleccionado no existe")
         return value
 
     def validate_numero_gesta(self, value):
-        """✅ Validar número de gesta"""
+        """Validar número de gesta"""
         if value < 1:
             raise serializers.ValidationError("El número de gesta debe ser mayor a 0")
         if value > 20:
@@ -329,7 +329,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return value
 
     def validate_fecha_ultima_menstruacion(self, value):
-        """✅ Validar FUM"""
+        """Validar FUM"""
         if not value:
             raise serializers.ValidationError(
                 "La Fecha de Última Menstruación es obligatoria",
@@ -342,13 +342,13 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        """✅ Validaciones generales"""
+        """Validaciones generales"""
         # 1. Calcular FPP automáticamente (Regla de Naegele: FUM + 280 días)
         if "fecha_ultima_menstruacion" in attrs and not attrs.get("fecha_probable_parto"):
             fum = attrs["fecha_ultima_menstruacion"]
             attrs["fecha_probable_parto"] = fum + timedelta(days=280)
 
-        # 2. ✅ VALIDACIÓN MEJORADA: Prevenir embarazos activos duplicados
+        # 2. VALIDACIÓN MEJORADA: Prevenir embarazos activos duplicados
         paciente = attrs.get("paciente") or (
             self.instance.paciente if self.instance else None
         )
@@ -367,7 +367,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
             if query.exists():
                 raise serializers.ValidationError(
                     {
-                        "estado": f"❌ Esta paciente ya tiene un embarazo activo (ID: {cast(Any, query.first()).id}). "
+                        "estado": f"Esta paciente ya tiene un embarazo activo (ID: {cast(Any, query.first()).id}). "
                         "Solo puede haber UN embarazo activo por paciente. "
                         "Finalice el embarazo anterior antes de crear/activar otro.",
                     },
@@ -421,7 +421,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
-        """✅ Actualizar con recálculo de FPP"""
+        """Actualizar con recálculo de FPP"""
         # Recalcular FPP si se actualiza FUM
         if (
             "fecha_ultima_menstruacion" in validated_data
@@ -440,7 +440,7 @@ class EmbarazoSerializer(serializers.ModelSerializer):
 
 
 class EmbarazoListSerializer(serializers.ModelSerializer):
-    """✅ Serializer optimizado para listados - INCLUYE TODOS LOS CAMPOS PARA EDICIÓN"""
+    """Serializer optimizado para listados - INCLUYE TODOS LOS CAMPOS PARA EDICIÓN"""
 
     # Alias para compatibilidad con frontend
     partos_previos = serializers.IntegerField(source="numero_para", read_only=True)
@@ -450,7 +450,7 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
     abortos_previos = serializers.IntegerField(source="numero_abortos", read_only=True)
 
     # Campos calculados
-    paciente_info = serializers.SerializerMethodField()  # ✅ AGREGADO
+    paciente_info = serializers.SerializerMethodField()  # AGREGADO
     paciente_nombre = serializers.SerializerMethodField()
     semanas_gestacion = serializers.SerializerMethodField()
     trimestre = serializers.SerializerMethodField()
@@ -462,22 +462,22 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "uuid",
-            "paciente",  # ✅ AGREGADO: ID del paciente necesario para edición
-            "paciente_info",  # ✅ AGREGADO: Información completa del paciente
+            "paciente",  # AGREGADO: ID del paciente necesario para edición
+            "paciente_info",  # AGREGADO: Información completa del paciente
             "paciente_nombre",
             "numero_gesta",
             "numero_para",
             "numero_abortos",
             "numero_cesareas",
-            "fecha_ultima_menstruacion",  # ✅ AGREGADO: CRÍTICO para edición
+            "fecha_ultima_menstruacion",  # AGREGADO: CRÍTICO para edición
             "fecha_probable_parto",
             "tipo_embarazo",
             "riesgo_embarazo",
             "estado",
-            "notas",  # ✅ AGREGADO: Para edición
-            "medico_responsable",  # ✅ AGREGADO: Para edición
-            "peso_pregestacional",  # ✅ AGREGADO: Para edición
-            "talla_materna",  # ✅ AGREGADO: Para edición
+            "notas",  # AGREGADO: Para edición
+            "medico_responsable",  # AGREGADO: Para edición
+            "peso_pregestacional",  # AGREGADO: Para edición
+            "talla_materna",  # AGREGADO: Para edición
             "semanas_gestacion",
             "trimestre",
             "dias_hasta_fpp",
@@ -489,7 +489,7 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
         ]
 
     def get_paciente_info(self, obj):
-        """✅ Información completa del paciente"""
+        """Información completa del paciente"""
         paciente = obj.paciente
         apellido_materno = (
             f" {paciente.apellido_materno}" if paciente.apellido_materno else ""
@@ -509,9 +509,9 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
         return {
             "id": paciente.id,
             "id_clinico": paciente.id_clinico,
-            "nombre": paciente.nombre,  # ✅ AGREGADO
-            "apellido_paterno": paciente.apellido_paterno,  # ✅ AGREGADO
-            "apellido_materno": paciente.apellido_materno,  # ✅ AGREGADO
+            "nombre": paciente.nombre,  # AGREGADO
+            "apellido_paterno": paciente.apellido_paterno,  # AGREGADO
+            "apellido_materno": paciente.apellido_materno,  # AGREGADO
             "nombre_completo": f"{paciente.nombre} {paciente.apellido_paterno}{apellido_materno}",
             "cedula_identidad": paciente.ci if hasattr(paciente, "ci") else None,
             "fecha_nacimiento": paciente.fecha_nacimiento,
@@ -565,9 +565,9 @@ class EmbarazoListSerializer(serializers.ModelSerializer):
 
 
 class EmbarazoCreateUpdateSerializer(serializers.ModelSerializer):
-    """✅ Serializer para crear/actualizar - SOLO CAMPOS EDITABLES"""
+    """Serializer para crear/actualizar - SOLO CAMPOS EDITABLES"""
 
-    # ✅ ALIAS PARA COMPATIBILIDAD CON FRONTEND (acepta ambos nombres)
+    # ALIAS PARA COMPATIBILIDAD CON FRONTEND (acepta ambos nombres)
     partos_previos = serializers.IntegerField(
         source="numero_para", required=False, allow_null=True,
     )
@@ -594,10 +594,10 @@ class EmbarazoCreateUpdateSerializer(serializers.ModelSerializer):
             "estado",
             "notas",
             "medico_responsable",
-            # ✅ CAMPOS ANTROPOMÉTRICOS
+            # CAMPOS ANTROPOMÉTRICOS
             "peso_pregestacional",
             "talla_materna",
-            # ✅ ALIAS PARA FRONTEND
+            # ALIAS PARA FRONTEND
             "partos_previos",
             "cesareas_previas",
             "abortos_previos",
@@ -605,13 +605,13 @@ class EmbarazoCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Reutilizar validaciones del serializer principal"""
-        # ✅ FIX: Pasar self.instance para que la validación sepa si es CREATE o UPDATE
+        # FIX: Pasar self.instance para que la validación sepa si es CREATE o UPDATE
         serializer = EmbarazoSerializer(instance=self.instance)
         return serializer.validate(attrs)
 
 
 class EmbarazoResumenSerializer(serializers.ModelSerializer):
-    """✅ Serializer para resúmenes ejecutivos"""
+    """Serializer para resúmenes ejecutivos"""
 
     paciente_nombre = serializers.SerializerMethodField()
     edad_gestacional_texto = serializers.SerializerMethodField()

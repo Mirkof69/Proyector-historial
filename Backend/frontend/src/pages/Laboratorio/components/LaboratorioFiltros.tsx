@@ -16,7 +16,7 @@ interface LaboratorioFiltrosProps {
 const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispatchFiltros, onLimpiar }) => (
   <Space direction="vertical" size="middle" className="laboratorio-ancho laboratorio-separado">
     <Row gutter={[16, 16]}>
-      <Col xs={24} sm={12} lg={7}>
+      <Col xs={24} sm={12} lg={6}>
         <Input
           placeholder="Buscar paciente o examen..."
           prefix={<SearchOutlined />}
@@ -25,7 +25,7 @@ const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispat
           allowClear
         />
       </Col>
-      <Col xs={24} sm={12} lg={5}>
+      <Col xs={24} sm={12} lg={4}>
         <Select
           placeholder="Categoría"
           className="laboratorio-ancho"
@@ -42,7 +42,7 @@ const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispat
           <Option value="hormonal">Hormonal</Option>
         </Select>
       </Col>
-      <Col xs={24} sm={12} lg={5}>
+      <Col xs={24} sm={12} lg={4}>
         <Select
           placeholder="Estado"
           className="laboratorio-ancho"
@@ -56,7 +56,7 @@ const LaboratorioFiltros: React.FC<LaboratorioFiltrosProps> = ({ filtros, dispat
           <Option value="cancelado">Cancelado</Option>
         </Select>
       </Col>
-      <Col xs={24} sm={12} lg={4}>
+      <Col xs={24} sm={12} lg={7}>
         <RangePicker
           className="laboratorio-ancho"
           format={{ format: 'DD/MM/YYYY', type: 'mask' }}

@@ -12,7 +12,7 @@
 const validateEmbarazo = (values: any) => {
   const errors: any = {};
 
-  // ✅ 1. FUM no puede estar en el futuro
+  // 1. FUM no puede estar en el futuro
   if (values.fecha_ultima_menstruacion) {
     const fum = new Date(values.fecha_ultima_menstruacion);
     const hoy = new Date();
@@ -22,7 +22,7 @@ const validateEmbarazo = (values: any) => {
       errors.fecha_ultima_menstruacion = 'La FUM no puede estar en el futuro';
     }
 
-    // ✅ 2. FUM no puede ser mayor a 1 año atrás
+    // 2. FUM no puede ser mayor a 1 año atrás
     const haceUnAnio = new Date();
     haceUnAnio.setFullYear(haceUnAnio.getFullYear() - 1);
 
@@ -31,14 +31,14 @@ const validateEmbarazo = (values: any) => {
     }
   }
 
-  // ✅ 3. Número de partos no puede ser mayor que gestas
+  // 3. Número de partos no puede ser mayor que gestas
   if (values.numero_para !== undefined && values.numero_gesta !== undefined) {
     if (values.numero_para > values.numero_gesta) {
       errors.numero_para = 'Los partos no pueden superar las gestas';
     }
   }
 
-  // ✅ 4. Validar fórmula obstétrica: G >= P + Abortos + 1 (embarazo actual)
+  // 4. Validar fórmula obstétrica: G >= P + Abortos + 1 (embarazo actual)
   if (
     values.numero_gesta !== undefined &&
     values.numero_para !== undefined &&
@@ -50,7 +50,7 @@ const validateEmbarazo = (values: any) => {
     }
   }
 
-  // ✅ 5. Peso pregestacional razonable
+  // 5. Peso pregestacional razonable
   if (values.peso_pregestacional !== undefined && values.peso_pregestacional !== null) {
     if (values.peso_pregestacional < 30) {
       errors.peso_pregestacional = 'El peso parece muy bajo (mínimo 30 kg)';
@@ -60,7 +60,7 @@ const validateEmbarazo = (values: any) => {
     }
   }
 
-  // ✅ 6. Talla materna razonable
+  // 6. Talla materna razonable
   if (values.talla_materna !== undefined && values.talla_materna !== null) {
     if (values.talla_materna < 100) {
       errors.talla_materna = 'La talla parece muy baja (mínimo 100 cm)';
@@ -70,7 +70,7 @@ const validateEmbarazo = (values: any) => {
     }
   }
 
-  // ✅ 7. Número de cesáreas no puede ser mayor que partos
+  // 7. Número de cesáreas no puede ser mayor que partos
   if (values.numero_cesareas !== undefined && values.numero_para !== undefined) {
     if (values.numero_cesareas > values.numero_para) {
       errors.numero_cesareas = 'Las cesáreas no pueden superar los partos';
@@ -88,7 +88,7 @@ export const useEmbarazoValidation = () => {
 const validateControl = (values: any) => {
   const errors: any = {};
 
-  // ✅ 1. Presión arterial en rangos
+  // 1. Presión arterial en rangos
   if (values.presion_arterial_sistolica !== undefined) {
     if (values.presion_arterial_sistolica < 70 || values.presion_arterial_sistolica > 200) {
       errors.presion_arterial_sistolica = 'Presión sistólica fuera de rango (70-200 mmHg)';
@@ -101,7 +101,7 @@ const validateControl = (values: any) => {
     }
   }
 
-  // ✅ 2. La sistólica debe ser mayor que la diastólica
+  // 2. La sistólica debe ser mayor que la diastólica
   if (
     values.presion_arterial_sistolica !== undefined &&
     values.presion_arterial_diastolica !== undefined
@@ -111,14 +111,14 @@ const validateControl = (values: any) => {
     }
   }
 
-  // ✅ 3. FCF en rango (110-160 lpm)
+  // 3. FCF en rango (110-160 lpm)
   if (values.frecuencia_cardiaca_fetal !== undefined && values.frecuencia_cardiaca_fetal !== null) {
     if (values.frecuencia_cardiaca_fetal < 110 || values.frecuencia_cardiaca_fetal > 160) {
       errors.frecuencia_cardiaca_fetal = 'FCF fuera de rango normal (110-160 lpm)';
     }
   }
 
-  // ✅ 4. Edad gestacional válida (0-42 semanas)
+  // 4. Edad gestacional válida (0-42 semanas)
   if (values.edad_gestacional_semanas !== undefined) {
     if (values.edad_gestacional_semanas < 0 || values.edad_gestacional_semanas > 42) {
       errors.edad_gestacional_semanas = 'Edad gestacional fuera de rango (0-42 semanas)';
@@ -131,35 +131,35 @@ const validateControl = (values: any) => {
     }
   }
 
-  // ✅ 5. Temperatura en rango (35-42°C)
+  // 5. Temperatura en rango (35-42°C)
   if (values.temperatura !== undefined && values.temperatura !== null) {
     if (values.temperatura < 35 || values.temperatura > 42) {
       errors.temperatura = 'Temperatura fuera de rango (35-42°C)';
     }
   }
 
-  // ✅ 6. Frecuencia cardíaca materna (40-200 lpm)
+  // 6. Frecuencia cardíaca materna (40-200 lpm)
   if (values.frecuencia_cardiaca !== undefined && values.frecuencia_cardiaca !== null) {
     if (values.frecuencia_cardiaca < 40 || values.frecuencia_cardiaca > 200) {
       errors.frecuencia_cardiaca = 'Frecuencia cardíaca fuera de rango (40-200 lpm)';
     }
   }
 
-  // ✅ 7. Saturación de oxígeno (70-100%)
+  // 7. Saturación de oxígeno (70-100%)
   if (values.saturacion_oxigeno !== undefined && values.saturacion_oxigeno !== null) {
     if (values.saturacion_oxigeno < 70 || values.saturacion_oxigeno > 100) {
       errors.saturacion_oxigeno = 'Saturación fuera de rango (70-100%)';
     }
   }
 
-  // ✅ 8. Peso actual razonable
+  // 8. Peso actual razonable
   if (values.peso_actual !== undefined && values.peso_actual !== null) {
     if (values.peso_actual < 30 || values.peso_actual > 200) {
       errors.peso_actual = 'Peso fuera de rango (30-200 kg)';
     }
   }
 
-  // ✅ 9. Altura uterina razonable (debe aproximarse a semanas de gestación ±2cm)
+  // 9. Altura uterina razonable (debe aproximarse a semanas de gestación ±2cm)
   if (
     values.altura_uterina !== undefined &&
     values.altura_uterina !== null &&
@@ -182,7 +182,7 @@ const useControlValidation = () => {
 const validateParto = (values: any) => {
   const errors: any = {};
 
-  // ✅ 1. APGAR entre 0-10
+  // 1. APGAR entre 0-10
   if (values.apgar_1min !== undefined && values.apgar_1min !== null) {
     if (values.apgar_1min < 0 || values.apgar_1min > 10) {
       errors.apgar_1min = 'APGAR al minuto debe estar entre 0 y 10';
@@ -195,7 +195,7 @@ const validateParto = (values: any) => {
     }
   }
 
-  // ✅ 2. Pérdida sanguínea razonable (0-2000ml normal, >2000 hemorragia)
+  // 2. Pérdida sanguínea razonable (0-2000ml normal, >2000 hemorragia)
   if (values.perdida_sanguinea_estimada !== undefined && values.perdida_sanguinea_estimada !== null) {
     if (values.perdida_sanguinea_estimada < 0) {
       errors.perdida_sanguinea_estimada = 'La pérdida sanguínea no puede ser negativa';
@@ -209,7 +209,7 @@ const validateParto = (values: any) => {
     }
   }
 
-  // ✅ 3. Peso del recién nacido razonable (500g-6000g)
+  // 3. Peso del recién nacido razonable (500g-6000g)
   if (values.peso_recien_nacido !== undefined && values.peso_recien_nacido !== null) {
     if (values.peso_recien_nacido < 500) {
       errors.peso_recien_nacido = 'Peso muy bajo (mínimo 500g)';
@@ -219,21 +219,21 @@ const validateParto = (values: any) => {
     }
   }
 
-  // ✅ 4. Talla del recién nacido razonable (30-60cm)
+  // 4. Talla del recién nacido razonable (30-60cm)
   if (values.talla_recien_nacido !== undefined && values.talla_recien_nacido !== null) {
     if (values.talla_recien_nacido < 30 || values.talla_recien_nacido > 60) {
       errors.talla_recien_nacido = 'Talla fuera de rango (30-60 cm)';
     }
   }
 
-  // ✅ 5. Perímetro cefálico razonable (25-40cm)
+  // 5. Perímetro cefálico razonable (25-40cm)
   if (values.perimetro_cefalico !== undefined && values.perimetro_cefalico !== null) {
     if (values.perimetro_cefalico < 25 || values.perimetro_cefalico > 40) {
       errors.perimetro_cefalico = 'Perímetro cefálico fuera de rango (25-40 cm)';
     }
   }
 
-  // ✅ 6. Duración de trabajo de parto razonable (0-48 horas)
+  // 6. Duración de trabajo de parto razonable (0-48 horas)
   if (values.duracion_trabajo_parto !== undefined && values.duracion_trabajo_parto !== null) {
     if (values.duracion_trabajo_parto < 0) {
       errors.duracion_trabajo_parto = 'La duración no puede ser negativa';
@@ -243,7 +243,7 @@ const validateParto = (values: any) => {
     }
   }
 
-  // ✅ 7. Edad gestacional válida
+  // 7. Edad gestacional válida
   if (values.edad_gestacional !== undefined && values.edad_gestacional !== null) {
     const match = String(values.edad_gestacional).match(/^(\d+)\+?(\d?)$/);
     if (!match) {
@@ -261,7 +261,7 @@ const validateParto = (values: any) => {
     }
   }
 
-  // ✅ 8. Fecha de parto no en el futuro
+  // 8. Fecha de parto no en el futuro
   if (values.fecha_parto) {
     const fechaParto = new Date(values.fecha_parto);
     const hoy = new Date();

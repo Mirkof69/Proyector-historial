@@ -30,6 +30,7 @@ import { usuariosService, Usuario, UsuarioCreate, UsuarioUpdate } from '../../se
 import cargosService, { Cargo } from '../../services/cargosService';
 import { ROLES as CATALOGO_ROLES, LISTA_ROLES } from '../../config/roles';
 import { mensajeDeError } from '../../services/partoDetalleService';
+import { filtrarOpcion } from '../../utils/texto';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -310,7 +311,7 @@ const FormularioUsuario: React.FC<FormularioUsuarioProps> = ({ usuario, onClose 
         label="Especialidad"
         name="especialidad"
       >
-        <Select placeholder="Seleccione una especialidad" allowClear showSearch>
+        <Select placeholder="Seleccione una especialidad" allowClear showSearch filterOption={filtrarOpcion}>
           {ESPECIALIDADES.map((esp) => (
             <Option key={esp} value={esp}>
               {esp}

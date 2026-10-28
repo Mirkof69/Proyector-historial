@@ -121,7 +121,7 @@ class Hemograma(models.Model):
                 self.clasificacion = "ANEMIA_SEVERA"
                 self.es_critico = True
                 alertas.append(
-                    "⚠️ CRÍTICO: Anemia severa (<7 g/dL) - Requiere transfusión",
+                    "CRÍTICO: Anemia severa (<7 g/dL) - Requiere transfusión",
                 )
             elif self.hemoglobina < 10:
                 self.clasificacion = "ANEMIA_MODERADA"
@@ -135,7 +135,7 @@ class Hemograma(models.Model):
             if self.hemoglobina < 7:
                 self.clasificacion = "ANEMIA_SEVERA"
                 self.es_critico = True
-                alertas.append("⚠️ CRÍTICO: Anemia severa")
+                alertas.append("CRÍTICO: Anemia severa")
             elif self.hemoglobina < 10:
                 self.clasificacion = "ANEMIA_MODERADA"
             elif self.hemoglobina < limite_inferior:
@@ -144,7 +144,7 @@ class Hemograma(models.Model):
         # Leucocitos
         if self.leucocitos > 30000:
             self.es_critico = True
-            alertas.append("⚠️ CRÍTICO: Leucocitosis severa (>30,000) - Sepsis")
+            alertas.append("CRÍTICO: Leucocitosis severa (>30,000) - Sepsis")
         elif self.leucocitos > 15000 and not es_embarazo:
             self.clasificacion = "LEUCOCITOSIS"
             alertas.append("Leucocitosis - Descartar infección")
@@ -156,7 +156,7 @@ class Hemograma(models.Model):
         if self.plaquetas < 50000:
             self.es_critico = True
             self.clasificacion = "TROMBOCITOPENIA"
-            alertas.append("⚠️ CRÍTICO: Trombocitopenia severa (<50,000)")
+            alertas.append("CRÍTICO: Trombocitopenia severa (<50,000)")
         elif self.plaquetas < 100000:
             self.clasificacion = "TROMBOCITOPENIA"
             alertas.append("Trombocitopenia - Descartar HELLP/preeclampsia")
@@ -200,7 +200,7 @@ class Hemograma(models.Model):
 
         # Recomendaciones
         if self.es_critico:
-            interpretacion.append("⚠️ ATENCIÓN INMEDIATA REQUERIDA.")
+            interpretacion.append("ATENCIÓN INMEDIATA REQUERIDA.")
 
         self.interpretacion_automatica = " ".join(interpretacion)
         return self.interpretacion_automatica
@@ -337,14 +337,14 @@ class Bioquimica(models.Model):
         # Función renal
         if self.creatinina and self.creatinina > 1.2:
             alertas.append(
-                f"⚠️ Creatinina elevada ({self.creatinina} mg/dL) - Evaluar función renal",
+                f"Creatinina elevada ({self.creatinina} mg/dL) - Evaluar función renal",
             )
             if self.creatinina > 2.0:
                 self.es_critico = True
 
         # Función hepática (HELLP)
         if self.embarazo and self.got_ast and self.got_ast > 70:
-            alertas.append("⚠️ Transaminasas elevadas - Descartar HELLP/preeclampsia")
+            alertas.append("Transaminasas elevadas - Descartar HELLP/preeclampsia")
 
         # Ácido úrico (preeclampsia)
         if self.embarazo and self.acido_urico and self.acido_urico > 6.0:

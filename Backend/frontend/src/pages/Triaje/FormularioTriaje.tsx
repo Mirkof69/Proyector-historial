@@ -6,13 +6,13 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { triajeService, TriajeEnfermeria } from '../../services/triajeService';
-import { pacientesService } from '../../services/pacientesService';
 import { datosClinicosService } from '../../services/datosClinicosService';
 import { useAntdApp } from '../../hooks/useMessage';
 import SeccionDatosPacienteTriaje from './components/SeccionDatosPacienteTriaje';
 import SeccionSignosVitalesTriaje from './components/SeccionSignosVitalesTriaje';
 import SeccionMotivoTriaje from './components/SeccionMotivoTriaje';
 import './Triaje.css';
+import { imcRedondeado } from '../../utils/imc';
 
 const { Title, Text } = Typography;
 
@@ -53,26 +53,12 @@ const FormularioTriaje: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [pasoActual, setPasoActual] = useState(0);
-    const [dataLoading, setDataLoading] = useState(false);
-    const [pacientes, setPacientes] = useState<any[]>([]);
     const [imc, setImc] = useState<number | null>(null);
     const [alertas, setAlertas] = useState<string[]>([]);
     const [datosAnteriores, setDatosAnteriores] = useState<{
         mensaje: string;
         tipo: 'success' | 'info' | 'warning';
     } | null>(null);
-
-    const cargarDatos = useCallback(async () => {
-        setDataLoading(true);
-        try {
-            const pacientesData = await pacientesService.getAll();
-            setPacientes(pacientesData);
-        } catch (error) {
-            message.error('Error al cargar la lista de pacientes');
-        } finally {
-            setDataLoading(false);
-        }
-    }, [message]);
 
     const calcularAlertas = useCallback((valores?: any) => {
         const alertasDetectadas: string[] = [];
@@ -116,11 +102,10 @@ const FormularioTriaje: React.FC = () => {
     }, [form, message, calcularAlertas]);
 
     useEffect(() => {
-        cargarDatos();
         if (id) {
             cargarTriaje(parseInt(id));
         }
-    }, [id, cargarDatos, cargarTriaje]);
+    }, [id, cargarTriaje]);
 
     const handlePacienteChange = async (pacienteId: number) => {
         if (id) return;
@@ -179,7 +164,7 @@ const FormularioTriaje: React.FC = () => {
 
         if (peso && talla) {
             const tallaMetros = talla / 100;
-            const imcCalculado = peso / (tallaMetros * tallaMetros);
+            const imcCalculado = imcRedondeado(peso, tallaMetros);
             setImc(parseFloat(imcCalculado.toFixed(2)));
         }
     }, [form]);
@@ -309,8 +294,7 @@ const FormularioTriaje: React.FC = () => {
                     {/* Los pasos ocultos quedan montados (display:none) para conservar valores */}
                     <div style={{ display: pasoActual === 0 ? 'block' : 'none' }}>
                         <SeccionDatosPacienteTriaje
-                            pacientes={pacientes}
-                            dataLoading={dataLoading}
+                            dataLoading={false}
                             loading={loading}
                             disabled={!!id}
                             onPacienteChange={handlePacienteChange}

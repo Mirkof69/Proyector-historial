@@ -50,7 +50,7 @@ const FormControlAlertasHeader: React.FC<FormControlAlertasHeaderProps> = ({
     {/* ========== ALERTAS ========== */}
     {alertasPreliminares.length > 0 && (
       <Alert
-        message={`⚠️ ${alertasPreliminares.length} Alerta(s) Clínica(s) Detectada(s)`}
+        message={`${alertasPreliminares.length} Alerta(s) Clínica(s) Detectada(s)`}
         description={
           <ul className="pc-lista">
             {alertasPreliminares.map((alerta) => (

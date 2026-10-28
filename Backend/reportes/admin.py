@@ -43,7 +43,7 @@ class OpcionesDinamicas:
         opciones = cache.get(cache_key)
         if opciones is None:
             try:
-                # ✅ CIRCULAR IMPORT FIX: Usar apps.get_model() en lugar de import directo
+                # CIRCULAR IMPORT FIX: Usar apps.get_model() en lugar de import directo
 
                 Paciente = apps.get_model("pacientes", "Paciente")
 
@@ -73,7 +73,7 @@ class OpcionesDinamicas:
         opciones = cache.get(cache_key)
         if opciones is None:
             try:
-                # ✅ CIRCULAR IMPORT FIX: Usar get_user_model() en lugar de import directo
+                # CIRCULAR IMPORT FIX: Usar get_user_model() en lugar de import directo
                 from django.contrib.auth import get_user_model
 
                 Usuario = get_user_model()
@@ -103,7 +103,7 @@ class OpcionesDinamicas:
         opciones = cache.get(cache_key)
         if opciones is None:
             try:
-                # ✅ CIRCULAR IMPORT FIX: Usar apps.get_model()
+                # CIRCULAR IMPORT FIX: Usar apps.get_model()
 
                 Embarazo = apps.get_model("embarazos", "Embarazo")
 
@@ -598,7 +598,7 @@ class TipoReporteAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "⚙️ Configuración de Generación",
+            "Configuración de Generación",
             {
                 "fields": (
                     ("automatico", "requiere_parametros"),
@@ -716,7 +716,7 @@ class TipoReporteAdmin(admin.ModelAdmin):
         icons = {
             "diario": "",
             "semanal": "",
-            "mensual": "️",
+            "mensual": "",
             "trimestral": "",
             "anual": "",
             "bajo_demanda": "",
@@ -759,10 +759,10 @@ class TipoReporteAdmin(admin.ModelAdmin):
         """Activo badge"""
         if obj.activo:
             return format_html(
-                '<span style="color: #28a745; font-size: 12px; font-weight: bold;">✅ Activo</span>',
+                '<span style="color: #28a745; font-size: 12px; font-weight: bold;">Activo</span>',
             )
         return format_html(
-            '<span style="color: #dc3545; font-size: 12px;">❌ Inactivo</span>',
+            '<span style="color: #dc3545; font-size: 12px;">Inactivo</span>',
         )
 
 
@@ -806,7 +806,7 @@ class TipoReporteAdmin(admin.ModelAdmin):
                 '<pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 11px; max-height: 100px; overflow-y: auto;">{}</pre>',
                 sql_preview,
             )
-        return "⚠️ Sin consulta SQL definida"
+        return "Sin consulta SQL definida"
 
 
     @admin.display(description="Resumen Completo")
@@ -823,7 +823,7 @@ class TipoReporteAdmin(admin.ModelAdmin):
         if obj.incluir_paciente:
             filtros.append(" Paciente")
         if obj.incluir_medico:
-            filtros.append("‍⚕️ Médico")
+            filtros.append("‍Médico")
         if obj.incluir_servicio:
             filtros.append(" Servicio")
 
@@ -865,13 +865,13 @@ class TipoReporteAdmin(admin.ModelAdmin):
         if obj.confidencial:
             config.append(" Requiere autorización")
         if obj.requiere_parametros:
-            config.append("⚙️ Requiere parámetros")
+            config.append("Requiere parámetros")
 
         if config:
-            resumen.append(f"⚙️ Configuración: {', '.join(config)}")
+            resumen.append(f"Configuración: {', '.join(config)}")
 
         return (
-            "\n".join(resumen) if resumen else "⚠️ Sin configuración específica definida"
+            "\n".join(resumen) if resumen else "Sin configuración específica definida"
         )
 
 
@@ -967,7 +967,7 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             {"fields": (("get_estadisticas_uso",),), "classes": ("collapse",)},
         ),
         (
-            "⚠️ Procesamiento y Errores",
+            "Procesamiento y Errores",
             {
                 "fields": (
                     ("fecha_procesamiento", "tiempo_procesamiento"),
@@ -1030,15 +1030,15 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             "expirado": "#fd7e14",
         }
         icons = {
-            "pendiente": "⏳",
-            "procesando": "⚙️",
-            "completado": "✅",
-            "error": "❌",
-            "expirado": "⚠️",
+            "pendiente": "",
+            "procesando": "",
+            "completado": "",
+            "error": "",
+            "expirado": "",
         }
 
         color = colors.get(obj.estado, "#6c757d")
-        icon = icons.get(obj.estado, "❓")
+        icon = icons.get(obj.estado, "")
 
         return format_html(
             '<span style="background-color: {}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">{} {}</span>',
@@ -1055,7 +1055,7 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             "pdf": "",
             "excel": "",
             "csv": "",
-            "json": "⚙️",
+            "json": "",
         }
         colors = {
             "pdf": "#dc3545",
@@ -1080,18 +1080,18 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
         """Get progreso display"""
         if obj.estado == "completado":
             return format_html(
-                '<span style="color: #28a745; font-weight: bold; font-size: 12px;">✅ Completado</span>',
+                '<span style="color: #28a745; font-weight: bold; font-size: 12px;">Completado</span>',
             )
         if obj.estado == "procesando":
             return format_html(
-                '<span style="color: #007bff; font-weight: bold; font-size: 12px;">⚙️ Procesando</span>',
+                '<span style="color: #007bff; font-weight: bold; font-size: 12px;">Procesando</span>',
             )
         if obj.estado == "error":
             return format_html(
-                '<span style="color: #dc3545; font-weight: bold; font-size: 12px;">❌ Error</span>',
+                '<span style="color: #dc3545; font-weight: bold; font-size: 12px;">Error</span>',
             )
         return format_html(
-            '<span style="color: #6c757d; font-weight: bold; font-size: 12px;">⏳ Pendiente</span>',
+            '<span style="color: #6c757d; font-weight: bold; font-size: 12px;">Pendiente</span>',
         )
 
 
@@ -1118,10 +1118,10 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
         """Esta expirado badge"""
         if obj.esta_expirado():
             return format_html(
-                '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">⚠️ Expirado</span>',
+                '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">Expirado</span>',
             )
         return format_html(
-            '<span style="color: #28a745; font-size: 12px; font-weight: bold;">✅ Vigente</span>',
+            '<span style="color: #28a745; font-size: 12px; font-weight: bold;">Vigente</span>',
         )
 
 
@@ -1146,9 +1146,9 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
                     horas = segundos // 3600
                     minutos = (segundos % 3600) // 60
                     tiempo_str = f"{horas}h {minutos}m"
-                info.append(f"⏱️ Tiempo de procesamiento: {tiempo_str}")
+                info.append(f"Tiempo de procesamiento: {tiempo_str}")
             except (ValueError, TypeError):
-                info.append(f"⏱️ Tiempo: {obj.tiempo_procesamiento}")
+                info.append(f"Tiempo: {obj.tiempo_procesamiento}")
 
         if obj.tamano_archivo:
             info.append(f" Tamaño: {self.get_tamano_display(obj)}")
@@ -1163,7 +1163,7 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
                 f" Completado: {obj.fecha_completado.strftime('%d/%m/%Y %H:%M')}",
             )
 
-        return "\n".join(info) if info else "ℹ️ Sin información detallada disponible"
+        return "\n".join(info) if info else "ℹ Sin información detallada disponible"
 
 
     @admin.display(description="Estadísticas de Uso")
@@ -1187,7 +1187,7 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
                     obj.tiempo_procesamiento,
                 )
                 estadisticas.append(
-                    f"⚡ Velocidad: {registros_por_segundo:.2f} registros/segundo",
+                    f"Velocidad: {registros_por_segundo:.2f} registros/segundo",
                 )
             except (ValueError, TypeError, ZeroDivisionError):
                 pass
@@ -1197,9 +1197,9 @@ class ReporteGeneradoAdmin(admin.ModelAdmin):
             tiempo_restante = obj.fecha_expiracion - timezone.now()
             if tiempo_restante.total_seconds() > 0:
                 dias_restantes = tiempo_restante.days
-                estadisticas.append(f"⏰ Expira en: {dias_restantes} días")
+                estadisticas.append(f"Expira en: {dias_restantes} días")
             else:
-                estadisticas.append("⚠️ Archivo expirado")
+                estadisticas.append("Archivo expirado")
 
         return (
             "\n".join(estadisticas)
@@ -1260,7 +1260,7 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "⚙️ Configuración del Cálculo",
+            "Configuración del Cálculo",
             {
                 "fields": (
                     ("consulta_predefinida",),
@@ -1355,8 +1355,8 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             "numero": "",
             "porcentaje": "",
             "tendencia": "",
-            "ratio": "⚖️",
-            "tiempo": "⏱️",
+            "ratio": "",
+            "tiempo": "",
         }
         icon = icons.get(obj.tipo, "")
         return f"{icon} {getattr(obj, 'get_tipo_display')()}"
@@ -1389,18 +1389,18 @@ class DashboardKPIAdmin(admin.ModelAdmin):
 
         if tendencia == "subiendo":
             return format_html(
-                '<span style="color: #28a745; font-size: 14px; font-weight: bold;"> ↗️</span>',
+                '<span style="color: #28a745; font-size: 14px; font-weight: bold;"> ↗</span>',
             )
         if tendencia == "bajando":
             return format_html(
-                '<span style="color: #dc3545; font-size: 14px; font-weight: bold;"> ↘️</span>',
+                '<span style="color: #dc3545; font-size: 14px; font-weight: bold;"> ↘</span>',
             )
         if tendencia == "estable":
             return format_html(
-                '<span style="color: #ffc107; font-size: 14px; font-weight: bold;">➡️ =</span>',
+                '<span style="color: #ffc107; font-size: 14px; font-weight: bold;">=</span>',
             )
         return format_html(
-            '<span style="color: #6c757d; font-size: 14px;">❓ </span>',
+            '<span style="color: #6c757d; font-size: 14px;"></span>',
         )
 
 
@@ -1415,14 +1415,14 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             )
         if estado == "bajo_minimo":
             return format_html(
-                '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">⚠️ Bajo</span>',
+                '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">Bajo</span>',
             )
         if estado == "en_progreso":
             return format_html(
                 '<span style="color: #ffc107; font-size: 12px; font-weight: bold;"> Progreso</span>',
             )
         return format_html(
-            '<span style="color: #6c757d; font-size: 12px;">❓ N/D</span>',
+            '<span style="color: #6c757d; font-size: 12px;">N/D</span>',
         )
 
 
@@ -1449,10 +1449,10 @@ class DashboardKPIAdmin(admin.ModelAdmin):
         """Activo badge"""
         if obj.activo:
             return format_html(
-                '<span style="color: #28a745; font-size: 12px; font-weight: bold;">✅ Activo</span>',
+                '<span style="color: #28a745; font-size: 12px; font-weight: bold;">Activo</span>',
             )
         return format_html(
-            '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">❌ Inactivo</span>',
+            '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">Inactivo</span>',
         )
 
 
@@ -1467,7 +1467,7 @@ class DashboardKPIAdmin(admin.ModelAdmin):
                 "<pre style=\"background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 11px; max-height: 100px; overflow-y: auto; font-family: 'Courier New', monospace;\">{}</pre>",
                 sql_preview,
             )
-        return "⚠️ Sin consulta SQL definida"
+        return "Sin consulta SQL definida"
 
 
     @admin.display(description="Información de Rendimiento")
@@ -1529,7 +1529,7 @@ class DashboardKPIAdmin(admin.ModelAdmin):
             info.append(f" Posición en dashboard: {obj.orden_dashboard}")
 
         return (
-            "\n".join(info) if info else "ℹ️ Sin información de rendimiento disponible"
+            "\n".join(info) if info else "ℹ Sin información de rendimiento disponible"
         )
 
 
@@ -1557,18 +1557,18 @@ class DashboardKPIAdmin(admin.ModelAdmin):
                         f" Disminución de {diferencia:.2f} ({porcentaje:.1f}%)",
                     )
                 else:
-                    analisis.append("➡️ Valor estable (sin cambios)")
+                    analisis.append("Valor estable (sin cambios)")
 
                 # Evaluación de la tendencia
                 if porcentaje > 20:
-                    analisis.append("⚠️ Cambio significativo (>20%)")
+                    analisis.append("Cambio significativo (>20%)")
                 elif porcentaje > 10:
                     analisis.append(" Cambio moderado (10-20%)")
                 elif porcentaje > 0:
                     analisis.append(" Cambio leve (<10%)")
 
             except (ValueError, TypeError, ZeroDivisionError):
-                analisis.append("❓ No se puede calcular tendencia")
+                analisis.append("No se puede calcular tendencia")
         else:
             analisis.append(" Insuficientes datos para análisis de tendencia")
 
@@ -1579,9 +1579,9 @@ class DashboardKPIAdmin(admin.ModelAdmin):
                 if cumplimiento < 50:
                     analisis.append(" Recomendación: Requiere atención inmediata")
                 elif cumplimiento < 80:
-                    analisis.append("⚠️ Recomendación: Necesita mejoras")
+                    analisis.append("Recomendación: Necesita mejoras")
                 elif cumplimiento >= 100:
-                    analisis.append("✅ Recomendación: Mantener rendimiento actual")
+                    analisis.append("Recomendación: Mantener rendimiento actual")
                 else:
                     analisis.append(
                         " Recomendación: Buen progreso, continuar esfuerzos",
@@ -1767,7 +1767,7 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
         }
 
         color = colors.get(obj.prioridad, "#6c757d")
-        icon = icons.get(obj.prioridad, "⚪")
+        icon = icons.get(obj.prioridad, "")
 
         return format_html(
             '<span style="color: {}; font-weight: bold; font-size: 12px;">{} {}</span>',
@@ -1803,7 +1803,7 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
         if obj.paciente_id:
             info.append(f" Paciente: {obj.paciente_id}")
         if obj.medico_responsable_id:
-            info.append(f"‍⚕️ Médico: {obj.medico_responsable_id}")
+            info.append(f"‍Médico: {obj.medico_responsable_id}")
 
         return format_html(
             '<div style="font-size: 11px; line-height: 1.4;">{}</div>',
@@ -1837,7 +1837,7 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
                 obj.tiempo_escalamiento_horas,
             )
         return format_html(
-            '<span style="color: #6c757d; font-size: 11px;">⏸️ Manual</span>',
+            '<span style="color: #6c757d; font-size: 11px;">Manual</span>',
         )
 
 
@@ -1845,21 +1845,21 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
     def get_tiempo_vida_alerta(self, obj):
         """Get tiempo vida alerta"""
         if not obj.fecha_creacion:
-            return "⚠️ Alerta sin fecha de creación"
+            return "Alerta sin fecha de creación"
 
         tiempo_vida = timezone.now() - obj.fecha_creacion
         info = []
 
         info.append(f" Creada: {obj.fecha_creacion.strftime('%d/%m/%Y %H:%M')}")
-        info.append(f"⏱️ Tiempo transcurrido: {tiempo_vida}")
+        info.append(f"Tiempo transcurrido: {tiempo_vida}")
 
         if obj.fecha_vencimiento:
             if obj.is_vencida():
                 tiempo_vencida = timezone.now() - obj.fecha_vencimiento
-                info.append(f"⚠️ Vencida hace: {tiempo_vencida}")
+                info.append(f"Vencida hace: {tiempo_vencida}")
             else:
                 tiempo_restante = obj.fecha_vencimiento - timezone.now()
-                info.append(f"⏰ Vence en: {tiempo_restante}")
+                info.append(f"Vence en: {tiempo_restante}")
         else:
             info.append(" Sin fecha de vencimiento establecida")
 
@@ -1873,7 +1873,7 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
                 info.append(f" Debe escalar (excedido por: {tiempo_excedido})")
             else:
                 tiempo_hasta_escalamiento = tiempo_escalamiento - timezone.now()
-                info.append(f"⏳ Escalamiento en: {tiempo_hasta_escalamiento}")
+                info.append(f"Escalamiento en: {tiempo_hasta_escalamiento}")
 
         return "\n".join(info)
 
@@ -1897,7 +1897,7 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
 
         # Evaluar vencimiento
         if obj.is_vencida():
-            urgencia.append("⚠️ ALERTA VENCIDA")
+            urgencia.append("ALERTA VENCIDA")
 
         # Evaluar escalamiento
         if obj.escalamiento_automatico and obj.tiempo_escalamiento_horas:
@@ -1911,9 +1911,9 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
         if obj.estado == "activa":
             urgencia.append(" ALERTA ACTIVA - Requiere acción")
         elif obj.estado == "resuelta":
-            urgencia.append("✅ RESUELTA - Ninguna acción necesaria")
+            urgencia.append("RESUELTA - Ninguna acción necesaria")
         elif obj.estado == "descartada":
-            urgencia.append("❌ DESCARTADA - Sin seguimiento")
+            urgencia.append("DESCARTADA - Sin seguimiento")
 
         return "\n".join(urgencia) if urgencia else " Estado normal"
 
@@ -1929,14 +1929,14 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
 
         if obj.fecha_revision:
             historial.append(
-                f"️ Revisada: {obj.fecha_revision.strftime('%d/%m/%Y %H:%M')}",
+                f" Revisada: {obj.fecha_revision.strftime('%d/%m/%Y %H:%M')}",
             )
             if obj.usuario_revision:
                 historial.append(f"    Por usuario: {obj.usuario_revision}")
 
         if obj.fecha_resolucion:
             historial.append(
-                f"✅ Resuelta: {obj.fecha_resolucion.strftime('%d/%m/%Y %H:%M')}",
+                f"Resuelta: {obj.fecha_resolucion.strftime('%d/%m/%Y %H:%M')}",
             )
             if obj.usuario_resolucion:
                 historial.append(f"    Por usuario: {obj.usuario_resolucion}")
@@ -1944,7 +1944,7 @@ class AlertaMedicaAdmin(admin.ModelAdmin):
         # Calcular tiempo de resolución
         if obj.fecha_creacion and obj.fecha_resolucion:
             tiempo_resolucion = obj.fecha_resolucion - obj.fecha_creacion
-            historial.append(f"⏱️ Tiempo total de resolución: {tiempo_resolucion}")
+            historial.append(f"Tiempo total de resolución: {tiempo_resolucion}")
 
         # Estado de notificaciones
         estados_notif = []
@@ -2011,7 +2011,7 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "⚖️ Cumplimiento Legal (Ley 3871)",
+            "Cumplimiento Legal (Ley 3871)",
             {
                 "fields": (
                     ("cumple_ley_3871",),
@@ -2065,14 +2065,14 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
         icons = {
             "generacion": "",
             "descarga": "",
-            "visualizacion": "️",
-            "modificacion": "✏️",
-            "eliminacion": "️",
+            "visualizacion": "",
+            "modificacion": "",
+            "eliminacion": "",
             "compartir": "",
         }
 
         color = colors.get(obj.accion, "#6c757d")
-        icon = icons.get(obj.accion, "❓")
+        icon = icons.get(obj.accion, "")
 
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">{} {}</span>',
@@ -2102,10 +2102,10 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
         """Cumple ley badge"""
         if obj.cumple_ley_3871:
             return format_html(
-                '<span style="color: #28a745; font-size: 12px; font-weight: bold;">✅ Cumple Ley 3871</span>',
+                '<span style="color: #28a745; font-size: 12px; font-weight: bold;">Cumple Ley 3871</span>',
             )
         return format_html(
-            '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">⚠️ Incumplimiento</span>',
+            '<span style="color: #dc3545; font-size: 12px; font-weight: bold;">Incumplimiento</span>',
         )
 
 
@@ -2116,9 +2116,9 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
 
         # Estado de cumplimiento principal
         if obj.cumple_ley_3871:
-            analisis.append("✅ CUMPLE con los requisitos de la Ley 3871")
+            analisis.append("CUMPLE con los requisitos de la Ley 3871")
         else:
-            analisis.append("⚠️ NO CUMPLE con los requisitos de la Ley 3871")
+            analisis.append("NO CUMPLE con los requisitos de la Ley 3871")
 
         # Análisis de justificación
         if obj.justificacion_acceso:
@@ -2126,21 +2126,21 @@ class AuditoriaReporteAdmin(admin.ModelAdmin):
                 f" Justificación proporcionada: {len(obj.justificacion_acceso)} caracteres",
             )
             if len(obj.justificacion_acceso) < 20:
-                analisis.append("⚠️ Justificación muy breve - Considerar ampliación")
+                analisis.append("Justificación muy breve - Considerar ampliación")
         else:
-            analisis.append("❌ Sin justificación de acceso registrada")
+            analisis.append("Sin justificación de acceso registrada")
 
         # Análisis de la acción
         if obj.accion == "descarga":
             analisis.append(" Descarga de reporte - Verificar necesidad médica")
         elif obj.accion == "visualizacion":
-            analisis.append("️ Visualización de datos - Acceso de consulta")
+            analisis.append(" Visualización de datos - Acceso de consulta")
         elif obj.accion == "modificacion":
             analisis.append(
-                "✏️ Modificación de datos - Requiere justificación detallada",
+                "Modificación de datos - Requiere justificación detallada",
             )
         elif obj.accion == "eliminacion":
-            analisis.append("️ Eliminación de datos - ACCIÓN CRÍTICA")
+            analisis.append(" Eliminación de datos - ACCIÓN CRÍTICA")
 
         # Análisis temporal
         if obj.fecha_accion:

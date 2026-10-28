@@ -26,7 +26,6 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { notasEvolucionService, NotaEvolucionCreate } from '../../services/notasEvolucionService';
-import { pacientesService } from '../../services/pacientesService';
 import { datosClinicosService } from '../../services/datosClinicosService';
 import SeccionInfoConsultaNota from './components/SeccionInfoConsultaNota';
 import SeccionSignosVitalesNota from './components/SeccionSignosVitalesNota';
@@ -41,7 +40,6 @@ const FormularioNotaEvolucion: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(false);
-  const [pacientes, setPacientes] = useState<any[]>([]);
   const [alertas, setAlertas] = useState<string[]>([]);
   const [presionArterial, setPresionArterial] = useState<string>('');
   const [edadGestacional, setEdadGestacional] = useState<string>('');
@@ -86,14 +84,8 @@ const FormularioNotaEvolucion: React.FC = () => {
     setAlertas(alertasDetectadas);
   }, [form]);
 
-  const cargarDatos = useCallback(async () => {
-    try {
-      const pacientesData = await pacientesService.getAll();
-      setPacientes(pacientesData);
-    } catch (error) {
-      message.error('Error al cargar los datos');
-    }
-  }, []);
+  // La paciente se busca en el servidor (PacienteSelect): no hay lista que precargar.
+  const cargarDatos = useCallback(async () => undefined, []);
 
   const cargarNota = useCallback(async (notaId: number) => {
     setLoading(true);
@@ -138,11 +130,11 @@ const FormularioNotaEvolucion: React.FC = () => {
     setNotaAnterior(null);
 
     try {
-      // ✅ OBTENER DATOS CONSOLIDADOS DESDE TODAS LAS FUENTES
+      // OBTENER DATOS CONSOLIDADOS DESDE TODAS LAS FUENTES
       const datosCompletos = await datosClinicosService.obtenerDatosCompletos(pacienteId);
       const { signosVitales, antecedentes, embarazoActual, alertas: alertasGeneradas, fuentes } = datosCompletos;
 
-      // ✅ Usar antecedentes para validación - verificar si tiene condiciones de riesgo
+      // Usar antecedentes para validación - verificar si tiene condiciones de riesgo
       const tieneAntecedentesRiesgo = antecedentes && (
         antecedentes.enfermedades_cronicas ||
         antecedentes.enfermedades_previas ||
@@ -358,7 +350,6 @@ const FormularioNotaEvolucion: React.FC = () => {
           }}
         >
           <SeccionInfoConsultaNota
-            pacientes={pacientes}
             handlePacienteChange={handlePacienteChange}
             loading={loading}
             tiposConsulta={tiposConsulta}

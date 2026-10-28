@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class ControlPrenatalListSerializer(serializers.ModelSerializer):
     """Serializer simplificado para listados rápidos"""
 
-    id_clinico = serializers.SerializerMethodField()  # ✅ AGREGADO
+    id_clinico = serializers.SerializerMethodField()  # AGREGADO
     paciente_nombre = serializers.SerializerMethodField()
     embarazo_info = serializers.SerializerMethodField()
     edad_gestacional = serializers.SerializerMethodField()
@@ -36,7 +36,7 @@ class ControlPrenatalListSerializer(serializers.ModelSerializer):
             "id",
             "embarazo_id",
             "embarazo_info",
-            "id_clinico",  # ✅ AGREGADO
+            "id_clinico",  # AGREGADO
             "paciente_nombre",
             "numero_control",
             "fecha_control",
@@ -101,7 +101,7 @@ class ControlPrenatalListSerializer(serializers.ModelSerializer):
     def get_num_alertas(self, obj):
         """Contar número de alertas"""
         count = 0
-        if obj.tiene_hipertension() or obj.tiene_prehipertension():
+        if obj.tiene_hipertension():
             count += 1
         if obj.fcf_es_anormal():
             count += 1
@@ -117,7 +117,7 @@ class ControlPrenatalListSerializer(serializers.ModelSerializer):
 class ControlPrenatalSerializer(serializers.ModelSerializer):
     """Serializer COMPLETO para visualización detallada de controles prenatales"""
 
-    # ✅ ALIAS PARA COMPATIBILIDAD CON FRONTEND
+    # ALIAS PARA COMPATIBILIDAD CON FRONTEND
     edad_gestacional_semanas = serializers.IntegerField(
         source="semanas_gestacion", read_only=True,
     )
@@ -126,7 +126,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
     )
 
     # Campos calculados y de lectura
-    id_clinico = serializers.SerializerMethodField()  # ✅ AGREGADO
+    id_clinico = serializers.SerializerMethodField()  # AGREGADO
     paciente_nombre = serializers.SerializerMethodField()
     embarazo_info = serializers.SerializerMethodField()
     edad_gestacional = serializers.SerializerMethodField()
@@ -138,7 +138,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
     alertas = serializers.SerializerMethodField()
     tiene_alertas = serializers.SerializerMethodField()
 
-    # ✅ TRAZABILIDAD - Información del usuario
+    # TRAZABILIDAD - Información del usuario
     created_by_display = serializers.SerializerMethodField()
     modified_by_display = serializers.SerializerMethodField()
 
@@ -147,9 +147,9 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
         model = ControlPrenatal
         fields = [
             "id",
-            "embarazo",  # ✅ Usar 'embarazo' (permite escritura) en lugar de embarazo_id
+            "embarazo",  # Usar 'embarazo' (permite escritura) en lugar de embarazo_id
             "embarazo_info",
-            "id_clinico",  # ✅ AGREGADO
+            "id_clinico",  # AGREGADO
             "paciente",
             "paciente_nombre",
             "numero_control",
@@ -157,7 +157,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
             "semanas_gestacion",
             "dias_gestacion",
             "edad_gestacional",
-            # ✅ ALIAS PARA FRONTEND
+            # ALIAS PARA FRONTEND
             "edad_gestacional_semanas",
             "edad_gestacional_dias",
             "peso_actual",
@@ -181,7 +181,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
             "observaciones",
             "medico_id",
             "fecha_registro",
-            # ✅ TRAZABILIDAD
+            # TRAZABILIDAD
             "created_by",
             "modified_by",
             "created_by_display",
@@ -241,7 +241,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
         return None
 
     def get_edad_gestacional(self, obj):
-        """✅ Calcular edad gestacional en TIEMPO REAL desde FUM del embarazo"""
+        """Calcular edad gestacional en TIEMPO REAL desde FUM del embarazo"""
         if obj.embarazo and obj.embarazo.fecha_ultima_menstruacion:
             hoy = timezone.localdate()
             fum = obj.embarazo.fecha_ultima_menstruacion
@@ -287,15 +287,6 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
                     "tipo": "hipertension",
                     "nivel": "alto",
                     "mensaje": "Hipertensión detectada",
-                    "valor": f"{obj.presion_arterial_sistolica}/{obj.presion_arterial_diastolica}",
-                },
-            )
-        elif obj.tiene_prehipertension():
-            alertas.append(
-                {
-                    "tipo": "prehipertension",
-                    "nivel": "medio",
-                    "mensaje": "Prehipertensión detectada",
                     "valor": f"{obj.presion_arterial_sistolica}/{obj.presion_arterial_diastolica}",
                 },
             )
@@ -383,7 +374,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
         return obj.tiene_alertas_criticas()
 
     def get_created_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que creó el registro"""
+        """TRAZABILIDAD: Información del usuario que creó el registro"""
         if obj.created_by:
             return {
                 "id": obj.created_by.id,
@@ -396,7 +387,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
         return None
 
     def get_modified_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que modificó el registro"""
+        """TRAZABILIDAD: Información del usuario que modificó el registro"""
         if obj.modified_by:
             return {
                 "id": obj.modified_by.id,
@@ -412,7 +403,7 @@ class ControlPrenatalSerializer(serializers.ModelSerializer):
 class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer para crear y actualizar controles prenatales"""
 
-    # ✅ ALIAS PARA COMPATIBILIDAD CON FRONTEND (acepta ambos nombres)
+    # ALIAS PARA COMPATIBILIDAD CON FRONTEND (acepta ambos nombres)
     edad_gestacional_semanas = serializers.IntegerField(
         source="semanas_gestacion", required=False, allow_null=False,
     )
@@ -421,7 +412,7 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
     )
 
     # Campos calculados y de lectura
-    id_clinico = serializers.SerializerMethodField()  # ✅ AGREGADO
+    id_clinico = serializers.SerializerMethodField()  # AGREGADO
     paciente_nombre = serializers.SerializerMethodField()
     edad_gestacional = serializers.SerializerMethodField()
     imc_actual = serializers.SerializerMethodField()
@@ -436,9 +427,9 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
         model = ControlPrenatal
         fields = [
             "id",
-            "embarazo",  # ✅ CAMBIADO de embarazo_id a embarazo para permitir escritura
+            "embarazo",  # CAMBIADO de embarazo_id a embarazo para permitir escritura
             "embarazo_info",
-            "id_clinico",  # ✅ AGREGADO
+            "id_clinico",  # AGREGADO
             "paciente",
             "paciente_nombre",
             "numero_control",
@@ -446,7 +437,7 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
             "semanas_gestacion",
             "dias_gestacion",
             "edad_gestacional",
-            # ✅ ALIAS PARA FRONTEND
+            # ALIAS PARA FRONTEND
             "edad_gestacional_semanas",
             "edad_gestacional_dias",
             "peso_actual",
@@ -511,7 +502,7 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
             return None
 
     def get_edad_gestacional(self, obj):
-        """✅ Calcular edad gestacional en TIEMPO REAL desde FUM del embarazo"""
+        """Calcular edad gestacional en TIEMPO REAL desde FUM del embarazo"""
         if obj.embarazo and obj.embarazo.fecha_ultima_menstruacion:
             hoy = timezone.localdate()
             fum = obj.embarazo.fecha_ultima_menstruacion
@@ -587,7 +578,7 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
                     },
                 )
 
-        # ✅ VALIDACIÓN INTELIGENTE: FCF según semanas de gestación
+        # VALIDACIÓN INTELIGENTE: FCF según semanas de gestación
         semanas = attrs.get("semanas_gestacion", 0)
 
         if "frecuencia_cardiaca_fetal" in attrs:
@@ -606,7 +597,7 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
                     {"frecuencia_cardiaca_fetal": "FCF fuera del rango físico posible (50-300 lpm): revise el valor."},
                 )
 
-        # ✅ VALIDACIÓN INTELIGENTE: Presentación fetal según semanas
+        # VALIDACIÓN INTELIGENTE: Presentación fetal según semanas
         if "presentacion_fetal" in attrs:
             presentacion = attrs["presentacion_fetal"]
 
@@ -680,8 +671,6 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
 
         if instance.tiene_hipertension():
             alertas.append("hipertension")
-        elif instance.tiene_prehipertension():
-            alertas.append("prehipertension")
 
         if instance.fcf_es_anormal():
             alertas.append("fcf_anormal")

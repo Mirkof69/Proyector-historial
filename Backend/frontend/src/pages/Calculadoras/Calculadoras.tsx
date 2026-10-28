@@ -5,22 +5,22 @@
  * Suite profesional de calculadoras médicas obstétricas integradas
  *
  * CARACTERÍSTICAS:
- * ✓ Edad Gestacional y FPP (Naegele)
- * ✓ IMC Pre-gestacional y Ganancia de Peso
- * ✓ Score de Bishop
- * ✓ Riesgo de Preeclampsia
- * ✓ Índice de Líquido Amniótico (Phelan)
- * ✓ Peso Fetal Estimado (Hadlock)
- * ✓ Score de Apgar
- * ✓ Método de Capurro
- * ✓ Test de Silverman-Andersen
- * ✓ Ballard Score
- * ✓ Índice Cardio-Cerebral (ICC)
- * ✓ Presión Arterial Media
- * ✓ Frecuencia Cardíaca Máxima
- * ✓ Integración con Backend
- * ✓ Almacenamiento de resultados
- * ✓ Historial de cálculos
+ * Edad Gestacional y FPP (Naegele)
+ * IMC Pre-gestacional y Ganancia de Peso
+ * Score de Bishop
+ * Riesgo de Preeclampsia
+ * Índice de Líquido Amniótico (Phelan)
+ * Peso Fetal Estimado (Hadlock)
+ * Score de Apgar
+ * Método de Capurro
+ * Test de Silverman-Andersen
+ * Ballard Score
+ * Índice Cardio-Cerebral (ICC)
+ * Presión Arterial Media
+ * Frecuencia Cardíaca Máxima
+ * Integración con Backend
+ * Almacenamiento de resultados
+ * Historial de cálculos
  *
  * =============================================================================
  */
@@ -43,6 +43,7 @@ import { clasificarIla } from '../../utils/liquidoAmniotico';
 import { evaluarRiesgoPreeclampsia } from '../../utils/riesgoPreeclampsia';
 import { pesoFetalEstimado } from '../../utils/pesoFetal';
 import './Calculadoras.css';
+import { imcRedondeado } from '../../utils/imc';
 
 const { Title } = Typography;
 
@@ -143,7 +144,7 @@ const CalculadorasPage: React.FC = () => {
     try {
       const { peso_pregestacional, altura, peso_actual, edad_gestacional_semanas } = values;
       const alturaMetros = altura / 100;
-      const imc = peso_pregestacional / (alturaMetros * alturaMetros);
+      const imc = imcRedondeado(peso_pregestacional, alturaMetros);
       const ganancia = peso_actual - peso_pregestacional;
 
       let categoria = '';
@@ -198,11 +199,13 @@ const CalculadorasPage: React.FC = () => {
       let probabilidad = '';
       let color = '';
 
-      if (score <= 4) {
+      // Mismos cortes que la calculadora especializada (RF-17): ≤ 5
+      // desfavorable, 6–7 intermedio, ≥ 8 favorable.
+      if (score <= 5) {
         interpretacion = 'Cuello desfavorable';
         probabilidad = 'Baja probabilidad de parto vaginal';
         color = 'red';
-      } else if (score <= 6) {
+      } else if (score <= 7) {
         interpretacion = 'Cuello intermedio';
         probabilidad = 'Probabilidad moderada de parto vaginal';
         color = 'orange';

@@ -263,7 +263,7 @@ class Ecografia(models.Model):
             return " Bradicardia fetal"
         if fcf > 160:
             return " Taquicardia fetal"
-        return "✅ Normal"
+        return "Normal"
 
     def __str__(self):
         """Str"""
@@ -479,7 +479,7 @@ class BiometriaFetal(models.Model):
             return " Restricción del crecimiento fetal"
         if self.percentil_peso > 90:
             return " Macrosomía fetal"
-        return "✅ Crecimiento normal"
+        return "Crecimiento normal"
 
     def save(self, *args, **kwargs):
         """Save"""
@@ -655,9 +655,9 @@ class AnatomiaFetal(models.Model):
         )
 
         if campos_normales == total_campos:
-            return "✅ Anatomía fetal normal"
+            return "Anatomía fetal normal"
         anormales = total_campos - campos_normales
-        return f"⚠️ {anormales} hallazgo(s) anormal(es)"
+        return f"{anormales} hallazgo(s) anormal(es)"
 
     def get_riesgo_cromosomopatias(self):
         """Evalúa riesgo de cromosomopatías basado en marcadores"""
@@ -670,7 +670,7 @@ class AnatomiaFetal(models.Model):
             return " Alto riesgo (TN > 3.5mm)"
         if tn > 2.5:
             return " Riesgo intermedio (TN > 2.5mm)"
-        return "✅ Bajo riesgo"
+        return "Bajo riesgo"
 
     def __str__(self):
         """Str"""
@@ -759,10 +759,10 @@ class AnexosFetales(models.Model):
     def get_evaluacion_cordon(self):
         """Evalúa el cordón umbilical"""
         if self.numero_vasos_cordon == 2:
-            return "⚠️ Arteria umbilical única"
+            return "Arteria umbilical única"
         if self.circular_cordon:
             return " Circular de cordón presente"
-        return "✅ Cordón normal"
+        return "Cordón normal"
 
     def get_evaluacion_cervix(self):
         """Evalúa el cérvix"""
@@ -775,7 +775,7 @@ class AnexosFetales(models.Model):
             return " Cérvix corto (riesgo de parto prematuro)"
         if longitud < 30:
             return " Cérvix acortado"
-        return "✅ Longitud cervical normal"
+        return "Longitud cervical normal"
 
     def __str__(self):
         """Str"""

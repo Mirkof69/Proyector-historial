@@ -150,9 +150,8 @@ const WidgetPacientesAltoRiesgo: React.FC = () => {
     <Card
       title={
         <Space>
-          <Badge count={totalAltoRiesgo} offset={[10, 0]}>
-            <WarningOutlined style={{ fontSize: 20, color: 'var(--color-aviso)' }} />
-          </Badge>
+          {/* El total ya va en la etiqueta de la derecha; el badge lo repetía encima del título. */}
+          <WarningOutlined style={{ fontSize: 20, color: 'var(--color-aviso)' }} />
           <span>Pacientes de Alto Riesgo</span>
         </Space>
       }

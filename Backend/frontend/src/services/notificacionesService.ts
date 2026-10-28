@@ -11,7 +11,13 @@ import api from './api';
 export interface Notificacion {
   id: number;
   usuario?: number;
-  tipo: 'info' | 'warning' | 'success' | 'error';
+  /** alerta_critica, examen_critico, recordatorio_control… (ver tipo_display). */
+  tipo: string;
+  tipo_display?: string;
+  prioridad?: 'baja' | 'media' | 'alta' | 'critica' | string;
+  /** Pantalla que abre lo anunciado, ya resuelta por el servidor. */
+  enlace?: string;
+  url_texto?: string;
   titulo: string;
   mensaje: string;
   leida: boolean;
@@ -26,7 +32,7 @@ function normalizeListResponse<T>(data: any): T[] {
   if (Array.isArray(data)) return data as T[];
   if (data?.results && Array.isArray(data.results)) return data.results as T[];
   if (data?.data && Array.isArray(data.data)) return data.data as T[];
-  console.warn('⚠️ notificacionesService: Respuesta no es array:', data);
+  console.warn('notificacionesService: Respuesta no es array:', data);
   return [];
 }
 
@@ -67,7 +73,7 @@ export const notificacionesService = {
       const response = await api.get<Notificacion[]>('/notificaciones/');
       return normalizeListResponse<Notificacion>(response.data);
     } catch (error: any) {
-      console.error('❌ Error listando notificaciones:', error);
+      console.error('Error listando notificaciones:', error);
       // Devolver array vacío en caso de error
       return [];
     }

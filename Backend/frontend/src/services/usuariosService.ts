@@ -422,11 +422,11 @@ export const usuariosService = {
   }): Promise<any> {
     try {
       const response = await api.get(`/usuarios/${id}/actividad/`, { params });
-      logger.log(`✅ Actividad del usuario ${id} obtenida`);
+      logger.log(`Actividad del usuario ${id} obtenida`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
-        console.warn('⚠️ Endpoint actividad no disponible (404) - retornando datos vacíos');
+        console.warn('Endpoint actividad no disponible (404) - retornando datos vacíos');
         return {
           count: 0,
           results: [],

@@ -1,3 +1,5 @@
+import { imcRedondeado } from '../../utils/imc';
+
 export interface DatosPaciente {
   peso_pregestacional: number;
   talla: number;
@@ -64,7 +66,7 @@ export const calcularPercentil = (imc: number, semanas: number, ganancia: number
 };
 
 export const calcularIMC = (values: DatosPaciente): ResultadoIMC => {
-  const imc_pregestacional = values.peso_pregestacional / Math.pow(values.talla / 100, 2);
+  const imc_pregestacional = imcRedondeado(values.peso_pregestacional, values.talla / 100);
   const { clasificacion, color } = clasificarIMC(imc_pregestacional);
   const gananciaRecomendada = getGananciaRecomendada(imc_pregestacional);
   const ganancia_actual = values.peso_actual - values.peso_pregestacional;
@@ -76,29 +78,29 @@ export const calcularIMC = (values: DatosPaciente): ResultadoIMC => {
   let recomendaciones: string[] = [];
 
   if (ganancia_actual < gananciaRecomendada.min) {
-    estado_nutricional = '⚠️ GANANCIA INSUFICIENTE';
+    estado_nutricional = 'GANANCIA INSUFICIENTE';
     alertas.push('Ganancia de peso por debajo del rango recomendado');
     recomendaciones.push('Aumentar ingesta calórica en 300-500 kcal/día');
     recomendaciones.push('Consulta nutricional especializada');
     recomendaciones.push('Monitoreo de crecimiento fetal con ecografía');
   } else if (ganancia_actual > gananciaRecomendada.max) {
-    estado_nutricional = '⚠️ GANANCIA EXCESIVA';
+    estado_nutricional = 'GANANCIA EXCESIVA';
     alertas.push('Ganancia de peso por encima del rango recomendado');
     recomendaciones.push('Control dietético y actividad física moderada');
       recomendaciones.push('Evaluar retención de líquidos y descartar preeclampsia');
       recomendaciones.push('Screening de diabetes gestacional');
     } else {
-      estado_nutricional = '✅ GANANCIA ADECUADA';
+      estado_nutricional = 'GANANCIA ADECUADA';
       recomendaciones.push('Mantener alimentación balanceada actual');
       recomendaciones.push('Continuar con actividad física regular');
       recomendaciones.push('Controles prenatales según protocolo');
     }
 
     if (imc_pregestacional < 18.5) {
-      recomendaciones.push('🔹 Bajo peso: Dieta hipercalórica (2200-2400 kcal/día)');
+      recomendaciones.push('Bajo peso: Dieta hipercalórica (2200-2400 kcal/día)');
       recomendaciones.push('Suplementación con ácidos grasos omega-3');
     } else if (imc_pregestacional >= 30) {
-      recomendaciones.push('🔹 Obesidad: Control estricto de ganancia ponderal');
+      recomendaciones.push('Obesidad: Control estricto de ganancia ponderal');
       recomendaciones.push('Evaluación para riesgo de diabetes gestacional y preeclampsia');
       recomendaciones.push('Dieta balanceada normocalórica (1800-2000 kcal/día)');
     }
@@ -122,7 +124,7 @@ export const calcularIMC = (values: DatosPaciente): ResultadoIMC => {
 // Datos para gráfica de curvas de ganancia ponderal (P10, P50, P90)
 export const getCurvasGanancia = (values: DatosPaciente, resultado: ResultadoIMC | null) => {
   const semanas = Array.from({ length: 40 }, (_, i) => i + 1);
-  const gananciaRecomendada = getGananciaRecomendada(values.peso_pregestacional / Math.pow(values.talla / 100, 2));
+  const gananciaRecomendada = getGananciaRecomendada(imcRedondeado(values.peso_pregestacional, values.talla / 100));
 
   return semanas.map(semana => {
     const gananciaP50 = gananciaRecomendada.semanal * semana;
@@ -157,7 +159,7 @@ export const getComponentesPeso = (resultado: ResultadoIMC | null) => {
 
 // Datos para gráfica de comparación por trimestre
 export const getComparacionTrimestre = (values: DatosPaciente, resultado: ResultadoIMC | null) => {
-  const imc = values.peso_pregestacional / Math.pow(values.talla / 100, 2);
+  const imc = imcRedondeado(values.peso_pregestacional, values.talla / 100);
   const gananciaRecomendada = getGananciaRecomendada(imc);
 
   return [

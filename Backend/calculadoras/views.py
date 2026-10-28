@@ -599,13 +599,13 @@ class HemogramaViewSet(viewsets.ModelViewSet):
         return HemogramaSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Crear hemograma y asignar médico solicitante y created_by"""
+        """TRAZABILIDAD: Crear hemograma y asignar médico solicitante y created_by"""
         serializer.save(
             medico_solicitante=self.request.user, created_by=self.request.user,
         )
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="por_paciente")
@@ -726,13 +726,13 @@ class BioquimicaViewSet(viewsets.ModelViewSet):
         return BioquimicaSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Crear bioquímica y asignar médico solicitante y created_by"""
+        """TRAZABILIDAD: Crear bioquímica y asignar médico solicitante y created_by"""
         serializer.save(
             medico_solicitante=self.request.user, created_by=self.request.user,
         )
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="por_paciente")

@@ -29,7 +29,7 @@ from rest_framework.response import Response
 def dashboard_stats_view(_request):
     """Endpoint para obtener estadísticas del dashboard
     """
-    # ✅ LAZY IMPORTS para evitar circular import
+    # LAZY IMPORTS para evitar circular import
     from citas.models import Cita
     from controles.models import ControlPrenatal
     from embarazos.models import Embarazo
@@ -101,7 +101,7 @@ def dashboard_stats_view(_request):
 def general_stats_view(_request):
     """Endpoint para obtener estadísticas generales
     """
-    # ✅ LAZY IMPORTS para evitar circular import
+    # LAZY IMPORTS para evitar circular import
 
     from controles.models import ControlPrenatal
     from embarazos.models import Embarazo

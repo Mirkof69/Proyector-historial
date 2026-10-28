@@ -1,5 +1,6 @@
 """Views module."""
 import logging
+import math
 from datetime import timedelta
 
 import pyotp
@@ -736,6 +737,23 @@ class HorarioAtencionViewSet(viewsets.ModelViewSet):
 # ======================================================================================
 
 
+def _respuesta_cuenta_bloqueada(usuario):
+    """423 con el tiempo que falta. Antes era un 403 que la pantalla de login
+    mostraba como «Acceso denegado. Contacte al administrador.» (BUG-002)."""
+    minutos = max(1, math.ceil((usuario.bloqueado_hasta - tz.now()).total_seconds() / 60))
+    return Response(
+        {
+            "error": (
+                "Cuenta bloqueada temporalmente por 5 intentos fallidos. "
+                f"Podrá intentar de nuevo en {minutos} minuto{'s' if minutos != 1 else ''}."
+            ),
+            "codigo": "cuenta_bloqueada",
+            "minutos_restantes": minutos,
+        },
+        status=status.HTTP_423_LOCKED,
+    )
+
+
 @extend_schema(
     tags=["Authentication"],
     summary="User login",
@@ -747,6 +765,7 @@ class HorarioAtencionViewSet(viewsets.ModelViewSet):
         ),
         400: OpenApiResponse(description="Bad Request - Invalid input data"),
         401: OpenApiResponse(description="Unauthorized - Invalid credentials"),
+        423: OpenApiResponse(description="Locked - cuenta bloqueada 15 min tras 5 intentos fallidos"),
     },
 )
 @api_view(["POST"])
@@ -778,11 +797,7 @@ def login_view(request):
 
     # Verificar bloqueo de cuenta (máx 5 intentos)
     if usuario.bloqueado_hasta and usuario.bloqueado_hasta > tz.now():
-        segundos = int((usuario.bloqueado_hasta - tz.now()).total_seconds())
-        return Response(
-            {"error": f"Cuenta bloqueada. Intente en {segundos} segundos."},
-            status=status.HTTP_403_FORBIDDEN,
-        )
+        return _respuesta_cuenta_bloqueada(usuario)
 
     # Verificar contraseña
     if not usuario.check_password(password):
@@ -812,6 +827,7 @@ def login_view(request):
             except Exception:
                 pass
         usuario.save(update_fields=["intentos_fallidos", "bloqueado_hasta"])
+        bloqueada_ahora = usuario.bloqueado_hasta is not None and usuario.bloqueado_hasta > tz.now()
         # Auditoría: login fallido
         try:
             from auditoria.models import RegistroAuditoria
@@ -825,6 +841,9 @@ def login_view(request):
             )
         except Exception:
             pass
+        if bloqueada_ahora:
+            # El quinto intento ya avisa del bloqueo, no «credenciales inválidas».
+            return _respuesta_cuenta_bloqueada(usuario)
         return Response(
             {"error": "Credenciales inválidas"}, status=status.HTTP_401_UNAUTHORIZED,
         )
@@ -1134,11 +1153,7 @@ def mfa_verify_view(request):
 
     # 2. Verificar bloqueo de cuenta
     if usuario.bloqueado_hasta and usuario.bloqueado_hasta > tz.now():
-        segundos = int((usuario.bloqueado_hasta - tz.now()).total_seconds())
-        return Response(
-            {"error": f"Cuenta bloqueada. Intente en {segundos} segundos."},
-            status=status.HTTP_403_FORBIDDEN,
-        )
+        return _respuesta_cuenta_bloqueada(usuario)
 
     # 3. Verificar código TOTP
     if not usuario.mfa_secret:

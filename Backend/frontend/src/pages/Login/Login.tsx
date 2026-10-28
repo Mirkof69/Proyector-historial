@@ -168,7 +168,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       } else if (status === 403) {
         errorMessage = data?.mensaje || 'Acceso denegado. Contacte al administrador.';
       } else if (status === 423) {
-        errorMessage = 'Cuenta bloqueada temporalmente por múltiples intentos fallidos.';
+        // El servidor dice cuántos minutos faltan (BUG-002).
+        errorMessage = data?.error || 'Cuenta bloqueada temporalmente por múltiples intentos fallidos.';
       } else if (status >= 500) {
         errorMessage = 'Error del servidor. Intente nuevamente más tarde.';
         setConnectionError(true);

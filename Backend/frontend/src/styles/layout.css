@@ -211,6 +211,23 @@
 .notif-panel__icono--success { color: var(--color-exito); }
 .notif-panel__icono--error { color: var(--color-peligro); }
 
+.notif-panel__item { cursor: pointer; }
+.notif-panel__item:focus-visible { outline: 2px solid var(--color-primario); outline-offset: -2px; }
+.notif-panel__mensaje,
+.notif-panel__fecha { display: block; font-size: var(--texto-xs); }
+.notif-panel__mensaje {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.notif-panel__ir { color: var(--color-texto-2); }
+.notif-panel__pie {
+  border-top: 1px solid var(--color-borde);
+  padding: var(--esp-1) var(--esp-3);
+  text-align: center;
+}
+
 .notif-badge {
   position: absolute;
   top: -4px;

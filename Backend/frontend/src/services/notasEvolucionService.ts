@@ -132,7 +132,7 @@ class NotasEvolucionService {
             const response = await api.get<PaginatedResponse<NotaEvolucion>>(url);
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error obteniendo notas de evolución:', error);
+            console.error('Error obteniendo notas de evolución:', error);
             throw error;
         }
     }
@@ -143,10 +143,10 @@ class NotasEvolucionService {
     async getNotaById(id: number): Promise<NotaEvolucion> {
         try {
             const response = await api.get<NotaEvolucion>(`${this.baseUrl}/${id}/`);
-            logger.log('✅ Nota de evolución obtenida:', id);
+            logger.log('Nota de evolución obtenida:', id);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error obteniendo nota ${id}:`, error);
+            console.error(`Error obteniendo nota ${id}:`, error);
             throw error;
         }
     }
@@ -157,10 +157,10 @@ class NotasEvolucionService {
     async crearNota(data: NotaEvolucionCreate): Promise<NotaEvolucion> {
         try {
             const response = await api.post<NotaEvolucion>(`${this.baseUrl}/`, data);
-            logger.log('✅ Nota de evolución creada');
+            logger.log('Nota de evolución creada');
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error creando nota de evolución:', error);
+            console.error('Error creando nota de evolución:', error);
             throw error;
         }
     }
@@ -171,10 +171,10 @@ class NotasEvolucionService {
     async actualizarNota(id: number, data: Partial<NotaEvolucionCreate>): Promise<NotaEvolucion> {
         try {
             const response = await api.patch<NotaEvolucion>(`${this.baseUrl}/${id}/`, data);
-            logger.log('✅ Nota de evolución actualizada:', id);
+            logger.log('Nota de evolución actualizada:', id);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error actualizando nota ${id}:`, error);
+            console.error(`Error actualizando nota ${id}:`, error);
             throw error;
         }
     }
@@ -185,9 +185,9 @@ class NotasEvolucionService {
     async eliminarNota(id: number): Promise<void> {
         try {
             await api.delete(`${this.baseUrl}/${id}/`);
-            logger.log('✅ Nota de evolución eliminada:', id);
+            logger.log('Nota de evolución eliminada:', id);
         } catch (error: any) {
-            console.error(`❌ Error eliminando nota ${id}:`, error);
+            console.error(`Error eliminando nota ${id}:`, error);
             throw error;
         }
     }
@@ -211,12 +211,12 @@ class NotasEvolucionService {
 
             const url = `${this.baseUrl}/por-paciente/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<NotaEvolucion>>(url);
-            logger.log(`✅ Notas del paciente ${pacienteId} obtenidas`);
+            logger.log(`Notas del paciente ${pacienteId} obtenidas`);
             return response.data;
         } catch (error: any) {
             // Suprimir error si es 404 (es normal que un paciente no tenga notas aún)
             if (error.response?.status !== 404) {
-                console.error(`❌ Error obteniendo notas del paciente ${pacienteId}:`, error);
+                console.error(`Error obteniendo notas del paciente ${pacienteId}:`, error);
             }
             throw error;
         }
@@ -237,10 +237,10 @@ class NotasEvolucionService {
 
             const url = `${this.baseUrl}/por_embarazo/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<NotaEvolucion>>(url);
-            logger.log(`✅ Notas del embarazo ${embarazoId} obtenidas`);
+            logger.log(`Notas del embarazo ${embarazoId} obtenidas`);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error obteniendo notas del embarazo ${embarazoId}:`, error);
+            console.error(`Error obteniendo notas del embarazo ${embarazoId}:`, error);
             throw error;
         }
     }
@@ -261,10 +261,10 @@ class NotasEvolucionService {
 
             const url = `${this.baseUrl}/mis-notas/?${queryParams.toString()}`;
             const response = await api.get<PaginatedResponse<NotaEvolucion>>(url);
-            logger.log('✅ Mis notas obtenidas');
+            logger.log('Mis notas obtenidas');
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error obteniendo mis notas:', error);
+            console.error('Error obteniendo mis notas:', error);
             throw error;
         }
     }
@@ -275,10 +275,10 @@ class NotasEvolucionService {
     async revisarNota(id: number): Promise<NotaEvolucion> {
         try {
             const response = await api.post<NotaEvolucion>(`${this.baseUrl}/${id}/revisar/`);
-            logger.log(`✅ Nota ${id} revisada`);
+            logger.log(`Nota ${id} revisada`);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error revisando nota ${id}:`, error);
+            console.error(`Error revisando nota ${id}:`, error);
             throw error;
         }
     }
@@ -301,10 +301,10 @@ class NotasEvolucionService {
 
             const url = `${this.baseUrl}/estadisticas/?${queryParams.toString()}`;
             const response = await api.get<EstadisticasNotas>(url);
-            logger.log('✅ Estadísticas de notas obtenidas');
+            logger.log('Estadísticas de notas obtenidas');
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error obteniendo estadísticas:', error);
+            console.error('Error obteniendo estadísticas:', error);
             throw error;
         }
     }

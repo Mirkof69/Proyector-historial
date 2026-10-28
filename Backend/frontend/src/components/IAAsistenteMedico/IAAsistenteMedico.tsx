@@ -106,7 +106,7 @@ export const IAAsistenteMedico: React.FC = () => {
         persistAndScroll(newMessages);
         return newMessages;
       });
-      message.error(`Error ${lastError.details.status || 'del sistema'} detectado - Ver IA Assistant`);
+      message.error(`Error ${lastError.details.status || 'del sistema'} detectado: revise el Asistente IA`);
     }
   }, [systemErrors, isMonitoring, interpretError, persistAndScroll, message]);
 

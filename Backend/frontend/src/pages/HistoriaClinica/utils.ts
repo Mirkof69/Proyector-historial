@@ -2,8 +2,11 @@ import { hadlock3p } from '../../utils/pesoFetal';
 import dayjs from 'dayjs';
 import { 
   ProtocoloObstetrico, 
-  AlertaClinica 
+  AlertaClinica,
+  Laboratorio,
+  ParametroLaboratorio,
 } from './types';
+import { imcRedondeado } from '../../utils/imc';
 
 // Colores de Tag semánticos (tokens del tema), no hex fijos.
 export const RIESGO_COLORS = { 'BAJO': 'success', 'ALTO': 'warning', 'MUY_ALTO': 'error' };
@@ -133,7 +136,7 @@ export const calcularFPP = (fum: string): string => {
 };
 
 export const calcularIMC = (peso: number, talla: number): number => {
-  return peso / ((talla / 100) ** 2);
+  return imcRedondeado(peso, talla / 100);
 };
 
 export const calcularGananciaPesoRecomendada = (imcPregestacional: number, semanasEG: number): { minimo: number; maximo: number; total: { min: number; max: number } } => {
@@ -218,6 +221,37 @@ export const calcularPercentilFetal = (pesoEstimado: number, semanasEG: number):
   return { percentil, clasificacion };
 };
 
+/**
+ * /laboratorios/examenes/ trae los valores en `resultados` (uno por parámetro) y el
+ * estado en `resumen`. La historia clínica leía un único `resultado`/`es_anormal`
+ * por examen que la API nunca mandó: todo salía «Normal», sin valores y con la
+ * fecha de hoy (dayjs(undefined)).
+ */
+export const normalizarLaboratorio = (l: any): Laboratorio => {
+  const filas: ParametroLaboratorio[] = Array.isArray(l.resultados) ? l.resultados : [];
+  const resumen = l.resumen;
+  return {
+    ...l,
+    fecha_toma: l.fecha_toma ?? l.fecha_muestra ?? l.fecha_resultado ?? l.fecha_solicitud,
+    resultados: filas,
+    pendiente: filas.length === 0,
+    es_critico: Boolean(resumen?.criticos),
+    es_anormal: Boolean(resumen && (resumen.anormales > 0 || resumen.criticos > 0)),
+    resultado: filas.map((f) => `${f.parametro} ${f.valor} ${f.unidad}`.trim()).join(' · '),
+    valores_referencia: filas.map((f) => `${f.parametro} ${f.rango_referencia} ${f.unidad}`.trim()).join(' · '),
+  };
+};
+
+/** Cada valor numérico medido, con el nombre del parámetro (no del examen). */
+export const valoresDeLaboratorio = (laboratorios: Laboratorio[]) =>
+  laboratorios.flatMap((l) => (l.resultados || []).map((f) => ({
+    nombre: f.parametro,
+    valor: parseFloat(String(f.valor).replace(',', '.')),
+    fecha: l.fecha_toma,
+    referencia: f.rango_referencia,
+    unidad: f.unidad,
+  }))).filter((v) => !isNaN(v.valor));
+
 export const generarAlertas = (controles: any[], laboratorios: any[], embarazo: any): AlertaClinica[] => {
   const alertas: AlertaClinica[] = [];
   controles.forEach((control, idx) => {
@@ -234,18 +268,17 @@ export const generarAlertas = (controles: any[], laboratorios: any[], embarazo: 
       });
     }
   });
-  laboratorios.forEach((lab, idx) => {
-    const tipoExamen = typeof lab.tipo_examen === 'string' ? lab.tipo_examen : String(lab.tipo_examen || '');
-    if (tipoExamen.toLowerCase().includes('hemoglobina')) {
-      const hbValue = parseFloat(lab.resultado);
-      if (!isNaN(hbValue) && hbValue < 11) {
+  valoresDeLaboratorio(laboratorios).forEach((lab, idx) => {
+    if (lab.nombre.toLowerCase().includes('hemoglobina')) {
+      const hbValue = lab.valor;
+      if (hbValue < 11) {
         alertas.push({
           id: `alerta-hb-${idx}`,
           tipo: 'WARNING',
           prioridad: 'MEDIA',
           mensaje: `Anemia detectada: Hemoglobina ${hbValue} g/dL`,
           categoria: 'Laboratorio',
-          fecha_generacion: lab.fecha_toma,
+          fecha_generacion: lab.fecha,
           resuelta: false,
           acciones_recomendadas: ['Suplementación con hierro', 'Control en 4 semanas']
         });
@@ -313,17 +346,9 @@ export const nombreExamen = (lab: any): string =>
 
   for (const param of parametros) {
     const valores: Array<{ fecha: string; valor: number; referencia: string }> = [];
-    for (const lab of laboratorios) {
-      const tipoLower = nombreExamen(lab).toLowerCase();
-      if (tipoLower.includes(param)) {
-        const valor = parseFloat(lab.resultado);
-        if (!isNaN(valor)) {
-          valores.push({
-            fecha: lab.fecha_toma,
-            valor,
-            referencia: lab.valores_referencia
-          });
-        }
+    for (const v of valoresDeLaboratorio(laboratorios)) {
+      if (v.nombre.toLowerCase().includes(param)) {
+        valores.push({ fecha: v.fecha, valor: v.valor, referencia: v.referencia });
       }
     }
     valores.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());

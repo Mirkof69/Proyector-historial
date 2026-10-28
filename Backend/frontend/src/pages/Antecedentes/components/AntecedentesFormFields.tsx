@@ -1,30 +1,21 @@
 import React from 'react';
 import { Form, InputNumber, Select, Row, Col } from 'antd';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { Option } = Select;
 
 interface AntecedentesFormFieldsProps {
-  pacientes: any[];
 }
 
-const AntecedentesFormFields: React.FC<AntecedentesFormFieldsProps> = ({ pacientes }) => (
+const AntecedentesFormFields: React.FC<AntecedentesFormFieldsProps> = () => (
   <>
     <Form.Item
       label="Paciente"
       name="paciente"
       rules={[{ required: true, message: 'Seleccione un paciente' }]}
     >
-      <Select
-        placeholder="Seleccionar paciente"
-        showSearch
-        filterOption={(input, option) =>
-          (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
-        }
-        options={pacientes.map(p => ({
-          label: `${p.nombre} ${p.apellido_paterno || p.apellido || ''}`.trim(),
-          value: p.id,
-        }))}
-      />
+      {/* Busca en el servidor (todas las pacientes, sin distinguir acentos). */}
+      <PacienteSelect placeholder="Buscar paciente por nombre o CI" />
     </Form.Item>
 
     <Row gutter={16}>

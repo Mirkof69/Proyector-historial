@@ -14,7 +14,7 @@ import {
   Paciente, Embarazo, ControlPrenatal, Ecografia, Laboratorio, NotaEvolucion,
   AlertaClinica, ExportConfig,
 } from '../types';
-import { RIESGO_COLORS, FACTORES_RIESGO } from '../utils';
+import { RIESGO_COLORS, FACTORES_RIESGO, valoresDeLaboratorio } from '../utils';
 import {
   formatAntecedente, ProtocoloEmbarazoItem, TendenciaLaboratorioItem,
   AlertaClinicaItem, RiskFactorItem,
@@ -526,17 +526,10 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
           <Card title="Hemoglobina" size="small">
             <ResponsiveContainer width="100%" height={200}>
               <ComposedChart
-                data={laboratorios
-                  .reduce((acc, l) => {
-                    const tipo = typeof l.tipo_examen === 'string' ? l.tipo_examen.toLowerCase() : String(l.tipo_examen || '').toLowerCase();
-                    if (tipo.includes('hemoglobina')) {
-                      acc.push({
-                        fecha: dayjs(l.fecha_toma).format('DD/MM'),
-                        valor: parseFloat(l.resultado) || 0,
-                      });
-                    }
-                    return acc;
-                  }, [] as any[])}
+                data={valoresDeLaboratorio(laboratorios)
+                  .filter((v) => v.nombre.toLowerCase().includes('hemoglobina'))
+                  .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
+                  .map((v) => ({ fecha: dayjs(v.fecha).format('DD/MM'), valor: v.valor }))}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="fecha" />

@@ -261,11 +261,11 @@ class PacienteViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         return PacienteSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @staticmethod
@@ -736,7 +736,7 @@ class PacienteViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         responses={200: OpenApiResponse(description="Search results with count")},
     )
     def busqueda_avanzada(self, request):
-        """✨ BÚSQUEDA AVANZADA - Multi-criterio con fuzzy search
+        """BÚSQUEDA AVANZADA - Multi-criterio con fuzzy search
 
         POST /api/pacientes/busqueda-avanzada/
         Body: {
@@ -885,7 +885,7 @@ class PacienteViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         },
     )
     def historia_clinica(self, _request, pk=None):
-        """✨ NUEVA FUNCIONALIDAD: Historia Clínica Integrada Completa
+        """NUEVA FUNCIONALIDAD: Historia Clínica Integrada Completa
 
         Consolida TODOS los datos del embarazo en una vista Timeline:
             pass
@@ -1097,7 +1097,7 @@ class PacienteViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         if paciente.edad and paciente.edad >= 35:
             factores.append({"factor": "Edad materna avanzada", "valor": paciente.edad, "nivel": "medio"})
         if paciente.peso_kg and paciente.altura_cm:
-            imc = paciente.peso_kg / ((paciente.altura_cm / 100) ** 2)
+            imc = round(float(paciente.peso_kg) / ((float(paciente.altura_cm) / 100) ** 2), 2)
             if imc >= 30:
                 factores.append({"factor": "Obesidad", "valor": round(imc, 1), "nivel": "alto"})
             elif imc < 18.5:

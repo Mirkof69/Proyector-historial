@@ -84,3 +84,12 @@
   margin-inline-end: var(--esp-2);
   color: var(--color-texto-3);
 }
+
+.antecedentes-titulo {
+  font-size: var(--texto-lg, 18px);
+  font-weight: 600;
+}
+
+.antecedentes-formulario {
+  max-width: 800px;
+}

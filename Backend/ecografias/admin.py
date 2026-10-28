@@ -1114,7 +1114,7 @@ class AnexosFetalesAdmin(admin.ModelAdmin):
             "Placenta",
             {
                 "fields": (
-                    "ecografia",  # ✅ CAMPO ECOGRAFÍA AGREGADO AQUÍ
+                    "ecografia",  # CAMPO ECOGRAFÍA AGREGADO AQUÍ
                     "placenta_localizacion_select",
                     "placenta_grosor",
                     "placenta_inserccion_cordon_select",

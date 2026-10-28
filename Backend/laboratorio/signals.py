@@ -43,11 +43,11 @@ def resultado_laboratorio_procesado(sender, instance, created, **kwargs):
         destinatario_preferido=_medico_del_resultado(instance),
         tipo=TipoNotificacion.EXAMEN_CRITICO,
         prioridad=PrioridadNotificacion.CRITICA,
-        titulo="⚠️ RESULTADO CRÍTICO DE LABORATORIO",
+        titulo="RESULTADO CRÍTICO DE LABORATORIO",
         mensaje=f"Resultado CRÍTICO para {nombre}: {parametro} = {instance.valor_numerico} {unidad}. Requiere atención inmediata.",
         entidad_tipo="resultado_laboratorio",
         entidad_id=instance.id,
-        url=f"/dashboard/laboratorio/resultados/{instance.id}",
+        url=f"/dashboard/laboratorio/{instance.examen_id}",
     )
 
 
@@ -80,7 +80,7 @@ def examen_solicitado(sender, instance, created, **kwargs):
         mensaje=f"Se solicitó un examen de laboratorio para {nombre}.",
         entidad_tipo="examen",
         entidad_id=instance.id,
-        url=f"/dashboard/laboratorio/examenes/{instance.id}",
+        url=f"/dashboard/laboratorio/{instance.id}",
     )
 
 
@@ -110,11 +110,11 @@ def examen_completado(sender, instance, created, **kwargs):
             destinatario_preferido=getattr(instance, "medico_solicitante", None),
             tipo=TipoNotificacion.EXAMEN_CRITICO,
             prioridad=PrioridadNotificacion.CRITICA,
-            titulo="⚠️ Examen Completado con Resultados Críticos",
+            titulo="Examen Completado con Resultados Críticos",
             mensaje=f"Examen de {nombre} completado con {criticos} resultado(s) crítico(s). Revisar de inmediato.",
             entidad_tipo="examen",
             entidad_id=instance.id,
-            url=f"/dashboard/laboratorio/examenes/{instance.id}",
+            url=f"/dashboard/laboratorio/{instance.id}",
         )
     else:
         crear_notificacion_clinica(
@@ -125,7 +125,7 @@ def examen_completado(sender, instance, created, **kwargs):
             mensaje=f"Examen de {nombre} completado. Resultados dentro de rangos normales.",
             entidad_tipo="examen",
             entidad_id=instance.id,
-            url=f"/dashboard/laboratorio/examenes/{instance.id}",
+            url=f"/dashboard/laboratorio/{instance.id}",
         )
 
 

@@ -259,7 +259,7 @@ class RiskCalculator:
                 " Alternativa: Test prenatal no invasivo (NIPT/cfDNA) - Sensibilidad >99% para T21",
             )
             recom.append(" Asesoramiento genético obligatorio")
-            recom.append("❤️ Ecocardiografía fetal (20-24s) - Mayor riesgo cardiopatías")
+            recom.append("Ecocardiografía fetal (20-24s) - Mayor riesgo cardiopatías")
         else:
             recom.append(
                 " BAJO RIESGO: No se requiere diagnóstico invasivo de rutina",
@@ -267,7 +267,7 @@ class RiskCalculator:
             recom.append(
                 " Ecografía morfológica 20-24 semanas (vigilar marcadores blandos)",
             )
-            recom.append("ℹ️ NIPT disponible si desea mayor tranquilidad (opcional)")
+            recom.append("ℹ NIPT disponible si desea mayor tranquilidad (opcional)")
 
         return recom
 
@@ -276,26 +276,26 @@ class RiskCalculator:
         texto = "Cribado combinado del primer trimestre:\n\n"
 
         if nt > 3.5:
-            texto += f"⚠️ NT muy elevada ({nt} mm, >3.5 mm) - Marcador crítico de aneuploidía. "
+            texto += f"NT muy elevada ({nt} mm, >3.5 mm) - Marcador crítico de aneuploidía. "
         elif nt > 2.5:
             texto += f" NT ligeramente elevada ({nt} mm). "
         else:
-            texto += f"✅ NT normal ({nt} mm). "
+            texto += f"NT normal ({nt} mm). "
 
         if pappa_mom < 0.5:
-            texto += f"⚠️ PAPP-A bajo ({pappa_mom:.2f} MoM). "
+            texto += f"PAPP-A bajo ({pappa_mom:.2f} MoM). "
 
         if bhcg_mom > 2.0:
-            texto += f"⚠️ β-hCG elevado ({bhcg_mom:.2f} MoM) - Aumenta riesgo T21. "
+            texto += f"β-hCG elevado ({bhcg_mom:.2f} MoM) - Aumenta riesgo T21. "
         elif bhcg_mom < 0.5:
-            texto += f"⚠️ β-hCG bajo ({bhcg_mom:.2f} MoM) - Aumenta riesgo T18. "
+            texto += f"β-hCG bajo ({bhcg_mom:.2f} MoM) - Aumenta riesgo T18. "
 
         texto += f"\n\nRiesgo final T21: {riesgo_t21 * 100:.3f}%\n"
 
         if riesgo_t21 >= 1 / 250:
-            texto += "⚠️ Supera punto de corte para diagnóstico invasivo."
+            texto += "Supera punto de corte para diagnóstico invasivo."
         else:
-            texto += "✅ Bajo riesgo, seguimiento habitual."
+            texto += "Bajo riesgo, seguimiento habitual."
 
         return texto
 
@@ -392,7 +392,7 @@ class RiskCalculator:
             return [
                 " OGTT ESTÁNDAR: 24-28 semanas",
                 " Educación: Estilo de vida, dieta, ejercicio",
-                "⚖️ Control de peso",
+                "Control de peso",
             ]
         return [
             " OGTT RUTINARIO: 24-28 semanas",
@@ -405,7 +405,7 @@ class RiskCalculator:
 
         if imc >= 30:
             texto += (
-                f"⚠️ IMC {imc:.1f} (obesidad) - Principal factor de riesgo modificable. "
+                f"IMC {imc:.1f} (obesidad) - Principal factor de riesgo modificable. "
             )
 
         if categoria == "alto":

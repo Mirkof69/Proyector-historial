@@ -5,7 +5,8 @@ import {
   UserOutlined, ClockCircleOutlined, EditOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { Laboratorio } from '../types';
+import { Laboratorio, ParametroLaboratorio } from '../types';
+import { valoresDeLaboratorio } from '../utils';
 import { verticalDivider, HGB_DOMAIN, HGB_LABEL, HCT_DOMAIN, HCT_LABEL } from '../historiaClinicaHelpers';
 import {
   ComposedChart, Line, XAxis, YAxis, CartesianGrid, RechartsTooltip, Legend,
@@ -14,39 +15,39 @@ import {
 
 const { Text } = Typography;
 
+const COLOR_ESTADO: Record<ParametroLaboratorio['estado'], string> = { NORMAL: 'success', ANORMAL: 'warning', 'CRÍTICO': 'error' };
+
+const estadoExamen = (l: Laboratorio) => {
+  if (l.pendiente) return 'pendiente';
+  if (l.es_critico) return 'critico';
+  return l.es_anormal ? 'anormal' : 'normal';
+};
+
+const EstadoExamen: React.FC<{ lab: Laboratorio }> = ({ lab }) => {
+  const estado = estadoExamen(lab);
+  if (estado === 'pendiente') return <Badge status="default" text="Pendiente" />;
+  if (estado === 'critico') return <Tag color="error" icon={<WarningOutlined />}>CRÍTICO</Tag>;
+  if (estado === 'anormal') return <Tag color="warning" icon={<WarningOutlined />}>ANORMAL</Tag>;
+  return <Tag color="success" icon={<CheckCircleOutlined />}>NORMAL</Tag>;
+};
+
 interface TabLaboratoriosProps {
   laboratorios: Laboratorio[];
 }
 const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
+  // Los gráficos usan cada parámetro medido (la Hemoglobina viene dentro del
+  // Hemograma), no el nombre del examen.
+  const valores = valoresDeLaboratorio(laboratorios);
+  const serie = (...nombres: string[]) => valores
+    .filter((v) => nombres.some((n) => v.nombre.toLowerCase().startsWith(n)))
+    .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
+    .map((v) => ({ fecha: dayjs(v.fecha).format('DD/MM'), valor: v.valor }));
   const labChartData = {
-    hemoglobina: laboratorios
-      .reduce((acc, l) => {
-        const tipo = String(l.tipo_examen_nombre ?? l.tipo_examen ?? '').toLowerCase();
-        if (tipo.includes('hemoglobina') && l.resultado) {
-          acc.push({ fecha: dayjs(l.fecha_toma).format('DD/MM'), valor: parseFloat(l.resultado), fecha_timestamp: new Date(l.fecha_toma).getTime() });
-        }
-        return acc;
-      }, [] as any[])
-      .sort((a, b) => a.fecha_timestamp - b.fecha_timestamp),
-    glucosa: laboratorios
-      .reduce((acc, l) => {
-        const tipo = String(l.tipo_examen_nombre ?? l.tipo_examen ?? '').toLowerCase();
-        if ((tipo.includes('glucosa') || tipo.includes('glicemia')) && l.resultado) {
-          acc.push({ fecha: dayjs(l.fecha_toma).format('DD/MM'), valor: parseFloat(l.resultado), fecha_timestamp: new Date(l.fecha_toma).getTime() });
-        }
-        return acc;
-      }, [] as any[])
-      .sort((a, b) => a.fecha_timestamp - b.fecha_timestamp),
-    hematocrito: laboratorios
-      .reduce((acc, l) => {
-        const tipo = String(l.tipo_examen_nombre ?? l.tipo_examen ?? '').toLowerCase();
-        if (tipo.includes('hematocrito') && l.resultado) {
-          acc.push({ fecha: dayjs(l.fecha_toma).format('DD/MM'), valor: parseFloat(l.resultado), fecha_timestamp: new Date(l.fecha_toma).getTime() });
-        }
-        return acc;
-      }, [] as any[])
-      .sort((a, b) => a.fecha_timestamp - b.fecha_timestamp),
+    hemoglobina: serie('hemoglobina'),
+    glucosa: serie('glucosa', 'glicemia'),
+    hematocrito: serie('hematocrito'),
   };
+  const categorias = [...new Set(laboratorios.map((l) => l.categoria).filter(Boolean))];
 
   return (
     <div>
@@ -113,11 +114,27 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
         bordered
         columns={[
           { title: 'Fecha Toma', dataIndex: 'fecha_toma', render: (t) => dayjs(t).format('DD/MM/YY'), width: 100, sorter: (a: any, b: any) => new Date(a.fecha_toma).getTime() - new Date(b.fecha_toma).getTime() },
-          { title: 'Categoría', dataIndex: 'categoria', render: (t) => <Tag>{t || 'General'}</Tag>, width: 120, filters: [{ text: 'Hematología', value: 'HEMATOLOGIA' }, { text: 'Química', value: 'QUIMICA' }, { text: 'Inmunología', value: 'INMUNOLOGIA' }, { text: 'Microbiología', value: 'MICROBIOLOGIA' }], onFilter: (value: any, record: any) => record.categoria === value },
+          { title: 'Categoría', dataIndex: 'categoria', render: (t) => <Tag>{t || 'General'}</Tag>, width: 120, filters: categorias.map((c) => ({ text: c, value: c })), onFilter: (value: any, record: any) => record.categoria === value },
           { title: 'Examen', dataIndex: 'tipo_examen_nombre', render: (n, r: any) => n ?? r.tipo_examen, width: 200 },
-          { title: 'Resultado', dataIndex: 'resultado', render: (t, r: any) => (<Text strong type={r.es_anormal ? 'danger' : 'success'}>{t} {r.unidad || ''}</Text>), width: 120 },
-          { title: 'Valores Ref.', dataIndex: 'valores_referencia', responsive: ['md'] as any, width: 120 },
-          { title: 'Estado', dataIndex: 'es_anormal', render: (v) => v ? (<Badge status="error" text="Anormal" />) : (<Badge status="success" text="Normal" />), align: 'center' as const, width: 100, filters: [{ text: 'Normal', value: false }, { text: 'Anormal', value: true }], onFilter: (value: any, record: any) => record.es_anormal === value },
+          {
+            title: 'Resultado', key: 'resultado', width: 260,
+            render: (_: unknown, r: Laboratorio) => (r.pendiente
+              ? <Text type="secondary">Pendiente</Text>
+              : (
+                <Space size={[4, 4]} wrap>
+                  {(r.resultados || []).slice(0, 3).map((f) => (
+                    <Tag key={f.parametro} color={COLOR_ESTADO[f.estado]}>{f.parametro}: {f.valor} {f.unidad}</Tag>
+                  ))}
+                  {(r.resultados || []).length > 3 && <Text type="secondary">+{(r.resultados || []).length - 3}</Text>}
+                </Space>
+              )),
+          },
+          {
+            title: 'Estado', key: 'estado', align: 'center' as const, width: 110,
+            render: (_: unknown, r: Laboratorio) => <EstadoExamen lab={r} />,
+            filters: [{ text: 'Crítico', value: 'critico' }, { text: 'Anormal', value: 'anormal' }, { text: 'Normal', value: 'normal' }, { text: 'Pendiente', value: 'pendiente' }],
+            onFilter: (value: any, r: Laboratorio) => estadoExamen(r) === value,
+          },
           { title: 'Adjunto', render: (_, r: any) => r.archivo_adjunto ? (<Button type="link" icon={<DownloadOutlined />} size="small">PDF</Button>) : (<Text type="secondary">-</Text>), align: 'center' as const, width: 80 }
         ]}
         expandable={{
@@ -129,9 +146,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
                     <Descriptions.Item label="Categoría" span={1}><Tag>{record.categoria || 'General'}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Tipo de Examen" span={2}><Text strong>{record.tipo_examen_nombre ?? record.tipo_examen}</Text></Descriptions.Item>
                     <Descriptions.Item label="Fecha de Toma" span={1}>{dayjs(record.fecha_toma).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
-                    <Descriptions.Item label="Resultado" span={1}><Text strong style={{ fontSize: 16 }} type={record.es_anormal ? 'danger' : 'success'}>{record.resultado} {record.unidad || ''}</Text></Descriptions.Item>
-                    <Descriptions.Item label="Estado" span={1}>{record.es_anormal ? (<Tag color="error" icon={<WarningOutlined />}>ANORMAL</Tag>) : (<Tag color="success" icon={<CheckCircleOutlined />}>NORMAL</Tag>)}</Descriptions.Item>
-                    <Descriptions.Item label="Valores de Referencia" span={3}><Text code>{record.valores_referencia || 'No especificado'}</Text></Descriptions.Item>
+                    <Descriptions.Item label="Estado" span={1}><EstadoExamen lab={record} /></Descriptions.Item>
                     {record.interpretacion && (<Descriptions.Item label="Interpretación" span={3}><Alert type={record.es_anormal ? 'error' : 'success'} message={record.interpretacion} showIcon /></Descriptions.Item>)}
                     {record.observaciones && (<Descriptions.Item label="Observaciones" span={3}><Text>{record.observaciones}</Text></Descriptions.Item>)}
                     {record.metodo && (<Descriptions.Item label="Método" span={1}>{record.metodo}</Descriptions.Item>)}
@@ -139,6 +154,22 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
                     {record.archivo_adjunto && (<Descriptions.Item label="Archivo Adjunto" span={3}><Button type="primary" icon={<DownloadOutlined />} size="small">Descargar Resultado PDF</Button></Descriptions.Item>)}
                   </Descriptions>
                 </Col>
+                {!record.pendiente && (
+                  <Col span={24}>
+                    <Table
+                      size="small"
+                      pagination={false}
+                      rowKey="parametro"
+                      dataSource={record.resultados}
+                      columns={[
+                        { title: 'Parámetro', dataIndex: 'parametro' },
+                        { title: 'Valor', render: (_: unknown, f: ParametroLaboratorio) => <Text strong type={f.estado === 'NORMAL' ? undefined : 'danger'}>{f.valor} {f.unidad}</Text> },
+                        { title: 'Referencia', render: (_: unknown, f: ParametroLaboratorio) => (f.rango_referencia ? `${f.rango_referencia} ${f.unidad}` : '—') },
+                        { title: 'Estado', dataIndex: 'estado', render: (e: ParametroLaboratorio['estado']) => <Tag color={COLOR_ESTADO[e]}>{e}</Tag> },
+                      ]}
+                    />
+                  </Col>
+                )}
                 <Col span={24}>
                   <Card size="small" title="Trazabilidad" className="historia-trazabilidad">
                     <Space split={verticalDivider} size="large">

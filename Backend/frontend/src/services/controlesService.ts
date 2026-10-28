@@ -2,7 +2,7 @@
  * =============================================================================
  * SERVICIO DE CONTROLES PRENATALES - VERSIÓN MEGA COMPLETA
  * =============================================================================
- * ✅ MEGA COMPLETO: Sistema integral de controles prenatales
+ * MEGA COMPLETO: Sistema integral de controles prenatales
  * 
  * MÓDULOS INCLUIDOS:
  * - CRUD completo de controles prenatales
@@ -24,6 +24,7 @@
 
 import api from './api';
 import { logger } from '../utils/logger';
+import { imcRedondeado } from '../utils/imc';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TIPOS Y ENUMS
@@ -42,7 +43,7 @@ export interface ControlPrenatal {
 
   // Relaciones
   embarazo: number;
-  embarazo_id?: number; // ✅ Alias para compatibilidad con serializer de detalle
+  embarazo_id?: number; // Alias para compatibilidad con serializer de detalle
   paciente?: number;
   medico?: number;
 
@@ -69,7 +70,7 @@ export interface ControlPrenatal {
   // Edad gestacional
   semanas_gestacion: number;
   dias_gestacion?: number;
-  // ✅ ALIAS para compatibilidad con componentes
+  // ALIAS para compatibilidad con componentes
   edad_gestacional_semanas?: number; // Alias de semanas_gestacion
   edad_gestacional_dias?: number; // Alias de dias_gestacion
   edad_gestacional?: string; // "Xw+Yd"
@@ -79,7 +80,7 @@ export interface ControlPrenatal {
   presion_arterial?: string; // "120/80"
   presion_sistolica?: number;
   presion_diastolica?: number;
-  // ✅ ALIAS para compatibilidad con componentes
+  // ALIAS para compatibilidad con componentes
   presion_arterial_sistolica?: number; // Alias de presion_sistolica
   presion_arterial_diastolica?: number; // Alias de presion_diastolica
   frecuencia_cardiaca?: number;
@@ -190,7 +191,7 @@ function normalizeListResponse<T>(data: any): T[] {
   if (Array.isArray(data)) return data as T[];
   if (data?.results && Array.isArray(data.results)) return data.results as T[];
   if (data?.data && Array.isArray(data.data)) return data.data as T[];
-  console.warn('⚠️ controlesService: Respuesta no es array:', data);
+  console.warn('controlesService: Respuesta no es array:', data);
   return [];
 }
 
@@ -225,7 +226,7 @@ export const controlesService = {
       const response = await api.get<ControlPrenatal[]>('/controles/', { params: filtros });
       return normalizeListResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
-      console.error('❌ Error listando controles:', error);
+      console.error('Error listando controles:', error);
       throw error;
     }
   },
@@ -242,7 +243,7 @@ export const controlesService = {
       const response = await api.get<ControlPrenatal>(`/controles/${id}/`);
       return normalizeSingleResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo control ${id}:`, error);
+      console.error(`Error obteniendo control ${id}:`, error);
       throw error;
     }
   },
@@ -257,10 +258,10 @@ export const controlesService = {
   async crear(data: Partial<ControlPrenatal>): Promise<ControlPrenatal> {
     try {
       const response = await api.post<ControlPrenatal>('/controles/', data);
-      logger.log('✅ Control prenatal creado');
+      logger.log('Control prenatal creado');
       return normalizeSingleResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
-      console.error('❌ Error creando control:', error);
+      console.error('Error creando control:', error);
       throw error;
     }
   },
@@ -275,10 +276,10 @@ export const controlesService = {
   async actualizar(id: number, data: Partial<ControlPrenatal>): Promise<ControlPrenatal> {
     try {
       const response = await api.put<ControlPrenatal>(`/controles/${id}/`, data);
-      logger.log(`✅ Control ${id} actualizado`);
+      logger.log(`Control ${id} actualizado`);
       return normalizeSingleResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error actualizando control ${id}:`, error);
+      console.error(`Error actualizando control ${id}:`, error);
       throw error;
     }
   },
@@ -286,10 +287,10 @@ export const controlesService = {
   async actualizarParcial(id: number, data: Partial<ControlPrenatal>): Promise<ControlPrenatal> {
     try {
       const response = await api.patch<ControlPrenatal>(`/controles/${id}/`, data);
-      logger.log(`✅ Control ${id} actualizado parcialmente`);
+      logger.log(`Control ${id} actualizado parcialmente`);
       return normalizeSingleResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error actualizando control ${id}:`, error);
+      console.error(`Error actualizando control ${id}:`, error);
       throw error;
     }
   },
@@ -304,9 +305,9 @@ export const controlesService = {
   async eliminar(id: number): Promise<void> {
     try {
       await api.delete(`/controles/${id}/`);
-      logger.log(`✅ Control ${id} eliminado`);
+      logger.log(`Control ${id} eliminado`);
     } catch (error: any) {
-      console.error(`❌ Error eliminando control ${id}:`, error);
+      console.error(`Error eliminando control ${id}:`, error);
       throw error;
     }
   },
@@ -354,7 +355,7 @@ export const controlesService = {
       if (error.response?.status === 404) {
         return null;
       }
-      console.error('❌ Error obteniendo último control:', error);
+      console.error('Error obteniendo último control:', error);
       throw error;
     }
   },
@@ -374,7 +375,7 @@ export const controlesService = {
       const response = await api.get<ControlPrenatal[]>('/controles/alertas/');
       return normalizeListResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo controles con alertas:', error);
+      console.error('Error obteniendo controles con alertas:', error);
       throw error;
     }
   },
@@ -395,10 +396,10 @@ export const controlesService = {
         '/controles/programar/',
         { embarazo: embarazoId, fecha_control: fechaControl }
       );
-      logger.log('✅ Control programado');
+      logger.log('Control programado');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error programando control:', error);
+      console.error('Error programando control:', error);
       throw error;
     }
   },
@@ -414,7 +415,7 @@ export const controlesService = {
       );
       return normalizeListResponse<ProgramacionControl>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo sugerencias:', error);
+      console.error('Error obteniendo sugerencias:', error);
       throw error;
     }
   },
@@ -433,7 +434,7 @@ export const controlesService = {
       );
       return normalizeListResponse<AlertaControl>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error evaluando control ${controlId}:`, error);
+      console.error(`Error evaluando control ${controlId}:`, error);
       throw error;
     }
   },
@@ -450,7 +451,7 @@ export const controlesService = {
       const response = await api.get(`/controles/${controlId}/detectar-riesgos/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error detectando riesgos:', error);
+      console.error('Error detectando riesgos:', error);
       throw error;
     }
   },
@@ -463,7 +464,7 @@ export const controlesService = {
    * Calcula IMC
    */
   calcularIMC(peso_kg: number, talla_m: number): number {
-    return peso_kg / (talla_m * talla_m);
+    return imcRedondeado(peso_kg, talla_m);
   },
 
   /**
@@ -518,7 +519,7 @@ export const controlesService = {
       );
       return normalizeListResponse<CurvaCrecimiento>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo curva de crecimiento:', error);
+      console.error('Error obteniendo curva de crecimiento:', error);
       throw error;
     }
   },
@@ -542,7 +543,7 @@ export const controlesService = {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas:', error);
+      console.error('Error obteniendo estadísticas:', error);
       throw error;
     }
   },
@@ -555,10 +556,10 @@ export const controlesService = {
       const response = await api.get(`/controles/${controlId}/reporte_completo/`, {
         responseType: 'blob'
       });
-      logger.log(`✅ PDF del control ${controlId} generado`);
+      logger.log(`PDF del control ${controlId} generado`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error generando PDF:`, error);
+      console.error(`Error generando PDF:`, error);
       throw error;
     }
   },
@@ -572,10 +573,10 @@ export const controlesService = {
         params: filtros,
         responseType: 'blob'
       });
-      logger.log('✅ Excel exportado');
+      logger.log('Excel exportado');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error exportando Excel:', error);
+      console.error('Error exportando Excel:', error);
       throw error;
     }
   },

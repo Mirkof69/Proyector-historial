@@ -236,7 +236,7 @@ const FormularioEcografia: React.FC = () => {
     }
 
     // Mostrar mensaje de confirmación
-    message.success(`✓ Edad gestacional autocompletada: ${semanas}+${dias} semanas`, 3);
+    message.success(`Edad gestacional autocompletada: ${semanas}+${dias} semanas`, 3);
   };
 
   // ==========================================================================

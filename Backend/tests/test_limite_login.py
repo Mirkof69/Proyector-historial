@@ -184,3 +184,18 @@ class LimiteDeLoginPorIPTest(APITestCase):
         assert self.usuario.bloqueado_hasta is not None, (
             "El bloqueo de cuenta dejó de funcionar al agregar el límite por IP."
         )
+
+    def test_el_quinto_intento_avisa_del_bloqueo_temporal(self):
+        """BUG-002: la pantalla mostraba «Acceso denegado. Contacte al
+        administrador.» y el 5.º intento decía «credenciales incorrectas»."""
+        with tasa("1000/min"):
+            for _ in range(4):
+                assert self._intento("claveIncorrecta").status_code == status.HTTP_401_UNAUTHORIZED
+            quinto = self._intento("claveIncorrecta")
+            con_la_buena = self._intento("ClaveCorrecta123!")
+
+        for respuesta in (quinto, con_la_buena):
+            assert respuesta.status_code == status.HTTP_423_LOCKED
+            assert respuesta.data["codigo"] == "cuenta_bloqueada"
+            assert "bloqueada temporalmente" in respuesta.data["error"]
+            assert respuesta.data["minutos_restantes"] == 15

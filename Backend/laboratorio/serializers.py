@@ -290,6 +290,8 @@ class ExamenLaboratorioListSerializer(serializers.ModelSerializer):
     medico_nombre = serializers.SerializerMethodField()
     tiene_resultados = serializers.SerializerMethodField()
     resultados_anormales = serializers.SerializerMethodField()
+    resumen = serializers.SerializerMethodField()
+    resultados = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -302,12 +304,15 @@ class ExamenLaboratorioListSerializer(serializers.ModelSerializer):
             "tipo_examen_nombre",
             "categoria",
             "fecha_solicitud",
+            "fecha_muestra",
             "fecha_resultado",
             "estado",
             "prioridad",
             "medico_nombre",
             "tiene_resultados",
             "resultados_anormales",
+            "resumen",
+            "resultados",
             "dias_desde_solicitud",
             "esta_vencido",
         ]
@@ -318,13 +323,46 @@ class ExamenLaboratorioListSerializer(serializers.ModelSerializer):
             return f"{obj.medico_solicitante.nombre} {obj.medico_solicitante.apellido_paterno}"
         return "No especificado"
 
+    def _resultados(self, obj):
+        # Lee lo que el viewset ya trajo con prefetch_related: filtrar con
+        # .filter()/.count() aquí lanzaba una consulta por fila del listado.
+        return list(obj.resultados.all())
+
     def get_tiene_resultados(self, obj):
         """Get tiene resultados"""
-        return obj.resultados.exists()
+        return bool(self._resultados(obj))
 
     def get_resultados_anormales(self, obj):
         """Get resultados anormales"""
-        return obj.resultados.filter(es_normal=False).count()
+        return sum(1 for r in self._resultados(obj) if not r.es_normal)
+
+    def get_resumen(self, obj):
+        """Lo mismo que el detalle: la lista y la historia clínica lo necesitan
+        para no mostrar «Sin resultados» o «Normal» ante un valor crítico."""
+        resultados = self._resultados(obj)
+        if not resultados:
+            return None
+        return {
+            "total_parametros": len(resultados),
+            "normales": sum(1 for r in resultados if r.es_normal),
+            "anormales": sum(1 for r in resultados if not r.es_normal),
+            "criticos": sum(1 for r in resultados if r.es_critico),
+        }
+
+    def get_resultados(self, obj):
+        """Valores medidos en forma compacta para la historia clínica."""
+        filas = []
+        for r in self._resultados(obj):
+            ref = r.valor_referencia
+            valor = r.valor_numerico if r.valor_numerico is not None else r.valor_texto
+            filas.append({
+                "parametro": ref.parametro,
+                "valor": str(valor) if valor is not None else "",
+                "unidad": ref.unidad or "",
+                "rango_referencia": ref.rango_texto(),
+                "estado": "CRÍTICO" if r.es_critico else ("ANORMAL" if not r.es_normal else "NORMAL"),
+            })
+        return filas
 
 
 class ExamenLaboratorioDetailSerializer(serializers.ModelSerializer):

@@ -4,6 +4,15 @@ import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
+// Rango como regla y no como min/max del InputNumber: este último cambiaba en
+// silencio 299 → 300 o 11 → 10 al salir del campo y se guardaba otro valor
+// distinto del escrito (BUG-009). Mismos límites que el servidor.
+const RANGO = {
+  peso: { type: 'number' as const, min: 300, max: 6000, message: 'El peso debe estar entre 300 y 6.000 g' },
+  talla: { type: 'number' as const, min: 20, max: 60, message: 'La talla debe estar entre 20 y 60 cm' },
+  apgar: { type: 'number' as const, min: 0, max: 10, message: 'El Apgar va de 0 a 10' },
+};
+
 interface SeccionRecienNacidoProps {
   tipoEvento: 'aborto' | 'parto' | null;
   /** Partos múltiples: solo al registrar (la edición toca el primer bebé). */
@@ -34,18 +43,18 @@ export const SeccionRecienNacido: React.FC<SeccionRecienNacidoProps> = ({ tipoEv
           <Form.Item
             name="peso_bebe"
             label="Peso (g)"
-            rules={[{ required: true, message: 'Ingrese peso' }]}
+            rules={[{ required: true, message: 'Ingrese peso' }, RANGO.peso]}
           >
-            <InputNumber min={300} max={6000} className="partos-ancho" placeholder="3200" />
+            <InputNumber className="partos-ancho" placeholder="3200" />
           </Form.Item>
         </Col>
         <Col span={8}>
           <Form.Item
             name="talla_bebe"
             label="Talla (cm)"
-            rules={[{ required: true, message: 'Ingrese talla' }]}
+            rules={[{ required: true, message: 'Ingrese talla' }, RANGO.talla]}
           >
-            <InputNumber min={20} max={60} step={0.1} className="partos-ancho" placeholder="50.0" />
+            <InputNumber step={0.1} className="partos-ancho" placeholder="50.0" />
           </Form.Item>
         </Col>
       </Row>
@@ -55,18 +64,18 @@ export const SeccionRecienNacido: React.FC<SeccionRecienNacidoProps> = ({ tipoEv
           <Form.Item
             name="apgar_1min"
             label="Apgar 1 min"
-            rules={[{ required: true, message: 'Ingrese Apgar 1 min' }]}
+            rules={[{ required: true, message: 'Ingrese Apgar 1 min' }, RANGO.apgar]}
           >
-            <InputNumber min={0} max={10} className="partos-ancho" />
+            <InputNumber className="partos-ancho" />
           </Form.Item>
         </Col>
         <Col span={12}>
           <Form.Item
             name="apgar_5min"
             label="Apgar 5 min"
-            rules={[{ required: true, message: 'Ingrese Apgar 5 min' }]}
+            rules={[{ required: true, message: 'Ingrese Apgar 5 min' }, RANGO.apgar]}
           >
-            <InputNumber min={0} max={10} className="partos-ancho" />
+            <InputNumber className="partos-ancho" />
           </Form.Item>
         </Col>
       </Row>
@@ -95,25 +104,25 @@ export const SeccionRecienNacido: React.FC<SeccionRecienNacidoProps> = ({ tipoEv
                       </Form.Item>
                     </Col>
                     <Col span={8}>
-                      <Form.Item name={[name, 'peso_nacimiento']} label="Peso (g)" rules={[{ required: true, message: 'Ingrese peso' }]}>
-                        <InputNumber min={300} max={6000} className="partos-ancho" placeholder="2400" />
+                      <Form.Item name={[name, 'peso_nacimiento']} label="Peso (g)" rules={[{ required: true, message: 'Ingrese peso' }, RANGO.peso]}>
+                        <InputNumber className="partos-ancho" placeholder="2400" />
                       </Form.Item>
                     </Col>
                     <Col span={8}>
-                      <Form.Item name={[name, 'talla_nacimiento']} label="Talla (cm)" rules={[{ required: true, message: 'Ingrese talla' }]}>
-                        <InputNumber min={20} max={60} step={0.1} className="partos-ancho" placeholder="46.0" />
+                      <Form.Item name={[name, 'talla_nacimiento']} label="Talla (cm)" rules={[{ required: true, message: 'Ingrese talla' }, RANGO.talla]}>
+                        <InputNumber step={0.1} className="partos-ancho" placeholder="46.0" />
                       </Form.Item>
                     </Col>
                   </Row>
                   <Row gutter={16}>
                     <Col span={12}>
-                      <Form.Item name={[name, 'apgar_1_minuto']} label="Apgar 1 min" rules={[{ required: true, message: 'Ingrese Apgar 1 min' }]}>
-                        <InputNumber min={0} max={10} className="partos-ancho" />
+                      <Form.Item name={[name, 'apgar_1_minuto']} label="Apgar 1 min" rules={[{ required: true, message: 'Ingrese Apgar 1 min' }, RANGO.apgar]}>
+                        <InputNumber className="partos-ancho" />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item name={[name, 'apgar_5_minutos']} label="Apgar 5 min" rules={[{ required: true, message: 'Ingrese Apgar 5 min' }]}>
-                        <InputNumber min={0} max={10} className="partos-ancho" />
+                      <Form.Item name={[name, 'apgar_5_minutos']} label="Apgar 5 min" rules={[{ required: true, message: 'Ingrese Apgar 5 min' }, RANGO.apgar]}>
+                        <InputNumber className="partos-ancho" />
                       </Form.Item>
                     </Col>
                   </Row>

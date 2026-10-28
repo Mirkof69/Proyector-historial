@@ -24,6 +24,7 @@ import SeccionInfoMedicaPaciente from './components/SeccionInfoMedicaPaciente';
 import SeccionAdminEmergenciaPaciente from './components/SeccionAdminEmergenciaPaciente';
 import SeccionConsentimientoPaciente from './components/SeccionConsentimientoPaciente';
 import './Pacientes.css';
+import { imcRedondeado } from '../../utils/imc';
 
 const { Title } = Typography;
 
@@ -60,7 +61,7 @@ const FormularioPaciente: React.FC = () => {
 
     if (peso && altura && peso > 0 && altura > 0) {
       const alturaMetros = altura / 100;
-      const imc = peso / (alturaMetros * alturaMetros);
+      const imc = imcRedondeado(peso, alturaMetros);
       let clasificacion = '';
 
       if (imc < 18.5) {

@@ -98,10 +98,10 @@ class DisponibilidadAdmin(admin.ModelAdmin):
         """Activo badge"""
         if obj.activo:
             return format_html(
-                '<span style="color: green; font-weight: bold;">✓ Activo</span>',
+                '<span style="color: green; font-weight: bold;">Activo</span>',
             )
         return format_html(
-            '<span style="color: red; font-weight: bold;">✗ Inactivo</span>',
+            '<span style="color: red; font-weight: bold;">Inactivo</span>',
         )
 
 
@@ -308,10 +308,10 @@ class CitaAdmin(admin.ModelAdmin):
         }
         icons = {
             "agendada": "",
-            "confirmada": "✅",
-            "completada": "✔️",
-            "cancelada": "❌",
-            "no_asistio": "⚠️",
+            "confirmada": "",
+            "completada": "",
+            "cancelada": "",
+            "no_asistio": "",
         }
         color = colors.get(obj.estado, "#95a5a6")
         icon = icons.get(obj.estado, "•")
@@ -348,7 +348,7 @@ class CitaAdmin(admin.ModelAdmin):
     def confirmada(self, obj):
         """Confirmada"""
         if obj.fecha_confirmacion:
-            return format_html('<span style="color: green;">✓</span>')
+            return format_html('<span style="color: green;">Sí</span>')
         return format_html('<span style="color: gray;">-</span>')
 
 

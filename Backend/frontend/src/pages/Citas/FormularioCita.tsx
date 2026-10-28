@@ -23,7 +23,6 @@ import { useAntdApp } from '../../hooks/useMessage';
 import './Citas.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { pacientesService } from '../../services/pacientesService';
 import { usuariosService } from '../../services/usuariosService';
 import { consultoriosService } from '../../services/consultoriosService';
 import { citasService, Cita, EstadoCita } from '../../services/citasService';
@@ -44,8 +43,7 @@ const FormularioCita: React.FC = () => {
   const cargarDatos = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const [pacientesData, usuariosData, consultoriosData] = await Promise.all([
-        pacientesService.getAll(),
+      const [usuariosData, consultoriosData] = await Promise.all([
         usuariosService.getAll(),
         consultoriosService.getAll()
       ]);
@@ -53,7 +51,7 @@ const FormularioCita: React.FC = () => {
       dispatch({
         type: 'SET_INITIAL_DATA',
         payload: {
-          pacientes: pacientesData,
+          pacientes: [],
           medicos: usuariosData.filter((u: any) => u.rol === 'medico' || u.rol === 'administrador'),
           consultorios: consultoriosData.filter((c: any) => c.activo && !c.en_mantenimiento),
         },
@@ -252,7 +250,6 @@ const FormularioCita: React.FC = () => {
               {/* Step 0: Paciente y Médico */}
               {state.currentStep === 0 && (
                 <StepPacienteMedico
-                  pacientes={state.pacientes}
                   medicos={state.medicos}
                   consultorios={state.consultorios}
                   handleMedicoChange={handleMedicoChange}

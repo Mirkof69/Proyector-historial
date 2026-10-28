@@ -53,6 +53,17 @@ class ControlPrenatalClinicaTest(TestCase):
         self.assertTrue(c.tiene_prehipertension())
         self.assertFalse(c.tiene_hipertension())
 
+    def test_pa_139_89_no_alerta(self):
+        """RF-06: solo PA ≥ 140/90 alerta; antes 139/89 daba «Pre-hipertensión» en el
+        detalle y «Sin alertas» en el listado (BUG-003)."""
+        from .serializers import ControlPrenatalListSerializer
+
+        c = _control(ci="000014", presion_arterial_sistolica=139, presion_arterial_diastolica=89,
+                     frecuencia_cardiaca_fetal=140)
+        self.assertEqual(c.get_alertas(), [])
+        self.assertFalse(c.tiene_alertas_criticas())
+        self.assertEqual(ControlPrenatalListSerializer(c).data["num_alertas"], 0)
+
     def test_fcf_normal(self):
         c = _control(ci="000005", frecuencia_cardiaca_fetal=140)
         self.assertFalse(c.fcf_es_anormal())

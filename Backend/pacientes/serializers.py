@@ -32,11 +32,11 @@ class PacienteSerializer(serializers.ModelSerializer):
     embarazos_activos = serializers.SerializerMethodField()
     imc = serializers.SerializerMethodField()
 
-    # ✅ TRAZABILIDAD - Información del usuario
+    # TRAZABILIDAD - Información del usuario
     created_by_display = serializers.SerializerMethodField()
     updated_by_display = serializers.SerializerMethodField()
 
-    # ✅ DATOS RELACIONADOS - Para Historia Clínica
+    # DATOS RELACIONADOS - Para Historia Clínica
     embarazos = serializers.SerializerMethodField()
     controles_prenatales = serializers.SerializerMethodField()
     ecografias = serializers.SerializerMethodField()
@@ -81,27 +81,27 @@ class PacienteSerializer(serializers.ModelSerializer):
             "fecha_registro",
             "fecha_actualizacion",
             "embarazos_activos",
-            # ✅ NUEVOS CAMPOS MÉDICOS - AGREGADOS
+            # NUEVOS CAMPOS MÉDICOS - AGREGADOS
             "tipo_sangre",
             "grupo_sanguineo",  # Alias para frontend
             "factor_rh",
             "numero_seguro_social",
             "estado_paciente",
             "fecha_baja",
-            # ✅ NUEVOS CAMPOS - CONTACTO DE EMERGENCIA
+            # NUEVOS CAMPOS - CONTACTO DE EMERGENCIA
             "contacto_emergencia_nombre",
             "contacto_emergencia_telefono",
             "contacto_emergencia_relacion",
-            # ✅ NUEVOS CAMPOS - DATOS ANTROPOMÉTRICOS
+            # NUEVOS CAMPOS - DATOS ANTROPOMÉTRICOS
             "peso_kg",
             "altura_cm",
             "imc",
-            # ✅ TRAZABILIDAD
+            # TRAZABILIDAD
             "created_by",
             "updated_by",
             "created_by_display",
             "updated_by_display",
-            # ✅ DATOS RELACIONADOS
+            # DATOS RELACIONADOS
             "embarazos",
             "controles_prenatales",
             "ecografias",
@@ -146,7 +146,7 @@ class PacienteSerializer(serializers.ModelSerializer):
         return obj.imc  # Usa la propiedad del modelo
 
     def get_created_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que creó el registro"""
+        """TRAZABILIDAD: Información del usuario que creó el registro"""
         if obj.created_by:
             return {
                 "id": obj.created_by.id,
@@ -159,7 +159,7 @@ class PacienteSerializer(serializers.ModelSerializer):
         return None
 
     def get_updated_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que actualizó el registro"""
+        """TRAZABILIDAD: Información del usuario que actualizó el registro"""
         if obj.updated_by:
             return {
                 "id": obj.updated_by.id,
@@ -174,49 +174,49 @@ class PacienteSerializer(serializers.ModelSerializer):
         return None
 
     def get_embarazos(self, obj):
-        """✅ DATOS RELACIONADOS: Lista de embarazos del paciente"""
+        """DATOS RELACIONADOS: Lista de embarazos del paciente"""
         from embarazos.serializers import EmbarazoListSerializer
 
         embarazos = obj.embarazos.all().order_by("-fecha_registro")
         return EmbarazoListSerializer(embarazos, many=True).data
 
     def get_controles_prenatales(self, obj):
-        """✅ DATOS RELACIONADOS: Lista de controles prenatales del paciente"""
+        """DATOS RELACIONADOS: Lista de controles prenatales del paciente"""
         from controles.serializers import ControlPrenatalListSerializer
 
         controles = obj.controles_prenatales.all().order_by("-fecha_control")
         return ControlPrenatalListSerializer(controles, many=True).data
 
     def get_ecografias(self, obj):
-        """✅ DATOS RELACIONADOS: Lista de ecografías del paciente"""
+        """DATOS RELACIONADOS: Lista de ecografías del paciente"""
         from ecografias.serializers import EcografiaSerializer
 
         ecografias = obj.ecografias.all().order_by("-fecha_ecografia")
         return EcografiaSerializer(ecografias, many=True).data
 
     def get_partos(self, obj):
-        """✅ DATOS RELACIONADOS: Lista de partos del paciente"""
+        """DATOS RELACIONADOS: Lista de partos del paciente"""
         from partos.serializers import PartoResumenSerializer
 
         partos = obj.partos.all().order_by("-fecha_parto")
         return PartoResumenSerializer(partos, many=True).data
 
     def get_citas(self, obj):
-        """✅ DATOS RELACIONADOS: Lista de citas del paciente"""
+        """DATOS RELACIONADOS: Lista de citas del paciente"""
         from citas.serializers import CitaListSerializer
 
         citas = obj.citas.all().order_by("-fecha_cita")
         return CitaListSerializer(citas, many=True).data
 
     def get_examenes_laboratorio(self, obj):
-        """✅ DATOS RELACIONADOS: Lista de exámenes de laboratorio del paciente"""
+        """DATOS RELACIONADOS: Lista de exámenes de laboratorio del paciente"""
         from laboratorio.serializers import ExamenLaboratorioListSerializer
 
         examenes = obj.examenes_laboratorio.all().order_by("-fecha_solicitud")
         return ExamenLaboratorioListSerializer(examenes, many=True).data
 
     def get_antecedentes_gineco(self, obj):
-        """✅ DATOS RELACIONADOS: Antecedente gineco-obstétrico del paciente (OneToOne)"""
+        """DATOS RELACIONADOS: Antecedente gineco-obstétrico del paciente (OneToOne)"""
         from antecedentes.serializers import AntecedenteGinecoObstetricoSerializer
 
         try:
@@ -229,7 +229,7 @@ class PacienteSerializer(serializers.ModelSerializer):
         return []
 
     def get_antecedentes_patologicos(self, obj):
-        """✅ DATOS RELACIONADOS: Lista de antecedentes patológicos del paciente"""
+        """DATOS RELACIONADOS: Lista de antecedentes patológicos del paciente"""
         from antecedentes.serializers import AntecedentePatologicoSerializer
 
         antecedentes = obj.antecedentes_patologicos.all().order_by("-fecha_registro")
@@ -307,7 +307,7 @@ class PacienteListSerializer(serializers.ModelSerializer):
     edad = serializers.SerializerMethodField()
     embarazos_activos = serializers.SerializerMethodField()
 
-    # ✅ NUEVOS CAMPOS OBSTÉTRICOS
+    # NUEVOS CAMPOS OBSTÉTRICOS
     numero_gesta = serializers.SerializerMethodField()
     numero_para = serializers.SerializerMethodField()
     numero_abortos = serializers.SerializerMethodField()
@@ -330,35 +330,35 @@ class PacienteListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "id_clinico",
-            "nombre",  # ✅ AGREGADO: Campo individual necesario para frontend
-            "apellido_paterno",  # ✅ AGREGADO: Campo individual necesario para frontend
-            "apellido_materno",  # ✅ AGREGADO: Campo individual necesario para frontend
+            "nombre",  # AGREGADO: Campo individual necesario para frontend
+            "apellido_paterno",  # AGREGADO: Campo individual necesario para frontend
+            "apellido_materno",  # AGREGADO: Campo individual necesario para frontend
             "nombre_completo",
-            "fecha_nacimiento",  # ✅ AGREGADO: NECESARIO para editar paciente
+            "fecha_nacimiento",  # AGREGADO: NECESARIO para editar paciente
             "edad",
             "genero",
             "telefono",  # CORREGIDO: era telefono_principal
             "ci",  # CORREGIDO: era uuid (que no existe)
-            "email",  # ✅ AGREGADO: Para expediente rápido
-            "direccion",  # ✅ AGREGADO: Para expediente rápido
-            "ciudad",  # ✅ AGREGADO: Para expediente rápido
-            "pais",  # ✅ AGREGADO: País del paciente
-            "estado_civil",  # ✅ AGREGADO: Estado civil del paciente
-            "ocupacion",  # ✅ AGREGADO: Ocupación del paciente
-            "observaciones",  # ✅ AGREGADO: Observaciones del paciente
-            "tipo_sangre",  # ✅ AGREGADO: Para expediente rápido
+            "email",  # AGREGADO: Para expediente rápido
+            "direccion",  # AGREGADO: Para expediente rápido
+            "ciudad",  # AGREGADO: Para expediente rápido
+            "pais",  # AGREGADO: País del paciente
+            "estado_civil",  # AGREGADO: Estado civil del paciente
+            "ocupacion",  # AGREGADO: Ocupación del paciente
+            "observaciones",  # AGREGADO: Observaciones del paciente
+            "tipo_sangre",  # AGREGADO: Para expediente rápido
             "grupo_sanguineo",  # Alias para frontend
             "activo",
             "embarazos_activos",
             "fecha_registro",
-            # ✅ NUEVOS CAMPOS OBSTÉTRICOS
+            # NUEVOS CAMPOS OBSTÉTRICOS
             "numero_gesta",
             "numero_para",
             "numero_abortos",
             "numero_cesareas",
             "ultimo_estado_obstetrico",
             "fecha_ultimo_evento",
-            # ✅ CAMPOS ANTROPOMÉTRICOS
+            # CAMPOS ANTROPOMÉTRICOS
             "peso_kg",
             "altura_cm",
             "imc",
@@ -528,18 +528,18 @@ class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
             "ocupacion",
             "observaciones",
             "activo",
-            # ✅ NUEVOS CAMPOS MÉDICOS - AGREGADOS
+            # NUEVOS CAMPOS MÉDICOS - AGREGADOS
             "tipo_sangre",
             "grupo_sanguineo",  # Alias para frontend
             "factor_rh",
             "numero_seguro_social",
             "estado_paciente",
             "fecha_baja",
-            # ✅ NUEVOS CAMPOS - CONTACTO DE EMERGENCIA
+            # NUEVOS CAMPOS - CONTACTO DE EMERGENCIA
             "contacto_emergencia_nombre",
             "contacto_emergencia_telefono",
             "contacto_emergencia_relacion",
-            # ✅ NUEVOS CAMPOS - DATOS ANTROPOMÉTRICOS
+            # NUEVOS CAMPOS - DATOS ANTROPOMÉTRICOS
             "peso_kg",
             "altura_cm",
             # Consentimiento de tratamiento de datos (Ley 164 Bolivia)

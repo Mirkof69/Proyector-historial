@@ -142,6 +142,15 @@ export interface Ecografia {
   archivo_reporte?: string;
 }
 
+/** Un parámetro medido dentro de un examen (Hemoglobina dentro del Hemograma). */
+export interface ParametroLaboratorio {
+  parametro: string;
+  valor: string;
+  unidad: string;
+  rango_referencia: string;
+  estado: 'NORMAL' | 'ANORMAL' | 'CRÍTICO';
+}
+
 export interface Laboratorio {
   id: number;
   fecha_toma: string;
@@ -149,9 +158,15 @@ export interface Laboratorio {
   /** La API manda la PK numerica en `tipo_examen` y el nombre aparte. */
   tipo_examen: string | number;
   tipo_examen_nombre?: string;
+  /** Texto de los valores para mostrar; los números están en `resultados`. */
   resultado: string;
   valores_referencia: string;
   es_anormal: boolean;
+  es_critico?: boolean;
+  /** Sin ningún parámetro cargado todavía. */
+  pendiente?: boolean;
+  resultados?: ParametroLaboratorio[];
+  estado?: string;
   observaciones_medicas?: string;
   archivo_adjunto?: string;
 }

@@ -331,7 +331,7 @@ class Notificacion(models.Model):
             prioridad=prioridad,
             titulo=f"Recordatorio: Cita {getattr(cita, 'get_tipo_cita_display')()}",
             mensaje=f"Tiene una cita agendada el {cita.fecha_hora_cita.strftime('%d/%m/%Y a las %H:%M')} con el Dr./Dra. {cita.medico.nombre_completo if cita.medico else 'pendiente'}",
-            url=f"/citas/{cita.id}",
+            url=f"/dashboard/citas/{cita.id}",
             url_texto="Ver Detalle de Cita",
             entidad_tipo="cita",
             entidad_id=cita.id,
@@ -363,7 +363,7 @@ class Notificacion(models.Model):
             prioridad=PrioridadNotificacion.CRITICA
             if tiene_criticos
             else PrioridadNotificacion.ALTA,
-            titulo="⚠️ RESULTADOS CRÍTICOS"
+            titulo="RESULTADOS CRÍTICOS"
             if tiene_criticos
             else "Resultados de Examen Listos",
             mensaje=f"Los resultados de {examen.tipo_examen.nombre} ya están disponibles."
@@ -372,7 +372,7 @@ class Notificacion(models.Model):
                 if tiene_criticos
                 else ""
             ),
-            url=f"/laboratorio/{examen.id}",
+            url=f"/dashboard/laboratorio/{examen.id}",
             url_texto="Ver Resultados",
             entidad_tipo="examen",
             entidad_id=examen.id,
@@ -413,7 +413,7 @@ class Notificacion(models.Model):
             prioridad=prioridad,
             titulo=titulo,
             mensaje=mensaje,
-            url=f"/pacientes/{paciente.id}",
+            url=f"/dashboard/historia-clinica/{paciente.id}",
             url_texto="Ver Historia Clínica",
             entidad_tipo="paciente",
             entidad_id=paciente.id,

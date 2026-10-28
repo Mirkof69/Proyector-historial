@@ -1,9 +1,9 @@
 """=============================================================================
 MÓDULO: PARTOS - ERRORS
 =============================================================================
-✅ Errores personalizados para el módulo de partos
-✅ Mensajes descriptivos y códigos de error específicos
-✅ Facilita el manejo de excepciones en views y serializers
+Errores personalizados para el módulo de partos
+Mensajes descriptivos y códigos de error específicos
+Facilita el manejo de excepciones en views y serializers
 =============================================================================
 """
 

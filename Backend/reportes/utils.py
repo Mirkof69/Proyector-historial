@@ -23,7 +23,7 @@ class OpcionesDinamicas:
     def obtener_pacientes_activos():
         """Obtiene pacientes activos con formato nombre completo"""
         try:
-            # ✅ LAZY IMPORT para evitar circular import
+            # LAZY IMPORT para evitar circular import
             from pacientes.models import Paciente
 
             pacientes = Paciente.objects.filter(activo=True)
@@ -39,7 +39,7 @@ class OpcionesDinamicas:
     def obtener_usuarios_medicos():
         """Obtiene usuarios que son médicos"""
         try:
-            # ✅ LAZY IMPORT para evitar circular import
+            # LAZY IMPORT para evitar circular import
             from usuarios.models import Usuario
 
             medicos = Usuario.objects.filter(rol="medico", activo=True)
@@ -55,7 +55,7 @@ class OpcionesDinamicas:
     def obtener_embarazos_activos():
         """Obtiene embarazos activos"""
         try:
-            # ✅ LAZY IMPORT para evitar circular import
+            # LAZY IMPORT para evitar circular import
             from embarazos.models import Embarazo
 
             embarazos = Embarazo.objects.filter(activo=True)

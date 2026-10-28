@@ -2,7 +2,7 @@
  * =============================================================================
  * SERVICIO DE CONSULTORIOS - VERSIÓN MEGA COMPLETA Y EXTENDIDA
  * =============================================================================
- * ✅ MEGA COMPLETO: Gestión integral de consultorios y disponibilidad
+ * MEGA COMPLETO: Gestión integral de consultorios y disponibilidad
  * 
  * MÓDULOS INCLUIDOS:
  * - Gestión completa de consultorios (CRUD)
@@ -226,7 +226,7 @@ function normalizeListResponse<T>(data: any): T[] {
   if (Array.isArray(data)) return data as T[];
   if (data?.results && Array.isArray(data.results)) return data.results as T[];
   if (data?.data && Array.isArray(data.data)) return data.data as T[];
-  console.warn('⚠️ consultoriosService: Respuesta no es array:', data);
+  console.warn('consultoriosService: Respuesta no es array:', data);
   return [];
 }
 
@@ -258,7 +258,7 @@ export const consultoriosService = {
       const response = await api.get<Consultorio[]>('/consultorios/', { params: filtros });
       return normalizeListResponse<Consultorio>(response);
     } catch (error: any) {
-      console.error('❌ Error listando consultorios:', error);
+      console.error('Error listando consultorios:', error);
       throw error;
     }
   },
@@ -278,7 +278,7 @@ export const consultoriosService = {
       const response = await api.get<Consultorio>(`/consultorios/${id}/`);
       return normalizeSingleResponse<Consultorio>(response);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo consultorio ${id}:`, error);
+      console.error(`Error obteniendo consultorio ${id}:`, error);
       throw error;
     }
   },
@@ -296,10 +296,10 @@ export const consultoriosService = {
   async crear(data: Partial<Consultorio>): Promise<Consultorio> {
     try {
       const response = await api.post<Consultorio>('/consultorios/', data);
-      logger.log('✅ Consultorio creado exitosamente');
+      logger.log('Consultorio creado exitosamente');
       return normalizeSingleResponse<Consultorio>(response);
     } catch (error: any) {
-      console.error('❌ Error creando consultorio:', error);
+      console.error('Error creando consultorio:', error);
       throw error;
     }
   },
@@ -317,10 +317,10 @@ export const consultoriosService = {
   async actualizar(id: number, data: Partial<Consultorio>): Promise<Consultorio> {
     try {
       const response = await api.put<Consultorio>(`/consultorios/${id}/`, data);
-      logger.log(`✅ Consultorio ${id} actualizado`);
+      logger.log(`Consultorio ${id} actualizado`);
       return normalizeSingleResponse<Consultorio>(response);
     } catch (error: any) {
-      console.error(`❌ Error actualizando consultorio ${id}:`, error);
+      console.error(`Error actualizando consultorio ${id}:`, error);
       throw error;
     }
   },
@@ -331,10 +331,10 @@ export const consultoriosService = {
   async actualizarParcial(id: number, data: Partial<Consultorio>): Promise<Consultorio> {
     try {
       const response = await api.patch<Consultorio>(`/consultorios/${id}/`, data);
-      logger.log(`✅ Consultorio ${id} actualizado parcialmente`);
+      logger.log(`Consultorio ${id} actualizado parcialmente`);
       return normalizeSingleResponse<Consultorio>(response);
     } catch (error: any) {
-      console.error(`❌ Error actualizando consultorio ${id}:`, error);
+      console.error(`Error actualizando consultorio ${id}:`, error);
       throw error;
     }
   },
@@ -352,9 +352,9 @@ export const consultoriosService = {
   async eliminar(id: number): Promise<void> {
     try {
       await api.delete(`/consultorios/${id}/`);
-      logger.log(`✅ Consultorio ${id} eliminado`);
+      logger.log(`Consultorio ${id} eliminado`);
     } catch (error: any) {
-      console.error(`❌ Error eliminando consultorio ${id}:`, error);
+      console.error(`Error eliminando consultorio ${id}:`, error);
       throw error;
     }
   },
@@ -382,7 +382,7 @@ export const consultoriosService = {
       const response = await api.get<Consultorio[]>('/consultorios/disponibles/', { params });
       return normalizeListResponse<Consultorio>(response);
     } catch (error: any) {
-      console.error('❌ Error obteniendo consultorios disponibles:', error);
+      console.error('Error obteniendo consultorios disponibles:', error);
       throw error;
     }
   },
@@ -402,7 +402,7 @@ export const consultoriosService = {
       });
       return response;
     } catch (error: any) {
-      console.error(`❌ Error verificando disponibilidad:`, error);
+      console.error(`Error verificando disponibilidad:`, error);
       throw error;
     }
   },
@@ -417,7 +417,7 @@ export const consultoriosService = {
       );
       return normalizeListResponse<HorarioConsultorio>(response);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo horarios:`, error);
+      console.error(`Error obteniendo horarios:`, error);
       throw error;
     }
   },
@@ -434,10 +434,10 @@ export const consultoriosService = {
         `/consultorios/${consultorioId}/horarios/`,
         data
       );
-      logger.log('✅ Horario creado');
+      logger.log('Horario creado');
       return response;
     } catch (error: any) {
-      console.error('❌ Error creando horario:', error);
+      console.error('Error creando horario:', error);
       throw error;
     }
   },
@@ -455,10 +455,10 @@ export const consultoriosService = {
         `/consultorios/${consultorioId}/horarios/${horarioId}/`,
         data
       );
-      logger.log('✅ Horario actualizado');
+      logger.log('Horario actualizado');
       return response;
     } catch (error: any) {
-      console.error('❌ Error actualizando horario:', error);
+      console.error('Error actualizando horario:', error);
       throw error;
     }
   },
@@ -469,9 +469,9 @@ export const consultoriosService = {
   async eliminarHorario(consultorioId: number, horarioId: number): Promise<void> {
     try {
       await api.delete(`/consultorios/${consultorioId}/horarios/${horarioId}/`);
-      logger.log('✅ Horario eliminado');
+      logger.log('Horario eliminado');
     } catch (error: any) {
-      console.error('❌ Error eliminando horario:', error);
+      console.error('Error eliminando horario:', error);
       throw error;
     }
   },
@@ -499,7 +499,7 @@ export const consultoriosService = {
       );
       return normalizeListResponse<OcupacionConsultorio>(response);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo ocupaciones:`, error);
+      console.error(`Error obteniendo ocupaciones:`, error);
       throw error;
     }
   },
@@ -510,10 +510,10 @@ export const consultoriosService = {
   async registrarOcupacion(data: Partial<OcupacionConsultorio>): Promise<OcupacionConsultorio> {
     try {
       const response = await api.post<OcupacionConsultorio>('/consultorios/ocupaciones/', data);
-      logger.log('✅ Ocupación registrada');
+      logger.log('Ocupación registrada');
       return response;
     } catch (error: any) {
-      console.error('❌ Error registrando ocupación:', error);
+      console.error('Error registrando ocupación:', error);
       throw error;
     }
   },
@@ -526,10 +526,10 @@ export const consultoriosService = {
       const response = await api.post<OcupacionConsultorio>(
         `/consultorios/ocupaciones/${ocupacionId}/finalizar/`
       );
-      logger.log('✅ Ocupación finalizada');
+      logger.log('Ocupación finalizada');
       return response;
     } catch (error: any) {
-      console.error('❌ Error finalizando ocupación:', error);
+      console.error('Error finalizando ocupación:', error);
       throw error;
     }
   },
@@ -547,7 +547,7 @@ export const consultoriosService = {
       if (error.response?.status === 404) {
         return null; // No hay ocupación actual
       }
-      console.error('❌ Error obteniendo ocupación actual:', error);
+      console.error('Error obteniendo ocupación actual:', error);
       throw error;
     }
   },
@@ -569,7 +569,7 @@ export const consultoriosService = {
       const response = await api.get<ReservaConsultorio[]>('/consultorios/reservas/', { params });
       return normalizeListResponse<ReservaConsultorio>(response);
     } catch (error: any) {
-      console.error('❌ Error listando reservas:', error);
+      console.error('Error listando reservas:', error);
       throw error;
     }
   },
@@ -580,10 +580,10 @@ export const consultoriosService = {
   async crearReserva(data: Partial<ReservaConsultorio>): Promise<ReservaConsultorio> {
     try {
       const response = await api.post<ReservaConsultorio>('/consultorios/reservas/', data);
-      logger.log('✅ Reserva creada');
+      logger.log('Reserva creada');
       return response;
     } catch (error: any) {
-      console.error('❌ Error creando reserva:', error);
+      console.error('Error creando reserva:', error);
       throw error;
     }
   },
@@ -596,10 +596,10 @@ export const consultoriosService = {
       const response = await api.post<ReservaConsultorio>(
         `/consultorios/reservas/${reservaId}/aprobar/`
       );
-      logger.log('✅ Reserva aprobada');
+      logger.log('Reserva aprobada');
       return response;
     } catch (error: any) {
-      console.error('❌ Error aprobando reserva:', error);
+      console.error('Error aprobando reserva:', error);
       throw error;
     }
   },
@@ -613,10 +613,10 @@ export const consultoriosService = {
         `/consultorios/reservas/${reservaId}/rechazar/`,
         { motivo }
       );
-      logger.log('✅ Reserva rechazada');
+      logger.log('Reserva rechazada');
       return response;
     } catch (error: any) {
-      console.error('❌ Error rechazando reserva:', error);
+      console.error('Error rechazando reserva:', error);
       throw error;
     }
   },
@@ -630,10 +630,10 @@ export const consultoriosService = {
         `/consultorios/reservas/${reservaId}/cancelar/`,
         { motivo }
       );
-      logger.log('✅ Reserva cancelada');
+      logger.log('Reserva cancelada');
       return response;
     } catch (error: any) {
-      console.error('❌ Error cancelando reserva:', error);
+      console.error('Error cancelando reserva:', error);
       throw error;
     }
   },
@@ -657,7 +657,7 @@ export const consultoriosService = {
       );
       return normalizeListResponse<MantenimientoConsultorio>(response);
     } catch (error: any) {
-      console.error('❌ Error listando mantenimientos:', error);
+      console.error('Error listando mantenimientos:', error);
       throw error;
     }
   },
@@ -673,10 +673,10 @@ export const consultoriosService = {
         '/consultorios/mantenimientos/',
         data
       );
-      logger.log('✅ Mantenimiento programado');
+      logger.log('Mantenimiento programado');
       return response;
     } catch (error: any) {
-      console.error('❌ Error programando mantenimiento:', error);
+      console.error('Error programando mantenimiento:', error);
       throw error;
     }
   },
@@ -698,10 +698,10 @@ export const consultoriosService = {
         `/consultorios/mantenimientos/${mantenimientoId}/completar/`,
         data
       );
-      logger.log('✅ Mantenimiento completado');
+      logger.log('Mantenimiento completado');
       return response;
     } catch (error: any) {
-      console.error('❌ Error completando mantenimiento:', error);
+      console.error('Error completando mantenimiento:', error);
       throw error;
     }
   },
@@ -727,7 +727,7 @@ export const consultoriosService = {
       );
       return response;
     } catch (error: any) {
-      console.error(`❌ Error obteniendo estadísticas:`, error);
+      console.error(`Error obteniendo estadísticas:`, error);
       throw error;
     }
   },
@@ -744,7 +744,7 @@ export const consultoriosService = {
       const response = await api.get('/consultorios/reporte-uso/', { params });
       return response;
     } catch (error: any) {
-      console.error('❌ Error generando reporte:', error);
+      console.error('Error generando reporte:', error);
       throw error;
     }
   },
@@ -758,10 +758,10 @@ export const consultoriosService = {
         params,
         responseType: 'blob'
       });
-      logger.log('✅ Reporte PDF generado');
+      logger.log('Reporte PDF generado');
       return response;
     } catch (error: any) {
-      console.error('❌ Error exportando PDF:', error);
+      console.error('Error exportando PDF:', error);
       throw error;
     }
   },
@@ -779,7 +779,7 @@ export const consultoriosService = {
       const consultorio = consultorios.find(c => c.codigo === codigo);
       return consultorio || null;
     } catch (error: any) {
-      console.error('❌ Error buscando por código:', error);
+      console.error('Error buscando por código:', error);
       throw error;
     }
   },

@@ -160,7 +160,7 @@ class AnexosFetalesSerializer(serializers.ModelSerializer):
             "id",
             "placenta_localizacion",
             "placenta_grosor",
-            "placenta_insercion_cordon",  # ✅ CORREGIDO: era 'placenta_inserccion_cordon'
+            "placenta_insercion_cordon",  # CORREGIDO: era 'placenta_inserccion_cordon'
             "placenta_previa",
             "numero_vasos_cordon",
             "circular_cordon",

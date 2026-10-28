@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { antecedentesService } from '../../services/antecedentesService';
-import { pacientesService } from '../../services/pacientesService';
 import {
   Table, Button, Modal, Tag, Tooltip, Space,
   Spin, Empty, Popconfirm, Form
@@ -33,7 +32,7 @@ const Antecedentes: React.FC = () => {
     setState(prev => ({ ...prev, ...update }));
   }, []);
 
-  const { antecedentes, pacientes, loading, searchText, isModalVisible, editingId } = state;
+  const { antecedentes, loading, searchText, isModalVisible, editingId } = state;
   const { message, modal } = useAntdApp();
   const [form] = Form.useForm();
 
@@ -58,20 +57,9 @@ const Antecedentes: React.FC = () => {
     }
   }, [message, updateState]);
 
-  const loadPacientes = useCallback(async () => {
-    try {
-      const data = await pacientesService.listar();
-      updateState({ pacientes: data });
-    } catch (error) {
-      console.error('Error al cargar pacientes:', error);
-      message.error('No se pudo cargar la lista de pacientes');
-    }
-  }, [updateState, message]);
-
   useEffect(() => {
     loadAntecedentes();
-    loadPacientes();
-  }, [loadAntecedentes, loadPacientes]);
+  }, [loadAntecedentes]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -122,11 +110,9 @@ const Antecedentes: React.FC = () => {
 
   const getNombrePaciente = (record: any) => {
     if (record.paciente_info?.nombre_completo) return record.paciente_info.nombre_completo;
-    const pacienteId = record.paciente_id || record.paciente;
-    const paciente = pacientes.find(p => p.id === pacienteId);
-    return paciente
-      ? `${paciente.nombre} ${paciente.apellido_paterno || paciente.apellido || ''}`.trim()
-      : record.paciente_nombre || '-';
+    // El nombre llega en paciente_info: descargar las 3.000 pacientes para
+    // buscarlo aquí congelaba la pantalla varios segundos.
+    return record.paciente_nombre || '-';
   };
 
   const filteredAntecedentes = antecedentesArray.filter((ant: any) => {
@@ -226,7 +212,7 @@ const Antecedentes: React.FC = () => {
         width={700}
       >
         <Form form={form} layout="vertical" onFinish={handleSave}>
-          <AntecedentesFormFields pacientes={pacientes} />
+          <AntecedentesFormFields />
         </Form>
       </Modal>
     </div>

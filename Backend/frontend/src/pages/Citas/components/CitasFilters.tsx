@@ -31,7 +31,7 @@ const CitasFilters: React.FC<CitasFiltersProps> = ({
   onLimpiar,
 }) => (
   <Row gutter={[16, 16]} className="citas-separado">
-    <Col xs={24} sm={12} md={8}>
+    <Col xs={24} sm={12} md={7}>
       <Input
         placeholder="Buscar por paciente, médico, motivo, ID clínico..."
         prefix={<SearchOutlined />}
@@ -80,7 +80,7 @@ const CitasFilters: React.FC<CitasFiltersProps> = ({
         placeholder={['Desde', 'Hasta']}
       />
     </Col>
-    <Col xs={24} sm={12} md={2}>
+    <Col xs={24} sm={12} md={3}>
       <Button icon={<FilterOutlined />} onClick={onLimpiar} block>
         Limpiar
       </Button>

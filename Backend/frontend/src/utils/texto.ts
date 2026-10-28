@@ -22,3 +22,13 @@ export const normalizarTexto = (texto?: string | null): string =>
 /** ¿`texto` contiene `termino`, ignorando tildes y mayúsculas? */
 export const incluyeTexto = (texto: string | null | undefined, termino: string): boolean =>
     normalizarTexto(texto).includes(normalizarTexto(termino));
+
+/**
+ * `filterOption` para los Select con buscador: compara la etiqueta visible
+ * (`label` o el texto de `children`) sin tildes ni mayúsculas.
+ */
+export const filtrarOpcion = (entrada: string, opcion?: { label?: unknown; children?: unknown }): boolean => {
+    const visible = opcion?.label ?? opcion?.children;
+    const texto = Array.isArray(visible) ? visible.filter((p) => typeof p === 'string').join(' ') : String(visible ?? '');
+    return incluyeTexto(texto, entrada);
+};

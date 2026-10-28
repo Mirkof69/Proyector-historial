@@ -83,7 +83,7 @@ const Consultorios: React.FC = () => {
   const [verificandoDisponibilidad, setVerificandoDisponibilidad] = useState(false);
   const [resultadoDisponibilidad, setResultadoDisponibilidad] = useState<any>(null);
 
-  // ✨ NUEVO ESTADO PARA TABS DE ORGANIZACIÓN
+  // NUEVO ESTADO PARA TABS DE ORGANIZACIÓN
   const [activeTab, setActiveTab] = useState('lista');
 
   // Cargar consultorios con useCallback para evitar warnings

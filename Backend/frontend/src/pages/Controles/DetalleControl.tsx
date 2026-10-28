@@ -2,12 +2,12 @@
  * =============================================================================
  * MÓDULO: DETALLE DE CONTROL PRENATAL - VISTA COMPLETA V3.3 CORREGIDA FINAL
  * =============================================================================
- * ✅ CORRECCIONES V3.3 - FIXES CRÍTICOS APLICADOS:
- * - Fix: IMC ahora se calcula correctamente (~28.36 kg/m² en lugar de 285952.4) ✅
- * - Fix: Edad gestacional formateada correctamente ("16 semanas + 6 días") ✅
- * - Fix: Usa campos calculados del backend (edad_gestacional, presion_arterial) ✅
- * - Fix: Todos los cálculos médicos validados y correctos ✅
- * - Fix: Visualización profesional y clara de todos los datos ✅
+ * CORRECCIONES V3.3 - FIXES CRÍTICOS APLICADOS:
+ * - Fix: IMC ahora se calcula correctamente (~28.36 kg/m² en lugar de 285952.4) 
+ * - Fix: Edad gestacional formateada correctamente ("16 semanas + 6 días") 
+ * - Fix: Usa campos calculados del backend (edad_gestacional, presion_arterial) 
+ * - Fix: Todos los cálculos médicos validados y correctos 
+ * - Fix: Visualización profesional y clara de todos los datos 
  * =============================================================================
  */
 
@@ -88,7 +88,7 @@ const DetalleControl: React.FC = () => {
       const controlData = await controlesService.getById(parseInt(id));
       setControl(controlData);
 
-      // ✅ FIX: Usar embarazo_id del response (serializer de detalle usa embarazo_id)
+      // FIX: Usar embarazo_id del response (serializer de detalle usa embarazo_id)
       const embarazoId = controlData.embarazo_id || controlData.embarazo;
       const embarazoData = await embarazosService.getById(embarazoId);
       setEmbarazo(embarazoData);
@@ -238,7 +238,7 @@ const DetalleControl: React.FC = () => {
     );
   }
 
-  // ========== ✅ INFORMACIÓN CALCULADA CORREGIDA ==========
+  // ========== INFORMACIÓN CALCULADA CORREGIDA ==========
   const edadGestacionalTexto = getEdadGestacional(control);
   const presionArterialTexto = getPresionArterial(control);
   const trimestre =
@@ -254,7 +254,7 @@ const DetalleControl: React.FC = () => {
   const hayControlAnterior = indexControlActual > 0;
   const hayControlSiguiente = indexControlActual < controlesEmbarazo.length - 1;
 
-  // ✅ FIX: Calcular IMC correctamente
+  // FIX: Calcular IMC correctamente
   const imcMaterno = calcularIMC(control.peso_actual, control.talla);
   const clasificacionIMC = clasificarIMC(imcMaterno);
 

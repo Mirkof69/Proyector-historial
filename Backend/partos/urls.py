@@ -8,7 +8,7 @@ from . import views, views_epicrisis, views_intraparto
 router = DefaultRouter()
 router.register(r"epicrisis", views_epicrisis.EpicrisisViewSet, basename="epicrisis")
 router.register(r"epicrisis-campos", views_epicrisis.CampoAdicionalEpicrisisViewSet, basename="epicrisis-campo")
-# ✅ FIX: No usar prefijo 'partos' porque ya está en historial/urls.py
+# FIX: No usar prefijo 'partos' porque ya está en historial/urls.py
 router.register(r"recien-nacidos", views.RecienNacidoViewSet, basename="recien-nacido")
 router.register(r"partograma", views.PartogramaRegistroViewSet, basename="partograma")
 router.register(

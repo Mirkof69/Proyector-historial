@@ -4,11 +4,67 @@ MÓDULO: NOTIFICACIONES - SERIALIZERS
 Serializers para el sistema de notificaciones
 =============================================================================
 """
+import re
+
+from django.apps import apps
 
 from rest_framework import serializers
 
 from .models import ConfiguracionNotificaciones, HistorialNotificaciones, Notificacion
 
+
+
+# Pantalla de cada entidad. Las notificaciones guardaban rutas que no existen
+# («/laboratorio/resultados/14247», «/citas/5» sin /dashboard) o ninguna: al
+# hacer clic no se abría nada.
+_RUTA_ENTIDAD = {
+    "paciente": "/dashboard/historia-clinica/{id}",
+    "embarazo": "/dashboard/embarazos/{id}",
+    "control": "/dashboard/controles/{id}",
+    "cita": "/dashboard/citas/{id}",
+    "examen": "/dashboard/laboratorio/{id}",
+    "parto": "/dashboard/partos/{id}",
+}
+
+
+_MODELO_ENTIDAD = {
+    "paciente": "pacientes.Paciente",
+    "embarazo": "embarazos.Embarazo",
+    "control": "controles.ControlPrenatal",
+    "cita": "citas.Cita",
+    "examen": "laboratorio.ExamenLaboratorio",
+    "parto": "partos.Parto",
+}
+
+
+def enlace_de(obj, usuario=None) -> str:
+    """Ruta del frontend que abre lo que la notificación anuncia."""
+
+    entidad, eid = obj.entidad_tipo, obj.entidad_id
+    if entidad == "resultado_laboratorio" and eid:
+        from laboratorio.models import ResultadoLaboratorio
+
+        examen = ResultadoLaboratorio.objects.filter(pk=eid).values_list("examen_id", flat=True).first()
+        if examen:
+            return f"/dashboard/laboratorio/{examen}"
+    if entidad in _RUTA_ENTIDAD and eid:
+        # Si el registro ya no existe (p. ej. lo borró la limpieza de pruebas),
+        # se abre la bandeja en vez de una pantalla que da 404.
+        modelo = apps.get_model(*_MODELO_ENTIDAD[entidad].split("."))
+        if not modelo.objects.filter(pk=eid).exists():
+            return "/dashboard/notificaciones"
+        if entidad == "paciente" and usuario is not None and not usuario.has_perm("controles.view_controlprenatal"):
+            return f"/dashboard/pacientes/{eid}"  # recepción no abre la historia clínica
+        return _RUTA_ENTIDAD[entidad].format(id=eid)
+    url = (obj.url or "").strip()
+    if re.match(r"^/(?:dashboard/)?laboratorio/resultados/", url):
+        return "/dashboard/laboratorio"
+    m = re.match(r"^/(?:dashboard/)?laboratorio/examenes/(\d+)", url)
+    if m:
+        return f"/dashboard/laboratorio/{m.group(1)}"
+    if url.startswith("/") and not url.startswith("/dashboard"):
+        return "/dashboard" + url
+    return url or "/dashboard/notificaciones"
 
 class NotificacionSerializer(serializers.ModelSerializer):
     """Serializer completo para Notificaciones"""
@@ -16,6 +72,7 @@ class NotificacionSerializer(serializers.ModelSerializer):
     tiempo_transcurrido = serializers.SerializerMethodField()
     esta_vigente = serializers.SerializerMethodField()
     tipo_display = serializers.CharField(source="get_tipo_display", read_only=True)
+    enlace = serializers.SerializerMethodField()
     prioridad_display = serializers.CharField(
         source="get_prioridad_display", read_only=True,
     )
@@ -40,6 +97,7 @@ class NotificacionSerializer(serializers.ModelSerializer):
             "color",
             "url",
             "url_texto",
+            "enlace",
             "leida",
             "fecha_leida",
             "archivada",
@@ -64,12 +122,17 @@ class NotificacionSerializer(serializers.ModelSerializer):
         """Verifica si la notificación está vigente"""
         return obj.esta_vigente()
 
+    def get_enlace(self, obj):
+        request = self.context.get("request")
+        return enlace_de(obj, getattr(request, "user", None))
+
 
 class NotificacionListSerializer(serializers.ModelSerializer):
     """Serializer ligero para listados de notificaciones"""
 
     tipo_display = serializers.CharField(source="get_tipo_display", read_only=True)
     tiempo_transcurrido = serializers.SerializerMethodField()
+    enlace = serializers.SerializerMethodField()
 
     class Meta:
         """Meta"""
@@ -80,8 +143,11 @@ class NotificacionListSerializer(serializers.ModelSerializer):
             "tipo_display",
             "prioridad",
             "titulo",
+            "mensaje",
             "icono",
             "color",
+            "url_texto",
+            "enlace",
             "leida",
             "archivada",
             "fecha_creacion",
@@ -91,6 +157,10 @@ class NotificacionListSerializer(serializers.ModelSerializer):
     def get_tiempo_transcurrido(self, obj):
         """Get tiempo transcurrido"""
         return obj.get_tiempo_transcurrido()
+
+    def get_enlace(self, obj):
+        request = self.context.get("request")
+        return enlace_de(obj, getattr(request, "user", None))
 
 
 class NotificacionCreateSerializer(serializers.ModelSerializer):

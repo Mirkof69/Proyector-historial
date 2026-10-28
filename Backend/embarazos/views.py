@@ -1,8 +1,8 @@
 """=============================================================================
 MÓDULO: EMBARAZOS - VIEWSET V3.0 FINAL CORREGIDO
 =============================================================================
-✅ Sin errores de prefetch_related
-✅ Optimizado para el modelo real
+Sin errores de prefetch_related
+Optimizado para el modelo real
 =============================================================================
 """
 
@@ -85,7 +85,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         ("Fecha de registro", "fecha_registro"),
     ]
 
-    # ✅ OPTIMIZACIÓN: Solo select_related (sin prefetch que causa error)
+    # OPTIMIZACIÓN: Solo select_related (sin prefetch que causa error)
     queryset = (
         Embarazo.objects.select_related("paciente", "medico_responsable").prefetch_related("partos", "ecografias")
         .all().order_by("-fecha_registro")
@@ -123,23 +123,23 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     ]
 
     def get_serializer_class(self):
-        """✅ Serializer según acción"""
+        """Serializer según acción"""
         if self.action in ["create", "update", "partial_update"]:
             return EmbarazoCreateUpdateSerializer
         if self.action == "list":
-            return EmbarazoListSerializer  # ✅ Usar serializer optimizado para listados
+            return EmbarazoListSerializer  # Usar serializer optimizado para listados
         return EmbarazoSerializer  # Para retrieve y acciones personalizadas
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     def get_queryset(self):
-        """✅ Filtros avanzados"""
+        """Filtros avanzados"""
         queryset = super().get_queryset()
 
         # Filtro por rango de fechas FUM
@@ -224,7 +224,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         responses={201: EmbarazoSerializer},
     )
     def create(self, request, *args, **kwargs):
-        """✅ Crear embarazo"""
+        """Crear embarazo"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -389,7 +389,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def activos(self, _request):
-        """✅ Embarazos activos"""
+        """Embarazos activos"""
         assert self.queryset is not None
         embarazos = self.queryset.filter(estado="activo")
 
@@ -403,7 +403,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="por_paciente")
     def por_paciente(self, request):
-        """✅ Embarazos de un paciente"""
+        """Embarazos de un paciente"""
         paciente_id = request.query_params.get("paciente_id", None)
 
         if not paciente_id:
@@ -522,10 +522,10 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def controles(self, _request, pk=None):
-        """✅ Controles del embarazo"""
+        """Controles del embarazo"""
         embarazo = self.get_object()
 
-        # ✅ Usar related_name correcto del modelo: 'controles'
+        # Usar related_name correcto del modelo: 'controles'
         controles = embarazo.controles.all().order_by("numero_control", "fecha_control")
 
         from controles.serializers import ControlPrenatalListSerializer
@@ -542,7 +542,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def reactivar(self, _request, pk=None):
-        """✅ Reactivar embarazo"""
+        """Reactivar embarazo"""
         embarazo = self.get_object()
 
         if embarazo.estado == "activo":
@@ -574,7 +574,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def alto_riesgo(self, _request):
-        """✅ Embarazos de alto riesgo"""
+        """Embarazos de alto riesgo"""
         assert self.queryset is not None
         embarazos_alto_riesgo = self.queryset.filter(
             estado="activo", riesgo_embarazo="alto",
@@ -592,7 +592,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def proximos_partos(self, request):
-        """✅ Próximos partos"""
+        """Próximos partos"""
         dias = int(request.query_params.get("dias", 30))
         hoy = timezone.localdate()
         fecha_limite = hoy + timedelta(days=dias)
@@ -618,7 +618,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def primer_trimestre(self, _request):
-        """✅ Embarazos en 1er trimestre"""
+        """Embarazos en 1er trimestre"""
         hoy = timezone.localdate()
         fecha_min = hoy - timedelta(weeks=13)
 
@@ -640,7 +640,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def segundo_trimestre(self, _request):
-        """✅ Embarazos en 2do trimestre"""
+        """Embarazos en 2do trimestre"""
         hoy = timezone.localdate()
         fecha_max = hoy - timedelta(weeks=14)
         fecha_min = hoy - timedelta(weeks=27)
@@ -665,7 +665,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def tercer_trimestre(self, _request):
-        """✅ Embarazos en 3er trimestre"""
+        """Embarazos en 3er trimestre"""
         hoy = timezone.localdate()
         fecha_max = hoy - timedelta(weeks=28)
 
@@ -687,7 +687,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def resumen_completo(self, _request, pk=None):
-        """✅ Resumen completo"""
+        """Resumen completo"""
         embarazo = self.get_object()
         embarazo_data = EmbarazoSerializer(embarazo).data
 
@@ -713,7 +713,7 @@ class EmbarazoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def multiples(self, _request):
-        """✅ Embarazos múltiples"""
+        """Embarazos múltiples"""
         assert self.queryset is not None
         embarazos_multiples = self.queryset.filter(
             estado="activo", tipo_embarazo__in=["gemelar", "multiple"],

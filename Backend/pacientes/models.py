@@ -100,7 +100,7 @@ class Paciente(models.Model):
         max_length=100, blank=True, null=True, verbose_name="Ocupación",
     )
 
-    # ✅ NUEVOS CAMPOS - Contacto de emergencia
+    # NUEVOS CAMPOS - Contacto de emergencia
     contacto_emergencia_nombre = models.CharField(
         max_length=200,
         blank=True,
@@ -125,7 +125,7 @@ class Paciente(models.Model):
         help_text="Ej: Esposo, Madre, Hermana, etc.",
     )
 
-    # ✅ NUEVOS CAMPOS - Información médica adicional
+    # NUEVOS CAMPOS - Información médica adicional
     tipo_sangre = models.CharField(
         max_length=5,
         blank=True,
@@ -226,7 +226,7 @@ class Paciente(models.Model):
         blank=True, null=True, verbose_name="Observaciones",
     )
 
-    # ✅ NUEVOS CAMPOS - Datos antropométricos
+    # NUEVOS CAMPOS - Datos antropométricos
     peso_kg = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -306,11 +306,11 @@ class Paciente(models.Model):
         if self.peso_kg and self.altura_cm:
             # IMC = peso (kg) / (altura (m))^2
             altura_m = float(self.altura_cm) / 100  # Convertir cm a metros
-            imc_value = float(self.peso_kg) / (altura_m**2)
+            imc_value = round(float(self.peso_kg) / (altura_m**2), 2)
             return round(imc_value, 2)
         return None
 
-    # ✅ NUEVOS MÉTODOS
+    # NUEVOS MÉTODOS
     def get_embarazos_activos(self):
         """Obtiene los embarazos activos del paciente"""
         return getattr(self, 'embarazos', self.__class__.objects.none()).filter(estado="activo")

@@ -8,6 +8,7 @@ import type { FormInstance } from 'antd';
 import { Dayjs } from 'dayjs';
 import locale from 'antd/es/date-picker/locale/es_ES';
 import { EmbarazoExtendido, EmbarazosAction, PacienteOption } from '../embarazosReducer';
+import { filtrarOpcion } from '../../../utils/texto';
 
 const { Option } = Select;
 const checkCircleOutlinedIcon7 = <CheckCircleOutlined />;
@@ -80,7 +81,7 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
                 loading={loadingPacientes}
                 filterOption={false} // Filtrado en backend
                 disabled={!!editingEmbarazo} // No se puede cambiar paciente al editar
-                notFoundContent={loadingPacientes ? <Spin size="small" /> : null}
+                notFoundContent={loadingPacientes ? <Spin size="small" /> : 'Sin resultados: escriba el nombre o el CI'}
               >
                 {pacientesOptions.map(p => (
                   <Option key={p.id} value={p.id}>
@@ -102,11 +103,7 @@ const EmbarazoFormModal: React.FC<EmbarazoFormModalProps> = ({
                 optionFilterProp="children"
                 loading={loadingMedicos}
                 allowClear
-                filterOption={(input, option) =>
-                  String(option?.children ?? '')
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
+                filterOption={filtrarOpcion}
               >
                 {medicos.map(medico => (
                   <Option key={medico.id} value={medico.id}>

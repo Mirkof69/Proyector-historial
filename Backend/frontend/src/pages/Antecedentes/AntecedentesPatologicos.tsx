@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Typography, Spin } from 'antd';
-import { ReloadOutlined, WarningOutlined } from '@ant-design/icons';
+import { Card, Table, Tag, Button, Space, Spin } from 'antd';
+import { ReloadOutlined, WarningOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { antecedentesService, AntecedentePatologico } from '../../services/antecedentesService';
 import './Antecedentes.css';
-
-const { Text } = Typography;
 
 const AntecedentesPatologicos: React.FC = () => {
   const [antecedentes, setAntecedentes] = useState<AntecedentePatologico[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const cargarAntecedentes = useCallback(async () => {
     setLoading(true);
@@ -42,13 +42,27 @@ const AntecedentesPatologicos: React.FC = () => {
         ? <Tag color="error" icon={<WarningOutlined />}>Alto</Tag>
         : <Tag color="success">Bajo</Tag>,
     },
+    {
+      title: 'Acciones', key: 'acciones', width: 90,
+      render: (_: unknown, r: AntecedentePatologico) => (
+        <Button type="link" icon={<EditOutlined />} aria-label="Editar"
+          onClick={() => navigate(`/dashboard/antecedentes/patologicos/${r.id}/editar`)} />
+      ),
+    },
   ];
 
   return (
     <Card
       className="antecedentes-pagina"
       title={<span><WarningOutlined className="antecedentes-icono" />Antecedentes Patológicos</span>}
-      extra={<Button icon={<ReloadOutlined />} onClick={cargarAntecedentes} loading={loading}>Recargar</Button>}
+      extra={(
+        <Space>
+          <Button icon={<ReloadOutlined />} onClick={cargarAntecedentes} loading={loading}>Recargar</Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/antecedentes/patologicos/nuevo')}>
+            Nuevo
+          </Button>
+        </Space>
+      )}
     >
       <Spin spinning={loading}>
         <Table

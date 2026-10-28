@@ -140,7 +140,7 @@ class ControlPrenatalAdmin(admin.ModelAdmin):
     @admin.display(description="Alertas")
     def get_tiene_alertas(self, obj):
         """Get tiene alertas"""
-        return "⚠️ Sí" if obj.tiene_alertas_criticas() else "✓ No"
+        return "Sí" if obj.tiene_alertas_criticas() else "No"
 
 
     @admin.display(description="IMC")
@@ -176,7 +176,7 @@ class ControlPrenatalAdmin(admin.ModelAdmin):
         """Get alertas display"""
         alertas = obj.get_alertas()
         if not alertas:
-            return "✓ Sin alertas"
+            return "Sin alertas"
 
         from django.utils.html import format_html, format_html_join
 

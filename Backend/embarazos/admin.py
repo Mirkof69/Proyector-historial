@@ -10,7 +10,7 @@ from .models import Embarazo
 
 @admin.register(Embarazo)
 class EmbarazoAdmin(admin.ModelAdmin):
-    """✨ Admin Completo y Mejorado para Embarazos
+    """Admin Completo y Mejorado para Embarazos
 
     Características:
         pass
@@ -103,7 +103,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "⚠️ Clasificación de Riesgo",
+            "Clasificación de Riesgo",
             {
                 "fields": (
                     "riesgo_embarazo",
@@ -170,7 +170,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     def get_paciente_info(self, obj):
         """Información del paciente con link"""
         if not obj.paciente:
-            return format_html('<span style="color: #e74c3c;">❌ Sin paciente</span>')
+            return format_html('<span style="color: #e74c3c;">Sin paciente</span>')
 
         url = reverse("admin:pacientes_paciente_change", args=[obj.paciente.id])
         return format_html(
@@ -235,7 +235,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
         if dias_restantes < 0:
             return format_html(
                 '<span style="background-color: #c0392b; color: white; padding: 3px 8px; '
-                'border-radius: 3px; font-weight: bold;">⚠️ VENCIDO</span><br/>'
+                'border-radius: 3px; font-weight: bold;">VENCIDO</span><br/>'
                 "<small>{}</small>",
                 obj.fecha_probable_parto.strftime("%d/%m/%Y"),
             )
@@ -250,7 +250,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
         if dias_restantes <= 30:
             return format_html(
                 '<span style="background-color: #f39c12; color: white; padding: 3px 8px; '
-                'border-radius: 3px; font-weight: bold;">⏰ {} días</span><br/>'
+                'border-radius: 3px; font-weight: bold;">{} días</span><br/>'
                 "<small>{}</small>",
                 dias_restantes,
                 obj.fecha_probable_parto.strftime("%d/%m/%Y"),
@@ -273,7 +273,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
             "alto": ("#e74c3c", ""),
             "muy_alto": ("#c0392b", ""),
         }
-        color, icon = colors.get(obj.riesgo_embarazo, ("#95a5a6", "⚪"))
+        color, icon = colors.get(obj.riesgo_embarazo, ("#95a5a6", ""))
 
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; '
@@ -293,12 +293,12 @@ class EmbarazoAdmin(admin.ModelAdmin):
             "perdida": "#e74c3c",
         }
         icons = {
-            "activo": "✅",
+            "activo": "",
             "finalizado": "",
             "perdida": "",
         }
         color = colors.get(obj.estado, "#95a5a6")
-        icon = icons.get(obj.estado, "⚫")
+        icon = icons.get(obj.estado, "")
 
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; '
@@ -336,7 +336,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
                 '<span style="color: #f39c12;">{} controles</span>', count,
             )
         return format_html(
-            '<span style="color: #27ae60;">✓ {} controles</span>', count,
+            '<span style="color: #27ae60;">{} controles</span>', count,
         )
 
 
@@ -351,7 +351,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
         return format_html(
             '<a href="{}" style="background-color: #3498db; color: white; '
             "padding: 2px 6px; text-decoration: none; border-radius: 3px; "
-            'font-size: 10px; margin-right: 2px;">✏️ EDITAR</a>'
+            'font-size: 10px; margin-right: 2px;">EDITAR</a>'
             '<a href="{}" style="background-color: #27ae60; color: white; '
             "padding: 2px 6px; text-decoration: none; border-radius: 3px; "
             'font-size: 10px;"> CONTROLES</a>',
@@ -368,7 +368,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     def get_edad_gestacional_completa(self, obj):
         """Información completa de edad gestacional"""
         if not obj.fecha_ultima_menstruacion:
-            return "❌ No se puede calcular (falta FUM)"
+            return "No se puede calcular (falta FUM)"
 
         dias = (timezone.localdate() - obj.fecha_ultima_menstruacion).days
         semanas = dias // 7
@@ -403,7 +403,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     def get_fpp_calculada(self, obj):
         """FPP calculada con detalles"""
         if not obj.fecha_probable_parto:
-            return "❌ No calculada (falta FUM)"
+            return "No calculada (falta FUM)"
 
         dias_restantes = (obj.fecha_probable_parto - timezone.localdate()).days
         semanas_restantes = dias_restantes // 7
@@ -445,7 +445,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
         )
 
 
-    @admin.display(description="⏰ Semanas Restantes")
+    @admin.display(description="Semanas Restantes")
     def get_semanas_restantes(self, obj):
         """Semanas restantes hasta FPP"""
         if not obj.fecha_probable_parto:
@@ -499,7 +499,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
         if not controles.exists():
             return format_html(
                 '<div style="padding: 10px; background-color: #fff3cd; border-left: 4px solid #ffc107;">'
-                "⚠️ Aún no se han realizado controles prenatales"
+                "Aún no se han realizado controles prenatales"
                 "</div>",
             )
 
@@ -526,7 +526,7 @@ class EmbarazoAdmin(admin.ModelAdmin):
     # ACCIONES PERSONALIZADAS
     # ═══════════════════════════════════════════════════════════════════════
 
-    @admin.action(description="⚠️ Marcar como ALTO RIESGO")
+    @admin.action(description="Marcar como ALTO RIESGO")
     def marcar_alto_riesgo(self, request, queryset):
         """Marcar alto riesgo"""
         updated = queryset.update(riesgo_embarazo="alto")

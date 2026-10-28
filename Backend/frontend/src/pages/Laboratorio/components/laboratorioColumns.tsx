@@ -35,6 +35,7 @@ export const buildLaboratorioColumns = (
     title: 'Tipo de Examen',
     dataIndex: 'tipo_examen_nombre',
     key: 'tipo_examen',
+    width: 220,
     render: (text: string, record: ExamenLaboratorio) => (
       <Space direction="vertical" size={0}>
         <Text>{text || '-'}</Text>
@@ -72,7 +73,10 @@ export const buildLaboratorioColumns = (
         completado: 'success',
         cancelado: 'default',
       };
-      return <Tag color={colors[estado as keyof typeof colors] || 'default'}>{estado?.toUpperCase()}</Tag>;
+      const nombres: Record<string, string> = {
+        solicitado: 'Solicitado', en_proceso: 'En proceso', completado: 'Completado', cancelado: 'Cancelado',
+      };
+      return <Tag color={colors[estado as keyof typeof colors] || 'default'}>{nombres[estado] ?? estado}</Tag>;
     },
   },
   {
@@ -86,13 +90,14 @@ export const buildLaboratorioColumns = (
         urgente: 'warning',
         stat: 'error',
       };
-      return <Tag color={colors[prioridad as keyof typeof colors] || 'default'}>{prioridad?.toUpperCase()}</Tag>;
+      const nombres: Record<string, string> = { normal: 'Normal', urgente: 'Urgente', stat: 'Inmediata' };
+      return <Tag color={colors[prioridad as keyof typeof colors] || 'default'}>{nombres[prioridad] ?? prioridad}</Tag>;
     },
   },
   {
     title: 'Resultados',
     key: 'resultados',
-    width: 120,
+    width: 145,
     render: (_: any, record: ExamenLaboratorio) => {
       if (record.resumen) {
         const { criticos, anormales } = record.resumen;

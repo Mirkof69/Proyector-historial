@@ -121,10 +121,10 @@ class UsuarioAdmin(BaseUserAdmin):
         """Activo badge"""
         if obj.activo:
             return format_html(
-                '<span style="color: green; font-weight: bold;">✓ Activo</span>',
+                '<span style="color: green; font-weight: bold;">Activo</span>',
             )
         return format_html(
-            '<span style="color: red; font-weight: bold;">✗ Inactivo</span>',
+            '<span style="color: red; font-weight: bold;">Inactivo</span>',
         )
 
 
@@ -132,8 +132,8 @@ class UsuarioAdmin(BaseUserAdmin):
     def is_staff_badge(self, obj):
         """Is staff badge"""
         if obj.is_staff:
-            return format_html('<span style="color: green;">✓</span>')
-        return format_html('<span style="color: red;">✗</span>')
+            return format_html('<span style="color: green;">Sí</span>')
+        return format_html('<span style="color: red;">No</span>')
 
 
     @admin.display(description="Superusuario", ordering="is_superuser")
@@ -141,7 +141,7 @@ class UsuarioAdmin(BaseUserAdmin):
         """Is superuser badge"""
         if obj.is_superuser:
             return format_html(
-                '<span style="color: green; font-weight: bold;">✓ Admin</span>',
+                '<span style="color: green; font-weight: bold;">Admin</span>',
             )
         return format_html('<span style="color: gray;">-</span>')
 
@@ -230,10 +230,10 @@ class HorarioAtencionAdmin(admin.ModelAdmin):
         """Activo badge"""
         if obj.activo:
             return format_html(
-                '<span style="color: green; font-weight: bold;">✓ Activo</span>',
+                '<span style="color: green; font-weight: bold;">Activo</span>',
             )
         return format_html(
-            '<span style="color: red; font-weight: bold;">✗ Inactivo</span>',
+            '<span style="color: red; font-weight: bold;">Inactivo</span>',
         )
 
 

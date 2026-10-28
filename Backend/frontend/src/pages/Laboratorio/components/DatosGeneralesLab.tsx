@@ -2,18 +2,17 @@ import React from 'react';
 import { Collapse, Row, Col, Form, Select, DatePicker, Radio, Space, Tooltip, Input } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { TipoExamen } from '../../../services/laboratorioService';
-import { Paciente } from '../../../services/pacientesService';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
 interface DatosGeneralesLabProps {
-  pacientes: Paciente[];
   tiposExamen: TipoExamen[];
   onTipoExamenChange: (tipoExamenId: number) => void;
 }
 
-const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposExamen, onTipoExamenChange }) => (
+const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ tiposExamen, onTipoExamenChange }) => (
   <Collapse defaultActiveKey={['1']} className="laboratorio-separado"
     items={[{
       key: '1',
@@ -27,18 +26,8 @@ const DatosGeneralesLab: React.FC<DatosGeneralesLabProps> = ({ pacientes, tiposE
                 label="Paciente"
                 rules={[{ required: true, message: 'Seleccione un paciente' }]}
               >
-                <Select
-                  placeholder="Seleccione un paciente"
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    (option?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={pacientes.map((p) => ({
-                    label: `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''} - ${p.id_clinico}`,
-                    value: p.id,
-                  }))}
-                />
+                {/* Busca en el servidor (todas las pacientes, sin distinguir acentos). */}
+                <PacienteSelect placeholder="Buscar paciente por nombre o CI" />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>

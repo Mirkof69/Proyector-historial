@@ -64,7 +64,8 @@ async function revisar(page, ruta) {
   const navegador = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
   const informe = {};
   for (const rol of ROLES) {
-    const contexto = await navegador.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
+    const contexto = await navegador.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: process.env.TEMA || 'light' });
+    if (process.env.TEMA) await contexto.addInitScript((t) => { try { localStorage.setItem('app-theme', t); } catch (e) {} }, process.env.TEMA);
     const page = await contexto.newPage();
     await page.goto(`${BASE}/login`);
     await page.fill('input[placeholder="ejemplo@fetalmedical.com"]', CUENTAS[rol]);

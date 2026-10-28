@@ -4,6 +4,7 @@ import {
   SafetyOutlined, AlertOutlined, MedicineBoxFilled, ExperimentOutlined, ClockCircleOutlined,
 } from '@ant-design/icons';
 import { ControlPrenatal } from '../../services/controlesService';
+import { imcRedondeado } from '../../utils/imc';
 
 // Hoisted tab labels (static JSX)
 export const tabInfoGeneral = (
@@ -46,11 +47,11 @@ export interface IndicadorCalidad {
   descripcion: string;
 }
 
-// ========== ✅ FIX: CÁLCULO CORRECTO DE IMC ==========
+// ========== FIX: CÁLCULO CORRECTO DE IMC ==========
 export const calcularIMC = (peso: number | null | undefined, talla: number | null | undefined): number | null => {
   if (!peso || !talla || peso <= 0 || talla <= 0) return null;
-  const tallaMts = talla / 100; // ✅ Convertir cm a metros
-  const imc = peso / (tallaMts * tallaMts);
+  const tallaMts = talla / 100; // Convertir cm a metros
+  const imc = imcRedondeado(peso, tallaMts);
   return imc;
 };
 
@@ -62,7 +63,7 @@ export const clasificarIMC = (imc: number | null): { texto: string; color: strin
   return { texto: 'Obesidad', color: 'error' };
 };
 
-// ========== ✅ FIX: OBTENER EDAD GESTACIONAL FORMATEADA ==========
+// ========== FIX: OBTENER EDAD GESTACIONAL FORMATEADA ==========
 export const getEdadGestacional = (control: ControlPrenatal): string => {
   // Intentar obtener desde el backend (formato "16+6")
   if ((control as any).edad_gestacional) {
@@ -79,7 +80,7 @@ export const getEdadGestacional = (control: ControlPrenatal): string => {
   return `${semanas} semanas + ${dias} días`;
 };
 
-// ========== ✅ FIX: OBTENER PRESIÓN ARTERIAL FORMATEADA ==========
+// ========== FIX: OBTENER PRESIÓN ARTERIAL FORMATEADA ==========
 export const getPresionArterial = (control: ControlPrenatal): string => {
   // Intentar obtener desde el backend (formato "120/80")
   if ((control as any).presion_arterial) {

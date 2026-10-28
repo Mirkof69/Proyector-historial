@@ -91,11 +91,11 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
         return TipoVacunaSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"])
@@ -324,11 +324,11 @@ class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         return RegistroVacunaSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar aplicado_por y created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar aplicado_por y created_by al crear"""
         serializer.save(aplicado_por=self.request.user, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"])

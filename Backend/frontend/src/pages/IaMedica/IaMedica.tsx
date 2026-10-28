@@ -62,12 +62,10 @@ const IaMedica: React.FC = () => {
     if (!query || query.length < 2) return;
     setSearchingPaciente(true);
     try {
-      const results = await pacientesService.listar();
-      const q = query.toLowerCase();
-      const filtered = results.filter((p: any) =>
-        `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno || ''}`.toLowerCase().includes(q)
-      );
-      setPacientesSearch(filtered.map((p: any) => ({
+      // Busca en el servidor (nombre o CI, sin tildes): antes bajaba todas las
+      // pacientes y filtraba aquí distinguiendo acentos.
+      const results = await pacientesService.listar({ search: query } as any);
+      setPacientesSearch(results.slice(0, 30).map((p: any) => ({
         id: p.id,
         nombre: p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`.trim()
       })));

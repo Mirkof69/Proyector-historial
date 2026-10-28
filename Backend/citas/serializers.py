@@ -191,7 +191,7 @@ class CitaDetailSerializer(serializers.ModelSerializer):
     creado_por_nombre = serializers.SerializerMethodField()
     historial = HistorialCitaSerializer(many=True, read_only=True)
 
-    # ✅ TRAZABILIDAD - Información del usuario
+    # TRAZABILIDAD - Información del usuario
     created_by_display = serializers.SerializerMethodField()
     updated_by_display = serializers.SerializerMethodField()
 
@@ -229,7 +229,7 @@ class CitaDetailSerializer(serializers.ModelSerializer):
             "creado_por_nombre",
             "fecha_creacion",
             "fecha_actualizacion",
-            # ✅ TRAZABILIDAD
+            # TRAZABILIDAD
             "created_by_display",
             "updated_by_display",
             "esta_pendiente",
@@ -272,7 +272,7 @@ class CitaDetailSerializer(serializers.ModelSerializer):
         return None
 
     def get_created_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que creó el registro"""
+        """TRAZABILIDAD: Información del usuario que creó el registro"""
         if obj.creado_por:
             return {
                 "id": obj.creado_por.id,
@@ -285,7 +285,7 @@ class CitaDetailSerializer(serializers.ModelSerializer):
         return None
 
     def get_updated_by_display(self, obj):
-        """✅ TRAZABILIDAD: Información del usuario que actualizó el registro"""
+        """TRAZABILIDAD: Información del usuario que actualizó el registro"""
         if obj.modificado_por:
             return {
                 "id": obj.modificado_por.id,

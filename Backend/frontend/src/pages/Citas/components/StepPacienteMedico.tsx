@@ -2,11 +2,11 @@ import React from 'react';
 import { Form, Select, Button, Space, Row, Col, Divider } from 'antd';
 import { UserOutlined, MedicineBoxOutlined, HomeOutlined } from '@ant-design/icons';
 import { FormularioCitaAction } from '../formularioCitaUtils';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { Option } = Select;
 
 interface StepPacienteMedicoProps {
-  pacientes: any[];
   medicos: any[];
   consultorios: any[];
   handleMedicoChange: (medicoId: number) => void;
@@ -14,7 +14,7 @@ interface StepPacienteMedicoProps {
 }
 
 const StepPacienteMedico: React.FC<StepPacienteMedicoProps> = ({
-  pacientes, medicos, consultorios, handleMedicoChange, dispatch,
+  medicos, consultorios, handleMedicoChange, dispatch,
 }) => (
   <>
     <Row gutter={16}>
@@ -29,23 +29,8 @@ const StepPacienteMedico: React.FC<StepPacienteMedicoProps> = ({
           name="paciente"
           rules={[{ required: true, message: 'Seleccione el paciente' }]}
         >
-          <Select
-            placeholder="Buscar y seleccionar paciente"
-            showSearch
-            optionFilterProp="children"
-            // Un solo texto por opción: con varias piezas JSX `children` era un arreglo
-            // y toLowerCase() tumbaba la pantalla al primer carácter escrito.
-            filterOption={(input, option) =>
-              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-          >
-            {pacientes.map((p) => (
-              <Option key={p.id} value={p.id}>
-                {[[p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' '),
-                  p.ci && `CI ${p.ci}`, p.id_clinico || p.numero_documento].filter(Boolean).join(' · ')}
-              </Option>
-            ))}
-          </Select>
+          {/* Busca en el servidor (todas las pacientes, sin distinguir acentos). */}
+          <PacienteSelect placeholder="Buscar paciente por nombre o CI" />
         </Form.Item>
       </Col>
 

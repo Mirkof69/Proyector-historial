@@ -146,7 +146,7 @@ const Pacientes: React.FC = () => {
     const [editingPaciente, setEditingPaciente] = useState<Paciente | null>(null);
     const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null);
 
-    // ✨ NUEVOS ESTADOS PARA MODALES EXTENDIDOS
+    // NUEVOS ESTADOS PARA MODALES EXTENDIDOS
     const [modalAnalisisDemograficoVisible, setModalAnalisisDemograficoVisible] = useState(false);
     const [modalComparacionVisible, setModalComparacionVisible] = useState(false);
     const [modalImportarVisible, setModalImportarVisible] = useState(false);
@@ -158,7 +158,7 @@ const Pacientes: React.FC = () => {
     const [formLoading, setFormLoading] = useState(false);
     const [form] = Form.useForm();
 
-    // ✅ Función para mostrar estado civil según género
+    // Función para mostrar estado civil según género
 
     // =============================================================================
     // 3. LÓGICA DE CARGA Y DATOS
@@ -337,7 +337,7 @@ const Pacientes: React.FC = () => {
             .catch(() => message.error('No se pudo generar el CSV'));
     }, [message]);
 
-    // ✨ GENERAR PDF DE LISTADO DE PACIENTES
+    // GENERAR PDF DE LISTADO DE PACIENTES
     const handleExportPDF = useCallback(async () => {
         // El PDF es un listado para imprimir: hasta 200 pacientes con los
         // filtros actuales (para todas, el Excel del servidor).
@@ -351,7 +351,7 @@ const Pacientes: React.FC = () => {
         }
     }, [parametros, message]);
 
-    // ✨ GENERAR PDF DE PACIENTE INDIVIDUAL
+    // GENERAR PDF DE PACIENTE INDIVIDUAL
     const handleExportPacientePDF = useCallback((paciente: Paciente) => {
         try {
             pdfService.generarReportePaciente(paciente);

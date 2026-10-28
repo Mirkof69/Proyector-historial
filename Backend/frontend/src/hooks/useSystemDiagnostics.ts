@@ -171,10 +171,10 @@ const useSystemDiagnostics = () => {
     }, [isMonitoring]);
 
     const interpretError = useCallback((error: SystemError): string => {
-        let interpretation = `🔍 **Diagnóstico del Error:**\n\n`;
-        interpretation += `⏰ **Cuándo:** ${new Date(error.timestamp).toLocaleString('es-ES')}\n`;
-        interpretation += `📍 **Dónde:** ${error.details.url || 'N/A'}\n`;
-        interpretation += `⚠️ **Gravedad:** ${error.severity.toUpperCase()}\n\n`;
+        let interpretation = `**Diagnóstico del Error:**\n\n`;
+        interpretation += `**Cuándo:** ${new Date(error.timestamp).toLocaleString('es-ES')}\n`;
+        interpretation += `**Dónde:** ${error.details.url || 'N/A'}\n`;
+        interpretation += `**Gravedad:** ${error.severity.toUpperCase()}\n\n`;
 
         // Interpretación según el tipo y código
         if (error.details.status === 404) {
@@ -184,9 +184,9 @@ const useSystemDiagnostics = () => {
             interpretation += `• El recurso fue movido o eliminado\n`;
             interpretation += `• El endpoint de la API no existe\n\n`;
             interpretation += `**Soluciones:**\n`;
-            interpretation += `✅ Verifica la URL: \`${error.details.url}\`\n`;
-            interpretation += `✅ Revisa las rutas en el código\n`;
-            interpretation += `✅ Contacta al administrador si el problema persiste\n`;
+            interpretation += `Verifica la URL: \`${error.details.url}\`\n`;
+            interpretation += `Revisa las rutas en el código\n`;
+            interpretation += `Contacta al administrador si el problema persiste\n`;
         } else if (error.details.status === 500) {
             interpretation += `**Problema:** Error interno del servidor.\n\n`;
             interpretation += `**Posibles Causas:**\n`;
@@ -194,9 +194,9 @@ const useSystemDiagnostics = () => {
             interpretation += `• Base de datos no responde\n`;
             interpretation += `• Configuración incorrecta del servidor\n\n`;
             interpretation += `**Soluciones:**\n`;
-            interpretation += `✅ Recarga la página (F5)\n`;
-            interpretation += `✅ Revisa los logs del servidor\n`;
-            interpretation += `✅ Contacta al equipo de desarrollo\n`;
+            interpretation += `Recarga la página (F5)\n`;
+            interpretation += `Revisa los logs del servidor\n`;
+            interpretation += `Contacta al equipo de desarrollo\n`;
         } else if (error.details.status === 401 || error.details.status === 403) {
             interpretation += `**Problema:** ${error.details.status === 401 ? 'No autenticado' : 'No autorizado'}.\n\n`;
             interpretation += `**Posibles Causas:**\n`;
@@ -204,9 +204,9 @@ const useSystemDiagnostics = () => {
             interpretation += `• Token de autenticación inválido\n`;
             interpretation += `• Permisos insuficientes\n\n`;
             interpretation += `**Soluciones:**\n`;
-            interpretation += `✅ Vuelve a iniciar sesión\n`;
-            interpretation += `✅ Verifica tus permisos de usuario\n`;
-            interpretation += `✅ Contacta al administrador para solicitar acceso\n`;
+            interpretation += `Vuelve a iniciar sesión\n`;
+            interpretation += `Verifica tus permisos de usuario\n`;
+            interpretation += `Contacta al administrador para solicitar acceso\n`;
         } else if (error.type === 'network' && !error.details.status) {
             interpretation += `**Problema:** Error de conexión de red.\n\n`;
             interpretation += `**Posibles Causas:**\n`;
@@ -214,14 +214,14 @@ const useSystemDiagnostics = () => {
             interpretation += `• Servidor backend no disponible\n`;
             interpretation += `• Firewall bloqueando la conexión\n\n`;
             interpretation += `**Soluciones:**\n`;
-            interpretation += `✅ Verifica tu conexión a internet\n`;
-            interpretation += `✅ Comprueba que el servidor esté corriendo\n`;
-            interpretation += `✅ Revisa la configuración del firewall\n`;
+            interpretation += `Verifica tu conexión a internet\n`;
+            interpretation += `Comprueba que el servidor esté corriendo\n`;
+            interpretation += `Revisa la configuración del firewall\n`;
         } else {
             interpretation += `**Mensaje:** ${error.message}\n\n`;
             interpretation += `**Recomendación:**\n`;
-            interpretation += `✅ Revisa los detalles en la consola del navegador (F12)\n`;
-            interpretation += `✅ Reporta este error al equipo técnico\n`;
+            interpretation += `Revisa los detalles en la consola del navegador (F12)\n`;
+            interpretation += `Reporta este error al equipo técnico\n`;
         }
 
         return interpretation;

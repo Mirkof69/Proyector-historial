@@ -159,7 +159,7 @@ class AuthService {
   private normalizeListResponse<T>(raw: any, label: string): T[] {
     try {
       if (raw && Array.isArray(raw.results)) {
-        logger.log(`✅ ${label} obtenidos (paginado):`, raw.results.length);
+        logger.log(`${label} obtenidos (paginado):`, raw.results.length);
         return raw.results as T[];
       }
       if (raw && Array.isArray(raw.data)) {
@@ -168,16 +168,16 @@ class AuthService {
       if (Array.isArray(raw)) {
         return raw as T[];
       }
-      console.warn(`⚠️ Formato inesperado para ${label}:`, raw);
+      console.warn(`Formato inesperado para ${label}:`, raw);
       return [];
     } catch (e) {
-      console.error(`❌ Error normalizando respuesta de ${label}:`, e);
+      console.error(`Error normalizando respuesta de ${label}:`, e);
       return [];
     }
   }
 
   private handleApiError(error: any, context: string): never {
-    console.error(`❌ Error en ${context}:`, error);
+    console.error(`Error en ${context}:`, error);
     if (error.response?.data) {
       const errorData = error.response?.data as ApiError;
       if (errorData.errores) {
@@ -285,7 +285,7 @@ class AuthService {
     try {
       await api.logout();
     } catch (error: any) {
-      console.error('❌ Error al cerrar sesión:', error);
+      console.error('Error al cerrar sesión:', error);
     }
   }
 

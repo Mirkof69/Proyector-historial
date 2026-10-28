@@ -228,7 +228,7 @@ class CalculadorRiesgosFMF:
         recomendaciones = []
         if requiere_aspirina:
             recomendaciones.append(
-                "✅ ASPIRINA 150 mg/día VO antes de las 16 semanas (idealmente antes de 12s)",
+                "ASPIRINA 150 mg/día VO antes de las 16 semanas (idealmente antes de 12s)",
             )
             recomendaciones.append("Continuar hasta las 36 semanas")
         if riesgo_final >= 5:
@@ -236,7 +236,7 @@ class CalculadorRiesgosFMF:
             recomendaciones.append("Vigilancia estricta de PA en cada control")
             recomendaciones.append("Proteinuria mensual")
         if riesgo_final >= 10:
-            recomendaciones.append("⚠️ Seguimiento en alto riesgo obstétrico")
+            recomendaciones.append("Seguimiento en alto riesgo obstétrico")
             recomendaciones.append("Ecografía Doppler cada 2 semanas")
             recomendaciones.append("Considerar hospitalización si deterioro")
 
@@ -429,13 +429,13 @@ class CalculadorRiesgosFMF:
         # Recomendaciones
         recomendaciones = []
         if requiere_prueba_invasiva:
-            recomendaciones.append("⚠️ ALTO RIESGO - Asesoramiento genético recomendado")
+            recomendaciones.append("ALTO RIESGO - Asesoramiento genético recomendado")
             recomendaciones.append(
                 "Considerar amniocentesis o biopsia de vellosidades coriales",
             )
             recomendaciones.append("Opción: NIPT (cfDNA) como alternativa no invasiva")
         else:
-            recomendaciones.append("✅ Riesgo bajo - Continuar controles habituales")
+            recomendaciones.append("Riesgo bajo - Continuar controles habituales")
             recomendaciones.append("Ecografía morfológica 18-22 semanas")
 
         return {

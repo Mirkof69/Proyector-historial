@@ -144,6 +144,9 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
   const [archivo, setArchivo] = useState<File | null>(null);
   const [elegida, setElegida] = useState(0);
   const [tamanoPixel, setTamanoPixel] = useState<number | null>(null);
+  // Sin min/max en el InputNumber: 0 o -0,1 se cambiaban en silencio a 0,01 y
+  // se medía con ese valor (BUG-011). Mismo rango que acepta el servicio de IA.
+  const pixelInvalido = tamanoPixel !== null && !(tamanoPixel >= 0.01 && tamanoPixel <= 2);
   const [plano, setPlano] = useState<ResultadoPlano | null>(null);
   const [circunferencia, setCircunferencia] = useState<ResultadoCircunferencia | null>(null);
   const [anomalias, setAnomalias] = useState<ResultadoAnomaliasCerebrales | null>(null);
@@ -235,18 +238,26 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
             <label htmlFor="tamano-pixel" className="ia-redes-etiqueta">
               Tamaño de píxel (mm) — para dar las medidas en milímetros
             </label>
-            <InputNumber id="tamano-pixel" min={0.01} max={2} step={0.001} value={tamanoPixel}
+            <InputNumber id="tamano-pixel" step={0.001} value={tamanoPixel}
+              status={pixelInvalido ? 'error' : undefined} aria-invalid={pixelInvalido}
+              aria-describedby="tamano-pixel-ayuda"
               onChange={(v) => setTamanoPixel(v)} placeholder="p. ej. 0.128" className="ia-ancho-completo" />
-            <p className="ia-ayuda">
-              Lo da el ecógrafo o la cabecera DICOM. Sin él se reconoce el plano y las medidas salen en píxeles.
-            </p>
+            {pixelInvalido ? (
+              <p id="tamano-pixel-ayuda" className="ia-ayuda ia-ayuda--error" role="alert">
+                El tamaño de píxel debe ser mayor que 0: entre 0,01 y 2 mm. Corríjalo o déjelo vacío.
+              </p>
+            ) : (
+              <p id="tamano-pixel-ayuda" className="ia-ayuda">
+                Lo da el ecógrafo o la cabecera DICOM. Sin él se reconoce el plano y las medidas salen en píxeles.
+              </p>
+            )}
           </div>
           <Space direction="vertical" className="ia-ancho-completo">
-            <Button type="primary" block disabled={!archivo && !usaGuardadas}
+            <Button type="primary" block disabled={(!archivo && !usaGuardadas) || pixelInvalido}
               loading={analizando} onClick={analizar}>
               Analizar
             </Button>
-            <Button block icon={<ScanOutlined />} disabled={!archivo && !usaGuardadas}
+            <Button block icon={<ScanOutlined />} disabled={(!archivo && !usaGuardadas) || pixelInvalido}
               loading={analizandoCompleto} onClick={informeCompleto}>
               Informe completo
             </Button>

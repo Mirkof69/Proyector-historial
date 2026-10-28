@@ -188,7 +188,7 @@ class AntecedentesService {
             const response = await api.get<any>(url);
             return this.normalizeListResponse<AntecedenteGinecoObstetrico>(response.data);
         } catch (error: any) {
-            console.error('❌ Error obteniendo antecedentes gineco-obstétricos:', error);
+            console.error('Error obteniendo antecedentes gineco-obstétricos:', error);
             throw error;
         }
     }
@@ -198,7 +198,7 @@ class AntecedentesService {
             const response = await api.get<AntecedenteGinecoObstetrico>(`${this.baseUrl}/gineco-obstetricos/${id}/`);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error obteniendo antecedente gineco-obstétrico ${id}:`, error);
+            console.error(`Error obteniendo antecedente gineco-obstétrico ${id}:`, error);
             throw error;
         }
     }
@@ -208,7 +208,7 @@ class AntecedentesService {
             const antecedentes = await this.getGinecoObstetricos(pacienteId);
             return antecedentes.length > 0 ? antecedentes[0] : null;
         } catch (error: any) {
-            console.error(`❌ Error obteniendo antecedente gineco-obstétrico del paciente ${pacienteId}:`, error);
+            console.error(`Error obteniendo antecedente gineco-obstétrico del paciente ${pacienteId}:`, error);
             return null;
         }
     }
@@ -216,10 +216,10 @@ class AntecedentesService {
     async createGinecoObstetrico(data: Partial<AntecedenteGinecoObstetrico>): Promise<AntecedenteGinecoObstetrico> {
         try {
             const response = await api.post<AntecedenteGinecoObstetrico>(`${this.baseUrl}/gineco-obstetricos/`, data);
-            logger.log('✅ Antecedente gineco-obstétrico creado');
+            logger.log('Antecedente gineco-obstétrico creado');
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error creando antecedente gineco-obstétrico:', error);
+            console.error('Error creando antecedente gineco-obstétrico:', error);
             throw error;
         }
     }
@@ -230,10 +230,10 @@ class AntecedentesService {
     ): Promise<AntecedenteGinecoObstetrico> {
         try {
             const response = await api.put<AntecedenteGinecoObstetrico>(`${this.baseUrl}/gineco-obstetricos/${id}/`, data);
-            logger.log('✅ Antecedente gineco-obstétrico actualizado');
+            logger.log('Antecedente gineco-obstétrico actualizado');
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error actualizando antecedente gineco-obstétrico ${id}:`, error);
+            console.error(`Error actualizando antecedente gineco-obstétrico ${id}:`, error);
             throw error;
         }
     }
@@ -246,7 +246,7 @@ class AntecedentesService {
             const response = await api.patch<AntecedenteGinecoObstetrico>(`${this.baseUrl}/gineco-obstetricos/${id}/`, data);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error en actualización parcial de antecedente gineco-obstétrico ${id}:`, error);
+            console.error(`Error en actualización parcial de antecedente gineco-obstétrico ${id}:`, error);
             throw error;
         }
     }
@@ -254,9 +254,9 @@ class AntecedentesService {
     async deleteGinecoObstetrico(id: number): Promise<void> {
         try {
             await api.delete(`${this.baseUrl}/gineco-obstetricos/${id}/`);
-            logger.log('🗑️ Antecedente gineco-obstétrico eliminado:', id);
+            logger.log('Antecedente gineco-obstétrico eliminado:', id);
         } catch (error: any) {
-            console.error(`❌ Error eliminando antecedente gineco-obstétrico ${id}:`, error);
+            console.error(`Error eliminando antecedente gineco-obstétrico ${id}:`, error);
             throw error;
         }
     }
@@ -273,7 +273,7 @@ class AntecedentesService {
             const response = await api.get<any>(url);
             return this.normalizeListResponse<AntecedentePatologico>(response.data);
         } catch (error: any) {
-            console.error('❌ Error obteniendo antecedentes patológicos:', error);
+            console.error('Error obteniendo antecedentes patológicos:', error);
             throw error;
         }
     }
@@ -283,7 +283,7 @@ class AntecedentesService {
             const response = await api.get<AntecedentePatologico>(`${this.baseUrl}/patologicos/${id}/`);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error obteniendo antecedente patológico ${id}:`, error);
+            console.error(`Error obteniendo antecedente patológico ${id}:`, error);
             throw error;
         }
     }
@@ -293,7 +293,7 @@ class AntecedentesService {
             const antecedentes = await this.getPatologicos(pacienteId);
             return antecedentes.length > 0 ? antecedentes[0] : null;
         } catch (error: any) {
-            console.error(`❌ Error obteniendo antecedente patológico del paciente ${pacienteId}:`, error);
+            console.error(`Error obteniendo antecedente patológico del paciente ${pacienteId}:`, error);
             return null;
         }
     }
@@ -301,10 +301,10 @@ class AntecedentesService {
     async createPatologico(data: Partial<AntecedentePatologico>): Promise<AntecedentePatologico> {
         try {
             const response = await api.post<AntecedentePatologico>(`${this.baseUrl}/patologicos/`, data);
-            logger.log('✅ Antecedente patológico creado');
+            logger.log('Antecedente patológico creado');
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error creando antecedente patológico:', error);
+            console.error('Error creando antecedente patológico:', error);
             throw error;
         }
     }
@@ -312,10 +312,10 @@ class AntecedentesService {
     async updatePatologico(id: number, data: Partial<AntecedentePatologico>): Promise<AntecedentePatologico> {
         try {
             const response = await api.put<AntecedentePatologico>(`${this.baseUrl}/patologicos/${id}/`, data);
-            logger.log('✅ Antecedente patológico actualizado');
+            logger.log('Antecedente patológico actualizado');
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error actualizando antecedente patológico ${id}:`, error);
+            console.error(`Error actualizando antecedente patológico ${id}:`, error);
             throw error;
         }
     }
@@ -325,7 +325,7 @@ class AntecedentesService {
             const response = await api.patch<AntecedentePatologico>(`${this.baseUrl}/patologicos/${id}/`, data);
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error en actualización parcial de antecedente patológico ${id}:`, error);
+            console.error(`Error en actualización parcial de antecedente patológico ${id}:`, error);
             throw error;
         }
     }
@@ -333,9 +333,9 @@ class AntecedentesService {
     async deletePatologico(id: number): Promise<void> {
         try {
             await api.delete(`${this.baseUrl}/patologicos/${id}/`);
-            logger.log('🗑️ Antecedente patológico eliminado:', id);
+            logger.log('Antecedente patológico eliminado:', id);
         } catch (error: any) {
-            console.error(`❌ Error eliminando antecedente patológico ${id}:`, error);
+            console.error(`Error eliminando antecedente patológico ${id}:`, error);
             throw error;
         }
     }
@@ -359,7 +359,7 @@ class AntecedentesService {
 
             return { ginecoObstetrico, patologico };
         } catch (error: any) {
-            console.error(`❌Error obteniendo antecedentes del paciente ${pacienteId}:`, error);
+            console.error(`Error obteniendo antecedentes del paciente ${pacienteId}:`, error);
             throw error;
         }
     }

@@ -66,7 +66,7 @@ def detectar_anomalias_control(sender, instance, created, **kwargs):
         destinatario_preferido=_medico_del_control(instance),
         tipo=TipoNotificacion.ALERTA_CRITICA,
         prioridad=PrioridadNotificacion.CRITICA,
-        titulo="⚠️ Alerta Crítica en Control Prenatal",
+        titulo="Alerta Crítica en Control Prenatal",
         mensaje=f"Alertas críticas en el control de {nombre}:\n{detalle}",
         entidad_tipo="control",
         entidad_id=instance.id,

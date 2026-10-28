@@ -41,14 +41,14 @@ class ConsultorioAdmin(admin.ModelAdmin):
         """Get disponibilidad badge"""
         if obj.esta_disponible():
             return format_html(
-                '<span style="background-color:#27ae60;color:white;padding:3px 8px;border-radius:3px;">✅ DISPONIBLE</span>',
+                '<span style="background-color:#27ae60;color:white;padding:3px 8px;border-radius:3px;">DISPONIBLE</span>',
             )
         if obj.en_mantenimiento:
             return format_html(
                 '<span style="background-color:#f39c12;color:white;padding:3px 8px;border-radius:3px;"> MANTENIMIENTO</span>',
             )
         return format_html(
-            '<span style="background-color:#e74c3c;color:white;padding:3px 8px;border-radius:3px;">❌ INACTIVO</span>',
+            '<span style="background-color:#e74c3c;color:white;padding:3px 8px;border-radius:3px;">INACTIVO</span>',
         )
 
 
@@ -59,7 +59,7 @@ class ConsultorioAdmin(admin.ModelAdmin):
         if obj.tiene_bano:
             icons.append("")
         if obj.tiene_camilla:
-            icons.append("️")
+            icons.append("")
         if obj.tiene_ecografo:
             icons.append("")
         return " ".join(icons) if icons else "-"

@@ -1,12 +1,11 @@
 import React from 'react';
-import { Form, Input, Select, Row, Col, Alert, Divider, Radio, Space, DatePicker } from 'antd';
-import { HeartOutlined, UserOutlined, MedicineBoxOutlined } from '@ant-design/icons';
+import { Form, Input, Row, Col, Alert, Divider, Radio, Space, DatePicker } from 'antd';
+import { HeartOutlined, MedicineBoxOutlined } from '@ant-design/icons';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
-const { Option } = Select;
 const { TextArea } = Input;
 
 interface SeccionInfoConsultaNotaProps {
-  pacientes: any[];
   handlePacienteChange: (pacienteId: number) => void;
   loading: boolean;
   tiposConsulta: { value: string; label: string }[];
@@ -15,7 +14,7 @@ interface SeccionInfoConsultaNotaProps {
 }
 
 const SeccionInfoConsultaNota: React.FC<SeccionInfoConsultaNotaProps> = ({
-  pacientes, handlePacienteChange, loading, tiposConsulta, notaAnterior, setNotaAnterior,
+  handlePacienteChange, loading, tiposConsulta, notaAnterior, setNotaAnterior,
 }) => (
   <>
     {/* INFORMACIÓN BÁSICA */}
@@ -28,25 +27,8 @@ const SeccionInfoConsultaNota: React.FC<SeccionInfoConsultaNotaProps> = ({
           name="paciente"
           rules={[{ required: true, message: 'Seleccione la paciente' }]}
         >
-          <Select
-            placeholder="Seleccionar paciente"
-            showSearch
-            optionFilterProp="children"
-            suffixIcon={<UserOutlined />}
-            onChange={handlePacienteChange}
-            loading={loading}
-            filterOption={(input, option) =>
-              String(option?.children ?? '')
-                .toLowerCase()
-                .includes(input.toLowerCase())
-            }
-          >
-            {pacientes.map((p) => (
-              <Option key={p.id} value={p.id}>
-                {`${[p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ')} - ${p.ci}`}
-              </Option>
-            ))}
-          </Select>
+          {/* Busca en el servidor (todas las pacientes, sin distinguir acentos). */}
+          <PacienteSelect placeholder="Buscar paciente por nombre o CI" onChange={(id) => id && handlePacienteChange(id)} />
         </Form.Item>
       </Col>
 

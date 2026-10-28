@@ -18,6 +18,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 
 from core.permissions import FetalMedicalPermission
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .excel_generator import excel_generator
@@ -644,3 +645,51 @@ def indicadores_gestion(_request):
     from .services.indicadores_gestion import calcular_indicadores
 
     return Response(calcular_indicadores(), status=status.HTTP_200_OK)
+
+
+@extend_schema(summary="Actividad por día de los últimos 30 días (para el Panel)", responses={200: dict})
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def tendencia_diaria(_request):
+    """Pacientes nuevas, controles, citas atendidas y exámenes pedidos por día.
+
+    Solo conteos (ningún dato de una paciente), por eso lo ve todo el personal:
+    el Panel de cada rol muestra la misma actividad del establecimiento. Antes
+    el gráfico «Estadísticas y Alertas en Tiempo Real» ponía siempre 0 pacientes
+    y contaba las citas con campos que no existen: un único punto.
+    """
+    from datetime import timedelta
+
+    from django.db.models import Count
+    from django.db.models.functions import TruncDate
+
+    from citas.models import Cita
+    from controles.models import ControlPrenatal
+    from laboratorio.models import ExamenLaboratorio
+    from pacientes.models import Paciente
+
+    hoy = timezone.localdate()
+    desde = hoy - timedelta(days=29)
+
+    def por_dia(qs, campo, es_fecha_hora=False):
+        if es_fecha_hora:
+            qs = qs.annotate(dia=TruncDate(campo))
+            campo = "dia"
+        return dict(qs.values(campo).annotate(n=Count("id")).values_list(campo, "n"))
+
+    pacientes = por_dia(Paciente.objects.filter(fecha_registro__date__gte=desde), "fecha_registro", True)
+    controles = por_dia(ControlPrenatal.objects.filter(fecha_control__range=(desde, hoy)), "fecha_control")
+    citas = por_dia(Cita.objects.filter(fecha_cita__range=(desde, hoy), estado="completada"), "fecha_cita")
+    examenes = por_dia(ExamenLaboratorio.objects.filter(fecha_solicitud__date__gte=desde), "fecha_solicitud", True)
+    dias = [desde + timedelta(days=i) for i in range(30)]
+    return Response({
+        "desde": desde.isoformat(),
+        "hasta": hoy.isoformat(),
+        "dias": [{
+            "fecha": d.isoformat(),
+            "pacientes": pacientes.get(d, 0),
+            "controles": controles.get(d, 0),
+            "citas": citas.get(d, 0),
+            "examenes": examenes.get(d, 0),
+        } for d in dias],
+    }, status=status.HTTP_200_OK)

@@ -157,7 +157,7 @@ class AntecedentePatologicoAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "⚠️ ALERGIAS (CRÍTICO)",
+            "ALERGIAS (CRÍTICO)",
             {
                 "fields": (
                     "tiene_alergias",
@@ -254,7 +254,7 @@ class AntecedentePatologicoAdmin(admin.ModelAdmin):
         """Badge de alergias"""
         if obj.tiene_alergias:
             return format_html(
-                '<span style="background-color: #e74c3c; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold;">⚠️ SÍ</span>',
+                '<span style="background-color: #e74c3c; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold;">SÍ</span>',
             )
         return format_html(
             '<span style="background-color: #27ae60; color: white; padding: 3px 8px; border-radius: 3px;">NO</span>',
@@ -284,7 +284,7 @@ class AntecedentePatologicoAdmin(admin.ModelAdmin):
         """Badge de riesgo"""
         if obj.tiene_factores_riesgo():
             return format_html(
-                '<span style="background-color: #f39c12; color: white; padding: 3px 8px; border-radius: 3px;">⚠️ ALTO RIESGO</span>',
+                '<span style="background-color: #f39c12; color: white; padding: 3px 8px; border-radius: 3px;">ALTO RIESGO</span>',
             )
         return format_html(
             '<span style="background-color: #95a5a6; color: white; padding: 3px 8px; border-radius: 3px;">Normal</span>',

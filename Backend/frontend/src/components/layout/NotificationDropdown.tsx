@@ -7,10 +7,11 @@
  */
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge, Dropdown, List, Button, Typography, Space, Tag, Empty, Spin } from 'antd';
 import {
-  BellOutlined, InfoCircleOutlined, WarningOutlined, CheckCircleOutlined,
-  CloseCircleOutlined, NotificationOutlined,
+  BellOutlined, InfoCircleOutlined, WarningOutlined, CalendarOutlined, ClockCircleOutlined,
+  ExperimentOutlined, ExclamationCircleOutlined, NotificationOutlined, RightOutlined,
 } from '@ant-design/icons';
 import { Notificacion } from '../../services/notificacionesService';
 import { useNotifications } from '../../contexts/NotificationsContext';
@@ -23,26 +24,31 @@ dayjs.locale('es');
 
 const { Text } = Typography;
 
-const getTipoColor = (tipo: string): string => {
-  const colors: Record<string, string> = {
-    info: 'blue',
-    warning: 'orange',
-    success: 'green',
-    error: 'red',
-  };
-  return colors[tipo] || 'default';
+// El tipo real viene del servidor (alerta_critica, examen_listo, recordatorio_control…):
+// antes se buscaba info/warning/error, nunca coincidía y la etiqueta mostraba el código.
+const iconoDe = (tipo: string): React.ReactNode => {
+  if (tipo.startsWith('examen')) return <ExperimentOutlined />;
+  if (tipo.startsWith('cita')) return <CalendarOutlined />;
+  if (tipo.startsWith('recordatorio')) return <ClockCircleOutlined />;
+  if (tipo === 'alerta_critica') return <WarningOutlined />;
+  if (tipo === 'alerta_advertencia') return <ExclamationCircleOutlined />;
+  if (tipo.startsWith('alerta')) return <InfoCircleOutlined />;
+  return <NotificationOutlined />;
 };
 
-const TIPO_ICONO: Record<string, React.ReactNode> = {
-  info: <InfoCircleOutlined />,
-  warning: <WarningOutlined />,
-  success: <CheckCircleOutlined />,
-  error: <CloseCircleOutlined />,
+const NIVEL: Record<string, { clase: string; color: string }> = {
+  critica: { clase: 'error', color: 'error' },
+  alta: { clase: 'warning', color: 'warning' },
+  media: { clase: 'info', color: 'processing' },
+  baja: { clase: 'success', color: 'default' },
 };
 
-const getTipoIcon = (tipo: string): React.ReactNode => (
-  <span className={`notif-panel__icono notif-panel__icono--${tipo}`} aria-hidden="true">
-    {TIPO_ICONO[tipo] ?? <NotificationOutlined />}
+const nivelDe = (item: Notificacion) =>
+  NIVEL[item.prioridad ?? ''] ?? (item.tipo.includes('critic') ? NIVEL.critica : NIVEL.media);
+
+const getTipoIcon = (item: Notificacion): React.ReactNode => (
+  <span className={`notif-panel__icono notif-panel__icono--${nivelDe(item).clase}`} aria-hidden="true">
+    {iconoDe(item.tipo)}
   </span>
 );
 
@@ -62,6 +68,7 @@ const getTipoIcon = (tipo: string): React.ReactNode => (
  */
 const NotificationDropdown: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const {
     notifications: notificaciones,
     unreadCount: noLeidas,
@@ -75,8 +82,11 @@ const NotificationDropdown: React.FC = () => {
     setOpen(nextOpen);
   };
 
-  const handleMarcarLeida = async (id: number) => {
-    await markAsRead(id);
+  // Abre lo que la notificación anuncia (antes el clic solo la marcaba leída).
+  const abrir = (item: Notificacion) => {
+    if (!item.leida) markAsRead(item.id);
+    setOpen(false);
+    navigate(item.enlace || '/dashboard/notificaciones');
   };
 
   const handleMarcarTodasLeidas = async () => {
@@ -108,29 +118,30 @@ const NotificationDropdown: React.FC = () => {
           renderItem={(item) => (
             <List.Item
               className={`notif-panel__item${item.leida ? '' : ' notif-panel__item--no-leida'}`}
-              onClick={() => !item.leida && handleMarcarLeida(item.id)}
+              onClick={() => abrir(item)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(item); } }}
+              role="button"
+              tabIndex={0}
+              extra={<RightOutlined className="notif-panel__ir" aria-hidden="true" />}
             >
               <List.Item.Meta
                 avatar={
                   <Badge dot={!item.leida}>
-                    {getTipoIcon(item.tipo)}
+                    {getTipoIcon(item)}
                   </Badge>
                 }
                 title={
                   <Space>
                     <Text strong>{item.titulo}</Text>
-                    <Tag color={getTipoColor(item.tipo)}>
-                      {item.tipo.toUpperCase()}
+                    <Tag color={nivelDe(item).color}>
+                      {item.tipo_display ?? item.tipo.replace(/_/g, ' ')}
                     </Tag>
                   </Space>
                 }
                 description={
                   <div>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {item.mensaje}
-                    </Text>
-                    <br />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    {item.mensaje && <Text type="secondary" className="notif-panel__mensaje">{item.mensaje}</Text>}
+                    <Text type="secondary" className="notif-panel__fecha">
                       {dayjs(item.fecha_creacion).fromNow()}
                     </Text>
                   </div>
@@ -140,6 +151,11 @@ const NotificationDropdown: React.FC = () => {
           )}
         />
       )}
+      <div className="notif-panel__pie">
+        <Button type="link" size="small" onClick={() => { setOpen(false); navigate('/dashboard/notificaciones'); }}>
+          Ver todas
+        </Button>
+      </div>
     </div>
   );
 

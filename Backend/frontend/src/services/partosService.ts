@@ -2,7 +2,7 @@
  * =============================================================================
  * SERVICIO DE PARTOS - VERSIÓN COMPLETA Y EXTENDIDA
  * =============================================================================
- * ✅ MEGA COMPLETO: Sistema integral de gestión de partos
+ * MEGA COMPLETO: Sistema integral de gestión de partos
  * 
  * MÓDULOS INCLUIDOS:
  * - Gestión completa de partos (CRUD + búsquedas avanzadas)
@@ -221,7 +221,7 @@ export interface Parto {
   numero_partos_anteriores?: number;
   riesgo_estimado?: string;
 
-  // ✅ NUEVOS: Sistema de alertas médicas
+  // NUEVOS: Sistema de alertas médicas
   alertas_parto?: AlertaParto[];
   tiene_alertas?: boolean;
   tiene_alertas_criticas?: boolean;
@@ -233,7 +233,7 @@ export interface Parto {
   };
   recomendaciones_por_edad?: Recomendacion[];
 
-  // ✅ CAMPOS DE PROTOCOLO DE ABORTO (< 20 semanas)
+  // CAMPOS DE PROTOCOLO DE ABORTO (< 20 semanas)
   tipo_aborto?: string; // espontaneo, inducido, incompleto, completo, diferido, inevitable
   metodo_evacuacion?: string; // aspiracion, legrado, medico, expectante
   apoyo_psicologico_realizado?: boolean;
@@ -241,7 +241,7 @@ export interface Parto {
   observaciones_aborto?: string;
 }
 
-// ✅ NUEVA INTERFAZ: Alerta de Parto
+// NUEVA INTERFAZ: Alerta de Parto
 export interface AlertaParto {
   tipo: 'critica' | 'moderada';
   nivel: 'error' | 'warning';
@@ -250,7 +250,7 @@ export interface AlertaParto {
   recomendacion: string;
 }
 
-// ✅ NUEVA INTERFAZ: Recomendación por Edad Gestacional
+// NUEVA INTERFAZ: Recomendación por Edad Gestacional
 export interface Recomendacion {
   tipo: 'informacion' | 'importante' | 'atencion' | 'urgente';
   periodo: string;
@@ -545,7 +545,7 @@ function normalizeListResponse<T>(data: any): T[] {
   }
 
   // Si no es ninguno de los anteriores, advertir y retornar array vacío
-  console.warn('⚠️ partosService: Respuesta no es array ni tiene results/data:', data);
+  console.warn('partosService: Respuesta no es array ni tiene results/data:', data);
   return [];
 }
 
@@ -587,7 +587,7 @@ export const partosService = {
       });
       return normalizeListResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error('❌ Error listando partos:', error);
+      console.error('Error listando partos:', error);
       throw error;
     }
   },
@@ -607,7 +607,7 @@ export const partosService = {
       const response = await api.get<Parto>(`/partos/${id}/`);
       return normalizeSingleResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo parto ${id}:`, error);
+      console.error(`Error obteniendo parto ${id}:`, error);
       throw error;
     }
   },
@@ -625,10 +625,10 @@ export const partosService = {
   async crear(data: Partial<Parto>): Promise<Parto> {
     try {
       const response = await api.post<Parto>('/partos/', data);
-      logger.log('✅ Parto creado exitosamente');
+      logger.log('Parto creado exitosamente');
       return normalizeSingleResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error('❌ Error creando parto:', error);
+      console.error('Error creando parto:', error);
       throw error;
     }
   },
@@ -646,10 +646,10 @@ export const partosService = {
   async actualizar(id: number, data: Partial<Parto>): Promise<Parto> {
     try {
       const response = await api.put<Parto>(`/partos/${id}/`, data);
-      logger.log(`✅ Parto ${id} actualizado exitosamente`);
+      logger.log(`Parto ${id} actualizado exitosamente`);
       return normalizeSingleResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error actualizando parto ${id}:`, error);
+      console.error(`Error actualizando parto ${id}:`, error);
       throw error;
     }
   },
@@ -660,10 +660,10 @@ export const partosService = {
   async actualizarParcial(id: number, data: Partial<Parto>): Promise<Parto> {
     try {
       const response = await api.patch<Parto>(`/partos/${id}/`, data);
-      logger.log(`✅ Parto ${id} actualizado parcialmente`);
+      logger.log(`Parto ${id} actualizado parcialmente`);
       return normalizeSingleResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error en actualización parcial del parto ${id}:`, error);
+      console.error(`Error en actualización parcial del parto ${id}:`, error);
       throw error;
     }
   },
@@ -681,9 +681,9 @@ export const partosService = {
   async eliminar(id: number): Promise<void> {
     try {
       await api.delete(`/partos/${id}/`);
-      logger.log(`✅ Parto ${id} eliminado exitosamente`);
+      logger.log(`Parto ${id} eliminado exitosamente`);
     } catch (error: any) {
-      console.error(`❌ Error eliminando parto ${id}:`, error);
+      console.error(`Error eliminando parto ${id}:`, error);
       throw error;
     }
   },
@@ -709,7 +709,7 @@ export const partosService = {
       });
       return normalizeListResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo partos de paciente ${pacienteId}:`, error);
+      console.error(`Error obteniendo partos de paciente ${pacienteId}:`, error);
       throw error;
     }
   },
@@ -724,7 +724,7 @@ export const partosService = {
       });
       return normalizeListResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo partos de embarazo ${embarazoId}:`, error);
+      console.error(`Error obteniendo partos de embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -739,7 +739,7 @@ export const partosService = {
       });
       return normalizeListResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo partos tipo ${tipoParto}:`, error);
+      console.error(`Error obteniendo partos tipo ${tipoParto}:`, error);
       throw error;
     }
   },
@@ -757,7 +757,7 @@ export const partosService = {
       });
       return normalizeListResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo partos por fechas:', error);
+      console.error('Error obteniendo partos por fechas:', error);
       throw error;
     }
   },
@@ -772,7 +772,7 @@ export const partosService = {
       });
       return normalizeListResponse<Parto>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo partos con complicaciones:', error);
+      console.error('Error obteniendo partos con complicaciones:', error);
       throw error;
     }
   },
@@ -789,7 +789,7 @@ export const partosService = {
       const response = await api.get<RecienNacido[]>(`/partos/recien-nacidos/?parto=${partoId}`);
       return normalizeListResponse<RecienNacido>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo recién nacidos del parto ${partoId}:`, error);
+      console.error(`Error obteniendo recién nacidos del parto ${partoId}:`, error);
       throw error;
     }
   },
@@ -807,10 +807,10 @@ export const partosService = {
   async crearRecienNacido(partoId: number, data: Partial<RecienNacido>): Promise<RecienNacido> {
     try {
       const response = await api.post<RecienNacido>(`/partos/recien-nacidos/`, { ...data, parto: partoId });
-      logger.log('✅ Recién nacido registrado exitosamente');
+      logger.log('Recién nacido registrado exitosamente');
       return normalizeSingleResponse<RecienNacido>(response.data);
     } catch (error: any) {
-      console.error('❌ Error registrando recién nacido:', error);
+      console.error('Error registrando recién nacido:', error);
       throw error;
     }
   },
@@ -828,10 +828,10 @@ export const partosService = {
         `/partos/recien-nacidos/${recienNacidoId}/`,
         data
       );
-      logger.log(`✅ Recién nacido ${recienNacidoId} actualizado`);
+      logger.log(`Recién nacido ${recienNacidoId} actualizado`);
       return normalizeSingleResponse<RecienNacido>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error actualizando recién nacido ${recienNacidoId}:`, error);
+      console.error(`Error actualizando recién nacido ${recienNacidoId}:`, error);
       throw error;
     }
   },
@@ -842,9 +842,9 @@ export const partosService = {
   async eliminarRecienNacido(partoId: number, recienNacidoId: number): Promise<void> {
     try {
       await api.delete(`/partos/recien-nacidos/${recienNacidoId}/`);
-      logger.log(`✅ Recién nacido ${recienNacidoId} eliminado`);
+      logger.log(`Recién nacido ${recienNacidoId} eliminado`);
     } catch (error: any) {
-      console.error(`❌ Error eliminando recién nacido ${recienNacidoId}:`, error);
+      console.error(`Error eliminando recién nacido ${recienNacidoId}:`, error);
       throw error;
     }
   },
@@ -861,7 +861,7 @@ export const partosService = {
       const response = await api.get<PartogramaRegistro[]>(`/partos/partograma/?parto=${partoId}`);
       return normalizeListResponse<PartogramaRegistro>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo partogramas del parto ${partoId}:`, error);
+      console.error(`Error obteniendo partogramas del parto ${partoId}:`, error);
       throw error;
     }
   },
@@ -878,10 +878,10 @@ export const partosService = {
         `/partos/partograma/`,
         { ...data, parto: partoId }
       );
-      logger.log('✅ Registro de partograma creado');
+      logger.log('Registro de partograma creado');
       return normalizeSingleResponse<PartogramaRegistro>(response.data);
     } catch (error: any) {
-      console.error('❌ Error creando registro de partograma:', error);
+      console.error('Error creando registro de partograma:', error);
       throw error;
     }
   },
@@ -899,10 +899,10 @@ export const partosService = {
         `/partos/partograma/${registroId}/`,
         data
       );
-      logger.log(`✅ Registro de partograma ${registroId} actualizado`);
+      logger.log(`Registro de partograma ${registroId} actualizado`);
       return normalizeSingleResponse<PartogramaRegistro>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error actualizando registro de partograma ${registroId}:`, error);
+      console.error(`Error actualizando registro de partograma ${registroId}:`, error);
       throw error;
     }
   },
@@ -913,9 +913,9 @@ export const partosService = {
   async eliminarRegistroPartograma(partoId: number, registroId: number): Promise<void> {
     try {
       await api.delete(`/partos/partograma/${registroId}/`);
-      logger.log(`✅ Registro de partograma ${registroId} eliminado`);
+      logger.log(`Registro de partograma ${registroId} eliminado`);
     } catch (error: any) {
-      console.error(`❌ Error eliminando registro de partograma ${registroId}:`, error);
+      console.error(`Error eliminando registro de partograma ${registroId}:`, error);
       throw error;
     }
   },
@@ -934,7 +934,7 @@ export const partosService = {
       );
       return normalizeListResponse<ComplicacionParto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo complicaciones del parto ${partoId}:`, error);
+      console.error(`Error obteniendo complicaciones del parto ${partoId}:`, error);
       throw error;
     }
   },
@@ -951,10 +951,10 @@ export const partosService = {
         `/partos/complicaciones/`,
         { ...data, parto: partoId }
       );
-      logger.log('✅ Complicación registrada');
+      logger.log('Complicación registrada');
       return normalizeSingleResponse<ComplicacionParto>(response.data);
     } catch (error: any) {
-      console.error('❌ Error registrando complicación:', error);
+      console.error('Error registrando complicación:', error);
       throw error;
     }
   },
@@ -972,10 +972,10 @@ export const partosService = {
         `/partos/complicaciones/${complicacionId}/`,
         data
       );
-      logger.log(`✅ Complicación ${complicacionId} actualizada`);
+      logger.log(`Complicación ${complicacionId} actualizada`);
       return normalizeSingleResponse<ComplicacionParto>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error actualizando complicación ${complicacionId}:`, error);
+      console.error(`Error actualizando complicación ${complicacionId}:`, error);
       throw error;
     }
   },
@@ -986,9 +986,9 @@ export const partosService = {
   async eliminarComplicacion(partoId: number, complicacionId: number): Promise<void> {
     try {
       await api.delete(`/partos/complicaciones/${complicacionId}/`);
-      logger.log(`✅ Complicación ${complicacionId} eliminada`);
+      logger.log(`Complicación ${complicacionId} eliminada`);
     } catch (error: any) {
-      console.error(`❌ Error eliminando complicación ${complicacionId}:`, error);
+      console.error(`Error eliminando complicación ${complicacionId}:`, error);
       throw error;
     }
   },
@@ -1011,7 +1011,7 @@ export const partosService = {
       const response = await api.post('/partos/calcular-apgar/', params);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error calculando APGAR:', error);
+      console.error('Error calculando APGAR:', error);
       throw error;
     }
   },
@@ -1030,7 +1030,7 @@ export const partosService = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas:', error);
+      console.error('Error obteniendo estadísticas:', error);
       throw error;
     }
   },
@@ -1045,7 +1045,7 @@ export const partosService = {
       );
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error analizando historial de paciente ${pacienteId}:`, error);
+      console.error(`Error analizando historial de paciente ${pacienteId}:`, error);
       throw error;
     }
   },
@@ -1062,7 +1062,7 @@ export const partosService = {
       const response = await api.get(`/partos/${partoId}/calcular-riesgo/`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error calculando riesgo obstétrico del parto ${partoId}:`, error);
+      console.error(`Error calculando riesgo obstétrico del parto ${partoId}:`, error);
       throw error;
     }
   },
@@ -1079,10 +1079,10 @@ export const partosService = {
       const response = await api.get(`/partos/${partoId}/generar-pdf/`, {
         responseType: 'blob'
       });
-      logger.log(`✅ PDF del parto ${partoId} generado`);
+      logger.log(`PDF del parto ${partoId} generado`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error generando PDF del parto ${partoId}:`, error);
+      console.error(`Error generando PDF del parto ${partoId}:`, error);
       throw error;
     }
   },
@@ -1095,10 +1095,10 @@ export const partosService = {
       const response = await api.get(`/partos/${partoId}/partograma-pdf/`, {
         responseType: 'blob'
       });
-      logger.log(`✅ PDF del partograma ${partoId} generado`);
+      logger.log(`PDF del partograma ${partoId} generado`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error generando PDF del partograma ${partoId}:`, error);
+      console.error(`Error generando PDF del partograma ${partoId}:`, error);
       throw error;
     }
   },
@@ -1116,10 +1116,10 @@ export const partosService = {
         params: filtros,
         responseType: 'blob'
       });
-      logger.log('✅ Excel de partos exportado');
+      logger.log('Excel de partos exportado');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error exportando Excel:', error);
+      console.error('Error exportando Excel:', error);
       throw error;
     }
   },

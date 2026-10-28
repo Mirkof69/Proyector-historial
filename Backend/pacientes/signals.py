@@ -73,7 +73,7 @@ def verificar_paciente_alto_riesgo(paciente):
         destinatario_preferido=getattr(paciente, "created_by", None),
         tipo=TipoNotificacion.ALERTA_ADVERTENCIA,
         prioridad=PrioridadNotificacion.NORMAL,
-        titulo="⚠️ Factores de Riesgo Detectados",
+        titulo="Factores de Riesgo Detectados",
         mensaje=f"Factores de riesgo para {paciente.nombre_completo}:\n{detalle}",
         entidad_tipo="paciente", entidad_id=paciente.id,
         url=f"/dashboard/pacientes/{paciente.id}",

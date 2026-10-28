@@ -23,7 +23,6 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { laboratorioService, TipoExamen, ValorReferencia, ResultadoLaboratorio } from '../../services/laboratorioService';
-import { pacientesService, Paciente } from '../../services/pacientesService';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import { buildColumnasResultados } from './components/columnasResultadosLab';
 import DatosGeneralesLab from './components/DatosGeneralesLab';
@@ -48,7 +47,6 @@ const FormularioLaboratorio: React.FC = () => {
   const loadingDataRef = useRef(isEditing);
   const [tiposExamen, setTiposExamen] = useState<TipoExamen[]>([]);
   const [valoresReferencia, setValoresReferencia] = useState<ValorReferencia[]>([]);
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [resultados, setResultados] = useState<Partial<ResultadoLaboratorio>[]>([]);
   const [resultadosAnormales, setResultadosAnormales] = useState(0);
   const [resultadosCriticos, setResultadosCriticos] = useState(0);
@@ -58,12 +56,7 @@ const FormularioLaboratorio: React.FC = () => {
   // ==========================================================================
   const cargarDatosIniciales = useCallback(async () => {
     try {
-      const [tiposData, pacientesData] = await Promise.all([
-        laboratorioService.getTiposExamen(),
-        pacientesService.getAll(),
-      ]);
-      setTiposExamen(tiposData);
-      setPacientes(pacientesData);
+      setTiposExamen(await laboratorioService.getTiposExamen());
     } catch (error) {
       message.error('Error al cargar datos iniciales');
     }
@@ -179,21 +172,24 @@ const FormularioLaboratorio: React.FC = () => {
         fecha_resultado: values.fecha_resultado?.format('YYYY-MM-DD HH:mm:ss'),
       };
 
-      let response: any;
+      // create/update devuelven la respuesta de axios: el id está en .data. Se leía
+      // response.id (undefined), los resultados salían sin examen y el servidor
+      // los rechazaba con «examen: Este campo es requerido» (BUG-007).
+      const tieneValor = (r: Partial<ResultadoLaboratorio>) =>
+        (r.valor_numerico !== undefined && r.valor_numerico !== null && String(r.valor_numerico) !== '')
+        || !!r.valor_texto;
+      let examenId: number;
       if (isEditing) {
-        response = await laboratorioService.update(Number(id), data);
+        await laboratorioService.update(Number(id), data);
+        examenId = Number(id);
 
         // Actualizar resultados
         await Promise.all(
           resultados.map((resultado) => {
             if (resultado.id) {
-              return laboratorioService.updateResultado(
-                Number(id),
-                resultado.id,
-                resultado
-              );
-            } else if (resultado.valor_numerico || resultado.valor_texto) {
-              return laboratorioService.addResultado(Number(id), resultado);
+              return laboratorioService.updateResultado(examenId, resultado.id, resultado);
+            } else if (tieneValor(resultado)) {
+              return laboratorioService.addResultado(examenId, resultado);
             }
             return Promise.resolve();
           })
@@ -201,19 +197,24 @@ const FormularioLaboratorio: React.FC = () => {
 
         message.success('Examen actualizado correctamente');
       } else {
-        response = await laboratorioService.create(data);
+        const respuesta: any = await laboratorioService.create(data);
+        examenId = respuesta?.data?.id ?? respuesta?.id;
 
-        await Promise.all(
-          resultados.reduce<Array<Promise<any>>>((acc, resultado) => {
-            if (resultado.valor_numerico || resultado.valor_texto) {
-              acc.push(laboratorioService.addResultado((response as any).id!, resultado));
-            }
-            return acc;
-          }, [])
-        );
+        // Todos los resultados en una sola petición: el servidor los evalúa contra
+        // el catálogo (normal, anormal, crítico) y marca el examen completado.
+        const conValor = resultados.filter(tieneValor);
+        if (conValor.length > 0) {
+          await laboratorioService.crearResultadoMultiple(examenId, conValor.map((r) => ({
+            valor_referencia: Number(r.valor_referencia),
+            valor_numerico: r.valor_numerico !== undefined && r.valor_numerico !== null ? Number(r.valor_numerico) : undefined,
+            valor_texto: r.valor_texto || undefined,
+            observaciones: r.observaciones || undefined,
+          })), true);
+        }
 
         message.success('Examen registrado correctamente');
       }
+      const response = { id: examenId };
 
       setTimeout(() => {
         navigate(FRONTEND_ROUTES.DASHBOARD.LABORATORIO_DETALLE((response as any).id!));
@@ -297,7 +298,6 @@ const FormularioLaboratorio: React.FC = () => {
 
           {/* DATOS GENERALES */}
           <DatosGeneralesLab
-            pacientes={pacientes}
             tiposExamen={tiposExamen}
             onTipoExamenChange={handleTipoExamenChange}
           />

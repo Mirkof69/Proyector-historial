@@ -14,19 +14,19 @@ const ProtectedRoute = ({ children, requiredPermission, requireAdmin }: Protecte
   const { isAuthenticated, user: currentUser, hasPermission } = useAuth();
 
   if (!isAuthenticated) {
-    logger.log('🔒 Acceso denegado - Redirigiendo a login');
+    logger.log('Acceso denegado - Redirigiendo a login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Check Admin role
   if (requireAdmin && currentUser?.rol !== 'administrador') {
-    console.warn('⛔ Acceso denegado. Se requiere administrador');
+    console.warn('Acceso denegado. Se requiere administrador');
     return <Navigate to="/403" replace />;  // «sin permiso», no «no encontrada»
   }
 
   // Check specific permission
   if (requiredPermission && !hasPermission(requiredPermission)) {
-    console.warn(`⛔ Acceso denegado. Falta permiso: ${requiredPermission}`);
+    console.warn(`Acceso denegado. Falta permiso: ${requiredPermission}`);
     return <Navigate to="/403" replace />;  // «sin permiso», no «no encontrada»
   }
 

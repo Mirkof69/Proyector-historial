@@ -238,7 +238,7 @@ class MOMConverter:
         # Reglas generales FMF
         if 0.8 <= mom <= 1.2:
             interpretacion = (
-                f"✅ Normal ({mom:.2f} MoM) - Valor dentro del rango esperado"
+                f"Normal ({mom:.2f} MoM) - Valor dentro del rango esperado"
             )
             semaforo = "verde"
 
@@ -370,12 +370,12 @@ class MOMConverter:
         # Reglas FMF: mediana entre 0.95 y 1.05 = BUENA calidad
         if 0.95 <= mediana <= 1.05:
             alerta = (
-                f"✅ Calidad EXCELENTE - Mediana: {mediana:.3f} (muy cercana a 1.0)"
+                f"Calidad EXCELENTE - Mediana: {mediana:.3f} (muy cercana a 1.0)"
             )
             calidad = "excelente"
         elif 0.90 <= mediana < 0.95 or 1.05 < mediana <= 1.10:
             alerta = (
-                f"⚠️ Calidad ACEPTABLE - Mediana: {mediana:.3f} (revisar calibración)"
+                f"Calidad ACEPTABLE - Mediana: {mediana:.3f} (revisar calibración)"
             )
             calidad = "aceptable"
         else:

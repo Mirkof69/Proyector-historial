@@ -100,7 +100,7 @@ class ConsultaIAAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {};">{}</span>',
             "green" if obj.util else "red",
-            "✓ Útil" if obj.util else "✗ No útil",
+            "Útil" if obj.util else "No útil",
         )
 
 
@@ -217,8 +217,8 @@ class AnalisisLaboratorioMLAdmin(admin.ModelAdmin):
     def validado_badge(self, obj):
         """Validado badge"""
         if obj.validado_por_medico:
-            return format_html('<span style="color: green;">✓ Validado</span>')
-        return format_html('<span style="color: orange;">⚠ Pendiente</span>')
+            return format_html('<span style="color: green;">Validado</span>')
+        return format_html('<span style="color: orange;">Pendiente</span>')
 
 
 
@@ -288,7 +288,7 @@ class DatasetEntrenamientoIAAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {};">{}</span>',
             "green" if obj.validado else "orange",
-            "✓ Validado" if obj.validado else "⚠ Pendiente",
+            "Validado" if obj.validado else "Pendiente",
         )
 
 
@@ -298,7 +298,7 @@ class DatasetEntrenamientoIAAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {};">{}</span>',
             "green" if obj.usado_entrenamiento else "gray",
-            "✓ Usado" if obj.usado_entrenamiento else "- No usado",
+            "Usado" if obj.usado_entrenamiento else "- No usado",
         )
 
 
@@ -399,7 +399,7 @@ class ConfiguracionModeloIAAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {};">{}</span>',
             "green" if obj.activo else "red",
-            "✓ Activo" if obj.activo else "✗ Inactivo",
+            "Activo" if obj.activo else "Inactivo",
         )
 
 
@@ -482,7 +482,7 @@ class EstadisticasIAAdmin(admin.ModelAdmin):
     @admin.display(description="Rating")
     def rating_badge(self, obj):
         """Rating badge"""
-        stars = "⭐" * int(obj.rating_promedio)
+        stars = "" * int(obj.rating_promedio)
         return format_html("<span>{} ({:.1f})</span>", stars, obj.rating_promedio)
 
 

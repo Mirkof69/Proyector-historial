@@ -438,7 +438,12 @@ class Command(BaseCommand):
         # «hoy - semanas del parto», asi que todos los partos caian en la
         # ultima semana (510 de 523) y, con los dias sumados al azar, 437
         # quedaban en el FUTURO: fechas imposibles y reportes por fecha vacios.
-        retroceso = random.randint(7, 3 * 365) if termina_en_parto else 0
+        # En los que siguen en curso el ultimo control fue hace 0-27 dias: con 0,
+        # TODOS tenian su ultimo control el dia de la carga (1.187 el mismo dia).
+        if termina_en_parto:
+            retroceso = random.randint(7, 3 * 365)
+        else:
+            retroceso = min(random.randint(0, 27), max(0, (41 - semanas_actuales) * 7))
         fum = hoy - timedelta(weeks=semanas_actuales, days=retroceso)
         # Ultimo dia del embarazo (el parto, o hoy si sigue en curso). Nada de
         # lo que se genere para este embarazo puede caer despues.

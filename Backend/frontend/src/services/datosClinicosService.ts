@@ -196,7 +196,7 @@ class DatosClinicosService {
 
     const signos: SignosVitalesConsolidados = {};
 
-    logger.log('🔍 CONSOLIDANDO SIGNOS VITALES:');
+    logger.log('CONSOLIDANDO SIGNOS VITALES:');
     logger.log('   - ultimoTriaje:', ultimoTriaje);
     logger.log('   - ultimaNota:', ultimaNota);
     logger.log('   - embarazos:', embarazos);
@@ -205,14 +205,14 @@ class DatosClinicosService {
     const fechas: Array<{ fecha: Date | null; fuente: string; datos: any }> = [];
 
     if (ultimoTriaje?.fecha_registro) {
-      logger.log('✅ Triaje tiene fecha_registro:', ultimoTriaje.fecha_registro);
+      logger.log('Triaje tiene fecha_registro:', ultimoTriaje.fecha_registro);
       fechas.push({
         fecha: new Date(ultimoTriaje.fecha_registro),
         fuente: 'triaje',
         datos: ultimoTriaje,
       });
     } else {
-      logger.log('❌ Triaje NO tiene fecha_registro o es null/undefined');
+      logger.log('Triaje NO tiene fecha_registro o es null/undefined');
     }
 
     if (ultimaNota?.fecha_consulta) {
@@ -244,13 +244,13 @@ class DatosClinicosService {
     }
 
     // Ordenar por fecha más reciente primero
-    logger.log('📅 Fechas ANTES de ordenar:', fechas);
+    logger.log('Fechas ANTES de ordenar:', fechas);
     fechas.sort((a, b) => {
       if (!a.fecha) return 1;
       if (!b.fecha) return -1;
       return b.fecha.getTime() - a.fecha.getTime();
     });
-    logger.log('📅 Fechas DESPUÉS de ordenar (más reciente primero):', fechas);
+    logger.log('Fechas DESPUÉS de ordenar (más reciente primero):', fechas);
 
     // ========================================================================
     // CONSOLIDAR DATOS PRIORIZANDO LOS MÁS RECIENTES
@@ -270,7 +270,7 @@ class DatosClinicosService {
 
       if (fuente === 'triaje') {
         // Datos de triaje
-        logger.log('📊 Datos de triaje recibidos:', datos);
+        logger.log('Datos de triaje recibidos:', datos);
         if (datos.peso_kg) signos.peso_kg = datos.peso_kg;
         if (datos.talla_cm) signos.talla_cm = datos.talla_cm;
         if (datos.imc) signos.imc = datos.imc;
@@ -281,7 +281,7 @@ class DatosClinicosService {
         if (datos.frecuencia_cardiaca) signos.frecuencia_cardiaca = datos.frecuencia_cardiaca;
         if (datos.frecuencia_respiratoria) signos.frecuencia_respiratoria = datos.frecuencia_respiratoria;
         if (datos.saturacion_oxigeno) signos.saturacion_oxigeno = datos.saturacion_oxigeno;
-        logger.log('📊 Signos vitales consolidados después de triaje:', signos);
+        logger.log('Signos vitales consolidados después de triaje:', signos);
         if (datos.dolor_escala) signos.dolor_escala = datos.dolor_escala;
 
         fuentes.add('triaje');
@@ -325,7 +325,7 @@ class DatosClinicosService {
       signos.fecha_dato = fechas[fechas.length - 1].fecha?.toISOString();
     }
 
-    logger.log('🎯 SIGNOS VITALES FINALES CONSOLIDADOS:', signos);
+    logger.log('SIGNOS VITALES FINALES CONSOLIDADOS:', signos);
     return signos;
   }
 
@@ -467,60 +467,60 @@ class DatosClinicosService {
   ): void {
     // Alertas de alergias
     if (antecedentes.alergias) {
-      alertas.push(`⚠️ ALERGIAS: ${antecedentes.alergias}`);
+      alertas.push(`ALERGIAS: ${antecedentes.alergias}`);
     }
 
     // Alertas de enfermedades crónicas
     if (antecedentes.enfermedades_cronicas) {
-      alertas.push(`⚠️ Enfermedades crónicas: ${antecedentes.enfermedades_cronicas}`);
+      alertas.push(`Enfermedades crónicas: ${antecedentes.enfermedades_cronicas}`);
     }
 
     // Alertas de medicamentos
     if (antecedentes.medicamentos_actuales) {
-      alertas.push(`💊 Medicamentos actuales: ${antecedentes.medicamentos_actuales}`);
+      alertas.push(`Medicamentos actuales: ${antecedentes.medicamentos_actuales}`);
     }
 
     // Alertas de embarazo
     if (embarazoActual?.embarazo) {
-      alertas.push(`🤰 Embarazo activo detectado`);
+      alertas.push(`Embarazo activo detectado`);
     }
 
     // Alertas de signos vitales anormales
     if (signosVitales.presion_sistolica && signosVitales.presion_diastolica) {
       if (signosVitales.presion_sistolica >= 140 || signosVitales.presion_diastolica >= 90) {
-        alertas.push(`⚠️ Presión arterial elevada: ${signosVitales.presion_sistolica}/${signosVitales.presion_diastolica}`);
+        alertas.push(`Presión arterial elevada: ${signosVitales.presion_sistolica}/${signosVitales.presion_diastolica}`);
       }
       if (signosVitales.presion_sistolica < 90 || signosVitales.presion_diastolica < 60) {
-        alertas.push(`⚠️ Presión arterial baja: ${signosVitales.presion_sistolica}/${signosVitales.presion_diastolica}`);
+        alertas.push(`Presión arterial baja: ${signosVitales.presion_sistolica}/${signosVitales.presion_diastolica}`);
       }
     }
 
     if (signosVitales.temperatura) {
       if (signosVitales.temperatura >= 38) {
-        alertas.push(`🌡️ Fiebre: ${signosVitales.temperatura}°C`);
+        alertas.push(`Fiebre: ${signosVitales.temperatura}°C`);
       }
       if (signosVitales.temperatura < 36) {
-        alertas.push(`🌡️ Hipotermia: ${signosVitales.temperatura}°C`);
+        alertas.push(`Hipotermia: ${signosVitales.temperatura}°C`);
       }
     }
 
     if (signosVitales.frecuencia_cardiaca) {
       if (signosVitales.frecuencia_cardiaca > 100) {
-        alertas.push(`❤️ Taquicardia: ${signosVitales.frecuencia_cardiaca} lpm`);
+        alertas.push(`Taquicardia: ${signosVitales.frecuencia_cardiaca} lpm`);
       }
       if (signosVitales.frecuencia_cardiaca < 60) {
-        alertas.push(`❤️ Bradicardia: ${signosVitales.frecuencia_cardiaca} lpm`);
+        alertas.push(`Bradicardia: ${signosVitales.frecuencia_cardiaca} lpm`);
       }
     }
 
     if (signosVitales.saturacion_oxigeno && signosVitales.saturacion_oxigeno < 95) {
-      alertas.push(`🫁 Saturación baja: ${signosVitales.saturacion_oxigeno}%`);
+      alertas.push(`Saturación baja: ${signosVitales.saturacion_oxigeno}%`);
     }
 
     // Alertas de antecedentes obstétricos
     if (antecedentes.gestas !== undefined) {
       const formula = `G${antecedentes.gestas || 0}P${antecedentes.partos || 0}C${antecedentes.cesareas || 0}A${antecedentes.abortos || 0}`;
-      alertas.push(`📋 Antecedentes obstétricos: ${formula}`);
+      alertas.push(`Antecedentes obstétricos: ${formula}`);
     }
   }
 }

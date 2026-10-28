@@ -10,6 +10,7 @@ import { authService } from '../../services/authService';
 import { citasService } from '../../services/citasService';
 import { reportesService } from '../../services/reportesService';
 import activityLogsService from '../../services/activityLogsService';
+import api from '../../services/api';
 import './DashboardHome.css';
 import { IAAsistenteMedico } from '../../components/IAAsistenteMedico/IAAsistenteMedico';
 import { GlobalLoader } from '../../components/common/GlobalLoader';
@@ -89,6 +90,8 @@ const DashboardHome: React.FC = () => {
     alertasMedicas: [] as AlertaMedica[]
   });
   const { loading, stats, actividades, citasHoy, chartData, lastUpdated, error, alertasMedicas } = state;
+  const puedeVerActividad = ['administrador', 'medico'].includes(authService.getCurrentUser()?.rol ?? '');
+  const puedeVerAlertas = authService.hasPermission('view_alertamedica');
 
   const cardPermissions: Record<string, string> = useMemo(() => ({
     'Pacientes': 'view_paciente',
@@ -139,7 +142,7 @@ const DashboardHome: React.FC = () => {
       // reportes, y pedirlos igual eran llamadas 403 en cada carga del Panel.
       // Las citas, solo las de HOY: el listado traía la primera página ordenada
       // desde la fecha más lejana y las de hoy nunca llegaban.
-      const [statsBasicas, citasData, logsResponse] = await Promise.all([
+      const [statsBasicas, citasData, logsResponse, tendencia] = await Promise.all([
         reportesService.obtenerStatsBasicas(),
         authService.hasPermission('view_cita')
           ? citasService.listar({ fecha_cita: dayjs().format('YYYY-MM-DD') }).catch(() => [])
@@ -148,6 +151,7 @@ const DashboardHome: React.FC = () => {
         ['administrador', 'medico'].includes(authService.getCurrentUser()?.rol ?? '')
           ? activityLogsService.getAccessLogs({ page_size: 5 }).catch(() => ({ results: [] }))
           : Promise.resolve({ results: [] }),
+        api.get('/reportes/tendencia-diaria/').then((r) => r.data?.dias ?? []).catch(() => []),
       ]);
 
       let alertas: any[] = [];
@@ -182,7 +186,7 @@ const DashboardHome: React.FC = () => {
         tipo: ((log.action === 'login' || log.accion === 'crear') ? 'success' :
           (log.action === 'logout' || log.accion === 'eliminar') ? 'warning' :
             log.accion === 'eliminar' || log.action === 'delete' ? 'danger' : 'info') as 'info' | 'warning' | 'success' | 'danger',
-        _uniqueKey: `log-${log.id || index}-${Date.now()}`
+        _uniqueKey: `log-${log.id ?? index}`
       }));
 
       const citasHoyFormateadas = citasHoyData.slice(0, 5).map((cita: any, index: number) => ({
@@ -191,30 +195,18 @@ const DashboardHome: React.FC = () => {
         hora: String(cita.hora_cita || '').slice(0, 5),
         motivo: cita.motivo || cita.tipo || 'Consulta',
         estado: cita.estado || 'PENDIENTE',
-        _uniqueKey: `cita-${cita.id}-${index}-${Date.now()}`
+        _uniqueKey: `cita-${cita.id ?? index}`
       }));
 
-      const diasMes = dayjs().daysInMonth();
-      const diasData = [];
-
-      for (let i = 1; i <= diasMes; i++) {
-        const fechaDia = dayjs().date(i).format('YYYY-MM-DD');
-        if (dayjs(fechaDia).isAfter(dayjs())) break;
-
-        const pacientesDia = 0;
-        const citasDia = Array.isArray(citasData) ? citasData.filter((c: any) => {
-          const fechaCita = dayjs(c.fecha_hora || c.fecha).format('YYYY-MM-DD');
-          return fechaCita === fechaDia;
-        }).length : 0;
-
-        if (pacientesDia > 0 || citasDia > 0 || i === dayjs().date()) {
-          diasData.push({ name: `Día ${i}`, pacientes: pacientesDia, citas: citasDia });
-        }
-      }
-
-      if (diasData.length === 0) {
-        diasData.push({ name: `Día ${dayjs().date()}`, pacientes: 0, citas: 0 });
-      }
+      // Actividad real de los últimos 30 días (antes: pacientes siempre 0 y las
+      // citas contadas con campos inexistentes, así que salía un único punto).
+      const diasData = (tendencia as any[]).map((d) => ({
+        name: dayjs(d.fecha).format('DD/MM'),
+        pacientes: d.pacientes,
+        controles: d.controles,
+        citas: d.citas,
+        examenes: d.examenes,
+      }));
 
       // La API de alertas trae prioridad y descripcion; la tarjeta espera tipo y mensaje.
       // Mientras la tabla estaba vacía no se notaba; con alertas reales el Panel se caía.
@@ -225,7 +217,7 @@ const DashboardHome: React.FC = () => {
         ...alerta,
         mensaje: alerta.mensaje ?? alerta.descripcion ?? alerta.titulo ?? '',
         tipo: TIPO_POR_PRIORIDAD[alerta.prioridad] ?? alerta.tipo ?? 'info',
-        _uniqueKey: `alerta-${alerta.id}-${index}-${Date.now()}`
+        _uniqueKey: `alerta-${alerta.id ?? index}`
       }));
 
       if (alertas.length > alertasMedicas.length && alertasMedicas.length > 0) {
@@ -236,13 +228,17 @@ const DashboardHome: React.FC = () => {
         } catch (e) { }
       }
 
+      // El Panel se refresca cada 30 s: si nada cambió se conserva el mismo objeto,
+      // así React no vuelve a dibujar listas ni a animar el gráfico (la pantalla
+      // «temblaba»; las claves llevaban Date.now() y todo se rehacía).
+      const igual = <T,>(antes: T, ahora: T): T => (JSON.stringify(antes) === JSON.stringify(ahora) ? antes : ahora);
       setState(prev => ({
         ...prev,
-        stats,
-        actividades: actividadesConKeys,
-        citasHoy: citasHoyFormateadas,
-        chartData: diasData,
-        alertasMedicas: alertasConKeys,
+        stats: igual(prev.stats, stats),
+        actividades: igual(prev.actividades, actividadesConKeys),
+        citasHoy: igual(prev.citasHoy, citasHoyFormateadas),
+        chartData: igual(prev.chartData, diasData),
+        alertasMedicas: igual(prev.alertasMedicas, alertasConKeys),
         lastUpdated: new Date(),
         loading: false
       }));
@@ -302,10 +298,15 @@ const DashboardHome: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <DashboardActividadReciente actividades={actividades} />
-        <DashboardAlertasMedicas alertasMedicas={alertasMedicas} />
-      </Row>
+      {/* Cada rol ve solo lo que puede leer: la actividad sale de la auditoría
+          (médicos y administración) y las alertas, de Alertas Médicas. Para
+          enfermería y recepción eran dos cuadros vacíos. */}
+      {(puedeVerActividad || puedeVerAlertas) && (
+        <Row gutter={[16, 16]}>
+          {puedeVerActividad && <DashboardActividadReciente actividades={actividades} />}
+          {puedeVerAlertas && <DashboardAlertasMedicas alertasMedicas={alertasMedicas} />}
+        </Row>
+      )}
 
       <div className="dashboard-pie">
         <Text type="secondary">

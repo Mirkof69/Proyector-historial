@@ -108,10 +108,10 @@ class PacienteAdmin(admin.ModelAdmin):
         """Badge visual para el estado activo"""
         if obj.activo:
             return format_html(
-                '<span style="background-color: #28a745; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">✓ Activo</span>',
+                '<span style="background-color: #28a745; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">Activo</span>',
             )
         return format_html(
-            '<span style="background-color: #dc3545; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">✗ Inactivo</span>',
+            '<span style="background-color: #dc3545; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">Inactivo</span>',
         )
 
 
@@ -121,13 +121,13 @@ class PacienteAdmin(admin.ModelAdmin):
 
     actions = ["activar_pacientes", "desactivar_pacientes"]
 
-    @admin.action(description="✓ Activar pacientes seleccionados")
+    @admin.action(description="Activar pacientes seleccionados")
     def activar_pacientes(self, request, queryset):
         """Activar pacientes"""
         updated = queryset.update(activo=True)
         self.message_user(request, f"{updated} paciente(s) activado(s) exitosamente.")
 
-    @admin.action(description="✗ Desactivar pacientes seleccionados")
+    @admin.action(description="Desactivar pacientes seleccionados")
     def desactivar_pacientes(self, request, queryset):
         """Desactivar pacientes"""
         updated = queryset.update(activo=False)

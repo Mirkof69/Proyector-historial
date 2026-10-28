@@ -138,11 +138,11 @@ class NotaEvolucionViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @extend_schema(

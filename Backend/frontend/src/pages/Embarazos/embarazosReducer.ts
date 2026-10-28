@@ -1,5 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Embarazo } from '../../services/embarazosService';
+import { imcRedondeado } from '../../utils/imc';
 
 // =============================================================================
 // TIPOS Y CONSTANTES EXTENDIDOS
@@ -235,7 +236,7 @@ export const calcularEdadGestacional = (fum: Dayjs) => {
 export const calcularIMC = (peso: number, talla: number) => {
   if (!peso || !talla) return null;
   const tallaMetros = talla / 100; // cm a m
-  const imc = peso / (tallaMetros * tallaMetros);
+  const imc = imcRedondeado(peso, tallaMetros);
 
   let clasificacion = '';
   let color = '';

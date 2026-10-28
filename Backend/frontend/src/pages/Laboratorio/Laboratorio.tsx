@@ -202,7 +202,7 @@ const Laboratorio: React.FC = () => {
           loading={listado.cargando}
           pagination={listado.paginacion}
           onChange={listado.onChange}
-          scroll={{ x: 1300 }}
+          scroll={{ x: 1075 }}
         />
       </Card>
       <ImportarLaboratorioModal

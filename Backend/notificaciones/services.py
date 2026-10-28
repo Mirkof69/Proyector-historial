@@ -141,7 +141,7 @@ class NotificacionService:
             prioridad=PrioridadNotificacion.ALTA,
             titulo="Cita Confirmada",
             mensaje=mensaje,
-            url=f"/citas/{cita.id}",
+            url=f"/dashboard/citas/{cita.id}",
             url_texto="Ver Detalle de Cita",
             entidad_tipo="cita",
             entidad_id=cita.id,
@@ -178,7 +178,7 @@ class NotificacionService:
             prioridad=PrioridadNotificacion.ALTA,
             titulo="Cita Cancelada",
             mensaje=mensaje,
-            url="/citas",
+            url="/dashboard/citas",
             url_texto="Agendar Nueva Cita",
             entidad_tipo="cita",
             entidad_id=cita.id,
@@ -207,7 +207,7 @@ class NotificacionService:
         if tiene_criticos:
             tipo = TipoNotificacion.EXAMEN_CRITICO
             prioridad = PrioridadNotificacion.CRITICA
-            titulo = "⚠️ RESULTADOS CRÍTICOS"
+            titulo = "RESULTADOS CRÍTICOS"
             mensaje = f"Los resultados de {examen.tipo_examen} están listos. ATENCIÓN: Se encontraron valores críticos que requieren atención médica inmediata."
         else:
             tipo = TipoNotificacion.EXAMEN_LISTO
@@ -221,7 +221,7 @@ class NotificacionService:
             prioridad=prioridad,
             titulo=titulo,
             mensaje=mensaje,
-            url=f"/laboratorio/{examen.id}",
+            url=f"/dashboard/laboratorio/{examen.id}",
             url_texto="Ver Resultados",
             entidad_tipo="examen",
             entidad_id=examen.id,
@@ -253,7 +253,7 @@ class NotificacionService:
             prioridad=PrioridadNotificacion.NORMAL,
             titulo="Documento Médico Listo",
             mensaje=f"Su {documento} está listo para descarga.",
-            url="/documentos",
+            url="/dashboard/notificaciones",
             url_texto="Ver Documentos",
             entidad_tipo="paciente",
             entidad_id=paciente.id,
@@ -296,7 +296,7 @@ class NotificacionService:
             prioridad=prioridad,
             titulo=titulo,
             mensaje=mensaje,
-            url=f"/pacientes/{paciente.id}",
+            url=f"/dashboard/historia-clinica/{paciente.id}",
             url_texto="Ver Historia Clínica",
             entidad_tipo="paciente",
             entidad_id=paciente.id,

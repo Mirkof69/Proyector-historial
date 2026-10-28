@@ -54,7 +54,7 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
           </Form.Item>
           {gananciaCalculada && (
             <Text type="success" className="u-t-xs">
-              ✓ Ganancia: {gananciaCalculada}
+              Ganancia: {gananciaCalculada}
             </Text>
           )}
         </Col>
@@ -73,7 +73,7 @@ const SeccionSignosVitales: React.FC<SeccionSignosVitalesProps> = ({
               onChange={(value) => {
                 if (value && (value < 100 || value > 220)) {
                   modal.warning({
-                    title: '⚠️ Advertencia: Talla Fuera de Rango',
+                    title: 'Advertencia: Talla Fuera de Rango',
                     content: 'La talla debe estar entre 120 y 220 cm.',
                   });
                 }

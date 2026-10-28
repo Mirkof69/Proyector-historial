@@ -74,11 +74,11 @@ class TriajeEnfermeriaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         return TriajeEnfermeria.objects.select_related("paciente", "cita", "enfermera")
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar enfermera y created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar enfermera y created_by al crear"""
         serializer.save(enfermera=self.request.user, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"])

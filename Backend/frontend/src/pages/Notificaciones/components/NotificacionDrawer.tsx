@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Space, Tag, Avatar, Typography, Drawer, Descriptions } from 'antd';
 import {
   DeleteOutlined,
   CheckOutlined,
   BellOutlined,
+  ExportOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Notificacion } from '../../../services/notificacionesService';
@@ -24,7 +26,9 @@ interface NotificacionDrawerProps {
 
 const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
   open, onClose, selectedNotification, handleMarkAsRead, handleDelete,
-}) => (
+}) => {
+  const navigate = useNavigate();
+  return (
   <Drawer
     title={
       <Space>
@@ -70,9 +74,21 @@ const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
         </Descriptions>
 
         <div className="notificacion-detalle__acciones">
-          {!selectedNotification.leida && (
+          {selectedNotification.enlace && selectedNotification.enlace !== '/dashboard/notificaciones' && (
             <Button
               type="primary"
+              icon={<ExportOutlined />}
+              onClick={() => {
+                if (!selectedNotification.leida) handleMarkAsRead(selectedNotification.id);
+                onClose();
+                navigate(selectedNotification.enlace as string);
+              }}
+            >
+              {selectedNotification.url_texto || 'Abrir'}
+            </Button>
+          )}
+          {!selectedNotification.leida && (
+            <Button
               icon={CHECK_ICON_2}
               onClick={() => {
                 handleMarkAsRead(selectedNotification.id);
@@ -96,6 +112,7 @@ const NotificacionDrawer: React.FC<NotificacionDrawerProps> = ({
       </div>
     )}
   </Drawer>
-);
+  );
+};
 
 export default NotificacionDrawer;

@@ -168,31 +168,31 @@ export const calcularCrecimiento = (valores: DatosBiometria): ResultadoCrecimien
   let categoria: 'RCIU' | 'PEG' | 'NORMAL' | 'GEG' | 'MACROSOMIA' = 'NORMAL';
 
   if (percentil < 3) {
-    clasificacion = '🔴 RCIU (Restricción del Crecimiento Intrauterino)';
+    clasificacion = 'RCIU (Restricción del Crecimiento Intrauterino)';
     color = 'var(--color-peligro)';
     categoria = 'RCIU';
     interpretacion = `Peso fetal estimado <p3 (${percentil.toFixed(1)}). Restricción severa del crecimiento intrauterino. Requiere evaluación urgente.`;
     recomendacion = 'Doppler de arterias umbilical, cerebral media y ductus venoso. Evaluación del líquido amniótico. Considerar monitoreo fetal intensivo y posible interrupción según edad gestacional y hallazgos Doppler.';
   } else if (percentil < 10) {
-    clasificacion = '🟠 PEG (Pequeño para Edad Gestacional)';
+    clasificacion = 'PEG (Pequeño para Edad Gestacional)';
     color = 'var(--color-aviso)';
     categoria = 'PEG';
     interpretacion = `Peso fetal estimado entre p3-p10 (${percentil.toFixed(1)}). Pequeño para edad gestacional. Riesgo intermedio.`;
     recomendacion = 'Doppler umbilical y seguimiento semanal. Evaluar diferencial entre constitucional y patológico mediante Doppler y líquido amniótico. Controles cada 7-14 días.';
   } else if (percentil >= 10 && percentil <= 90) {
-    clasificacion = '🟢 NORMAL';
+    clasificacion = 'NORMAL';
     color = 'var(--color-exito)';
     categoria = 'NORMAL';
     interpretacion = `Peso fetal estimado dentro de rango normal (p${percentil.toFixed(1)}). Crecimiento adecuado para edad gestacional.`;
     recomendacion = 'Continuar con seguimiento prenatal habitual. Próxima ecografía según protocolo estándar.';
   } else if (percentil > 90 && percentil < 97) {
-    clasificacion = '🟡 GEG (Grande para Edad Gestacional)';
+    clasificacion = 'GEG (Grande para Edad Gestacional)';
     color = 'var(--color-aviso)';
     categoria = 'GEG';
     interpretacion = `Peso fetal estimado entre p90-p97 (${percentil.toFixed(1)}). Grande para edad gestacional.`;
     recomendacion = 'Descartar diabetes gestacional (curva de glucosa si no se ha realizado). Seguimiento ecográfico cada 3-4 semanas. Evaluar vía de parto según evolución y estimación de peso al término.';
   } else {
-    clasificacion = '🔴 MACROSOMÍA';
+    clasificacion = 'MACROSOMÍA';
     color = 'var(--color-peligro)';
     categoria = 'MACROSOMIA';
     interpretacion = `Peso fetal estimado >p97 (${percentil.toFixed(1)}). Macrosomía fetal. Riesgo de complicaciones al parto.`;

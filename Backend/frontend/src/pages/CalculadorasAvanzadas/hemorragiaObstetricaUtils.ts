@@ -77,15 +77,15 @@ export const calcularShockIndex = (fc: number, pas: number): number => {
 
 export const clasificarShock = (si: number): { clase: string; color: string } => {
   if (si < 0.7) {
-    return { clase: '✅ Normal', color: 'var(--color-exito)' };
+    return { clase: 'Normal', color: 'var(--color-exito)' };
   } else if (si < 0.9) {
-    return { clase: '⚠️ Vigilancia', color: 'var(--color-aviso)' };
+    return { clase: 'Vigilancia', color: 'var(--color-aviso)' };
   } else if (si < 1.2) {
-    return { clase: '🟠 Compensado', color: 'var(--color-aviso)' };
+    return { clase: 'Compensado', color: 'var(--color-aviso)' };
   } else if (si < 1.5) {
-    return { clase: '🔴 Descompensado', color: 'var(--color-peligro)' };
+    return { clase: 'Descompensado', color: 'var(--color-peligro)' };
   } else {
-    return { clase: '🚨 CRÍTICO', color: 'var(--color-peligro)' };
+    return { clase: 'CRÍTICO', color: 'var(--color-peligro)' };
   }
 };
 
@@ -178,80 +178,80 @@ export const calcularHemorragia = (valores: DatosHemorragia): ResultadoHemorragi
   const medidas_inmediatas: string[] = [];
 
   // Medidas generales
-  medidas_inmediatas.push('🔴 ACTIVAR CÓDIGO ROJO - Equipo multidisciplinario');
-  medidas_inmediatas.push('💉 Dos accesos IV calibre 14-16G');
-  medidas_inmediatas.push('📊 Laboratorios STAT: BHC, TP/TPT, Fibrinógeno, Gasometría');
+  medidas_inmediatas.push('ACTIVAR CÓDIGO ROJO - Equipo multidisciplinario');
+  medidas_inmediatas.push('Dos accesos IV calibre 14-16G');
+  medidas_inmediatas.push('Laboratorios STAT: BHC, TP/TPT, Fibrinógeno, Gasometría');
 
   // Específicas por causa (4 T's)
   switch (valores.causa_principal) {
     case 'tono':
-      medidas_inmediatas.push('🤲 TONO: Masaje uterino bimanual vigoroso');
-      medidas_inmediatas.push('💊 Oxitocina 20-40 UI en 1000ml SSN a goteo rápido');
+      medidas_inmediatas.push('TONO: Masaje uterino bimanual vigoroso');
+      medidas_inmediatas.push('Oxitocina 20-40 UI en 1000ml SSN a goteo rápido');
       if (valores.tono_uterino === 'muy_blando') {
-        medidas_inmediatas.push('💉 Metilergonovina 0.2mg IM (si no HTA)');
-        medidas_inmediatas.push('🧪 Misoprostol 800-1000 mcg rectal');
-        medidas_inmediatas.push('⚠️ Considerar: Carboprost 250mcg IM c/15min (máx 8 dosis)');
+        medidas_inmediatas.push('Metilergonovina 0.2mg IM (si no HTA)');
+        medidas_inmediatas.push('Misoprostol 800-1000 mcg rectal');
+        medidas_inmediatas.push('Considerar: Carboprost 250mcg IM c/15min (máx 8 dosis)');
       }
       break;
 
     case 'trauma':
-      medidas_inmediatas.push('🔍 TRAUMA: Inspección cervical/vaginal/perineal minuciosa');
-      medidas_inmediatas.push('🪡 Sutura inmediata de laceraciones identificadas');
+      medidas_inmediatas.push('TRAUMA: Inspección cervical/vaginal/perineal minuciosa');
+      medidas_inmediatas.push('Sutura inmediata de laceraciones identificadas');
       if (valores.laceraciones) {
-        medidas_inmediatas.push('⚠️ Evaluar lesiones de tracto genital alto');
-        medidas_inmediatas.push('🏥 Considerar revisión quirúrgica si sangrado persiste');
+        medidas_inmediatas.push('Evaluar lesiones de tracto genital alto');
+        medidas_inmediatas.push('Considerar revisión quirúrgica si sangrado persiste');
       }
       break;
 
     case 'tejido':
-      medidas_inmediatas.push('🧪 TEJIDO: Revisión de cavidad uterina');
+      medidas_inmediatas.push('TEJIDO: Revisión de cavidad uterina');
       if (!valores.placenta_completa) {
-        medidas_inmediatas.push('🤚 Extracción manual de restos placentarios');
-        medidas_inmediatas.push('💊 Antibióticos profilácticos');
-        medidas_inmediatas.push('📋 Enviar placenta a patología si anormal');
+        medidas_inmediatas.push('Extracción manual de restos placentarios');
+        medidas_inmediatas.push('Antibióticos profilácticos');
+        medidas_inmediatas.push('Enviar placenta a patología si anormal');
       }
-      medidas_inmediatas.push('🔍 Descartar acretismo placentario');
+      medidas_inmediatas.push('Descartar acretismo placentario');
       break;
 
     case 'trombina':
-      medidas_inmediatas.push('🩸 TROMBINA: Manejo de coagulopatía');
+      medidas_inmediatas.push('TROMBINA: Manejo de coagulopatía');
       if (valores.coagulopatia) {
-        medidas_inmediatas.push('💉 Ácido tranexámico 1g IV en 10 min, luego 1g en 8h');
-        medidas_inmediatas.push('🧊 Crioprecipitado 10 U si fibrinógeno <150 mg/dL');
-        medidas_inmediatas.push('🩸 PFC 4 unidades si TP/TPT >1.5x normal');
+        medidas_inmediatas.push('Ácido tranexámico 1g IV en 10 min, luego 1g en 8h');
+        medidas_inmediatas.push('Crioprecipitado 10 U si fibrinógeno <150 mg/dL');
+        medidas_inmediatas.push('PFC 4 unidades si TP/TPT >1.5x normal');
       }
-      medidas_inmediatas.push('🔬 Laboratorios cada 30-60 min');
+      medidas_inmediatas.push('Laboratorios cada 30-60 min');
       break;
   }
 
   // Medidas según gravedad
   if (valores.perdida_estimada_ml > 1000) {
-    medidas_inmediatas.push('🩸 Transfusión: Iniciar GR O negativo si no tipificada');
+    medidas_inmediatas.push('Transfusión: Iniciar GR O negativo si no tipificada');
   }
 
   if (requiere_ptm) {
-    medidas_inmediatas.push('🚨 ACTIVAR PROTOCOLO DE TRANSFUSIÓN MASIVA');
-    medidas_inmediatas.push('🏥 Avisar a Banco de Sangre - Transfusión continua');
+    medidas_inmediatas.push('ACTIVAR PROTOCOLO DE TRANSFUSIÓN MASIVA');
+    medidas_inmediatas.push('Avisar a Banco de Sangre - Transfusión continua');
   }
 
   // Intervenciones sugeridas (escalonadas)
   const intervenciones_sugeridas: string[] = [];
 
   if (valores.perdida_estimada_ml < 1000) {
-    intervenciones_sugeridas.push('1️⃣ Medidas médicas (uterotónicos, ácido tranexámico)');
-    intervenciones_sugeridas.push('2️⃣ Reposición con cristaloides');
+    intervenciones_sugeridas.push('1⃣ Medidas médicas (uterotónicos, ácido tranexámico)');
+    intervenciones_sugeridas.push('2⃣ Reposición con cristaloides');
   } else if (valores.perdida_estimada_ml < 1500) {
-    intervenciones_sugeridas.push('1️⃣ Uterotónicos en dosis máximas');
-    intervenciones_sugeridas.push('2️⃣ Taponamiento con balón intrauterino (Bakri)');
-    intervenciones_sugeridas.push('3️⃣ Considerar suturas hemostáticas (B-Lynch, Cho)');
-    intervenciones_sugeridas.push('4️⃣ Transfusión según protocolo');
+    intervenciones_sugeridas.push('1⃣ Uterotónicos en dosis máximas');
+    intervenciones_sugeridas.push('2⃣ Taponamiento con balón intrauterino (Bakri)');
+    intervenciones_sugeridas.push('3⃣ Considerar suturas hemostáticas (B-Lynch, Cho)');
+    intervenciones_sugeridas.push('4⃣ Transfusión según protocolo');
   } else {
-    intervenciones_sugeridas.push('1️⃣ MÁXIMAS medidas médicas');
-    intervenciones_sugeridas.push('2️⃣ Taponamiento Bakri + Suturas compresivas');
-    intervenciones_sugeridas.push('3️⃣ Embolización arterial selectiva si disponible');
-    intervenciones_sugeridas.push('4️⃣ Ligadura arterias uterinas/hipogástricas');
-    intervenciones_sugeridas.push('5️⃣ Histerectomía obstétrica si falla lo anterior');
-    intervenciones_sugeridas.push('⚠️ LLAMAR A CIRUGÍA GENERAL Y RADIOLOGÍA INTERVENCIONISTA');
+    intervenciones_sugeridas.push('1⃣ MÁXIMAS medidas médicas');
+    intervenciones_sugeridas.push('2⃣ Taponamiento Bakri + Suturas compresivas');
+    intervenciones_sugeridas.push('3⃣ Embolización arterial selectiva si disponible');
+    intervenciones_sugeridas.push('4⃣ Ligadura arterias uterinas/hipogástricas');
+    intervenciones_sugeridas.push('5⃣ Histerectomía obstétrica si falla lo anterior');
+    intervenciones_sugeridas.push('LLAMAR A CIRUGÍA GENERAL Y RADIOLOGÍA INTERVENCIONISTA');
   }
 
   // Interpretación
@@ -261,7 +261,7 @@ export const calcularHemorragia = (valores: DatosHemorragia): ResultadoHemorragi
   interpretacion += `Estado hemodinámico: ${estado_hemodinamico}. `;
 
   if (requiere_ptm) {
-    interpretacion += `\n\n🚨 CUMPLE CRITERIOS PARA PROTOCOLO DE TRANSFUSIÓN MASIVA. `;
+    interpretacion += `\n\nCUMPLE CRITERIOS PARA PROTOCOLO DE TRANSFUSIÓN MASIVA. `;
     interpretacion += `Se requiere transfusión agresiva con ratio 1:1:1 y manejo multidisciplinario urgente.`;
   }
 
@@ -269,7 +269,7 @@ export const calcularHemorragia = (valores: DatosHemorragia): ResultadoHemorragi
   interpretacion += `Se recomienda manejo escalonado según respuesta clínica.`;
 
   if (shock_index > 1.5) {
-    interpretacion += `\n\n⚠️ PACIENTE EN ESTADO CRÍTICO - Shock hemorrágico establecido. Requiere reanimación agresiva inmediata.`;
+    interpretacion += `\n\nPACIENTE EN ESTADO CRÍTICO - Shock hemorrágico establecido. Requiere reanimación agresiva inmediata.`;
   }
 
   return {

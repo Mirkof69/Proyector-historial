@@ -106,11 +106,11 @@ class TipoReporteViewSet(viewsets.ModelViewSet):
         return TipoReporteSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"])
@@ -190,14 +190,14 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         return ReporteGeneradoSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Asignar usuario solicitante y created_by al crear"""
+        """TRAZABILIDAD: Asignar usuario solicitante y created_by al crear"""
         usuario_id = (
             getattr(self.request.user, 'id', None) if getattr(self.request.user, 'is_authenticated', False) else None
         )
         serializer.save(usuario_solicitante=usuario_id, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["post"])
@@ -442,11 +442,11 @@ class DashboardKAPIViewSet(viewsets.ModelViewSet):
         return DashboardKPISerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"])
@@ -538,11 +538,11 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         return AlertaMedicaSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"])

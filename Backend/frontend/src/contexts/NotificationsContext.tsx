@@ -93,7 +93,7 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
      */
     const refreshNotifications = useCallback(async (silent = false) => {
         try {
-            // ✅ AUTHENTICATION FIX: Verificar que hay token antes de intentar cargar
+            // AUTHENTICATION FIX: Verificar que hay token antes de intentar cargar
             if (!isAuthenticated) {
                 // No hay sesión - no intentar cargar notificaciones
                 return;
@@ -109,7 +109,7 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
             setUnreadCount(resumen.pendientes);
             setUrgentCount(resumen.urgentes);
         } catch (error: any) {
-            // ✅ AUTHENTICATION FIX: Solo mostrar error si NO es 401
+            // AUTHENTICATION FIX: Solo mostrar error si NO es 401
             if (error?.response?.status !== 401 && error?.message !== 'No refresh token available') {
                 console.error('Error fetching notifications:', error);
             }
@@ -222,7 +222,7 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
     }, [isAuthenticated, refreshNotifications]);
 
     useEffect(() => {
-        // ✅ AUTHENTICATION FIX: Solo cargar si hay sesión activa
+        // AUTHENTICATION FIX: Solo cargar si hay sesión activa
         if (!isAuthenticated) {
             return; // No cargar notificaciones si no hay autenticación
         }

@@ -263,11 +263,11 @@ class NotaEvolucionAdmin(admin.ModelAdmin):
         """Muestra el estado de revisión de la nota"""
         if obj.revisado_por:
             return format_html(
-                '<span style="color: #28a745;">✓ Revisada</span><br/>'
+                '<span style="color: #28a745;">Revisada</span><br/>'
                 "<small>por {}</small>",
                 obj.revisado_por.nombre_completo,
             )
-        return format_html('<span style="color: #ffc107;">⏳ Pendiente</span>')
+        return format_html('<span style="color: #ffc107;">Pendiente</span>')
 
     @admin.display(description="Estado", boolean=True)
     def activo_badge(self, obj):

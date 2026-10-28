@@ -130,8 +130,11 @@ class CasoTriajeDeEnfermeriaTest(_ConEquipoClinico):
         assert self.como(self.enfermera).get("/api/evoluciones/").status_code == 200
 
     def test_la_enfermera_NO_gestiona_consultorios(self):
-        """ESPERADO: 403 — eso es de médicos y administración."""
-        assert self.como(self.enfermera).get("/api/consultorios/").status_code == 403
+        """ESPERADO: ve los consultorios (su menú los ofrece) pero crear uno da 403:
+        gestionarlos es de médicos y administración."""
+        cliente = self.como(self.enfermera)
+        assert cliente.get("/api/consultorios/").status_code == 200
+        assert cliente.post("/api/consultorios/", {"codigo": "X-9", "nombre": "X"}, format="json").status_code == 403
 
 
 class CasoConsultaMedicaTest(_ConEquipoClinico):

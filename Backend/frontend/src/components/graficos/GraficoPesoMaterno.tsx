@@ -7,6 +7,7 @@ import { Card, Typography, Alert, Spin } from 'antd';
 // Recharts se importa directo: envuelto en lazy() pieza por pieza, el gráfico no
 // reconocía a sus hijos (Pie, Bar, Line…) y se dibujaba vacío.
 import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart } from 'recharts';
+import { imcRedondeado } from '../../utils/imc';
 
 const { Title, Text } = Typography;
 
@@ -31,7 +32,7 @@ interface Props {
  */
 const calcularIMC = (peso: number, talla: number): number => {
     const tallaMetros = talla / 100;
-    return peso / (tallaMetros * tallaMetros);
+    return imcRedondeado(peso, tallaMetros);
 };
 
 const obtenerRangoGananciaPeso = (imc: number): { min: number; max: number; categoria: string } => {

@@ -2,33 +2,33 @@
  * =============================================================================
  * MÓDULO: CONTROLES - FORMULARIO CREAR/EDITAR V5.0 FINAL
  * =============================================================================
- * ✅ CORRECCIONES V3.0:
- * - Fix: Selector de embarazos muestra correctamente "ID - Nombre Apellido (G2)" ✅
- * - Fix: Al editar, todos los campos se cargan correctamente ✅
- * - Fix: Todas las etiquetas visibles y bien organizadas ✅
- * - Fix: Función getNombrePaciente() optimizada ✅
- * - NEW: Botón X funciona siempre (incluso con embarazo seleccionado) ✅
- * - NEW: Confirmación de salida si hay cambios sin guardar ✅
- * - NEW: Botón "Cancelar" siempre funcional ✅
+ * CORRECCIONES V3.0:
+ * - Fix: Selector de embarazos muestra correctamente "ID - Nombre Apellido (G2)" 
+ * - Fix: Al editar, todos los campos se cargan correctamente 
+ * - Fix: Todas las etiquetas visibles y bien organizadas 
+ * - Fix: Función getNombrePaciente() optimizada 
+ * - NEW: Botón X funciona siempre (incluso con embarazo seleccionado) 
+ * - NEW: Confirmación de salida si hay cambios sin guardar 
+ * - NEW: Botón "Cancelar" siempre funcional 
  *
- * ✅ MEJORAS V4.0:
- * - Fix: Modal personalizado de Ant Design (no alert del navegador) ✅
- * - Fix: Sin errores de ESLint - Compilación 100% limpia ✅
- * - Fix: Detección inteligente de cambios en el formulario ✅
- * - NEW: Modal elegante centrado con iconos y estilos profesionales ✅
- * - NEW: Confirmación visual mejorada para salir sin guardar ✅
- * - NEW: Todos los botones (X, Cancelar, Volver) funcionan consistentemente ✅
+ * MEJORAS V4.0:
+ * - Fix: Modal personalizado de Ant Design (no alert del navegador) 
+ * - Fix: Sin errores de ESLint - Compilación 100% limpia 
+ * - Fix: Detección inteligente de cambios en el formulario 
+ * - NEW: Modal elegante centrado con iconos y estilos profesionales 
+ * - NEW: Confirmación visual mejorada para salir sin guardar 
+ * - NEW: Todos los botones (X, Cancelar, Volver) funcionan consistentemente 
  *
- * ✅ CORRECCIONES V5.0 (VALIDACIONES COMPLETAS):
- * - Fix: Validación completa de Talla (120-220 cm) con Modal.warning ✅
- * - Fix: Validación completa de PA Sistólica (70-200 mmHg) con Modal.warning ✅
- * - Fix: Validación completa de PA Diastólica (40-140 mmHg) con Modal.warning ✅
- * - Fix: Validación completa de Altura Uterina (10-50 cm) con Modal.warning ✅
- * - NEW: Todos los InputNumber tienen min/max correctos ✅
- * - NEW: Todas las Form.Item tienen rules de validación apropiadas ✅
- * - NEW: Mensajes de error claros con rangos médicos detallados ✅
- * - NEW: Modales de advertencia consistentes con FormularioParto.tsx ✅
- * - Fix: Errores 400 de validación del backend completamente resueltos ✅
+ * CORRECCIONES V5.0 (VALIDACIONES COMPLETAS):
+ * - Fix: Validación completa de Talla (120-220 cm) con Modal.warning 
+ * - Fix: Validación completa de PA Sistólica (70-200 mmHg) con Modal.warning 
+ * - Fix: Validación completa de PA Diastólica (40-140 mmHg) con Modal.warning 
+ * - Fix: Validación completa de Altura Uterina (10-50 cm) con Modal.warning 
+ * - NEW: Todos los InputNumber tienen min/max correctos 
+ * - NEW: Todas las Form.Item tienen rules de validación apropiadas 
+ * - NEW: Mensajes de error claros con rangos médicos detallados 
+ * - NEW: Modales de advertencia consistentes con FormularioParto.tsx 
+ * - Fix: Errores 400 de validación del backend completamente resueltos 
  * =============================================================================
  */
 
@@ -63,6 +63,7 @@ import SeccionExamenObstetrico from './components/SeccionExamenObstetrico';
 import ModalConfirmacionSalida from './components/ModalConfirmacionSalida';
 import '../Embarazos/paginaClinica.css';
 import './Controles.css';
+import { imcRedondeado } from '../../utils/imc';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -172,7 +173,7 @@ const FormularioControl: React.FC = () => {
     }
     setSelectedEmbarazo(embarazo || null);
 
-    // ✅ Asegurar que el valor de embarazo se establece en el formulario
+    // Asegurar que el valor de embarazo se establece en el formulario
     form.setFieldValue('embarazo', embarazoId);
 
     if (embarazo && embarazo.fecha_ultima_menstruacion) {
@@ -190,7 +191,7 @@ const FormularioControl: React.FC = () => {
       const trimestre = semanas < 13 ? 1 : semanas < 28 ? 2 : 3;
       setEdadGestacionalInfo(`${semanas} semanas + ${dias} días (${trimestre}° Trimestre)`);
 
-      // ✅ Guardar semanas para validación condicional
+      // Guardar semanas para validación condicional
       setSemanasGestacion(semanas);
 
       // Auto-rellenar peso pregestacional y talla si existen
@@ -215,7 +216,7 @@ const FormularioControl: React.FC = () => {
 
     if (peso && talla && peso > 0 && talla > 0) {
       const tallaM = talla / 100;
-      const imc = peso / (tallaM * tallaM);
+      const imc = imcRedondeado(peso, tallaM);
       let clasificacion = '';
 
       if (imc < 18.5) {
@@ -272,50 +273,49 @@ const FormularioControl: React.FC = () => {
     const diastolica = form.getFieldValue('presion_arterial_diastolica');
 
     if (sistolica && diastolica) {
+      // RF-06: solo PA ≥ 140/90 es alerta; 139/89 no lo es (BUG-003).
       if (sistolica >= 140 || diastolica >= 90) {
-        alertas.push('🔴 HIPERTENSIÓN ARTERIAL - Riesgo de preeclampsia');
-      } else if (sistolica >= 130 || diastolica >= 85) {
-        alertas.push('⚠️ Pre-hipertensión detectada');
+        alertas.push('HIPERTENSIÓN ARTERIAL - Riesgo de preeclampsia');
       }
     }
 
     const fcf = form.getFieldValue('frecuencia_cardiaca_fetal');
     if (fcf) {
       if (fcf < 110) {
-        alertas.push('🚨 BRADICARDIA FETAL (<110 lpm) - URGENTE');
+        alertas.push('BRADICARDIA FETAL (<110 lpm) - URGENTE');
       } else if (fcf > 160) {
-        alertas.push('🔴 TAQUICARDIA FETAL (>160 lpm)');
+        alertas.push('TAQUICARDIA FETAL (>160 lpm)');
       }
     }
 
     const edema = form.getFieldValue('edema');
     if (edema === 'severo' || edema === 'generalizado') {
-      alertas.push('⚠️ Edema severo/generalizado - Evaluar preeclampsia');
+      alertas.push('Edema severo/generalizado - Evaluar preeclampsia');
     }
 
     const proteinuria = form.getFieldValue('proteinuria');
     if (proteinuria && !['negativa', 'trazas'].includes(proteinuria)) {
-      alertas.push('⚠️ PROTEINURIA POSITIVA');
+      alertas.push('PROTEINURIA POSITIVA');
     }
 
     const movimientos = form.getFieldValue('movimientos_fetales');
     if (movimientos === 'ausentes') {
-      alertas.push('🚨 MOVIMIENTOS FETALES AUSENTES - EMERGENCIA');
+      alertas.push('MOVIMIENTOS FETALES AUSENTES - EMERGENCIA');
     } else if (movimientos === 'disminuidos') {
-      alertas.push('⚠️ Movimientos fetales disminuidos');
+      alertas.push('Movimientos fetales disminuidos');
     }
 
     const temperatura = form.getFieldValue('temperatura');
     if (temperatura && temperatura >= 38) {
-      alertas.push('⚠️ FIEBRE MATERNA (≥38°C)');
+      alertas.push('FIEBRE MATERNA (≥38°C)');
     }
 
     const imc = calcularIMC();
     if (imc) {
       if (imc.valor < 18.5) {
-        alertas.push('⚠️ Bajo peso materno');
+        alertas.push('Bajo peso materno');
       } else if (imc.valor >= 30) {
-        alertas.push('⚠️ Obesidad materna');
+        alertas.push('Obesidad materna');
       }
     }
 
@@ -367,7 +367,7 @@ const FormularioControl: React.FC = () => {
     setLoading(true);
 
     try {
-      // ✅ Limpiar datos antes de enviar
+      // Limpiar datos antes de enviar
       const dataToSend: any = {
         embarazo: values.embarazo,
         paciente: selectedEmbarazo?.paciente,  // Campo requerido por el backend
@@ -394,7 +394,7 @@ const FormularioControl: React.FC = () => {
         observaciones: values.observaciones || '',
       };
 
-      // ✅ Remover campos undefined para evitar enviar null al backend
+      // Remover campos undefined para evitar enviar null al backend
       Object.keys(dataToSend).forEach(key => {
         if (dataToSend[key] === undefined) {
           delete dataToSend[key];
@@ -431,7 +431,7 @@ const FormularioControl: React.FC = () => {
           });
 
           modal.error({
-            title: '❌ Error al Guardar Control',
+            title: 'Error al Guardar Control',
             content: (
               <div>
                 <p><strong>Se encontraron los siguientes errores:</strong></p>
@@ -455,13 +455,13 @@ const FormularioControl: React.FC = () => {
         } else {
           const msg = errorData.detail || errorData.message || 'Error desconocido';
           modal.error({
-            title: '❌ Error al Guardar Control',
+            title: 'Error al Guardar Control',
             content: msg,
           });
         }
       } else {
         modal.error({
-          title: '❌ Error al Guardar Control',
+          title: 'Error al Guardar Control',
           content: error.message || 'Error desconocido',
         });
       }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Row, Col, Card, Skeleton, Form, Select, Alert, Tag } from 'antd';
 import { UserOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { Option } = Select;
 
@@ -10,7 +11,6 @@ interface DatosAnteriores {
 }
 
 interface SeccionDatosPacienteTriajeProps {
-  pacientes: any[];
   dataLoading: boolean;
   loading: boolean;
   disabled: boolean;
@@ -20,7 +20,7 @@ interface SeccionDatosPacienteTriajeProps {
 }
 
 const SeccionDatosPacienteTriaje: React.FC<SeccionDatosPacienteTriajeProps> = ({
-  pacientes, dataLoading, loading, disabled, onPacienteChange, datosAnteriores, onCloseDatosAnteriores,
+  dataLoading, loading, disabled, onPacienteChange, datosAnteriores, onCloseDatosAnteriores,
 }) => (
   <Row gutter={24}>
     <Col xs={24} md={14}>
@@ -33,23 +33,14 @@ const SeccionDatosPacienteTriaje: React.FC<SeccionDatosPacienteTriajeProps> = ({
             name="paciente"
             rules={[{ required: true, message: 'Es obligatorio seleccionar un paciente' }]}
           >
-            <Select
+            {/* Busca en el servidor: la lista local traía solo los primeros 200 de
+                más de 3.000 pacientes y distinguía acentos («maria» ≠ «María»). */}
+            <PacienteSelect
               placeholder="Buscar paciente por nombre o CI..."
-              showSearch
               size="large"
-              optionFilterProp="children"
-              onChange={onPacienteChange}
-              loading={loading}
+              onChange={(id) => id && onPacienteChange(id)}
               disabled={disabled}
-            >
-              {pacientes.map((p) => (
-                <Option key={p.id} value={p.id}>
-                  {/* El CI va en el texto: el buscador filtra por lo que se ve, y el placeholder promete buscar por CI. */}
-                  {[p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`, p.ci && `CI ${p.ci}`, p.id_clinico]
-                    .filter(Boolean).join(' · ')}
-                </Option>
-              ))}
-            </Select>
+            />
           </Form.Item>
         )}
         {datosAnteriores && (

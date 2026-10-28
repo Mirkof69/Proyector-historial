@@ -59,7 +59,7 @@ const DetallePaciente: React.FC = () => {
     };
   }, []);
 
-  // ✅ Función para mostrar estado civil según género
+  // Función para mostrar estado civil según género
   const fetchData = async (pacienteId: number) => {
     loadingRef.current = true;
     try {

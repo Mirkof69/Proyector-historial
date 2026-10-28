@@ -264,9 +264,9 @@ class PDFService:
         tipos_evento = {
             "embarazo": " EMBARAZO",
             "control_prenatal": " CONTROL PRENATAL",
-            "ecografia": "️ ECOGRAFÍA",
+            "ecografia": " ECOGRAFÍA",
             "laboratorio": " LABORATORIO",
-            "parto": "✅ PARTO",
+            "parto": "PARTO",
         }
 
         for evento in timeline_data:

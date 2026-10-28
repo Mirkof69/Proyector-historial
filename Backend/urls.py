@@ -62,15 +62,15 @@ urlpatterns = [
     path("api/ecografias-archivos/", include("ecografias_archivos.urls")),
     path(
         "api/notas-evolucion/", include("notas_evolucion.urls"),
-    ),  # ✅ Notas médicas de evolución
-    path("api/vacunas/", include("vacunas.urls")),  # ✅ Control de vacunas
+    ),  # Notas médicas de evolución
+    path("api/vacunas/", include("vacunas.urls")),  # Control de vacunas
     path(
         "api/auditoria/", include("auditoria.urls"),
-    ),  # ✅ Sistema de auditoría en tiempo real
+    ),  # Sistema de auditoría en tiempo real
     path("api/ia/", include("ia_medica.urls")),  #  Sistema de IA Médico con ML y NLP
     path("api/soporte/", include("soporte.urls")),  # Tickets de soporte tecnico
-    # ✨ Dashboard Avanzado
-    path("api/", include("notificaciones.urls")),  # ✅ Sistema de notificaciones
+    # Dashboard Avanzado
+    path("api/", include("notificaciones.urls")),  # Sistema de notificaciones
 ]
 
 

@@ -2,7 +2,7 @@
  * =============================================================================
  * SERVICIO DE ECOGRAFÍAS
  * =============================================================================
- * ✅ COMPLETO: Interfaces para los 4 modelos del backend
+ * COMPLETO: Interfaces para los 4 modelos del backend
  * - Ecografia (principal)
  * - BiometriaFetal
  * - AnatomiaFetal

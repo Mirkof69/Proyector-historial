@@ -2,7 +2,7 @@
  * =============================================================================
  * SERVICIO DE REPORTES Y ESTADÍSTICAS - VERSIÓN MEGA COMPLETA Y EXTENDIDA
  * =============================================================================
- * ✅ MEGA COMPLETO: Sistema integral de reportes, estadísticas y análisis
+ * MEGA COMPLETO: Sistema integral de reportes, estadísticas y análisis
  * 
  * MÓDULOS INCLUIDOS:
  * - Reportes de pacientes (completos, embarazos, historiales)
@@ -487,7 +487,7 @@ export function normalizeListResponse<T>(data: any): T[] {
     return data.data as T[];
   }
 
-  console.warn('⚠️ reportesService: Respuesta no es array ni tiene results/data:', data);
+  console.warn('reportesService: Respuesta no es array ni tiene results/data:', data);
   return [];
 }
 
@@ -525,7 +525,7 @@ export const reportesService = {
       );
       return normalizeSingleResponse<EstadisticasGenerales>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas generales:', error);
+      console.error('Error obteniendo estadísticas generales:', error);
       throw error;
     }
   },
@@ -539,7 +539,7 @@ export const reportesService = {
       const response = await api.get<DashboardKPIs>('/reportes/dashboard-kpis/resumen/');
       return normalizeSingleResponse<DashboardKPIs>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo KPIs del dashboard:', error);
+      console.error('Error obteniendo KPIs del dashboard:', error);
       throw error;
     }
   },
@@ -552,7 +552,7 @@ export const reportesService = {
       const response = await api.get('/reportes/dashboard/');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo stats básicas:', error);
+      console.error('Error obteniendo stats básicas:', error);
       throw error;
     }
   },
@@ -584,7 +584,7 @@ export const reportesService = {
       );
       return normalizeSingleResponse<ReportePacientes>(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de pacientes:', error);
+      console.error('Error generando reporte de pacientes:', error);
       throw error;
     }
   },
@@ -600,7 +600,7 @@ export const reportesService = {
       const response = await api.get('/reportes/pacientes-embarazadas/', { params });
       return normalizeSingleResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de pacientes embarazadas:', error);
+      console.error('Error generando reporte de pacientes embarazadas:', error);
       throw error;
     }
   },
@@ -616,7 +616,7 @@ export const reportesService = {
       const response = await api.get('/reportes/nuevos-pacientes/', { params });
       return normalizeSingleResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de nuevos pacientes:', error);
+      console.error('Error generando reporte de nuevos pacientes:', error);
       throw error;
     }
   },
@@ -641,7 +641,7 @@ export const reportesService = {
       );
       return normalizeSingleResponse<ReporteEmbarazos>(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de embarazos:', error);
+      console.error('Error generando reporte de embarazos:', error);
       throw error;
     }
   },
@@ -654,7 +654,7 @@ export const reportesService = {
       const response = await api.get('/reportes/embarazos-alto-riesgo/');
       return normalizeListResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de embarazos alto riesgo:', error);
+      console.error('Error generando reporte de embarazos alto riesgo:', error);
       throw error;
     }
   },
@@ -669,7 +669,7 @@ export const reportesService = {
       });
       return normalizeListResponse(response.data);
     } catch (error: any) {
-      console.error(`❌ Error generando reporte de embarazos trimestre ${trimestre}:`, error);
+      console.error(`Error generando reporte de embarazos trimestre ${trimestre}:`, error);
       throw error;
     }
   },
@@ -694,7 +694,7 @@ export const reportesService = {
       );
       return normalizeSingleResponse<ReportePartos>(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de partos:', error);
+      console.error('Error generando reporte de partos:', error);
       throw error;
     }
   },
@@ -716,7 +716,7 @@ export const reportesService = {
       const response = await api.get('/reportes/tasa-cesareas/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error generando reporte de tasa de cesáreas:', error);
+      console.error('Error generando reporte de tasa de cesáreas:', error);
       throw error;
     }
   },
@@ -733,7 +733,7 @@ export const reportesService = {
       const response = await api.get('/reportes/complicaciones-partos/', { params });
       return normalizeListResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de complicaciones:', error);
+      console.error('Error generando reporte de complicaciones:', error);
       throw error;
     }
   },
@@ -749,7 +749,7 @@ export const reportesService = {
       const response = await api.get('/reportes/resultados-neonatales/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error generando reporte neonatal:', error);
+      console.error('Error generando reporte neonatal:', error);
       throw error;
     }
   },
@@ -773,7 +773,7 @@ export const reportesService = {
       );
       return normalizeSingleResponse<ReporteControles>(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de controles:', error);
+      console.error('Error generando reporte de controles:', error);
       throw error;
     }
   },
@@ -795,7 +795,7 @@ export const reportesService = {
       const response = await api.get('/reportes/adherencia-controles/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error generando reporte de adherencia:', error);
+      console.error('Error generando reporte de adherencia:', error);
       throw error;
     }
   },
@@ -820,7 +820,7 @@ export const reportesService = {
       );
       return normalizeSingleResponse<ReporteLaboratorio>(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de laboratorio:', error);
+      console.error('Error generando reporte de laboratorio:', error);
       throw error;
     }
   },
@@ -833,7 +833,7 @@ export const reportesService = {
       const response = await api.get('/reportes/examenes-pendientes/');
       return normalizeListResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de exámenes pendientes:', error);
+      console.error('Error generando reporte de exámenes pendientes:', error);
       throw error;
     }
   },
@@ -849,7 +849,7 @@ export const reportesService = {
       const response = await api.get('/reportes/resultados-criticos/', { params });
       return normalizeListResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de resultados críticos:', error);
+      console.error('Error generando reporte de resultados críticos:', error);
       throw error;
     }
   },
@@ -874,7 +874,7 @@ export const reportesService = {
       );
       return normalizeSingleResponse<ReporteCitas>(response.data);
     } catch (error: any) {
-      console.error('❌ Error generando reporte de citas:', error);
+      console.error('Error generando reporte de citas:', error);
       throw error;
     }
   },
@@ -898,7 +898,7 @@ export const reportesService = {
       const response = await api.get('/reportes/asistencia-citas/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error generando reporte de asistencia:', error);
+      console.error('Error generando reporte de asistencia:', error);
       throw error;
     }
   },
@@ -920,7 +920,7 @@ export const reportesService = {
       const response = await api.get('/reportes/ocupacion-agenda/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error generando reporte de ocupación:', error);
+      console.error('Error generando reporte de ocupación:', error);
       throw error;
     }
   },
@@ -941,10 +941,10 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      logger.log(`✅ Reporte ${tipoReporte} exportado a PDF`);
+      logger.log(`Reporte ${tipoReporte} exportado a PDF`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error exportando reporte ${tipoReporte} a PDF:`, error);
+      console.error(`Error exportando reporte ${tipoReporte} a PDF:`, error);
       throw error;
     }
   },
@@ -961,10 +961,10 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      logger.log(`✅ Reporte ${tipoReporte} exportado a Excel`);
+      logger.log(`Reporte ${tipoReporte} exportado a Excel`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error exportando reporte ${tipoReporte} a Excel:`, error);
+      console.error(`Error exportando reporte ${tipoReporte} a Excel:`, error);
       throw error;
     }
   },
@@ -981,10 +981,10 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      logger.log(`✅ Reporte ${tipoReporte} exportado a CSV`);
+      logger.log(`Reporte ${tipoReporte} exportado a CSV`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error exportando reporte ${tipoReporte} a CSV:`, error);
+      console.error(`Error exportando reporte ${tipoReporte} a CSV:`, error);
       throw error;
     }
   },
@@ -1041,7 +1041,7 @@ export const reportesService = {
       const response = await api.get('/reportes/tendencias-partos/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error analizando tendencias de partos:', error);
+      console.error('Error analizando tendencias de partos:', error);
       throw error;
     }
   },
@@ -1064,7 +1064,7 @@ export const reportesService = {
       const response = await api.get('/reportes/patrones-asistencia/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error analizando patrones de asistencia:', error);
+      console.error('Error analizando patrones de asistencia:', error);
       throw error;
     }
   },
@@ -1089,7 +1089,7 @@ export const reportesService = {
       const response = await api.get('/reportes/analisis-riesgos/', { params });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error analizando riesgos obstétricos:', error);
+      console.error('Error analizando riesgos obstétricos:', error);
       throw error;
     }
   },
@@ -1114,7 +1114,7 @@ export const reportesService = {
       const response = await api.post('/reportes/personalizado/', config);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error generando reporte personalizado:', error);
+      console.error('Error generando reporte personalizado:', error);
       throw error;
     }
   },
@@ -1129,10 +1129,10 @@ export const reportesService = {
   }): Promise<{ id: number; nombre: string }> {
     try {
       const response = await api.post('/reportes/guardar-configuracion/', config);
-      logger.log('✅ Configuración de reporte guardada');
+      logger.log('Configuración de reporte guardada');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error guardando configuración:', error);
+      console.error('Error guardando configuración:', error);
       throw error;
     }
   },
@@ -1151,7 +1151,7 @@ export const reportesService = {
       const response = await api.get('/reportes/configuraciones/');
       return normalizeListResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error listando configuraciones:', error);
+      console.error('Error listando configuraciones:', error);
       throw error;
     }
   },
@@ -1238,7 +1238,7 @@ export const reportesService = {
       const response = await api.get<Reporte[]>('/reportes/reportes-generados/', { params });
       return normalizeListResponse<Reporte>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo lista de reportes:', error);
+      console.error('Error obteniendo lista de reportes:', error);
       throw error;
     }
   },
@@ -1255,7 +1255,7 @@ export const reportesService = {
       const response = await api.get<AlertaMedica[]>('/reportes/alertas-medicas/activas/', { params });
       return normalizeListResponse<AlertaMedica>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo alertas activas:', error);
+      console.error('Error obteniendo alertas activas:', error);
       throw error;
     }
   },
@@ -1301,7 +1301,7 @@ export const reportesService = {
       const response = await api.get<any>('/reportes/alertas-medicas/', { params });
       return normalizeListResponse<AlertaMedica>(response.data);
     } catch (error: any) {
-      console.error('❌ Error listando alertas médicas:', error);
+      console.error('Error listando alertas médicas:', error);
       throw error;
     }
   },
@@ -1414,11 +1414,11 @@ export const reportesService = {
         filtro_servicio,
         parametros: resto,
       });
-      logger.log(`✅ Solicitud de reporte ${tipoReporteId} creada`);
+      logger.log(`Solicitud de reporte ${tipoReporteId} creada`);
       const reporte = normalizeSingleResponse<Reporte>(response.data);
       return { ...reporte, formato: formatoDelBackend(reporte.formato as string) as FormatoExportacion };
     } catch (error: any) {
-      console.error(`❌ Error solicitando reporte ${tipoReporteId}:`, error);
+      console.error(`Error solicitando reporte ${tipoReporteId}:`, error);
       throw error;
     }
   },
@@ -1431,10 +1431,10 @@ export const reportesService = {
       const response = await api.get(`/reportes/reportes-generados/${reporteId}/descargar/`, {
         responseType: 'blob'
       });
-      logger.log(`✅ Reporte ${reporteId} descargado`);
+      logger.log(`Reporte ${reporteId} descargado`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error descargando reporte ${reporteId}:`, error);
+      console.error(`Error descargando reporte ${reporteId}:`, error);
       throw error;
     }
   },
@@ -1449,17 +1449,17 @@ export const reportesService = {
         emails,
         mensaje
       });
-      logger.log(`✅ Reporte ${reporteId} compartido por email a ${emails.length} destinatarios`);
+      logger.log(`Reporte ${reporteId} compartido por email a ${emails.length} destinatarios`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
-        console.warn('⚠️ Endpoint compartir-email no disponible (404)');
+        console.warn('Endpoint compartir-email no disponible (404)');
         return {
           success: false,
           mensaje: 'Función de compartir por email no disponible'
         };
       }
-      console.error(`❌ Error compartiendo reporte ${reporteId} por email:`, error);
+      console.error(`Error compartiendo reporte ${reporteId} por email:`, error);
       throw error;
     }
   },
@@ -1472,10 +1472,10 @@ export const reportesService = {
       const response = await api.post<AlertaMedica>(`/reportes/alertas/${alertaId}/resolver/`, {
         notas_resolucion: notasResolucion
       });
-      logger.log(`✅ Alerta ${alertaId} resuelta`);
+      logger.log(`Alerta ${alertaId} resuelta`);
       return normalizeSingleResponse<AlertaMedica>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error resolviendo alerta ${alertaId}:`, error);
+      console.error(`Error resolviendo alerta ${alertaId}:`, error);
       throw error;
     }
   },
@@ -1496,10 +1496,10 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      logger.log('✅ PDF mejorado descargado exitosamente');
+      logger.log('PDF mejorado descargado exitosamente');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error descargando PDF mejorado:', error);
+      console.error('Error descargando PDF mejorado:', error);
       throw error;
     }
   },
@@ -1516,10 +1516,10 @@ export const reportesService = {
         params,
         responseType: 'blob'
       });
-      logger.log('✅ Excel descargado exitosamente');
+      logger.log('Excel descargado exitosamente');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error descargando Excel:', error);
+      console.error('Error descargando Excel:', error);
       throw error;
     }
   },
@@ -1537,7 +1537,7 @@ export const reportesService = {
       const response = await api.get('/reportes/statistics/by-period/', { params });
       return normalizeSingleResponse(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas por período:', error);
+      console.error('Error obteniendo estadísticas por período:', error);
       throw error;
     }
   },

@@ -279,7 +279,7 @@ class ControlPrenatal(models.Model):
         verbose_name = "Control Prenatal"
         verbose_name_plural = "Controles Prenatales"
         ordering = ["-fecha_control", "-numero_control"]
-        # ✅ UNIQUE_TOGETHER ELIMINADO - AHORA SE PERMITEN MÚLTIPLES CONTROLES
+        # UNIQUE_TOGETHER ELIMINADO - AHORA SE PERMITEN MÚLTIPLES CONTROLES
         indexes = [
             models.Index(fields=["embarazo_id", "-fecha_control"]),
             models.Index(fields=["paciente", "-fecha_control"]),
@@ -318,7 +318,7 @@ class ControlPrenatal(models.Model):
         """Calcula el Índice de Masa Corporal (IMC)"""
         if self.peso_actual and self.talla:
             talla_m = float(self.talla) / 100
-            imc = float(self.peso_actual) / (talla_m * talla_m)
+            imc = round(float(self.peso_actual) / (talla_m * talla_m), 2)
             return round(imc, 2)
         return None
 
@@ -368,7 +368,7 @@ class ControlPrenatal(models.Model):
             return None
 
         talla_m = float(self.talla) / 100
-        imc_pre = float(self.peso_pregestacional) / (talla_m * talla_m)
+        imc_pre = round(float(self.peso_pregestacional) / (talla_m * talla_m), 2)
 
         if imc_pre < 18.5:
             ganancia_total = (12.5, 18.0)
@@ -523,7 +523,13 @@ class ControlPrenatal(models.Model):
         return resultado
 
     def get_alertas(self):
-        """Retorna lista de alertas detectadas"""
+        """Retorna lista de alertas detectadas.
+
+        Solo los criterios de RF-06 (PA ≥ 140/90, FCF fuera de 110–160,
+        proteinuria positiva, edema severo, movimientos ausentes): una PA de
+        139/89 no alerta. La pre-hipertensión se alertaba aquí pero el listado
+        decía «Sin alertas» (BUG-003).
+        """
         alertas = []
 
         if self.tiene_hipertension():
@@ -534,16 +540,6 @@ class ControlPrenatal(models.Model):
                     "mensaje": "HIPERTENSIÓN DETECTADA",
                     "valor": f"{self.presion_arterial_sistolica}/{self.presion_arterial_diastolica} mmHg",
                     "recomendacion": "Evaluar preeclampsia. Considerar hospitalización.",
-                },
-            )
-        elif self.tiene_prehipertension():
-            alertas.append(
-                {
-                    "tipo": "advertencia",
-                    "categoria": "presion_arterial",
-                    "mensaje": "Pre-hipertensión",
-                    "valor": f"{self.presion_arterial_sistolica}/{self.presion_arterial_diastolica} mmHg",
-                    "recomendacion": "Monitoreo estrecho. Control en 7 días.",
                 },
             )
 
@@ -681,14 +677,14 @@ class ControlPrenatal(models.Model):
         }
 
     def clean(self):
-        """✅ VALIDACIONES CRÍTICAS DEL CONTROL PRENATAL"""
+        """VALIDACIONES CRÍTICAS DEL CONTROL PRENATAL"""
         super().clean()
         errors = {}
         # Fecha de control no debe ser futura
         if self.fecha_control and self.fecha_control > timezone.localdate():
             errors["fecha_control"] = "La fecha de control no puede ser futura"
 
-        # ✅ 1. VALIDAR PRESIÓN ARTERIAL
+        # 1. VALIDAR PRESIÓN ARTERIAL
         if self.presion_arterial_sistolica and self.presion_arterial_diastolica:
             # Sistólica debe ser mayor que diastólica
             if self.presion_arterial_sistolica <= self.presion_arterial_diastolica:
@@ -716,7 +712,7 @@ class ControlPrenatal(models.Model):
                     f"Presión sistólica de {self.presion_arterial_sistolica} mmHg es peligrosamente baja. Mínimo 80 mmHg."
                 )
 
-        # ✅ 2. VALIDAR PESO
+        # 2. VALIDAR PESO
         if self.peso_actual:
             if self.peso_actual > 180:
                 errors["peso_actual"] = (
@@ -727,7 +723,7 @@ class ControlPrenatal(models.Model):
                     f"Peso de {self.peso_actual} kg parece muy bajo. Revisar medición. Mínimo recomendado 35 kg."
                 )
 
-        # ✅ 3. VALIDAR ALTURA UTERINA
+        # 3. VALIDAR ALTURA UTERINA
         if self.altura_uterina:
             if self.altura_uterina > 45:
                 errors["altura_uterina"] = (
@@ -745,13 +741,13 @@ class ControlPrenatal(models.Model):
                         f"Altura uterina de {self.altura_uterina} cm muy alta para {self.semanas_gestacion} semanas. Esperado: {self.semanas_gestacion - 2} a {self.semanas_gestacion + 2} cm."
                     )
 
-        # ✅ 4. VALIDAR FRECUENCIA CARDÍACA FETAL
+        # 4. VALIDAR FRECUENCIA CARDÍACA FETAL
         # Una FCF anormal NO es un error de datos: es un hallazgo que hay que
         # guardar y alertar. Antes una bradicardia severa (<100) se rechazaba
         # aquí y el control no se podía registrar. El rango físico lo fija el
         # validador del campo; la alerta, fcf_es_anormal().
 
-        # ✅ 5. VALIDAR TEMPERATURA
+        # 5. VALIDAR TEMPERATURA
         if self.temperatura:
             if float(self.temperatura) > 40:
                 errors["temperatura"] = (
@@ -762,7 +758,7 @@ class ControlPrenatal(models.Model):
                     f"Temperatura de {self.temperatura}°C es peligrosamente baja (hipotermia). Mínimo 35°C."
                 )
 
-        # ✅ 6. VALIDAR SEMANAS DE GESTACIÓN
+        # 6. VALIDAR SEMANAS DE GESTACIÓN
         # Se comprueba None igual que las validaciones de arriba: `full_clean()`
         # ejecuta `clean()` AUNQUE `clean_fields()` ya haya fallado, así que un
         # control enviado sin semanas llegaba aquí con None y reventaba con

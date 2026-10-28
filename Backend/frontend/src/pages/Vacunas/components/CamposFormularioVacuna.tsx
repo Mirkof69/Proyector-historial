@@ -3,6 +3,8 @@ import { Card, Space, Row, Col, Form, Select, Alert, DatePicker, InputNumber, In
 import { UserOutlined, MedicineBoxOutlined, ClockCircleOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { TipoVacuna } from '../../../services/vacunasService';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
+import { filtrarOpcion } from '../../../utils/texto';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -20,7 +22,6 @@ interface ViaAdministracion {
 }
 
 interface CamposFormularioVacunaProps {
-  pacientes: any[];
   tiposVacunas: TipoVacuna[];
   historialVacunacion: HistorialVacunacion | null;
   viasAdministracion: ViaAdministracion[];
@@ -32,7 +33,7 @@ interface CamposFormularioVacunaProps {
 }
 
 const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
-  pacientes, tiposVacunas, historialVacunacion, viasAdministracion, proximaDosisCalculada,
+  tiposVacunas, historialVacunacion, viasAdministracion, proximaDosisCalculada,
   onPacienteChange, onVacunaChange, onFechaAplicacionChange, onDosisChange,
 }) => (
   <>
@@ -40,21 +41,8 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="Paciente" name="paciente" rules={[{ required: true, message: 'Requerido' }]}>
-            <Select
-              placeholder="Buscar paciente..."
-              showSearch
-              size="large"
-              onChange={onPacienteChange}
-              filterOption={(input, option) =>
-                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-            >
-              {pacientes.map((p) => (
-                <Option key={p.id} value={p.id}>
-                  {`${p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`} - ${p.ci || p.id_clinico}`}
-                </Option>
-              ))}
-            </Select>
+            {/* Busca en el servidor (todas las pacientes, sin distinguir acentos). */}
+            <PacienteSelect placeholder="Buscar paciente por nombre o CI" size="large" onChange={(id) => id && onPacienteChange(id)} />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
@@ -64,9 +52,7 @@ const CamposFormularioVacuna: React.FC<CamposFormularioVacunaProps> = ({
               showSearch
               size="large"
               onChange={onVacunaChange}
-              filterOption={(input, option) =>
-                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
-              }
+              filterOption={filtrarOpcion}
             >
               {tiposVacunas.map((v) => (
                 <Option key={v.id} value={v.id}>

@@ -104,7 +104,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
 
         self.stdout.write("\\n" + "=" * 80)
         self.stdout.write(
-            self.style.SUCCESS(f"✅ {count} VALORES DE REFERENCIA CREADOS EXITOSAMENTE"),
+            self.style.SUCCESS(f"{count} VALORES DE REFERENCIA CREADOS EXITOSAMENTE"),
         )
         self.stdout.write(self.style.SUCCESS("=" * 80 + "\\n"))
 
@@ -117,7 +117,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             tipo = TipoExamen.objects.get(codigo="HEM001")
         except TipoExamen.DoesNotExist:
             self.stdout.write(
-                self.style.WARNING("  ⚠ Hemograma Completo no encontrado"),
+                self.style.WARNING("  Hemograma Completo no encontrado"),
             )
             return 0
 
@@ -197,7 +197,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -209,7 +209,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="BIO001")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Glucosa en Ayunas no encontrado"))
+            self.stdout.write(self.style.WARNING("  Glucosa en Ayunas no encontrado"))
             return 0
 
         count = 0
@@ -229,7 +229,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - Glucosa")
+            self.stdout.write(f"  {tipo.nombre} - Glucosa")
 
         return count
 
@@ -238,7 +238,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="BIO002")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ CTG no encontrado"))
+            self.stdout.write(self.style.WARNING("  CTG no encontrado"))
             return 0
 
         count = 0
@@ -275,7 +275,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -284,7 +284,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="BIO004")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Función Renal no encontrado"))
+            self.stdout.write(self.style.WARNING("  Función Renal no encontrado"))
             return 0
 
         count = 0
@@ -313,7 +313,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -322,7 +322,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="BIO003")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Perfil Lipídico no encontrado"))
+            self.stdout.write(self.style.WARNING("  Perfil Lipídico no encontrado"))
             return 0
 
         count = 0
@@ -367,7 +367,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -376,7 +376,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="BIO005")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Calcio Sérico no encontrado"))
+            self.stdout.write(self.style.WARNING("  Calcio Sérico no encontrado"))
             return 0
 
         count = 0
@@ -394,7 +394,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - Calcio Total")
+            self.stdout.write(f"  {tipo.nombre} - Calcio Total")
 
         return count
 
@@ -406,7 +406,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="HOR001")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Beta hCG no encontrado"))
+            self.stdout.write(self.style.WARNING("  Beta hCG no encontrado"))
             return 0
 
         count = 0
@@ -424,7 +424,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - Beta hCG")
+            self.stdout.write(f"  {tipo.nombre} - Beta hCG")
 
         return count
 
@@ -433,7 +433,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="HOR002")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Perfil Tiroideo no encontrado"))
+            self.stdout.write(self.style.WARNING("  Perfil Tiroideo no encontrado"))
             return 0
 
         count = 0
@@ -476,19 +476,19 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
     def crear_valores_ca125(self):
         """CA-125 - Marcador tumoral ovárico"""
         count = 0
-        self.stdout.write(self.style.SUCCESS("\\n️ MARCADORES TUMORALES"))
+        self.stdout.write(self.style.SUCCESS("\\n MARCADORES TUMORALES"))
 
         try:
             tipo = TipoExamen.objects.get(codigo="SER005")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ CA-125 no encontrado"))
+            self.stdout.write(self.style.WARNING("  CA-125 no encontrado"))
             return 0
 
         _valor, created = ValorReferencia.objects.get_or_create(
@@ -504,7 +504,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - CA-125")
+            self.stdout.write(f"  {tipo.nombre} - CA-125")
 
         return count
 
@@ -514,7 +514,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="SER006")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ AFP no encontrado"))
+            self.stdout.write(self.style.WARNING("  AFP no encontrado"))
             return 0
 
         _valor, created = ValorReferencia.objects.get_or_create(
@@ -530,7 +530,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - AFP")
+            self.stdout.write(f"  {tipo.nombre} - AFP")
 
         return count
 
@@ -555,7 +555,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - Anti-VIH")
+                self.stdout.write(f"  {tipo.nombre} - Anti-VIH")
 
         return count
 
@@ -575,7 +575,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - VDRL")
+                self.stdout.write(f"  {tipo.nombre} - VDRL")
 
         return count
 
@@ -585,7 +585,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="SER007")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Hepatitis B no encontrado"))
+            self.stdout.write(self.style.WARNING("  Hepatitis B no encontrado"))
             return 0
 
         _valor, created = ValorReferencia.objects.get_or_create(
@@ -599,7 +599,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - HBsAg")
+            self.stdout.write(f"  {tipo.nombre} - HBsAg")
 
         return count
 
@@ -608,7 +608,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="SER004")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Panel TORCH no encontrado"))
+            self.stdout.write(self.style.WARNING("  Panel TORCH no encontrado"))
             return 0
 
         count = 0
@@ -663,7 +663,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -673,7 +673,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="MIC001")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Cultivo GBS no encontrado"))
+            self.stdout.write(self.style.WARNING("  Cultivo GBS no encontrado"))
             return 0
 
         _valor, created = ValorReferencia.objects.get_or_create(
@@ -687,7 +687,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - Estreptococo Grupo B")
+            self.stdout.write(f"  {tipo.nombre} - Estreptococo Grupo B")
 
         return count
 
@@ -702,7 +702,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="HEM002")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Coagulación no encontrado"))
+            self.stdout.write(self.style.WARNING("  Coagulación no encontrado"))
             return 0
 
         parametros = [
@@ -747,7 +747,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -759,7 +759,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="URI001")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Examen de Orina no encontrado"))
+            self.stdout.write(self.style.WARNING("  Examen de Orina no encontrado"))
             return 0
 
         count = 0
@@ -844,7 +844,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -856,7 +856,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="SER001")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Grupo Sanguíneo no encontrado"))
+            self.stdout.write(self.style.WARNING("  Grupo Sanguíneo no encontrado"))
             return 0
 
         count = 0
@@ -881,7 +881,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
             )
             if created:
                 count += 1
-                self.stdout.write(f"  ✓ {tipo.nombre} - {param['parametro']}")
+                self.stdout.write(f"  {tipo.nombre} - {param['parametro']}")
 
         return count
 
@@ -890,7 +890,7 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         try:
             tipo = TipoExamen.objects.get(codigo="CIT001")
         except TipoExamen.DoesNotExist:
-            self.stdout.write(self.style.WARNING("  ⚠ Papanicolaou no encontrado"))
+            self.stdout.write(self.style.WARNING("  Papanicolaou no encontrado"))
             return 0
 
         count = 0
@@ -905,6 +905,6 @@ class Command(ValoresAmpliadosMixin, BaseCommand):
         )
         if created:
             count += 1
-            self.stdout.write(f"  ✓ {tipo.nombre} - Resultado")
+            self.stdout.write(f"  {tipo.nombre} - Resultado")
 
         return count

@@ -131,7 +131,7 @@ const Ecografias: React.FC = () => {
     navigate(FRONTEND_ROUTES.DASHBOARD.ECOGRAFIAS_DETALLE(id));
   };
 
-  // ✨ NUEVA FUNCIÓN PARA VISTA RÁPIDA CON DRAWER
+  // NUEVA FUNCIÓN PARA VISTA RÁPIDA CON DRAWER
   const handleVerVistaRapida = (ecografia: Ecografia) => {
     setEcografiaSeleccionada(ecografia);
     setDrawerVistaRapidaVisible(true);
@@ -144,7 +144,7 @@ const Ecografias: React.FC = () => {
   const handleEliminar = (ecografia: any) => {
     modal.confirm({
       className: 'capa-clinica',
-      title: '⚠️ ¿Confirmar eliminación permanente?',
+      title: '¿Confirmar eliminación permanente?',
       icon: <ExclamationCircleOutlined />,
       content: (
         <div>
@@ -156,7 +156,7 @@ const Ecografias: React.FC = () => {
             <li>Edad Gestacional: {ecografia.edad_gestacional_semanas || 0}+{ecografia.edad_gestacional_dias || 0} semanas</li>
           </ul>
           <p className="u-c-peligro u-fuerte u-mt-4">
-            ⚠️ ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
+            ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
           </p>
           <p className="u-mt-4">
             Se perderán todos los datos de esta ecografía obstétrica, incluyendo mediciones fetales, diagnósticos y observaciones.

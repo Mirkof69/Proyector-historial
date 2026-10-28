@@ -9,7 +9,7 @@ from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
 
-# ✅ IMPORTS NECESARIOS PARA FOREIGNKEY
+# IMPORTS NECESARIOS PARA FOREIGNKEY
 from pacientes.models import Paciente
 
 # from embarazos.models import Embarazo  # REMOVED to fix circular import
@@ -40,7 +40,7 @@ def validar_edad_gestacional(value):
     except (ValueError, IndexError) as exc:
         raise ValidationError("Formato inválido. Debe ser número o número+número") from exc
 
-    # ✅ Validar rangos (ahora permite desde 0 semanas para abortos muy tempranos)
+    # Validar rangos (ahora permite desde 0 semanas para abortos muy tempranos)
     if semanas < 0 or semanas > 45:
         raise ValidationError("Las semanas de gestación deben estar entre 0 y 45")
 
@@ -84,7 +84,7 @@ class Parto(models.Model):
     ]
 
     # ═══════════════════════════════════════════════════════════════════════
-    # ✅ CORRECCIÓN: FOREIGNKEY EN VEZ DE IntegerField
+    # CORRECCIÓN: FOREIGNKEY EN VEZ DE IntegerField
     # ═══════════════════════════════════════════════════════════════════════
 
     paciente = models.ForeignKey(
@@ -129,7 +129,7 @@ class Parto(models.Model):
 
     # Fechas y tiempos
     fecha_ingreso = models.DateTimeField(
-        null=True,  # ✅ OPCIONAL: Permitir nulo para compatibilidad con frontend
+        null=True,  # OPCIONAL: Permitir nulo para compatibilidad con frontend
         blank=True,
         verbose_name="Fecha y Hora de Ingreso",
         help_text="Fecha y hora en que la paciente ingresa para el parto",
@@ -154,8 +154,8 @@ class Parto(models.Model):
     tipo_parto = models.CharField(
         max_length=30,
         choices=TIPO_PARTO_CHOICES,
-        blank=True,  # ✅ Opcional para abortos
-        null=True,  # ✅ Puede ser NULL
+        blank=True,  # Opcional para abortos
+        null=True,  # Puede ser NULL
         verbose_name="Tipo de Parto",
         help_text="Solo requerido para partos (≥ 20 semanas)",
     )
@@ -332,7 +332,7 @@ class Parto(models.Model):
     )
 
     # ═══════════════════════════════════════════════════════════════════════
-    # ✅ CAMPOS ESPECÍFICOS PARA PROTOCOLO DE ABORTO (< 20 semanas)
+    # CAMPOS ESPECÍFICOS PARA PROTOCOLO DE ABORTO (< 20 semanas)
     # ═══════════════════════════════════════════════════════════════════════
 
     tipo_aborto = models.CharField(
@@ -439,7 +439,7 @@ class Parto(models.Model):
             delta = self._fin_trabajo_parto - self.fecha_inicio_trabajo_parto
             self.duracion_trabajo_parto_horas = Decimal(str(delta.total_seconds() / 3600)).quantize(Decimal("0.01"))
 
-        # ✅ AUTO-ASIGNAR PACIENTE DESDE EMBARAZO SI FALTA
+        # AUTO-ASIGNAR PACIENTE DESDE EMBARAZO SI FALTA
         # Esto previene que se creen partos sin paciente
         if not getattr(self, 'paciente_id', None) and getattr(self, 'embarazo_id', None):
             # Si el parto no tiene paciente pero sí tiene embarazo,
@@ -536,7 +536,7 @@ class Parto(models.Model):
         return complicaciones or ["Sin complicaciones registradas"]
 
     # ═══════════════════════════════════════════════════════════════════════════
-    # ✅ SISTEMA DE ALERTAS MÉDICAS DEL PARTO
+    # SISTEMA DE ALERTAS MÉDICAS DEL PARTO
     # ═══════════════════════════════════════════════════════════════════════════
 
     def obtener_semanas_dias_gestacion(self):
@@ -734,7 +734,7 @@ class Parto(models.Model):
                             "tipo": "critica",
                             "nivel": "warning",
                             "categoria": "hemorragia",
-                            "mensaje": f"⚠️ HEMORRAGIA MODERADA-SEVERA: {self.perdida_sanguinea_estimada}ml",
+                            "mensaje": f"HEMORRAGIA MODERADA-SEVERA: {self.perdida_sanguinea_estimada}ml",
                             "recomendacion": "Uterotónicos. Cristaloides. Hemoderivados según evolución.",
                         },
                     )
@@ -744,7 +744,7 @@ class Parto(models.Model):
                             "tipo": "moderada",
                             "nivel": "warning",
                             "categoria": "hemorragia",
-                            "mensaje": f"⚠️ Hemorragia postparto: {self.perdida_sanguinea_estimada}ml",
+                            "mensaje": f"Hemorragia postparto: {self.perdida_sanguinea_estimada}ml",
                             "recomendacion": "Vigilancia estrecha. Uterotónicos. Control de signos vitales.",
                         },
                     )
@@ -758,7 +758,7 @@ class Parto(models.Model):
                     "tipo": "moderada",
                     "nivel": "warning",
                     "categoria": "trabajo_parto",
-                    "mensaje": f"⚠️ TRABAJO DE PARTO PROLONGADO: {self.duracion_trabajo_parto_horas}h",
+                    "mensaje": f"TRABAJO DE PARTO PROLONGADO: {self.duracion_trabajo_parto_horas}h",
                     "recomendacion": "Valorar distocia. Considerar cesárea si no hay progreso.",
                 },
             )
@@ -773,7 +773,7 @@ class Parto(models.Model):
                     "tipo": "moderada",
                     "nivel": "warning",
                     "categoria": "trabajo_parto",
-                    "mensaje": f"⚠️ PERÍODO EXPULSIVO PROLONGADO: {self.duracion_periodo_expulsivo_minutos} min",
+                    "mensaje": f"PERÍODO EXPULSIVO PROLONGADO: {self.duracion_periodo_expulsivo_minutos} min",
                     "recomendacion": "Considerar parto instrumentado o cesárea. Monitoreo fetal continuo.",
                 },
             )
@@ -794,7 +794,7 @@ class Parto(models.Model):
                         "tipo": "moderada",
                         "nivel": "warning",
                         "categoria": "trauma_obstetrico",
-                        "mensaje": f"⚠️ DESGARRO SEVERO: Grado {self.grado_desgarros}",
+                        "mensaje": f"DESGARRO SEVERO: Grado {self.grado_desgarros}",
                         "recomendacion": "Reparación quirúrgica por especialista. Antibióticos profilácticos.",
                     },
                 )
@@ -1225,7 +1225,7 @@ class RecienNacido(models.Model):
         if peso < 2500:
             return " Bajo peso (< 2500g)"
         if peso <= 4000:
-            return "✅ Peso normal (2500-4000g)"
+            return "Peso normal (2500-4000g)"
         if peso <= 4500:
             return " Macrosomía leve (4000-4500g)"
         return " Macrosomía severa (> 4500g)"
@@ -1235,7 +1235,7 @@ class RecienNacido(models.Model):
         apgar_5 = self.apgar_5_minutos
 
         if apgar_5 >= 8:
-            return "✅ Excelente (8-10)"
+            return "Excelente (8-10)"
         if apgar_5 >= 6:
             return " Moderado (6-7)"
         if apgar_5 >= 4:
@@ -1281,13 +1281,13 @@ class RecienNacido(models.Model):
 
         if problemas:
             return f" Problemas: {', '.join(problemas)}"
-        return "✅ Estado general normal"
+        return "Estado general normal"
 
     def clean(self):
-        """✅ VALIDACIONES CRÍTICAS DEL RECIÉN NACIDO"""
+        """VALIDACIONES CRÍTICAS DEL RECIÉN NACIDO"""
         errors = {}
 
-        # ✅ 1. VALIDAR APGAR - MÁXIMO 10 EN CADA MEDICIÓN
+        # 1. VALIDAR APGAR - MÁXIMO 10 EN CADA MEDICIÓN
         if self.apgar_1_minuto is not None:
             if self.apgar_1_minuto < 0:
                 errors["apgar_1_minuto"] = "Apgar al minuto 1 no puede ser negativo."
@@ -1316,18 +1316,20 @@ class RecienNacido(models.Model):
                     f"Apgar a los 10 minutos de {self.apgar_10_minutos} es imposible. Máximo es 10."
                 )
 
-        # ✅ 2. VALIDAR PESO DEL RECIÉN NACIDO
+        # 2. VALIDAR PESO DEL RECIÉN NACIDO
         if self.peso_nacimiento:
             if self.peso_nacimiento > 7000:
                 errors["peso_nacimiento"] = (
                     f"Peso de {self.peso_nacimiento}g ({self.peso_nacimiento / 1000:.2f} kg) es extremadamente alto. Máximo realista 7000g (7 kg). Verificar medición."
                 )
-            elif self.peso_nacimiento < 400:
+            elif self.peso_nacimiento < 300:
+                # Mismo mínimo que el campo y el formulario (300 g): aquí se
+                # exigían 400 g y un parto de 300 g no se podía guardar (BUG-010).
                 errors["peso_nacimiento"] = (
-                    f"Peso de {self.peso_nacimiento}g es extremadamente bajo. Mínimo viable 400g. Verificar viabilidad."
+                    f"Peso de {self.peso_nacimiento}g es extremadamente bajo. El mínimo es 300 g."
                 )
 
-        # ✅ 3. VALIDAR TALLA
+        # 3. VALIDAR TALLA
         if self.talla_nacimiento:
             if self.talla_nacimiento > 60:
                 errors["talla_nacimiento"] = (
@@ -1338,7 +1340,7 @@ class RecienNacido(models.Model):
                     f"Talla de {self.talla_nacimiento} cm es anormalmente baja. Mínimo 25 cm."
                 )
 
-        # ✅ 4. VALIDAR PERÍMETRO CEFÁLICO
+        # 4. VALIDAR PERÍMETRO CEFÁLICO
         if self.perimetro_cefalico:
             if self.perimetro_cefalico > 42:
                 errors["perimetro_cefalico"] = (
@@ -1349,7 +1351,7 @@ class RecienNacido(models.Model):
                     f"Perímetro cefálico de {self.perimetro_cefalico} cm es anormalmente bajo (microcefalia severa). Mínimo 25 cm."
                 )
 
-        # ✅ 5. VALIDAR COHERENCIA APGAR
+        # 5. VALIDAR COHERENCIA APGAR
         if self.apgar_1_minuto is not None and self.apgar_5_minutos is not None:
             # Normalmente el Apgar a los 5 minutos debería ser mayor o igual al del minuto 1
             if self.apgar_5_minutos < self.apgar_1_minuto - 2:
@@ -1646,7 +1648,7 @@ class PartogramaRegistro(models.Model):
             return " Bradicardia"
         if fcf > 160:
             return " Taquicardia"
-        return "✅ Normal"
+        return "Normal"
 
     def get_progreso_dilatacion(self):
         """Evalúa el progreso de la dilatación"""
@@ -1661,7 +1663,7 @@ class PartogramaRegistro(models.Model):
         intensidad = self.intensidad_contracciones
 
         if contracciones >= 3 and intensidad == "fuertes":
-            return "✅ Contracciones adecuadas"
+            return "Contracciones adecuadas"
         if contracciones >= 2:
             return " Contracciones moderadas"
         return " Contracciones insuficientes"
@@ -1835,7 +1837,7 @@ class ComplicacionParto(models.Model):
             "severa": "",
             "critica": "",
         }
-        return iconos.get(self.severidad, "⚪")
+        return iconos.get(self.severidad, "")
 
     def get_resumen(self):
         """Resumen de la complicación"""
@@ -1945,7 +1947,7 @@ class ApgarScoreDetallado(models.Model):
         """Clasifica el score de Apgar"""
         score = self.score_total
         if score >= 8:
-            return "✅ Excelente (8-10)"
+            return "Excelente (8-10)"
         if score >= 6:
             return " Moderado (6-7)"
         if score >= 4:
@@ -1981,7 +1983,7 @@ class ApgarScoreDetallado(models.Model):
             elif valor == 1:
                 problemas.append(f" {nombre}: Débil")
 
-        return problemas or ["✅ Todos los componentes normales"]
+        return problemas or ["Todos los componentes normales"]
 
     def __str__(self):
         """Str"""

@@ -100,10 +100,10 @@ class TriajeEnfermeriaAdmin(admin.ModelAdmin):
         """Get alertas"""
         alertas = []
         if obj.alerta_presion_alta:
-            alertas.append("⚠️ PA")
+            alertas.append("PA")
         if obj.alerta_fiebre:
-            alertas.append("⚠️ Fiebre")
+            alertas.append("Fiebre")
         if obj.alerta_taquicardia:
-            alertas.append("⚠️ Taqui")
-        return " ".join(alertas) if alertas else "✅"
+            alertas.append("Taqui")
+        return " ".join(alertas) if alertas else ""
 

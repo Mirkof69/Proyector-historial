@@ -66,7 +66,8 @@ class CalculadorasObstetricas:
 
         """
         altura_m = float(altura) / 100
-        imc = float(peso) / (altura_m * altura_m)
+        # Redondeado antes de clasificar: 64 / 1,6² da 24,999… en coma flotante.
+        imc = round(float(peso) / (altura_m * altura_m), 2)
 
         # Clasificación según OMS
         if imc < 18.5:
@@ -228,9 +229,10 @@ class CalculadorasObstetricas:
         )
 
         # Interpretación
-        if puntaje_total <= 4:
+        # Mismos cortes que la calculadora especializada (RF-17).
+        if puntaje_total <= 5:
             interpretacion = "Cérvix desfavorable - Inducción difícil"
-        elif puntaje_total <= 6:
+        elif puntaje_total <= 7:
             interpretacion = "Cérvix intermedio - Inducción posible"
         else:
             interpretacion = "Cérvix favorable - Inducción probable exitosa"

@@ -252,7 +252,7 @@ class ValorReferenciaAdmin(admin.ModelAdmin):
     def tiene_criticos(self, obj):
         """Indica si tiene valores críticos definidos"""
         if obj.es_critico_bajo or obj.es_critico_alto:
-            return format_html('<span style="color: #f5222d;">⚠️ Sí</span>')
+            return format_html('<span style="color: #f5222d;">Sí</span>')
         return "-"
 
 
@@ -366,10 +366,10 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
             "cancelado": "#8c8c8c",
         }
         iconos = {
-            "pendiente": "⏳",
+            "pendiente": "",
             "en_proceso": "",
-            "completado": "✅",
-            "cancelado": "❌",
+            "completado": "",
+            "cancelado": "",
         }
 
         color = colores.get(obj.estado, "#8c8c8c")
@@ -410,8 +410,8 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
                 return format_html('<em style="color: #8c8c8c;">Sin resultados</em>')
 
             return format_html(
-                '<span style="color: #52c41a;">✓ {}</span> / '
-                '<span style="color: #faad14;">⚠ {}</span> / '
+                '<span style="color: #52c41a;">{}</span> / '
+                '<span style="color: #faad14;">{}</span> / '
                 '<span style="color: #f5222d;"> {}</span>',
                 resumen.get("normales", 0),
                 resumen.get("anormales", 0),
@@ -422,21 +422,21 @@ class ExamenLaboratorioAdmin(admin.ModelAdmin):
 
 
     # Acciones en batch
-    @admin.action(description="✅ Marcar como Completado")
+    @admin.action(description="Marcar como Completado")
     def marcar_como_completado(self, request, queryset):
         """Marcar como completado"""
         updated = queryset.update(estado="completado")
         self.message_user(request, f"{updated} examen(es) marcado(s) como completado.")
 
 
-    @admin.action(description="⏳ Marcar como Pendiente")
+    @admin.action(description="Marcar como Pendiente")
     def marcar_como_pendiente(self, request, queryset):
         """Marcar como pendiente"""
         updated = queryset.update(estado="pendiente")
         self.message_user(request, f"{updated} examen(es) marcado(s) como pendiente.")
 
 
-    @admin.action(description="⚠️ Marcar como Urgente")
+    @admin.action(description="Marcar como Urgente")
     def marcar_como_urgente(self, request, queryset):
         """Marcar como urgente"""
         updated = queryset.update(prioridad="urgente")

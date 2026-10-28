@@ -68,7 +68,7 @@ class Embarazo(models.Model):
         limit_choices_to={"rol": "medico"},
     )
 
-    # ✅ CAMPOS ANTROPOMÉTRICOS PREGESTACIONALES
+    # CAMPOS ANTROPOMÉTRICOS PREGESTACIONALES
     peso_pregestacional = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -136,18 +136,18 @@ class Embarazo(models.Model):
         if self.peso_pregestacional and self.talla_materna:
             # IMC = peso (kg) / (altura (m))^2
             altura_m = float(self.talla_materna) / 100  # Convertir cm a metros
-            imc_value = float(self.peso_pregestacional) / (altura_m**2)
+            imc_value = round(float(self.peso_pregestacional) / (altura_m**2), 2)
             return round(imc_value, 2)
         return None
 
     def clean(self):
-        """✅ VALIDACIONES CRÍTICAS DEL EMBARAZO"""
+        """VALIDACIONES CRÍTICAS DEL EMBARAZO"""
 
         from django.core.exceptions import ValidationError
 
         errors = {}
 
-        # ✅ 1. VALIDAR FUM - NO PUEDE ESTAR EN EL FUTURO
+        # 1. VALIDAR FUM - NO PUEDE ESTAR EN EL FUTURO
         if self.fecha_ultima_menstruacion:
             if self.fecha_ultima_menstruacion > timezone.localdate():
                 errors["fecha_ultima_menstruacion"] = (
@@ -165,13 +165,13 @@ class Embarazo(models.Model):
                     "curso no pasa de 44: revise la fecha o regístrelo como finalizado."
                 )
 
-        # ✅ 2. VALIDAR G/P - NÚMERO DE PARTOS NO PUEDE SER MAYOR QUE GESTAS
+        # 2. VALIDAR G/P - NÚMERO DE PARTOS NO PUEDE SER MAYOR QUE GESTAS
         if self.numero_para > self.numero_gesta:
             errors["numero_para"] = (
                 f"El número de partos ({self.numero_para}) no puede ser mayor que el número de gestas ({self.numero_gesta})."
             )
 
-        # ✅ 2b. VALIDAR CESÁREAS ≤ PARTOS - NO PUEDE HABER MÁS CESÁREAS QUE PARTOS
+        # 2b. VALIDAR CESÁREAS ≤ PARTOS - NO PUEDE HABER MÁS CESÁREAS QUE PARTOS
         if (
             self.numero_cesareas
             and self.numero_para is not None
@@ -181,7 +181,7 @@ class Embarazo(models.Model):
                 "El número de cesáreas no puede ser mayor al número de partos"
             )
 
-        # ✅ 3. VALIDAR QUE G = P + ABORTOS + EMBARAZO ACTUAL
+        # 3. VALIDAR QUE G = P + ABORTOS + EMBARAZO ACTUAL
         total_embarazos = (
             self.numero_para + self.numero_abortos + 1
         )  # +1 por el embarazo actual
@@ -189,11 +189,11 @@ class Embarazo(models.Model):
             errors["numero_gesta"] = (
                 f"El número de gestas ({self.numero_gesta}) no coincide con P({self.numero_para}) + Abortos({self.numero_abortos}) + Actual(1) = {total_embarazos}."
             )
-        # ✅ 4. VALIDAR NÚMERO MÍNIMO DE GESTA
+        # 4. VALIDAR NÚMERO MÍNIMO DE GESTA
         if self.numero_gesta is not None and self.numero_gesta < 1:
             errors["numero_gesta"] = "El número de gestas debe ser al menos 1."
 
-        # ✅ 4. VALIDAR EDAD DE LA PACIENTE (a la fecha del embarazo, no a hoy)
+        # 4. VALIDAR EDAD DE LA PACIENTE (a la fecha del embarazo, no a hoy)
         if self.paciente and self.paciente.fecha_nacimiento and self.fecha_ultima_menstruacion:
             nacimiento, fum = self.paciente.fecha_nacimiento, self.fecha_ultima_menstruacion
             edad = fum.year - nacimiento.year - ((fum.month, fum.day) < (nacimiento.month, nacimiento.day))
@@ -206,7 +206,7 @@ class Embarazo(models.Model):
                     f"La paciente tiene {edad} años. Edad muy avanzada para embarazo (máximo 60 años)."
                 )
 
-        # ✅ 5. VALIDAR PESO Y TALLA MATERNA
+        # 5. VALIDAR PESO Y TALLA MATERNA
         if self.peso_pregestacional:
             if self.peso_pregestacional < 30:
                 errors["peso_pregestacional"] = (

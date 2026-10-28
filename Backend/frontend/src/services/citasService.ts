@@ -129,7 +129,7 @@ function normalizeListResponse<T>(data: any): T[] {
     }
 
     // Si no es ninguno de los anteriores, advertir y retornar array vacío
-    console.warn('⚠️ citasService: Respuesta no es array ni tiene results/data:', data);
+    console.warn('citasService: Respuesta no es array ni tiene results/data:', data);
     return [];
 }
 

@@ -6,7 +6,7 @@ MODELOS DE CONFIGURACIÓN DEL SISTEMA
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-# ✅ CIRCULAR IMPORT FIX: Usar get_user_model() en ForeignKeys
+# CIRCULAR IMPORT FIX: Usar get_user_model() en ForeignKeys
 
 
 class SistemaConfiguracion(models.Model):

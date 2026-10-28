@@ -194,7 +194,7 @@ def alertar_examenes_pendientes():
             logger.error("Error creando alerta para examen %s: %s", getattr(examen, 'id', None), e)
 
     logger.info(
-        "✅ Alertas de exámenes pendientes enviadas: %s",
+        "Alertas de exámenes pendientes enviadas: %s",
         notificaciones_enviadas,
     )
     return {"enviadas": notificaciones_enviadas}
@@ -223,7 +223,7 @@ def notificar_backup_completado(backup_metadata):
     backup_size = backup_metadata.get("size_mb", 0)
     backup_file = backup_metadata.get("filename", "backup.sql.gz")
 
-    tipo_emoji = {"daily": "", "weekly": "", "monthly": "️", "manual": ""}
+    tipo_emoji = {"daily": "", "weekly": "", "monthly": "", "manual": ""}
 
     notificaciones_enviadas = 0
 

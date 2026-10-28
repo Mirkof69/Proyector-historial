@@ -189,7 +189,7 @@ class EcografiaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         Solo si el usuario es médico
         También asignar created_by para trazabilidad
         """
-        # ✅ Asignar médico si el usuario es médico
+        # Asignar médico si el usuario es médico
         if getattr(self.request.user, 'rol', '') == "medico":
             serializer.save(
                 medico=self.request.user,
@@ -288,7 +288,7 @@ class EcografiaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         """
         ecografia = self.get_object()
 
-        # ✅ CORREGIDO: usar 'imagen' en lugar de 'archivo'
+        # CORREGIDO: usar 'imagen' en lugar de 'archivo'
         imagen_archivo = request.FILES.get("imagen")
 
         if not imagen_archivo:
@@ -324,7 +324,7 @@ class EcografiaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             return Response({"error": "«orden» tiene que ser un número entero."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Crear imagen con trazabilidad
+        # Crear imagen con trazabilidad
         imagen = ImagenEcografia.objects.create(
             ecografia=ecografia,
             imagen=imagen_archivo,

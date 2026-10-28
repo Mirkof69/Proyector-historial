@@ -34,7 +34,7 @@ const DashboardQuickAccess: React.FC<DashboardQuickAccessProps> = ({ showQuickAc
           )}
           {showQuickAccess('Calculadoras') && (
             <Col span={6} xs={12} sm={6}>
-              <Button block size="large" className="btn-quick" icon={<CalculatorOutlined />} onClick={() => onNavigate('/dashboard/calculadoras', 'Calculadoras')}>Calc. Médica</Button>
+              <Button block size="large" className="btn-quick" icon={<CalculatorOutlined />} onClick={() => onNavigate('/dashboard/calculadoras', 'Calculadoras')}>Calculadoras</Button>
             </Col>
           )}
           {showQuickAccess('Gestión de Usuarios') && (
@@ -58,7 +58,7 @@ const DashboardQuickAccess: React.FC<DashboardQuickAccessProps> = ({ showQuickAc
             </Col>
           )}
           <Col span={6} xs={12} sm={6}>
-            <Button block size="large" className="btn-quick" icon={<RobotOutlined />} onClick={() => onNavigate('/ia-asistente', 'IA Assistant')}>IA Assistant</Button>
+            <Button block size="large" className="btn-quick" icon={<RobotOutlined />} onClick={() => onNavigate('/dashboard/ia-asistente', 'Asistente IA')}>Asistente IA</Button>
           </Col>
         </Row>
       </Card>

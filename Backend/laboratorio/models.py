@@ -208,8 +208,10 @@ class ExamenLaboratorio(models.Model):
     )
 
     # Datos del examen
+    # default y no auto_now_add: auto_now_add descarta la fecha que se le pasa, y
+    # un examen importado o cargado después de pedido quedaba con la de hoy.
     fecha_solicitud = models.DateTimeField(
-        auto_now_add=True, verbose_name="Fecha de Solicitud",
+        default=timezone.now, verbose_name="Fecha de Solicitud",
     )
 
     fecha_muestra = models.DateTimeField(
@@ -650,22 +652,22 @@ class ResultadoLaboratorio(models.Model):
         for key, interpretation in interpretaciones.items():
             if key in parametro:
                 if self.es_critico:
-                    return f"⚠️ CRÍTICO: {interpretation}"
+                    return f"CRÍTICO: {interpretation}"
                 return interpretation
 
         # Interpretación genérica
         if self.es_critico:
-            return "⚠️ VALOR CRÍTICO: Requiere atención médica inmediata"
+            return "VALOR CRÍTICO: Requiere atención médica inmediata"
         if not self.es_normal:
             return " VALOR ANORMAL: Requiere evaluación médica"
-        return "✅ VALOR NORMAL: Dentro de rangos esperados"
+        return "VALOR NORMAL: Dentro de rangos esperados"
 
     def _interpretar_glucosa(self, valor):
         """Interpretación específica para glucosa"""
         if valor < 70:
             return f" HIPOGLUCEMIA SEVERA ({valor} mg/dL): Administrar glucosa inmediatamente"
         if valor < 100:
-            return f"✅ GLUCOSA NORMAL ({valor} mg/dL): Valor óptimo"
+            return f"GLUCOSA NORMAL ({valor} mg/dL): Valor óptimo"
         if valor < 126:
             return f" GLUCOSA ELEVADA ({valor} mg/dL): Riesgo de prediabetes"
         if valor < 200:
@@ -679,7 +681,7 @@ class ResultadoLaboratorio(models.Model):
         if valor < 12:
             return f" ANEMIA LEVE ({valor} g/dL): Suplementar hierro"
         if valor <= 16:
-            return f"✅ HEMOGLOBINA NORMAL ({valor} g/dL)"
+            return f"HEMOGLOBINA NORMAL ({valor} g/dL)"
         return f" POLICITEMIA ({valor} g/dL): Investigar causas"
 
     def _interpretar_hematocrito(self, valor):
@@ -687,7 +689,7 @@ class ResultadoLaboratorio(models.Model):
         if valor < 30:
             return f" HEMATOCRITO BAJO ({valor}%): Anemia significativa"
         if valor <= 44:
-            return f"✅ HEMATOCRITO NORMAL ({valor}%)"
+            return f"HEMATOCRITO NORMAL ({valor}%)"
         return f" HEMATOCRITO ELEVADO ({valor}%): Posible deshidratación"
 
     def _interpretar_leucocitos(self, valor):
@@ -695,7 +697,7 @@ class ResultadoLaboratorio(models.Model):
         if valor < 4000:
             return f" LEUCOPENIA ({valor}/μL): Riesgo de infección"
         if valor <= 11000:
-            return f"✅ LEUCOCITOS NORMALES ({valor}/μL)"
+            return f"LEUCOCITOS NORMALES ({valor}/μL)"
         return f" LEUCOCITOSIS ({valor}/μL): Posible infección o inflamación"
 
     def _interpretar_plaquetas(self, valor):
@@ -703,7 +705,7 @@ class ResultadoLaboratorio(models.Model):
         if valor < 150000:
             return f" TROMBOCITOPENIA ({valor}/μL): Riesgo de sangrado"
         if valor <= 400000:
-            return f"✅ PLAQUETAS NORMALES ({valor}/μL)"
+            return f"PLAQUETAS NORMALES ({valor}/μL)"
         return f" TROMBOCITOSIS ({valor}/μL): Riesgo de trombosis"
 
     def _interpretar_creatinina(self, valor):
@@ -711,7 +713,7 @@ class ResultadoLaboratorio(models.Model):
         if valor > 1.5:
             return f" CREATININA ELEVADA ({valor} mg/dL): Posible insuficiencia renal"
         if valor <= 1.2:
-            return f"✅ CREATININA NORMAL ({valor} mg/dL)"
+            return f"CREATININA NORMAL ({valor} mg/dL)"
         return f" CREATININA BORDERLINE ({valor} mg/dL): Monitorear función renal"
 
     def _interpretar_urea(self, valor):
@@ -719,13 +721,13 @@ class ResultadoLaboratorio(models.Model):
         if valor > 50:
             return f" UREA ELEVADA ({valor} mg/dL): Evaluar función renal"
         if valor <= 40:
-            return f"✅ UREA NORMAL ({valor} mg/dL)"
+            return f"UREA NORMAL ({valor} mg/dL)"
         return f" UREA BORDERLINE ({valor} mg/dL): Control en seguimiento"
 
     def _interpretar_colesterol(self, valor):
         """Interpretación específica para colesterol"""
         if valor < 200:
-            return f"✅ COLESTEROL DESEABLE ({valor} mg/dL)"
+            return f"COLESTEROL DESEABLE ({valor} mg/dL)"
         if valor < 240:
             return f" COLESTEROL BORDERLINE ({valor} mg/dL): Modificar dieta"
         return f" COLESTEROL ALTO ({valor} mg/dL): Riesgo cardiovascular"
@@ -733,7 +735,7 @@ class ResultadoLaboratorio(models.Model):
     def _interpretar_trigliceridos(self, valor):
         """Interpretación específica para triglicéridos"""
         if valor < 150:
-            return f"✅ TRIGLICÉRIDOS NORMALES ({valor} mg/dL)"
+            return f"TRIGLICÉRIDOS NORMALES ({valor} mg/dL)"
         if valor < 200:
             return f" TRIGLICÉRIDOS BORDERLINE ({valor} mg/dL)"
         return f" TRIGLICÉRIDOS ALTOS ({valor} mg/dL): Riesgo cardiovascular"
@@ -902,9 +904,9 @@ class ResultadoLaboratorio(models.Model):
             estado = (
                 " CRÍTICO"
                 if valor.es_critico
-                else "⚠️ ANORMAL"
+                else "ANORMAL"
                 if not valor.es_normal
-                else "✅ NORMAL"
+                else "NORMAL"
             )
             historial.append(
                 f"{i + 1}. {fecha}: {val} {valor.valor_referencia.unidad} - {estado}",

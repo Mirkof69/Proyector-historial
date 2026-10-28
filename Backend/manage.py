@@ -7,7 +7,7 @@ import sys
 
 def _consola_tolerante():
     """La consola de Windows (cp850/cp1252) no puede imprimir emojis ni algunos
-    símbolos: un `print("✅ …")` tumbaba el comando a mitad de trabajo con
+    símbolos: un `print("…")` tumbaba el comando a mitad de trabajo con
     UnicodeEncodeError (p. ej. poblar_valores_referencia desde un .bat). Se
     imprime en UTF-8 y lo que no quepa se sustituye, nunca se cae."""
     for flujo in (sys.stdout, sys.stderr):

@@ -13,6 +13,7 @@ import api from '../../services/api';
 import { descargarArchivo } from '../../utils/descargarArchivo';
 
 import './Auditoria.css';
+import { filtrarOpcion } from '../../utils/texto';
 
 const { Text, Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -248,7 +249,7 @@ const Auditoria: React.FC = () => {
               allowClear
             />
             <Select
-              placeholder="Persona" allowClear showSearch optionFilterProp="label" className="auditoria-page__tipo"
+              placeholder="Persona" allowClear showSearch filterOption={filtrarOpcion} className="auditoria-page__tipo"
               value={filtros.usuario_id} onChange={(v) => cambiar('usuario_id', v)}
               options={opciones.usuarios.map((u) => ({ value: u.id, label: `${u.nombre} (${u.rol})` }))}
             />
@@ -257,12 +258,12 @@ const Auditoria: React.FC = () => {
               onChange={(v) => cambiar('rol', v)} options={opciones.roles.map((r) => ({ value: r, label: r }))}
             />
             <Select
-              placeholder="Acción" allowClear showSearch optionFilterProp="label" className="auditoria-page__tipo"
+              placeholder="Acción" allowClear showSearch filterOption={filtrarOpcion} className="auditoria-page__tipo"
               value={filtros.accion} onChange={(v) => cambiar('accion', v)}
               options={opciones.acciones.map((a) => ({ value: a.valor, label: a.etiqueta }))}
             />
             <Select
-              placeholder="Módulo" allowClear showSearch optionFilterProp="label" className="auditoria-page__tipo"
+              placeholder="Módulo" allowClear showSearch filterOption={filtrarOpcion} className="auditoria-page__tipo"
               value={filtros.modulo} onChange={(v) => cambiar('modulo', v)}
               options={opciones.modulos.map((m) => ({ value: m.valor, label: m.etiqueta }))}
             />

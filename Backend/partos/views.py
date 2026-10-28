@@ -1,12 +1,12 @@
 """=============================================================================
 MÓDULO: PARTOS - VIEWS COMPLETO V4.0
 =============================================================================
-✅ ViewSets COMPLETOS con todas las funcionalidades
-✅ Filtros avanzados, búsquedas y ordenamiento
-✅ Acciones personalizadas (@action)
-✅ Estadísticas detalladas
-✅ Select_related y prefetch_related para optimización
-✅ Manejo de errores personalizado
+ViewSets COMPLETOS con todas las funcionalidades
+Filtros avanzados, búsquedas y ordenamiento
+Acciones personalizadas (@action)
+Estadísticas detalladas
+Select_related y prefetch_related para optimización
+Manejo de errores personalizado
 =============================================================================
 """
 
@@ -156,8 +156,8 @@ class PartoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         serializer.save(modified_by=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
-        """✅ Eliminar parto completamente de la base de datos (hard delete)"""
-        # ✅ SEGURIDAD: Solo administradores pueden eliminar
+        """Eliminar parto completamente de la base de datos (hard delete)"""
+        # SEGURIDAD: Solo administradores pueden eliminar
         if getattr(request.user, 'rol', '') != "administrador":
             return Response(
                 {
@@ -177,7 +177,7 @@ class PartoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         if instance.paciente:
             paciente_nombre = f"{instance.paciente.id_clinico} - {instance.paciente.nombre} {instance.paciente.apellido_paterno}"
 
-        # ✅ Eliminar usando SQL directo (hard delete)
+        # Eliminar usando SQL directo (hard delete)
         # Primero eliminar registros dependientes, luego el parto
         with connection.cursor() as cursor:
             # 1. Eliminar recién nacidos

@@ -276,7 +276,7 @@ class ClasificacionRiesgosViewSet(viewsets.ViewSet):
             # Calcular IMC si hay datos
             if embarazo.peso_pregestacional and embarazo.talla_materna:
                 talla_m = float(embarazo.talla_materna) / 100
-                imc = float(embarazo.peso_pregestacional) / (talla_m * talla_m)
+                imc = round(float(embarazo.peso_pregestacional) / (talla_m * talla_m), 2)
 
                 if imc >= 30:
                     factores["obesidad"] += 1

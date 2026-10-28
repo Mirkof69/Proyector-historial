@@ -233,35 +233,35 @@ export const calcularRiesgo = (valores: DatosScreening): ResultadoRiesgo => {
 
   // Clasificar T21
   if (riesgo_t21 >= punto_corte) {
-    clasificacion_t21 = '🔴 ALTO RIESGO';
+    clasificacion_t21 = 'ALTO RIESGO';
     color = 'var(--color-peligro)';
     screening_positivo = true;
   } else if (riesgo_t21 >= 1 / 1000) {
-    clasificacion_t21 = '🟡 RIESGO INTERMEDIO';
+    clasificacion_t21 = 'RIESGO INTERMEDIO';
     color = 'var(--color-aviso)';
   } else {
-    clasificacion_t21 = '🟢 BAJO RIESGO';
+    clasificacion_t21 = 'BAJO RIESGO';
     color = 'var(--color-exito)';
   }
 
   // Clasificar T18
   if (riesgo_t18 >= 1 / 250) {
-    clasificacion_t18 = '🔴 ALTO RIESGO';
+    clasificacion_t18 = 'ALTO RIESGO';
     screening_positivo = true;
   } else if (riesgo_t18 >= 1 / 1000) {
-    clasificacion_t18 = '🟡 RIESGO INTERMEDIO';
+    clasificacion_t18 = 'RIESGO INTERMEDIO';
   } else {
-    clasificacion_t18 = '🟢 BAJO RIESGO';
+    clasificacion_t18 = 'BAJO RIESGO';
   }
 
   // Clasificar T13
   if (riesgo_t13 >= 1 / 250) {
-    clasificacion_t13 = '🔴 ALTO RIESGO';
+    clasificacion_t13 = 'ALTO RIESGO';
     screening_positivo = true;
   } else if (riesgo_t13 >= 1 / 1000) {
-    clasificacion_t13 = '🟡 RIESGO INTERMEDIO';
+    clasificacion_t13 = 'RIESGO INTERMEDIO';
   } else {
-    clasificacion_t13 = '🟢 BAJO RIESGO';
+    clasificacion_t13 = 'BAJO RIESGO';
   }
 
   // Interpretación global

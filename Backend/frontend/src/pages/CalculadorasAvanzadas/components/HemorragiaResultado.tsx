@@ -121,7 +121,7 @@ const HemorragiaResultado: React.FC<HemorragiaResultadoProps> = ({ resultado }) 
           <Alert
             key={`medida-${medida}`}
             message={medida}
-            type={medida.includes('🚨') || medida.includes('🔴') ? 'error' : 'warning'}
+            type={/ACTIVAR|CÓDIGO ROJO|TRANSFUSIÓN MASIVA/.test(medida) ? 'error' : 'warning'}
             showIcon
           />
         ))}

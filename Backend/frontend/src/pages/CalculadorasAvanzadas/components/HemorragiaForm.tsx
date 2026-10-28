@@ -145,10 +145,10 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             rules={[{ required: true, message: 'Requerido' }]}
           >
             <Select>
-              <Option value="tono">🔴 TONO - Atonía Uterina (70%)</Option>
-              <Option value="trauma">🟠 TRAUMA - Laceraciones/Desgarros (20%)</Option>
-              <Option value="tejido">🟡 TEJIDO - Retención Placentaria (8%)</Option>
-              <Option value="trombina">🟣 TROMBINA - Coagulopatía (2%)</Option>
+              <Option value="tono">TONO - Atonía Uterina (70%)</Option>
+              <Option value="trauma">TRAUMA - Laceraciones/Desgarros (20%)</Option>
+              <Option value="tejido">TEJIDO - Retención Placentaria (8%)</Option>
+              <Option value="trombina">TROMBINA - Coagulopatía (2%)</Option>
             </Select>
           </Form.Item>
         </Col>
@@ -160,9 +160,9 @@ const HemorragiaForm: React.FC<HemorragiaFormProps> = ({ form, onFinish, loading
             rules={[{ required: true, message: 'Requerido' }]}
           >
             <Select>
-              <Option value="firme">✅ Firme (bien contraído)</Option>
-              <Option value="blando">⚠️ Blando</Option>
-              <Option value="muy_blando">🔴 Muy Blando (atónico)</Option>
+              <Option value="firme">Firme (bien contraído)</Option>
+              <Option value="blando">Blando</Option>
+              <Option value="muy_blando">Muy Blando (atónico)</Option>
             </Select>
           </Form.Item>
         </Col>

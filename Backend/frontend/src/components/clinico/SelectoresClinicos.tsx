@@ -56,10 +56,11 @@ interface PacienteSelectProps {
   soloMujeres?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  size?: 'large' | 'middle' | 'small';
 }
 
 export const PacienteSelect: React.FC<PacienteSelectProps> = ({
-  value, onChange, soloMujeres = true, disabled, placeholder = 'Escriba nombre o CI de la paciente',
+  value, onChange, soloMujeres = true, disabled, placeholder = 'Escriba nombre o CI de la paciente', size,
 }) => {
   const [opciones, setOpciones] = useState<PacienteOpcion[]>([]);
   const [cargando, setCargando] = useState(false);
@@ -95,6 +96,7 @@ export const PacienteSelect: React.FC<PacienteSelectProps> = ({
       value={value}
       disabled={disabled}
       placeholder={placeholder}
+      size={size}
       filterOption={false}
       onSearch={buscarConRetardo}
       notFoundContent={cargando ? <Spin size="small" /> : 'Sin resultados'}

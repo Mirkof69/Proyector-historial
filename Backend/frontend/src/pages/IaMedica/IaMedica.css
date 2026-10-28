@@ -116,6 +116,10 @@
   margin: var(--esp-1) 0 0;
 }
 
+.ia-ayuda--error {
+  color: var(--color-peligro);
+}
+
 .ia-nota-metrica {
   margin: var(--esp-3) 0 0;
   font-size: var(--texto-xs);

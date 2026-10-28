@@ -188,28 +188,28 @@ export const calcularRiesgo = (valores: DatosRiesgo): ResultadoRiesgo => {
     let seguimiento = '';
 
     if (riesgo_pe_precoz >= 10) {
-      clasificacion = '🔴 ALTO RIESGO';
+      clasificacion = 'ALTO RIESGO';
       color = 'var(--color-peligro)';
       interpretacion = 'Riesgo elevado de preeclampsia precoz (<34 semanas). Requiere monitoreo intensivo y profilaxis farmacológica.';
       recomendacion = 'Aspirina 150mg/día desde las 12 semanas hasta las 36 semanas. Vigilancia estrecha cada 2-3 semanas con biomarcadores y Doppler.';
       aspirina_indicada = true;
       seguimiento = 'Control cada 2-3 semanas con PlGF, sFlt-1, MAP, UtA-PI y biometría fetal.';
     } else if (riesgo_pe_precoz >= 5 || riesgo_pe_tardia >= 15) {
-      clasificacion = '🟡 RIESGO INTERMEDIO';
+      clasificacion = 'RIESGO INTERMEDIO';
       color = 'var(--color-aviso)';
       interpretacion = 'Riesgo moderado de preeclampsia. Se recomienda profilaxis y seguimiento cercano.';
       recomendacion = 'Aspirina 150mg/día desde las 12 semanas. Considerar suplementación con calcio 1.5g/día si ingesta dietética baja.';
       aspirina_indicada = true;
       seguimiento = 'Control cada 3-4 semanas con biomarcadores y evaluación clínica.';
     } else if (riesgo_pe_precoz >= 1 || riesgo_pe_tardia >= 5) {
-      clasificacion = '🟢 BAJO RIESGO';
+      clasificacion = 'BAJO RIESGO';
       color = 'var(--color-exito)';
       interpretacion = 'Riesgo bajo de preeclampsia. Continuar con seguimiento prenatal habitual.';
       recomendacion = 'Seguimiento prenatal estándar. Educación sobre signos de alarma. Dieta saludable y actividad física regular.';
       aspirina_indicada = false;
       seguimiento = 'Control prenatal estándar según protocolo. Vigilancia de signos de alarma.';
     } else {
-      clasificacion = '🟢 RIESGO MUY BAJO';
+      clasificacion = 'RIESGO MUY BAJO';
       color = 'var(--color-exito)';
       interpretacion = 'Riesgo muy bajo de preeclampsia. Biomarcadores protectores.';
       recomendacion = 'Continuar con controles prenatales de rutina. Mantener estilo de vida saludable.';

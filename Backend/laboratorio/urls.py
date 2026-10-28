@@ -21,7 +21,7 @@ router.register(
     r"resultados", ResultadoLaboratorioViewSet, basename="resultado-laboratorio",
 )
 
-# ✅ FIX: Alias para compatibilidad con frontend
+# FIX: Alias para compatibilidad con frontend
 # El frontend usa /laboratorios/ cuando debería usar /laboratorios/examenes/
 # Este alias redirige automáticamente
 urlpatterns = [

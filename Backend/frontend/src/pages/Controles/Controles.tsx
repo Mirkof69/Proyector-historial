@@ -2,7 +2,7 @@
  * =============================================================================
  * MÓDULO: CONTROLES PRENATALES - LISTA Y GESTIÓN COMPLETA V2.3 CORREGIDA
  * =============================================================================
- * ✅ CORRECCIONES V2.3 - FIX ID CLÍNICO Y CAMPOS FALTANTES:
+ * CORRECCIONES V2.3 - FIX ID CLÍNICO Y CAMPOS FALTANTES:
  * - Fix: ID Clínico ahora se muestra correctamente en la columna
  * - Fix: Edad Gestacional visible en todas las filas
  * - Fix: PA (mmHg) se muestra correctamente
@@ -153,27 +153,27 @@ const Controles: React.FC = () => {
   );
 
   const getEdadGestacional = useCallback((control: ControlPrenatal): string => {
-    // ✅ PRIORIDAD 1: Usar edad_gestacional del control (viene del serializer formateado)
+    // PRIORIDAD 1: Usar edad_gestacional del control (viene del serializer formateado)
     if ((control as any).edad_gestacional) {
       return (control as any).edad_gestacional;
     }
 
-    // ✅ FALLBACK: Calcular manualmente
+    // FALLBACK: Calcular manualmente
     const semanas = control.edad_gestacional_semanas || 0;
     const dias = control.edad_gestacional_dias || 0;
     return `${semanas}+${dias}`;
   }, []);
 
   /**
-   * ✅ FIX: Obtiene la presión arterial formateada
+   * FIX: Obtiene la presión arterial formateada
    */
   const getPresionArterial = useCallback((control: ControlPrenatal): string => {
-    // ✅ PRIORIDAD 1: Usar presion_arterial del control (viene del serializer formateado)
+    // PRIORIDAD 1: Usar presion_arterial del control (viene del serializer formateado)
     if ((control as any).presion_arterial) {
       return (control as any).presion_arterial;
     }
 
-    // ✅ FALLBACK: Calcular manualmente
+    // FALLBACK: Calcular manualmente
     if (control.presion_arterial_sistolica && control.presion_arterial_diastolica) {
       return `${control.presion_arterial_sistolica}/${control.presion_arterial_diastolica}`;
     }
@@ -203,7 +203,7 @@ const Controles: React.FC = () => {
     async (control: any) => {
       modal.confirm({
         className: 'capa-clinica',
-        title: '⚠️ ¿Confirmar eliminación permanente?',
+        title: '¿Confirmar eliminación permanente?',
         content: (
           <div>
             <p><strong>Se eliminará el control prenatal:</strong></p>
@@ -214,7 +214,7 @@ const Controles: React.FC = () => {
               <li>Semanas gestación: {control.semanas_gestacion}</li>
             </ul>
             <p className="u-c-peligro u-fuerte u-mt-4">
-              ⚠️ ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
+              ADVERTENCIA: Esta acción es permanente y NO se puede deshacer.
             </p>
             <p className="u-mt-4">
               Se perderán todos los datos de este control prenatal.
@@ -287,7 +287,7 @@ const Controles: React.FC = () => {
   }, []);
 
   // ========== COLUMNAS DE LA TABLA ==========
-  // ✅ FIX: Memoizado para evitar recreación en cada render (evita loop infinito)
+  // FIX: Memoizado para evitar recreación en cada render (evita loop infinito)
   const columns = useMemo(() => buildControlesColumns({
     getIdClinicoPaciente,
     getNombrePaciente,

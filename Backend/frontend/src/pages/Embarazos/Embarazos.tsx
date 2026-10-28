@@ -220,7 +220,7 @@ const Embarazos: React.FC = () => {
         }
     }, []); // api is a stable axios instance
 
-    // ✅ Wrapper de loadPacientesOptions para usar en useEffect sin warning
+    // Wrapper de loadPacientesOptions para usar en useEffect sin warning
     const loadPacientesOptionsCallback = useCallback(async (search: string) => {
         await loadPacientesOptions(search);
     }, [loadPacientesOptions]);
@@ -446,7 +446,7 @@ const Embarazos: React.FC = () => {
         }
     }, [message, parametros]);
 
-    // ✅ Handler para sincronizar datos con servidor
+    // Handler para sincronizar datos con servidor
     const handleSyncData = useCallback(async () => {
         dispatch({ type: 'SET_SYNC_LOADING', payload: true });
         try {
@@ -471,7 +471,7 @@ const Embarazos: React.FC = () => {
         }
     }, [recargar, cargarResumen, loadPacientesOptionsCallback, loadMedicos, message]);
 
-    // ✅ Handler para finalizar embarazo
+    // Handler para finalizar embarazo
     const handleFinalizarEmbarazo = useCallback(async (embarazo: EmbarazoExtendido) => {
         modal.confirm({
             className: 'capa-clinica',
@@ -493,7 +493,7 @@ const Embarazos: React.FC = () => {
         });
     }, [modal, message, loadEmbarazos]);
 
-    // ✅ Handler para ver historial completo
+    // Handler para ver historial completo
     const handleVerHistorial = useCallback((embarazo: EmbarazoExtendido) => {
         dispatch({ type: 'SET_SELECTED_EMBARAZO', payload: embarazo });
         dispatch({ type: 'SET_HISTORIAL_MODAL_VISIBLE', payload: true });

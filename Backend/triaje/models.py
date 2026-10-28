@@ -299,11 +299,11 @@ class TriajeEnfermeria(models.Model):
         """Resumen del triaje para mostrar al médico"""
         alertas = []
         if self.alerta_presion_alta:
-            alertas.append("⚠️ Presión arterial elevada")
+            alertas.append("Presión arterial elevada")
         if self.alerta_fiebre:
-            alertas.append("⚠️ Fiebre")
+            alertas.append("Fiebre")
         if self.alerta_taquicardia:
-            alertas.append("⚠️ Taquicardia")
+            alertas.append("Taquicardia")
 
         return {
             "presion": self.get_presion_arterial(),
@@ -312,6 +312,6 @@ class TriajeEnfermeria(models.Model):
             "imc": f"{self.imc} ({self.get_clasificacion_imc()})"
             if self.imc
             else "No calculado",
-            "alertas": alertas or ["✅ Sin alertas"],
+            "alertas": alertas or ["Sin alertas"],
             "motivo": self.motivo_visita,
         }

@@ -140,7 +140,7 @@ class MLLaboratorioService:
             if hb < 9:
                 resultados["patologias_detectadas"].append("Anemia Severa")
                 resultados["alertas"].append(
-                    "⚠️ CRÍTICO: Hemoglobina < 9 g/dL - Requiere atención inmediata",
+                    "CRÍTICO: Hemoglobina < 9 g/dL - Requiere atención inmediata",
                 )
                 resultados["recomendaciones"].append(
                     "Transfusión sanguínea si Hb < 7 g/dL",
@@ -150,7 +150,7 @@ class MLLaboratorioService:
             elif hb < 11:
                 resultados["patologias_detectadas"].append("Anemia Moderada")
                 resultados["alertas"].append(
-                    "⚠️ Anemia gestacional - Requiere suplementación",
+                    "Anemia gestacional - Requiere suplementación",
                 )
                 resultados["recomendaciones"].append("Sulfato ferroso 325mg/día")
                 resultados["recomendaciones"].append("Ácido fólico 1mg/día")
@@ -176,7 +176,7 @@ class MLLaboratorioService:
             if plaq < 100000:
                 resultados["patologias_detectadas"].append("Trombocitopenia")
                 resultados["alertas"].append(
-                    "⚠️ CRÍTICO: Plaquetas bajas - Riesgo de sangrado",
+                    "CRÍTICO: Plaquetas bajas - Riesgo de sangrado",
                 )
                 resultados["recomendaciones"].append("Descartar HELLP syndrome")
                 resultados["recomendaciones"].append("Evaluación hematológica urgente")
@@ -232,7 +232,7 @@ class MLLaboratorioService:
             elif glucosa_basal >= 92:
                 resultados["patologias_detectadas"].append("Diabetes Gestacional")
                 resultados["alertas"].append(
-                    "⚠️ Glucosa basal elevada - Diabetes Gestacional",
+                    "Glucosa basal elevada - Diabetes Gestacional",
                 )
                 resultados["recomendaciones"].append("Dieta diabética estricta")
                 resultados["recomendaciones"].append("Automonitoreo glicémico")
@@ -251,7 +251,7 @@ class MLLaboratorioService:
 
         # Test O'Sullivan / PTOG
         if glucosa_1h and glucosa_1h >= 180:
-            resultados["alertas"].append("⚠️ Test O'Sullivan positivo - Requiere PTOG")
+            resultados["alertas"].append("Test O'Sullivan positivo - Requiere PTOG")
             resultados["recomendaciones"].append("Realizar PTOG 100g")
             resultados["riesgo"] = (
                 max(resultados["riesgo"], "medio")
@@ -261,7 +261,7 @@ class MLLaboratorioService:
 
         if glucosa_2h and glucosa_2h >= 153:
             resultados["patologias_detectadas"].append("Intolerancia a Glucosa")
-            resultados["alertas"].append("⚠️ Glucosa 2h elevada")
+            resultados["alertas"].append("Glucosa 2h elevada")
             resultados["recomendaciones"].append("Dieta y ejercicio")
             resultados["riesgo"] = (
                 max(resultados["riesgo"], "medio")
@@ -314,7 +314,7 @@ class MLLaboratorioService:
 
         elif tgo and tgp and (tgo > 40 or tgp > 40):
             resultados["patologias_detectadas"].append("Elevación de Transaminasas")
-            resultados["alertas"].append("⚠️ Función hepática alterada")
+            resultados["alertas"].append("Función hepática alterada")
             resultados["recomendaciones"].append(
                 "Monitoreo estrecho de función hepática",
             )
@@ -358,14 +358,14 @@ class MLLaboratorioService:
                 )
                 resultados["riesgo"] = "critico"
             else:
-                resultados["alertas"].append("⚠️ Proteinuria significativa")
+                resultados["alertas"].append("Proteinuria significativa")
                 resultados["recomendaciones"].append("Monitoreo de presión arterial")
                 resultados["riesgo"] = "alto"
 
         if creatinina and creatinina > 1.1:
             resultados["patologias_detectadas"].append("Insuficiencia Renal")
             resultados["alertas"].append(
-                "⚠️ Creatinina elevada - Deterioro de función renal",
+                "Creatinina elevada - Deterioro de función renal",
             )
             resultados["recomendaciones"].append("Evaluación nefrológica")
             resultados["riesgo"] = "alto"

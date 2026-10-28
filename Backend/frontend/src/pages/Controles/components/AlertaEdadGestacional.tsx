@@ -16,7 +16,7 @@ const AlertaEdadGestacional: React.FC<AlertaEdadGestacionalProps> = ({ semanasGe
       message={
         <Space direction="vertical" className="u-ancho">
           <Text strong>
-            📋 Campos Obligatorios según Edad Gestacional: {semanasGestacion} semanas
+            Campos Obligatorios según Edad Gestacional: {semanasGestacion} semanas
           </Text>
           {semanasGestacion < 12 && (
             <Text type="secondary">

@@ -20,6 +20,7 @@ import axios, {
 } from 'axios';
 import { antdGlobal } from '../utils/antdGlobal';
 import { logger } from '../utils/logger';
+import { aplanarErrores } from '../utils/erroresApi';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. CONFIGURACIÓN BÁSICA Y CONSTANTES
@@ -106,7 +107,7 @@ export const getCsrfToken = (): string | null => {
  */
 export const saveTokens = (_accessToken?: string, _refreshToken?: string): void => {
   if (IS_DEV) {
-    logger.log('ℹ️ saveTokens(): no-op — los tokens viven en cookies httpOnly');
+    logger.log('ℹ saveTokens(): no-op — los tokens viven en cookies httpOnly');
   }
 };
 
@@ -117,7 +118,7 @@ const clearAuth = (): void => {
   localStorage.removeItem('token');
   localStorage.removeItem('user:v1');
   if (IS_DEV) {
-    logger.log('🧹 Sesión limpiada - Usuario deslogueado');
+    logger.log('Sesión limpiada - Usuario deslogueado');
   }
 };
 
@@ -136,7 +137,7 @@ apiClient.interceptors.request.use(
     // La autenticación viaja en la cookie httpOnly (withCredentials);
     // no se inyecta header Authorization desde el cliente.
     if (IS_DEV) {
-      logger.log(`🚀 [REQ] ${config.method?.toUpperCase()} ${config.url}`, {
+      logger.log(`[REQ] ${config.method?.toUpperCase()} ${config.url}`, {
         headers: config.headers,
         data: config.data,
         params: config.params
@@ -145,7 +146,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error: AxiosError) => {
-    console.error('❌ Error en request interceptor:', error);
+    console.error('Error en request interceptor:', error);
     return Promise.reject(error);
   }
 );
@@ -189,7 +190,7 @@ const refreshAccessToken = async (): Promise<void> => {
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     if (IS_DEV) {
-      logger.log(`✅ [RES] ${response.status} ${response.config.url}`);
+      logger.log(`[RES] ${response.status} ${response.config.url}`);
     }
     return response;
   },
@@ -208,7 +209,7 @@ apiClient.interceptors.response.use(
       expectedMissingEndpoints.some(endpoint => originalRequest?.url?.includes(endpoint));
 
     if (IS_DEV && !isExpected404) {
-      console.error(`❌ [ERR] ${error.response?.status} en ${originalRequest?.url}`, error.response?.data);
+      console.error(`[ERR] ${error.response?.status} en ${originalRequest?.url}`, error.response?.data);
     }
 
     // --- CASO CRÍTICO: 401 (Token Expirado) ---
@@ -262,19 +263,19 @@ apiClient.interceptors.response.use(
       console.warn('Sin permiso para leer:', originalRequest?.url);
     } else if (status === 403 && !(error.response?.data as any)?.mfa_setup_required) {
       antdGlobal.modal.error({
-        title: '⛔ Acceso Denegado',
+        title: 'Acceso Denegado',
         content: 'No tienes permisos suficientes para realizar esta acción.',
       });
     } else if (status === 404 && !isExpected404) {
       console.warn('Recurso no encontrado:', originalRequest.url);
     } else if (status === 500) {
       antdGlobal.modal.error({
-        title: '🔥 Error del Servidor',
+        title: 'Error del Servidor',
         content: 'Ocurrió un error interno en el servidor. Por favor, contacte a soporte técnico.',
       });
     } else if (!error.response) {
       antdGlobal.modal.error({
-        title: '📡 Error de Conexión',
+        title: 'Error de Conexión',
         content: 'No se pudo conectar con el servidor. Verifique su conexión a internet.',
       });
     } else if (status === 400) {
@@ -284,15 +285,11 @@ apiClient.interceptors.response.use(
       if (data && typeof data === 'object' && 'detail' in data && data.detail) {
         content = data.detail;
       } else if (data && typeof data === 'object' && !Array.isArray(data)) {
-        const errorList = Object.entries(data).map(([key, value]) => {
-          const msg = Array.isArray(value) ? value[0] : value;
-          return `${key}: ${msg}`;
-        }).join('\n');
-        content = errorList;
+        content = aplanarErrores(data).join('\n') || content;
       }
 
       antdGlobal.modal.error({
-        title: '⚠️ Datos Inválidos',
+        title: 'Datos Inválidos',
         content: content,
         styles: { body: { whiteSpace: 'pre-line' } }
       });
@@ -348,7 +345,7 @@ export const postFormData = async <T = any>(url: string, formData: FormData, con
 
 const login = async (email: string, password: string): Promise<any> => {
   try {
-    if (IS_DEV) logger.log('🔐 Enviando credenciales...');
+    if (IS_DEV) logger.log('Enviando credenciales...');
     const response = await apiClient.post('/usuarios/login/', { email, password });
     const data = response.data;
 
@@ -369,14 +366,14 @@ const login = async (email: string, password: string): Promise<any> => {
     delete safeUser.token;
     localStorage.setItem('user:v1', JSON.stringify(safeUser));
 
-    if (IS_DEV) logger.log('✅ Login exitoso (sesión por cookies httpOnly)');
+    if (IS_DEV) logger.log('Login exitoso (sesión por cookies httpOnly)');
     return data;
   } catch (error: any) {
     // MFA obligatorio sin configurar: llega como 403 pero es un paso del login.
     if (error?.response?.status === 403 && error.response.data?.mfa_setup_required) {
       return error.response.data;
     }
-    if (IS_DEV) console.error('❌ Login fallido:', error);
+    if (IS_DEV) console.error('Login fallido:', error);
     throw error;
   }
 };

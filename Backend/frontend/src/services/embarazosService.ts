@@ -2,7 +2,7 @@
  * =============================================================================
  * SERVICIO DE EMBARAZOS - VERSIÓN COMPLETA Y EXTENDIDA
  * =============================================================================
- * ✅ MEGA COMPLETO: Sistema integral de gestión de embarazos
+ * MEGA COMPLETO: Sistema integral de gestión de embarazos
  * 
  * MÓDULOS INCLUIDOS:
  * - Gestión completa de embarazos (CRUD + búsquedas avanzadas)
@@ -22,6 +22,7 @@
 
 import api from './api';
 import { logger } from '../utils/logger';
+import { imcRedondeado } from '../utils/imc';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TIPOS Y ENUMS
@@ -48,9 +49,9 @@ interface PacienteInfo {
   fecha_nacimiento?: string;
   grupo_sanguineo?: string;
   rh?: string;
-  peso_kg?: number;  // ✅ NUEVO CAMPO - Peso en kilogramos
-  altura_cm?: number;  // ✅ NUEVO CAMPO - Altura en centímetros
-  imc?: number;  // ✅ CAMPO CALCULADO - Índice de Masa Corporal
+  peso_kg?: number;  // NUEVO CAMPO - Peso en kilogramos
+  altura_cm?: number;  // NUEVO CAMPO - Altura en centímetros
+  imc?: number;  // CAMPO CALCULADO - Índice de Masa Corporal
 }
 
 interface MedicoInfo {
@@ -267,7 +268,7 @@ function normalizeListResponse<T>(data: any): T[] {
   }
 
   // Si no es ninguno de los anteriores, advertir y retornar array vacío
-  console.warn('⚠️ embarazosService: Respuesta no es array ni tiene results/data/controles:', data);
+  console.warn('embarazosService: Respuesta no es array ni tiene results/data/controles:', data);
   return [];
 }
 
@@ -308,7 +309,7 @@ export const embarazosService = {
       });
       return normalizeListResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error('❌ Error listando embarazos:', error);
+      console.error('Error listando embarazos:', error);
       throw error;
     }
   },
@@ -328,7 +329,7 @@ export const embarazosService = {
       const response = await api.get<Embarazo>(`/embarazos/${id}/`);
       return normalizeSingleResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo embarazo ${id}:`, error);
+      console.error(`Error obteniendo embarazo ${id}:`, error);
       throw error;
     }
   },
@@ -346,10 +347,10 @@ export const embarazosService = {
   async crear(data: Partial<Embarazo>): Promise<Embarazo> {
     try {
       const response = await api.post<Embarazo>('/embarazos/', data);
-      logger.log('✅ Embarazo creado exitosamente');
+      logger.log('Embarazo creado exitosamente');
       return normalizeSingleResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error('❌ Error creando embarazo:', error);
+      console.error('Error creando embarazo:', error);
       throw error;
     }
   },
@@ -367,10 +368,10 @@ export const embarazosService = {
   async actualizar(id: number, data: Partial<Embarazo>): Promise<Embarazo> {
     try {
       const response = await api.put<Embarazo>(`/embarazos/${id}/`, data);
-      logger.log(`✅ Embarazo ${id} actualizado exitosamente`);
+      logger.log(`Embarazo ${id} actualizado exitosamente`);
       return normalizeSingleResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error actualizando embarazo ${id}:`, error);
+      console.error(`Error actualizando embarazo ${id}:`, error);
       throw error;
     }
   },
@@ -381,10 +382,10 @@ export const embarazosService = {
   async actualizarParcial(id: number, data: Partial<Embarazo>): Promise<Embarazo> {
     try {
       const response = await api.patch<Embarazo>(`/embarazos/${id}/`, data);
-      logger.log(`✅ Embarazo ${id} actualizado parcialmente`);
+      logger.log(`Embarazo ${id} actualizado parcialmente`);
       return normalizeSingleResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error en actualización parcial del embarazo ${id}:`, error);
+      console.error(`Error en actualización parcial del embarazo ${id}:`, error);
       throw error;
     }
   },
@@ -402,9 +403,9 @@ export const embarazosService = {
   async eliminar(id: number): Promise<void> {
     try {
       await api.delete(`/embarazos/${id}/`);
-      logger.log(`✅ Embarazo ${id} eliminado exitosamente`);
+      logger.log(`Embarazo ${id} eliminado exitosamente`);
     } catch (error: any) {
-      console.error(`❌ Error eliminando embarazo ${id}:`, error);
+      console.error(`Error eliminando embarazo ${id}:`, error);
       throw error;
     }
   },
@@ -430,7 +431,7 @@ export const embarazosService = {
       });
       return normalizeListResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo embarazos de paciente ${pacienteId}:`, error);
+      console.error(`Error obteniendo embarazos de paciente ${pacienteId}:`, error);
       throw error;
     }
   },
@@ -452,7 +453,7 @@ export const embarazosService = {
       });
       return normalizeListResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo embarazos activos:', error);
+      console.error('Error obteniendo embarazos activos:', error);
       throw error;
     }
   },
@@ -467,7 +468,7 @@ export const embarazosService = {
       });
       return normalizeListResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error('❌ Error obteniendo embarazos de alto riesgo:', error);
+      console.error('Error obteniendo embarazos de alto riesgo:', error);
       throw error;
     }
   },
@@ -482,7 +483,7 @@ export const embarazosService = {
       });
       return normalizeListResponse<Embarazo>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo embarazos del trimestre ${trimestre}:`, error);
+      console.error(`Error obteniendo embarazos del trimestre ${trimestre}:`, error);
       throw error;
     }
   },
@@ -497,10 +498,10 @@ export const embarazosService = {
   async calcularFPP(fum: string): Promise<CalculoFPP> {
     try {
       const response = await api.post<CalculoFPP>('/embarazos/calcular_fpp/', { fum });
-      logger.log('✅ FPP calculada exitosamente');
+      logger.log('FPP calculada exitosamente');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error calculando FPP:', error);
+      console.error('Error calculando FPP:', error);
       throw error;
     }
   },
@@ -522,7 +523,7 @@ export const embarazosService = {
       );
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error calculando edad gestacional:`, error);
+      console.error(`Error calculando edad gestacional:`, error);
       throw error;
     }
   },
@@ -539,7 +540,7 @@ export const embarazosService = {
       const response = await api.get(`/embarazos/${embarazoId}/evaluar-riesgo/`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error evaluando riesgo del embarazo ${embarazoId}:`, error);
+      console.error(`Error evaluando riesgo del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -551,11 +552,11 @@ export const embarazosService = {
   async calcularRiesgoDetallado(embarazoId: number): Promise<any> {
     try {
       const response = await api.get(`/embarazos/${embarazoId}/calcular-riesgo-detallado/`);
-      logger.log(`✅ Riesgo detallado del embarazo ${embarazoId} calculado`);
+      logger.log(`Riesgo detallado del embarazo ${embarazoId} calculado`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
-        console.warn('⚠️ Endpoint calcular-riesgo-detallado no disponible (404)');
+        console.warn('Endpoint calcular-riesgo-detallado no disponible (404)');
         return {
           nivel_riesgo: 'medio',
           factores_riesgo: [],
@@ -564,7 +565,7 @@ export const embarazosService = {
           mensaje: 'Análisis detallado no disponible'
         };
       }
-      console.error(`❌ Error calculando riesgo detallado del embarazo ${embarazoId}:`, error);
+      console.error(`Error calculando riesgo detallado del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -582,18 +583,18 @@ export const embarazosService = {
   }): Promise<any> {
     try {
       const response = await api.get(`/embarazos/${embarazoId}/timeline-completo/`, { params });
-      logger.log(`✅ Timeline completo del embarazo ${embarazoId} obtenido`);
+      logger.log(`Timeline completo del embarazo ${embarazoId} obtenido`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
-        console.warn('⚠️ Endpoint timeline-completo no disponible (404)');
+        console.warn('Endpoint timeline-completo no disponible (404)');
         return {
           embarazo_id: embarazoId,
           eventos: [],
           mensaje: 'Timeline no disponible'
         };
       }
-      console.error(`❌ Error obteniendo timeline completo del embarazo ${embarazoId}:`, error);
+      console.error(`Error obteniendo timeline completo del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -603,7 +604,7 @@ export const embarazosService = {
    */
   calcularIMC(peso_kg: number, talla_cm: number): number {
     const talla_m = talla_cm / 100;
-    return peso_kg / (talla_m * talla_m);
+    return imcRedondeado(peso_kg, talla_m);
   },
 
   /**
@@ -632,7 +633,7 @@ export const embarazosService = {
       );
       return normalizeListResponse<ControlPrenatal>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo controles del embarazo ${embarazoId}:`, error);
+      console.error(`Error obteniendo controles del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -649,10 +650,10 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/controles/`,
         data
       );
-      logger.log('✅ Control prenatal creado');
+      logger.log('Control prenatal creado');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error creando control prenatal:', error);
+      console.error('Error creando control prenatal:', error);
       throw error;
     }
   },
@@ -671,7 +672,7 @@ export const embarazosService = {
       );
       return normalizeListResponse<Ecografia>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo ecografías del embarazo ${embarazoId}:`, error);
+      console.error(`Error obteniendo ecografías del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -688,10 +689,10 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/ecografias/`,
         data
       );
-      logger.log('✅ Ecografía registrada');
+      logger.log('Ecografía registrada');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error registrando ecografía:', error);
+      console.error('Error registrando ecografía:', error);
       throw error;
     }
   },
@@ -710,7 +711,7 @@ export const embarazosService = {
       );
       return normalizeListResponse<RiesgoObstetrico>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo riesgos del embarazo ${embarazoId}:`, error);
+      console.error(`Error obteniendo riesgos del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -727,10 +728,10 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/riesgos/`,
         data
       );
-      logger.log('✅ Riesgo obstétrico registrado');
+      logger.log('Riesgo obstétrico registrado');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error registrando riesgo:', error);
+      console.error('Error registrando riesgo:', error);
       throw error;
     }
   },
@@ -749,7 +750,7 @@ export const embarazosService = {
       );
       return normalizeListResponse<ComplicacionEmbarazo>(response.data);
     } catch (error: any) {
-      console.error(`❌ Error obteniendo complicaciones del embarazo ${embarazoId}:`, error);
+      console.error(`Error obteniendo complicaciones del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -766,10 +767,10 @@ export const embarazosService = {
         `/embarazos/${embarazoId}/complicaciones/`,
         data
       );
-      logger.log('✅ Complicación registrada');
+      logger.log('Complicación registrada');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error registrando complicación:', error);
+      console.error('Error registrando complicación:', error);
       throw error;
     }
   },
@@ -786,7 +787,7 @@ export const embarazosService = {
       const response = await api.get(`/embarazos/${embarazoId}/parto/`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error obteniendo parto del embarazo ${embarazoId}:`, error);
+      console.error(`Error obteniendo parto del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -810,7 +811,7 @@ export const embarazosService = {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas:', error);
+      console.error('Error obteniendo estadísticas:', error);
       throw error;
     }
   },
@@ -823,10 +824,10 @@ export const embarazosService = {
       const response = await api.get(`/embarazos/${embarazoId}/generar-pdf/`, {
         responseType: 'blob'
       });
-      logger.log(`✅ PDF del embarazo ${embarazoId} generado`);
+      logger.log(`PDF del embarazo ${embarazoId} generado`);
       return response.data;
     } catch (error: any) {
-      console.error(`❌ Error generando PDF del embarazo ${embarazoId}:`, error);
+      console.error(`Error generando PDF del embarazo ${embarazoId}:`, error);
       throw error;
     }
   },
@@ -844,10 +845,10 @@ export const embarazosService = {
         params: filtros,
         responseType: 'blob'
       });
-      logger.log('✅ Excel de embarazos exportado');
+      logger.log('Excel de embarazos exportado');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error exportando Excel:', error);
+      console.error('Error exportando Excel:', error);
       throw error;
     }
   },

@@ -110,7 +110,7 @@ const evaluarCTG = (datos: DatosSufrimiento): { categoria: string; interpretacio
   if (criterios_cat3) {
     return {
       categoria: 'Categoría III - Anormal',
-      interpretacion: '🚨 CTG ANORMAL. Alta probabilidad de acidemia fetal. Requiere ACCIÓN INMEDIATA: reanimación intrauterina, preparación para parto urgente.',
+      interpretacion: 'CTG ANORMAL. Alta probabilidad de acidemia fetal. Requiere ACCIÓN INMEDIATA: reanimación intrauterina, preparación para parto urgente.',
       color: 'var(--color-peligro)'
     };
   }
@@ -165,7 +165,7 @@ const calcularBPP = (datos: DatosSufrimiento) => {
     interpretacion = 'Anormal. Alto riesgo de asfixia. Considerar finalización del embarazo si ≥36 semanas. Maduración + vigilancia estrecha si <36 semanas.';
     color = 'var(--color-peligro)';
   } else {
-    interpretacion = '🚨 Anormal Severo. Muy alto riesgo de asfixia perinatal. Considerar FINALIZACIÓN INMEDIATA independiente de edad gestacional.';
+    interpretacion = 'Anormal Severo. Muy alto riesgo de asfixia perinatal. Considerar FINALIZACIÓN INMEDIATA independiente de edad gestacional.';
     color = 'var(--color-peligro)';
   }
 
@@ -201,9 +201,9 @@ const evaluarDoppler = (datos: DatosSufrimiento) => {
   let interpretacion = '';
 
   if (!doppler_anormal) {
-    interpretacion = '✅ Doppler normal. Perfusión placentaria adecuada. No signos de centralización hemodinámica fetal.';
+    interpretacion = 'Doppler normal. Perfusión placentaria adecuada. No signos de centralización hemodinámica fetal.';
   } else {
-    interpretacion = '⚠️ Doppler anormal detectado: ';
+    interpretacion = 'Doppler anormal detectado: ';
     const hallazgos: string[] = [];
 
     if (au_pi_anormal || au_ri_anormal) {
@@ -248,7 +248,7 @@ const calcularSufrimiento = (datos: DatosSufrimiento): ResultadoSufrimiento => {
   if (ctg.categoria.includes('III') || bpp.score <= 2 || (doppler.doppler_anormal && !datos.ductus_venoso_normal)) {
     nivel_riesgo = 'MUY ALTO - CRÍTICO';
     color_riesgo = 'var(--color-peligro)';
-    accion_inmediata = '🚨 ACCIÓN INMEDIATA REQUERIDA';
+    accion_inmediata = 'ACCIÓN INMEDIATA REQUERIDA';
   } else if (ctg.categoria.includes('II') || bpp.score <= 4 || doppler.doppler_anormal) {
     nivel_riesgo = 'ALTO';
     color_riesgo = 'var(--color-peligro)';
@@ -268,67 +268,67 @@ const calcularSufrimiento = (datos: DatosSufrimiento): ResultadoSufrimiento => {
 
   // Recomendaciones según CTG
   if (ctg.categoria.includes('III')) {
-    recomendaciones.push('🚨 CTG Cat III: Reanimación intrauterina (O₂ materno, decúbito lateral, suspender oxitocina)');
-    recomendaciones.push('🚨 Preparar para PARTO URGENTE (cesárea de emergencia vs parto vaginal operatorio)');
-    recomendaciones.push('🚨 Notificar a Pediatría/Neonatología - Preparar reanimación neonatal');
+    recomendaciones.push('CTG Cat III: Reanimación intrauterina (O₂ materno, decúbito lateral, suspender oxitocina)');
+    recomendaciones.push('Preparar para PARTO URGENTE (cesárea de emergencia vs parto vaginal operatorio)');
+    recomendaciones.push('Notificar a Pediatría/Neonatología - Preparar reanimación neonatal');
   } else if (ctg.categoria.includes('II')) {
-    recomendaciones.push('⚠️ CTG Cat II: Medidas de reanimación intrauterina');
-    recomendaciones.push('⚠️ Cambio de posición materna, hidratación IV, amnioinfusión si variables recurrentes');
-    recomendaciones.push('⚠️ Reevaluar en 30-60 min, considerar muestra de sangre fetal si disponible');
+    recomendaciones.push('CTG Cat II: Medidas de reanimación intrauterina');
+    recomendaciones.push('Cambio de posición materna, hidratación IV, amnioinfusión si variables recurrentes');
+    recomendaciones.push('Reevaluar en 30-60 min, considerar muestra de sangre fetal si disponible');
   } else {
-    recomendaciones.push('✅ CTG Cat I: Continuar monitorización según protocolo institucional');
+    recomendaciones.push('CTG Cat I: Continuar monitorización según protocolo institucional');
   }
 
   // Recomendaciones según BPP
   if (bpp.score <= 2) {
-    recomendaciones.push('🚨 BPP ≤2: Finalizar embarazo INMEDIATAMENTE independiente de EG');
+    recomendaciones.push('BPP ≤2: Finalizar embarazo INMEDIATAMENTE independiente de EG');
   } else if (bpp.score === 4) {
     if (datos.edad_gestacional >= 36) {
-      recomendaciones.push('⚠️ BPP 4 + ≥36 sem: Considerar finalización del embarazo');
+      recomendaciones.push('BPP 4 + ≥36 sem: Considerar finalización del embarazo');
     } else {
-      recomendaciones.push('⚠️ BPP 4 + <36 sem: Maduración pulmonar + vigilancia estrecha cada 12-24h');
+      recomendaciones.push('BPP 4 + <36 sem: Maduración pulmonar + vigilancia estrecha cada 12-24h');
     }
   } else if (bpp.score === 6) {
-    recomendaciones.push('⚠️ BPP 6: Repetir en 24 horas, considerar maduración si <34 semanas');
+    recomendaciones.push('BPP 6: Repetir en 24 horas, considerar maduración si <34 semanas');
   } else {
-    recomendaciones.push('✅ BPP ≥8: Repetir semanalmente (o más frecuente si factores de riesgo)');
+    recomendaciones.push('BPP ≥8: Repetir semanalmente (o más frecuente si factores de riesgo)');
   }
 
   // Recomendaciones según Doppler
   if (!datos.ductus_venoso_normal) {
-    recomendaciones.push('🚨 Ductus Venoso anormal: Signo de acidemia inminente - Considerar finalización urgente');
+    recomendaciones.push('Ductus Venoso anormal: Signo de acidemia inminente - Considerar finalización urgente');
   } else if (doppler.relacion_cp < 1.0) {
-    recomendaciones.push('⚠️ Centralización fetal: Aumentar frecuencia de vigilancia a 2-3x/semana');
+    recomendaciones.push('Centralización fetal: Aumentar frecuencia de vigilancia a 2-3x/semana');
     if (datos.edad_gestacional >= 37) {
-      recomendaciones.push('⚠️ Centralización a término: Considerar finalización electiva');
+      recomendaciones.push('Centralización a término: Considerar finalización electiva');
     }
   } else if (datos.arteria_umbilical_pi > 1.4) {
-    recomendaciones.push('⚠️ Resistencia placentaria aumentada: Vigilancia Doppler 2x/semana');
+    recomendaciones.push('Resistencia placentaria aumentada: Vigilancia Doppler 2x/semana');
   }
 
   // Recomendaciones según oligohidramnios
   if (datos.oligohidramnios || datos.volumen_liquido < 5) {
-    recomendaciones.push('⚠️ Oligohidramnios: Descartar ruptura de membranas, considerar amnioinfusión terapéutica');
+    recomendaciones.push('Oligohidramnios: Descartar ruptura de membranas, considerar amnioinfusión terapéutica');
     if (datos.edad_gestacional >= 37) {
-      recomendaciones.push('⚠️ Oligohidramnios a término: Considerar inducción del trabajo de parto');
+      recomendaciones.push('Oligohidramnios a término: Considerar inducción del trabajo de parto');
     }
   }
 
   // Recomendaciones según RCIU
   if (datos.peso_estimado_percentil < 10) {
-    recomendaciones.push('⚠️ Peso <p10 (RCIU sospechado): Vigilancia intensificada, evaluación de bienestar fetal 2-3x/semana');
+    recomendaciones.push('Peso <p10 (RCIU sospechado): Vigilancia intensificada, evaluación de bienestar fetal 2-3x/semana');
   }
 
   // Consideraciones por edad gestacional
   if (datos.edad_gestacional < 24) {
-    recomendaciones.push('📅 <24 semanas: Valoración individualizada según viabilidad y deseos parentales');
+    recomendaciones.push('<24 semanas: Valoración individualizada según viabilidad y deseos parentales');
   } else if (datos.edad_gestacional < 34) {
     if (nivel_riesgo === 'MUY ALTO - CRÍTICO') {
-      recomendaciones.push('📅 <34 sem: Maduración pulmonar + preparar finalización, sopesar riesgos prematuridad vs hipoxia');
+      recomendaciones.push('<34 sem: Maduración pulmonar + preparar finalización, sopesar riesgos prematuridad vs hipoxia');
     }
   } else if (datos.edad_gestacional >= 37) {
     if (nivel_riesgo === 'ALTO' || nivel_riesgo === 'MUY ALTO - CRÍTICO') {
-      recomendaciones.push('📅 ≥37 semanas + Alto riesgo: Bajo umbral para finalización del embarazo');
+      recomendaciones.push('≥37 semanas + Alto riesgo: Bajo umbral para finalización del embarazo');
     }
   }
 

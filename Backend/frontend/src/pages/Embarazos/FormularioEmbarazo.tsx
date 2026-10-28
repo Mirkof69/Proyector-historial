@@ -19,6 +19,7 @@ import SeccionDatosGeneralesEmbarazo from './components/SeccionDatosGeneralesEmb
 import SeccionClasificacionEmbarazo from './components/SeccionClasificacionEmbarazo';
 import SeccionAntropometriaEmbarazo from './components/SeccionAntropometriaEmbarazo';
 import './paginaClinica.css';
+import { imcRedondeado } from '../../utils/imc';
 
 const { Title } = Typography;
 
@@ -85,7 +86,7 @@ const FormularioEmbarazo: React.FC = () => {
 
     if (peso && talla && peso > 0 && talla > 0) {
       const tallaMetros = talla / 100;
-      const imc = peso / (tallaMetros * tallaMetros);
+      const imc = imcRedondeado(peso, tallaMetros);
       let clasificacion = '';
 
       if (imc < 18.5) {

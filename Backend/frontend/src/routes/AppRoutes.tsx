@@ -44,11 +44,11 @@ const AppRoutes: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    logger.log('👋 Sesión cerrada');
+    logger.log('Sesión cerrada');
   };
 
   const handleLoginSuccess = () => {
-    logger.log('✅ Login exitoso');
+    logger.log('Login exitoso');
   };
 
   return (

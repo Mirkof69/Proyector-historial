@@ -35,7 +35,7 @@ export interface RestaurarBackupResult {
 function normalizeListResponse<T>(data: any): T[] {
     if (Array.isArray(data)) return data as T[];
     if (data?.results && Array.isArray(data.results)) return data.results as T[];
-    console.warn('⚠️ backupService: Respuesta no es array:', data);
+    console.warn('backupService: Respuesta no es array:', data);
     return [];
 }
 
@@ -48,7 +48,7 @@ export const backupService = {
             const response = await api.get<Backup[]>('/reportes/configuracion/backups/');
             return normalizeListResponse<Backup>(response.data);
         } catch (error: any) {
-            console.error('❌ Error listando backups:', error);
+            console.error('Error listando backups:', error);
             throw error;
         }
     },
@@ -61,7 +61,7 @@ export const backupService = {
             const response = await api.post<CrearBackupResult>('/reportes/configuracion/backups/create/', {});
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error creando backup:', error);
+            console.error('Error creando backup:', error);
             throw error;
         }
     },
@@ -76,7 +76,7 @@ export const backupService = {
             });
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error descargando backup ${filename}:`, error);
+            console.error(`Error descargando backup ${filename}:`, error);
             throw error;
         }
     },
@@ -88,7 +88,7 @@ export const backupService = {
         try {
             await api.delete(`/reportes/configuracion/backups/${filename}/delete/`);
         } catch (error: any) {
-            console.error(`❌ Error eliminando backup ${filename}:`, error);
+            console.error(`Error eliminando backup ${filename}:`, error);
             throw error;
         }
     },
@@ -96,7 +96,7 @@ export const backupService = {
     /**
      * Restaurar la base de datos completa desde un backup.
      *
-     * ⚠️ Operación destructiva: sobrescribe toda la base de datos actual.
+     * Operación destructiva: sobrescribe toda la base de datos actual.
      * El backend crea automáticamente un backup de seguridad de la base
      * actual antes de ejecutar el restore.
      */
@@ -108,7 +108,7 @@ export const backupService = {
             );
             return response.data;
         } catch (error: any) {
-            console.error(`❌ Error restaurando backup ${filename}:`, error);
+            console.error(`Error restaurando backup ${filename}:`, error);
             throw error;
         }
     },

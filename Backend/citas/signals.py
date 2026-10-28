@@ -92,7 +92,7 @@ def alerta_cita_urgente(sender, instance, created, **kwargs):
             destinatario_preferido=getattr(instance, "medico", None),
             tipo=TipoNotificacion.ALERTA_ADVERTENCIA,
             prioridad=PrioridadNotificacion.ALTA,
-            titulo="⚠️ Cita Urgente",
+            titulo="Cita Urgente",
             mensaje=f"Cita URGENTE para {nombre} el {_fecha_hora(instance)}.",
             entidad_tipo="cita", entidad_id=instance.id,
             url=f"/dashboard/citas/{instance.id}",

@@ -168,9 +168,9 @@ class RecienNacidoSerializer(serializers.ModelSerializer):
     def validate_peso_nacimiento(self, value):
         """Validar peso del recién nacido"""
         if value < 300:
-            raise serializers.ValidationError("El peso debe ser mayor a 300g")
+            raise serializers.ValidationError("El peso debe estar entre 300 y 6.000 g")
         if value > 6000:
-            raise serializers.ValidationError("El peso debe ser menor a 6000g")
+            raise serializers.ValidationError("El peso debe estar entre 300 y 6.000 g")
         return value
 
     def validate_apgar_5_minutos(self, value):
@@ -395,7 +395,7 @@ class ApgarScoreDetalladoSerializer(serializers.ModelSerializer):
 
 
 class PartoSerializer(serializers.ModelSerializer):
-    """✅ Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD FRONTEND
+    """Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD FRONTEND
     """
 
     #  RELACIONES FOREIGNKEY - Información expandida con SerializerMethodField
@@ -437,7 +437,7 @@ class PartoSerializer(serializers.ModelSerializer):
     alumbramiento = serializers.CharField(
         source="tipo_alumbramiento", required=False, allow_null=True, allow_blank=True,
     )
-    # ✅ NUEVOS ALIAS PARA COMPATIBILIDAD FRONTEND
+    # NUEVOS ALIAS PARA COMPATIBILIDAD FRONTEND
     hora_ruptura_membranas = serializers.DateTimeField(
         source="hora_rotura_membranas", allow_null=True, required=False,
     )  # Frontend usa "ruptura"
@@ -454,7 +454,7 @@ class PartoSerializer(serializers.ModelSerializer):
     complicaciones_totales = serializers.SerializerMethodField()
     duracion_trabajo_parto_calculada = serializers.SerializerMethodField()
 
-    # ✅ NUEVOS CAMPOS: Sistema de alertas médicas
+    # NUEVOS CAMPOS: Sistema de alertas médicas
     alertas_parto = serializers.SerializerMethodField()
     tiene_alertas = serializers.SerializerMethodField()
     tiene_alertas_criticas = serializers.SerializerMethodField()
@@ -515,7 +515,7 @@ class PartoSerializer(serializers.ModelSerializer):
             "induccion_parto",
             "metodo_induccion",
             "monitoreo_fetal_continuo",
-            # ✅ CAMPOS DE PROTOCOLO DE ABORTO
+            # CAMPOS DE PROTOCOLO DE ABORTO
             "tipo_aborto",
             "metodo_evacuacion",
             "apoyo_psicologico_realizado",
@@ -528,7 +528,7 @@ class PartoSerializer(serializers.ModelSerializer):
             "modified_by",
             "created_by_info",
             "modified_by_info",
-            # ✅ CAMPOS DE COMPATIBILIDAD FRONTEND (aliases)
+            # CAMPOS DE COMPATIBILIDAD FRONTEND (aliases)
             "fecha_hora_parto",  # → fecha_parto
             "semanas_gestacion",  # Extraído de edad_gestacional_parto
             "dias_gestacion",  # Extraído de edad_gestacional_parto
@@ -537,7 +537,7 @@ class PartoSerializer(serializers.ModelSerializer):
             "ruptura_membranas",  # → estado_membranas
             "liquido_amniotico_caracteristicas",  # → caracteristicas_liquido
             "alumbramiento",  # → tipo_alumbramiento
-            # ✅ NUEVOS ALIAS FRONTEND
+            # NUEVOS ALIAS FRONTEND
             "hora_ruptura_membranas",  # → hora_rotura_membranas
             "grado_desgarro",  # → grado_desgarros
             "perimetro_cefalico",  # Del recién nacido
@@ -558,7 +558,7 @@ class PartoSerializer(serializers.ModelSerializer):
             "resumen_parto",
             "complicaciones_totales",
             "duracion_trabajo_parto_calculada",
-            # ✅ NUEVOS: Sistema de alertas médicas
+            # NUEVOS: Sistema de alertas médicas
             "alertas_parto",
             "tiene_alertas",
             "tiene_alertas_criticas",
@@ -592,7 +592,7 @@ class PartoSerializer(serializers.ModelSerializer):
             "apellido_materno": obj.paciente.apellido_materno,
             "nombre_completo": f"{obj.paciente.nombre} {obj.paciente.apellido_paterno} {obj.paciente.apellido_materno}".strip(),
             "id_clinico": obj.paciente.id_clinico,
-            "cedula_identidad": obj.paciente.ci,  # ✅ Agregar CI
+            "cedula_identidad": obj.paciente.ci,  # Agregar CI
         }
 
     def get_embarazo_info(self, obj):
@@ -688,7 +688,7 @@ class PartoSerializer(serializers.ModelSerializer):
         """Get duracion trabajo parto calculada"""
         return obj.get_duracion_trabajo_parto_horas()
 
-    # ✅ MÉTODOS PARA SISTEMA DE ALERTAS MÉDICAS
+    # MÉTODOS PARA SISTEMA DE ALERTAS MÉDICAS
 
     def get_alertas_parto(self, obj):
         """Devuelve todas las alertas médicas del parto"""
@@ -759,7 +759,7 @@ class PartoSerializer(serializers.ModelSerializer):
                 )
 
             semanas = int(value.split("+")[0])
-            # ✅ Permite desde 0 semanas para abortos muy tempranos
+            # Permite desde 0 semanas para abortos muy tempranos
             if semanas < 0 or semanas > 45:
                 raise serializers.ValidationError(
                     f"Las semanas deben estar entre 0 y 45. Valor recibido: {semanas}",
@@ -782,7 +782,7 @@ class PartoSerializer(serializers.ModelSerializer):
                 "El inicio del trabajo de parto no puede ser posterior al parto",
             )
 
-        # ✅ VALIDACIONES SOLO PARA PARTOS (no para abortos)
+        # VALIDACIONES SOLO PARA PARTOS (no para abortos)
         edad_gestacional = attrs.get("edad_gestacional_parto", "")
         es_aborto = False
         if edad_gestacional:
@@ -835,19 +835,19 @@ class PartoSerializer(serializers.ModelSerializer):
                 f"{semanas}+{dias}" if dias else str(semanas)
             )
 
-        # ✅ STRENGTHENED FIX: Remove explicit null paciente to allow auto-assignment
+        # STRENGTHENED FIX: Remove explicit null paciente to allow auto-assignment
         if "paciente" in validated_data and validated_data["paciente"] is None:
             validated_data.pop("paciente")
 
-        # ✅ FIX: Asignar paciente automáticamente desde el embarazo si no viene explícito
+        # FIX: Asignar paciente automáticamente desde el embarazo si no viene explícito
         if "paciente" not in validated_data and "embarazo" in validated_data:
             validated_data["paciente"] = validated_data["embarazo"].paciente
 
-        # ✅ ADDITIONAL SAFETY: Also handle case where embarazo is provided but paciente is missing/None
+        # ADDITIONAL SAFETY: Also handle case where embarazo is provided but paciente is missing/None
         if "embarazo" in validated_data and not validated_data.get("paciente"):
             validated_data["paciente"] = validated_data["embarazo"].paciente
 
-        # ✅ FIX: Extraer Y REMOVER datos del recién nacido de validated_data
+        # FIX: Extraer Y REMOVER datos del recién nacido de validated_data
         # Primero intentar desde validated_data (por si acaso), luego desde initial_data
         _initial = self.initial_data if self.initial_data is not None else {}
         rn_data = {
@@ -916,21 +916,21 @@ class PartoSerializer(serializers.ModelSerializer):
                 f"{semanas}+{dias}" if dias else str(semanas)
             )
 
-        # ✅ STRENGTHENED FIX: Remove explicit null paciente to allow auto-assignment
+        # STRENGTHENED FIX: Remove explicit null paciente to allow auto-assignment
         if "paciente" in validated_data and validated_data["paciente"] is None:
             validated_data.pop("paciente")
 
-        # ✅ FIX: Asegurar que el paciente esté asignado (útil para corregir registros antiguos al editar)
+        # FIX: Asegurar que el paciente esté asignado (útil para corregir registros antiguos al editar)
         if not instance.paciente and "embarazo" in validated_data:
             validated_data["paciente"] = validated_data["embarazo"].paciente
         elif not instance.paciente and instance.embarazo:
             validated_data["paciente"] = instance.embarazo.paciente
 
-        # ✅ ADDITIONAL SAFETY: Also handle new embarazo updates
+        # ADDITIONAL SAFETY: Also handle new embarazo updates
         if "embarazo" in validated_data and not validated_data.get("paciente"):
             validated_data["paciente"] = validated_data["embarazo"].paciente
 
-        # ✅ FIX: Extraer Y REMOVER datos del recién nacido de validated_data
+        # FIX: Extraer Y REMOVER datos del recién nacido de validated_data
         rn_data = {
             "sexo": validated_data.pop("sexo_bebe", None)
             or self.initial_data.get("sexo_bebe"),
@@ -949,7 +949,7 @@ class PartoSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
 
-        # ✅ SOLO actualizar/crear recién nacido si ES PARTO (tiene tipo_parto) y hay datos del bebé
+        # SOLO actualizar/crear recién nacido si ES PARTO (tiene tipo_parto) y hay datos del bebé
         # Si tiene tipo_parto, ES UN PARTO (no importa la edad gestacional)
         es_parto = bool(instance.tipo_parto)
 
@@ -973,7 +973,7 @@ class PartoSerializer(serializers.ModelSerializer):
 
 
 class PartoResumenSerializer(serializers.ModelSerializer):
-    """✅ Serializer SIMPLIFICADO para listados de partos
+    """Serializer SIMPLIFICADO para listados de partos
     """
 
     # Información básica de relaciones
@@ -988,7 +988,7 @@ class PartoResumenSerializer(serializers.ModelSerializer):
     total_recien_nacidos = serializers.SerializerMethodField()
     tipo_parto_display = serializers.SerializerMethodField()
 
-    # ✅ NUEVOS: Sistema de alertas médicas
+    # NUEVOS: Sistema de alertas médicas
     tiene_alertas = serializers.SerializerMethodField()
     tiene_alertas_criticas = serializers.SerializerMethodField()
     tipo_parto_segun_edad = serializers.SerializerMethodField()
@@ -1013,7 +1013,7 @@ class PartoResumenSerializer(serializers.ModelSerializer):
             "estado_parto",
             "evaluacion_perdida_sanguinea",
             "total_recien_nacidos",
-            # ✅ NUEVOS: Alertas médicas
+            # NUEVOS: Alertas médicas
             "tiene_alertas",
             "tiene_alertas_criticas",
             "tipo_parto_segun_edad",
@@ -1057,7 +1057,7 @@ class PartoResumenSerializer(serializers.ModelSerializer):
         """Get total recien nacidos"""
         return obj.recien_nacidos.count()
 
-    # ✅ MÉTODOS PARA SISTEMA DE ALERTAS MÉDICAS
+    # MÉTODOS PARA SISTEMA DE ALERTAS MÉDICAS
 
     def get_tiene_alertas(self, obj):
         """Indica si el parto tiene alertas"""

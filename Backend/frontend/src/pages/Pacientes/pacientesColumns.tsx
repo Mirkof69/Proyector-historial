@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Paciente } from './pacientesTypes';
+import { imcRedondeado } from '../../utils/imc';
 
 const { Text } = Typography;
 
@@ -211,7 +212,7 @@ export const buildPacientesColumns = (deps: PacientesColumnsDeps) => {
         let imc = record.imc;
         if (!imc && record.peso_kg && record.altura_cm) {
           const alturaMetros = record.altura_cm / 100;
-          imc = record.peso_kg / (alturaMetros * alturaMetros);
+          imc = imcRedondeado(record.peso_kg, alturaMetros);
         }
 
         const tieneDatos = record.tipo_sangre || imc || record.peso_kg || record.altura_cm;

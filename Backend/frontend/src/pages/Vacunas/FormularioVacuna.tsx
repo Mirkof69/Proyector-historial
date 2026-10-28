@@ -3,7 +3,6 @@ import { Form, Card, Row, Col, Skeleton } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { vacunasService, RegistroVacunaCreate, TipoVacuna } from '../../services/vacunasService';
-import { pacientesService } from '../../services/pacientesService';
 import { datosClinicosService } from '../../services/datosClinicosService';
 import { authService } from '../../services/authService';
 import { useAntdApp } from '../../hooks/useMessage';
@@ -21,7 +20,6 @@ const FormularioVacuna: React.FC = () => {
   // Estados
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [pacientes, setPacientes] = useState<any[]>([]);
   const [tiposVacunas, setTiposVacunas] = useState<TipoVacuna[]>([]);
   const [vacunaSeleccionada, setVacunaSeleccionada] = useState<TipoVacuna | null>(null);
   const [proximaDosisCalculada, setProximaDosisCalculada] = useState<string>('');
@@ -38,16 +36,10 @@ const FormularioVacuna: React.FC = () => {
   const cargarDatos = useCallback(async (registroId?: number) => {
     try {
       setLoading(true);
-      const [pacientesData, vacunasData] = await Promise.all([
-        pacientesService.getAll(),
-        vacunasService.getTiposVacunas({ page_size: 1000 })
-      ]);
-
-      const pacientesArr = Array.isArray(pacientesData) ? pacientesData : [];
+      const vacunasData = await vacunasService.getTiposVacunas({ page_size: 1000 });
       const vacunas = vacunasData.results || vacunasData;
       const tiposArr = Array.isArray(vacunas) ? vacunas : [];
 
-      setPacientes(pacientesArr);
       setTiposVacunas(tiposArr);
 
       if (registroId && tiposArr.length > 0) {
@@ -239,7 +231,6 @@ const FormularioVacuna: React.FC = () => {
             <Row gutter={24}>
               <Col xs={24} lg={16}>
                 <CamposFormularioVacuna
-                  pacientes={pacientes}
                   tiposVacunas={tiposVacunas}
                   historialVacunacion={historialVacunacion}
                   viasAdministracion={viasAdministracion}

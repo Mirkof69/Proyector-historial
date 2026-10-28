@@ -81,10 +81,10 @@ export const FormularioBienestarFetal: React.FC<FormularioBienestarFetalProps> =
             rules={[{ required: true, message: 'Requerido' }]}
           >
             <Select>
-              <Option value="ninguna">✅ Ninguna</Option>
-              <Option value="tempranas">⚪ Tempranas (compresión cefálica)</Option>
-              <Option value="variables">⚠️ Variables (compresión cordón)</Option>
-              <Option value="tardias">🔴 Tardías (insuficiencia uteroplacentaria)</Option>
+              <Option value="ninguna">Ninguna</Option>
+              <Option value="tempranas">Tempranas (compresión cefálica)</Option>
+              <Option value="variables">Variables (compresión cordón)</Option>
+              <Option value="tardias">Tardías (insuficiencia uteroplacentaria)</Option>
             </Select>
           </Form.Item>
         </Col>

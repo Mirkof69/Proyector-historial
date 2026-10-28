@@ -1,13 +1,13 @@
 """=============================================================================
 MÓDULO: CONTROLES PRENATALES - VIEWSET COMPLETO V2.0 CORREGIDO
 =============================================================================
-✅ CORRECCIONES V2.0:
+CORRECCIONES V2.0:
     pass
-- Fix: Usa ControlPrenatalSerializer en list para incluir paciente_nombre ✅
-- Fix: Todos los filtros corregidos (negativa en lugar de negativo) ✅
-- Fix: Select_related optimizado para evitar N+1 queries ✅
-- Fix: Todos los endpoints extendidos con información completa ✅
-- Nuevos endpoints para análisis y reportes avanzados ✅
+- Fix: Usa ControlPrenatalSerializer en list para incluir paciente_nombre
+- Fix: Todos los filtros corregidos (negativa en lugar de negativo)
+- Fix: Select_related optimizado para evitar N+1 queries
+- Fix: Todos los endpoints extendidos con información completa
+- Nuevos endpoints para análisis y reportes avanzados
 =============================================================================
 """
 
@@ -79,7 +79,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     """
 
-    # ✅ OPTIMIZACIÓN: Select_related para evitar N+1 queries
+    # OPTIMIZACIÓN: Select_related para evitar N+1 queries
     queryset = (
         ControlPrenatal.objects.select_related(
             "embarazo", "embarazo__paciente", "paciente", "medico",
@@ -98,7 +98,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         filters.OrderingFilter,
     ]
 
-    # ✅ CORRECCIÓN: Campos correctos del modelo
+    # CORRECCIÓN: Campos correctos del modelo
     filterset_fields = {
         # El campo del modelo se llama `embarazo` (con db_column="embarazo_id").
         # Solo estaba declarado "embarazo_id", así que ?embarazo=N NO era un
@@ -167,22 +167,22 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     ]
 
     def get_serializer_class(self):
-        """✅ FIX: Usar ControlPrenatalSerializer SIEMPRE para incluir paciente_nombre"""
+        """FIX: Usar ControlPrenatalSerializer SIEMPRE para incluir paciente_nombre"""
         if self.action in ["create", "update", "partial_update"]:
             return ControlPrenatalCreateUpdateSerializer
-        # ✅ Para list y retrieve, usar serializer completo
+        # Para list y retrieve, usar serializer completo
         return ControlPrenatalSerializer
 
     def perform_create(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar created_by al crear"""
+        """TRAZABILIDAD: Auto-asignar created_by al crear"""
         serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
-        """✅ TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
+        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
         serializer.save(updated_by=self.request.user)
 
     def get_queryset(self):
-        """✅ EXTENDIDO: Filtros avanzados con validaciones"""
+        """EXTENDIDO: Filtros avanzados con validaciones"""
         queryset = super().get_queryset()
 
         # query_params pertenece a rest_framework.request.Request (no HttpRequest)
@@ -228,7 +228,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
                 | Q(frecuencia_cardiaca_fetal__gt=160)
                 | Q(edema__in=["severo", "generalizado"])
                 | Q(movimientos_fetales__in=["disminuidos", "ausentes"])
-                | ~Q(proteinuria="negativa"),  # ✅ CORRECCIÓN
+                | ~Q(proteinuria="negativa"),  # CORRECCIÓN
             )
 
         # `?alerta_critica=true|false`: el filtro «Con/Sin alertas» de la
@@ -278,7 +278,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        """✅ FIX: Override list para usar ControlPrenatalSerializer completo"""
+        """FIX: Override list para usar ControlPrenatalSerializer completo"""
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
@@ -313,7 +313,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         })
 
     def create(self, request, *args, **kwargs):
-        """✅ EXTENDIDO: Crear control con validaciones y respuesta completa"""
+        """EXTENDIDO: Crear control con validaciones y respuesta completa"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -328,14 +328,14 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
         headers = self.get_success_headers(return_serializer.data)
 
-        # ✅ Respuesta con mensaje de éxito
+        # Respuesta con mensaje de éxito
         response_data = return_serializer.data
         response_data["mensaje"] = "Control prenatal creado correctamente"
 
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        """✅ EXTENDIDO: Actualizar control con respuesta completa"""
+        """EXTENDIDO: Actualizar control con respuesta completa"""
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -355,8 +355,8 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         return Response(response_data)
 
     def destroy(self, request, *args, **kwargs):
-        """✅ Eliminar control prenatal completamente de la base de datos"""
-        # ✅ SEGURIDAD: Solo administradores pueden eliminar
+        """Eliminar control prenatal completamente de la base de datos"""
+        # SEGURIDAD: Solo administradores pueden eliminar
         if getattr(request.user, 'rol', '') != "administrador":
             return Response(
                 {
@@ -407,7 +407,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="por_embarazo")
     def por_embarazo(self, request):
-        """✅ EXTENDIDO: Controles de un embarazo con estadísticas"""
+        """EXTENDIDO: Controles de un embarazo con estadísticas"""
         embarazo_id = request.query_params.get("embarazo_id", None)
 
         if not embarazo_id:
@@ -428,7 +428,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             "numero_control", "fecha_control",
         )
 
-        # ✅ Estadísticas del embarazo
+        # Estadísticas del embarazo
         estadisticas = {
             "total_controles": controles.count(),
             "controles_con_alertas": controles.filter(
@@ -477,7 +477,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="por_paciente")
     def por_paciente(self, request):
-        """✅ NUEVO: Todos los controles de un paciente (todos sus embarazos)"""
+        """NUEVO: Todos los controles de un paciente (todos sus embarazos)"""
         paciente_id = request.query_params.get("paciente_id", None)
 
         if not paciente_id:
@@ -517,7 +517,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def estadisticas(self, _request):
-        """✅ EXTENDIDO: Estadísticas completas con más métricas"""
+        """EXTENDIDO: Estadísticas completas con más métricas"""
         total = ControlPrenatal.objects.count()
 
         # Estadísticas temporales
@@ -547,7 +547,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             temperatura_promedio=Avg("temperatura"),
         )
 
-        # ✅ CORRECCIÓN: Alertas médicas
+        # CORRECCIÓN: Alertas médicas
         con_hipertension = ControlPrenatal.objects.filter(
             Q(presion_arterial_sistolica__gte=140)
             | Q(presion_arterial_diastolica__gte=90),
@@ -587,7 +587,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             ControlPrenatal.objects.values("embarazo_id").distinct().count()
         )
 
-        # ✅ NUEVO: Controles por médico
+        # NUEVO: Controles por médico
         controles_por_medico = (
             ControlPrenatal.objects.values("medico_id__email")
             .annotate(total=Count("id"))
@@ -625,7 +625,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def alertas(self, _request):
-        """✅ EXTENDIDO: Controles con alertas médicas agrupadas por tipo"""
+        """EXTENDIDO: Controles con alertas médicas agrupadas por tipo"""
         assert self.queryset is not None
         controles_alerta = self.queryset.filter(
             Q(presion_arterial_sistolica__gte=140)
@@ -637,7 +637,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             | ~Q(proteinuria="negativa"),
         ).order_by("-fecha_control")
 
-        # ✅ Agrupar por tipo de alerta
+        # Agrupar por tipo de alerta
         alertas_por_tipo = {
             "hipertension": controles_alerta.filter(
                 Q(presion_arterial_sistolica__gte=140)
@@ -680,7 +680,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def recientes(self, request):
-        """✅ EXTENDIDO: Controles recientes con estadísticas"""
+        """EXTENDIDO: Controles recientes con estadísticas"""
         dias = int(request.query_params.get("dias", 7))
         fecha_desde = timezone.localdate() - timedelta(days=dias)
 
@@ -689,7 +689,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             "-fecha_control",
         )
 
-        # ✅ Estadísticas de controles recientes
+        # Estadísticas de controles recientes
         estadisticas = {
             "total": controles.count(),
             "con_alertas": controles.filter(
@@ -717,7 +717,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def proximos(self, request):
-        """✅ EXTENDIDO: Embarazos que requieren control próximo"""
+        """EXTENDIDO: Embarazos que requieren control próximo"""
         dias = int(request.query_params.get("dias", 30))
 
         # Obtener último control de cada embarazo activo
@@ -763,7 +763,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def evolucion(self, request):
-        """✅ EXTENDIDO: Evolución de parámetros con análisis de tendencias"""
+        """EXTENDIDO: Evolución de parámetros con análisis de tendencias"""
         embarazo_id = request.query_params.get("embarazo_id", None)
 
         if not embarazo_id:
@@ -793,7 +793,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
                 },
             )
 
-        # ✅ Preparar datos para gráficas
+        # Preparar datos para gráficas
         evolucion_data = {
             "fechas": [],
             "semanas": [],
@@ -840,7 +840,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             else:
                 evolucion_data["ganancia_peso"].append(None)
 
-        # ✅ Análisis de tendencias
+        # Análisis de tendencias
         analisis = {
             "tendencia_peso": "estable",
             "tendencia_pa": "normal",
@@ -872,13 +872,13 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def reporte_completo(self, _request, pk=None):
-        """✅ EXTENDIDO: Reporte completo con información del embarazo"""
+        """EXTENDIDO: Reporte completo con información del embarazo"""
         control = self.get_object()
 
         # Obtener método del modelo
         reporte = control.generar_reporte_completo()
 
-        # ✅ Agregar información del embarazo
+        # Agregar información del embarazo
         if control.embarazo_id:
 
             reporte["embarazo"] = EmbarazoSerializer(control.embarazo_id).data
@@ -887,7 +887,7 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def riesgo_alto(self, _request):
-        """✅ NUEVO: Controles de embarazos de alto riesgo"""
+        """NUEVO: Controles de embarazos de alto riesgo"""
         assert self.queryset is not None
         controles_alto_riesgo = self.queryset.filter(
             embarazo_id__riesgo_embarazo="alto", embarazo_id__estado="activo",

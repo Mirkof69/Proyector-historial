@@ -352,6 +352,19 @@ const TOOLTIP_FORMATTER = (value: any) => [value, ''];
 const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 const renderPieLabel = (entry: any) => `${entry.name}: ${entry.percentage}%`;
 
+/**
+ * Reloj del encabezado en su propio componente: cuando el estado vivía en la
+ * página, cada segundo se volvían a dibujar todos los gráficos de Reportes.
+ */
+const Reloj: React.FC = () => {
+  const [ahora, setAhora] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setAhora(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return <>{ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</>;
+};
+
 const ReportesPage: React.FC = () => {
   const { message } = useAntdApp();
   const navigate = useNavigate();
@@ -363,7 +376,6 @@ const ReportesPage: React.FC = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   // Estados para filtros de historial
   const [busqueda, setBusqueda] = useState('');
@@ -419,15 +431,6 @@ const ReportesPage: React.FC = () => {
       if (interval) clearInterval(interval);
     };
   }, [periodo, autoRefresh, cargarDatos]);
-
-  // Reloj en tiempo real - actualiza cada segundo
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const handleGenerarReporte = (tipo: string) => {
     // Navegar a la página de generación o abrir modal
@@ -491,7 +494,7 @@ const ReportesPage: React.FC = () => {
 
               {/* Reloj en tiempo real */}
               <Tag icon={<ClockCircleOutlined />}>
-                {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                <Reloj />
               </Tag>
 
               {lastUpdate && (
