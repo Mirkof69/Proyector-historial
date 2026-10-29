@@ -233,4 +233,19 @@ describe('la capa CSS global no pelea con Ant Design', () => {
       .filter((f) => /#[0-9a-fA-F]{3,8}\b/.test(sinComentarios(f)));
     expect(conHex).toEqual([]);
   });
+
+  it('ninguna transición global dura más de 0s (los desplegables se iban fuera de la pantalla)', () => {
+    // Una regla «* { transition-duration: X }» con X > 0 da transición a todas las
+    // propiedades de todos los elementos: Ant Design mide el desplegable recién
+    // movido, lee la posición vieja y lo coloca a miles de píxeles. Pasaba con las
+    // animaciones de Windows apagadas (prefers-reduced-motion).
+    const globales = HOJAS.flatMap((f) =>
+      [...sinComentarios(f).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+        .filter(([, selector]) => selector.split(',').some((s) => s.trim() === '*'))
+        .flatMap(([, , cuerpo]) => cuerpo.split(/[;\n]/))
+        .filter((decl) => /^\s*transition(-duration)?\s*:/.test(decl) && !/:\s*(0s|none)\b/.test(decl))
+        .map((decl) => `${f}: ${decl.trim()}`),
+    );
+    expect(globales).toEqual([]);
+  });
 });

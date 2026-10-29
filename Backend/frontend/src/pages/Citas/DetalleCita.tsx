@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAntdApp } from "../../hooks/useMessage";
+import { conMotivo } from '../../utils/erroresApi';
 import {Button,
   Spin,
   Alert,
@@ -133,7 +134,7 @@ const DetalleCita: React.FC = () => {
                   message.success('Cita confirmada correctamente');
                   cargarCita(cita.id);
                 } catch (error) {
-                  message.error('Error al confirmar la cita');
+                  message.error(conMotivo('No se pudo confirmar la cita', error));
                 }
               }}
               onCancelar={async () => {
@@ -150,7 +151,7 @@ const DetalleCita: React.FC = () => {
                       message.success('Cita cancelada correctamente');
                       cargarCita(cita.id!);
                     } catch (error) {
-                      message.error('Error al cancelar la cita');
+                      message.error(conMotivo('No se pudo cancelar la cita', error));
                     }
                   },
                 });

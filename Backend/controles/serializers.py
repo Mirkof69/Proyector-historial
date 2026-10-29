@@ -649,6 +649,20 @@ class ControlPrenatalCreateUpdateSerializer(serializers.ModelSerializer):
                     {"embarazo": f"Error al validar embarazo: {e!s}"},
                 ) from e
 
+        # El control es de ESE embarazo: de su paciente y posterior a su FUM
+        # (antes se aceptaba un control de hace 200 días en un embarazo de 20 semanas).
+        embarazo = attrs.get("embarazo", getattr(self.instance, "embarazo", None))
+        paciente = attrs.get("paciente", getattr(self.instance, "paciente", None))
+        fecha = attrs.get("fecha_control", getattr(self.instance, "fecha_control", None))
+        if Embarazo is not None and isinstance(embarazo, Embarazo):
+            if paciente and embarazo.paciente_id != getattr(paciente, "pk", paciente):
+                raise serializers.ValidationError({"paciente": "El embarazo elegido es de otra paciente."})
+            fum = embarazo.fecha_ultima_menstruacion
+            if fecha and fum and fecha < fum:
+                raise serializers.ValidationError({
+                    "fecha_control": f"El control no puede ser anterior a la FUM del embarazo ({fum:%d/%m/%Y}).",
+                })
+
         return attrs
 
     def to_representation(self, instance):

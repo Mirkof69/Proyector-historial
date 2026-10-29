@@ -22,6 +22,7 @@ import { notasEvolucionService } from './notasEvolucionService';
 import { pacientesService } from './pacientesService';
 import { embarazosService } from './embarazosService';
 import { logger } from '../utils/logger';
+import { decimalesANumero } from '../utils/decimales';
 
 // =====================================================================================
 // INTERFACES
@@ -326,7 +327,9 @@ class DatosClinicosService {
     }
 
     logger.log('SIGNOS VITALES FINALES CONSOLIDADOS:', signos);
-    return signos;
+    // Los decimales llegan como texto («36.6»): precargados así en una nota o un
+    // control, la regla de rango los rechazaba aunque el valor fuera correcto.
+    return decimalesANumero(signos, ['peso_kg', 'talla_cm', 'imc', 'perimetro_abdominal_cm', 'temperatura', 'altura_uterina']);
   }
 
   /**
@@ -445,7 +448,7 @@ class DatosClinicosService {
 
           embarazo: embarazoActivo,
           ultimoControl,
-          datosObstetricos,
+          datosObstetricos: decimalesANumero(datosObstetricos, ['altura_uterina', 'peso_actual']),
         };
       }
 

@@ -54,6 +54,20 @@ def _clave_fecha(evento):
     return date.min
 
 
+def _antecedente_vigente(modelo, defaults, **filtro):
+    """El antecedente más reciente de la paciente; uno en blanco si no tiene.
+
+    No es get_or_create: el formulario de Antecedentes registra uno nuevo cada
+    vez, así que una paciente puede tener varios del mismo tipo y get_or_create
+    respondía 500 (MultipleObjectsReturned) en todas las pantallas que muestran
+    sus datos clínicos. Manda el último que se cargó.
+    """
+    antecedente = modelo.objects.filter(**filtro).order_by("-pk").first()
+    if antecedente is None:
+        antecedente = modelo.objects.create(**filtro, **defaults)
+    return antecedente
+
+
 def construir_historia_clinica(paciente):
     """Timeline y contadores de la historia clínica de una paciente.
 
@@ -938,10 +952,8 @@ class PacienteViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         paciente = self.get_object()
         from antecedentes.models import AntecedentePatologico
 
-        antecedente, created = AntecedentePatologico.objects.get_or_create(
-            paciente=paciente,
-            tipo="personal",
-            defaults={"registrado_por": request.user}
+        antecedente = _antecedente_vigente(
+            AntecedentePatologico, {"registrado_por": request.user}, paciente=paciente, tipo="personal",
         )
 
         if request.method == "POST":
@@ -963,10 +975,8 @@ class PacienteViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         paciente = self.get_object()
         from antecedentes.models import AntecedentePatologico
 
-        antecedente, created = AntecedentePatologico.objects.get_or_create(
-            paciente=paciente,
-            tipo="heredofamiliar",
-            defaults={"registrado_por": request.user}
+        antecedente = _antecedente_vigente(
+            AntecedentePatologico, {"registrado_por": request.user}, paciente=paciente, tipo="heredofamiliar",
         )
 
         if request.method == "POST":

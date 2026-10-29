@@ -311,6 +311,28 @@ def restaurar_backup(request, filename):
         logger.warning(
             "Base de datos restaurada por %s desde %s", request.user.email, filename,
         )
+        # Se registra DESPUÉS de restaurar: antes, el registro quedaba en las
+        # tablas que el respaldo reemplaza. Si quien restaura no existía en la
+        # fecha del respaldo, queda sin usuario pero con su nombre en el detalle.
+        try:
+            from django.db import transaction
+
+            from auditoria.models import RegistroAuditoria
+            from usuarios.models import Usuario
+
+            with transaction.atomic():
+                RegistroAuditoria.registrar(
+                    usuario=Usuario.objects.filter(pk=request.user.pk).first(),
+                    accion="BACKUP",
+                    modulo="Sistema",
+                    detalle=(
+                        f"Base restaurada desde {filename} por {request.user.email}. "
+                        f"Respaldo previo de seguridad: {result['backup_seguridad']}"
+                    ),
+                    request=request,
+                )
+        except Exception:
+            logger.warning("No se pudo auditar la restauración", exc_info=True)
         return Response(result, status=status.HTTP_200_OK)
 
     except Exception as e:

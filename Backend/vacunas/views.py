@@ -14,9 +14,10 @@ from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets
+from rest_framework import status, viewsets
 
 from core.filtros import BusquedaClinicaFilter
+from core.permissions import FetalMedicalPermission
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -59,7 +60,9 @@ class TipoVacunaViewSet(viewsets.ModelViewSet):
     """
 
     queryset = TipoVacuna.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    # La política del sistema (recepción no ve datos clínicos): con solo
+    # IsAuthenticated, recepción podía registrar y leer vacunas por la API.
+    permission_classes = [FetalMedicalPermission]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     # Campos de filtrado
@@ -235,7 +238,9 @@ class RegistroVacunaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
 
     queryset = RegistroVacuna.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    # La política del sistema (recepción no ve datos clínicos): con solo
+    # IsAuthenticated, recepción podía registrar y leer vacunas por la API.
+    permission_classes = [FetalMedicalPermission]
     filter_backends = [DjangoFilterBackend, BusquedaClinicaFilter, OrderingFilter]
 
     # Campos de filtrado

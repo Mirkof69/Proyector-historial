@@ -8,9 +8,33 @@ import logging
 import os
 import shutil
 import subprocess
+import tempfile
 from datetime import datetime
 
 logger = logging.getLogger("reportes")
+
+# Los respaldos son pg_dump en texto plano SIN --clean: crean los esquemas y
+# tablas desde cero, así que sobre la base viva psql se detenía en la primera
+# línea («ya existe el esquema clinica_demo») y «Restaurar» nunca restauraba.
+# Este preámbulo vacía la base (todos los esquemas que no son del sistema,
+# también los de clínicas creadas después del respaldo) y corre en la MISMA
+# transacción que el respaldo: si algo falla, no se borra nada.
+PREAMBULO_RESTAURAR = """\
+SET client_min_messages = warning;
+SET lock_timeout = '30s';
+DO $$
+DECLARE esquema text;
+BEGIN
+    FOR esquema IN
+        SELECT nspname FROM pg_namespace
+        WHERE nspname NOT LIKE 'pg\\_%' AND nspname <> 'information_schema'
+    LOOP
+        EXECUTE format('DROP SCHEMA %I CASCADE', esquema);
+    END LOOP;
+END $$;
+CREATE SCHEMA public;
+GRANT USAGE ON SCHEMA public TO PUBLIC;
+"""
 
 
 class BackupError(Exception):
@@ -147,36 +171,48 @@ class DatabaseBackupService:
         # Backup de seguridad de la base ACTUAL antes de sobrescribirla.
         backup_seguridad = self.create_backup("pre_restore")
 
+        descriptor, preambulo = tempfile.mkstemp(prefix="preambulo_restaurar_", suffix=".sql")
         try:
             psql_path = self._resolver_binario("psql")
+            with os.fdopen(descriptor, "w", encoding="utf-8") as f:
+                f.write(PREAMBULO_RESTAURAR)
 
             comando = [
                 psql_path,
                 "-h", self.db_config["HOST"],
                 "-p", str(self.db_config["PORT"]),
                 "-U", self.db_config["USER"],
+                "-q",
                 "-v", "ON_ERROR_STOP=1",
+                "--single-transaction",
+                "-f", preambulo,
                 "-f", filepath,
                 self.db_config["NAME"],
             ]
 
             entorno = os.environ.copy()
             entorno["PGPASSWORD"] = self.db_config["PASSWORD"]
+            entorno["PGCLIENTENCODING"] = "UTF8"
 
             resultado = subprocess.run(
                 comando,
                 env=entorno,
                 capture_output=True,
                 text=True,
-                timeout=300,
+                encoding="utf-8",
+                errors="replace",
+                timeout=1800,
                 check=False,
             )
 
             if resultado.returncode != 0:
-                stderr = resultado.stderr.strip()[:500]
+                lineas = resultado.stderr.strip().splitlines()
+                errores = [linea for linea in lineas if "ERROR" in linea] or lineas
+                stderr = "\n".join(errores)[:500]
                 raise BackupError(
                     f"psql fallo restaurando (codigo {resultado.returncode}): {stderr}. "
-                    f"Se creo un backup de seguridad antes del intento: {backup_seguridad['filename']}.",
+                    "La base quedo como estaba (el restore corre en una sola transaccion). "
+                    f"Backup de seguridad previo: {backup_seguridad['filename']}.",
                 )
 
             logger.warning(
@@ -190,11 +226,14 @@ class DatabaseBackupService:
                 "message": "Base de datos restaurada correctamente",
             }
         except subprocess.TimeoutExpired as e:
-            raise BackupError("psql excedio el tiempo limite (300s) restaurando") from e
+            raise BackupError("psql excedio el tiempo limite (30 min) restaurando") from e
         except BackupError:
             raise
         except Exception as e:
             raise BackupError(f"Error inesperado restaurando backup: {e}") from e
+        finally:
+            if os.path.exists(preambulo):
+                os.remove(preambulo)
 
     def get_backups(self):
         """Lista los backups reales en disco"""
@@ -232,6 +271,13 @@ class DatabaseBackupService:
         nombre_seguro = os.path.basename(filename)
         filepath = os.path.join(self.backup_dir, nombre_seguro)
         if os.path.exists(filepath):
-            os.remove(filepath)
+            try:
+                os.remove(filepath)
+            except PermissionError as e:
+                # Windows no deja borrar un archivo abierto (p. ej. mientras se descarga).
+                raise BackupError(
+                    f"El backup '{nombre_seguro}' está en uso (quizá se está descargando). "
+                    "Intente eliminarlo de nuevo en unos minutos.",
+                ) from e
             return True
         return False

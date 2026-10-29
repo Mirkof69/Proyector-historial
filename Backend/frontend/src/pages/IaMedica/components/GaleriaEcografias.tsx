@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Upload, Button, Tag, Spin, Typography, Row, Col, Empty, Tooltip, Select, Space,
+  Upload, Button, Tag, Spin, Typography, Row, Col, Empty, Tooltip, Space,
 } from 'antd';
 import {
   InboxOutlined, RobotOutlined, FileImageOutlined,
@@ -8,17 +8,29 @@ import {
 } from '@ant-design/icons';
 import { ImagenEcografica } from '../../../services/iaMedicaService';
 import { API_URL } from '../../../services/api';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 import { renderResultBadge, getResultClass } from '../iaMedicaHelpers';
 
 const { Title } = Typography;
 const { Dragger } = Upload;
 
+/** Imagen de la tarjeta; si el archivo falta o no carga, lo dice en vez de un icono roto. */
+const MiniaturaEcografia: React.FC<{ url?: string | null }> = ({ url }) => {
+  const [rota, setRota] = React.useState(false);
+  if (!url || rota) {
+    return (
+      <div className="image-card-sin-imagen">
+        <FileImageOutlined />
+        <span>Imagen no disponible</span>
+      </div>
+    );
+  }
+  return <img src={`${API_URL.replace('/api', '')}${url}`} alt="Ecografía" onError={() => setRota(true)} />;
+};
+
 interface GaleriaEcografiasProps {
   selectedPacienteId: number | null;
   setSelectedPacienteId: (id: number | null) => void;
-  pacientesSearch: {id: number; nombre: string}[];
-  searchingPaciente: boolean;
-  handlePatientSearch: (query: string) => void;
   uploading: boolean;
   handleUpload: (file: File) => boolean | Promise<boolean>;
   loading: boolean;
@@ -34,8 +46,7 @@ interface GaleriaEcografiasProps {
 }
 
 const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
-  selectedPacienteId, setSelectedPacienteId, pacientesSearch, searchingPaciente,
-  handlePatientSearch, uploading, handleUpload, loading, imagenes, analyzingId,
+  selectedPacienteId, setSelectedPacienteId, uploading, handleUpload, loading, imagenes, analyzingId,
   analyzingCnnId, ecografiasVinculadas, handleAnalyze, showAnalysis, handleAnalyzeCNN,
   handleVincularClick, handleDelete,
 }) => (
@@ -47,22 +58,11 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
     <Row gutter={[24, 24]}>
       <Col xs={24} md={8} lg={6}>
         <Space direction="vertical" style={{ width: '100%' }}>
-          <Select
-            showSearch
-            placeholder="Buscar y seleccionar paciente..."
-            value={selectedPacienteId}
-            onChange={setSelectedPacienteId}
-            onSearch={handlePatientSearch}
-            loading={searchingPaciente}
-            filterOption={false}
-            notFoundContent={searchingPaciente ? <Spin size="small" /> : 'Escriba al menos 2 caracteres'}
-            style={{ width: '100%' }}
-            allowClear
-          >
-            {pacientesSearch.map(p => (
-              <Select.Option key={p.id} value={p.id}>{p.nombre}</Select.Option>
-            ))}
-          </Select>
+          <PacienteSelect
+            placeholder="Buscar paciente por nombre o CI"
+            value={selectedPacienteId ?? undefined}
+            onChange={(id) => setSelectedPacienteId(id ?? null)}
+          />
           <Dragger
             customRequest={({ file }) => handleUpload(file as File)}
             showUploadList={false}
@@ -95,7 +95,7 @@ const GaleriaEcografias: React.FC<GaleriaEcografiasProps> = ({
           <Col xs={24} sm={12} md={8} lg={6} key={img.id}>
             <div className="image-card">
               <div className="image-card-header">
-                <img src={`${API_URL.replace('/api', '')}${img.url_imagen}`} alt="Ecografía" />
+                <MiniaturaEcografia url={img.url_imagen} />
                 <div className="image-status-badge">
                   {img.tiene_analisis ? renderResultBadge(img.analisis_resultado!.resultado) : <Tag color="processing">Pendiente</Tag>}
                 </div>

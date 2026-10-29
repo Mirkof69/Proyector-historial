@@ -43,17 +43,17 @@ const DetalleCitaSidebar: React.FC<DetalleCitaSidebarProps> = ({
 
     <Card title="Acciones Rápidas" size="small" className="citas-arriba">
       <Space direction="vertical" className="citas-ancho">
-        {cita.estado === 'agendada' && (
+        {cita.estado === 'agendada' && !dayjs(cita.fecha_cita).isBefore(dayjs(), 'day') && (
           <Button icon={<CheckCircleOutlined />} onClick={onConfirmar} block>
             Confirmar Cita
           </Button>
         )}
-        {['agendada', 'confirmada'].includes(cita.estado) && (
+        {['agendada', 'confirmada'].includes(cita.estado) && dayjs(cita.fecha_cita).isAfter(dayjs(), 'day') && (
           <Button icon={<BellOutlined />} onClick={onEnviarRecordatorio} block>
             Enviar Recordatorio
           </Button>
         )}
-        {!['completada', 'cancelada', 'no_asistio'].includes(cita.estado) && (
+        {['agendada', 'confirmada', 'en_espera'].includes(cita.estado) && (
           <Button danger icon={<CloseCircleOutlined />} onClick={onCancelar} block>
             Cancelar Cita
           </Button>

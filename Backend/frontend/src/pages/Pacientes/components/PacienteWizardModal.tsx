@@ -53,9 +53,12 @@ const PacienteWizardModal: React.FC<PacienteWizardModalProps> = ({
       <Step title="Información Médica" icon={MEDICINE_BOX_ICON_4} />
     </Steps>
 
+    {/* Sin autocompletar: el navegador rellenaba los datos de la paciente con los
+        de quien usa el equipo (su correo) o con textos de otros formularios. */}
     <Form
       form={form}
       layout="vertical"
+      autoComplete="off"
       initialValues={{ pais: 'Bolivia', activo: true }}
     >
       {/* PASO 1: DATOS PERSONALES */}

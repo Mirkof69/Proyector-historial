@@ -185,7 +185,9 @@ const FormularioVacuna: React.FC = () => {
       const registroData: RegistroVacunaCreate = {
         ...values,
         fecha_aplicacion: values.fecha_aplicacion ? values.fecha_aplicacion.toISOString() : new Date().toISOString(),
-        proxima_dosis_fecha: values.proxima_dosis_fecha ? values.proxima_dosis_fecha.toISOString() : undefined,
+        // Es DateField: con toISOString() («…T04:00:00Z») el servidor rechazaba todo
+        // registro con próxima dosis («Fecha con formato erróneo»).
+        proxima_dosis_fecha: values.proxima_dosis_fecha ? values.proxima_dosis_fecha.format('YYYY-MM-DD') : undefined,
         aplicado_por: authService.getCurrentUser()?.id || 1,
       };
 

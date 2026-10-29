@@ -19,6 +19,10 @@ from notificaciones.services import crear_notificacion_clinica
 from .models import Paciente
 
 
+def _es_recepcion(usuario) -> bool:
+    return getattr(usuario, "rol", "") == "recepcion"
+
+
 @receiver(post_save, sender=Paciente)
 def paciente_creado(sender, instance, created, **kwargs):
     """Avisa al registrante al crear un paciente y evalúa factores de riesgo."""
@@ -69,8 +73,11 @@ def verificar_paciente_alto_riesgo(paciente):
     if not factores:
         return
     detalle = "\n".join(f"- {f}" for f in factores)
+    registrante = getattr(paciente, "created_by", None)
     crear_notificacion_clinica(
-        destinatario_preferido=getattr(paciente, "created_by", None),
+        # Es un dato clínico: si la registró recepción, va a los administradores
+        # (el destino por defecto) y no a quien no puede ver la ficha.
+        destinatario_preferido=None if _es_recepcion(registrante) else registrante,
         tipo=TipoNotificacion.ALERTA_ADVERTENCIA,
         prioridad=PrioridadNotificacion.NORMAL,
         titulo="Factores de Riesgo Detectados",

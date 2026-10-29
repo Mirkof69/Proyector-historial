@@ -12,6 +12,7 @@ CORRECCIONES V2.0:
 """
 
 import contextlib
+from citas.flujo import atendida_por_control
 from datetime import timedelta
 
 from django.db.models import Avg, Count, OuterRef, Q, Subquery
@@ -175,11 +176,17 @@ class ControlPrenatalViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """TRAZABILIDAD: Auto-asignar created_by al crear"""
-        serializer.save(created_by=self.request.user)
+        control = serializer.save(created_by=self.request.user)
+        # El control de hoy es la consulta: la cita de hoy queda completada.
+        atendida_por_control(control, self.request.user)
 
     def perform_update(self, serializer):
-        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
-        serializer.save(updated_by=self.request.user)
+        """TRAZABILIDAD: quién modificó el control.
+
+        El campo es modified_by: con updated_by DRF lo ponía como atributo suelto
+        y no se guardaba, así que nunca quedaba quién editó el control.
+        """
+        serializer.save(modified_by=self.request.user)
 
     def get_queryset(self):
         """EXTENDIDO: Filtros avanzados con validaciones"""

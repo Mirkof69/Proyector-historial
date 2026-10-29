@@ -64,6 +64,7 @@ import ModalConfirmacionSalida from './components/ModalConfirmacionSalida';
 import '../Embarazos/paginaClinica.css';
 import './Controles.css';
 import { imcRedondeado } from '../../utils/imc';
+import { decimalesANumero } from '../../utils/decimales';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -129,7 +130,8 @@ const FormularioControl: React.FC = () => {
         proteinuria: data.proteinuria || 'negativa',
         observaciones: data.observaciones,
       };
-      form.setFieldsValue(formValues);
+      // Los decimales llegan como texto y la regla de rango los rechazaba al editar.
+      form.setFieldsValue(decimalesANumero(formValues, ['peso_actual', 'peso_pregestacional', 'talla', 'temperatura', 'altura_uterina']));
       setTimeout(() => {
         recalcularTodoRef.current();
       }, 100);
@@ -196,10 +198,10 @@ const FormularioControl: React.FC = () => {
 
       // Auto-rellenar peso pregestacional y talla si existen
       if (embarazo.peso_pregestacional) {
-        form.setFieldsValue({ peso_pregestacional: embarazo.peso_pregestacional });
+        form.setFieldsValue(decimalesANumero({ peso_pregestacional: embarazo.peso_pregestacional }, ['peso_pregestacional']));
       }
       if (embarazo.talla_materna) {
-        form.setFieldsValue({ talla: embarazo.talla_materna });
+        form.setFieldsValue(decimalesANumero({ talla: embarazo.talla_materna }, ['talla']));
       }
     }
 

@@ -156,9 +156,11 @@ class NotificacionViewSet(viewsets.ModelViewSet):
             "total": todas["total"] or 0,
             "urgentes_total": todas["urgentes"] or 0,
             "informativas": todas["informativas"] or 0,
-            "ultimas": NotificacionListSerializer(ultimas, many=True).data,
+            "ultimas": NotificacionListSerializer(ultimas, many=True, context=self.get_serializer_context()).data,
         })
 
+    # Con el contexto (la petición) el enlace se arma para quien mira: sin él,
+    # la campana de recepción abría la historia clínica y terminaba en «sin permiso».
     @action(detail=False, methods=["GET"])
     def no_leidas(self, _request):
         """GET /notificaciones/no_leidas/
@@ -175,10 +177,10 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         pagina = self.paginate_queryset(notificaciones)
         if pagina is not None:
             return self.get_paginated_response(
-                NotificacionListSerializer(pagina, many=True).data,
+                NotificacionListSerializer(pagina, many=True, context=self.get_serializer_context()).data,
             )
 
-        serializer = NotificacionListSerializer(notificaciones, many=True)
+        serializer = NotificacionListSerializer(notificaciones, many=True, context=self.get_serializer_context())
         return Response({"count": notificaciones.count(), "results": serializer.data})
 
     @action(detail=True, methods=["POST"])
@@ -318,7 +320,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
             leida=False, prioridad__in=["urgente", "critica"],
         )
 
-        serializer = NotificacionListSerializer(notificaciones, many=True)
+        serializer = NotificacionListSerializer(notificaciones, many=True, context=self.get_serializer_context())
         return Response({"count": notificaciones.count(), "results": serializer.data})
 
 

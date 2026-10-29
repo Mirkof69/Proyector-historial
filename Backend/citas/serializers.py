@@ -1,11 +1,10 @@
 """Serializers module."""
-from datetime import datetime
 from typing import Any, cast
 
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Cita, Disponibilidad, HistorialCita
+from .models import Cita, Disponibilidad, HistorialCita, validar_turno
 
 
 class DisponibilidadSerializer(serializers.ModelSerializer):
@@ -329,46 +328,30 @@ class CitaCreateUpdateSerializer(serializers.ModelSerializer):
                 {"medico": "El usuario debe tener rol de médico"},
             )
 
-        # No permitir citas en el pasado
-        if attrs.get("fecha_cita") and attrs.get("hora_cita"):
-            fecha_hora_cita = timezone.make_aware(
-                datetime.combine(attrs["fecha_cita"], attrs["hora_cita"]),
-            )
-            if fecha_hora_cita < timezone.now():
-                raise serializers.ValidationError(
-                    {"fecha_cita": "No se pueden agendar citas en el pasado"},
-                )
-
-        # Validar que no exista otra cita en el mismo horario para el médico
-        if attrs.get("medico") and attrs.get("fecha_cita") and attrs.get("hora_cita"):
-            citas_existentes = Cita.objects.filter(
-                medico=attrs["medico"],
-                fecha_cita=attrs["fecha_cita"],
-                hora_cita=attrs["hora_cita"],
-                estado__in=["agendada", "confirmada"],
-            )
-
-            # Excluir la cita actual si estamos actualizando
-            if self.instance:
-                citas_existentes = citas_existentes.exclude(pk=self.instance.pk)
-
-            if citas_existentes.exists():
-                raise serializers.ValidationError(
-                    {
-                        "hora_cita": "El médico ya tiene una cita agendada en este horario",
-                    },
-                )
+        # Turno en el pasado u ocupado (médico o paciente). Al editar, solo si se
+        # cambia la fecha, la hora, el médico o la paciente: corregir las
+        # observaciones de una cita de esta mañana no es «agendar en el pasado».
+        actual = {campo: attrs.get(campo, getattr(self.instance, campo, None))
+                  for campo in ("medico", "paciente", "fecha_cita", "hora_cita")}
+        cambia = self.instance is None or any(
+            campo in attrs and attrs[campo] != getattr(self.instance, campo) for campo in actual)
+        if cambia and actual["fecha_cita"] and actual["hora_cita"]:
+            errores = validar_turno(
+                getattr(actual["medico"], "pk", None), getattr(actual["paciente"], "pk", None),
+                actual["fecha_cita"], actual["hora_cita"], getattr(self.instance, "pk", None))
+            if errores:
+                raise serializers.ValidationError(errores)
 
         # Validar que el horario esté dentro de la disponibilidad del médico
-        if attrs.get("medico") and attrs.get("fecha_cita") and attrs.get("hora_cita"):
-            dia_semana = attrs["fecha_cita"].weekday()
+        if cambia and actual["medico"] and actual["fecha_cita"] and actual["hora_cita"]:
+            dia_semana = actual["fecha_cita"].weekday()
 
             disponibilidad = Disponibilidad.objects.filter(
-                medico=attrs["medico"],
+                medico=actual["medico"],
                 dia_semana=dia_semana,
                 activo=True,
-                hora_inicio__lte=attrs["hora_cita"],
-                hora_fin__gt=attrs["hora_cita"],
+                hora_inicio__lte=actual["hora_cita"],
+                hora_fin__gt=actual["hora_cita"],
             )
 
             # Verificar vigencia si existe
@@ -377,7 +360,7 @@ class CitaCreateUpdateSerializer(serializers.ModelSerializer):
                 assert disp is not None
                 if (
                     disp.fecha_inicio_vigencia
-                    and attrs["fecha_cita"] < disp.fecha_inicio_vigencia
+                    and actual["fecha_cita"] < disp.fecha_inicio_vigencia
                 ):
                     raise serializers.ValidationError(
                         {
@@ -386,13 +369,21 @@ class CitaCreateUpdateSerializer(serializers.ModelSerializer):
                     )
                 if (
                     disp.fecha_fin_vigencia
-                    and attrs["fecha_cita"] > disp.fecha_fin_vigencia
+                    and actual["fecha_cita"] > disp.fecha_fin_vigencia
                 ):
                     raise serializers.ValidationError(
                         {
                             "fecha_cita": "La fecha está fuera de la vigencia de disponibilidad del médico",
                         },
                     )
+                # Solo los turnos de la agenda: se aceptaban las 09:17, que no
+                # coinciden con ningún turno y se solapan con los vecinos.
+                hora = actual["hora_cita"]
+                if (hora.hour, hora.minute) not in {(h.hour, h.minute) for h in disp.horas_disponibles}:
+                    raise serializers.ValidationError({
+                        "hora_cita": f"Elija un turno de la agenda: cada {disp.duracion_cita} min "
+                                     f"desde las {disp.hora_inicio:%H:%M}.",
+                    })
             else:
                 raise serializers.ValidationError(
                     {

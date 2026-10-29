@@ -10,6 +10,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { leerContextoClinico } from '../../components/clinico/SelectoresClinicos';
 import { partosService, Recomendacion, AlertaParto } from '../../services/partosService';
 import { embarazosService, Embarazo } from '../../services/embarazosService';
+import { decimalesANumero } from '../../utils/decimales';
 import { FRONTEND_ROUTES } from '../../config/routes';
 import dayjs from 'dayjs';
 import { computarAlertasEdadGestacional, computarRecomendacionesPorTrimestre } from './partoUtils';
@@ -154,7 +155,8 @@ const FormularioParto: React.FC = () => {
         if (rn) {
           formValues.sexo_bebe = rn.sexo;
           formValues.peso_bebe = rn.peso_nacimiento;
-          formValues.talla_bebe = rn.talla_nacimiento;
+          // Decimal: llega como texto y la regla de rango lo rechazaba al editar.
+          formValues.talla_bebe = decimalesANumero(rn, ['talla_nacimiento']).talla_nacimiento;
           formValues.apgar_1min = rn.apgar_1_minuto;
           formValues.apgar_5min = rn.apgar_5_minutos;
         }

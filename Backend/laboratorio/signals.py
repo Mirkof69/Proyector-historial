@@ -14,7 +14,7 @@ from django.dispatch import receiver
 from notificaciones.models import PrioridadNotificacion, TipoNotificacion
 from notificaciones.services import crear_notificacion_clinica
 
-from .models import ExamenLaboratorio, ResultadoLaboratorio, ValorReferencia
+from .models import ExamenLaboratorio, ResultadoLaboratorio
 
 
 def _medico_del_resultado(resultado):
@@ -130,22 +130,20 @@ def examen_completado(sender, instance, created, **kwargs):
 
 
 def verificar_resultado_critico(resultado):
-    """True si el valor cae 30% fuera del rango de referencia."""
-    if resultado.valor_numerico is None or not getattr(resultado, "valor_referencia", None):
+    """True si el resultado es crítico según SU parámetro.
+
+    Con límites críticos configurados manda `es_critico` (lo calcula
+    `interpretar_resultado` con esos límites). Sin ellos, crítico es caer un
+    30 % fuera del rango normal del mismo parámetro. Antes se comparaba con el
+    primer parámetro del tipo de examen: una hemoglobina de 11,9 g/dL se medía
+    contra los basófilos (0-1 %) y salía «CRÍTICO».
+    """
+    rango = getattr(resultado, "valor_referencia", None)
+    if resultado.valor_numerico is None or not rango:
         return False
-    rango = obtener_rango_referencia(resultado)
-    if not rango:
-        return False
-    if rango.valor_minimo is not None and resultado.valor_numerico < (rango.valor_minimo * Decimal("0.7")):
+    if rango.es_critico_bajo is not None or rango.es_critico_alto is not None:
+        return bool(resultado.es_critico)
+    valor = Decimal(str(resultado.valor_numerico))
+    if rango.valor_minimo is not None and valor < rango.valor_minimo * Decimal("0.7"):
         return True
-    return bool(rango.valor_maximo is not None and resultado.valor_numerico > rango.valor_maximo * Decimal("1.3"))
-
-
-def obtener_rango_referencia(resultado):
-    """Rango de referencia aplicable para un resultado (o None)."""
-    try:
-        return ValorReferencia.objects.filter(
-            tipo_examen=resultado.valor_referencia.tipo_examen,
-        ).first()
-    except Exception:
-        return None
+    return bool(rango.valor_maximo is not None and valor > rango.valor_maximo * Decimal("1.3"))

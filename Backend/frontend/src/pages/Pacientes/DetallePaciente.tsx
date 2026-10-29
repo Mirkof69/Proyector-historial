@@ -30,6 +30,7 @@ import './Pacientes.css';
 import DetallePacienteGraficas from './components/DetallePacienteGraficas';
 import DetallePacienteInfo from './components/DetallePacienteInfo';
 import DetallePacienteTabs from './components/DetallePacienteTabs';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const { Title } = Typography;
 
@@ -37,6 +38,7 @@ const DetallePaciente: React.FC = () => {
   const { message } = useAntdApp();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
 
   // Estados principales
   const [paciente, setPaciente] = useState<Paciente | null>(null);
@@ -59,7 +61,14 @@ const DetallePaciente: React.FC = () => {
     };
   }, []);
 
-  // Función para mostrar estado civil según género
+  // Recepción abre esta ficha (sus avisos llevan aquí) pero no ve lo clínico:
+  // antes se pedía igual, el servidor respondía 403 y la pantalla terminaba en
+  // «Acceso Restringido». Un apartado que falla tampoco tumba toda la ficha.
+  const veClinica = hasPermission('view_controlprenatal');
+  // Recibe una FUNCIÓN: con la promesa ya creada la petición salía igual.
+  const clinico = <T,>(pedir: () => Promise<T>, vacio: T): Promise<T> =>
+    (veClinica ? pedir().catch(() => vacio) : Promise.resolve(vacio));
+
   const fetchData = async (pacienteId: number) => {
     loadingRef.current = true;
     try {
@@ -74,18 +83,17 @@ const DetallePaciente: React.FC = () => {
         ecografiasData,
       ] = await Promise.all([
         pacientesService.getById(pacienteId),
-        pacientesService.getEmbarazos(pacienteId),
-        triajeService.listar().then(data => Array.isArray(data) ? data.filter((t: any) => t.paciente === pacienteId) : []),
-        antecedentesService.listar().then(data => Array.isArray(data) ? data.filter((a: any) => (a.paciente_id || a.paciente) === pacienteId) : []),
-        notasEvolucionService.getNotas({ page_size: 1000 }).then(res => {
-          const data = res.results || res;
-          return Array.isArray(data) ? data.filter((n: any) => n.paciente === pacienteId) : [];
-        }),
-        vacunasService.getRegistros({ page_size: 1000 }).then(res => {
-          const data = res.results || res;
-          return Array.isArray(data) ? data.filter((v: any) => v.paciente === pacienteId) : [];
-        }),
-        ecografiasService.obtenerPorPaciente(pacienteId),
+        clinico(() => pacientesService.getEmbarazos(pacienteId), []),
+        // Filtrado en el servidor: antes se bajaban todos los registros del
+        // hospital (las notas y vacunas, solo los primeros 1000) y se filtraba
+        // aquí, así que a una paciente le faltaban los suyos.
+        clinico(() => triajeService.listar({ paciente: pacienteId }), []),
+        clinico(() => antecedentesService.listar(pacienteId), []),
+        clinico(() => notasEvolucionService.getNotasPorPaciente(pacienteId, { page_size: 1000 })
+          .then((res: any) => res.results || res), []),
+        clinico(() => vacunasService.getRegistros({ paciente: pacienteId, page_size: 1000 })
+          .then((res: any) => res.results || res), []),
+        clinico(() => ecografiasService.obtenerPorPaciente(pacienteId), []),
       ]);
 
       if (isMounted.current) {

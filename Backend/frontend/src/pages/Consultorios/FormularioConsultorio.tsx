@@ -13,6 +13,7 @@ import {Card, Form, Input, Select, InputNumber, Button, Switch,
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { consultoriosService } from '../../services/consultoriosService';
+import { aplanarErrores } from '../../utils/erroresApi';
 import './Consultorios.css';
 
 const { Option } = Select;
@@ -56,8 +57,10 @@ const FormularioConsultorio: React.FC = () => {
         message.success('Consultorio creado exitosamente');
       }
       navigate('/dashboard/consultorios');
-    } catch (error) {
-      message.error(esEdicion ? 'Error actualizando consultorio' : 'Error creando consultorio');
+    } catch (error: any) {
+      // El motivo del servidor (código repetido, campo vacío…), no solo «Error».
+      const motivos = aplanarErrores(error?.response?.data);
+      message.error(`${esEdicion ? 'No se actualizó el consultorio' : 'No se creó el consultorio'}${motivos.length ? `: ${motivos.join(' · ')}` : ''}`);
     } finally {
       setLoading(false);
     }
@@ -90,7 +93,7 @@ const FormularioConsultorio: React.FC = () => {
             tiene_oxigeno: false,
             tiene_aspirador: false,
             estado: 'disponible',
-            capacidad: 1,
+            capacidad_personas: 1,
           }}
         >
           {/* Información Básica */}
@@ -155,6 +158,15 @@ const FormularioConsultorio: React.FC = () => {
             </Col>
           </Row>
 
+          {/* El modelo exige la ubicación: sin este campo no se podía crear ningún consultorio. */}
+          <Form.Item
+            label="Ubicación"
+            name="ubicacion"
+            rules={[{ required: true, message: 'Indique dónde está el consultorio' }]}
+          >
+            <Input maxLength={100} placeholder="Ej: Planta baja, pasillo de Maternidad" />
+          </Form.Item>
+
           <Row gutter={16}>
             <Col xs={24} md={8}>
               <Form.Item
@@ -175,7 +187,7 @@ const FormularioConsultorio: React.FC = () => {
             <Col xs={24} md={8}>
               <Form.Item
                 label="Capacidad"
-                name="capacidad"
+                name="capacidad_personas"
               >
                 <InputNumber min={1} max={20} style={{ width: '100%' }} />
               </Form.Item>

@@ -14,6 +14,13 @@ jest.mock('../../hooks/useMessage', () => ({
 }));
 
 jest.mock('../../services/iaMedicaService');
+// La galería busca pacientes en el servidor (PacienteSelect): sin esto la prueba
+// salía a la red de verdad y, lenta, se pasaba de los 5 s.
+jest.mock('../../services/api', () => ({
+  __esModule: true,
+  default: { get: jest.fn().mockResolvedValue({ data: { results: [] } }), post: jest.fn() },
+  API_URL: 'http://x/api',
+}));
 jest.mock('../../services/pacientesService', () => ({
   __esModule: true,
   default: { listar: jest.fn().mockResolvedValue([]) },

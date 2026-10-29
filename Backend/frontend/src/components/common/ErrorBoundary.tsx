@@ -4,6 +4,27 @@ import { WarningOutlined, ReloadOutlined, HomeOutlined } from '@ant-design/icons
 
 const { Paragraph } = Typography;
 
+// Cada compilación vacía build/: una pestaña abierta antes sigue pidiendo los
+// archivos de la versión anterior y la pantalla diferida no carga. Basta recargar
+// para tomar la versión nueva; se hace sola, una vez por minuto como máximo.
+const CLAVE_RECARGA = 'recarga-por-version-nueva';
+
+export function esVersionNueva(error: Error | null): boolean {
+  return !!error && (error.name === 'ChunkLoadError' || /Loading (CSS )?chunk [\w-]+ failed/i.test(error.message));
+}
+
+function recargarUnaVez(): boolean {
+  try {
+    const ultima = Number(sessionStorage.getItem(CLAVE_RECARGA) || 0);
+    if (Date.now() - ultima < 60_000) return false;
+    sessionStorage.setItem(CLAVE_RECARGA, String(Date.now()));
+  } catch {
+    return false;
+  }
+  window.location.reload();
+  return true;
+}
+
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
@@ -27,6 +48,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    if (esVersionNueva(error) && recargarUnaVez()) return;
     console.error('ErrorBoundary caught error:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
@@ -61,17 +83,19 @@ class ErrorBoundary extends Component<Props, State> {
           <Result
             status="error"
             icon={<WarningOutlined style={{ fontSize: 72, color: 'var(--color-peligro)' }} />}
-            title="Error Inesperado en la Aplicacion"
-            subTitle="El sistema ha encontrado un problema tecnico. Por favor, intente recargar la pagina o volver al inicio."
+            title={esVersionNueva(this.state.error) ? 'Hay una versión nueva del sistema' : 'Error inesperado en la aplicación'}
+            subTitle={esVersionNueva(this.state.error)
+              ? 'Recargue la página para usar la versión actualizada.'
+              : 'El sistema encontró un problema técnico. Recargue la página o vuelva al inicio.'}
             extra={[
               <Button
                 type="primary"
                 key="reload"
                 icon={<ReloadOutlined />}
                 onClick={this.handleReset}
-                aria-label="Recargar pagina"
+                aria-label="Recargar página"
               >
-                Recargar Pagina
+                Recargar página
               </Button>,
               <Button
                 key="home"
@@ -79,7 +103,7 @@ class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleGoHome}
                 aria-label="Volver al inicio"
               >
-                Volver al Inicio
+                Volver al inicio
               </Button>,
             ]}
           >

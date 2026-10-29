@@ -37,6 +37,22 @@ from .services.risk_calculator import RiskCalculator
 logger = logging.getLogger(__name__)
 
 
+def _notas_con_mediciones(data):
+    """Notas del cálculo con la presión y el IP uterino que lo alimentaron.
+
+    Antes se guardaban en DopplerMaterno, que es el Doppler por lado (PS, ED, IP)
+    y no tiene esos campos: con la presión cargada, el cálculo respondía 500.
+    """
+    partes = [str(data.get("notas_adicionales") or "").strip()]
+    if data.get("pas_mmhg") and data.get("pad_mmhg"):
+        partes.append(f"PA {data['pas_mmhg']}/{data['pad_mmhg']} mmHg")
+    ip = [f"{lado} {data[campo]}" for lado, campo in (("izq.", "utpi_izquierda"), ("der.", "utpi_derecha"))
+          if data.get(campo) not in (None, "")]
+    if ip:
+        partes.append("IP uterino " + ", ".join(ip))
+    return " · ".join(p for p in partes if p)
+
+
 def riesgo_preeclampsia_unificado(data):
     """Adapta los datos de CalculadoraRiesgo al motor FMF único."""
     from .services.calculador_riesgos_fmf import CalculadorRiesgosFMF
@@ -260,7 +276,7 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
             recomendaciones="\n".join(resultado_riesgo["recomendaciones"]),
             conducta_sugerida=resultado_riesgo["conducta_sugerida"],
             calculado_por=request.user,
-            notas_adicionales=data.get("notas_adicionales", ""),
+            notas_adicionales=_notas_con_mediciones(data),
         )
 
         # 4. Guardar biomarcadores MoM
@@ -281,17 +297,7 @@ class CalculadoraRiesgoViewSet(viewsets.ModelViewSet):
                 correccion_diabetes=_D(str(resultado["correcciones"].get("diabetes", 1.0))),
             )
 
-        # 5. Guardar doppler si existe
-        if data.get("pas_mmhg") and data.get("pad_mmhg"):
-            DopplerMaterno.objects.create(
-                calculadora=calculadora,
-                pas_mmhg=data["pas_mmhg"],
-                pad_mmhg=data["pad_mmhg"],
-                utpi_izquierda=data.get("utpi_izquierda"),
-                utpi_derecha=data.get("utpi_derecha"),
-            )
-
-        # 6. Serializar y devolver
+        # 5. Serializar y devolver
         serializer_output = CalculadoraRiesgoSerializer(calculadora)
 
         return Response(
@@ -599,14 +605,11 @@ class HemogramaViewSet(viewsets.ModelViewSet):
         return HemogramaSerializer
 
     def perform_create(self, serializer):
-        """TRAZABILIDAD: Crear hemograma y asignar médico solicitante y created_by"""
+        """TRAZABILIDAD: el médico que lo solicita (el modelo no tiene created_by:
+        pasarlo hacía que el alta respondiera 500)."""
         serializer.save(
-            medico_solicitante=self.request.user, created_by=self.request.user,
+            medico_solicitante=self.request.user,
         )
-
-    def perform_update(self, serializer):
-        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
-        serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="por_paciente")
     def por_paciente(self, request):
@@ -726,14 +729,11 @@ class BioquimicaViewSet(viewsets.ModelViewSet):
         return BioquimicaSerializer
 
     def perform_create(self, serializer):
-        """TRAZABILIDAD: Crear bioquímica y asignar médico solicitante y created_by"""
+        """TRAZABILIDAD: el médico que lo solicita (el modelo no tiene created_by:
+        pasarlo hacía que el alta respondiera 500)."""
         serializer.save(
-            medico_solicitante=self.request.user, created_by=self.request.user,
+            medico_solicitante=self.request.user,
         )
-
-    def perform_update(self, serializer):
-        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
-        serializer.save(updated_by=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="por_paciente")
     def por_paciente(self, request):

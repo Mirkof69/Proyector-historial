@@ -34,27 +34,27 @@ class TipoReporte(models.Model):
     # INFORMACIÓN BÁSICA
     nombre = models.CharField(
         max_length=200,
-        verbose_name=" Nombre del Reporte",
+        verbose_name="Nombre del Reporte",
         help_text="Ej: Reporte de Pacientes del Mes",
     )
 
     codigo = models.CharField(
         max_length=50,
         unique=True,
-        verbose_name=" Código Único",
+        verbose_name="Código Único",
         help_text="Código interno (se genera automáticamente si se deja vacío)",
         blank=True,
     )
 
     descripcion = models.TextField(
-        verbose_name=" Descripción",
+        verbose_name="Descripción",
         help_text="Describe qué información incluye este reporte",
     )
 
     categoria = models.CharField(
         max_length=20,
         choices=CATEGORIA_CHOICES,
-        verbose_name=" Categoría del Reporte",
+        verbose_name="Categoría del Reporte",
     )
 
     frecuencia = models.CharField(
@@ -67,19 +67,19 @@ class TipoReporte(models.Model):
     # CONFIGURACIÓN SIMPLE
     automatico = models.BooleanField(
         default=False,
-        verbose_name=" ¿Generar automáticamente",
+        verbose_name="¿Generar automáticamente",
         help_text="Si está activado, el reporte se generará según la frecuencia seleccionada",
     )
 
     requiere_parametros = models.BooleanField(
         default=False,
-        verbose_name=" ¿Requiere parámetros adicionales",
+        verbose_name="¿Requiere parámetros adicionales",
         help_text="Indica si el usuario debe configurar parámetros específicos",
     )
 
     confidencial = models.BooleanField(
         default=False,
-        verbose_name=" ¿Es confidencial",
+        verbose_name="¿Es confidencial",
         help_text="Solo usuarios autorizados podrán ver este reporte",
     )
 
@@ -87,59 +87,59 @@ class TipoReporte(models.Model):
 
     # FILTROS DISPONIBLES
     incluir_fecha_inicio = models.BooleanField(
-        default=True, verbose_name=" ¿Permitir filtrar por fecha de inicio",
+        default=True, verbose_name="¿Permitir filtrar por fecha de inicio",
     )
 
     incluir_fecha_fin = models.BooleanField(
-        default=True, verbose_name=" ¿Permitir filtrar por fecha de fin",
+        default=True, verbose_name="¿Permitir filtrar por fecha de fin",
     )
 
     incluir_paciente = models.BooleanField(
-        default=False, verbose_name=" ¿Permitir filtrar por paciente específico",
+        default=False, verbose_name="¿Permitir filtrar por paciente específico",
     )
 
     incluir_medico = models.BooleanField(
-        default=False, verbose_name="‍¿Permitir filtrar por médico",
+        default=False, verbose_name="¿Permitir filtrar por médico",
     )
 
     incluir_servicio = models.BooleanField(
-        default=False, verbose_name=" ¿Permitir filtrar por servicio médico",
+        default=False, verbose_name="¿Permitir filtrar por servicio médico",
     )
 
     # PERMISOS DE ACCESO
     permitir_medico = models.BooleanField(
-        default=True, verbose_name="‍¿Los médicos pueden generar este reporte",
+        default=True, verbose_name="¿Los médicos pueden generar este reporte",
     )
 
     permitir_enfermero = models.BooleanField(
-        default=False, verbose_name="‍¿Los enfermeros pueden generar este reporte",
+        default=False, verbose_name="¿Los enfermeros pueden generar este reporte",
     )
 
     permitir_administrador = models.BooleanField(
         default=True,
-        verbose_name=" ¿Los administradores pueden generar este reporte",
+        verbose_name="¿Los administradores pueden generar este reporte",
     )
 
     permitir_director = models.BooleanField(
-        default=True, verbose_name=" ¿El director médico puede generar este reporte",
+        default=True, verbose_name="¿El director médico puede generar este reporte",
     )
 
     # FORMATOS DISPONIBLES
     formato_pdf = models.BooleanField(
         default=True,
-        verbose_name=" ¿Disponible en PDF",
+        verbose_name="¿Disponible en PDF",
         help_text="Formato ideal para imprimir y compartir",
     )
 
     formato_excel = models.BooleanField(
         default=True,
-        verbose_name=" ¿Disponible en Excel",
+        verbose_name="¿Disponible en Excel",
         help_text="Formato ideal para análisis de datos",
     )
 
     formato_csv = models.BooleanField(
         default=False,
-        verbose_name=" ¿Disponible en CSV",
+        verbose_name="¿Disponible en CSV",
         help_text="Formato simple para importar en otros sistemas",
     )
 
@@ -322,13 +322,13 @@ class ReporteGenerado(models.Model):
 
     # INFORMACIÓN BÁSICA
     tipo_reporte = models.ForeignKey(
-        TipoReporte, on_delete=models.CASCADE, verbose_name=" Tipo de Reporte",
+        TipoReporte, on_delete=models.CASCADE, verbose_name="Tipo de Reporte",
     )
 
     usuario_solicitante = models.ForeignKey(
         "usuarios.Usuario",
         on_delete=models.CASCADE,
-        verbose_name=" Usuario que solicitó el reporte",
+        verbose_name="Usuario que solicitó el reporte",
         related_name="reportes_solicitados",
     )
 
@@ -336,14 +336,14 @@ class ReporteGenerado(models.Model):
         max_length=20,
         choices=ESTADO_CHOICES,
         default="pendiente",
-        verbose_name=" Estado del reporte",
+        verbose_name="Estado del reporte",
     )
 
     formato = models.CharField(
         max_length=10,
         choices=FORMATO_CHOICES,
         default="pd",
-        verbose_name=" Formato de descarga",
+        verbose_name="Formato de descarga",
     )
 
     # PARÁMETROS Y FILTROS
@@ -354,11 +354,11 @@ class ReporteGenerado(models.Model):
     )
 
     fecha_inicio = models.DateField(
-        null=True, blank=True, verbose_name=" Fecha de inicio del período",
+        null=True, blank=True, verbose_name="Fecha de inicio del período",
     )
 
     fecha_fin = models.DateField(
-        null=True, blank=True, verbose_name=" Fecha de fin del período",
+        null=True, blank=True, verbose_name="Fecha de fin del período",
     )
 
     filtro_paciente = models.ForeignKey(
@@ -366,7 +366,7 @@ class ReporteGenerado(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=" Paciente específico",
+        verbose_name="Paciente específico",
     )
 
     filtro_medico = models.ForeignKey(
@@ -374,17 +374,17 @@ class ReporteGenerado(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name="‍Médico específico",
+        verbose_name="Médico específico",
         related_name="reportes_filtrados",
     )
 
     filtro_servicio = models.CharField(
-        max_length=100, blank=True, verbose_name=" Servicio médico",
+        max_length=100, blank=True, verbose_name="Servicio médico",
     )
 
     # FECHAS IMPORTANTES
     fecha_solicitud = models.DateTimeField(
-        auto_now_add=True, verbose_name=" Fecha de solicitud",
+        auto_now_add=True, verbose_name="Fecha de solicitud",
     )
 
     fecha_procesamiento = models.DateTimeField(
@@ -401,24 +401,24 @@ class ReporteGenerado(models.Model):
 
     # INFORMACIÓN DEL ARCHIVO
     ruta_archivo = models.CharField(
-        max_length=500, blank=True, verbose_name=" Ruta del archivo",
+        max_length=500, blank=True, verbose_name="Ruta del archivo",
     )
 
     tamano_archivo = models.IntegerField(
-        null=True, blank=True, verbose_name=" Tamaño del archivo (bytes)",
+        null=True, blank=True, verbose_name="Tamaño del archivo (bytes)",
     )
 
     hash_archivo = models.CharField(
-        max_length=128, blank=True, verbose_name=" Hash de seguridad del archivo",
+        max_length=128, blank=True, verbose_name="Hash de seguridad del archivo",
     )
 
     accesos_descarga = models.IntegerField(
-        default=0, verbose_name=" Número de descargas",
+        default=0, verbose_name="Número de descargas",
     )
 
     # RESUMEN DE RESULTADOS
     total_registros = models.IntegerField(
-        null=True, blank=True, verbose_name=" Total de registros incluidos",
+        null=True, blank=True, verbose_name="Total de registros incluidos",
     )
 
     datos_resumen = models.JSONField(
@@ -428,7 +428,7 @@ class ReporteGenerado(models.Model):
     )
 
     observaciones = models.TextField(
-        blank=True, verbose_name=" Observaciones adicionales",
+        blank=True, verbose_name="Observaciones adicionales",
     )
 
     # MANEJO DE ERRORES
@@ -514,22 +514,22 @@ class DashboardKPI(models.Model):
     # INFORMACIÓN BÁSICA
     nombre = models.CharField(
         max_length=200,
-        verbose_name=" Nombre del Indicador",
+        verbose_name="Nombre del Indicador",
         help_text="Ej: Total de Pacientes Activos",
     )
 
-    codigo = models.CharField(max_length=50, unique=True, verbose_name=" Código único")
+    codigo = models.CharField(max_length=50, unique=True, verbose_name="Código único")
 
     descripcion = models.TextField(
-        verbose_name=" Descripción", help_text="Explica qué mide este indicador",
+        verbose_name="Descripción", help_text="Explica qué mide este indicador",
     )
 
     categoria = models.CharField(
-        max_length=20, choices=CATEGORIA_KPI_CHOICES, verbose_name=" Categoría",
+        max_length=20, choices=CATEGORIA_KPI_CHOICES, verbose_name="Categoría",
     )
 
     tipo = models.CharField(
-        max_length=20, choices=TIPO_KPI_CHOICES, verbose_name=" Tipo de indicador",
+        max_length=20, choices=TIPO_KPI_CHOICES, verbose_name="Tipo de indicador",
     )
 
     # CONFIGURACIÓN DEL CÁLCULO
@@ -548,7 +548,7 @@ class DashboardKPI(models.Model):
         max_length=20,
         choices=FRECUENCIA_CHOICES,
         default="diario",
-        verbose_name=" ¿Con qué frecuencia se actualiza",
+        verbose_name="¿Con qué frecuencia se actualiza",
     )
 
     # VALORES ACTUALES
@@ -557,7 +557,7 @@ class DashboardKPI(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=" Valor actual",
+        verbose_name="Valor actual",
     )
 
     valor_anterior = models.DecimalField(
@@ -565,7 +565,7 @@ class DashboardKPI(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=" Valor anterior",
+        verbose_name="Valor anterior",
     )
 
     # METAS Y UMBRALES
@@ -574,7 +574,7 @@ class DashboardKPI(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=" Meta mínima aceptable",
+        verbose_name="Meta mínima aceptable",
     )
 
     meta_optima = models.DecimalField(
@@ -582,13 +582,13 @@ class DashboardKPI(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name=" Meta óptima",
+        verbose_name="Meta óptima",
     )
 
     unidad_medida = models.CharField(
         max_length=20,
         blank=True,
-        verbose_name=" Unidad de medida",
+        verbose_name="Unidad de medida",
         help_text="Ej: pacientes, %, minutos, días",
     )
 
@@ -608,27 +608,27 @@ class DashboardKPI(models.Model):
     icono = models.CharField(
         max_length=50,
         blank=True,
-        verbose_name=" Icono",
+        verbose_name="Icono",
         help_text="Nombre del icono (opcional)",
     )
 
     orden_dashboard = models.IntegerField(
-        default=0, verbose_name=" Orden en el dashboard",
+        default=0, verbose_name="Orden en el dashboard",
     )
 
     # CONTROL DE ACCESO
     activo = models.BooleanField(default=True, verbose_name="¿Está activo")
 
     visible_medico = models.BooleanField(
-        default=True, verbose_name="‍¿Visible para médicos",
+        default=True, verbose_name="¿Visible para médicos",
     )
 
     visible_administrador = models.BooleanField(
-        default=True, verbose_name=" ¿Visible para administradores",
+        default=True, verbose_name="¿Visible para administradores",
     )
 
     visible_director = models.BooleanField(
-        default=True, verbose_name=" ¿Visible para director",
+        default=True, verbose_name="¿Visible para director",
     )
 
     # COMPATIBILIDAD CON VERSION ANTERIOR
@@ -764,12 +764,12 @@ class AlertaMedica(models.Model):
     ]
 
     # INFORMACIÓN BÁSICA
-    titulo = models.CharField(max_length=200, verbose_name=" Título de la alerta")
+    titulo = models.CharField(max_length=200, verbose_name="Título de la alerta")
 
-    descripcion = models.TextField(verbose_name=" Descripción detallada")
+    descripcion = models.TextField(verbose_name="Descripción detallada")
 
     tipo = models.CharField(
-        max_length=30, choices=TIPO_ALERTA_CHOICES, verbose_name=" Tipo de alerta",
+        max_length=30, choices=TIPO_ALERTA_CHOICES, verbose_name="Tipo de alerta",
     )
 
     prioridad = models.CharField(
@@ -780,7 +780,7 @@ class AlertaMedica(models.Model):
         max_length=15,
         choices=ESTADO_CHOICES,
         default="activa",
-        verbose_name=" Estado actual",
+        verbose_name="Estado actual",
     )
 
     # CONTEXTO MÉDICO
@@ -789,7 +789,7 @@ class AlertaMedica(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name=" Paciente",
+        verbose_name="Paciente",
     )
 
     embarazo = models.ForeignKey(
@@ -797,7 +797,7 @@ class AlertaMedica(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name=" Embarazo",
+        verbose_name="Embarazo",
     )
 
     medico_responsable = models.ForeignKey(
@@ -805,16 +805,16 @@ class AlertaMedica(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name="‍Médico Responsable",
+        verbose_name="Médico Responsable",
         related_name="alertas_responsable",
     )
 
     modulo_origen = models.CharField(
-        max_length=50, choices=MODULOS_CHOICES, verbose_name=" Módulo de origen",
+        max_length=50, choices=MODULOS_CHOICES, verbose_name="Módulo de origen",
     )
 
     registro_origen_id = models.IntegerField(
-        null=True, blank=True, verbose_name=" ID del registro relacionado",
+        null=True, blank=True, verbose_name="ID del registro relacionado",
     )
 
     # COMPATIBILIDAD CON VERSION ANTERIOR
@@ -826,7 +826,7 @@ class AlertaMedica(models.Model):
 
     # VALORES DE LA ALERTA
     valor_actual = models.CharField(
-        max_length=100, blank=True, verbose_name=" Valor actual",
+        max_length=100, blank=True, verbose_name="Valor actual",
     )
 
     valor_umbral = models.CharField(
@@ -834,15 +834,15 @@ class AlertaMedica(models.Model):
     )
 
     # RECOMENDACIONES
-    accion_recomendada = models.TextField(verbose_name=" Acción recomendada")
+    accion_recomendada = models.TextField(verbose_name="Acción recomendada")
 
     protocolo_seguimiento = models.TextField(
-        blank=True, verbose_name=" Protocolo de seguimiento",
+        blank=True, verbose_name="Protocolo de seguimiento",
     )
 
     # FECHAS IMPORTANTES
     fecha_creacion = models.DateTimeField(
-        auto_now_add=True, verbose_name=" Fecha de creación",
+        auto_now_add=True, verbose_name="Fecha de creación",
     )
 
     fecha_vencimiento = models.DateTimeField(
@@ -850,7 +850,7 @@ class AlertaMedica(models.Model):
     )
 
     fecha_revision = models.DateTimeField(
-        null=True, blank=True, verbose_name=" Fecha de revisión",
+        null=True, blank=True, verbose_name="Fecha de revisión",
     )
 
     fecha_resolucion = models.DateTimeField(
@@ -863,7 +863,7 @@ class AlertaMedica(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=" Usuario que revisó",
+        verbose_name="Usuario que revisó",
         related_name="alertas_revisadas",
     )
 
@@ -872,30 +872,30 @@ class AlertaMedica(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=" Usuario que resolvió",
+        verbose_name="Usuario que resolvió",
         related_name="alertas_resueltas",
     )
 
     comentario_revision = models.TextField(
-        blank=True, verbose_name=" Comentario de revisión",
+        blank=True, verbose_name="Comentario de revisión",
     )
 
     comentario_resolucion = models.TextField(
-        blank=True, verbose_name=" Comentario de resolución",
+        blank=True, verbose_name="Comentario de resolución",
     )
 
     # NOTIFICACIONES
     notificacion_enviada = models.BooleanField(
-        default=False, verbose_name=" ¿Notificación enviada",
+        default=False, verbose_name="¿Notificación enviada",
     )
 
     recordatorio_enviado = models.BooleanField(
-        default=False, verbose_name=" ¿Recordatorio enviado",
+        default=False, verbose_name="¿Recordatorio enviado",
     )
 
     # ESCALAMIENTO
     escalamiento_automatico = models.BooleanField(
-        default=False, verbose_name=" ¿Escalamiento automático",
+        default=False, verbose_name="¿Escalamiento automático",
     )
 
     tiempo_escalamiento_horas = models.IntegerField(
@@ -974,14 +974,14 @@ class AuditoriaReporte(models.Model):
 
     # INFORMACIÓN BÁSICA
     reporte_generado = models.ForeignKey(
-        ReporteGenerado, on_delete=models.CASCADE, verbose_name=" Reporte",
+        ReporteGenerado, on_delete=models.CASCADE, verbose_name="Reporte",
     )
 
     usuario = models.ForeignKey(
         "usuarios.Usuario",
         on_delete=models.SET_NULL,
         null=True,
-        verbose_name=" Usuario",
+        verbose_name="Usuario",
     )
 
     accion = models.CharField(
@@ -989,13 +989,13 @@ class AuditoriaReporte(models.Model):
     )
 
     fecha_accion = models.DateTimeField(
-        auto_now_add=True, verbose_name=" Fecha y hora",
+        auto_now_add=True, verbose_name="Fecha y hora",
     )
 
     # INFORMACIÓN TÉCNICA
-    direccion_ip = models.GenericIPAddressField(verbose_name=" Dirección IP")
+    direccion_ip = models.GenericIPAddressField(verbose_name="Dirección IP")
 
-    user_agent = models.TextField(verbose_name=" Navegador/Dispositivo")
+    user_agent = models.TextField(verbose_name="Navegador/Dispositivo")
 
     # COMPATIBILIDAD CON VERSION ANTERIOR
     detalles = models.JSONField(
@@ -1010,11 +1010,11 @@ class AuditoriaReporte(models.Model):
     )
 
     justificacion_acceso = models.TextField(
-        blank=True, verbose_name=" Justificación del acceso",
+        blank=True, verbose_name="Justificación del acceso",
     )
 
     # DETALLES ADICIONALES
-    observaciones = models.TextField(blank=True, verbose_name=" Observaciones")
+    observaciones = models.TextField(blank=True, verbose_name="Observaciones")
 
     class Meta:
         """Meta"""

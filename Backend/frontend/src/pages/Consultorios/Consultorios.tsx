@@ -28,6 +28,7 @@ import MantenimientoFormModal from './components/MantenimientoFormModal';
 import EstadisticasDrawer from './components/EstadisticasDrawer';
 import DisponibilidadModal from './components/DisponibilidadModal';
 import { incluyeTexto } from '../../utils/texto';
+import { aplanarErrores } from '../../utils/erroresApi';
 import './Consultorios.css';
 
 const { Search } = Input;
@@ -179,10 +180,10 @@ const Consultorios: React.FC = () => {
       formModal.resetFields();
       cargarConsultorios();
     } catch (error: any) {
-      const errorMsg = modalMode === 'create'
-        ? 'Error creando consultorio'
-        : 'Error actualizando consultorio';
-      message.error(errorMsg);
+      // El motivo del servidor (código repetido, campo vacío…), no solo «Error».
+      const motivos = aplanarErrores(error?.response?.data);
+      const errorMsg = modalMode === 'create' ? 'No se creó el consultorio' : 'No se actualizó el consultorio';
+      message.error(`${errorMsg}${motivos.length ? `: ${motivos.join(' · ')}` : ''}`);
     } finally {
       setGuardando(false);
     }

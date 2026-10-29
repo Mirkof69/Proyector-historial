@@ -96,6 +96,8 @@ export interface HorarioDisponible {
     hora: string;
     disponible: boolean;
     motivo?: string;
+    /** La cita que ocupa el turno (null si está libre). */
+    cita_id?: number | null;
 }
 
 interface DisponibilidadMedico {
@@ -216,12 +218,15 @@ export const citasService = {
         }
     },
 
+    // Las acciones de estado son POST en el servidor: con PATCH respondían 405
+    // y confirmar, cancelar o marcar presente desde la pantalla nunca funcionaba.
+
     /**
      * Confirmar cita
      */
     async confirmar(id: number): Promise<Cita> {
         try {
-            const response = await api.patch<Cita>(`/citas/citas/${id}/confirmar/`, {});
+            const response = await api.post<Cita>(`/citas/citas/${id}/confirmar/`, {});
             return response.data;
         } catch (error) {
             console.error(`Error confirmando cita ${id}:`, error);
@@ -234,7 +239,7 @@ export const citasService = {
      */
     async cancelar(id: number): Promise<Cita> {
         try {
-            const response = await api.patch<Cita>(`/citas/citas/${id}/cancelar/`, {});
+            const response = await api.post<Cita>(`/citas/citas/${id}/cancelar/`, {});
             return response.data;
         } catch (error) {
             console.error(`Error cancelando cita ${id}:`, error);
@@ -247,10 +252,23 @@ export const citasService = {
      */
     async marcarPresente(id: number): Promise<Cita> {
         try {
-            const response = await api.patch<Cita>(`/citas/citas/${id}/marcar-presente/`, {});
+            const response = await api.post<Cita>(`/citas/citas/${id}/marcar-presente/`, {});
             return response.data;
         } catch (error) {
             console.error(`Error marcando presente cita ${id}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * La paciente no vino (el día de la cita o después)
+     */
+    async noAsistio(id: number): Promise<Cita> {
+        try {
+            const response = await api.post<Cita>(`/citas/citas/${id}/no-asistio/`, {});
+            return response.data;
+        } catch (error) {
+            console.error(`Error marcando no asistió cita ${id}:`, error);
             throw error;
         }
     },

@@ -14,12 +14,33 @@ from core.permissions import FetalMedicalPermission
 from core.exportacion import ExportarExcelMixin
 
 from .models import Cita, Disponibilidad, HistorialCita
+from .vencimiento import cerrar_citas_vencidas_hoy
 from .serializers import (
     CitaCreateUpdateSerializer,
     CitaDetailSerializer,
     CitaListSerializer,
     DisponibilidadSerializer,
 )
+
+
+def bloques_del_dia(medico_id, fecha):
+    """Bloques de atención del médico ese día y sus horas, ordenadas.
+
+    Un médico puede atender mañana y tarde (dos Disponibilidad el mismo día).
+    Con .first() solo contaba el primer bloque: los turnos de la tarde no se
+    ofrecían en «Nueva cita» y sus citas no salían en la agenda diaria.
+    Devuelve (bloques activos, bloques vigentes en esa fecha, horas vigentes).
+    """
+    bloques = list(Disponibilidad.objects.filter(
+        medico_id=medico_id, dia_semana=fecha.weekday(), activo=True,
+    ))
+    vigentes = [
+        b for b in bloques
+        if not (b.fecha_inicio_vigencia and fecha < b.fecha_inicio_vigencia)
+        and not (b.fecha_fin_vigencia and fecha > b.fecha_fin_vigencia)
+    ]
+    horas = sorted({hora for b in vigentes for hora in b.horas_disponibles})
+    return bloques, vigentes, horas
 
 
 class DisponibilidadViewSet(viewsets.ModelViewSet):
@@ -129,55 +150,23 @@ class DisponibilidadViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        dia_semana = fecha.weekday()
+        bloques, vigentes, horas_del_dia = bloques_del_dia(medico_id, fecha)
 
-        # Buscar disponibilidad del médico para ese día
-        disponibilidad = Disponibilidad.objects.filter(
-            medico_id=medico_id, dia_semana=dia_semana, activo=True,
-        ).first()
-
-        if not disponibilidad:
-            return Response(
-                {
-                    "fecha": fecha,
-                    "dia_semana": fecha.strftime("%A"),
-                    "tiene_disponibilidad": False,
-                    "horarios": [],
-                },
-            )
-
-        # Verificar vigencia
-        if (
-            disponibilidad.fecha_inicio_vigencia
-            and fecha < disponibilidad.fecha_inicio_vigencia
-        ):
-            return Response(
-                {
-                    "fecha": fecha,
-                    "dia_semana": fecha.strftime("%A"),
-                    "tiene_disponibilidad": False,
-                    "mensaje": "Fecha fuera de vigencia",
-                    "horarios": [],
-                },
-            )
-
-        if (
-            disponibilidad.fecha_fin_vigencia
-            and fecha > disponibilidad.fecha_fin_vigencia
-        ):
-            return Response(
-                {
-                    "fecha": fecha,
-                    "dia_semana": fecha.strftime("%A"),
-                    "tiene_disponibilidad": False,
-                    "mensaje": "Fecha fuera de vigencia",
-                    "horarios": [],
-                },
-            )
+        if not vigentes:
+            respuesta = {
+                "fecha": fecha,
+                "dia_semana": fecha.strftime("%A"),
+                "tiene_disponibilidad": False,
+                "horarios": [],
+            }
+            if bloques:
+                respuesta["mensaje"] = "Fecha fuera de vigencia"
+            return Response(respuesta)
 
         # Obtener citas ya agendadas para ese día
+        # También las que están en espera o en consulta: la paciente ya ocupa el turno.
         citas_agendadas = Cita.objects.filter(
-            medico_id=medico_id, fecha_cita=fecha, estado__in=["agendada", "confirmada"],
+            medico_id=medico_id, fecha_cita=fecha, estado__in=Cita.OCUPAN_TURNO,
         ).values_list(
             "hora_cita", "id", "paciente__nombre", "paciente__apellido_paterno",
         )
@@ -188,10 +177,15 @@ class DisponibilidadViewSet(viewsets.ModelViewSet):
             for hora, cita_id, nombre, apellido in citas_agendadas
         }
 
-        # Generar horarios disponibles
+        # Generar horarios disponibles. Hoy, las horas ya pasadas no se ofrecen:
+        # se elegían y el guardado respondía «No se pueden agendar citas en el pasado».
+        ahora = timezone.localtime()
         horarios = []
-        for hora in disponibilidad.horas_disponibles:
-            if hora in citas_dict:
+        for hora in horas_del_dia:
+            if fecha == ahora.date() and hora <= ahora.time() and hora not in citas_dict:
+                horarios.append({"hora": hora, "disponible": False, "cita_id": None,
+                                 "paciente_nombre": None, "motivo": "Hora pasada"})
+            elif hora in citas_dict:
                 horarios.append(
                     {
                         "hora": hora,
@@ -242,6 +236,30 @@ class OrdenFechaHora(filters.OrderingFilter):
             if campo.lstrip("-") == "fecha_cita":
                 resultado.append("-hora_cita" if campo.startswith("-") else "hora_cita")
         return resultado
+
+
+_MENSAJES_FUERA_DE_DIA = {
+    "confirmar": "La cita del {fecha} ya pasó: no se puede confirmar.",
+    "completar": "La cita es del {fecha}: todavía no llegó su día, no se puede completar.",
+    "no-asistio": "La cita es del {fecha}: todavía no llegó su día, no se puede marcar «No asistió».",
+    "marcar-presente": "La llegada se registra solo el día de la cita ({fecha}).",
+    "pasar-consulta": "La paciente pasa a consulta solo el día de la cita ({fecha}).",
+}
+
+
+def _fuera_de_dia(cita, accion, desde_hoy=False, hasta_hoy=False):
+    """400 si la acción no corresponde a la fecha de la cita; None si sí.
+
+    Antes se podía marcar «No asistió» una cita de la semana próxima o marcar
+    presente a una paciente citada para otro día.
+    """
+    hoy = timezone.localdate()
+    if (desde_hoy and cita.fecha_cita < hoy) or (hasta_hoy and cita.fecha_cita > hoy):
+        return Response(
+            {"error": _MENSAJES_FUERA_DE_DIA[accion].format(fecha=cita.fecha_cita.strftime("%d/%m/%Y"))},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    return None
 
 
 class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
@@ -319,13 +337,23 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             return CitaCreateUpdateSerializer
         return CitaDetailSerializer
 
+    def initial(self, request, *args, **kwargs):
+        """Antes de responder, cierra las citas de días pasados (una vez al día)."""
+        super().initial(request, *args, **kwargs)
+        cerrar_citas_vencidas_hoy()
+
     def perform_create(self, serializer):
-        """TRAZABILIDAD: Auto-asignar created_by al crear"""
-        serializer.save(creado_por=self.request.user, created_by=self.request.user)
+        """TRAZABILIDAD: quién agendó la cita.
+
+        Cita tiene creado_por/modificado_por; created_by/updated_by son de
+        Disponibilidad y pasarlos aquí hacía que toda alta o edición de cita
+        respondiera 500 («unexpected keyword arguments: created_by»).
+        """
+        serializer.save(creado_por=self.request.user)
 
     def perform_update(self, serializer):
-        """TRAZABILIDAD: Auto-asignar modificado_por y updated_by al actualizar"""
-        serializer.save(modificado_por=self.request.user, updated_by=self.request.user)
+        """TRAZABILIDAD: quién modificó la cita."""
+        serializer.save(modificado_por=self.request.user)
 
     def get_queryset(self):
         """Get queryset"""
@@ -529,14 +557,11 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        dia_semana = fecha.weekday()
+        # Mañana y tarde: todos los bloques activos del día.
+        bloques, _vigentes, _horas = bloques_del_dia(medico_id, fecha)
+        horas_del_dia = sorted({hora for b in bloques for hora in b.horas_disponibles})
 
-        # Buscar disponibilidad
-        disponibilidad = Disponibilidad.objects.filter(
-            medico_id=medico_id, dia_semana=dia_semana, activo=True,
-        ).first()
-
-        if not disponibilidad:
+        if not bloques:
             return Response(
                 {
                     "fecha": fecha,
@@ -548,10 +573,11 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
                 },
             )
 
-        # Obtener citas del día
+        # Las canceladas dejan el turno libre; si una cancelada y una nueva
+        # compartían hora, la cancelada podía tapar a la vigente.
         citas = Cita.objects.filter(
             medico_id=medico_id, fecha_cita=fecha,
-        ).select_related("paciente")
+        ).exclude(estado="cancelada").select_related("paciente")
 
         # Crear diccionario de citas por hora
         citas_dict = {
@@ -567,7 +593,7 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
         # Generar agenda completa
         horarios = []
-        for hora in disponibilidad.horas_disponibles:
+        for hora in horas_del_dia:
             if hora in citas_dict:
                 horarios.append({"hora": hora, "disponible": False, **citas_dict[hora]})
             else:
@@ -670,6 +696,8 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     def confirmar(self, request, pk=None):
         """Confirmar una cita"""
         cita = self.get_object()
+        if error := _fuera_de_dia(cita, "confirmar", desde_hoy=True):
+            return error
 
         if cita.estado not in ["agendada"]:
             return Response(
@@ -680,6 +708,13 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             )
 
         cita.confirmar(usuario=request.user)
+        HistorialCita.objects.create(
+            cita=cita,
+            estado_anterior="agendada",
+            estado_nuevo="confirmada",
+            motivo_cambio="Cita confirmada",
+            usuario=request.user,
+        )
 
         serializer = CitaDetailSerializer(cita)
         return Response(
@@ -692,7 +727,8 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         cita = self.get_object()
         motivo = request.data.get("motivo", "")
 
-        if cita.estado in ["completada", "cancelada"]:
+        # Una cita cerrada (atendida, cancelada o «No asistió») ya no se cancela.
+        if cita.estado not in ["agendada", "confirmada", "en_espera"]:
             return Response(
                 {
                     "error": f"No se puede cancelar una cita en estado {getattr(cita, 'get_estado_display')()}",
@@ -721,8 +757,12 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     def completar(self, request, pk=None):
         """Marcar cita como completada"""
         cita = self.get_object()
+        if error := _fuera_de_dia(cita, "completar", hasta_hoy=True):
+            return error
 
-        if cita.estado not in ["agendada", "confirmada"]:
+        # La paciente en consulta es el caso normal: antes solo se aceptaba
+        # agendada/confirmada y la que estaba en consulta no se podía cerrar.
+        if cita.estado not in ["agendada", "confirmada", "en_espera", "en_consulta"]:
             return Response(
                 {
                     "error": f"No se puede completar una cita en estado {getattr(cita, 'get_estado_display')()}",
@@ -751,8 +791,10 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     def no_asistio(self, request, pk=None):
         """Marcar que el paciente no asistió"""
         cita = self.get_object()
+        if error := _fuera_de_dia(cita, "no-asistio", hasta_hoy=True):
+            return error
 
-        if cita.estado not in ["agendada", "confirmada"]:
+        if cita.estado not in ["agendada", "confirmada", "en_espera"]:
             return Response(
                 {
                     "error": f"No se puede marcar como no asistió una cita en estado {getattr(cita, 'get_estado_display')()}",
@@ -779,6 +821,8 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     def marcar_presente(self, request, pk=None):
         """Registra llegada del paciente → estado en_espera"""
         cita = self.get_object()
+        if error := _fuera_de_dia(cita, "marcar-presente", desde_hoy=True, hasta_hoy=True):
+            return error
         if cita.estado not in ["agendada", "confirmada"]:
             return Response(
                 {
@@ -807,6 +851,8 @@ class CitaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
     def pasar_consulta(self, request, pk=None):
         """Pasa el paciente al consultorio → estado en_consulta"""
         cita = self.get_object()
+        if error := _fuera_de_dia(cita, "pasar-consulta", desde_hoy=True, hasta_hoy=True):
+            return error
         if cita.estado not in ["en_espera", "agendada", "confirmada"]:
             return Response(
                 {

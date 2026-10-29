@@ -31,6 +31,7 @@ import { useAntdApp } from '../../hooks/useMessage';
 import { useAuth } from '../../hooks/useAuth';
 import { aQuery, useListadoServidor } from '../../hooks/useListadoServidor';
 import { descargarArchivo } from '../../utils/descargarArchivo';
+import { conMotivo } from '../../utils/erroresApi';
 import CitasStats from './components/CitasStats';
 import CitasAlerts from './components/CitasAlerts';
 import CitasFilters from './components/CitasFilters';
@@ -175,7 +176,7 @@ const CitasPage: React.FC = () => {
           message.success('Cita eliminada correctamente');
           cargarCitas();
         } catch (error) {
-          message.error('Error al eliminar la cita');
+          message.error(conMotivo('No se pudo eliminar la cita', error));
         }
       },
     });
@@ -187,7 +188,7 @@ const CitasPage: React.FC = () => {
       message.success('Cita confirmada correctamente');
       cargarCitas();
     } catch (error) {
-      message.error('Error al confirmar la cita');
+      message.error(conMotivo('No se pudo confirmar la cita', error));
     }
   }, [message, cargarCitas]);
 
@@ -205,7 +206,7 @@ const CitasPage: React.FC = () => {
           message.success('Cita cancelada correctamente');
           cargarCitas();
         } catch (error) {
-          message.error('Error al cancelar la cita');
+          message.error(conMotivo('No se pudo cancelar la cita', error));
         }
       },
     });
@@ -217,7 +218,7 @@ const CitasPage: React.FC = () => {
       message.success('Paciente marcado como presente');
       cargarCitas();
     } catch (error) {
-      message.error('Error al marcar paciente presente');
+      message.error(conMotivo('No se pudo registrar la llegada', error));
     }
   }, [message, cargarCitas]);
 
@@ -227,7 +228,7 @@ const CitasPage: React.FC = () => {
       message.success('Paciente pasado a consulta');
       cargarCitas();
     } catch (error) {
-      message.error('Error al pasar paciente a consulta');
+      message.error(conMotivo('No se pudo pasar a consulta', error));
     }
   }, [message, cargarCitas]);
 
@@ -237,9 +238,28 @@ const CitasPage: React.FC = () => {
       message.success('Cita completada correctamente');
       cargarCitas();
     } catch (error) {
-      message.error('Error al completar la cita');
+      message.error(conMotivo('No se pudo completar la cita', error));
     }
   }, [message, cargarCitas]);
+
+  const handleNoAsistio = useCallback((id: number) => {
+    modal.confirm({
+      title: '¿La paciente no vino?',
+      icon: exclamationIcon,
+      content: 'La cita queda como «No asistió» y libera el turno.',
+      okText: 'Marcar No asistió',
+      cancelText: 'Volver',
+      onOk: async () => {
+        try {
+          await citasService.noAsistio(id);
+          message.success('Cita marcada como «No asistió»');
+          cargarCitas();
+        } catch (error) {
+          message.error(conMotivo('No se pudo marcar «No asistió»', error));
+        }
+      },
+    });
+  }, [message, modal, cargarCitas]);
 
   const handleEnviarRecordatorio = useCallback(async (id: number) => {
     try {
@@ -251,7 +271,7 @@ const CitasPage: React.FC = () => {
         message.warning(result.message || 'No se pudo enviar el recordatorio');
       }
     } catch (error) {
-      message.error('Error al enviar recordatorio');
+      message.error(conMotivo('No se pudo enviar el recordatorio', error));
     }
   }, [message, cargarCitas]);
 
@@ -270,57 +290,28 @@ const CitasPage: React.FC = () => {
     }
   }, [parametros, message]);
 
-  const getMenuAcciones = useCallback((record: Cita) => ({
-    items: [
-      ...(record.estado === 'agendada' ? [
-        {
-          key: 'confirmar',
-          label: 'Confirmar',
-          icon: checkCircleIcon5,
-          onClick: () => handleConfirmar(record.id!)
-        }
-      ] : []),
-      ...(['agendada', 'confirmada'].includes(record.estado) ? [
-        {
-          key: 'presente',
-          label: 'Marcar Presente',
-          icon: userIcon2,
-          onClick: () => handleMarcarPresente(record.id!)
-        },
-        {
-          key: 'recordatorio',
-          label: 'Enviar Recordatorio',
-          icon: bellIcon,
-          onClick: () => handleEnviarRecordatorio(record.id!)
-        }
-      ] : []),
-      ...(record.estado === 'en_espera' ? [
-        {
-          key: 'consulta',
-          label: 'Pasar a Consulta',
-          icon: medicineBoxIcon2,
-          onClick: () => handlePasarConsulta(record.id!)
-        }
-      ] : []),
-      ...(record.estado === 'en_consulta' ? [
-        {
-          key: 'completar',
-          label: 'Completar',
-          icon: checkCircleIcon5,
-          onClick: () => handleCompletar(record.id!)
-        }
-      ] : []),
-      ...(!['completada', 'cancelada', 'no_asistio'].includes(record.estado) ? [
-        {
-          key: 'cancelar',
-          label: 'Cancelar Cita',
-          icon: closeCircleIcon2,
-          danger: true,
-          onClick: () => handleCancelar(record.id!)
-        }
-      ] : [])
-    ]
-  }) as MenuProps, [handleConfirmar, handleMarcarPresente, handleEnviarRecordatorio, handlePasarConsulta, handleCompletar, handleCancelar]);
+  // Cada acción solo cuando corresponde a la fecha de la cita (el servidor
+  // aplica la misma regla): la llegada y la consulta, el mismo día; «No asistió»
+  // y completar, ese día o después; confirmar y recordar, antes.
+  const getMenuAcciones = useCallback((record: Cita) => {
+    const dia = dayjs(record.fecha_cita);
+    const hoy = dia.isSame(dayjs(), 'day');
+    const yaLlego = !dia.isAfter(dayjs(), 'day');
+    const porVenir = !dia.isBefore(dayjs(), 'day');
+    const pendiente = ['agendada', 'confirmada'].includes(record.estado);
+    const item = (key: string, label: string, icon: React.ReactNode, onClick: () => void, danger = false) =>
+      ({ key, label, icon, onClick, danger });
+    const items = [
+      record.estado === 'agendada' && porVenir && item('confirmar', 'Confirmar', checkCircleIcon5, () => handleConfirmar(record.id!)),
+      pendiente && hoy && item('presente', 'Marcar Presente', userIcon2, () => handleMarcarPresente(record.id!)),
+      pendiente && porVenir && !hoy && item('recordatorio', 'Enviar Recordatorio', bellIcon, () => handleEnviarRecordatorio(record.id!)),
+      record.estado === 'en_espera' && hoy && item('consulta', 'Pasar a Consulta', medicineBoxIcon2, () => handlePasarConsulta(record.id!)),
+      ['en_espera', 'en_consulta'].includes(record.estado) && yaLlego && item('completar', 'Completar', checkCircleIcon5, () => handleCompletar(record.id!)),
+      ['agendada', 'confirmada', 'en_espera'].includes(record.estado) && yaLlego && item('no_asistio', 'No asistió', closeCircleIcon2, () => handleNoAsistio(record.id!), true),
+      ['agendada', 'confirmada', 'en_espera'].includes(record.estado) && item('cancelar', 'Cancelar Cita', closeCircleIcon2, () => handleCancelar(record.id!), true),
+    ].filter(Boolean) as NonNullable<MenuProps['items']>;
+    return { items: items.length ? items : [{ key: 'sin', label: 'Sin acciones para esta cita', disabled: true }] } as MenuProps;
+  }, [handleConfirmar, handleMarcarPresente, handleEnviarRecordatorio, handlePasarConsulta, handleCompletar, handleNoAsistio, handleCancelar]);
 
   const columns = useMemo(
     () => buildCitasColumns({ canChange, canDelete, handleVerVistaRapida, handleEditar, handleEliminar, getMenuAcciones }),

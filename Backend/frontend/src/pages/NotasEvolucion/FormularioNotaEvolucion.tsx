@@ -27,6 +27,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { notasEvolucionService, NotaEvolucionCreate } from '../../services/notasEvolucionService';
 import { datosClinicosService } from '../../services/datosClinicosService';
+import { decimalesANumero } from '../../utils/decimales';
 import SeccionInfoConsultaNota from './components/SeccionInfoConsultaNota';
 import SeccionSignosVitalesNota from './components/SeccionSignosVitalesNota';
 import SeccionObstetricosNota from './components/SeccionObstetricosNota';
@@ -94,8 +95,12 @@ const FormularioNotaEvolucion: React.FC = () => {
 
       // Convertir fecha a dayjs
       const formValues = {
-        ...nota,
+        // Los decimales llegan como texto y la regla de rango los rechazaba al editar.
+        ...decimalesANumero(nota, ['temperatura', 'altura_uterina']),
         fecha_consulta: nota.fecha_consulta ? dayjs(nota.fecha_consulta) : null,
+        // La API la manda anidada ({id, nombre…}); devuelta así al guardar, el
+        // servidor rechazaba la edición («se recibió dict»).
+        paciente: typeof nota.paciente === 'object' && nota.paciente ? (nota.paciente as { id: number }).id : nota.paciente,
       };
 
       form.setFieldsValue(formValues);
@@ -284,7 +289,8 @@ const FormularioNotaEvolucion: React.FC = () => {
       const notaData: NotaEvolucionCreate = {
         ...values,
         fecha_consulta: values.fecha_consulta ? values.fecha_consulta.toISOString() : new Date().toISOString(),
-        medico: user?.id,
+        // Al editar, la nota sigue siendo de quien la escribió: corregirla no cambia el autor.
+        ...(id ? {} : { medico: user?.id }),
       };
 
       if (id) {

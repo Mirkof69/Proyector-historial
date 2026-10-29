@@ -368,6 +368,19 @@ class CalculadoraRiesgoAPITest(APITestCase):
             response.status_code, [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST],
         )
 
+    def test_calcular_preeclampsia_con_presion_y_ip_uterino(self):
+        """Con la presión cargada respondía 500: la vista la guardaba en
+        DopplerMaterno, que no tiene esos campos. Ahora queda en las notas."""
+        self._authenticate()
+        url = reverse("calculadora-riesgo-calcular-preeclampsia")
+        datos = {**self.preeclampsia_data, "pas_mmhg": 118, "pad_mmhg": 76,
+                 "utpi_izquierda": "1.4", "utpi_derecha": "1.6"}
+        response = self.client.post(url, datos, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        calc = CalculadoraRiesgo.objects.get(pk=response.data["data"]["id"])
+        self.assertIn("PA 118/76 mmHg", calc.notas_adicionales)
+        self.assertIn("IP uterino izq. 1.40, der. 1.60", calc.notas_adicionales)
+
     def test_calcular_trisomias_endpoint(self):
         """Test calcular-trisomias custom action returns a valid response."""
         self._authenticate()

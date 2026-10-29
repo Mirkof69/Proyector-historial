@@ -185,6 +185,21 @@
   object-fit: cover;
 }
 
+.image-card-sin-imagen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  color: var(--color-texto-2);
+  font-size: var(--texto-sm);
+}
+
+.image-card-sin-imagen .anticon {
+  font-size: 32px;
+}
+
 .image-status-badge {
   position: absolute;
   top: var(--esp-3);

@@ -718,6 +718,9 @@ class Command(BaseCommand):
                 ["vaginal_espontaneo", "cesarea_electiva", "cesarea_emergencia", "vaginal_instrumentado"],
                 [62, 18, 15, 5])[0],
             observaciones_parto=f"{MARCA_CARGA}",
+            # Es un parto ya ocurrido: sin esto los 500 partos de la carga
+            # figuraban «en curso» meses después y no admitían epicrisis.
+            parto_finalizado=True,
         )
         gemelos = 2 if embarazo.tipo_embarazo == "gemelar" else 1
         es_gemelar = gemelos > 1

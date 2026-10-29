@@ -285,7 +285,10 @@ export const laboratorioService = {
     const response = await api.get('/laboratorios/examenes/valores-referencia-por-tipo/', {
       params: { tipo_examen_id: tipoExamenId }
     });
-    return response.data;
+    // El backend responde {tipo_examen, total_parametros, valores_referencia: [...]};
+    // devolver el objeto entero tumbaba «Registrar resultados» (`.map` de un objeto).
+    const datos = response.data;
+    return Array.isArray(datos) ? datos : datos?.valores_referencia ?? [];
   },
 
   /**

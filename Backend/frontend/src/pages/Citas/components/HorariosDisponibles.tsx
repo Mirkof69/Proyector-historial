@@ -37,6 +37,7 @@ const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
   const disponibles = horariosDisponibles.filter(h => h.disponible);
   const ocupados = horariosDisponibles.filter(h => !h.disponible);
 
+  // La API manda «08:00:00»; en pantalla basta la hora y los minutos.
   return (
     <Card size="small" title="Horarios Disponibles" className="citas-arriba">
       {disponibles.length > 0 && (
@@ -50,7 +51,7 @@ const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
                 className="citas-page__horario-libre tabular-nums"
                 onClick={() => onHoraSelect(h.hora)}
               >
-                {h.hora}
+                {h.hora.slice(0, 5)}
               </Tag>
             ))}
           </div>
@@ -62,7 +63,7 @@ const HorariosDisponibles: React.FC<HorariosDisponiblesProps> = ({
           <div className="citas-page__horarios">
             {ocupados.map((h) => (
               <Tooltip key={h.hora} title={h.motivo || 'No disponible'}>
-                <Tag color="error" className="tabular-nums">{h.hora}</Tag>
+                <Tag color="error" className="tabular-nums">{h.hora.slice(0, 5)}</Tag>
               </Tooltip>
             ))}
           </div>

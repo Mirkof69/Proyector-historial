@@ -173,6 +173,8 @@ class Cita(models.Model):
         ("cancelada", "Cancelada"),
         ("no_asistio", "No Asistió"),
     ]
+    # Estados con los que la cita sigue ocupando su turno en la agenda.
+    OCUPAN_TURNO = ("agendada", "confirmada", "en_espera", "en_consulta")
 
     TIPO_CITA_CHOICES = [
         ("primera_vez", "Primera Vez"),
@@ -302,33 +304,25 @@ class Cita(models.Model):
         hora_str = self.hora_cita.strftime("%H:%M") if self.hora_cita else "N/A"
         return f"{self.paciente.nombre_completo} - {self.medico.nombre} {self.medico.apellido_paterno} - {fecha_str} {hora_str}"
 
+    def turno_cambia(self) -> bool:
+        """True si la cita es nueva o se le cambia la fecha o la hora."""
+        if not self.pk:
+            return True
+        original = Cita.objects.filter(pk=self.pk).values_list("fecha_cita", "hora_cita").first()
+        return original != (self.fecha_cita, self.hora_cita)
+
     def clean(self):
-        """Validaciones del modelo"""
-        # No permitir citas en el pasado
-        if self.fecha_cita and self.hora_cita:
-            fecha_hora_cita = timezone.make_aware(
-                datetime.combine(self.fecha_cita, self.hora_cita),
-            )
-            if fecha_hora_cita < timezone.now():
-                raise ValidationError(
-                    {"fecha_cita": "No se pueden agendar citas en el pasado"},
-                )
+        """Validaciones del modelo.
 
-        # Validar que no exista otra cita en el mismo horario para el médico
-        if self.fecha_cita and self.hora_cita and self.medico:
-            citas_existentes = Cita.objects.filter(
-                medico=self.medico,
-                fecha_cita=self.fecha_cita,
-                hora_cita=self.hora_cita,
-                estado__in=["agendada", "confirmada"],
-            ).exclude(pk=self.pk)
-
-            if citas_existentes.exists():
-                raise ValidationError(
-                    {
-                        "hora_cita": "El médico ya tiene una cita agendada en este horario",
-                    },
-                )
+        Solo al dar o cambiar el turno: antes se validaban en cada guardado y,
+        pasada la hora de la cita, no se le podía cambiar el estado (marcar
+        presente, completar, «No asistió») ni corregir sus observaciones.
+        """
+        if not (self.fecha_cita and self.hora_cita and self.turno_cambia()):
+            return
+        errores = validar_turno(self.medico_id, self.paciente_id, self.fecha_cita, self.hora_cita, self.pk)
+        if errores:
+            raise ValidationError(errores)
 
     def save(self, *args, **kwargs):
         """Save"""
@@ -387,6 +381,24 @@ class Cita(models.Model):
         """Marca que el paciente no asistió"""
         self.estado = "no_asistio"
         self.save()
+
+
+def validar_turno(medico_id, paciente_id, fecha, hora, excluir_pk=None) -> dict:
+    """Errores de un turno: en el pasado, ocupado para el médico o para la paciente.
+
+    Ocupan el turno las citas pendientes y también las que están en espera o en
+    consulta (antes solo agendada/confirmada: con la paciente en la sala, el
+    mismo turno se podía dar otra vez). Devuelve {campo: mensaje}.
+    """
+    if timezone.make_aware(datetime.combine(fecha, hora)) < timezone.now():
+        return {"fecha_cita": "No se pueden agendar citas en el pasado"}
+    mismas = Cita.objects.filter(fecha_cita=fecha, hora_cita=hora, estado__in=Cita.OCUPAN_TURNO).exclude(
+        pk=excluir_pk)
+    if medico_id and mismas.filter(medico_id=medico_id).exists():
+        return {"hora_cita": "El médico ya tiene una cita agendada en este horario"}
+    if paciente_id and mismas.filter(paciente_id=paciente_id).exists():
+        return {"paciente": "La paciente ya tiene otra cita a esa misma hora"}
+    return {}
 
 
 class HistorialCita(models.Model):

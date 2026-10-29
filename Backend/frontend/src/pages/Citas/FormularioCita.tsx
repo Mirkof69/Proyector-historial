@@ -20,6 +20,7 @@ import {
   Typography,
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
+import { conMotivo } from '../../utils/erroresApi';
 import './Citas.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -116,9 +117,13 @@ const FormularioCita: React.FC = () => {
     }
   }, [id, cargarDatos, cargarCita]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (valoresDelPaso: any) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
+      // Cada paso se desmonta al avanzar y onFinish trae solo los campos del
+      // último (motivo, observaciones): sin el resto, `fecha_cita.format` fallaba
+      // y no se podía crear ninguna cita. El formulario conserva todos los pasos.
+      const values = { ...form.getFieldsValue(true), ...valoresDelPaso };
       const citaData: Partial<Cita> = {
         paciente: values.paciente,
         medico: values.medico,
@@ -143,9 +148,9 @@ const FormularioCita: React.FC = () => {
 
       dispatch({ type: 'SET_CITA_CREADA', payload: cita });
       dispatch({ type: 'SET_MODAL_FICHA_VISIBLE', payload: true });
-    } catch (error: any) {
-      const errorMsg = error?.response?.data?.message || error?.response?.data?.error || 'Error al guardar la cita';
-      message.error(errorMsg);
+    } catch (error) {
+      // El motivo del servidor: turno ocupado, paciente con otra cita a esa hora…
+      message.error(conMotivo('No se pudo guardar la cita', error));
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
@@ -201,7 +206,9 @@ const FormularioCita: React.FC = () => {
 
   const handleHoraSelect = (hora: string) => {
     const [hours, minutes] = hora.split(':');
-    const time = dayjs().hour(parseInt(hours)).minute(parseInt(minutes));
+    // Segundos a cero: con los del reloj la cita quedaba a las 14:00:37 y no
+    // coincidía con el turno de las 14:00 (se veía libre y se podía duplicar).
+    const time = dayjs().hour(parseInt(hours)).minute(parseInt(minutes)).second(0).millisecond(0);
     form.setFieldsValue({ hora_cita: time });
     dispatch({ type: 'SET_HORA_SELECCIONADA', payload: time });
   };
@@ -209,7 +216,11 @@ const FormularioCita: React.FC = () => {
   const isHorarioDisponible = (hora: dayjs.Dayjs): boolean => {
     if (state.horariosDisponibles.length === 0) return true;
     const horaStr = hora.format('HH:mm');
-    const horario = state.horariosDisponibles.find(h => h.hora === horaStr);
+    // La API manda «08:00:00»: comparando con «08:00» nunca coincidía y un
+    // horario ocupado pasaba como libre.
+    const horario = state.horariosDisponibles.find(h => String(h.hora).slice(0, 5) === horaStr);
+    // Al editar, el turno de la propia cita figura ocupado por ella misma: es suyo.
+    if (id && horario?.cita_id === Number(id)) return true;
     return horario?.disponible !== false;
   };
 

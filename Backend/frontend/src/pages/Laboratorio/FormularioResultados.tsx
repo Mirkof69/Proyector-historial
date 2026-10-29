@@ -15,6 +15,7 @@ import { useAntdApp } from '../../hooks/useMessage';
 import { SaveOutlined, LoadingOutlined, WarningOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import './Laboratorio.css';
 import { laboratorioService, ValorReferencia } from '../../services/laboratorioService';
+import { conMotivo } from '../../utils/erroresApi';
 
 const loadingIndicator = <LoadingOutlined spin />;
 
@@ -112,13 +113,19 @@ const FormularioResultados: React.FC<FormularioResultadosProps> = ({
         return;
       }
 
-      await laboratorioService.crearResultadoMultiple(examenId, resultados, true);
-      message.success('Resultados registrados correctamente');
+      const respuesta = await laboratorioService.crearResultadoMultiple(examenId, resultados, true);
+      // Si algún parámetro no se guardó, el examen queda abierto y se dice cuál.
+      const errores: Array<{ error: string }> = respuesta?.errores ?? [];
+      if (errores.length) {
+        message.warning(`Se guardaron ${respuesta.resultados_creados}; faltan: ${errores.map((e) => e.error).join(' · ')}`);
+      } else {
+        message.success('Resultados registrados correctamente');
+      }
       form.resetFields();
       setEvaluaciones({});
       onResultadosGuardados();
     } catch (error: any) {
-      message.error(error?.response?.data?.message || 'Error al registrar los resultados');
+      message.error(conMotivo('No se registraron los resultados', error));
     } finally {
       setLoading(false);
     }

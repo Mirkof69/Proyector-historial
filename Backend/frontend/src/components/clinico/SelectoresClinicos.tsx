@@ -64,6 +64,8 @@ export const PacienteSelect: React.FC<PacienteSelectProps> = ({
 }) => {
   const [opciones, setOpciones] = useState<PacienteOpcion[]>([]);
   const [cargando, setCargando] = useState(false);
+  const valorActual = useRef(value);
+  valorActual.current = value;
 
   const buscar = async (texto: string) => {
     setCargando(true);
@@ -71,7 +73,13 @@ export const PacienteSelect: React.FC<PacienteSelectProps> = ({
       const r = await api.get('/pacientes/', {
         params: { search: texto || undefined, page_size: 20, ...(soloMujeres ? { genero: 'femenino' } : {}) },
       });
-      setOpciones(lista<PacienteOpcion>(r.data));
+      // La paciente ya elegida sigue en la lista aunque la búsqueda nueva no la
+      // traiga; si no, el campo perdía su nombre al refrescarse.
+      const nuevas = lista<PacienteOpcion>(r.data);
+      setOpciones((prev) => {
+        const elegida = prev.find((o) => o.id === valorActual.current);
+        return elegida && !nuevas.some((o) => o.id === elegida.id) ? [elegida, ...nuevas] : nuevas;
+      });
     } catch {
       setOpciones([]);
     } finally {

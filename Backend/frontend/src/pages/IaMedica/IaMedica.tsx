@@ -9,7 +9,6 @@ import {
   iaMedicaService,
   ImagenEcografica,
 } from '../../services/iaMedicaService';
-import pacientesService from '../../services/pacientesService';
 import { API_URL } from '../../services/api';
 import './IaMedica.css';
 import { initialState, reducer } from './iaMedicaReducer';
@@ -27,8 +26,6 @@ const IaMedica: React.FC = () => {
   const { message } = useAntdApp();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [selectedPacienteId, setSelectedPacienteId] = React.useState<number | null>(null);
-  const [pacientesSearch, setPacientesSearch] = React.useState<{id: number; nombre: string}[]>([]);
-  const [searchingPaciente, setSearchingPaciente] = React.useState(false);
   const [vincularModalVisible, setVincularModalVisible] = React.useState(false);
   const [imagenAVincular, setImagenAVincular] = React.useState<ImagenEcografica | null>(null);
   const [vinculando, setVinculando] = React.useState(false);
@@ -57,21 +54,6 @@ const IaMedica: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const handlePatientSearch = async (query: string) => {
-    if (!query || query.length < 2) return;
-    setSearchingPaciente(true);
-    try {
-      // Busca en el servidor (nombre o CI, sin tildes): antes bajaba todas las
-      // pacientes y filtraba aquí distinguiendo acentos.
-      const results = await pacientesService.listar({ search: query } as any);
-      setPacientesSearch(results.slice(0, 30).map((p: any) => ({
-        id: p.id,
-        nombre: p.nombre_completo || `${p.nombre} ${p.apellido_paterno}`.trim()
-      })));
-    } catch { /* silent */ }
-    finally { setSearchingPaciente(false); }
-  };
 
   const handleUpload = async (file: File) => {
     if (!selectedPacienteId) {
@@ -231,9 +213,6 @@ const IaMedica: React.FC = () => {
       <GaleriaEcografias
         selectedPacienteId={selectedPacienteId}
         setSelectedPacienteId={setSelectedPacienteId}
-        pacientesSearch={pacientesSearch}
-        searchingPaciente={searchingPaciente}
-        handlePatientSearch={handlePatientSearch}
         uploading={state.uploading}
         handleUpload={handleUpload}
         loading={state.loading}

@@ -47,6 +47,7 @@ export interface Consultorio {
   tipo: TipoConsultorio;
   tipo_display?: string;
   piso?: number | string;
+  ubicacion?: string;
   area?: string;
   capacidad_personas?: number;
 

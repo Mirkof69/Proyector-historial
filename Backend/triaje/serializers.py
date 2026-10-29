@@ -69,3 +69,21 @@ class TriajeEnfermeriaSerializer(serializers.ModelSerializer):
     def get_resumen_completo(self, obj):
         """Get resumen completo"""
         return obj.get_resumen()
+
+    def validate(self, attrs):
+        """Signos que no pueden ser reales y una cita ajena.
+
+        Se aceptaba una presión de 60/120 (la sistólica nunca es menor que la
+        diastólica: es un error de tipeo con los campos invertidos).
+        """
+        def valor(campo):
+            return attrs.get(campo, getattr(self.instance, campo, None))
+
+        sistolica, diastolica = valor("presion_sistolica"), valor("presion_diastolica")
+        if sistolica and diastolica and sistolica <= diastolica:
+            raise serializers.ValidationError(
+                {"presion_sistolica": "La presión sistólica debe ser mayor que la diastólica."})
+        cita, paciente = valor("cita"), valor("paciente")
+        if cita and paciente and cita.paciente_id != paciente.pk:
+            raise serializers.ValidationError({"cita": "La cita elegida es de otra paciente."})
+        return attrs

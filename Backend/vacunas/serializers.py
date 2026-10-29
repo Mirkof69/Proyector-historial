@@ -7,6 +7,8 @@ Serializers para gestión de vacunas en sistema de atención prenatal
 =============================================================================
 """
 
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -338,6 +340,13 @@ class RegistroVacunaCreateUpdateSerializer(serializers.ModelSerializer):
                     "Ya existe un registro de esta vacuna con el mismo número de dosis para este paciente en esta fecha",
                 )
 
+        # Una aplicación no puede registrarse antes de que ocurra (se aceptaba
+        # una vacuna «aplicada» pasado mañana). Margen de 10 min por los relojes.
+        if fecha_aplicacion and fecha_aplicacion > timezone.now() + timedelta(minutes=10):
+            raise serializers.ValidationError(
+                {"fecha_aplicacion": "La fecha de aplicación no puede ser futura."},
+            )
+
         # Validar que la fecha de próxima dosis sea futura
         if attrs.get("proxima_dosis_fecha"):
 
@@ -345,6 +354,10 @@ class RegistroVacunaCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"proxima_dosis_fecha": "La fecha de próxima dosis debe ser futura"},
                 )
+
+        embarazo = attrs.get("embarazo")
+        if embarazo and paciente and embarazo.paciente_id != paciente.pk:
+            raise serializers.ValidationError({"embarazo": "El embarazo elegido es de otra paciente."})
 
         # Validar que exista dosis anterior si no es la primera dosis
         if numero_dosis and numero_dosis > 1 and paciente and tipo_vacuna:

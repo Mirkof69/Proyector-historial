@@ -325,8 +325,14 @@ const FormularioTriaje: React.FC = () => {
                                     <Button size="large" onClick={() => navigate('/dashboard/triaje')}>
                                         Cancelar
                                     </Button>
+                                    {/* Cada botón con su key: sin ella React reusa el mismo <button>
+                                        y, al pasar al último paso dentro del mismo clic, el
+                                        navegador lo terminaba como «enviar» y guardaba el triaje
+                                        sin mostrar «Motivo y evaluación». */}
                                     {pasoActual < PASOS_TRIAJE.length - 1 ? (
                                         <Button
+                                            key="continuar"
+                                            htmlType="button"
                                             type="primary"
                                             size="large"
                                             className="triaje-boton-paso"
@@ -336,6 +342,7 @@ const FormularioTriaje: React.FC = () => {
                                         </Button>
                                     ) : (
                                         <Button
+                                            key="guardar"
                                             type="primary"
                                             htmlType="submit"
                                             loading={loading}

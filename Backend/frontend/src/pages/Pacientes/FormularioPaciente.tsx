@@ -25,6 +25,7 @@ import SeccionAdminEmergenciaPaciente from './components/SeccionAdminEmergenciaP
 import SeccionConsentimientoPaciente from './components/SeccionConsentimientoPaciente';
 import './Pacientes.css';
 import { imcRedondeado } from '../../utils/imc';
+import { decimalesANumero } from '../../utils/decimales';
 
 const { Title } = Typography;
 
@@ -101,8 +102,8 @@ const FormularioPaciente: React.FC = () => {
         tipo_sangre: data.tipo_sangre || '',
         factor_rh: data.factor_rh || '',
         numero_seguro_social: data.numero_seguro_social || '',
-        peso_kg: data.peso_kg || null,
-        altura_cm: data.altura_cm || null,
+        // Los decimales llegan como texto y la regla de rango los rechazaba al editar.
+        ...decimalesANumero({ peso_kg: data.peso_kg || null, altura_cm: data.altura_cm || null }, ['peso_kg', 'altura_cm']),
         estado_paciente: data.estado_paciente || 'activo',
         contacto_emergencia_nombre: data.contacto_emergencia_nombre || '',
         contacto_emergencia_telefono: data.contacto_emergencia_telefono || '',
@@ -285,6 +286,7 @@ const FormularioPaciente: React.FC = () => {
         <Form
           form={form}
           layout="vertical"
+          autoComplete="off"
           onFinish={onFinish}
           onValuesChange={(changedValues) => {
             if (changedValues.fecha_nacimiento !== undefined) {

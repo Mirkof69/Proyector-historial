@@ -1,5 +1,6 @@
 """TRIAJE - VIEWS"""
 
+from citas.flujo import llegada_por_triaje
 from django.db import models
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
@@ -75,7 +76,9 @@ class TriajeEnfermeriaViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """TRAZABILIDAD: Auto-asignar enfermera y created_by al crear"""
-        serializer.save(enfermera=self.request.user, created_by=self.request.user)
+        triaje = serializer.save(enfermera=self.request.user, created_by=self.request.user)
+        # La paciente citada hoy ya llegó: su cita pasa a sala de espera.
+        llegada_por_triaje(triaje, self.request.user)
 
     def perform_update(self, serializer):
         """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""

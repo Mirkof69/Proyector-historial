@@ -109,6 +109,15 @@ const ConsultorioFormModal: React.FC<ConsultorioFormModalProps> = ({
         </Col>
       </Row>
 
+      {/* El modelo exige la ubicación: sin este campo no se podía crear ningún consultorio. */}
+      <Form.Item
+        label="Ubicación"
+        name="ubicacion"
+        rules={[{ required: true, message: 'Indique dónde está el consultorio' }]}
+      >
+        <Input maxLength={100} placeholder="Ej: Planta baja, pasillo de Maternidad" />
+      </Form.Item>
+
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Form.Item label="Área" name="area">

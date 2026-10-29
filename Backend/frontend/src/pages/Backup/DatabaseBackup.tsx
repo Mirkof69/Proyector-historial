@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect, useState } from 'react';
+import React, { useReducer, useEffect } from 'react';
 import { backupService, Backup } from '../../services/backupService';
 import {
     Table, Button, Tooltip, Space,
@@ -66,7 +66,6 @@ const DatabaseBackup: React.FC = () => {
     const { modal, message } = useAntdApp();
     const [state, dispatch] = useReducer(backupReducer, initialState);
     const { backups, loading, creating, restoring } = state;
-    const [confirmacionRestaurar, setConfirmacionRestaurar] = useState('');
 
     const loadData = React.useCallback(async () => {
         dispatch({ type: 'SET_LOADING', payload: true });
@@ -135,9 +134,11 @@ const DatabaseBackup: React.FC = () => {
         }
     };
 
+    // El botón se habilita recién al escribir RESTAURAR. Antes el onOk comparaba
+    // un useState que el modal había copiado en el primer render (''), así que
+    // rechazaba siempre y «Restaurar» no se podía usar desde la pantalla.
     const handleRestore = (filename: string) => {
-        setConfirmacionRestaurar('');
-        modal.confirm({
+        const dialogo = modal.confirm({
             title: '¿Restaurar base de datos?',
             icon: <WarningOutlined className="backup-page__icono-peligro" />,
             width: 520,
@@ -153,20 +154,18 @@ const DatabaseBackup: React.FC = () => {
                     />
                     <Input
                         placeholder="RESTAURAR"
-                        onChange={(e) => setConfirmacionRestaurar(e.target.value)}
+                        aria-label="Confirmación de restauración"
+                        onChange={(e) => dialogo.update({
+                            okButtonProps: { disabled: e.target.value.trim() !== 'RESTAURAR' },
+                        })}
                     />
                 </div>
             ),
             okText: 'Sí, Restaurar',
             okType: 'danger',
+            okButtonProps: { disabled: true },
             cancelText: 'Cancelar',
-            onOk: async () => {
-                if (confirmacionRestaurar.trim() !== 'RESTAURAR') {
-                    message.error('Debe escribir RESTAURAR exactamente para confirmar');
-                    return Promise.reject();
-                }
-                await ejecutarRestauracion(filename);
-            },
+            onOk: () => ejecutarRestauracion(filename),
         });
     };
 
@@ -207,6 +206,7 @@ const DatabaseBackup: React.FC = () => {
                         <Button
                             type="text"
                             className="backup-page__accion--descargar"
+                            aria-label={`Descargar ${record.filename}`}
                             icon={<CloudDownloadOutlined />}
                             onClick={() => handleDownload(record.filename)}
                         />
@@ -215,6 +215,7 @@ const DatabaseBackup: React.FC = () => {
                         <Button
                             type="text"
                             className="backup-page__accion--restaurar"
+                            aria-label={`Restaurar ${record.filename}`}
                             icon={<HistoryOutlined />}
                             onClick={() => handleRestore(record.filename)}
                             loading={restoring === record.filename}
@@ -231,6 +232,7 @@ const DatabaseBackup: React.FC = () => {
                             <Button
                                 type="text"
                                 className="backup-page__accion--eliminar"
+                                aria-label={`Eliminar ${record.filename}`}
                                 icon={<DeleteOutlined />}
                             />
                         </Tooltip>

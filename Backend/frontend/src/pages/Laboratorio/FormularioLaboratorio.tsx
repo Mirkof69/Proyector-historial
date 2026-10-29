@@ -26,6 +26,7 @@ import { laboratorioService, TipoExamen, ValorReferencia, ResultadoLaboratorio }
 import { FRONTEND_ROUTES } from '../../config/routes';
 import { buildColumnasResultados } from './components/columnasResultadosLab';
 import DatosGeneralesLab from './components/DatosGeneralesLab';
+import { motivoDelError } from '../../utils/erroresApi';
 
 const { TextArea } = Input;
 const { Title, Paragraph, Text } = Typography;
@@ -222,7 +223,7 @@ const FormularioLaboratorio: React.FC = () => {
     } catch (error: any) {
       modal.error({
         title: 'Error al guardar',
-        content: error.response?.data?.detail || error.message || 'Error desconocido',
+        content: motivoDelError(error) || error.message || 'Error desconocido',
       });
     } finally {
       setLoading(false);

@@ -25,6 +25,18 @@ Este comando no inventa hechos clínicos: los deriva de los que ya existen.
   días hacia atrás con TODAS sus fechas juntas (la edad gestacional de cada
   atención no cambia) y cada examen vuelve a caer dentro de su embarazo.
 
+- Las próximas citas generadas nunca toman los TURNOS_LIBRES de cada día (dos
+  de mañana y dos de tarde por médico): antes llenaban los 16 turnos de los tres
+  médicos durante dos meses y en la demo no se podía agendar ninguna cita. Las
+  que ya ocupaban esos turnos se corren al siguiente turno no reservado.
+- Antes de derivar las próximas se cierran como «No asistió» las citas
+  pendientes de días ya pasados (citas/vencimiento.py); esas pacientes reciben
+  una nueva cita programada.
+
+- seed_carga dejaba sus partos (todos ya ocurridos, con recién nacido) como
+  «en curso»: pasan a finalizados los que tienen recién nacido y ocurrieron
+  hace más de un día.
+
 - La carga es una foto del día en que se corrió: semanas después el Panel no
   mostraba actividad reciente. Sus fechas se adelantan los días transcurridos
   (nunca más allá de hoy), así que la demo queda al día cada vez que se corre.
@@ -44,6 +56,8 @@ from django.db import transaction
 from django.db.models import Count, F, Max, Min
 from django.utils import timezone
 from django_tenants.utils import schema_context
+
+from citas.vencimiento import cerrar_citas_vencidas
 
 CONSULTORIOS = [
     ("CON-01", "Consultorio 1 · Ginecología y Obstetricia", "ginecologia", "Planta baja", True),
@@ -66,6 +80,10 @@ def _franjas():
 
 
 FRANJAS = list(_franjas())
+# Turnos que las citas generadas dejan libres para agendar en la demo.
+TURNOS_LIBRES = frozenset({time(9, 30), time(11, 30), time(15, 0), time(17, 0)})
+HORIZONTE_DIAS = 120
+MOTIVO_PROXIMA = "Control prenatal programado"
 
 MARCA_CARGA = "[SEED-CARGA]"
 MARCA_REPARTIDO = "[fechas-repartidas]"
@@ -94,8 +112,12 @@ class Command(BaseCommand):
             r.update(self._repartir_embarazos_de_carga())
             r.update(self._poner_al_dia_la_carga())
             r.update(self._fechas_de_laboratorio(solo_carga=r["dias_adelantados"] > 0))
+            r["citas_vencidas_cerradas"] = cerrar_citas_vencidas()
+            # Antes que las nuevas: las ya agendadas se quedan con los turnos más cercanos.
+            r["citas_movidas_de_turnos_libres"] = self._liberar_turnos()
             r.update(self._citas())
             r.update(self._fechas_de_registro())
+            r["partos_finalizados"] = self._partos_terminados()
         self.stdout.write(self.style.SUCCESS(f"Demo completada: {r}"))
 
     # ── Consultorios y horarios ──────────────────────────────────────────────
@@ -120,6 +142,14 @@ class Command(BaseCommand):
         # Sin las cuentas de las pruebas de QA (@pruebas.test, @e2e.test): no atienden pacientes.
         return list(Usuario.objects.filter(rol="medico", activo=True).exclude(email__endswith=".test").order_by("id"))
 
+    @staticmethod
+    def _salas(medicos) -> dict:
+        """Consultorio de ginecología de cada médico, repartidos en orden."""
+        from consultorios.models import Consultorio
+
+        consultorios = list(Consultorio.objects.filter(tipo_consultorio="ginecologia").order_by("codigo"))
+        return {m: consultorios[i % len(consultorios)] for i, m in enumerate(medicos)} if consultorios else {}
+
     def _disponibilidad(self) -> int:
         from citas.models import Disponibilidad
 
@@ -136,15 +166,13 @@ class Command(BaseCommand):
     # ── Citas ────────────────────────────────────────────────────────────────
     def _citas(self) -> dict:
         from citas.models import Cita
-        from consultorios.models import Consultorio
         from controles.models import ControlPrenatal
         from embarazos.models import Embarazo
 
         medicos = self._medicos()
         if not medicos:
             return {"citas_pasadas": 0, "citas_proximas": 0}
-        consultorios = list(Consultorio.objects.filter(tipo_consultorio="ginecologia").order_by("codigo"))
-        sala = {m.pk: consultorios[i % len(consultorios)] for i, m in enumerate(medicos)} if consultorios else {}
+        sala = self._salas([m.pk for m in medicos])
         validos = {m.pk for m in medicos}
 
         ocupadas = defaultdict(set)  # (médico, fecha) -> horas tomadas
@@ -152,8 +180,10 @@ class Command(BaseCommand):
             ocupadas[(medico_id, fecha)].add(hora)
         ya_tiene = set(Cita.objects.values_list("paciente_id", "fecha_cita"))
 
-        def franja(medico_id, fecha, desde=None):
+        def franja(medico_id, fecha, desde=None, reservar=False):
             for h in FRANJAS:
+                if reservar and h in TURNOS_LIBRES:
+                    continue
                 if (desde is None or h > desde) and h not in ocupadas[(medico_id, fecha)]:
                     ocupadas[(medico_id, fecha)].add(h)
                     return h
@@ -201,8 +231,8 @@ class Command(BaseCommand):
             if medico_id not in validos:
                 medico_id = medicos[i % len(medicos)].pk
             hora = None
-            while hora is None and fecha <= hoy + timedelta(days=60):
-                hora = franja(medico_id, fecha, desde=ahora if fecha == hoy else None)
+            while hora is None and fecha <= hoy + timedelta(days=HORIZONTE_DIAS):
+                hora = franja(medico_id, fecha, desde=ahora if fecha == hoy else None, reservar=True)
                 if hora is None:
                     fecha = _habil(fecha + timedelta(days=1))
             if hora is None:
@@ -212,9 +242,58 @@ class Command(BaseCommand):
                 paciente_id=emb["paciente_id"], medico_id=medico_id, consultorio=sala.get(medico_id),
                 fecha_cita=fecha, hora_cita=hora, duracion=PASO, tipo_cita="control",
                 estado="confirmada" if fecha <= hoy + timedelta(days=1) else "agendada",
-                motivo="Control prenatal programado"))
+                motivo=MOTIVO_PROXIMA))
         Cita.objects.bulk_create(proximas, batch_size=1000)
         return {"citas_pasadas": len(pasadas), "citas_proximas": len(proximas)}
+
+    def _liberar_turnos(self) -> int:
+        """Corre las citas generadas que ocupan un turno libre al siguiente turno
+        no reservado de la misma médica (la base de antes llenaba la agenda). Si
+        su agenda no tiene lugar en el horizonte, pasa al médico con el turno
+        más cercano, con su consultorio."""
+        from citas.models import Cita
+
+        medicos = [m.pk for m in self._medicos()]
+        sala = self._salas(medicos)
+        hoy = timezone.localdate()
+        ahora = timezone.localtime().time()
+        ocupadas = defaultdict(set)
+        for medico_id, fecha, hora in Cita.objects.filter(fecha_cita__gte=hoy).values_list(
+                "medico_id", "fecha_cita", "hora_cita"):
+            ocupadas[(medico_id, fecha)].add(hora)
+        movidas = []
+        for c in (Cita.objects.filter(fecha_cita__gte=hoy, estado__in=("agendada", "confirmada"),
+                                      motivo=MOTIVO_PROXIMA, hora_cita__in=TURNOS_LIBRES)
+                  .order_by("fecha_cita", "hora_cita")):
+            def turno(medico_id):
+                fecha = c.fecha_cita
+                while fecha <= hoy + timedelta(days=HORIZONTE_DIAS):
+                    hora = next((h for h in FRANJAS if h not in TURNOS_LIBRES
+                                 and h not in ocupadas[(medico_id, fecha)]
+                                 and (fecha > hoy or h > ahora)), None)
+                    if hora:
+                        return fecha, hora
+                    fecha = _habil(fecha + timedelta(days=1))
+                return None
+
+            elegido = turno(c.medico_id)
+            if elegido:
+                medico_id, (fecha, hora) = c.medico_id, elegido
+            else:
+                otros = [(t, m) for m in medicos if m != c.medico_id and (t := turno(m))]
+                if not otros:
+                    continue
+                (fecha, hora), medico_id = min(otros)
+            ocupadas[(c.medico_id, c.fecha_cita)].discard(c.hora_cita)
+            ocupadas[(medico_id, fecha)].add(hora)
+            if medico_id != c.medico_id:
+                c.medico_id, c.consultorio = medico_id, sala.get(medico_id)
+            c.fecha_cita, c.hora_cita = fecha, hora
+            c.estado = "confirmada" if fecha <= hoy + timedelta(days=1) else "agendada"
+            movidas.append(c)
+        Cita.objects.bulk_update(movidas, ["medico", "consultorio", "fecha_cita", "hora_cita", "estado"],
+                                 batch_size=1000)
+        return len(movidas)
 
     # ── Fechas de la carga masiva ────────────────────────────────────────────
     def _repartir_embarazos_de_carga(self) -> dict:
@@ -360,6 +439,14 @@ class Command(BaseCommand):
         ExamenLaboratorio.objects.bulk_update(cambiados, ["fecha_solicitud", "fecha_muestra", "fecha_resultado"],
                                               batch_size=1000)
         return {"examenes_reubicados": len(cambiados)}
+
+    def _partos_terminados(self) -> int:
+        """Partos de la carga con recién nacido y de hace más de un día: terminaron."""
+        from partos.models import Parto
+
+        terminados = Parto.objects.filter(parto_finalizado=False, recien_nacidos__isnull=False,
+                                          fecha_parto__lt=timezone.now() - timedelta(days=1))
+        return Parto.objects.filter(pk__in=terminados.values("pk")).update(parto_finalizado=True)
 
     # ── Fechas de registro ───────────────────────────────────────────────────
     def _fechas_de_registro(self) -> dict:

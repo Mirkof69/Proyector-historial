@@ -179,6 +179,10 @@ class Epicrisis(models.Model):
             errores["fecha_egreso"] = "El egreso no puede ser anterior al parto."
         if self.fecha_egreso and self.fecha_egreso > timezone.now() + timedelta(days=1):
             errores["fecha_egreso"] = "La fecha de egreso no puede estar en el futuro."
+        # El alta es de un parto terminado: con el parto «en curso» se aceptaba
+        # la epicrisis y el embarazo seguía activo para siempre.
+        if self.parto_id and not self.parto.parto_finalizado:
+            errores["parto"] = "El parto sigue en curso: márquelo como finalizado antes de la epicrisis."
         for campo in ("cie10_ingreso", "cie10_egreso"):
             valor = (getattr(self, campo) or "").strip().upper()
             setattr(self, campo, valor)

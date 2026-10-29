@@ -753,7 +753,9 @@ class PartoSerializer(serializers.ModelSerializer):
         if value:
             import re
 
-            if not re.match(r"^\d{1,2}(\+\d)$", value):
+            # Los días son opcionales («39» o «39+2»), como dice el mensaje: el
+            # patrón anterior exigía «+días» y rechazaba «39».
+            if not re.match(r"^\d{1,2}(?:\+[0-6])?$", value):
                 raise serializers.ValidationError(
                     "Formato inválido. Use formato: 39 o 39+2 (semanas+días)",
                 )

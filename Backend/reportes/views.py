@@ -190,15 +190,12 @@ class ReporteGeneradoViewSet(viewsets.ModelViewSet):
         return ReporteGeneradoSerializer
 
     def perform_create(self, serializer):
-        """TRAZABILIDAD: Asignar usuario solicitante y created_by al crear"""
-        usuario_id = (
-            getattr(self.request.user, 'id', None) if getattr(self.request.user, 'is_authenticated', False) else None
-        )
-        serializer.save(usuario_solicitante=usuario_id, created_by=self.request.user)
+        """TRAZABILIDAD: quién pidió el reporte.
 
-    def perform_update(self, serializer):
-        """TRAZABILIDAD: Auto-asignar updated_by al actualizar"""
-        serializer.save(updated_by=self.request.user)
+        La FK espera el usuario, no su id, y ReporteGenerado no tiene
+        created_by/updated_by: con cualquiera de los dos el alta daba 500.
+        """
+        serializer.save(usuario_solicitante=self.request.user)
 
     @action(detail=False, methods=["post"])
     def solicitar(self, request):

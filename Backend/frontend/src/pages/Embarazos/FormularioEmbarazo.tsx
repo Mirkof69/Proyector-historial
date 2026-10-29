@@ -20,6 +20,7 @@ import SeccionClasificacionEmbarazo from './components/SeccionClasificacionEmbar
 import SeccionAntropometriaEmbarazo from './components/SeccionAntropometriaEmbarazo';
 import './paginaClinica.css';
 import { imcRedondeado } from '../../utils/imc';
+import { decimalesANumero } from '../../utils/decimales';
 
 const { Title } = Typography;
 
@@ -114,7 +115,8 @@ const FormularioEmbarazo: React.FC = () => {
     try {
       const data = await embarazosService.getById(embarazoId);
       form.setFieldsValue({
-        ...data,
+        // Los decimales llegan como texto y la regla de rango los rechazaba al editar.
+        ...decimalesANumero(data, ['peso_pregestacional', 'talla_materna']),
         fecha_ultima_menstruacion: data.fecha_ultima_menstruacion ? dayjs(data.fecha_ultima_menstruacion) : null,
         fecha_probable_parto: data.fecha_probable_parto ? dayjs(data.fecha_probable_parto) : null,
         paciente: typeof data.paciente === 'object' ? (data.paciente as any).id : data.paciente,

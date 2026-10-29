@@ -104,6 +104,8 @@ if errorlevel 1 (
     echo ERROR en las migraciones: ver Backend\logs\migraciones.log
     goto fallo
 )
+:: Citas de dias pasados que nadie atendio: quedan como "No asistio" (no detiene el arranque).
+"%PY%" manage.py cerrar_citas_vencidas >> logs\migraciones.log 2>&1
 echo     OK
 
 :: -- 6. Frontend --------------------------------------------------

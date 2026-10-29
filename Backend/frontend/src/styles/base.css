@@ -13,6 +13,16 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* El hueco de la barra de desplazamiento queda siempre reservado: si la barra
+     aparece y desaparece (datos que cargan, un desplegable que alarga la página),
+     el ancho no cambia y la pantalla no «tiembla». */
+  scrollbar-gutter: stable;
+}
+
+/* Al abrir un modal, Ant Design oculta la barra y encoge el body su ancho para
+   compensar; con el hueco reservado eso sobra y movería todo a la izquierda. */
+html:root body {
+  width: auto;
 }
 
 body {
@@ -304,7 +314,13 @@ code {
   *::after {
     animation-duration: 0.01ms !important; /* gana a animaciones de cualquier hoja */
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    /* 0s y no 0.01ms: con 0.01ms todo elemento pasa a tener una transición (la
+       propiedad por defecto es «all») y quien mueve algo y lo mide en el acto lee
+       la posición vieja. Los desplegables de Ant Design se colocaban así a miles
+       de píxeles, fuera de la pantalla, en todo equipo con las animaciones de
+       Windows apagadas: no se veían y la página «temblaba». */
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

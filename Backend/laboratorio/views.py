@@ -711,7 +711,9 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
             },
         )
 
-    @action(detail=True, methods=["post"])
+    # url_path con guion: el frontend llama a /cambiar-estado/ y la ruta por
+    # defecto era /cambiar_estado/ (404).
+    @action(detail=True, methods=["post"], url_path="cambiar-estado")
     def cambiar_estado(self, request, pk=None):
         """Cambiar el estado de un examen
 
@@ -735,6 +737,20 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         if nuevo_estado not in estados_validos:
             return Response(
                 {"error": "Estado no válido", "estados_validos": estados_validos},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Un examen cerrado no se reabre, y no se completa sin ningún resultado:
+        # antes cualquier estado pasaba a cualquier otro (cancelado → completado
+        # sin valores, que el médico veía como «resultado listo»).
+        if examen.estado in ("completado", "cancelado") and nuevo_estado != examen.estado:
+            return Response(
+                {"error": f"El examen ya está {getattr(examen, 'get_estado_display')().lower()}: no se puede cambiar su estado."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if nuevo_estado == "completado" and not examen.resultados.exists():
+            return Response(
+                {"error": "Registre al menos un resultado antes de completar el examen."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -938,6 +954,12 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
         resultados_data = request.data.get("resultados", [])
         completar_examen = request.data.get("completar_examen", False)
 
+        if examen.estado == "cancelado":
+            return Response(
+                {"error": "El examen está cancelado: no se le cargan resultados."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not resultados_data:
             return Response(
                 {
@@ -972,14 +994,26 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
                     )
                     continue
 
-                # Crear resultado
+                # El parámetro tiene que ser de ESTE examen (antes se aceptaba,
+                # por ejemplo, una glucosa dentro de un hemograma) y llevar valor.
+                if valor_referencia.tipo_examen_id != examen.tipo_examen_id:
+                    errores.append({"indice": idx,
+                                    "error": f"«{valor_referencia}» no es un parámetro de {examen.tipo_examen}"})
+                    continue
+                if resultado_data.get("valor_numerico") in (None, "") and not resultado_data.get("valor_texto"):
+                    errores.append({"indice": idx, "error": f"«{valor_referencia}» no tiene valor"})
+                    continue
+
+                # Crear resultado. Sin `unidad`: es del valor de referencia y el
+                # modelo no la tiene; pasarla hacía fallar CADA resultado (TypeError
+                # capturado) y la respuesta decía 201 con 0 guardados, así que
+                # «Registrar resultados» nunca guardó nada.
                 resultado = ResultadoLaboratorio.objects.create(
                     examen=examen,
                     valor_referencia=valor_referencia,
                     valor_numerico=resultado_data.get("valor_numerico"),
-                    valor_texto=resultado_data.get("valor_texto"),
-                    unidad=resultado_data.get("unidad", valor_referencia.unidad),
-                    observaciones=resultado_data.get("observaciones", ""),
+                    valor_texto=resultado_data.get("valor_texto") or "",
+                    observaciones=resultado_data.get("observaciones") or "",
                     created_by=request.user,
                     updated_by=request.user,
                 )
@@ -988,6 +1022,14 @@ class ExamenLaboratorioViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
             except Exception as e:
                 errores.append({"indice": idx, "error": str(e)})
+
+        # Nada guardado: es un rechazo, no un «0 resultados creados exitosamente».
+        if not resultados_creados:
+            return Response(
+                {"error": "No se guardó ningún resultado: " + "; ".join(e["error"] for e in errores),
+                 "errores": errores},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Si se solicita completar el examen y no hay errores
         if completar_examen and len(errores) == 0:

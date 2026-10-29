@@ -155,6 +155,57 @@ class BackupServiceSecurityTest(TestCase):
             self.svc.backup_dir = tmp
             self.assertFalse(self.svc.delete_backup("no_existe.sql"))
 
+    def test_restaurar_vacia_la_base_en_la_misma_transaccion(self):
+        """Los respaldos no traen DROP: sin vaciar antes, psql se detenía en
+        «ya existe el esquema». El preámbulo va primero y todo en una sola
+        transacción, para que un respaldo dañado no deje la base a medias."""
+        self.svc.db_config = {
+            "ENGINE": "django.db.backends.postgresql", "HOST": "localhost",
+            "PORT": 5432, "USER": "u", "PASSWORD": "p", "NAME": "testdb",
+        }
+        leidos = {}
+
+        def fake_run(args, **kwargs):
+            if "psql" in args[0]:
+                with open(args[args.index("-f") + 1], encoding="utf-8") as f:
+                    leidos["preambulo"] = f.read()
+            return mock.Mock(returncode=0, stderr="")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            self.svc.backup_dir = tmp
+            open(f"{tmp}/backup_manual_x.sql", "w").close()
+            with mock.patch.object(self.svc, "create_backup", return_value={"filename": "pre.sql"}), \
+                 mock.patch.object(self.svc, "_resolver_binario", return_value="psql"), \
+                 mock.patch("reportes.services.backup_service.subprocess.run", side_effect=fake_run) as run:
+                res = self.svc.restore_backup("backup_manual_x.sql")
+        args = run.call_args[0][0]
+        self.assertTrue(res["success"])
+        self.assertIn("--single-transaction", args)
+        archivos = [args[i + 1] for i, a in enumerate(args) if a == "-f"]
+        self.assertEqual(len(archivos), 2)
+        self.assertTrue(archivos[1].endswith("backup_manual_x.sql"))
+        self.assertIn("DROP SCHEMA %I CASCADE", leidos["preambulo"])
+        self.assertIn("CREATE SCHEMA public", leidos["preambulo"])
+
+    def test_restaurar_fallido_muestra_el_error_y_no_los_avisos(self):
+        self.svc.db_config = {
+            "ENGINE": "django.db.backends.postgresql", "HOST": "localhost",
+            "PORT": 5432, "USER": "u", "PASSWORD": "p", "NAME": "testdb",
+        }
+        stderr = "NOTICE:  eliminando además 125 objetos más\npsql:x.sql:9: ERROR:  faltan datos en la columna"
+        with tempfile.TemporaryDirectory() as tmp:
+            self.svc.backup_dir = tmp
+            open(f"{tmp}/backup_manual_x.sql", "w").close()
+            with mock.patch.object(self.svc, "create_backup", return_value={"filename": "pre.sql"}), \
+                 mock.patch.object(self.svc, "_resolver_binario", return_value="psql"), \
+                 mock.patch("reportes.services.backup_service.subprocess.run",
+                            return_value=mock.Mock(returncode=3, stderr=stderr)):
+                with self.assertRaises(BackupError) as ctx:
+                    self.svc.restore_backup("backup_manual_x.sql")
+        self.assertIn("faltan datos", str(ctx.exception))
+        self.assertNotIn("NOTICE", str(ctx.exception))
+        self.assertIn("quedo como estaba", str(ctx.exception))
+
 
 class DashboardTotalesTest(TestCase):
     """El dashboard debe mostrar el total REAL de pacientes.
