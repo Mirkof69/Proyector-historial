@@ -1,6 +1,6 @@
 """Borra los datos que crean las pruebas E2E (pacientes con apellido «E2E»).
 
-Uso: python manage.py limpiar_datos_e2e --schema=clinica_demo
+Uso: python manage.py limpiar_datos_e2e --schema=clinica
 
 Borra en orden (imágenes, ecografías, exámenes de laboratorio, controles,
 partos, triajes, notas, vacunas, citas, antecedentes, embarazos, pacientes) porque la historia clínica está protegida contra el borrado en
@@ -17,24 +17,29 @@ import os
 from django.core.management.base import BaseCommand
 from django_tenants.utils import schema_context
 
+from clientes.constantes import ESQUEMA_PRINCIPAL
+
 
 class Command(BaseCommand):
     help = "Borra las pacientes de prueba E2E y toda su historia"
 
     def add_arguments(self, parser):
-        parser.add_argument("--schema", default="clinica_demo")
+        parser.add_argument("--schema", default=ESQUEMA_PRINCIPAL)
         parser.add_argument("--ci", default="", help="CI de la paciente del guion de demostración")
 
     def handle(self, *args, **opciones):
-        from antecedentes.models import AntecedenteGinecoObstetrico, AntecedentePatologico
+        from antecedentes.models import (
+            AntecedenteGinecoObstetrico,
+            AntecedentePatologico,
+        )
         from citas.models import Cita
         from consultorios.models import Consultorio
         from controles.models import ControlPrenatal
         from ecografias.models import Ecografia, ImagenEcografia
         from embarazos.models import Embarazo
         from laboratorio.models import ExamenLaboratorio, ResultadoLaboratorio
-        from notificaciones.models import Notificacion
         from notas_evolucion.models import NotaEvolucion
+        from notificaciones.models import Notificacion
         from pacientes.models import Paciente
         from partos.models import Parto
         from roles.models import Cargo

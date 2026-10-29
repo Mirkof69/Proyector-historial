@@ -40,6 +40,8 @@ class Command(BaseCommand):
     help = "Crea datos de prueba para la demo de Fetal Medical Bolivia"
 
     def handle(self, *args, **kwargs):
+        from clientes.constantes import negar_datos_ficticios
+        negar_datos_ficticios(SCHEMA)
         with schema_context(SCHEMA):
             self._crear_usuarios()
             self._crear_pacientes()

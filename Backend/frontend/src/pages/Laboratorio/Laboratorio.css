@@ -137,6 +137,10 @@
   list-style: disc;
 }
 
+.laboratorio-importar__aviso {
+  display: block;
+}
+
 .laboratorio-importar__selector {
   width: 120px;
 }

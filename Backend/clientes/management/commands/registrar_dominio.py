@@ -1,7 +1,7 @@
 """Registra la dirección por la que se va a entrar al sistema.
 
-    python manage.py registrar_dominio 192.168.0.6 --tenant clinica_demo
-    python manage.py registrar_dominio --detectar-ip --tenant clinica_demo
+    python manage.py registrar_dominio 192.168.0.6 --tenant clinica
+    python manage.py registrar_dominio --detectar-ip --tenant clinica
     python manage.py registrar_dominio --listar
 
 Por qué hace falta
@@ -57,7 +57,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--tenant", default=None,
-            help="Esquema de la clínica. Ej: clinica_demo",
+            help="Esquema de la clínica. Ej: clinica",
         )
         parser.add_argument(
             "--detectar-ip", action="store_true",

@@ -1,6 +1,6 @@
 """Genera las alertas médicas de los controles y resultados ya guardados.
 
-    python manage.py generar_alertas_clinicas --schema=clinica_demo
+    python manage.py generar_alertas_clinicas --schema=clinica
 
 Los nuevos controles y resultados críticos generan su alerta solos (signals);
 este comando hace lo mismo con los que ya existían. Es idempotente: se puede
@@ -9,12 +9,14 @@ correr varias veces sin duplicar alertas.
 from django.core.management.base import BaseCommand
 from django_tenants.utils import schema_context
 
+from clientes.constantes import ESQUEMA_PRINCIPAL
+
 
 class Command(BaseCommand):
     help = "Crea las alertas médicas de los hallazgos críticos ya registrados"
 
     def add_arguments(self, parser):
-        parser.add_argument("--schema", default="clinica_demo")
+        parser.add_argument("--schema", default=ESQUEMA_PRINCIPAL)
 
     def handle(self, *args, **opciones):
         from controles.models import ControlPrenatal

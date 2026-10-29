@@ -45,6 +45,8 @@ COLUMNAS = [
     ("fecha", "Fecha del resultado", True, "12/09/2026", "DD/MM/AAAA o fecha de Excel. No puede ser futura."),
     ("parametro", "Parámetro", True, "Hemoglobina", "Tal como aparece en la hoja «Catálogo»."),
     ("valor", "Valor", True, "11.8", "Número (con punto o coma) o texto si el parámetro es cualitativo."),
+    ("unidad", "Unidad", False, "g/dL",
+     "La del laboratorio. Si difiere del catálogo se convierte (p. ej. plaquetas 250000 /µL → 250 10³/µL)."),
     ("observaciones", "Observaciones", False, "", ""),
 ]
 ENCABEZADO_A_CAMPO = {enc.lower(): campo for campo, enc, *_ in COLUMNAS}
@@ -56,6 +58,7 @@ SINONIMOS = {
     "fecha": ("fecha del resultado", "fecha", "fecha resultado", "fecha de resultado", "fecha muestra"),
     "parametro": ("parametro", "analito", "prueba", "determinacion", "item"),
     "valor": ("valor", "resultado", "valor obtenido"),
+    "unidad": ("unidad", "unidades", "unidad de medida", "um", "unit", "units"),
     "observaciones": ("observaciones", "observacion", "obs", "comentario", "comentarios", "nota"),
 }
 
@@ -245,17 +248,39 @@ def _validar_fila(f, pacientes, tipos, rangos, hoy):
         errores.append(f"«{parametro}» no es un parámetro de {tipo.codigo} (ver hoja «Catálogo»)")
     if not valor_txt:
         errores.append("Falta el valor")
-    numero = None
+    numero, aviso, unidad = None, "", _texto(d.get("unidad"))
     if rango is not None and valor_txt:
         numerico = rango.valor_minimo is not None or rango.valor_maximo is not None
         numero = _numero(valor_txt)
         if numerico and numero is None:
             errores.append(f"{parametro} se mide con números: «{valor_txt}» no es un número")
+        elif numero is not None and numerico:
+            numero, aviso = _a_unidad_del_catalogo(numero, unidad, rango, errores)
     if errores:
         return None, errores
+    observaciones = _texto(d.get("observaciones"))
+    if aviso.startswith(("Convertido", "Se tomó")):
+        original = f"Valor original del laboratorio: {valor_txt} {unidad or '(sin unidad)'}"
+        observaciones = f"{observaciones}\n{original}".strip()
     limpio = {"paciente": paciente, "tipo": tipo, "fecha": fecha, "rango": rango, "numero": numero,
-              "texto": "" if numero is not None else valor_txt, "observaciones": _texto(d.get("observaciones"))}
+              "texto": "" if numero is not None else valor_txt, "observaciones": observaciones, "aviso": aviso}
     return (paciente.pk, tipo.pk, fecha), limpio
+
+
+def _a_unidad_del_catalogo(numero, unidad, rango, errores):
+    """(valor en la unidad del catálogo, aviso). Ver laboratorio/unidades.py."""
+    from .unidades import UnidadIncompatible, convertir, corregir_conteo_sin_unidad, normalizar
+
+    if not unidad:
+        return corregir_conteo_sin_unidad(numero, rango)
+    if not rango.unidad or normalizar(unidad) == normalizar(rango.unidad):
+        return numero, ""
+    try:
+        nuevo = convertir(numero, unidad, rango.unidad)
+    except UnidadIncompatible as e:
+        errores.append(str(e))
+        return numero, ""
+    return nuevo, f"Convertido de {numero} {unidad} a {nuevo} {rango.unidad}"
 
 
 def procesar(filas: list[dict], usuario, confirmar: bool) -> dict:
@@ -279,7 +304,7 @@ def procesar(filas: list[dict], usuario, confirmar: bool) -> dict:
         if clave is None:
             fila.update(estado="error", errores=resultado)
         else:
-            fila.update(estado="valida", errores=[])
+            fila.update(estado="valida", errores=[], avisos=[resultado["aviso"]] if resultado["aviso"] else [])
             grupos.setdefault(clave, []).append((fila, resultado))
         salida.append(fila)
 

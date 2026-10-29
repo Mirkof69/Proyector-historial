@@ -132,6 +132,8 @@ class Command(BaseCommand):
 
     # ── Entrada ────────────────────────────────────────────────────────────
     def handle(self, *args, **opts):
+        from clientes.constantes import negar_datos_ficticios
+        negar_datos_ficticios(opts.get("tenant"))
         random.seed(opts["semilla"])
         self._contadores_ci = {"99": 0, "98": 0}
         with schema_context(opts["tenant"]):

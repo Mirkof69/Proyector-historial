@@ -104,6 +104,8 @@ class Command(BaseCommand):
         parser.add_argument("--schema", default="clinica_demo")
 
     def handle(self, *args, **opciones):
+        from clientes.constantes import negar_datos_ficticios
+        negar_datos_ficticios(opciones.get("schema"))
         with schema_context(opciones["schema"]):
             r = {
                 "consultorios": self._consultorios(),

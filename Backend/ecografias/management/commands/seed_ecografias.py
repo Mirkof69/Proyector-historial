@@ -44,6 +44,8 @@ class Command(BaseCommand):
         parser.add_argument("--cantidad", type=int, default=20, help="Numero de ecografias a crear")
 
     def handle(self, *args, **options):
+        from clientes.constantes import negar_datos_ficticios
+        negar_datos_ficticios()
         cantidad = options["cantidad"]
 
         TenantModel = get_tenant_model()

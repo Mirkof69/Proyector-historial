@@ -7,15 +7,32 @@
 //   - la página desborda hacia los lados,
 //   - un desplegable o calendario abierto cae fuera de la pantalla.
 // Además abre el menú del perfil y la campana, y sigue una notificación.
+const crypto = require('crypto');
 const { test, expect } = require('@playwright/test');
 
 const PASSWORD = process.env.E2E_PASSWORD || 'Demo2026!';
+// Las cuentas se pueden cambiar por variables de entorno (la base real no tiene
+// las de la demo). Sin la variable, ese rol usa la cuenta de la demo.
 const ROLES = [
   ['administrador', process.env.E2E_ADMIN_EMAIL || 'admin.demo@fetalmedical.bo'],
-  ['médico', 'dra.garcia@fetalmedical.bo'],
-  ['enfermería', 'enf.mamani@fetalmedical.bo'],
-  ['recepción', 'recep.flores@fetalmedical.bo'],
+  ['médico', process.env.E2E_MEDICO_EMAIL || 'dra.garcia@fetalmedical.bo'],
+  ['enfermería', process.env.E2E_ENFERMERIA_EMAIL || 'enf.mamani@fetalmedical.bo'],
+  ['recepción', process.env.E2E_RECEPCION_EMAIL || 'recep.flores@fetalmedical.bo'],
+  ...(process.env.E2E_LABORATORIO_EMAIL ? [['laboratorio', process.env.E2E_LABORATORIO_EMAIL]] : []),
 ];
+
+/** Código TOTP (RFC 6238) del secreto que muestra la pantalla de MFA. */
+const totp = (secreto) => {
+  const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '';
+  for (const c of secreto.replace(/=+$/, '')) bits += alfabeto.indexOf(c).toString(2).padStart(5, '0');
+  const clave = Buffer.from(bits.match(/.{8}/g).map((b) => parseInt(b, 2)));
+  const contador = Buffer.alloc(8);
+  contador.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)));
+  const h = crypto.createHmac('sha1', clave).update(contador).digest();
+  const o = h[h.length - 1] & 0xf;
+  return String((h.readUInt32BE(o) & 0x7fffffff) % 1000000).padStart(6, '0');
+};
 // «403» solo como «Error 403»: suelto es la última página del paginador, y dentro
 // de un código de paciente o un teléfono es un dato.
 const AVISOS = /no tiene permiso|acceso denegado|página no encontrada|error inesperado|error 403/i;
@@ -28,7 +45,17 @@ async function entrar(page, email) {
   await page.fill('input[placeholder="ejemplo@fetalmedical.com"]', email);
   await page.fill('input[placeholder="Ingrese su contraseña"]', PASSWORD);
   await page.click('button[type=submit]');
-  await page.waitForURL((u) => !u.pathname.includes('login'));
+  // En producción médico y administrador configuran el MFA la primera vez.
+  const configurar = page.getByRole('button', { name: /Configurar Google Authenticator/ });
+  await Promise.race([page.waitForURL((u) => !u.pathname.includes('login')), configurar.waitFor()]);
+  if (await configurar.isVisible()) {
+    await configurar.click();
+    const secreto = (await page.locator('.ant-typography code').first().innerText()).trim();
+    await page.getByRole('button', { name: /Ya escaneé el QR/ }).click();
+    await page.fill('input[placeholder="000000"]', totp(secreto));
+    await page.getByRole('button', { name: /Activar MFA/ }).click();
+    await page.waitForURL((u) => u.pathname.startsWith('/dashboard'), { timeout: 15000 });
+  }
 }
 
 /** Rutas del menú lateral, con los submenús abiertos. */

@@ -1,6 +1,6 @@
 """Cierra las predicciones de peso al nacer con el peso real (para partos ya registrados).
 
-    python manage.py tenant_command cerrar_predicciones_peso --schema=clinica_demo
+    python manage.py tenant_command cerrar_predicciones_peso --schema=clinica
 
 El cierre normal es automático al registrar el recién nacido; esto recorre lo
 que quedó abierto (por ejemplo, partos cargados antes de existir el cierre) e

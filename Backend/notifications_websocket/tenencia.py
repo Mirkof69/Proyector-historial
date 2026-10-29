@@ -7,7 +7,7 @@ relación notificaciones», visto el 01/10/2026). Las notificaciones pendientes
 nunca llegaban en tiempo real.
 
 Aquí se replica la misma regla: el dominio del host decide la clínica; en
-desarrollo un host desconocido usa `clinica_demo`, en producción se rechaza.
+desarrollo un host desconocido usa la clínica principal, en producción se rechaza.
 Sin django-tenants (la suite de pruebas) no hay esquemas y todo se ejecuta tal cual.
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ import functools
 from django.conf import settings
 from django.db import connection
 
-ESQUEMA_DE_DESARROLLO = "clinica_demo"
+from clientes.constantes import ESQUEMA_PRINCIPAL as ESQUEMA_DE_DESARROLLO
 
 
 def hay_tenants() -> bool:

@@ -37,13 +37,13 @@ validaciones: averigua la causa y dímela.
 | API | Django 6 + Django REST Framework + django-tenants, servida con waitress | `Backend/` | 8000 |
 | Notificaciones en vivo | Django Channels sobre uvicorn (1 worker) + **Redis** | `Backend/` | 8010 |
 | Servicio de IA | FastAPI + PyTorch (13 redes entrenadas) | `Backend/Microservicio_IA/` | 8001 |
-| Base de datos | **PostgreSQL 18**, multi-clínica con un esquema por clínica (`public`, `clinica_demo`, `clinica`) | servicio de Windows | 5432 |
+| Base de datos | **PostgreSQL 18**, una sola clínica: esquema compartido `public` y esquema `clinica` con todos los datos del hospital | servicio de Windows | 5432 |
 | Caché y mensajería | Redis (Windows) | `C:\Program Files\Redis` | 6379 |
 
 - Los usuarios viven en el esquema `public`; los datos clínicos en el esquema
   de cada clínica. Las migraciones se aplican con
   `manage.py migrate_schemas --noinput`, y los comandos por clínica con
-  `manage.py tenant_command <comando> --schema=clinica_demo`.
+  `manage.py tenant_command <comando> --schema=clinica`.
 - Nombre, CI, teléfono, correo y dirección de las pacientes están **cifrados**
   con las claves de `Backend/.env` (`ENCRYPTION_KEY`, `ENCRYPTION_SALT`,
   `SEARCH_HMAC_KEY`). **Si esas claves cambian, los datos restaurados quedan
@@ -75,8 +75,10 @@ validaciones: averigua la causa y dímela.
 Comprueba que existan (y dime el tamaño de cada uno):
 
 - `Backend/.env` → configuración y claves (sin él no se puede seguir: pídemelo).
-- `Backend/backups/BASE_PARA_INSTALAR_20261026.sql` → respaldo completo de la
-  base (~457 MB). Su SHA-256 empieza por `cbfd7780087b2d7e`; verifícalo.
+- `Backend/backups/BASE_PARA_INSTALAR_20261029.sql` → la base real del hospital,
+  sin datos de demostración (~0,6 MB: catálogos, cuentas y configuración). Su
+  SHA-256 empieza por `7b211ddc0685b1a0`; verifícalo. **No** uses los
+  `BASE_PARA_INSTALAR_20261021/20261026` ni los `backup_demo_*`: son la demo vieja.
 - `Backend/Microservicio_IA/trained_models/` → pesos `.pth` de las redes.
 - `Backend/Microservicio_IA/datos/` → datasets (~25 GB).
 - `Backend/Microservicio_IA/entrenamiento/` → scripts y métricas de entrenamiento.
@@ -120,7 +122,7 @@ milisegundos por imagen).
       conexiones abiertas si da error de «base en uso»).
 4. Crea la base vacía: `createdb -U <DB_USER> -E UTF8 <DB_NAME>`.
 5. **Restaura nuestro respaldo:**
-   `psql -U <DB_USER> -d <DB_NAME> -v ON_ERROR_STOP=1 -q -f Backend\backups\BASE_PARA_INSTALAR_20261026.sql`.
+   `psql -U <DB_USER> -d <DB_NAME> -v ON_ERROR_STOP=1 -q -f Backend\backups\BASE_PARA_INSTALAR_20261029.sql`.
    Debe terminar sin ningún `ERROR`. (Se probó en la PC original: 0 errores.)
 6. Ajustes de rendimiento (necesitan reiniciar el servicio como administrador):
    ```sql
@@ -131,24 +133,24 @@ milisegundos por imagen).
    consola de administrador. Solo después de esto agrega
    `DB_CONN_MAX_AGE=60` en `Backend/.env`.
 7. Comprueba que la restauración trajo los datos. Valores esperados (los de la
-   PC original el 26/10/2026):
+   PC original el 29/10/2026, base real recién creada):
 
    | Esquema.tabla | Registros |
    |---|---|
-   | `clinica_demo.pacientes` | 3.219 |
-   | `clinica_demo.embarazos` | 3.231 |
-   | `clinica_demo.controles_prenatales` | 8.047 |
-   | `clinica_demo.ecografias` | 3.521 |
-   | `clinica_demo.examenes_laboratorio` | 3.935 |
-   | `clinica_demo.resultados_laboratorio` | 14.163 |
-   | `clinica_demo.partos` | 519 |
-   | `clinica_demo.recien_nacidos` | 551 |
-   | `clinica_demo.citas` | 4.610 |
-   | `clinica_demo.alertas_medicas` | 2.780 |
-   | `clinica_demo.consultorios` | 6 |
-   | `clinica_demo.tipos_reporte` | 8 |
-   | `public.usuarios` | 16 |
-   | tablas en total | 183 |
+   | `clinica.pacientes` | 0 (el hospital las registra) |
+   | `clinica.tipos_examenes` | 30 |
+   | `clinica.valores_referencia` | 79 |
+   | `clinica.tipos_vacunas` | 3 |
+   | `clinica.tipos_reporte` | 8 |
+   | `clinica.horarios_atencion` | 7 |
+   | `clinica.consultorios` | 1 |
+   | `clinica.disponibilidades` | 10 |
+   | `public.usuarios` | 11 (6 activas) |
+   | tablas en total | 100 |
+
+   Si la base se arma desde cero en vez de restaurarla: `migrate_schemas
+   --noinput` y después `manage.py preparar_clinica` (crea la clínica, sus
+   dominios y todos los catálogos; se puede repetir sin duplicar nada).
 
 ## Paso 3 · Backend (Django)
 
@@ -165,11 +167,11 @@ py -3.12 -m venv .venv
 
 - `migrate_schemas` debe decir que no hay nada pendiente o aplicar solo lo que
   falte. El último comando no debe mostrar nada (ninguna migración sin aplicar).
-- Comprueba que los datos cifrados se leen: el nombre de una paciente debe
-  verse como texto normal, no como texto cifrado. Si se ve cifrado, el `.env`
-  no es el de la PC original: detente y avísame.
+- Cuando ya haya pacientes, comprueba que los datos cifrados se leen: el
+  nombre de una paciente debe verse como texto normal, no como texto cifrado.
+  Si se ve cifrado, el `.env` no es el de la PC original: detente y avísame.
   ```powershell
-  .venv\Scripts\python.exe manage.py tenant_command shell --schema=clinica_demo -c "from pacientes.models import Paciente; p=Paciente.objects.order_by('id').first(); print(p.id, p.nombre[:1] + '…')"
+  .venv\Scripts\python.exe manage.py tenant_command shell --schema=clinica -c "from pacientes.models import Paciente; p=Paciente.objects.order_by('id').first(); print(p.id, p.nombre[:1] + '…')"
   ```
 
 ## Paso 4 · Frontend (React)

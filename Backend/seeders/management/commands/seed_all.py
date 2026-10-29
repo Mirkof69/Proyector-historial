@@ -332,6 +332,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """Handle"""
+        from clientes.constantes import negar_datos_ficticios
+        negar_datos_ficticios()
         self.log_section("FETAL MEDICAL SYSTEM - DATABASE SEEDER")
 
         if options["flush"]:

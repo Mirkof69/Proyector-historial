@@ -17,6 +17,8 @@ interface FilaImportacion {
   valor: string;
   estado: EstadoFila;
   errores: string[];
+  /** Conversiones de unidad aplicadas o valores para revisar (no impiden guardar). */
+  avisos?: string[];
 }
 
 interface ResultadoImportacion {
@@ -114,9 +116,18 @@ const ImportarLaboratorioModal: React.FC<Props> = ({ open, onClose, onImportado 
     },
     {
       title: 'Qué corregir', dataIndex: 'errores', key: 'errores',
-      render: (errores: string[]) => (errores.length
-        ? <ul className="laboratorio-importar__errores">{errores.map((x) => <li key={x}>{x}</li>)}</ul>
-        : <Text type="secondary">—</Text>),
+      render: (errores: string[], fila: FilaImportacion) => {
+        const avisos = fila.avisos ?? [];
+        if (!errores.length && !avisos.length) return <Text type="secondary">—</Text>;
+        return (
+          <>
+            {errores.length > 0 && (
+              <ul className="laboratorio-importar__errores">{errores.map((x) => <li key={x}>{x}</li>)}</ul>
+            )}
+            {avisos.map((x) => <Text key={x} type="warning" className="laboratorio-importar__aviso">{x}</Text>)}
+          </>
+        );
+      },
     },
   ];
 

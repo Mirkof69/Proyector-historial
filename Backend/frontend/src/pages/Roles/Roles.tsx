@@ -5,6 +5,7 @@ import { PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-de
 import { useNavigate } from 'react-router-dom';
 import cargosService, { Cargo } from '../../services/cargosService';
 import { configuracionDeRol } from '../../config/roles';
+import RolesDelSistema from './RolesDelSistema';
 import { mensajeDeError } from '../../services/partoDetalleService';
 
 import './Roles.css';
@@ -136,13 +137,14 @@ const Roles: React.FC = () => {
           Nuevo cargo
         </Button>
       </header>
+      <RolesDelSistema />
       <Alert
         type="info"
         showIcon
         message="Para otros funcionarios del hospital (obstetriz, nutricionista, trabajo social…)"
         description="Cada cargo se basa en un rol del sistema y elige qué módulos de ese rol usa. Puede quitar módulos, nunca agregar: lo que el sistema deja hacer sigue siendo lo del rol base."
       />
-      <Card>
+      <Card title="Cargos del hospital">
         <Table
           columns={columns}
           dataSource={cargos}
