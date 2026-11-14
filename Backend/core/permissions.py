@@ -114,12 +114,44 @@ def _es_accion_clinica_de_paciente(path: str) -> bool:
     return path.startswith("/api/pacientes/") and any(a in path for a in _ACCIONES_CLINICAS_DE_PACIENTE)
 
 
+#: Huecos entre esta clase y la tabla de roles (usuarios/permisos_por_rol.py) que halló la automatización de
+#: pruebas (BUG-001, 13/11/2026). En estos módulos el rol solo puede LEER: la API dejaba crear y editar.
+_SOLO_LECTURA = {
+    "enfermera": ("/api/embarazos", "/api/ecografias", "/api/ecografias-archivos", "/api/laboratorios",
+                  "/api/antecedentes"),
+    "laboratorista": ("/api/pacientes", "/api/embarazos", "/api/controles", "/api/ecografias",
+                      "/api/ecografias-archivos", "/api/citas", "/api/antecedentes"),
+}
+#: Módulos que la tabla no le da al rol en absoluto (la API se los dejaba leer y escribir).
+_SIN_ACCESO = {
+    "laboratorista": ("/api/partos", "/api/notas-evolucion", "/api/evoluciones", "/api/vacunas", "/api/reportes",
+                      "/api/triaje", "/api/calculadoras-avanzadas"),
+}
+#: Consultas que viajan por POST (búsquedas): no modifican datos y siguen permitidas en solo lectura.
+_CONSULTAS_POR_POST = ("/buscar", "/busqueda")
+
+
+def _bloqueo_por_tabla_de_roles(rol: str, path: str, metodo: str) -> str | None:
+    """Mensaje de rechazo si la tabla de roles no le permite al rol esta operación; None si la permite."""
+    for prefijo in _SIN_ACCESO.get(rol, ()):
+        if path.startswith(prefijo):
+            return f"Su rol no tiene acceso a {prefijo}."
+    if metodo not in ("GET", "HEAD", "OPTIONS") and not any(c in path for c in _CONSULTAS_POR_POST):
+        for prefijo in _SOLO_LECTURA.get(rol, ()):
+            if path.startswith(prefijo):
+                return f"Su rol solo puede consultar {prefijo}; no puede crear ni modificar registros."
+    return None
+
+
 class FetalMedicalPermission(BasePermission):
     """
     Permiso base del sistema (política de mínimo privilegio):
     - superuser / administrador -> acceso total
-    - medico / laboratorista     -> acceso clínico completo
-    - enfermera                  -> triaje, controles, vacunas; NO partos
+    - medico                     -> acceso clínico completo
+    - laboratorista              -> laboratorio; solo lectura de pacientes, embarazos, controles,
+                                    ecografías, citas y antecedentes; sin partos, notas, vacunas ni reportes
+    - enfermera                  -> triaje, controles, vacunas; solo lectura de embarazos, ecografías,
+                                    laboratorio y antecedentes; NO partos
     - recepcion                  -> solo citas + listado de pacientes
     """
 
@@ -151,8 +183,18 @@ class FetalMedicalPermission(BasePermission):
                 if path.startswith(bloqueado):
                     self.message = f"Enfermería no tiene acceso a {bloqueado}."
                     return False
+            motivo = _bloqueo_por_tabla_de_roles(rol, path, request.method)
+            if motivo:
+                self.message = motivo
+                return False
             return True
-        if rol in ("medico", "laboratorista"):
+        if rol == "laboratorista":
+            motivo = _bloqueo_por_tabla_de_roles(rol, path, request.method)
+            if motivo:
+                self.message = motivo
+                return False
+            return True
+        if rol == "medico":
             return True
         # Rol desconocido o vacío: sin acceso. Antes podía LEER todo el sistema.
         self.message = "Su usuario no tiene un rol asignado. Pida al administrador que le asigne uno."
