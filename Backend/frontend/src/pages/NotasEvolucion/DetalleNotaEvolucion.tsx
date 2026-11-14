@@ -14,6 +14,15 @@ const tipoConsultaColors: Record<string, string> = {
   primera_vez: 'default',
 };
 
+/** El detalle de la API trae paciente y médico como objetos (el listado, como texto): se muestra su nombre.
+ *  Antes se dibujaba el objeto entero y React se caía con «Objects are not valid as a React child» (BUG-005). */
+const nombreDe = (valor: unknown, alterno?: string | null): string => {
+  if (valor && typeof valor === 'object') {
+    return (valor as { nombre_completo?: string }).nombre_completo || alterno || '';
+  }
+  return alterno || (valor != null ? String(valor) : '');
+};
+
 const DetalleNotaEvolucion: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -48,14 +57,14 @@ const DetalleNotaEvolucion: React.FC = () => {
       </Space>
       <Card title={<span><FileTextOutlined style={{ marginRight: 8 }} />Nota de Evolución</span>}>
         <Descriptions column={{ xs: 1, sm: 2 }} bordered>
-          <Descriptions.Item label="Paciente"><Text strong>{nota.paciente_nombre || nota.paciente}</Text></Descriptions.Item>
+          <Descriptions.Item label="Paciente"><Text strong>{nombreDe(nota.paciente, nota.paciente_nombre)}</Text></Descriptions.Item>
           <Descriptions.Item label="Tipo Consulta">
             <Tag color={tipoConsultaColors[nota.tipo_consulta] || 'default'}>
               {nota.tipo_consulta?.replace(/_/g, ' ').toUpperCase()}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Fecha">{dayjs(nota.fecha_consulta || nota.fecha_creacion).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
-          <Descriptions.Item label="Médico">{nota.medico_nombre || nota.revisado_por_nombre || 'No especificado'}</Descriptions.Item>
+          <Descriptions.Item label="Médico">{nombreDe(nota.medico, nota.medico_nombre) || nota.revisado_por_nombre || 'No especificado'}</Descriptions.Item>
         </Descriptions>
 
         <Divider />
