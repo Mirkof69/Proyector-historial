@@ -636,7 +636,18 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def mfa_setup(self, request):
-        """Genera secreto TOTP y QR para Google Authenticator. Confirmar con /mfa/confirm/."""
+        """Genera secreto TOTP y QR para Google Authenticator. Confirmar con /mfa/confirm/.
+
+        Con el MFA ya activo NO genera otro secreto (BUG-004): antes, con solo abrir /setup-mfa se guardaba una
+        clave nueva y el código del celular dejaba de servir, dejando la cuenta fuera. Para cambiar de celular se
+        desactiva primero (/mfa/disable/) o lo restablece el administrador.
+        """
+        if request.user.mfa_enabled:
+            return Response(
+                {"error": "El doble factor ya está activo en esta cuenta. Para cambiar de celular, desactívelo "
+                          "desde su perfil o pida al administrador que lo restablezca.", "mfa_enabled": True},
+                status=status.HTTP_409_CONFLICT,
+            )
         return Response(_nuevo_secreto_mfa(request.user))
 
     @action(
