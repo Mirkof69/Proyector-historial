@@ -32,12 +32,17 @@ const PanelRiesgoClinico: React.FC<PanelRiesgoClinicoProps> = ({ triaje, onVerHi
 
       <div className="stat-indicator">
         <Text type="secondary">Oxigenación Periférica</Text>
-        <Progress
-          type="dashboard"
-          percent={triaje.saturacion_oxigeno || 0}
-          width={100}
-          strokeColor={triaje.saturacion_oxigeno && triaje.saturacion_oxigeno < 95 ? 'var(--color-peligro)' : 'var(--color-exito)'}
-        />
+        {/* Sin saturación registrada se dice «Sin dato»: antes se dibujaba 0 %, un valor que nadie midió (BUG-008). */}
+        {triaje.saturacion_oxigeno == null ? (
+          <div className="triaje-sin-dato"><Text type="secondary">Sin dato</Text></div>
+        ) : (
+          <Progress
+            type="dashboard"
+            percent={triaje.saturacion_oxigeno}
+            width={100}
+            strokeColor={triaje.saturacion_oxigeno < 95 ? 'var(--color-peligro)' : 'var(--color-exito)'}
+          />
+        )}
       </div>
 
       <Card size="small" className="triaje-prioridad">
