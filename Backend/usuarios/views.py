@@ -38,6 +38,7 @@ from .serializers import (
     PermissionSerializer,
     UsuarioCreateUpdateSerializer,
     UsuarioDetailSerializer,
+    UsuarioListBasicoSerializer,
     UsuarioListSerializer,
 )
 
@@ -246,6 +247,9 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         """Retornar el serializer apropiado según la acción"""
         if self.action == "list":
+            usuario = self.request.user
+            if not (getattr(usuario, "is_superuser", False) or getattr(usuario, "rol", "") == "administrador"):
+                return UsuarioListBasicoSerializer   # BUG-002: sin correos ni teléfonos para otros roles
             return UsuarioListSerializer
         if self.action in ["create", "update", "partial_update"]:
             return UsuarioCreateUpdateSerializer

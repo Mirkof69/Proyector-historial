@@ -108,6 +108,15 @@ class UsuarioListSerializer(serializers.ModelSerializer):
         return None
 
 
+class UsuarioListBasicoSerializer(UsuarioListSerializer):
+    """Listado para quien no es administrador: lo justo para elegir a un profesional (médico de una cita o de un
+    embarazo), sin correo, teléfono ni banderas de administración (BUG-002)."""
+
+    class Meta(UsuarioListSerializer.Meta):
+        fields = ["id", "nombre", "apellido_paterno", "apellido_materno", "nombre_completo", "rol", "rol_display",
+                  "cargo_nombre", "especialidad", "foto_url", "activo"]
+
+
 class UsuarioDetailSerializer(serializers.ModelSerializer):
     """Serializer detallado para ver un usuario"""
 
