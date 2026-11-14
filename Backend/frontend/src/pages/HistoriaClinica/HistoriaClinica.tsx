@@ -132,7 +132,7 @@ const HistoriaClinica: React.FC = () => {
   const { message, notification, modal } = useAntdApp();
   const { id: pacienteId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getToken } = useAuth();
+  const { getToken, hasPermission } = useAuth();
   const [formNota] = Form.useForm();
   const [formReceta] = Form.useForm();
   const mountedRef = React.useRef(false);
@@ -238,15 +238,21 @@ const HistoriaClinica: React.FC = () => {
       setHistorialEmbarazos(todosEmbarazos.filter((e: Embarazo) => e.id !== embarazoParaMostrar?.id));
 
       // 3. Carga de Datos (carga para embarazo activo o más reciente)
+      // Cada apartado se pide solo si el rol puede leerlo (misma tabla de roles que aplica la API, BUG-001/006):
+      // el laboratorio no lee notas, vacunas ni partos, y enfermería no lee partos. Antes se pedían igual y el 403
+      // de notas o vacunas cancelaba toda la carga: «No se pudo cargar la historia clínica completa».
+      const vacio: AxiosResponse<any> = { data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} };
+      const siPuede = (permiso: string, url: string): Promise<AxiosResponse<any>> =>
+        (hasPermission(permiso) ? axios.get(url, { headers }).catch(() => vacio) : Promise.resolve(vacio));
       const promises: Promise<AxiosResponse<any>>[] = [
-        axios.get(`${API_URL}/notas-evolucion/?paciente=${pacienteId}`, { headers }),
+        siPuede('view_notaevolucion', `${API_URL}/notas-evolucion/?paciente=${pacienteId}`),
         // "/vacunas/" es la RAÍZ del router, no la lista: devolvía el índice
         // {"tipos-vacunas": ..., "registros": ...} con status 200, así que el
         // array quedaba vacío y la tab Vacunas salía en blanco aunque la
         // paciente tuviera dosis registradas. La lista está en /registros/.
-        axios.get(`${API_URL}/vacunas/registros/?paciente=${pacienteId}`, { headers }),
+        siPuede('view_registrovacuna', `${API_URL}/vacunas/registros/?paciente=${pacienteId}`),
         axios.get(`${API_URL}/citas/?paciente=${pacienteId}`, { headers }).catch(err => ({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} })),
-        axios.get(`${API_URL}/partos/?paciente=${pacienteId}`, { headers }).catch(err => ({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} }))
+        siPuede('view_parto', `${API_URL}/partos/?paciente=${pacienteId}`)
       ];
 
       const emptyResponse = { data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} };
@@ -352,7 +358,7 @@ const HistoriaClinica: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [pacienteId, notification, getToken]);
+  }, [pacienteId, notification, getToken, hasPermission]);
 
   useEffect(() => {
     isMounted.current = true;

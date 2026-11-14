@@ -66,8 +66,9 @@ const DetallePaciente: React.FC = () => {
   // «Acceso Restringido». Un apartado que falla tampoco tumba toda la ficha.
   const veClinica = hasPermission('view_controlprenatal');
   // Recibe una FUNCIÓN: con la promesa ya creada la petición salía igual.
-  const clinico = <T,>(pedir: () => Promise<T>, vacio: T): Promise<T> =>
-    (veClinica ? pedir().catch(() => vacio) : Promise.resolve(vacio));
+  // `permiso`: el que la API exige a ese apartado (el laboratorio ve la ficha pero no triaje, notas ni vacunas).
+  const clinico = <T,>(pedir: () => Promise<T>, vacio: T, permiso?: string): Promise<T> =>
+    (veClinica && (!permiso || hasPermission(permiso)) ? pedir().catch(() => vacio) : Promise.resolve(vacio));
 
   const fetchData = async (pacienteId: number) => {
     loadingRef.current = true;
@@ -87,12 +88,12 @@ const DetallePaciente: React.FC = () => {
         // Filtrado en el servidor: antes se bajaban todos los registros del
         // hospital (las notas y vacunas, solo los primeros 1000) y se filtraba
         // aquí, así que a una paciente le faltaban los suyos.
-        clinico(() => triajeService.listar({ paciente: pacienteId }), []),
+        clinico(() => triajeService.listar({ paciente: pacienteId }), [], 'view_triajeenfermeria'),
         clinico(() => antecedentesService.listar(pacienteId), []),
         clinico(() => notasEvolucionService.getNotasPorPaciente(pacienteId, { page_size: 1000 })
-          .then((res: any) => res.results || res), []),
+          .then((res: any) => res.results || res), [], 'view_notaevolucion'),
         clinico(() => vacunasService.getRegistros({ paciente: pacienteId, page_size: 1000 })
-          .then((res: any) => res.results || res), []),
+          .then((res: any) => res.results || res), [], 'view_registrovacuna'),
         clinico(() => ecografiasService.obtenerPorPaciente(pacienteId), []),
       ]);
 
