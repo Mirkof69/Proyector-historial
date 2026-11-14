@@ -69,8 +69,9 @@ export const IAAsistenteMedico: React.FC = () => {
 
   useEffect(() => {
     const loadContext = async () => {
-      // Enfermería y recepción no leen /reportes/: pedirlo era un 403 en cada Panel.
-      if (['enfermera', 'recepcion'].includes(authService.getCurrentUser()?.rol ?? '')) return;
+      // Enfermería, laboratorio y recepción no leen /reportes/ (tabla de roles, BUG-001): pedirlo era un 403
+      // en cada Panel.
+      if (['enfermera', 'laboratorista', 'recepcion'].includes(authService.getCurrentUser()?.rol ?? '')) return;
       try {
         const stats = await statisticsService.getDashboardStatistics();
         dashboardContextRef.current = stats;
