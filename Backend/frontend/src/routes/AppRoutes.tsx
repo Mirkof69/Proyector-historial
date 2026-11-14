@@ -84,6 +84,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/setup-mfa" element={<SetupMfa />} />
 
         {/* ==================== RUTAS PROTEGIDAS (DASHBOARD PRINCIPAL) ==================== */}
+        {/* BUG-006 (13/11/2026): las rutas exigen el mismo permiso que la API pide a sus consultas; antes
+            abrían para roles sin acceso y la pantalla quedaba con errores 403 y paneles vacíos. */}
         <Route
           path="/dashboard"
           element={
@@ -112,13 +114,13 @@ const AppRoutes: React.FC = () => {
           <Route path="busqueda" element={<GlobalSearch />} />
           <Route path="pacientes/:id" element={<ProtectedRoute requiredPermission="view_paciente"><DetallePaciente /></ProtectedRoute>} />
           <Route path="pacientes/:id/editar" element={<ProtectedRoute requiredPermission="change_paciente"><FormularioPaciente /></ProtectedRoute>} />
-          <Route path="pacientes/:id/historia" element={<ProtectedRoute requiredPermission="view_paciente"><HistoriaClinica /></ProtectedRoute>} />
+          <Route path="pacientes/:id/historia" element={<ProtectedRoute requiredPermission="view_controlprenatal"><HistoriaClinica /></ProtectedRoute>} />
 
           {/* ESTADÍSTICAS */}
           <Route path="estadisticas" element={<Navigate to="/dashboard/reportes?pestana=estadisticas" replace />} />
 
           {/* LOGS DE ACCESO (SOLO ADMIN O CON PERMISO) */}
-          <Route path="access-logs" element={<AccessLogs />} />
+          <Route path="access-logs" element={<ProtectedRoute requiredPermission="view_registroauditoria"><AccessLogs /></ProtectedRoute>} />
 
           {/* MÓDULO: HISTORIA CLÍNICA */}
           <Route path="historia-clinica" element={<ProtectedRoute requiredPermission="view_controlprenatal"><ListaHistoriasClinicas /></ProtectedRoute>} />
@@ -179,7 +181,7 @@ const AppRoutes: React.FC = () => {
 
           {/* MÓDULO: REPORTES Y ESTADÍSTICAS */}
           {/* Centro de reportes: una página con pestañas; las rutas viejas llevan a su pestaña */}
-          <Route path="reportes" element={<CentroReportes />} />
+          <Route path="reportes" element={<ProtectedRoute requiredPermission="view_reportegenerado"><CentroReportes /></ProtectedRoute>} />
           <Route path="reportes/generar" element={<Navigate to="/dashboard/reportes?pestana=generar" replace />} />
           <Route path="reportes/pdf" element={<Navigate to="/dashboard/reportes?pestana=generar" replace />} />
           <Route path="reportes/pdf-automatico" element={<Navigate to="/dashboard/reportes?pestana=generar" replace />} />
@@ -212,10 +214,10 @@ const AppRoutes: React.FC = () => {
           <Route path="antecedentes" element={<ProtectedRoute requiredPermission="view_antecedentepatologico"><Antecedentes /></ProtectedRoute>} />
 
           {/* MÓDULO: CONSULTORIOS */}
-          <Route path="consultorios" element={<Consultorios />} />
-          <Route path="consultorios/nuevo" element={<FormularioConsultorio />} />
-          <Route path="consultorios/:id" element={<DetalleConsultorio />} />
-          <Route path="consultorios/editar/:id" element={<FormularioConsultorio />} />
+          <Route path="consultorios" element={<ProtectedRoute requiredPermission="view_consultorio"><Consultorios /></ProtectedRoute>} />
+          <Route path="consultorios/nuevo" element={<ProtectedRoute requiredPermission="add_consultorio"><FormularioConsultorio /></ProtectedRoute>} />
+          <Route path="consultorios/:id" element={<ProtectedRoute requiredPermission="view_consultorio"><DetalleConsultorio /></ProtectedRoute>} />
+          <Route path="consultorios/editar/:id" element={<ProtectedRoute requiredPermission="change_consultorio"><FormularioConsultorio /></ProtectedRoute>} />
 
           {/* MÓDULO: TRIAJE DE ENFERMERÍA */}
           <Route path="triaje" element={<ProtectedRoute requiredPermission="view_triajeenfermeria"><Triaje /></ProtectedRoute>} />
