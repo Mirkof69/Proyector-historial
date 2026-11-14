@@ -326,13 +326,16 @@ class Bioquimica(models.Model):
 
         # Glucosa
         if self.glucosa_ayunas:
+            # En el embarazo manda IADPSG: 92-125 mg/dL es diabetes gestacional. Antes se evaluaba primero el
+            # criterio de no gestantes (100-125 = prediabetes) y una gestante con 100-125 nunca recibía la
+            # alerta de diabetes gestacional (BUG-003).
             if self.glucosa_ayunas >= 126:
                 alertas.append(" Diabetes Mellitus (glucosa ayunas ≥126 mg/dL)")
                 self.es_critico = True
-            elif self.glucosa_ayunas >= 100:
-                alertas.append(" Prediabetes (glucosa 100-125 mg/dL)")
             elif self.embarazo and self.glucosa_ayunas >= 92:
                 alertas.append(" Diabetes Gestacional (IADPSG: ayunas ≥92 mg/dL)")
+            elif self.glucosa_ayunas >= 100:
+                alertas.append(" Prediabetes (glucosa 100-125 mg/dL)")
 
         # Función renal
         if self.creatinina and self.creatinina > 1.2:
