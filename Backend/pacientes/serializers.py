@@ -23,6 +23,21 @@ def _validar_ci_disponible(value, instancia=None):
         )
 
 
+def _ordenados(obj, relacion: str, *orden: str):
+    """Relación inversa en el orden que muestra la historia clínica.
+
+    Si la vista la precargó (`PacienteViewSet.optimizar_para_detalle`, que ya
+    la trae ordenada), se usa la precarga; un `.order_by()` aquí la descartaría
+    y lanzaría otra consulta. Si no, se consulta ordenada como siempre.
+    El `-id` final desempata registros del mismo día (tres ecografías con la
+    misma fecha salían en orden distinto en cada petición).
+    """
+    manager = getattr(obj, relacion)
+    if relacion in getattr(obj, "_prefetched_objects_cache", {}):
+        return manager.all()
+    return manager.all().order_by(*orden)
+
+
 class PacienteSerializer(serializers.ModelSerializer):
     """Serializer completo para el modelo Paciente"""
 
@@ -139,6 +154,8 @@ class PacienteSerializer(serializers.ModelSerializer):
 
     def get_embarazos_activos(self, obj):
         """Cuenta embarazos activos"""
+        if "embarazos" in getattr(obj, "_prefetched_objects_cache", {}):
+            return sum(1 for e in obj.embarazos.all() if e.estado == "activo")
         return obj.embarazos.filter(estado="activo").count()
 
     def get_imc(self, obj):
@@ -177,42 +194,42 @@ class PacienteSerializer(serializers.ModelSerializer):
         """DATOS RELACIONADOS: Lista de embarazos del paciente"""
         from embarazos.serializers import EmbarazoListSerializer
 
-        embarazos = obj.embarazos.all().order_by("-fecha_registro")
+        embarazos = _ordenados(obj, "embarazos", "-fecha_registro", "-id")
         return EmbarazoListSerializer(embarazos, many=True).data
 
     def get_controles_prenatales(self, obj):
         """DATOS RELACIONADOS: Lista de controles prenatales del paciente"""
         from controles.serializers import ControlPrenatalListSerializer
 
-        controles = obj.controles_prenatales.all().order_by("-fecha_control")
+        controles = _ordenados(obj, "controles_prenatales", "-fecha_control", "-id")
         return ControlPrenatalListSerializer(controles, many=True).data
 
     def get_ecografias(self, obj):
         """DATOS RELACIONADOS: Lista de ecografías del paciente"""
         from ecografias.serializers import EcografiaSerializer
 
-        ecografias = obj.ecografias.all().order_by("-fecha_ecografia")
+        ecografias = _ordenados(obj, "ecografias", "-fecha_ecografia", "-id")
         return EcografiaSerializer(ecografias, many=True).data
 
     def get_partos(self, obj):
         """DATOS RELACIONADOS: Lista de partos del paciente"""
         from partos.serializers import PartoResumenSerializer
 
-        partos = obj.partos.all().order_by("-fecha_parto")
+        partos = _ordenados(obj, "partos", "-fecha_parto", "-id")
         return PartoResumenSerializer(partos, many=True).data
 
     def get_citas(self, obj):
         """DATOS RELACIONADOS: Lista de citas del paciente"""
         from citas.serializers import CitaListSerializer
 
-        citas = obj.citas.all().order_by("-fecha_cita")
+        citas = _ordenados(obj, "citas", "-fecha_cita", "-id")
         return CitaListSerializer(citas, many=True).data
 
     def get_examenes_laboratorio(self, obj):
         """DATOS RELACIONADOS: Lista de exámenes de laboratorio del paciente"""
         from laboratorio.serializers import ExamenLaboratorioListSerializer
 
-        examenes = obj.examenes_laboratorio.all().order_by("-fecha_solicitud")
+        examenes = _ordenados(obj, "examenes_laboratorio", "-fecha_solicitud", "-id")
         return ExamenLaboratorioListSerializer(examenes, many=True).data
 
     def get_antecedentes_gineco(self, obj):
@@ -232,7 +249,7 @@ class PacienteSerializer(serializers.ModelSerializer):
         """DATOS RELACIONADOS: Lista de antecedentes patológicos del paciente"""
         from antecedentes.serializers import AntecedentePatologicoSerializer
 
-        antecedentes = obj.antecedentes_patologicos.all().order_by("-fecha_registro")
+        antecedentes = _ordenados(obj, "antecedentes_patologicos", "-fecha_registro", "-id")
         return AntecedentePatologicoSerializer(antecedentes, many=True).data
 
     def validate_ci(self, value):

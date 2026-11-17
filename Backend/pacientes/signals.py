@@ -40,15 +40,25 @@ def paciente_creado(sender, instance, created, **kwargs):
     verificar_paciente_alto_riesgo(instance)
 
 
+def _cumpleanos_en(anio: int, nacimiento: date) -> date:
+    """El cumpleaños en `anio`. Quien nació un 29 de febrero lo cumple el 28 en
+    los años no bisiestos: antes `date(anio, 2, 29)` lanzaba ValueError y el
+    alta de esa paciente respondía 500."""
+    try:
+        return nacimiento.replace(year=anio)
+    except ValueError:
+        return date(anio, 2, 28)
+
+
 @receiver(post_save, sender=Paciente)
 def verificar_cumpleanos_proximo(sender, instance, created, **kwargs):
     """Recuerda el cumpleaños del paciente si es dentro de 7 días."""
     if not instance.fecha_nacimiento:
         return
     hoy = timezone.localdate()
-    prox = date(hoy.year, instance.fecha_nacimiento.month, instance.fecha_nacimiento.day)
+    prox = _cumpleanos_en(hoy.year, instance.fecha_nacimiento)
     if prox < hoy:
-        prox = date(hoy.year + 1, instance.fecha_nacimiento.month, instance.fecha_nacimiento.day)
+        prox = _cumpleanos_en(hoy.year + 1, instance.fecha_nacimiento)
     dias = (prox - hoy).days
     if 0 <= dias <= 7:
         crear_notificacion_clinica(

@@ -81,6 +81,55 @@ ESTADOS_CIVILES = ["soltero", "casado", "union_libre", "divorciado", "viudo"]
 TIPOS_SANGRE = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"]
 
 
+# ── Proporciones de la población boliviana (fuentes públicas) ──────────────
+# EDSA 2016 (INE / Ministerio de Salud, «Bolivia: indicadores priorizados»):
+#   - «Casi 50 % de embarazadas tiene anemia» (p. 79; hemoglobina ajustada por
+#     altura), la mayoría leve.
+#   - A los 19 años más de un tercio de las adolescentes ya es madre o está
+#     embarazada (p. 36); UNICEF Bolivia: ~15 % de los nacimientos son de madres
+#     adolescentes.
+#   - Más del 85 % de las mujeres tuvo 4 o más controles prenatales (p. 43).
+#   - Cesáreas en aumento: más del 50 % en Santa Cruz y del 40 % en Tarija (p. 49).
+# Trastornos hipertensivos: segunda causa de muerte materna en Bolivia, y la
+# altura los hace más frecuentes (revisión de la U. de Huánuco; Keyes 2003).
+#: Edad materna: (desde, hasta, peso).
+EDADES_MATERNAS = [(15, 19, 15), (20, 34, 70), (35, 45, 15)]
+#: Hemoglobina (g/dL) en el embarazo: (desde, hasta, peso). El rango normal del
+#: sistema es 12-16 y el límite crítico, 7.
+HEMOGLOBINA = [(12.0, 15.0, 50), (10.5, 11.9, 34), (8.0, 10.4, 14), (6.0, 6.9, 2)]
+
+
+def _edad_materna() -> int:
+    desde, hasta, _ = random.choices(EDADES_MATERNAS, [p for *_, p in EDADES_MATERNAS])[0]
+    return random.randint(desde, hasta)
+
+
+def _valor_de_laboratorio(rango) -> Decimal:
+    """Valor de un parámetro: 85 % normal, 11 % algo fuera (advertencia),
+    4 % pasando su límite crítico (o 40 % fuera del rango si no tiene).
+
+    Antes el 90 % salía normal y el resto apenas fuera: ningún resultado era
+    crítico y los reportes de riesgo nunca mostraban un caso grave.
+    """
+    if rango.parametro.lower().startswith("hemoglobina"):
+        desde, hasta, _ = random.choices(HEMOGLOBINA, [p for *_, p in HEMOGLOBINA])[0]
+        return Decimal(f"{random.uniform(desde, hasta):.1f}")
+    bajo, alto = float(rango.valor_minimo), float(rango.valor_maximo)
+    ancho = max(alto - bajo, 0.1)
+    tirada = random.random()
+    if tirada < 0.85:
+        valor = random.uniform(bajo, alto)
+    elif tirada < 0.96:
+        valor = random.choice([bajo - random.uniform(0.05, 0.25) * ancho, alto + random.uniform(0.05, 0.25) * ancho])
+    elif rango.es_critico_alto is not None and random.random() < 0.6:
+        valor = float(rango.es_critico_alto) * random.uniform(1.05, 1.3)
+    elif rango.es_critico_bajo is not None:
+        valor = float(rango.es_critico_bajo) * random.uniform(0.6, 0.95)
+    else:
+        valor = alto * random.uniform(1.4, 1.8)
+    return Decimal(f"{max(valor, 0):.2f}")
+
+
 def _tipo_ecografia(semanas: int) -> str:
     """Tipo de ecografia segun el trimestre (choices reales del modelo)."""
     if semanas < 14:
@@ -250,7 +299,12 @@ class Command(BaseCommand):
             numero_parto__startswith="P-CARGA-",
         ).count()
 
-        self.medico = Usuario.objects.filter(rol="medico").first() or Usuario.objects.first()
+        # Un médico ACTIVO que no sea de las pruebas (@….test), el más antiguo.
+        # Antes `.first()` con el orden del modelo (-fecha_creacion) tomaba la
+        # última cuenta creada: una de verificación ya desactivada, y todos los
+        # avisos clínicos se desviaban a los administradores.
+        self.medico = (Usuario.objects.filter(rol="medico", activo=True).exclude(email__endswith=".test")
+                       .order_by("fecha_creacion").first() or Usuario.objects.first())
         if not self.medico:
             msg = "No hay usuarios en el tenant: cree al menos uno antes de sembrar."
             raise RuntimeError(msg)
@@ -350,7 +404,7 @@ class Command(BaseCommand):
         from pacientes.models import Paciente
 
         hoy = date.today()
-        edad = random.randint(15, 45)
+        edad = _edad_materna()
         ciudad = random.choice(list(CIUDADES))
         zona = random.choice(CIUDADES[ciudad])
         # CI ÚNICA y determinista: prefijo por lote + contador global. Con
@@ -478,10 +532,17 @@ class Command(BaseCommand):
         # ── Controles prenatales (signos normales Y de riesgo) ──
         peso_pre = _rango(45, 85, 2)
         talla = _rango(145, 175, 1)  # el modelo valida talla en CENTÍMETROS (>=130)
-        n_controles = random.randint(2, 8)
+        # EDSA 2016: más del 85 % con 4 o más controles (antes 71 %, uniforme 2-8).
+        n_controles = random.choices(range(2, 9), [5, 8, 17, 20, 20, 18, 12])[0]
+        # Trastorno hipertensivo: ~10 % de los embarazos (más frecuente en la
+        # altura), desde la semana 20. Antes dependía de riesgo_embarazo, que
+        # las señales cambian a «alto» con cada alerta: se retroalimentaba y
+        # llegaba al 19 % de los controles.
+        hta_embarazo = random.random() < 0.10
         for c in range(n_controles):
             sem = max(6, semanas_actuales - (n_controles - c - 1) * 4)
-            riesgo = embarazo.riesgo_embarazo == "alto" and random.random() < 0.5
+            riesgo = hta_embarazo and sem >= 20
+            severa = riesgo and random.random() < 0.2
             ControlPrenatal.objects.create(
                 embarazo=embarazo,
                 paciente=paciente,
@@ -495,17 +556,22 @@ class Command(BaseCommand):
                 peso_pregestacional=peso_pre,
                 talla=talla,
                 # Riesgo → hipertensión; normal → PA fisiológica del embarazo
-                presion_arterial_sistolica=random.randint(140, 165) if riesgo else random.randint(95, 128),
-                presion_arterial_diastolica=random.randint(90, 105) if riesgo else random.randint(60, 84),
+                # Riesgo → hipertensión: 1 de cada 5 en rango severo (≥160/110).
+                presion_arterial_sistolica=(random.randint(160, 175) if severa else random.randint(140, 158))
+                if riesgo else random.randint(95, 128),
+                presion_arterial_diastolica=(random.randint(110, 118) if severa else random.randint(90, 105))
+                if riesgo else random.randint(60, 84),
                 frecuencia_cardiaca=random.randint(65, 100),
                 temperatura=_rango(36.0, 37.4),
                 altura_uterina=max(8, sem - random.randint(0, 3)) if sem >= 12 else None,
                 frecuencia_cardiaca_fetal=random.randint(110, 160) if sem >= 12 else None,
                 movimientos_fetales=random.choices(
                     ["presentes", "disminuidos", "ausentes"], [85, 12, 3])[0] if sem >= 20 else "presentes",
-                edema=random.choices(["no", "leve", "moderado", "severo"], [70, 20, 7, 3])[0],
+                edema=random.choices(["no", "leve", "moderado", "severo"],
+                                     [30, 30, 25, 15] if riesgo else [75, 20, 4, 1])[0],
                 proteinuria=random.choices(
-                    ["negativa", "trazas", "positiva_1", "positiva_2"], [78, 12, 7, 3])[0],
+                    ["negativa", "trazas", "positiva_1", "positiva_2"],
+                    [40, 20, 25, 15] if riesgo else [88, 8, 3, 1])[0],
                 observaciones=f"{MARCA_CARGA} control {c + 1}",
             )
 
@@ -663,7 +729,7 @@ class Command(BaseCommand):
         )
 
     def _crear_resultados(self, examen):
-        """Un resultado por parámetro del examen, ~90 % dentro del rango.
+        """Un resultado por parámetro del examen (ver `_valor_de_laboratorio`).
 
         `ResultadoLaboratorio.save()` decide si es normal o crítico con el
         rango de referencia: aquí solo se elige el valor.
@@ -673,13 +739,7 @@ class Command(BaseCommand):
         for rango in self.rangos.get(examen.tipo_examen_id, []):
             resultado = ResultadoLaboratorio(examen=examen, valor_referencia=rango, created_by=self.medico)
             if rango.valor_minimo is not None and rango.valor_maximo is not None:
-                bajo, alto = float(rango.valor_minimo), float(rango.valor_maximo)
-                ancho = max(alto - bajo, 0.1)
-                if random.random() < 0.9:
-                    valor = random.uniform(bajo, alto)
-                else:
-                    valor = random.choice([bajo - random.uniform(0.05, 0.3) * ancho, alto + random.uniform(0.05, 0.3) * ancho])
-                resultado.valor_numerico = Decimal(f"{max(valor, 0):.2f}")
+                resultado.valor_numerico = _valor_de_laboratorio(rango)
             else:
                 resultado.valor_texto = rango.valor_normal or "Normal"
             resultado.save()
