@@ -162,3 +162,16 @@ Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/*
 tools_remoto/*.exe
 tools_remoto/logs/
 tools_remoto/.env.backup_remoto
+
+# Solo el sistema en el repositorio: documentos, automatización de pruebas y material de trabajo van aparte
+# (los documentos se publican en Releases; la automatización en Proyecto-Automatizacion-TQA)
+docs/
+quality-assurance/
+documento/
+automatizacion/
+_archive/
+video errores/
+tools_remoto/
+PUBLICAR_WEB.bat
+COMO_INICIAR_Y_CARGAR_DATOS.md
+PROMPT_INSTALACION.md
