@@ -1,0 +1,310 @@
+{
+  "id": "0c25533e-85c9-56e2-8859-8141cbe66de4",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-145",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "e2e0fe86-03b8-53d4-b596-5f5b60148b7f",
+      "name": "TC-145 Buscador y filtro del listado de usuarios (Selenium IDE)",
+      "commands": [
+        {
+          "id": "5f73a87e-a911-5caa-9753-72d966dfefb6",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "5ea91917-bd5c-5ea3-a721-59c6bc621000",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "acac160e-ee56-534a-a12e-d73120a9a303",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "fc9a8466-2b09-5a5e-9fd2-a20ff83e22c3",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ADMINISTRADOR__"
+        },
+        {
+          "id": "6d60477d-fb4c-56ca-b00c-852e85bf59a4",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "0c528caf-16ca-54fd-9862-834818af6c76",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "8a06c846-34a9-5b09-9aec-15d4a60efb21",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "ca271bf1-4a9e-53ee-a017-2516dbff9c5e",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_ADMINISTRADOR__"
+        },
+        {
+          "id": "75170873-0d76-5d6d-87ad-78bc3996d91e",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "4ada78c3-3dd2-5b9a-bd82-b6e746fed6f2",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "23ee7332-e8de-5fd6-953d-a8e83968156b",
+          "comment": "Listado de Usuarios",
+          "command": "open",
+          "target": "/dashboard/usuarios",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "5857a50f-6c82-53bf-8470-bc8be8c39c0b",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por nombre o email...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "96214880-40c4-529e-8964-fa68897d4bb1",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "d954996a-db84-5297-8630-b75c0ac1026c",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Nombre Completo'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "1f062195-ae0f-5268-a4cd-f85cffc97f7c",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "570e1aa7-c14a-53fb-86c1-7881294fcef3",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Nombre Completo');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "82ceb9b2-080e-5650-b709-ed82d666061f",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "be56de29-f7a7-5454-a36d-870a0ae5f54a",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "84dca5fa-b055-56b2-bdb7-8e863137d470",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "178a5f18-b019-5bca-a008-45863c3749cf",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por nombre o email...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "7530567d-001a-5337-8375-ad78603fe3c5",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por nombre o email...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "b6580944-a602-51d5-93f7-7804b06f6bba",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "65a95a8a-13cd-5b1b-bd54-bd4ead766ff6",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "780225e8-20a8-5cac-82e1-7b90459da2fc",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por nombre o email...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "0b9f123f-c9c4-5e1a-86fb-47e882005c16",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por nombre o email...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "953b1f55-3fe4-5cab-8212-2fce3171e4e7",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "98f37f0c-f7be-5bb8-84f7-b48080c3b3c4",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "9873b66e-1f9f-59cd-b514-4851f094347e",
+          "comment": "Listado sin búsqueda, para aplicar el filtro",
+          "command": "open",
+          "target": "/dashboard/usuarios",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "7795803e-6036-56fc-9033-03831695d160",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "3bd8312e-fe8f-5f34-b741-f137fb7cbb92",
+          "comment": "Filtro «Filtrar por rol»",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-select')][.//span[contains(@class,'ant-select-selection-placeholder') or contains(@class,'ant-select-selection-item')][normalize-space(.)='Filtrar por rol']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "51bb7f8a-2471-5d08-9333-4d458a2e7eac",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "f4bdcb5b-3bab-55f4-a46c-abede954c247",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "70a53de0-44d5-527a-a720-a48bae90ea12",
+          "comment": "",
+          "command": "waitForElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "a3979792-a24f-58e9-bbff-c562c9cf82dc",
+          "comment": "",
+          "command": "verifyElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "6f716b0a-e528-5061-ab5e-fec5d64d8e70",
+          "comment": "El filtro no produce un error",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-result-error",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "785e9c29-4900-5d5f-8db1-61f6639e30aa",
+      "name": "TC-145",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "e2e0fe86-03b8-53d4-b596-5f5b60148b7f"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

@@ -1,0 +1,20 @@
+# Secretos y entorno local: nunca al repositorio
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Salidas de cada ejecución (se publican solo las evidencias seleccionadas)
+reports/*
+!reports/.gitkeep
+runner_web/historial.sqlite3
+ai/registro_uso_ia.jsonl
+tools/salidas/
+*.log
+
+# Archivos de Office temporales
+~$*
+
+# Dependencias de Node del ejecutor de Selenium IDE
+node_modules/

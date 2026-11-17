@@ -1,0 +1,110 @@
+{
+  "id": "f32b0f4b-522e-5357-98f9-26a487cda52f",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-109",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "ec5f92d4-7706-5577-ae51-69b001c23e8e",
+      "name": "TC-109 Inicio de sesión exitoso de recepción (Selenium IDE)",
+      "commands": [
+        {
+          "id": "77fc64b6-20d0-59a0-9c07-0ecf3d19a0f4",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0a76e86d-c36d-59d4-b620-ce59d9dd524a",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "4c03998b-e228-579c-85d0-43a2e5e9fcef",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "4e177413-008f-5adc-ac41-841867c3f670",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_RECEPCION__"
+        },
+        {
+          "id": "8a84bb9f-8143-59a0-ae5f-34449b025e41",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "bc69b1ef-e714-5a5e-b173-aab735794a00",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b5c69023-8988-54e8-a875-7d0054b7ec5d",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "1af40352-1489-52f3-8d1e-be626561d90f",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "css=.ant-layout-sider .ant-menu",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "274b1516-be4c-5e1e-80eb-ad28c643b2fd",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//*[contains(@class,'user-dropdown-trigger')][contains(.,'RECEPCION')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a4f04e95-f524-53cd-81a4-12178fa3ccdc",
+          "comment": "Título de la aplicación",
+          "command": "assertTitle",
+          "target": "Fetal Medical Bolivia",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "426d9c4b-ffea-5527-9c43-c91ea207f1b5",
+      "name": "TC-109",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "ec5f92d4-7706-5577-ae51-69b001c23e8e"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

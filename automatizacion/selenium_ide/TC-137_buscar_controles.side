@@ -1,0 +1,222 @@
+{
+  "id": "9c732c28-88b3-5c97-8f83-b488c3d2997d",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-137",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "4a3dc313-c547-5b61-8e6b-7c5f62c8e7c7",
+      "name": "TC-137 Buscador del listado de control prenatal (Selenium IDE)",
+      "commands": [
+        {
+          "id": "330d32c8-3ead-531a-9846-fbe5216e3bfc",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "9c8a3d05-0836-51fd-bfdd-c6cefd89f677",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f2c2a276-a272-56f0-be41-aab4a0147ccf",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "95eb7c56-4daf-5811-88b6-315bee21b58e",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ENFERMERA__"
+        },
+        {
+          "id": "29caf989-bde1-5a8b-8a1e-f72d916b66fc",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "1b14ec7b-b2ca-53aa-abfb-8e39c3d2626a",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "54cdc245-ec3a-5658-952e-fffe64153e58",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "f037ab2d-e7a2-5371-a167-6da4dc788742",
+          "comment": "Listado de Control prenatal",
+          "command": "open",
+          "target": "/dashboard/controles",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f1833374-32c8-5dd8-a4fd-e0bfef61a894",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por paciente (nombre o CI), ID clínico...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "701d7b7b-8a4c-5127-9a98-b223aac46dbc",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "2f3bee88-ca0a-5aca-98ff-cc9617a3c12d",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Paciente'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "1f14a8fc-ddff-567c-ba7d-84f0063afbfd",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "f9d94dbe-77e6-5d8c-8e66-c81615fed8f4",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Paciente');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "42ebd855-9d87-5707-804a-1eacc7be291c",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "9896423c-284b-5a0e-9978-2602cc343f8c",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "780b415f-32be-54e4-a4ad-522fb996336a",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f3dc0208-402a-5ece-b9cb-5d63200c832c",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por paciente (nombre o CI), ID clínico...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "f94fce61-5000-50c9-8957-b887b1ec6a88",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por paciente (nombre o CI), ID clínico...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "f72d6a9e-d560-5a2f-a633-cfdb0c56aac4",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "faaa5905-cdad-5d58-ab9a-b9d4afb0f44d",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "33149892-a247-5408-a64f-ef8f7c84bd2d",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por paciente (nombre o CI), ID clínico...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "5ccfa484-c697-5d04-bb56-d78320a21896",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por paciente (nombre o CI), ID clínico...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "e81b8f54-c95f-5ccf-854a-c79735511e67",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "9f151d0f-6e63-56b1-987b-2ef4b10a257d",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "7fa668d2-0b54-5144-8a46-1a2440b73db5",
+      "name": "TC-137",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "4a3dc313-c547-5b61-8e6b-7c5f62c8e7c7"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

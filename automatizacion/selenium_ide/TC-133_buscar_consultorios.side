@@ -1,0 +1,286 @@
+{
+  "id": "1671550b-53c1-594a-86af-15958a988119",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-133",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "9cba49e3-a9e7-56a8-8d11-6975b2a1b039",
+      "name": "TC-133 Buscador y filtro del listado de consultorios (Selenium IDE)",
+      "commands": [
+        {
+          "id": "7475124b-6e37-5c43-a76d-070fb4c5a2e7",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "54d5e253-a4e5-5829-83dd-fefd3e46be1a",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "3eeed37b-3921-589d-9e87-f225e1bbf4e2",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "41567389-1a21-5cae-ac7b-6ae7dc0eb013",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_RECEPCION__"
+        },
+        {
+          "id": "7ae87b0a-0709-5107-98c4-5d502315fed7",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "ab0632bf-f9eb-5ccb-a5be-8addd20c4329",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a717e8bf-f9a4-5871-b1d4-3d72800825c9",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "17d9aa02-2651-5df3-92bc-52f2fe26bb18",
+          "comment": "Listado de Consultorios",
+          "command": "open",
+          "target": "/dashboard/consultorios",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0285ecee-f8ca-57fe-8efe-b80bfe200b3f",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por código, nombre o área']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "699ee315-c653-5f51-9963-3da013912a26",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "7de5e381-b7e9-5b03-9272-184b2be39f90",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Nombre'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "2c8226ff-ce52-5229-a203-5f5db5d87b6d",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "f878cb59-f06e-50b1-be33-e10411bc24b8",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Nombre');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "7cbe68f7-78d0-5c70-8eb1-ff844ecc62d8",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "ff83ae46-4287-5d72-9efa-34be530bed1f",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "23990214-06af-59f7-bbd2-c4d2a6b616d2",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "bfc2b64f-f995-5d55-bd33-1ee59493d466",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por código, nombre o área']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "3456c172-fd84-534f-935c-05b3ede5bec9",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por código, nombre o área']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "80821ad4-8d6d-5d34-9232-897721cf3349",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "8fdd20cb-847b-5aa3-95d0-aa0a4b6a337d",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b5aaa3b5-c1b2-53c2-9019-f0c7234d07dc",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por código, nombre o área']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "0028a9a3-99f8-5ba8-93ae-88288bfcbde0",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por código, nombre o área']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "56ec8d28-6342-5d7e-90a3-d988cde25e92",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "06c09f95-1c0d-504f-8ae5-65c7272ab026",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "854fe3fd-acf5-5b37-8b58-ab335f368dc5",
+          "comment": "Listado sin búsqueda, para aplicar el filtro",
+          "command": "open",
+          "target": "/dashboard/consultorios",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "1fb50cda-48ae-5664-ba9a-e582a84204d3",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "d3940ddc-718c-5794-82aa-4850a2656f5c",
+          "comment": "Filtro «Tipo»",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-select')][.//span[contains(@class,'ant-select-selection-placeholder') or contains(@class,'ant-select-selection-item')][normalize-space(.)='Tipo']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "4baae6e3-221c-551b-aae4-2b3964481fcc",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "46346bc0-5874-5175-8351-0cbaef4f615c",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "fc23e7bd-743d-5f07-a107-3c5aaf0634a6",
+          "comment": "",
+          "command": "waitForElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "43685b11-d258-520c-9cfa-66ee1136bf05",
+          "comment": "",
+          "command": "verifyElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "96cb797f-db00-50c1-b1a3-2e2b78332aaa",
+          "comment": "El filtro no produce un error",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-result-error",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "d75be1ee-a812-5075-8aff-f7b348079da0",
+      "name": "TC-133",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "9cba49e3-a9e7-56a8-8d11-6975b2a1b039"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

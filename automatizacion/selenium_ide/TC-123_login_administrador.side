@@ -1,0 +1,142 @@
+{
+  "id": "7455146e-102e-520d-b603-3528dd942c2d",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-123",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "e330e6bf-ac99-5454-9658-4157c13c7b5b",
+      "name": "TC-123 Inicio de sesión de administrador con doble factor (Selenium IDE)",
+      "commands": [
+        {
+          "id": "653cdcb0-db5e-507c-bbfd-051e0edf5fdc",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "df01de5e-03fe-58b2-ab94-432583b603b4",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "01cfbf15-b457-5c71-84e1-458bba865c5b",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "09820de4-0049-52fe-9e84-06e28183770f",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ADMINISTRADOR__"
+        },
+        {
+          "id": "772cdebc-a28d-58e8-a5f3-c9b06d3589ad",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "a94f8c77-b1b9-58f1-aeac-f692c2147a3c",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "9b2d440a-9b9a-59f2-83b3-19ecc39046e5",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "98975858-f0f0-5344-bbc0-54a9085adc53",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_ADMINISTRADOR__"
+        },
+        {
+          "id": "4b88c3dc-6869-5ada-a395-01f4bf490eec",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "7722a6fc-8dee-59e4-bcf7-1559337669f2",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "5d20bdb4-3e23-55fd-9946-5b79415bfc16",
+          "comment": "Menú lateral del rol",
+          "command": "assertElementPresent",
+          "target": "css=.ant-layout-sider .ant-menu",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "07997277-3b5b-5ab3-9952-42b3d6e9392f",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//*[contains(@class,'user-dropdown-trigger')][contains(.,'ADMINISTRADOR')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "284d7691-0d01-53fd-bd3a-fa20bdf47e4d",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return window.location.pathname.startsWith('/dashboard')",
+          "targets": [],
+          "value": "en_panel"
+        },
+        {
+          "id": "6456bcaa-fedc-5105-a5f5-e067427fcb69",
+          "comment": "",
+          "command": "assert",
+          "target": "en_panel",
+          "targets": [],
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "90e48eba-bd26-55ca-9f18-4bced75b3229",
+      "name": "TC-123",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "e330e6bf-ac99-5454-9658-4157c13c7b5b"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

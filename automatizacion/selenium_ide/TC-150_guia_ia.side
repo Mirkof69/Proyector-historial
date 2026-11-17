@@ -1,0 +1,166 @@
+{
+  "id": "e5321798-c6db-5a81-b202-52db5e76ce45",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-150",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "5db23f87-e643-58a3-81d4-5af29cfa5f9a",
+      "name": "TC-150 La Guía de IA lista los modelos disponibles (Selenium IDE)",
+      "commands": [
+        {
+          "id": "a855b0a6-409c-58a8-952f-8042fa095199",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "83b5c3db-17ff-51a6-886f-045f80c2e1eb",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b2f385a6-cf96-5d3c-8060-330ce90d1a32",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "cfd62989-5e99-5a2a-a9f5-9ce9fdb922e8",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_MEDICO__"
+        },
+        {
+          "id": "fb080239-d670-5dfd-8f9a-962986c863bb",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "296c4aa9-d907-5baf-bb96-5cc02b5bb9d7",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "6b516fb9-a29a-5b8b-9afe-c1c2f775c656",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "e2e6d884-1358-5490-b9a8-9bbd13309386",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_MEDICO__"
+        },
+        {
+          "id": "c0f76391-7a58-5534-8090-ba29a05fb9a6",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0b22428c-17ed-59af-a70f-467ca8dbb880",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "9e4b8eb8-44de-57be-912d-6ea9da9c9abd",
+          "comment": "",
+          "command": "open",
+          "target": "/dashboard/ia-guia",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d9a3e8b3-4186-55b8-803d-baa3086413eb",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=(//button[normalize-space(.)='Usar ahora'])[1]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "c014543a-cb89-5f13-84ba-449bb1727b83",
+          "comment": "",
+          "command": "assertText",
+          "target": "css=h1, h2, .ant-page-header-heading-title",
+          "targets": [],
+          "value": "Guía de IA"
+        },
+        {
+          "id": "cc4aa004-e86e-5d3a-a093-b50f3dde8bfe",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return [...document.querySelectorAll('button')].filter(b=>b.innerText.trim()==='Usar ahora').length",
+          "targets": [],
+          "value": "modelos"
+        },
+        {
+          "id": "0f6fcd52-55d4-510e-8d20-82a5ac8ba0dc",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${modelos} >= 10",
+          "targets": [],
+          "value": "suficientes"
+        },
+        {
+          "id": "7c009099-d2d3-52a1-bb79-d56c74b38dce",
+          "comment": "",
+          "command": "assert",
+          "target": "suficientes",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "67cd4147-a7b1-5e6e-b49a-240b8e531e34",
+          "comment": "",
+          "command": "echo",
+          "target": "Modelos listados: ${modelos}",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "21f90e16-c992-54ea-9670-4fb303615c4b",
+      "name": "TC-150",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "5db23f87-e643-58a3-81d4-5af29cfa5f9a"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

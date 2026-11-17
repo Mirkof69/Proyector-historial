@@ -1,0 +1,286 @@
+{
+  "id": "1db14b95-0ca0-58e2-9c01-358103267ab3",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-149",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "bc0a7ca5-2235-5870-ae3f-0f0d2b3671a1",
+      "name": "TC-149 Registrar una paciente con el asistente y buscarla (Selenium IDE)",
+      "commands": [
+        {
+          "id": "430ed14f-d147-5f2d-861a-62967a257971",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "1cf50e6a-29ee-5be9-8dd5-57c1cb560b34",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "41299494-719c-5454-b76d-785dd5b3952d",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "e0d07333-96c9-5670-9029-d54e057449b5",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_RECEPCION__"
+        },
+        {
+          "id": "64e63019-15aa-5339-ae81-232f752d8d37",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "daeaee8d-6def-5208-a2c5-a7b537ddd2aa",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "7d51fd0c-64e4-5678-84ff-964be3b17099",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "48e39b6f-6ed2-5766-ad5a-d355a2b685f3",
+          "comment": "",
+          "command": "open",
+          "target": "/dashboard/pacientes",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e47db343-0f8d-5967-9717-45ab4f2978f7",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por nombre, CI o ID...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "1f062391-2165-57a1-9d42-123539c1b9ec",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//button[.//span[normalize-space(.)='Nueva Paciente']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "fd273837-9349-5fde-a214-ea754a56a942",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=nombre",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "5dddcad9-83ee-5370-8138-f03baaef5a0c",
+          "comment": "",
+          "command": "type",
+          "target": "id=nombre",
+          "targets": [],
+          "value": "QA Selenium"
+        },
+        {
+          "id": "d2213031-7a5d-502b-a543-d0ca32291dbc",
+          "comment": "",
+          "command": "type",
+          "target": "id=apellido_paterno",
+          "targets": [],
+          "value": "Ide"
+        },
+        {
+          "id": "ed0a8a6c-206d-522b-abc3-051068e90c7d",
+          "comment": "",
+          "command": "type",
+          "target": "id=apellido_materno",
+          "targets": [],
+          "value": "Prueba"
+        },
+        {
+          "id": "79700361-9fec-5364-b4f5-d44d7bcc861e",
+          "comment": "",
+          "command": "type",
+          "target": "id=ci",
+          "targets": [],
+          "value": "__QA_CI__"
+        },
+        {
+          "id": "36618709-905e-5765-979e-754bbf30debd",
+          "comment": "",
+          "command": "type",
+          "target": "id=fecha_nacimiento",
+          "targets": [],
+          "value": "15051996"
+        },
+        {
+          "id": "e7a20c68-43ce-5a51-af25-baca773c3974",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "id=fecha_nacimiento",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "fcbbf887-29b1-5e4c-9656-7ad6d4f5fa50",
+          "comment": "",
+          "command": "assertValue",
+          "target": "id=ci",
+          "targets": [],
+          "value": "__QA_CI__"
+        },
+        {
+          "id": "db5553f6-66d5-58c2-8a4c-74280b43b130",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-modal')]//button[.//span[normalize-space(.)='Siguiente']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e30aae83-3cef-5aa1-a1fd-c0b79692350a",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=telefono",
+          "targets": [],
+          "value": "10000"
+        },
+        {
+          "id": "ec5e836e-d42c-503e-9757-89d387c0c65f",
+          "comment": "",
+          "command": "type",
+          "target": "id=telefono",
+          "targets": [],
+          "value": "71234567"
+        },
+        {
+          "id": "d0e79744-7bba-546b-a8fc-c162d9fb5b13",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-modal')]//button[.//span[normalize-space(.)='Siguiente']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e8cce0ea-e4ff-5005-a91c-1e74f83ec94f",
+          "comment": "",
+          "command": "waitForElementPresent",
+          "target": "id=consentimiento_datos_aceptado",
+          "targets": [],
+          "value": "10000"
+        },
+        {
+          "id": "5bdd3ff9-254b-5cc1-bf08-f2eb3bb9582a",
+          "comment": "Casilla de consentimiento (Ley 164)",
+          "command": "executeScript",
+          "target": "document.getElementById('consentimiento_datos_aceptado').click()",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2a48e61-f21b-528e-ad35-9d53b9b859bd",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-modal')]//button[.//span[contains(.,'Registrar Paciente')]]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0bd2522e-acac-550f-99aa-ee6e6ca857f5",
+          "comment": "Mensaje de registro",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-message-success, .ant-notification-notice-success",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "b82b322c-5dc2-5134-864a-cfa02522d40f",
+          "comment": "",
+          "command": "open",
+          "target": "/dashboard/pacientes",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "13e8b05a-cc3d-5f87-9dc6-4c5c5d9f4fee",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por nombre, CI o ID...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "af4434f1-3f97-5994-b962-b813015b6413",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por nombre, CI o ID...']",
+          "targets": [],
+          "value": "__QA_CI__"
+        },
+        {
+          "id": "36ff32d6-9b75-5bec-bad9-9b79bae23424",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por nombre, CI o ID...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "b844ea55-5151-59df-8395-52f0a9caf1a0",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'__QA_CI__')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "723ec8ef-43f1-5b47-ae5a-315bb982b085",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'__QA_CI__')]",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "297e5788-c52a-572d-b68f-0e329d08b96b",
+      "name": "TC-149",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "bc0a7ca5-2235-5870-ae3f-0f0d2b3671a1"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

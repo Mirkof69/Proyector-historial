@@ -1,0 +1,246 @@
+{
+  "id": "2dfb8e62-a811-5082-9593-eef3c999e935",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-143",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "65698b56-73a1-5b6f-b9ea-c05084eb1be9",
+      "name": "TC-143 Buscador del listado de antecedentes (Selenium IDE)",
+      "commands": [
+        {
+          "id": "7ed0f273-1e3a-5a67-9fde-7ad9e0cb9193",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "3e197fd2-3d73-597d-8cc4-b6315302c1ab",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "2867e918-8263-50f5-80b3-c6a9e9d13e0b",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "af67dac0-d436-5ef3-a3a3-f01534b5bb4d",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_MEDICO__"
+        },
+        {
+          "id": "fcdf9996-a93c-5d3b-ae31-a5acc6a17b46",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "9da59ad0-43dc-5bd5-8a24-644349e56430",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "2acb8806-83c7-52af-882e-a3bed2e6e3ac",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "609edbed-0079-5b2a-a0a4-0b67220be49a",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_MEDICO__"
+        },
+        {
+          "id": "82869c17-f285-5375-bc70-d07f50115344",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "5fd5061d-d742-5235-8bff-d11017d9e05b",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "37b4aae7-b8d0-5be0-9313-1ee4e759398f",
+          "comment": "Listado de Antecedentes",
+          "command": "open",
+          "target": "/dashboard/antecedentes",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "985f5c08-9b2c-5049-8269-6b44181e4abd",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por nombre de paciente...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "2d5302bb-74e4-5d32-b4b1-7fdb77923a79",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "064e657a-245c-53ea-a7b3-ee350ba2704e",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Paciente'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "748e89fe-7305-5fbd-84fe-e28605a3ccc1",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "4f247696-00f7-5d54-95f3-aca923717491",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Paciente');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "e867b5fb-5755-50b9-a41f-7d84156b9555",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "91d0ac15-0cbb-50ba-b28b-fcc072b620cb",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "bcc9bb9c-2edf-5219-af9b-b5884034b267",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "3ad3f37e-2e1d-5fd9-8241-b1870f4dbe6a",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por nombre de paciente...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "05117d6c-626c-5b01-94ee-4139dc79d9f6",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por nombre de paciente...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "287a050d-197e-5d42-b139-4302825d3718",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "57b841d1-4e15-531b-a9e4-2358d614677a",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "451adca2-547d-5bfd-bf3d-9914598ffa93",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por nombre de paciente...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "1ce19fde-0800-5473-9b1d-809d8a89eba8",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por nombre de paciente...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "a130aad5-0459-5b61-90a6-2ff4f5f4a96d",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "6069c246-0b68-59a0-aa1a-8edb4376d32e",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "afb40865-4572-5cce-828f-afac4b3b7d2c",
+      "name": "TC-143",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "65698b56-73a1-5b6f-b9ea-c05084eb1be9"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

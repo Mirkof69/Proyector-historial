@@ -1,0 +1,142 @@
+{
+  "id": "c6204094-4dc0-53d4-a5b2-0b91987027a7",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-127",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "37a88870-7817-5882-8da7-3822228c2c67",
+      "name": "TC-127 Cerrar sesión desde el menú del usuario (Selenium IDE)",
+      "commands": [
+        {
+          "id": "b52cb278-84ad-5355-a40d-7b05615323ab",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "ddd5302f-544f-59e7-ab65-28a6f8ab4a7b",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e1e8d0c5-ca19-5c2b-ad9b-41b57b0ac9db",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "ecceaa26-b714-5fe0-bd50-141ac2c4d1cd",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_RECEPCION__"
+        },
+        {
+          "id": "6a98ae44-657c-55d2-988d-967d8db3dd79",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "ada95d72-b159-55ff-8753-fd3a058a695a",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "11bc8b14-62ba-5c03-9466-da0d5d934a5b",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "30cff38b-9021-500d-bf70-b819a86fe862",
+          "comment": "",
+          "command": "click",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "cf7e75e2-8795-5b06-a7ca-73c4a66dfbde",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=//li[contains(@class,'ant-dropdown-menu-item')][contains(.,'Cerrar Sesión')]",
+          "targets": [],
+          "value": "10000"
+        },
+        {
+          "id": "dd8d7a0f-f816-57d2-b9a0-9d34d1b99176",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//li[contains(@class,'ant-dropdown-menu-item')][contains(.,'Cerrar Sesión')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "558fca1b-021c-50e8-8b26-227f02ce4c9f",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "465b7274-25e7-5df2-b312-d8d6bd7bdd42",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "87fb5b8d-a543-50e7-b97b-83f4be768dfe",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return window.location.pathname",
+          "targets": [],
+          "value": "ruta"
+        },
+        {
+          "id": "8ba4eac8-bc12-561b-8345-726f5fabba17",
+          "comment": "",
+          "command": "assert",
+          "target": "ruta",
+          "targets": [],
+          "value": "/login"
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "6ad93aa3-9087-515d-a2e6-cb5fbbfa834e",
+      "name": "TC-127",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "37a88870-7817-5882-8da7-3822228c2c67"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

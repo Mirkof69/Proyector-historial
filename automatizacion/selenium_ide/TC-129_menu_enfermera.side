@@ -1,0 +1,118 @@
+{
+  "id": "58e28826-46ce-5c3c-8a02-56359dc9abb3",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-129",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "baa77998-ba51-58a2-bccb-b977ad0a5960",
+      "name": "TC-129 El menú de enfermería muestra solo sus módulos (Selenium IDE)",
+      "commands": [
+        {
+          "id": "ba40e020-6c5b-5830-8974-fcc608b90ad5",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f1f6072e-ea2a-554d-abf8-9ba7a60c7404",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c9bc2b7b-38de-5a97-87ba-f42ee14c9c8b",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "624b22aa-7714-5092-8334-55034ba1b1f6",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ENFERMERA__"
+        },
+        {
+          "id": "f0fb40f7-c6e0-5b32-99ed-b21f165d98a0",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "781389bf-411e-53ba-87f0-11166b0429f2",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b4f90eaf-5765-5d3a-9574-8c52bba3b81e",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "d0c54890-11f7-5e01-9a0e-a925ebd0d172",
+          "comment": "Módulo permitido",
+          "command": "assertElementPresent",
+          "target": "css=.ant-menu [data-menu-id$='/dashboard/triaje']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "cecc6cfe-2a23-5956-b8f5-be5d566176f6",
+          "comment": "Módulo permitido",
+          "command": "assertElementPresent",
+          "target": "css=.ant-menu [data-menu-id$='/dashboard/pacientes']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b0c50c45-405b-5ef8-b792-d38a02e31b02",
+          "comment": "Módulo no permitido",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-menu [data-menu-id$='/dashboard/partos']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "07eac557-e391-5ac0-8d66-a4691033e48f",
+          "comment": "Módulo no permitido",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-menu [data-menu-id$='/dashboard/reportes']",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "fe5ff03f-462e-5ae0-b39c-b9861eb2ec00",
+      "name": "TC-129",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "baa77998-ba51-58a2-bccb-b977ad0a5960"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

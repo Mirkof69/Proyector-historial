@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ejecución {{ r.run_id }} · Fetal Medical</title>
+<style>
+:root{
+  --fondo:#f6f8f8; --panel:#ffffff; --borde:#d9e2e2; --texto:#1b2a2c; --suave:#5b6e70;
+  --acento:#1f7a80; --pass:#1e7f4f; --fail:#b3261e; --blocked:#a15c00; --notrun:#6b7280;
+  --pass-bg:#e3f4ea; --fail-bg:#fbe4e2; --blocked-bg:#fdf0dc; --notrun-bg:#eceef1;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --fondo:#0f1718; --panel:#162224; --borde:#26393b; --texto:#e3ecec; --suave:#9db1b3;
+    --acento:#5cc2c8; --pass:#5fd39a; --fail:#ff8a80; --blocked:#f2b45a; --notrun:#a3aab5;
+    --pass-bg:#173528; --fail-bg:#3d1c1a; --blocked-bg:#3a2a12; --notrun-bg:#232a31;
+  }
+}
+:root[data-theme="dark"]{
+  --fondo:#0f1718; --panel:#162224; --borde:#26393b; --texto:#e3ecec; --suave:#9db1b3;
+  --acento:#5cc2c8; --pass:#5fd39a; --fail:#ff8a80; --blocked:#f2b45a; --notrun:#a3aab5;
+  --pass-bg:#173528; --fail-bg:#3d1c1a; --blocked-bg:#3a2a12; --notrun-bg:#232a31;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--texto);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 64px;display:grid;gap:22px}
+h1{font-size:1.65rem;margin:0;text-wrap:balance}
+h2{font-size:1.15rem;margin:0 0 12px;text-wrap:balance}
+.sub{color:var(--suave);margin:4px 0 0}
+section,header{background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:18px 20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{border:1px solid var(--borde);border-radius:8px;padding:12px 14px}
+.kpi b{display:block;font-size:1.7rem;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--suave);font-size:.82rem;text-transform:uppercase;letter-spacing:.04em}
+.kpi.pass b{color:var(--pass)} .kpi.fail b{color:var(--fail)} .kpi.blocked b{color:var(--blocked)} .kpi.notrun b{color:var(--notrun)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;margin-top:14px;font-size:.88rem;color:var(--suave)}
+.meta b{color:var(--texto);font-weight:600}
+.tabla{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--borde);vertical-align:top}
+th{font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;color:var(--suave)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.76rem;font-weight:600;white-space:nowrap}
+.chip.PASS{background:var(--pass-bg);color:var(--pass)} .chip.FAIL{background:var(--fail-bg);color:var(--fail)}
+.chip.BLOCKED{background:var(--blocked-bg);color:var(--blocked)} .chip.NOT\ RUN{background:var(--notrun-bg);color:var(--notrun)}
+.barra{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--notrun-bg);min-width:120px}
+.barra i{display:block;height:100%}
+.barra .p{background:var(--pass)} .barra .f{background:var(--fail)} .barra .b{background:var(--blocked)}
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filtros button{border:1px solid var(--borde);background:var(--panel);color:var(--texto);border-radius:999px;padding:4px 12px;cursor:pointer;font:inherit;font-size:.85rem}
+.filtros button[aria-pressed="true"]{border-color:var(--acento);color:var(--acento);font-weight:600}
+.filtros button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+.fallo{border:1px solid var(--borde);border-left:4px solid var(--fail);border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.fallo pre{white-space:pre-wrap;word-break:break-word;background:var(--fondo);padding:8px 10px;border-radius:6px;font-size:.8rem;max-height:220px;overflow:auto}
+.evs{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.evs figure{margin:0;width:220px}
+.evs img{width:100%;border:1px solid var(--borde);border-radius:6px;display:block}
+.evs figcaption{font-size:.74rem;color:var(--suave);margin-top:3px;word-break:break-all}
+a{color:var(--acento)}
+details summary{cursor:pointer;color:var(--acento)}
+.nota{font-size:.84rem;color:var(--suave)}
+.ia{border-left:4px solid var(--acento);padding-left:12px}
+@media (max-width:640px){ .evs figure{width:100%} h1{font-size:1.35rem} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Reporte de ejecución de pruebas automatizadas</h1>
+  <p class="sub">Fetal Medical Bolivia · Sistema de historia clínica obstétrica · Corrida {{ r.run_id }}</p>
+  <div class="kpis" style="margin-top:16px">
+    <div class="kpi"><b>{{ r.totales.total }}</b><span>Pruebas</span></div>
+    <div class="kpi pass"><b>{{ r.totales.PASS }}</b><span>PASS</span></div>
+    <div class="kpi fail"><b>{{ r.totales.FAIL }}</b><span>FAIL</span></div>
+    <div class="kpi blocked"><b>{{ r.totales.BLOCKED }}</b><span>BLOCKED</span></div>
+    <div class="kpi notrun"><b>{{ r.totales['NOT RUN'] }}</b><span>NOT RUN</span></div>
+    <div class="kpi"><b>{{ r.tasa_exito }} %</b><span>Éxito sobre ejecutadas</span></div>
+  </div>
+  <div class="meta">
+    <div>Suite: <b>{{ r.datos.suite or 'completa' }}</b></div>
+    <div>Inicio: <b>{{ r.datos.inicio | replace('T', ' ') }}</b></div>
+    <div>Duración: <b>{{ r.duracion_legible }}</b></div>
+    <div>Casos (TC) con resultado: <b>{{ r.por_tc | length }}</b></div>
+    <div>Sistema: <b>{{ r.datos.ambiente.sut_url }}</b></div>
+    <div>Navegador: <b>{{ r.datos.ambiente.navegador }}{{ ' (headless)' if r.datos.ambiente.headless }}</b></div>
+    <div>Equipo: <b>{{ r.datos.ambiente.so }} · Python {{ r.datos.ambiente.python }}</b></div>
+    <div>Cobertura del catálogo automatizable: <b>{{ r.cobertura_catalogo.ejecutados }} / {{ r.cobertura_catalogo.automatizables }} ({{ r.cobertura_catalogo.pct }} %)</b></div>
+  </div>
+</header>
+
+{% if ia %}
+<section class="ia">
+  <h2>Resumen ejecutivo</h2>
+  <p>{{ ia.resumen | e | replace('\n', '<br>') | safe }}</p>
+  <p class="nota">Redactado por IA ({{ ia.proveedor }}, {{ ia.modelo }}) a partir de los resultados; el estado de cada prueba lo decide la aserción, nunca la IA.</p>
+</section>
+{% endif %}
+
+<section>
+  <h2>Resultados por módulo</h2>
+  <div class="tabla"><table>
+    <thead><tr><th>Módulo</th><th class="num">Pruebas</th><th class="num">PASS</th><th class="num">FAIL</th><th class="num">BLOCKED</th><th class="num">NOT RUN</th><th class="num">Éxito</th><th>Distribución</th></tr></thead>
+    <tbody>
+    {% for m in r.por_modulo %}
+      <tr><td>{{ m.modulo }}</td><td class="num">{{ m.total }}</td><td class="num">{{ m.PASS }}</td><td class="num">{{ m.FAIL }}</td><td class="num">{{ m.BLOCKED }}</td><td class="num">{{ m['NOT RUN'] }}</td><td class="num">{{ m.tasa }} %</td>
+        <td><div class="barra" role="img" aria-label="{{ m.PASS }} PASS, {{ m.FAIL }} FAIL, {{ m.BLOCKED }} BLOCKED de {{ m.total }}">
+          <i class="p" style="width:{{ 100 * m.PASS / m.total }}%"></i><i class="f" style="width:{{ 100 * m.FAIL / m.total }}%"></i><i class="b" style="width:{{ 100 * m.BLOCKED / m.total }}%"></i></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Fallos ({{ r.fallos | length }})</h2>
+  {% if not r.fallos %}<p>No hubo fallos en esta corrida.</p>{% endif %}
+  {% if r.clasificacion_fallos %}<p class="nota">Clasificación inicial: {% for k, v in r.clasificacion_fallos.items() %}{{ k }} {{ v }}{{ ', ' if not loop.last }}{% endfor %} (sistema = defecto del producto; script = de la prueba; datos; ambiente).</p>{% endif %}
+  {% for c in r.fallos %}
+  <article class="fallo">
+    <strong>{{ c.tc }}</strong> · {{ c.nombre }} <span class="chip FAIL">FAIL</span> <span class="nota">{{ c.modulo }} · {{ c.clasificacion }}{% if c.defectos %} · {{ c.defectos | join(', ') }}{% endif %}</span>
+    <pre>{{ c.error }}</pre>
+    {% if analisis.get(c.nodeid) %}<p class="ia"><b>Análisis IA:</b> {{ analisis[c.nodeid].texto }}</p>{% endif %}
+    {% if c.evidencias %}<div class="evs">{% for ev in c.evidencias %}<figure><a href="{{ ev.archivo }}"><img src="{{ ev.archivo }}" alt="{{ ev.descripcion or ev.codigo }}" loading="lazy"></a><figcaption>{{ ev.codigo }}</figcaption></figure>{% endfor %}</div>{% endif %}
+    <details><summary>Traza</summary><pre>{{ c.traceback }}</pre></details>
+  </article>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Casos de prueba ejecutados</h2>
+  <div class="filtros" role="group" aria-label="Filtrar por estado">
+    <button type="button" data-f="" aria-pressed="true">Todos</button>
+    {% for e in ['PASS','FAIL','BLOCKED','NOT RUN'] %}<button type="button" data-f="{{ e }}" aria-pressed="false">{{ e }}</button>{% endfor %}
+  </div>
+  <div class="tabla"><table id="casos">
+    <thead><tr><th>Caso</th><th>Título</th><th>Módulo</th><th>Prioridad</th><th class="num">Pruebas</th><th class="num">Tiempo</th><th>Estado</th><th>Evidencias</th></tr></thead>
+    <tbody>
+    {% for t in r.por_tc.values() | sort(attribute='tc') %}
+      <tr data-estado="{{ t.estado }}"><td>{{ t.tc }}</td><td>{{ t.titulo }}</td><td>{{ t.modulo }}</td><td>{{ t.prioridad }}</td><td class="num">{{ t.pruebas | length }}</td><td class="num">{{ t.duracion_s }} s</td><td><span class="chip {{ t.estado }}">{{ t.estado }}</span></td>
+        <td>{% set evs = [] %}{% for p in t.pruebas %}{% for ev in p.evidencias %}{% set _ = evs.append(ev) %}{% endfor %}{% endfor %}{% for ev in evs[:4] %}<a href="{{ ev.archivo }}">{{ ev.codigo.split('-')[3] if ev.codigo.split('-')|length > 3 else ev.codigo }}</a>{{ ' ' if not loop.last }}{% endfor %}{% if evs | length > 4 %} +{{ evs | length - 4 }}{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+{% if r.rendimiento %}
+<section>
+  <h2>Rendimiento (Locust)</h2>
+  <div class="tabla"><table>
+    <thead><tr><th>Escenario</th><th class="num">Peticiones</th><th class="num">Errores</th><th class="num">p50</th><th class="num">p95</th><th class="num">p99</th><th class="num">Peticiones/s</th><th>Detalle</th></tr></thead>
+    <tbody>{% for x in r.rendimiento %}<tr><td>{{ x.escenario }}</td><td class="num">{{ x.peticiones }}</td><td class="num">{{ x.error_pct }} %</td><td class="num">{{ x.p50_ms | round | int }} ms</td><td class="num">{{ x.p95_ms | round | int }} ms</td><td class="num">{{ x.p99_ms | round | int }} ms</td><td class="num">{{ x.rps }}</td><td><a href="{{ x.html }}">reporte de Locust</a></td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endif %}
+
+<section>
+  <h2>Defectos registrados</h2>
+  <div class="tabla"><table>
+    <thead><tr><th>Defecto</th><th>Título</th><th>Severidad</th><th>Estado</th><th>Caso</th><th>Commit</th></tr></thead>
+    <tbody>{% for d in r.defectos %}<tr><td>{{ d.id }}</td><td>{{ d.titulo }}</td><td>{{ d.severidad }}</td><td>{{ d.estado }}</td><td>{{ d.caso }}</td><td>{{ d.commit or '—' }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+
+<p class="nota">Generado el {{ generado }} por la automatización de Fetal Medical (pytest + Selenium WebDriver + requests + Locust + Selenium IDE). Datos sintéticos con prefijo QA; ningún dato de pacientes reales.</p>
+</main>
+<script>
+document.querySelectorAll('.filtros button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.filtros button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  const f = b.dataset.f;
+  document.querySelectorAll('#casos tbody tr').forEach(tr => { tr.hidden = f && tr.dataset.estado !== f; });
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+{
+  "id": "43b56b97-d6e9-54b5-8bb4-83ef4a644cdd",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-138",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "69aa6032-2aa5-5a24-a4ef-ef970bbb8324",
+      "name": "TC-138 Buscador y filtro del listado de laboratorio (Selenium IDE)",
+      "commands": [
+        {
+          "id": "3cf01bf2-c63a-51d4-9d36-efc69eb19c27",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a7a4e890-0bdd-556c-ab3c-5a5511df8d29",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "84e4c5a2-1557-5d73-bc0a-3f0ec79c9b5d",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "b3846e74-24d9-5375-befb-607a4a5b4710",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_LABORATORISTA__"
+        },
+        {
+          "id": "1223613b-26e4-5c24-93c5-72bbeadb6ca9",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "3b7fcb89-6582-5039-9014-dc34c9196531",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "1158e30e-ff9f-57e7-a1a5-68ad65e03d15",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "9bdd3f11-0271-5f18-8077-a45313e3cc77",
+          "comment": "Listado de Laboratorio",
+          "command": "open",
+          "target": "/dashboard/laboratorio",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "ce93971f-d316-5f86-947f-bdf4c528f8e2",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar paciente o examen...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "c2971b79-8f66-5bb9-8844-c5ab1f1e8f64",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "a10888e1-191c-57ef-9d25-916fbec2cb9d",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Paciente'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "40b6e7cd-4f9c-5d57-9cdd-64f0d39a58bd",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "ff1cd4bc-03b8-5b99-8519-05b3a68129f0",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Paciente');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "50eddc9e-d01d-5a43-9d9f-9e149218b7d9",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "989e8fb2-5228-56e8-a0cc-ddd1e334fc06",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "95a4375a-5278-544a-8c7d-d3dbb5957c3a",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "8bd193f8-e660-5b9d-aa99-72cdc71ba7ad",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar paciente o examen...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "f3151a46-ce0e-56a0-948e-8872b2b4e4f4",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar paciente o examen...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "67712d35-2a46-5885-9f2a-d4252507d2e2",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "e7e9a06b-53f1-53e2-9c19-5e3332fd05b3",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "6ce4032f-045e-5aa2-9f51-ea2c1724e96d",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar paciente o examen...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "65abac03-4090-5e04-a6ae-de1186959ac6",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar paciente o examen...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "3b7296a1-d639-5a46-bac6-9ca8b92d173f",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "960712d9-d9a4-5f7a-a3f6-4e63ab1de16a",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "5919f2c7-ada6-556a-8461-4198771d2804",
+          "comment": "Listado sin búsqueda, para aplicar el filtro",
+          "command": "open",
+          "target": "/dashboard/laboratorio",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "9f6645a4-ef4b-5272-800f-b868a23746fe",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "0e2e6581-127b-59c9-b583-0d344879ab26",
+          "comment": "Filtro «Estado»",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-select')][.//span[contains(@class,'ant-select-selection-placeholder') or contains(@class,'ant-select-selection-item')][normalize-space(.)='Estado']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "331501d4-78c1-5ac0-be77-410b325b00eb",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "0a8e338d-4a74-52f6-a26f-abfb3418d67d",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "845ed49b-35bd-52a7-9bb4-9178eac64929",
+          "comment": "",
+          "command": "waitForElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "87b8af3e-1c49-5f42-83da-b617af1987e6",
+          "comment": "",
+          "command": "verifyElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b274a8d2-e892-5b82-bcb7-d366ae0830bc",
+          "comment": "El filtro no produce un error",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-result-error",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "79c0d733-3795-5ad1-9620-c84004ef63a7",
+      "name": "TC-138",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "69aa6032-2aa5-5a24-a4ef-ef970bbb8324"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

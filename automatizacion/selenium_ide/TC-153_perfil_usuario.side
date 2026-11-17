@@ -1,0 +1,126 @@
+{
+  "id": "2d5d47af-9237-5cb7-b6f8-bf8449c201d3",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-153",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "34ca545c-5399-5431-991d-cf0e2eed2a71",
+      "name": "TC-153 El perfil muestra el correo de la cuenta (Selenium IDE)",
+      "commands": [
+        {
+          "id": "1b0e9831-ddec-55ac-8737-da5ba2f9a580",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a7b077be-ef7b-5fc1-892d-eb42aa8a75a7",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "7afd8998-7b27-5f8a-be4a-74d96138ba95",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "9d7acaf6-45c5-5d24-b398-3fc49df1d5d9",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ENFERMERA__"
+        },
+        {
+          "id": "2c228733-bb75-520c-ba49-6519649842c1",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "019e4693-5a4f-55b4-99b9-fee591bcb95c",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "dcab857c-6c26-5228-a26d-ee5698348161",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "423b5647-fe8b-529c-bf52-cc7528031db3",
+          "comment": "",
+          "command": "open",
+          "target": "/dashboard/perfil",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e9a0bfbb-8954-59aa-8dfd-f95fab3e23bb",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "f250280b-10af-555b-b064-f41c789cf75b",
+          "comment": "",
+          "command": "assertValue",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ENFERMERA__"
+        },
+        {
+          "id": "aa14515c-4e6e-5668-9177-7557458baad3",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//*[contains(@class,'user-dropdown-trigger')][contains(.,'ENFERMERA')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "49a23d0e-7e53-5219-85ad-edabb1261bbd",
+          "comment": "",
+          "command": "verifyElementPresent",
+          "target": "xpath=//button[.//span[normalize-space(.)='Guardar Cambios']]",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "8214136d-50b6-5c01-ba07-fe9d6747ad44",
+      "name": "TC-153",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "34ca545c-5399-5431-991d-cf0e2eed2a71"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

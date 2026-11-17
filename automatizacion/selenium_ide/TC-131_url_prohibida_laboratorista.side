@@ -1,0 +1,134 @@
+{
+  "id": "7af7c992-6565-5c8c-abc6-4fc2d792f59e",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-131",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "0fb1e76c-2e35-5312-8922-5a7a78bf027a",
+      "name": "TC-131 Laboratorio escribe la URL de un módulo prohibido (Selenium IDE)",
+      "commands": [
+        {
+          "id": "e148900a-4db8-5101-9909-3dfff7fb5e4a",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "07c2669b-a917-5bd2-91c0-7d639d208d48",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "2cc74b2b-3ee9-5705-881a-652988b230c4",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "74e835d2-64cb-512f-9abf-dc2be6164cc0",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_LABORATORISTA__"
+        },
+        {
+          "id": "a635d191-524c-5c13-bee8-b99afc40598a",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "5eaff54e-60fc-5614-8607-f9c13b75b5ee",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "ec14f32a-11f5-56bd-acb3-51a6275b5427",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "ff6815b3-29ef-5c20-841f-0db1941dfbd5",
+          "comment": "Módulo que el rol no puede abrir",
+          "command": "open",
+          "target": "/dashboard/notas-evolucion",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "01351af7-0196-58d1-9a79-b1ec7a717c7f",
+          "comment": "Pantalla de acceso restringido",
+          "command": "waitForElementVisible",
+          "target": "css=.pagina-estado__titulo-403",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "156271f1-e7b9-51b6-baa7-5de8048dd95c",
+          "comment": "",
+          "command": "assertText",
+          "target": "css=.pagina-estado__titulo-403",
+          "targets": [],
+          "value": "Acceso Restringido (403)"
+        },
+        {
+          "id": "189c43ad-2850-5753-a0aa-690ac90efcbc",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return window.location.pathname",
+          "targets": [],
+          "value": "ruta"
+        },
+        {
+          "id": "d0a64ceb-d1d7-599b-9f16-470d2c8130a2",
+          "comment": "",
+          "command": "assert",
+          "target": "ruta",
+          "targets": [],
+          "value": "/403"
+        },
+        {
+          "id": "16e1b9f6-2bbf-52e8-a100-774786e0f088",
+          "comment": "Sin filas de datos",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "e9d9e2b2-278c-5437-a87e-a1b0c4cbd6e6",
+      "name": "TC-131",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "0fb1e76c-2e35-5312-8922-5a7a78bf027a"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de pruebas · Fetal Medical</title>
+<style>
+:root{--fondo:#f6f8f8;--panel:#fff;--borde:#d9e2e2;--texto:#1b2a2c;--suave:#5b6e70;--acento:#1f7a80;--acento-t:#fff;
+  --pass:#1e7f4f;--fail:#b3261e;--blocked:#a15c00;--notrun:#6b7280;--consola:#0f1718;--consola-t:#d6e4e4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fondo:#0f1718;--panel:#162224;--borde:#26393b;
+  --texto:#e3ecec;--suave:#9db1b3;--acento:#5cc2c8;--acento-t:#0f1718;--pass:#5fd39a;--fail:#ff8a80;--blocked:#f2b45a;
+  --notrun:#a3aab5;--consola:#0a1011;--consola-t:#d6e4e4}}
+:root[data-theme="dark"]{--fondo:#0f1718;--panel:#162224;--borde:#26393b;--texto:#e3ecec;--suave:#9db1b3;
+  --acento:#5cc2c8;--acento-t:#0f1718;--pass:#5fd39a;--fail:#ff8a80;--blocked:#f2b45a;--notrun:#a3aab5;
+  --consola:#0a1011;--consola-t:#d6e4e4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--texto);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 56px;display:grid;gap:20px}
+h1{font-size:1.5rem;margin:0}h2{font-size:1.1rem;margin:0 0 12px}
+.sub{color:var(--suave);margin:4px 0 0}
+section,header{background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:18px 20px}
+form.lanzar{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end}
+label{display:grid;gap:4px;font-size:.85rem;color:var(--suave)}
+select,button{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--borde);background:var(--panel);color:var(--texto)}
+.casillas{display:flex;flex-wrap:wrap;gap:6px 18px;grid-column:1/-1;color:var(--texto);font-size:.9rem}
+.casillas label{display:flex;gap:6px;align-items:center;color:var(--texto)}
+button.primario{background:var(--acento);color:var(--acento-t);border-color:var(--acento);font-weight:600;cursor:pointer}
+button.peligro{color:var(--fail);border-color:var(--fail);cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+pre#registro{background:var(--consola);color:var(--consola-t);border-radius:8px;padding:12px;height:340px;overflow:auto;
+  font:12.5px/1.45 Consolas,"Cascadia Mono",monospace;margin:0;white-space:pre-wrap;word-break:break-word}
+.tabla{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--borde);white-space:nowrap}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--suave)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.p{color:var(--pass)}.f{color:var(--fail)}.b{color:var(--blocked)}.n{color:var(--notrun)}
+a{color:var(--acento)}.estado{font-weight:600}
+.avisos{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.85rem;color:var(--suave);margin-top:10px}
+.barra{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Panel de pruebas automatizadas</h1>
+  <p class="sub">Fetal Medical Bolivia · sistema bajo prueba: {{ sut }}</p>
+  <div class="avisos">
+    <span>IA: {% if ia.disponible %}{{ ia.proveedor }} ({{ ia.modelo }}){% else %}no disponible — {{ ia.motivo }}{% endif %}</span>
+    <span>Correo: {{ 'configurado' if correo else 'falta SMTP_PASSWORD en .env' }}</span>
+  </div>
+</header>
+
+<section>
+  <h2>Nueva corrida</h2>
+  <form class="lanzar" method="post" action="/ejecutar">
+    <label>Suite
+      <select name="suite">{% for clave, (nombre, _) in suites.items() %}<option value="{{ clave }}">{{ nombre }}</option>{% endfor %}</select>
+    </label>
+    <label>Navegador
+      <select name="navegador"><option value="chrome">Chrome</option><option value="edge">Edge</option><option value="firefox">Firefox</option></select>
+    </label>
+    <button class="primario" type="submit" {{ 'disabled' if actual.estado != 'libre' }}>Ejecutar</button>
+    <div class="casillas">
+      <label><input type="checkbox" name="visible" value="1"> Mostrar el navegador</label>
+      <label><input type="checkbox" name="ia" value="1" {{ 'disabled' if not ia.disponible }}> Resumen y análisis de fallos con IA</label>
+      <label><input type="checkbox" name="correo" value="1" {{ 'disabled' if not correo }}> Enviar el reporte por correo</label>
+    </div>
+  </form>
+</section>
+
+<section>
+  <div class="barra">
+    <h2 style="margin:0">Registro en vivo <span id="estado" class="estado">{{ '· ' + actual.run_id + ' ' + actual.estado if actual.estado != 'libre' else '· sin corrida en curso' }}</span></h2>
+    <form method="post" action="/cancelar"><button class="peligro" type="submit" id="cancelar" {{ 'disabled' if actual.estado != 'en curso' }}>Cancelar corrida</button></form>
+  </div>
+  <pre id="registro" aria-live="polite">{% for l in actual.lineas[-400:] %}{{ l }}
+{% endfor %}</pre>
+</section>
+
+<section>
+  <h2>Historial</h2>
+  <div class="tabla"><table>
+    <thead><tr><th>Corrida</th><th>Suite</th><th>Navegador</th><th>Estado</th><th>Total</th><th>PASS</th><th>FAIL</th><th>BLOCKED</th><th>NOT RUN</th><th>Reportes</th><th>Correo</th></tr></thead>
+    <tbody>
+    {% for c in historial %}
+    <tr><td>{{ c.run_id }}</td><td>{{ c.suite }}</td><td>{{ c.navegador }}</td><td>{{ c.estado }}</td>
+      <td class="num">{{ c.total if c.total is not none else '—' }}</td><td class="num p">{{ c.pasaron if c.pasaron is not none else '—' }}</td>
+      <td class="num f">{{ c.fallaron if c.fallaron is not none else '—' }}</td><td class="num b">{{ c.bloqueadas if c.bloqueadas is not none else '—' }}</td>
+      <td class="num n">{{ c.no_ejecutadas if c.no_ejecutadas is not none else '—' }}</td>
+      <td>{% if c.total is not none %}<a href="/corrida/{{ c.run_id }}/reporte.html">HTML</a> · <a href="/corrida/{{ c.run_id }}/reporte.docx">Word</a> · <a href="/corrida/{{ c.run_id }}/reporte.pdf">PDF</a> · <a href="/corrida/{{ c.run_id }}/fetal_medical_{{ c.run_id }}.zip">ZIP</a> · {% endif %}<a href="/corrida/{{ c.run_id }}/ejecucion.log">registro</a></td>
+      <td>{{ c.correo or '—' }}</td></tr>
+    {% else %}<tr><td colspan="11">Todavía no hay corridas lanzadas desde este panel.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</section>
+</main>
+<script>
+const caja = document.getElementById('registro');
+caja.scrollTop = caja.scrollHeight;
+{% if actual.estado != 'libre' %}
+caja.textContent = '';
+const flujo = new EventSource('/registro');
+flujo.onmessage = e => { caja.textContent += e.data + '\n'; caja.scrollTop = caja.scrollHeight; };
+flujo.addEventListener('fin', () => { flujo.close(); location.reload(); });
+{% endif %}
+</script>
+</body>
+</html>

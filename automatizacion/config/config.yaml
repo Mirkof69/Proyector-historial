@@ -1,0 +1,11 @@
+# Configuración NO secreta de la automatización (las credenciales van en .env, nunca aquí).
+# utils/config.py lee este archivo; una variable de entorno o de .env con el mismo nombre tiene prioridad.
+base_url: "http://localhost:3000"        # SUT_URL
+api_url: "http://localhost:8000/api"     # SUT_API
+navegador: "chrome"                      # QA_NAVEGADOR
+headless: true                           # QA_HEADLESS
+tiempo_espera_s: 15                      # QA_TIEMPO_ESPERA
+prefijo_datos: "QA"                      # todo dato sintético lleva este prefijo
+roles: [administrador, medico, enfermera, laboratorista, recepcion]
+rendimiento:
+  carga: {usuarios: 40, incremento_por_s: 4, duracion: "3m", p95_max_ms: 2000, error_max_pct: 1}

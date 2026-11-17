@@ -1,0 +1,246 @@
+{
+  "id": "388cc27b-d687-5310-97da-68ec46814474",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-140",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "ee792d0c-95b3-57be-80c4-e20ca4d24cfa",
+      "name": "TC-140 Buscador del listado de ecografía (Selenium IDE)",
+      "commands": [
+        {
+          "id": "d59a6c0d-795d-509b-ae15-975fc8d3205d",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a294dfcd-ccd4-5176-9b2d-0b01a5a78063",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "28ae8bf7-2510-5035-807b-482df308548d",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "d31adf2c-6236-59cb-be13-69a2ea7128f1",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_MEDICO__"
+        },
+        {
+          "id": "4a586132-f524-5f5d-9e4e-90a7eee77dd9",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "eab93150-2a6f-5e9e-8b32-3dadf86c6826",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0921d7be-f174-57f1-a018-f21b76cf2a92",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "58aee29c-27d9-5c30-887a-ef4793e832f0",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_MEDICO__"
+        },
+        {
+          "id": "a71409d6-ed22-5b19-ad11-d0fb24615b7d",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "666068e3-a0a1-5082-8e05-1a63ccb2b2e7",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "82e843b9-2081-586a-90b4-1eb59fd524cf",
+          "comment": "Listado de Ecografía",
+          "command": "open",
+          "target": "/dashboard/ecografias",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "db1aa031-448c-5745-96ac-9a22a4e7bb62",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "dcdb12e1-e3f8-5ef8-9dff-4a986cc6896f",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "0b92d9c7-2074-5a15-bad0-72395af358be",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Paciente'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "6f855612-87ff-5435-8c36-82cc121caae5",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "8a0820a2-a602-51dd-966a-ee8c4bd50f29",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Paciente');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "4b78af13-b4b2-515b-8e52-b1e5976e4835",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "3c5a4a6c-5ef2-5628-beec-02d25701c39b",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "ede89447-a311-5655-bdf3-5470398ed863",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "2e589869-083a-51e4-a56a-c37a675e6161",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "5e84c832-f82f-5284-8558-79c0902313f6",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "06dce5de-a375-5156-b935-e95faf0952fb",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "010681e8-87e9-5f93-8885-08b4db1a9aa2",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "50f9dba6-efaf-55f5-ae5b-dbd5c063d910",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "af9b3fa3-77bd-5447-83b0-d1a4953397b1",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "84a6c84f-064b-55c8-98ee-5709362b6975",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "7ca8bb3b-36cc-54df-8e54-adf13e48c50b",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "36ac1593-ae13-53ff-a260-caa4cfaf0f58",
+      "name": "TC-140",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "ee792d0c-95b3-57be-80c4-e20ca4d24cfa"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

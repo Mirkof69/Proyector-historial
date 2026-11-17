@@ -1,0 +1,310 @@
+{
+  "id": "a6ac8557-9866-52a1-990f-614afdb23bd0",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-147",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "388f4674-39b4-5f24-bd53-1f5118bc0e59",
+      "name": "TC-147 Buscador y filtro del listado de notificaciones (Selenium IDE)",
+      "commands": [
+        {
+          "id": "52164661-dd03-54a1-8356-d53fcfa56907",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "80da4b0b-aa37-5aec-8e0e-95e376f39251",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "295de9ef-57b7-58fc-bf42-118e6de44775",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "820259e4-7746-5089-80a5-fec640835484",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ADMINISTRADOR__"
+        },
+        {
+          "id": "67267db4-ad0e-590b-9e62-62a166405b48",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "0c0b75b0-a7b0-5f72-be0f-d3395252f013",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "3eb913f4-b576-5d4f-9d50-f28277e87716",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "40b9a44c-fdac-596d-b0ba-80326975989f",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_ADMINISTRADOR__"
+        },
+        {
+          "id": "0d37f86d-05b4-5d1b-8111-bbfe5ef8170d",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e0230cf0-b5ec-5029-a508-d86af15f3da9",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "0d2b4fda-ea3f-5f5c-839b-03bc981e3194",
+          "comment": "Listado de Notificaciones",
+          "command": "open",
+          "target": "/dashboard/notificaciones",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f7fbc173-0f95-514b-99ac-ba7b846678ed",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar en notificaciones...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "6e7cb5ad-3b88-528f-8205-d7c27f7c1e4b",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "e4074afc-ca74-5fbf-a8c4-620d7fd66c87",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Contenido'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "eed44d1d-0839-50da-ac29-b7a5c8ee1c58",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "4e3391ed-8204-59be-b800-18956dabd47c",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Contenido');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "6f3e1f87-e0a0-5918-92cf-eff8d0d56743",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "e5215847-37cf-558a-8143-f0171600cca6",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "8c4e128e-9f85-5526-8a7d-c24d952aa7df",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b88545cb-0a1a-5343-aa52-993869c37d84",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar en notificaciones...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "ad7a5f9d-bf1d-5702-8054-fcd4b714764d",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar en notificaciones...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "5b3c838e-ea17-5c12-86cb-3dc165f17fd7",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "cf8669bd-37a1-566a-991a-b7e909a06dfb",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "9c2e670d-c273-504b-9bf3-38a5c88d3cba",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar en notificaciones...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "3c3e9362-7749-5c04-9028-a1ed8ace7669",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar en notificaciones...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "c73e7d38-5d34-578f-bc80-2ed680c9f987",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "ccc6cab0-181e-5ed5-8458-3de84b9c2df4",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "944dfc68-d46d-5083-892e-a0bff95162d9",
+          "comment": "Listado sin búsqueda, para aplicar el filtro",
+          "command": "open",
+          "target": "/dashboard/notificaciones",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a473cd54-cf1e-520c-8e16-73af4f5a376a",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "f63f91aa-4429-5119-a54c-e0e81f76ef0c",
+          "comment": "Filtro «Tipo»",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-select')][.//span[contains(@class,'ant-select-selection-placeholder') or contains(@class,'ant-select-selection-item')][normalize-space(.)='Tipo']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "98215516-b71a-5748-b960-0f09d0266c22",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "87dcacca-2ae8-5983-ac3e-8ff0af746628",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "63da3dd7-1ac3-5c1e-86d6-9202906ff05e",
+          "comment": "",
+          "command": "waitForElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "ad78424d-0ea1-5fd1-b624-fdba33d7731c",
+          "comment": "",
+          "command": "verifyElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "6a634ae8-4cfe-5645-8e4f-7d8ce5b6f02d",
+          "comment": "El filtro no produce un error",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-result-error",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "1d8adf1a-f0bc-5bc3-b962-244c88073e24",
+      "name": "TC-147",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "388f4674-39b4-5f24-bd53-1f5118bc0e59"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

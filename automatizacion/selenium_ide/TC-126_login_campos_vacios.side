@@ -1,0 +1,102 @@
+{
+  "id": "f9fe5449-4f43-5c08-a0c6-cab11925019b",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-126",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "11b5b778-866e-5865-a337-2b86befb35ce",
+      "name": "TC-126 Formulario de inicio de sesión vacío (Selenium IDE)",
+      "commands": [
+        {
+          "id": "161c0e43-0449-55e7-a89c-330a2728c276",
+          "comment": "",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0fc79aee-e40b-5b0c-8e17-5af35ee7bcb3",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "388dacb4-4c49-564b-86ef-101e0062df9f",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "ae44207d-6baf-50e9-8495-f49606a7ea98",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c275975d-d7ea-55ef-b43b-e2b0f5a85fb8",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-form-item-explain-error",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "a1c12986-9ef0-5a8f-a234-eed4abd2320e",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-form-item-explain-error').length",
+          "targets": [],
+          "value": "errores"
+        },
+        {
+          "id": "75f53a10-dd58-5eed-925e-b7dd9cb57a18",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${errores} >= 2",
+          "targets": [],
+          "value": "dos_errores"
+        },
+        {
+          "id": "c41ee61e-6122-5e0e-a259-79be3a7567c0",
+          "comment": "",
+          "command": "assert",
+          "target": "dos_errores",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "ff400aec-5428-54b5-9ea0-2b809c5bc5af",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "01fd2e74-e3c8-52cc-89c7-aac642cd858d",
+      "name": "TC-126",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "11b5b778-866e-5865-a337-2b86befb35ce"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

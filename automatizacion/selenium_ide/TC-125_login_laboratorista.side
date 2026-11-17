@@ -1,0 +1,118 @@
+{
+  "id": "a7fafed3-7f28-5581-9e9c-cc527c7cfe51",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-125",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "7a2ae004-3328-5e1c-a40a-af7f94bb1512",
+      "name": "TC-125 Inicio de sesión de laboratorio (Selenium IDE)",
+      "commands": [
+        {
+          "id": "da8f3432-7977-599d-ae48-ff8586325717",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d42590fd-6a88-5cc4-afed-3d904cfba47f",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "69e248b3-8ffd-5bcf-b119-f808caed5736",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "ca6041a6-576b-5514-8414-4e0ab9d96881",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_LABORATORISTA__"
+        },
+        {
+          "id": "af14e8e7-7575-52ac-ad75-927bffe1ef27",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "0f6e8e4a-3e15-5a32-a6f5-95c72e3b6e18",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b7e3d1c1-4b04-5218-ab15-8f76aa31affe",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "dfa8dcf1-2980-50c6-8a9e-f10b3ead5173",
+          "comment": "Menú lateral del rol",
+          "command": "assertElementPresent",
+          "target": "css=.ant-layout-sider .ant-menu",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "291b8fe6-642b-5f75-a8ae-df9243b7d50b",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//*[contains(@class,'user-dropdown-trigger')][contains(.,'LABORATORISTA')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c0ed460d-c18e-5dac-ae6d-9dd8801205f1",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return window.location.pathname.startsWith('/dashboard')",
+          "targets": [],
+          "value": "en_panel"
+        },
+        {
+          "id": "95d152ba-c141-5167-8a52-575484ecf24b",
+          "comment": "",
+          "command": "assert",
+          "target": "en_panel",
+          "targets": [],
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "a831e30e-02e8-5653-b829-a9f2ae560b95",
+      "name": "TC-125",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "7a2ae004-3328-5e1c-a40a-af7f94bb1512"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

@@ -1,0 +1,286 @@
+{
+  "id": "9b7ef106-854c-5554-97bc-1323f9902d35",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-135",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "22bcb6de-535e-5000-8f16-921f77e8c6d4",
+      "name": "TC-135 Buscador y filtro del listado de vacunas (Selenium IDE)",
+      "commands": [
+        {
+          "id": "d7265710-593b-5664-b7ec-1ed953a51a47",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "21a379c0-137a-5174-a139-06e01442952b",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "be63f936-0130-5e60-9f2e-22a958f6f904",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "4757f9c1-d423-5d15-9cf4-d08596e0467a",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ENFERMERA__"
+        },
+        {
+          "id": "9a2ba8e3-169d-5759-ba6a-3424288016cb",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "76d42c2c-5d12-5de2-bfa9-9e796bc6f1be",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "2a39d9bc-f524-5c4a-abbc-f948fa9cae31",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "ba95b544-5937-575e-b67d-3db61933d4a9",
+          "comment": "Listado de Vacunas",
+          "command": "open",
+          "target": "/dashboard/vacunas",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "29eb815c-c70e-56e7-a894-57b27fbc3e40",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por paciente, vacuna, lote o lab...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "c8ef77ea-992b-5813-8fa5-aa89492aabd8",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "86adb54c-8d4f-5ad7-afb5-8e2732969993",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Paciente'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "9921e864-e716-5968-81a4-36a6b2e5fcaa",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "50110222-2ad9-5504-bfa5-9bded9b15ba5",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Paciente');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "40c1c6fb-8d03-561f-8bc3-aa28c5886ee2",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "6aa06b6a-74c5-5dc5-bb75-edf9a6f3dc92",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "749b7367-3fc5-5253-b165-5c1a6fb9a45e",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b852b7f2-0f8f-5b14-88c3-353c64a704fd",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por paciente, vacuna, lote o lab...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "bd7e235b-2e62-5a54-ad7f-0a125402c0c7",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por paciente, vacuna, lote o lab...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "4a11457b-e618-575f-b2fd-578d1153c80d",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "2432419d-66ab-5241-b3d2-388d5d915053",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "fb9873a4-70d4-554c-becd-1137f05ca7e1",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por paciente, vacuna, lote o lab...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "222cdd79-26fb-5891-b73f-6734491939eb",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por paciente, vacuna, lote o lab...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "3328d924-c9fb-532f-afe9-634048f14be7",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "44ae0019-8b44-53c5-bbf0-fcef42a607b6",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "101be495-fd88-5bec-811d-699ffe8d5e08",
+          "comment": "Listado sin búsqueda, para aplicar el filtro",
+          "command": "open",
+          "target": "/dashboard/vacunas",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "506ddef4-26ae-5ea6-b01b-40488f0678f5",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "4119c8b8-29a4-5aef-ae90-d5d2c73a247b",
+          "comment": "Filtro «Todos los estados»",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-select')][.//span[contains(@class,'ant-select-selection-placeholder') or contains(@class,'ant-select-selection-item')][normalize-space(.)='Todos los estados']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "6b59c48c-7bce-5e1f-978c-e0827c6d5d2b",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "3306f287-8ff3-5ead-9008-05b5ae0c1e38",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[2]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "918bd5d7-5a48-527e-96e6-945bea33b9eb",
+          "comment": "",
+          "command": "waitForElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "dd46e78a-626e-547c-acbf-f962a8c85922",
+          "comment": "",
+          "command": "verifyElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "03922c45-21cb-5067-a604-841c44a8f78e",
+          "comment": "El filtro no produce un error",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-result-error",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "c002a7ec-5897-564e-9370-3fb2ca006b74",
+      "name": "TC-135",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "22bcb6de-535e-5000-8f16-921f77e8c6d4"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

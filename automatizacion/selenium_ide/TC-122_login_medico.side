@@ -1,0 +1,142 @@
+{
+  "id": "c601486a-fc43-5e3a-a9bf-35c6d5013d89",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-122",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "a6f58d46-2e6d-5c93-9b86-34ce96bc28b4",
+      "name": "TC-122 Inicio de sesión de médico con doble factor (Selenium IDE)",
+      "commands": [
+        {
+          "id": "20cb41c9-bcce-5808-8ed3-30fc3b17e41e",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0e003540-518c-50b6-b7b4-21db9abd78b9",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "202d3894-ee53-597c-9a90-996c77d2daf5",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "7950a872-7519-54c9-83e3-66f9e7572451",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_MEDICO__"
+        },
+        {
+          "id": "47678bfe-36a0-54ae-9074-d868ca45fb6d",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "286227d0-9e62-57e1-a316-783e420b497b",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c8bd0561-ffde-5d9c-a802-61b4fe420017",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "8cb607b1-7399-5911-90ac-29af4c4e0a24",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_MEDICO__"
+        },
+        {
+          "id": "d68d463c-07c2-57fd-8c70-238d43eaa7fb",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a4426b7d-5edc-5209-ab9c-ebe88df27042",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "71ef2b11-eef2-506c-a455-d5a10ca292ac",
+          "comment": "Menú lateral del rol",
+          "command": "assertElementPresent",
+          "target": "css=.ant-layout-sider .ant-menu",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "076d81f7-9dfe-580e-9ebf-93439f7636c8",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//*[contains(@class,'user-dropdown-trigger')][contains(.,'MEDICO')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "64bf5026-5de2-5d1e-af74-e8bdf6178fbb",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return window.location.pathname.startsWith('/dashboard')",
+          "targets": [],
+          "value": "en_panel"
+        },
+        {
+          "id": "5f848ab4-9498-58a5-b657-aef25b60e3f8",
+          "comment": "",
+          "command": "assert",
+          "target": "en_panel",
+          "targets": [],
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "eccd21bc-4756-50c1-bfc4-8b54a13993d0",
+      "name": "TC-122",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "a6f58d46-2e6d-5c93-9b86-34ce96bc28b4"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

@@ -1,0 +1,278 @@
+{
+  "id": "1878b1e1-3b0c-5647-b4cc-0cb38ba04bf2",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-146",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "31314e47-76bb-55c1-abc8-613c8f9a7310",
+      "name": "TC-146 Buscador y filtro del listado de auditoría (Selenium IDE)",
+      "commands": [
+        {
+          "id": "1757e712-6b43-5924-9710-a3504fe82f6e",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "fd4114ee-2ed7-5be7-84ff-f34c614dcd4c",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "21933ef1-a3b4-52e6-8c2f-c80761ba4f43",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "4e36dd22-3ab5-5a9d-985a-85615d804232",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ADMINISTRADOR__"
+        },
+        {
+          "id": "1967be32-1d85-58c1-a3c5-051cf3ae03ae",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "3cab5452-317c-5323-a65e-f652845b9fb5",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f7f283f0-088c-501b-a805-294e910dd96a",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "aafd6d64-cc28-54b2-b13c-3e67d60e92f2",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_ADMINISTRADOR__"
+        },
+        {
+          "id": "0b257869-bf7e-5eb5-8677-475b4d5918b0",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "449b61e5-9e15-57ce-b563-68c9205ee664",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "3fda7908-f9c0-584f-99ca-d99fe9d44570",
+          "comment": "Listado de Auditoría",
+          "command": "open",
+          "target": "/dashboard/auditoria",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "4aed392e-35bb-5fb3-80b2-877fabefc89a",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar: nombre, correo, ruta, detalle, IP…']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "2cc4f785-885b-53af-982a-0b1d467d644e",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "efef5596-f8b8-524e-bd01-36da77560b66",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Quién'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b549da67-59eb-50ba-802b-387faac5109c",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "cbbfd4c5-1a4f-5730-859c-f43c79e12fd1",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Quién');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "8697be5a-295a-546e-b048-fbe4c6cc21a6",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "cb05fc9c-0a1a-5852-a7cc-7169fb8ac0a0",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "21876d83-10e3-5f8f-9053-463dfc1d0689",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f6ec0046-4045-5eed-9b6c-59ece8a8c66c",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar: nombre, correo, ruta, detalle, IP…']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "3d12e97a-330c-5637-bf8d-9bcc8f63ceec",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar: nombre, correo, ruta, detalle, IP…']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "f6196edd-1aae-5d7d-a04f-5bb25193e073",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "51a79e8a-18e2-5ded-91f5-328f072a4114",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b8d288db-6cd9-569f-8081-a194b9c347d7",
+          "comment": "Listado sin búsqueda, para aplicar el filtro",
+          "command": "open",
+          "target": "/dashboard/auditoria",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f363cf5d-d752-5848-98f9-9c9ef632d617",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "20a8da20-f77f-5090-af36-7160d9280436",
+          "comment": "Filtro «Acción»",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-select')][.//span[contains(@class,'ant-select-selection-placeholder') or contains(@class,'ant-select-selection-item')][normalize-space(.)='Acción']]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "648340a4-8874-5d6f-9ee9-e48a7b21f998",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "d1c49f17-7926-5d0e-9be7-64d5ef459780",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=(//div[contains(@class,'ant-select-dropdown') and not(contains(@class,'ant-select-dropdown-hidden'))]//div[contains(@class,'ant-select-item-option')])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "4871b625-7c57-5826-b5d4-005f7ffe7674",
+          "comment": "",
+          "command": "waitForElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "7c135eab-6587-59d0-addb-cc8a5a9347b4",
+          "comment": "",
+          "command": "verifyElementPresent",
+          "target": "css=.ant-table-tbody",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c8a524b7-7d95-585d-897e-333fe73d3ab8",
+          "comment": "El filtro no produce un error",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-result-error",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "c66457d5-8273-52f8-8c8c-6c249ef54a6d",
+      "name": "TC-146",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "31314e47-76bb-55c1-abc8-613c8f9a7310"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

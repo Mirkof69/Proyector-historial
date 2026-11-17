@@ -1,0 +1,174 @@
+{
+  "id": "7810bf2d-06ca-5b88-8a5f-8c467cf691b9",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-151",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "d475c283-6752-5d25-8731-a876b4e86479",
+      "name": "TC-151 El Centro de reportes cambia de pestaña (Selenium IDE)",
+      "commands": [
+        {
+          "id": "c82b3b7a-7cde-580d-b2b1-8b71c2c94365",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "59dac193-e70e-55f3-9da3-7d0b5f21917a",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "892e52c5-5f62-52e6-af49-fa66519817ca",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "01a23802-65fd-5f6a-8116-a17c5b4ed8e5",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_ADMINISTRADOR__"
+        },
+        {
+          "id": "785cbd72-7c14-5e98-b8ab-c4c05c239756",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "54687723-a307-5f2d-a2d1-f72fee2dee22",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "01ed6f94-b4b6-58e8-a004-4b98f0b7378f",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "b7798048-db41-57ec-951d-66f364472e82",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_ADMINISTRADOR__"
+        },
+        {
+          "id": "79205f22-fd6b-570d-a828-0c99af7e01ac",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "77a7663c-c769-5815-a8e0-31a0aad2db65",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "731b7e66-1fcd-5ea5-81dc-e6ea146f3e36",
+          "comment": "",
+          "command": "open",
+          "target": "/dashboard/reportes",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "8554b2a0-1e29-5273-8630-2282e06b7d09",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=//div[contains(@class,'ant-tabs-tab')][normalize-space(.)='KPIs']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "212783ca-dbc3-5481-bc13-3f3a017c5da4",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-tabs-tab')][normalize-space(.)='KPIs']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "92b24799-2c74-5df0-99c6-2c8d7bed857d",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=//div[contains(@class,'ant-tabs-tab-active')][normalize-space(.)='KPIs']",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "28dec764-6aa1-5448-b9c9-9dcdfd5876c0",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//div[contains(@class,'ant-tabs-tab-active')][normalize-space(.)='KPIs']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "63f03b36-853c-5ed4-9291-7003624015b8",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//div[contains(@class,'ant-tabs-tab')][normalize-space(.)='Indicadores y metas']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "9f81586b-d81e-515f-a787-386d9d4e4f36",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "xpath=//div[contains(@class,'ant-tabs-tab-active')][normalize-space(.)='Indicadores y metas']",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "fe87f0e4-4b6a-5cca-b076-817104a458c7",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-result-error",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "f9375557-7dc8-5da6-a751-7057cd29351e",
+      "name": "TC-151",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "d475c283-6752-5d25-8731-a876b4e86479"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

@@ -1,0 +1,167 @@
+{
+ "planos": [
+  {
+   "archivo": "Patient01740_Plane2_1_of_1.png",
+   "plano": "abdomen fetal"
+  },
+  {
+   "archivo": "Patient01507_Plane2_1_of_1.png",
+   "plano": "abdomen fetal"
+  },
+  {
+   "archivo": "Patient01786_Plane2_1_of_1.png",
+   "plano": "abdomen fetal"
+  },
+  {
+   "archivo": "Patient01531_Plane2_1_of_1.png",
+   "plano": "abdomen fetal"
+  },
+  {
+   "archivo": "Patient01540_Plane2_1_of_1.png",
+   "plano": "abdomen fetal"
+  },
+  {
+   "archivo": "Patient01280_Plane3_2_of_5.png",
+   "plano": "cerebro fetal"
+  },
+  {
+   "archivo": "Patient01538_Plane3_1_of_3.png",
+   "plano": "cerebro fetal"
+  },
+  {
+   "archivo": "Patient01489_Plane3_2_of_2.png",
+   "plano": "cerebro fetal"
+  },
+  {
+   "archivo": "Patient01618_Plane3_3_of_4.png",
+   "plano": "cerebro fetal"
+  },
+  {
+   "archivo": "Patient01567_Plane3_3_of_5.png",
+   "plano": "cerebro fetal"
+  },
+  {
+   "archivo": "Patient00644_Plane4_2_of_5.png",
+   "plano": "cuello uterino materno"
+  },
+  {
+   "archivo": "Patient01271_Plane4_1_of_2.png",
+   "plano": "cuello uterino materno"
+  },
+  {
+   "archivo": "Patient00472_Plane4_1_of_1.png",
+   "plano": "cuello uterino materno"
+  },
+  {
+   "archivo": "Patient00428_Plane4_1_of_1.png",
+   "plano": "cuello uterino materno"
+  },
+  {
+   "archivo": "Patient01234_Plane4_4_of_4.png",
+   "plano": "cuello uterino materno"
+  },
+  {
+   "archivo": "Patient01601_Plane5_4_of_4.png",
+   "plano": "fémur fetal"
+  },
+  {
+   "archivo": "Patient01301_Plane5_2_of_2.png",
+   "plano": "fémur fetal"
+  },
+  {
+   "archivo": "Patient01402_Plane5_1_of_1.png",
+   "plano": "fémur fetal"
+  },
+  {
+   "archivo": "Patient01342_Plane5_1_of_2.png",
+   "plano": "fémur fetal"
+  },
+  {
+   "archivo": "Patient00657_Plane5_1_of_1.png",
+   "plano": "fémur fetal"
+  },
+  {
+   "archivo": "Patient01551_Plane1_5_of_22.png",
+   "plano": "otro"
+  },
+  {
+   "archivo": "Patient01654_Plane1_4_of_12.png",
+   "plano": "otro"
+  },
+  {
+   "archivo": "Patient01328_Plane1_9_of_13.png",
+   "plano": "otro"
+  },
+  {
+   "archivo": "Patient01535_Plane1_7_of_21.png",
+   "plano": "otro"
+  },
+  {
+   "archivo": "Patient01484_Plane1_5_of_16.png",
+   "plano": "otro"
+  },
+  {
+   "archivo": "Patient01657_Plane6_2_of_2.png",
+   "plano": "tórax fetal"
+  },
+  {
+   "archivo": "Patient01362_Plane6_3_of_4.png",
+   "plano": "tórax fetal"
+  },
+  {
+   "archivo": "Patient01253_Plane6_1_of_1.png",
+   "plano": "tórax fetal"
+  },
+  {
+   "archivo": "Patient01471_Plane6_2_of_2.png",
+   "plano": "tórax fetal"
+  },
+  {
+   "archivo": "Patient01496_Plane6_1_of_1.png",
+   "plano": "tórax fetal"
+  }
+ ],
+ "hc18": [
+  {
+   "archivo": "730_HC.png",
+   "pixel_mm": 0.130818,
+   "hc_mm": 184.5
+  },
+  {
+   "archivo": "681_HC.png",
+   "pixel_mm": 0.108054,
+   "hc_mm": 182
+  },
+  {
+   "archivo": "592_HC.png",
+   "pixel_mm": 0.113812,
+   "hc_mm": 175
+  },
+  {
+   "archivo": "465_HC.png",
+   "pixel_mm": 0.109249,
+   "hc_mm": 172.26
+  },
+  {
+   "archivo": "973_HC.png",
+   "pixel_mm": 0.240927,
+   "hc_mm": 328
+  },
+  {
+   "archivo": "53_HC.png",
+   "pixel_mm": 0.05404,
+   "hc_mm": 69.84
+  },
+  {
+   "archivo": "147_HC.png",
+   "pixel_mm": 0.074836,
+   "hc_mm": 88.81
+  },
+  {
+   "archivo": "862_HC.png",
+   "pixel_mm": 0.1776,
+   "hc_mm": 259.46
+  }
+ ],
+ "fuente": "catalogo_imagenes.xlsx (partición «prueba»)"
+}

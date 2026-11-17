@@ -1,0 +1,246 @@
+{
+  "id": "f05fd4b4-0066-52e8-92f4-73dfbbd1b2ee",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-142",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "a9f24ea9-2fa5-5898-9dc9-6673400fcd8e",
+      "name": "TC-142 Buscador del listado de historia clínica (Selenium IDE)",
+      "commands": [
+        {
+          "id": "632260cb-d641-50c2-957d-102722c8e27d",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "14389e0b-1ffb-5474-a9ec-43b34237da33",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "87010479-c177-555e-8632-ffb292f660dc",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "21ff8f50-d77b-5305-addb-7a311dfc82e9",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_MEDICO__"
+        },
+        {
+          "id": "d783c94b-7e18-563b-8ec5-e74fb78ffbed",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "0c5e5b71-801b-527d-9e95-553e3c06280b",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "af4b4f18-e226-54b7-a055-babf8ef1eed4",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "7921e7ff-4334-5f4b-80e3-50cb394fa676",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_MEDICO__"
+        },
+        {
+          "id": "4b9e1474-29bd-5122-854a-5b02d45ad4f8",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b761e63e-26c0-53ab-b10c-2c9607464a18",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "450563ad-6a3c-5daf-bf60-72069321ef9e",
+          "comment": "Listado de Historia clínica",
+          "command": "open",
+          "target": "/dashboard/historia-clinica",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d0ef940c-897a-5a7f-8827-e4b8b4524bc8",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "css=input[placeholder='Buscar por nombre, documento o N° historia...']",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "c6b8a6a8-7ed3-5b77-87db-8952794495ac",
+          "comment": "El listado tiene registros",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "660eb465-5700-544c-b5db-745f3f4c3865",
+          "comment": "Columna esperada",
+          "command": "assertElementPresent",
+          "target": "xpath=(//thead//th[normalize-space(.)='Nombre Completo'])[1]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "dcc0aeb6-7e9f-50b5-a766-ae123421b5ce",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return document.querySelectorAll('.ant-table-tbody tr.ant-table-row').length",
+          "targets": [],
+          "value": "filas_antes"
+        },
+        {
+          "id": "3d98a994-7311-5087-8489-030842379b06",
+          "comment": "Palabra del primer registro para buscarla",
+          "command": "executeScript",
+          "target": "const ths=[...document.querySelectorAll('.ant-table-thead th')];const i=ths.findIndex(t=>t.innerText.trim()==='Nombre Completo');const fila=document.querySelector('.ant-table-tbody tr.ant-table-row');const txt=(fila&&i>=0?fila.children[i].innerText:'');const p=txt.split(/\\s+/).filter(w=>/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{4,}$/.test(w)&&w!=='QA');return p.length?p[0]:'';",
+          "targets": [],
+          "value": "termino"
+        },
+        {
+          "id": "6799c532-b73b-59f9-9af4-fd9a12739d42",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return ${termino}.length > 0",
+          "targets": [],
+          "value": "hay_termino"
+        },
+        {
+          "id": "b4411571-9ae3-54d2-a24c-ca17cf884b07",
+          "comment": "",
+          "command": "assert",
+          "target": "hay_termino",
+          "targets": [],
+          "value": "true"
+        },
+        {
+          "id": "55fe3b44-3bd4-5ba0-bb01-cd28114f8da9",
+          "comment": "",
+          "command": "echo",
+          "target": "Buscando: ${termino} (filas antes: ${filas_antes})",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "8e3d0a2f-23c8-56bd-ae8b-1a23412becdf",
+          "comment": "",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por nombre, documento o N° historia...']",
+          "targets": [],
+          "value": "${termino}"
+        },
+        {
+          "id": "d1ae7221-1a03-52bd-bae6-b5f0cef58d68",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por nombre, documento o N° historia...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "a777c952-4dbc-5407-825f-e855fe6f9b82",
+          "comment": "Aparece un registro con el término",
+          "command": "waitForElementVisible",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "72f9f7cc-f314-57d6-9f56-87014d1900a6",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//tr[contains(@class,'ant-table-row')][contains(.,'${termino}')]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "8133e5cb-81e7-5643-8dd1-c8921d099188",
+          "comment": "Término que ningún registro contiene",
+          "command": "type",
+          "target": "css=input[placeholder='Buscar por nombre, documento o N° historia...']",
+          "targets": [],
+          "value": "zzqa-sin-coincidencias-999"
+        },
+        {
+          "id": "e21e5fe4-ded9-5ef6-9919-a6df12a63f5e",
+          "comment": "",
+          "command": "sendKeys",
+          "target": "css=input[placeholder='Buscar por nombre, documento o N° historia...']",
+          "targets": [],
+          "value": "${KEY_ENTER}"
+        },
+        {
+          "id": "f8b4fd54-0466-5344-9d67-e0fc1d541466",
+          "comment": "El listado queda vacío",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-table-placeholder, .ant-empty",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "5371f2c1-5541-5391-8825-f4dcbb4f291d",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "5c1bfdb2-a35b-5a90-9a57-d1dc3142a38b",
+      "name": "TC-142",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "a9f24ea9-2fa5-5898-9dc9-6673400fcd8e"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

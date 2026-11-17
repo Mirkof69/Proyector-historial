@@ -1,0 +1,19 @@
+# Automatización de pruebas de Fetal Medical Bolivia (Python 3.12)
+selenium==4.52.0          # Selenium WebDriver (Selenium Manager descarga el driver del navegador)
+pytest==9.2.0             # ejecutor de pruebas
+requests==2.34.2          # pruebas de la API
+pyotp==2.10.0             # códigos TOTP del doble factor
+Faker==40.54.0            # datos sintéticos
+python-dotenv==1.2.4      # configuración local (.env)
+PyYAML==6.0.3             # config/config.yaml
+locust==2.47.0            # pruebas de rendimiento
+fastapi==0.162.7          # panel web de ejecución
+uvicorn==0.54.0
+python-multipart==0.0.33
+Jinja2==3.1.6             # reporte HTML y panel
+python-docx==1.2.0        # reporte Word
+pywin32==312 ; sys_platform == "win32"   # PDF con Microsoft Word
+openpyxl==3.1.5           # casos de prueba en Excel
+matplotlib==3.11.2        # gráficos del capítulo
+pymupdf==2.1              # paginación del capítulo
+anthropic==2.8.0          # IA en la nube (opcional)

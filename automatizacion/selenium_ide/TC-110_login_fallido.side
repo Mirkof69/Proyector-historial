@@ -1,0 +1,118 @@
+{
+  "id": "de50d39e-5d7e-5689-8a00-270dbd708b2c",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-110",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "bd306974-6c06-5031-a7ae-692197265022",
+      "name": "TC-110 Inicio de sesión fallido con una cuenta que no existe (Selenium IDE)",
+      "commands": [
+        {
+          "id": "2718e984-4aa3-533f-be03-da97ceaa14d3",
+          "comment": "",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f363c02a-8d42-5308-83b9-4a31d3e9a88e",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "8a01bc8d-d8e6-5e70-bfae-66f6636baf02",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "2d8308d3-bcec-5696-b3fa-c664e9d82c5e",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "qa.no.existe@fetalmedical.test"
+        },
+        {
+          "id": "da0f9d0c-2790-5855-b509-8969e766bb92",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "Clave-Equivocada-QA1"
+        },
+        {
+          "id": "0baf47be-9b00-5a7f-b1c1-20daf160642e",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "77e6c8d7-725d-5aca-9eec-c727add7fd14",
+          "comment": "Mensaje de error",
+          "command": "waitForElementVisible",
+          "target": "css=.ant-alert-error, .ant-message-error",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "011ab01c-b0b2-5a0a-833e-c498f3cf3b45",
+          "comment": "",
+          "command": "assertElementNotPresent",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0cebfa4c-7ea2-5bff-bdde-80c68814091c",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "id=password",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "75c08f00-c390-5c6b-94f3-b68d877f4b4c",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return window.location.pathname",
+          "targets": [],
+          "value": "ruta"
+        },
+        {
+          "id": "409177ee-8644-5d96-b96f-54f06f52a890",
+          "comment": "",
+          "command": "assert",
+          "target": "ruta",
+          "targets": [],
+          "value": "/login"
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "1b8d8c16-8bc3-5c87-894e-0a2f429f23ba",
+      "name": "TC-110",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "bd306974-6c06-5031-a7ae-692197265022"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

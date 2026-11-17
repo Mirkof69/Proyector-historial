@@ -1,0 +1,134 @@
+{
+  "id": "ab799eb2-3d59-59ba-8631-39df6eda3300",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-130",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "3f797586-439a-5922-aa68-bc7e8d28e628",
+      "name": "TC-130 Recepción escribe la URL de un módulo prohibido (Selenium IDE)",
+      "commands": [
+        {
+          "id": "9d36b3b5-ab6e-556c-8803-b524d730ab75",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "3d9062cf-a634-51f5-817c-d0be11b37b01",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "cd8ab988-1d31-5013-871f-a1bbb0adf686",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "1a1370a8-13e4-5033-bcbf-cca7de860176",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_RECEPCION__"
+        },
+        {
+          "id": "c73d052d-0c08-5b40-8699-6e1c4e4c0b1e",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "de99c03d-c753-5f46-b81c-a45425256107",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "fededf78-f010-5113-8f77-0520eaf35363",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "60d126d0-5cb4-589d-91b7-10c2caeb2e27",
+          "comment": "Módulo que el rol no puede abrir",
+          "command": "open",
+          "target": "/dashboard/controles",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "a4aef73c-a55c-5947-95f1-eabaf504ed18",
+          "comment": "Pantalla de acceso restringido",
+          "command": "waitForElementVisible",
+          "target": "css=.pagina-estado__titulo-403",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "b5be6f4f-3872-58b3-8264-bbb6bfce5ef8",
+          "comment": "",
+          "command": "assertText",
+          "target": "css=.pagina-estado__titulo-403",
+          "targets": [],
+          "value": "Acceso Restringido (403)"
+        },
+        {
+          "id": "139429dc-762a-537d-b86d-e91c34175cf1",
+          "comment": "",
+          "command": "executeScript",
+          "target": "return window.location.pathname",
+          "targets": [],
+          "value": "ruta"
+        },
+        {
+          "id": "7ac01eb5-a198-5fa3-8ec5-7f549aa7b365",
+          "comment": "",
+          "command": "assert",
+          "target": "ruta",
+          "targets": [],
+          "value": "/403"
+        },
+        {
+          "id": "2d116829-01d8-5258-ac7e-218a5523a17e",
+          "comment": "Sin filas de datos",
+          "command": "assertElementNotPresent",
+          "target": "css=.ant-table-tbody tr.ant-table-row",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "8b3b7487-34c5-54a7-ba23-ce3c62c058b2",
+      "name": "TC-130",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "3f797586-439a-5922-aa68-bc7e8d28e628"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

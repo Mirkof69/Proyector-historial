@@ -1,0 +1,190 @@
+{
+  "id": "8fa3f64c-655f-5b6f-a116-390e530cfd9f",
+  "version": "2.0",
+  "name": "Fetal Medical - TC-152",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "0c378e64-950e-5609-b21a-e3a455f17211",
+      "name": "TC-152 Calculadora de IMC y ganancia ponderal (Selenium IDE)",
+      "commands": [
+        {
+          "id": "adfac436-3349-53b0-bc48-75a406a5e01d",
+          "comment": "Pantalla de inicio de sesión",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "79d3b018-bea0-5f38-9515-448280d8c2ab",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1366x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "4d3d1208-fd51-5182-940f-a7412c3321a3",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=email",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "1a034eef-bcc9-5b0a-a446-cf38fc7435bb",
+          "comment": "",
+          "command": "type",
+          "target": "id=email",
+          "targets": [],
+          "value": "__QA_EMAIL_MEDICO__"
+        },
+        {
+          "id": "cbf08856-0e04-5e52-a34c-c5add1dbb9f0",
+          "comment": "",
+          "command": "type",
+          "target": "id=password",
+          "targets": [],
+          "value": "__QA_PASSWORD__"
+        },
+        {
+          "id": "11f6f8d1-8ae4-59f7-ad05-0144e6fcde48",
+          "comment": "",
+          "command": "click",
+          "target": "css=form.login-form button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "b8f24f09-15fd-5ef3-87e1-79254cd79fec",
+          "comment": "Segundo paso: código del autenticador",
+          "command": "waitForElementVisible",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "16265a89-041b-52a5-8636-8a6f1c9758f7",
+          "comment": "",
+          "command": "type",
+          "target": "id=totp_code",
+          "targets": [],
+          "value": "__QA_TOTP_MEDICO__"
+        },
+        {
+          "id": "02ef2c00-ea32-5267-bb37-d8d4cdb43725",
+          "comment": "",
+          "command": "executeScript",
+          "target": "const b=document.querySelector(\".login-otp-item button[type='submit']\"); if(b){b.click();}",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "365ce295-070d-58c6-b8ed-e35dacdb5b11",
+          "comment": "Llegó al panel",
+          "command": "waitForElementVisible",
+          "target": "css=.user-dropdown-trigger",
+          "targets": [],
+          "value": "30000"
+        },
+        {
+          "id": "50d37849-48d3-5df9-b556-410b385399ed",
+          "comment": "",
+          "command": "open",
+          "target": "/dashboard/calculadoras/imc-ganancia",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "5832ceec-b30a-5e21-8e20-f88d905043f2",
+          "comment": "",
+          "command": "waitForElementVisible",
+          "target": "id=peso_pregestacional",
+          "targets": [],
+          "value": "25000"
+        },
+        {
+          "id": "4f4ac50a-4e81-513a-9128-b2cf215fe961",
+          "comment": "",
+          "command": "type",
+          "target": "id=peso_pregestacional",
+          "targets": [],
+          "value": "60"
+        },
+        {
+          "id": "5f97399d-c4b1-5c59-8acf-480f08f802ab",
+          "comment": "",
+          "command": "type",
+          "target": "id=talla",
+          "targets": [],
+          "value": "160"
+        },
+        {
+          "id": "a7d44ecf-f630-5c81-ada6-6ad1e7f5c5b5",
+          "comment": "",
+          "command": "type",
+          "target": "id=peso_actual",
+          "targets": [],
+          "value": "68"
+        },
+        {
+          "id": "95681012-ccc1-58cc-b3da-9135429ffe19",
+          "comment": "",
+          "command": "type",
+          "target": "id=semanas_gestacion",
+          "targets": [],
+          "value": "28"
+        },
+        {
+          "id": "478defcf-96e4-548f-8330-2ec8dce721e0",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "id=talla",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "1ad63a03-f766-5ef8-84fd-6a7b4cadde3d",
+          "comment": "",
+          "command": "click",
+          "target": "xpath=//button[.//span[contains(.,'Calcular IMC')]]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "94d63a0b-3be9-54ff-a5c5-f2e68a836d7e",
+          "comment": "IMC = 60 / 1,60²",
+          "command": "waitForElementVisible",
+          "target": "xpath=//*[contains(text(),'23.4') or contains(text(),'23,4')]",
+          "targets": [],
+          "value": "20000"
+        },
+        {
+          "id": "b9b3ddd6-ef19-521c-ada1-52cef33d6af3",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "xpath=//*[contains(text(),'23.4') or contains(text(),'23,4')]",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "de5d5e96-b63f-5121-bfee-0b7569cf3d63",
+      "name": "TC-152",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "0c378e64-950e-5609-b21a-e3a455f17211"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}

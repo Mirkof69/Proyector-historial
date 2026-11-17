@@ -1,0 +1,8 @@
+{
+  "name": "fetal-medical-side-runner",
+  "private": true,
+  "description": "Ejecutor de las grabaciones de Selenium IDE (selenium_ide/*.side) del sistema Fetal Medical",
+  "dependencies": {
+    "selenium-side-runner": "4.0.13"
+  }
+}
