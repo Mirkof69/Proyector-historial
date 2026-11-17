@@ -78,7 +78,7 @@
     "autoprefixer": "^10.4.16",
     "eslint-plugin-react-doctor": "file:tools/eslint-plugin-react-doctor",
     "postcss": "^8.4.32",
-    "react-doctor": "^0.2.10",
+    "react-doctor": "^0.9.23",
     "tailwindcss": "^3.3.6"
   },
   "reactDoctor": {
