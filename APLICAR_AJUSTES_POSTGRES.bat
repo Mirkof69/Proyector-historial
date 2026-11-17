@@ -58,7 +58,7 @@ if %errorlevel% neq 0 (
 echo.
 echo [3/3] Verificando...
 cd /d "%~dp0Backend"
-python -c "import psycopg; c=psycopg.connect(dbname='historial',user='postgres',password='<DB_PASSWORD>',host='127.0.0.1'); cur=c.cursor(); cur.execute('SHOW max_connections'); mc=cur.fetchone()[0]; cur.execute('SHOW shared_buffers'); sb=cur.fetchone()[0]; print(''); print('   max_connections = ' + mc + '   (esperado: 300)'); print('   shared_buffers  = ' + sb + '   (esperado: 4GB)'); c.close()"
+python -c "import psycopg, environ; e=environ.Env(); e.read_env('.env'); c=psycopg.connect(dbname=e('DB_NAME', default='historial'),user=e('DB_USER', default='postgres'),password=e('DB_PASSWORD'),host=e('DB_HOST', default='127.0.0.1')); cur=c.cursor(); cur.execute('SHOW max_connections'); mc=cur.fetchone()[0]; cur.execute('SHOW shared_buffers'); sb=cur.fetchone()[0]; print(''); print('   max_connections = ' + mc + '   (esperado: 300)'); print('   shared_buffers  = ' + sb + '   (esperado: 4GB)'); c.close()"
 
 echo.
 echo ================================================================
