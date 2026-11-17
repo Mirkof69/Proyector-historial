@@ -5,8 +5,12 @@ mano: estaba vacía mientras 2.348 controles tenían alertas críticas calculada
 (hipertensión, FCF anormal, proteinuria…) y el laboratorio marcaba valores
 críticos. Aquí cada hallazgo crítico se convierte en una alerta:
 
-- Control prenatal: cada alerta «critico» de ControlPrenatal.get_alertas().
-- Laboratorio: cada ResultadoLaboratorio con es_critico.
+- Control prenatal: cada alerta de ControlPrenatal.get_alertas(), con la
+  prioridad de su gravedad (baja, media, alta, crítica o emergencia). Antes
+  solo las «critico», y por categoría: toda hipertensión salía «crítica» y no
+  había ninguna alerta media ni baja.
+- Laboratorio: cada ResultadoLaboratorio crítico (prioridad crítica) y cada
+  uno fuera de rango (resultado anormal, prioridad media).
 
 Es idempotente (una alerta por control y categoría, o por resultado): guardar
 dos veces el mismo control no duplica nada. Si el embarazo ya no está activo,
@@ -22,15 +26,6 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
-PRIORIDAD_POR_CATEGORIA = {
-    "movimientos": "emergencia",
-    "presion_arterial": "critica",
-    "fcf": "critica",
-    "preeclampsia": "alta",
-    "proteinuria": "alta",
-    "edema": "alta",
-    "temperatura": "alta",
-}
 
 
 def _momento(fecha) -> datetime:
@@ -54,9 +49,9 @@ def desde_control(control) -> int:
     creadas = 0
     momento = _momento(getattr(control, "fecha_control", None))
     for alerta in control.get_alertas():
-        if alerta.get("tipo") != "critico":
-            continue
         categoria = alerta.get("categoria", "")
+        if categoria == "nutricional":  # el IMC se ve en el control; repetido en cada uno sería ruido
+            continue
         if AlertaMedica.objects.filter(modulo_origen="controles", registro_origen_id=control.pk,
                                        datos_contexto__categoria=categoria).exists():
             continue
@@ -64,8 +59,9 @@ def desde_control(control) -> int:
             titulo=alerta["mensaje"][:200],
             descripcion=(f"Control prenatal n.º {control.numero_control or '-'} del "
                          f"{momento:%d/%m/%Y}: {alerta['mensaje']} ({alerta.get('valor', '')})."),
-            tipo="riesgo_alto" if categoria == "preeclampsia" else "valor_critico",
-            prioridad=PRIORIDAD_POR_CATEGORIA.get(categoria, "alta"),
+            tipo=("riesgo_alto" if categoria == "preeclampsia"
+                  else "valor_critico" if alerta.get("tipo") == "critico" else "resultado_anormal"),
+            prioridad=alerta.get("gravedad", "alta"),
             paciente_id=control.paciente_id,
             embarazo_id=control.embarazo_id,
             medico_responsable_id=getattr(control, "medico_id", None) or getattr(control, "created_by_id", None),
@@ -86,7 +82,7 @@ def desde_resultado(resultado) -> int:
     """Crea la alerta de un resultado de laboratorio crítico."""
     from reportes.models import AlertaMedica
 
-    if not resultado.es_critico:
+    if resultado.es_normal or resultado.valor_numerico is None:
         return 0
     if AlertaMedica.objects.filter(modulo_origen="laboratorio", registro_origen_id=resultado.pk).exists():
         return 0
@@ -98,10 +94,10 @@ def desde_resultado(resultado) -> int:
     valor = resultado.valor_numerico if resultado.valor_numerico is not None else resultado.valor_texto
     embarazo = examen.control_prenatal.embarazo if examen.control_prenatal_id else None
     nueva = AlertaMedica.objects.create(
-        titulo=f"VALOR CRÍTICO: {parametro}"[:200],
+        titulo=(f"VALOR CRÍTICO: {parametro}" if resultado.es_critico else f"Fuera de rango: {parametro}")[:200],
         descripcion=f"Laboratorio del {momento:%d/%m/%Y}: {parametro} = {valor} {unidad}".strip(),
-        tipo="valor_critico",
-        prioridad="critica",
+        tipo="valor_critico" if resultado.es_critico else "resultado_anormal",
+        prioridad="critica" if resultado.es_critico else "media",
         paciente_id=examen.paciente_id,
         embarazo_id=getattr(embarazo, "pk", None),
         medico_responsable_id=getattr(examen, "medico_solicitante_id", None),
@@ -109,7 +105,8 @@ def desde_resultado(resultado) -> int:
         registro_origen_id=resultado.pk,
         datos_contexto={"categoria": "laboratorio", "origen": "resultado_laboratorio", "examen": examen.pk},
         valor_actual=str(valor)[:100],
-        accion_recomendada="Confirmar el valor y comunicar a la médica tratante de inmediato.",
+        accion_recomendada=("Confirmar el valor y comunicar a la médica tratante de inmediato."
+                            if resultado.es_critico else "Revisar en el próximo control."),
         **_estado(embarazo, momento),
     )
     AlertaMedica.objects.filter(pk=nueva.pk).update(fecha_creacion=momento)

@@ -209,7 +209,15 @@ def all_statistics(request):
             end_date = datetime.strptime(end_date, "%Y-%m-%d")
             end_date = timezone.make_aware(end_date)
 
-        stats = report_service.get_all_statistics(start_date, end_date)
+        from core.cache_estadisticas import valor_cacheado
+
+        stats = valor_cacheado(
+            "estadisticas_generales",
+            lambda: report_service.get_all_statistics(start_date, end_date),
+            params={"start_date": request.GET.get("start_date", ""), "end_date": request.GET.get("end_date", "")},
+            # Una sección que falló no se guarda: se reintenta en la próxima.
+            cacheable=lambda v: not any(isinstance(s, dict) and "error" in s for s in v.values()),
+        )
         return Response(stats, status=status.HTTP_200_OK)
 
     except Exception as e:
@@ -642,9 +650,11 @@ def resultados_criticos_statistics_view(request):
 @permission_classes([FetalMedicalPermission])
 def indicadores_gestion(_request):
     """Cobertura, calidad y resultados perinatales calculados con los datos reales."""
+    from core.cache_estadisticas import valor_cacheado
+
     from .services.indicadores_gestion import calcular_indicadores
 
-    return Response(calcular_indicadores(), status=status.HTTP_200_OK)
+    return Response(valor_cacheado("indicadores_gestion", calcular_indicadores), status=status.HTTP_200_OK)
 
 
 @extend_schema(summary="Actividad por día de los últimos 30 días (para el Panel)", responses={200: dict})

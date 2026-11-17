@@ -59,8 +59,10 @@ def _check_redis():
 
         if result == "ok":
             # Get cache backend info
-            backend = cache.__class__.__name__
-            is_redis = "Redis" in backend
+            # `cache` es un proxy (ConnectionProxy): su clase nunca dice «Redis» y
+            # el sistema salía «degraded» aun con Redis funcionando.
+            backend = settings.CACHES["default"]["BACKEND"]
+            is_redis = "redis" in backend.lower()
 
             if is_redis:
                 return {

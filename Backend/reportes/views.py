@@ -12,6 +12,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.filtros import BusquedaClinicaFilter
 from core.permissions import FetalMedicalPermission
 
 logger = logging.getLogger(__name__)
@@ -449,9 +450,11 @@ class DashboardKAPIViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def resumen(self, _request):
         """Indicadores calculados con los datos reales (forma DashboardKPIs del frontend)."""
+        from core.cache_estadisticas import valor_cacheado
+
         from .services.kpis_dashboard import calcular_kpis_dashboard
 
-        return Response(calcular_kpis_dashboard())
+        return Response(valor_cacheado("kpis_dashboard", calcular_kpis_dashboard))
 
     @action(detail=False, methods=["get"])
     def activos(self, _request):
@@ -503,7 +506,7 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
     permission_classes = [FetalMedicalPermission]
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        BusquedaClinicaFilter,
         filters.OrderingFilter,
     ]
 
@@ -516,17 +519,36 @@ class AlertaMedicaViewSet(viewsets.ModelViewSet):
         "embarazo_id",
         "medico_responsable_id",
     ]
-    search_fields = [
-        "titulo",
-        "descripcion",
-        "accion_recomendada",
-        "protocolo_seguimiento",
-    ]
+    # El nombre y el CI están cifrados: SearchFilter nunca encontraba a la paciente.
+    busqueda_ruta_paciente = "paciente"
+    busqueda_campos_claros = ["titulo", "descripcion", "accion_recomendada", "protocolo_seguimiento"]
     ordering_fields = [
         "fecha_creacion",
         "prioridad",
     ]
     ordering = ["-fecha_creacion"]
+
+    def get_queryset(self):
+        """El listado y `activas/` muestran el nombre de la paciente de cada fila.
+
+        Sin `select_related` cada alerta pedía su paciente aparte: 202 consultas
+        por página de 200 y, con 50 usuarios, la ruta más lenta del sistema
+        (p95 766 ms en la prueba de carga del 29/10/2026).
+        """
+        queryset = super().get_queryset()
+        desde = self.request.query_params.get("fecha_desde")
+        hasta = self.request.query_params.get("fecha_hasta")
+        if desde:
+            queryset = queryset.filter(fecha_creacion__date__gte=desde)
+        if hasta:
+            queryset = queryset.filter(fecha_creacion__date__lte=hasta)
+        if self.action in ("list", "activas"):
+            # Solo se muestra el nombre: diferir los otros campos cifrados ahorra
+            # descifrar 4 valores por fila (800 por página) que nadie lee.
+            queryset = queryset.select_related("paciente").defer(
+                "paciente__ci", "paciente__telefono", "paciente__email", "paciente__direccion",
+            )
+        return queryset
 
     def get_serializer_class(self):
         """Get serializer class"""
