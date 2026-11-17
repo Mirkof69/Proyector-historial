@@ -356,6 +356,11 @@ import sys
 
 TESTING = 'test' in sys.argv or any('pytest' in arg for arg in sys.argv)
 
+# Segundos que se cachean los agregados del Panel/Reportes iguales para todo el
+# personal (core/cache_estadisticas.py). 0 la apaga: los tests cambian datos
+# entre una llamada y la siguiente y necesitan el valor recién calculado.
+ESTADISTICAS_CACHE_SEGUNDOS = 0 if TESTING else env.int("ESTADISTICAS_CACHE_SEGUNDOS", default=60)
+
 # La suite corre sobre SQLite en memoria y SIN django_tenants, porque es
 # rápido y no necesita una base levantada. El precio es que el aislamiento
 # entre clínicas —que es la columna vertebral del sistema— no lo ejercita
@@ -625,7 +630,7 @@ Comprehensive REST API for fetal medical record management, prenatal care, and o
 
 All API endpoints require JWT Bearer token authentication.
 
-1. Obtain token: `POST /api/token/` with `{email, password}`
+1. Log in: `POST /api/usuarios/login/` with `{email, password}` (then the TOTP code if MFA applies)
 2. Include header: `Authorization: Bearer <access_token>`
 3. Refresh token: `POST /api/token/refresh/` with `{refresh_token}`
 
@@ -677,7 +682,7 @@ API Version: 1.0.0
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT",
-                "description": "JWT Bearer token authentication. Obtain token via POST /api/token/ with {email, password}. Refresh token via POST /api/token/refresh/ with {refresh_token}.",
+                "description": "JWT Bearer token authentication. Obtain token via POST /api/usuarios/login/ with {email, password}. Refresh token via POST /api/token/refresh/ with {refresh_token}.",
             },
         },
     },

@@ -12,7 +12,6 @@ from drf_spectacular.views import (
 )
 
 # JWT endpoints (SimpleJWT)
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 # JWT via cookies httpOnly + CSRF (migración de seguridad)
 from core.media_protegida import MediaProtegidaView
@@ -22,8 +21,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Health check endpoint
     path("api/", include("monitoring.urls")),
-    # JWT Authentication (SimpleJWT)
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    # Sin /api/token/: entregaba tokens con solo la contraseña, saltándose el MFA,
+    # el bloqueo de cuenta y el límite de intentos. Se entra por /api/usuarios/login/.
     # Refresh vía cookie httpOnly (acepta también body para clientes API)
     path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     # Bootstrap de la cookie csrftoken para el frontend

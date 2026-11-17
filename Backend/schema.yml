@@ -46,7 +46,7 @@ info:
 
     All API endpoints require JWT Bearer token authentication.
 
-    1. Obtain token: `POST /api/token/` with `{email, password}`
+    1. Log in: `POST /api/usuarios/login/` with `{email, password}` (then the TOTP code if MFA applies)
     2. Include header: `Authorization: Bearer <access_token>`
     3. Refresh token: `POST /api/token/refresh/` with `{refresh_token}`
 
