@@ -137,7 +137,7 @@ const AccessLogs: React.FC = () => {
             columns={columns}
             dataSource={entries}
             rowKey="id"
-            pagination={{ pageSize: 20, showTotal: (t) => `Total ${t} accesos` }}
+            pagination={{ defaultPageSize: 20, showSizeChanger: true, showTotal: (t) => `Total ${t} accesos` }}
             locale={{ emptyText: 'No hay registros de acceso' }}
           />
         </Spin>

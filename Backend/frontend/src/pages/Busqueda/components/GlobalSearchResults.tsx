@@ -122,7 +122,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 columns={getColumns('paciente')}
                 dataSource={pacientesResults}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={{ defaultPageSize: 20 }}
               />
             )
           },
@@ -134,7 +134,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 columns={getColumns('embarazo')}
                 dataSource={embarazosResults}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={{ defaultPageSize: 20 }}
               />
             )
           },
@@ -146,7 +146,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 columns={getColumns('cita')}
                 dataSource={citasResults}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={{ defaultPageSize: 20 }}
               />
             )
           },
@@ -158,7 +158,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 columns={getColumns('ecografia')}
                 dataSource={ecografiasResults}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={{ defaultPageSize: 20 }}
               />
             )
           },
@@ -170,7 +170,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 columns={getColumns('laboratorio')}
                 dataSource={laboratorioResults}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={{ defaultPageSize: 20 }}
               />
             )
           },
@@ -182,7 +182,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 columns={getColumns('evolucion')}
                 dataSource={evolucionesResults}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={{ defaultPageSize: 20 }}
               />
             )
           },
@@ -194,7 +194,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 columns={getColumns('consultorio')}
                 dataSource={consultoriosResults}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={{ defaultPageSize: 20 }}
               />
             )
           }

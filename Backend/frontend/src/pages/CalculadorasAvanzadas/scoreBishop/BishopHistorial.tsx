@@ -40,7 +40,7 @@ const BishopHistorial: React.FC<{ historial: HistorialBishop[] }> = ({ historial
       columns={columnsHistorial}
       dataSource={historial}
       rowKey="id"
-      pagination={{ pageSize: 5 }}
+      pagination={{ defaultPageSize: 5 }}
     />
   </Card>
 );

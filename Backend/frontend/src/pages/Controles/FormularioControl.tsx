@@ -99,6 +99,8 @@ const FormularioControl: React.FC = () => {
   const calcularSemanasGestacionRef = useRef<(id: number, e?: Embarazo) => void>(() => {});
 
   const isEditing = !!id;
+  // Bloqueado hasta que llega el registro: lo escrito antes lo pisaban los datos al llegar.
+  const [cargandoRegistro, setCargandoRegistro] = useState(isEditing);
 
   const loadControl = useCallback(async (controlId: number, currentEmbarazos?: Embarazo[]) => {
     try {
@@ -139,6 +141,8 @@ const FormularioControl: React.FC = () => {
     } catch (error: any) {
       message.error('Error al cargar datos del control');
       handleCancelRef.current();
+    } finally {
+      setCargandoRegistro(false);
     }
   }, [form, message]);
 
@@ -524,6 +528,7 @@ const FormularioControl: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={onFinish}
+          disabled={cargandoRegistro}
           initialValues={{
             fecha_control: dayjs(),
             numero_control: 1,

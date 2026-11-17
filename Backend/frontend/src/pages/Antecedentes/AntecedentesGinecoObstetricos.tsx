@@ -1,30 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Typography, Spin } from 'antd';
-import { ReloadOutlined, WomanOutlined } from '@ant-design/icons';
-import { antecedentesService, AntecedenteGinecoObstetrico } from '../../services/antecedentesService';
+import React, { useState } from 'react';
+import { Card, Input, Space, Table, Tag, Button, Typography } from 'antd';
+import { ReloadOutlined, SearchOutlined, WomanOutlined } from '@ant-design/icons';
+import { AntecedenteGinecoObstetrico } from '../../services/antecedentesService';
+import { useListadoServidor } from '../../hooks/useListadoServidor';
 import './Antecedentes.css';
 
 const { Text } = Typography;
 
 const AntecedentesGinecoObstetricos: React.FC = () => {
-  const [antecedentes, setAntecedentes] = useState<AntecedenteGinecoObstetrico[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const cargarAntecedentes = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await antecedentesService.getGinecoObstetricos();
-      setAntecedentes(Array.isArray(data) ? data : []);
-    } catch {
-      setAntecedentes([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    cargarAntecedentes();
-  }, [cargarAntecedentes]);
+  const [busqueda, setBusqueda] = useState('');
+  const listado = useListadoServidor<AntecedenteGinecoObstetrico>('/antecedentes/gineco-obstetricos/', { busqueda });
 
   const columns = [
     { title: 'Paciente', key: 'paciente', render: (_: unknown, r: AntecedenteGinecoObstetrico) => r.paciente_info?.nombre_completo || `ID: ${r.paciente}` },
@@ -52,17 +37,24 @@ const AntecedentesGinecoObstetricos: React.FC = () => {
     <Card
       className="antecedentes-pagina"
       title={<span><WomanOutlined className="antecedentes-icono" />Antecedentes Gineco-Obstétricos</span>}
-      extra={<Button icon={<ReloadOutlined />} onClick={cargarAntecedentes} loading={loading}>Recargar</Button>}
+      extra={(
+        <Space>
+          <Input allowClear prefix={<SearchOutlined />} className="antecedentes-buscar"
+            aria-label="Buscar paciente por nombre o CI" placeholder="Buscar paciente por nombre o CI"
+            value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+          <Button icon={<ReloadOutlined />} onClick={listado.recargar} loading={listado.cargando}>Recargar</Button>
+        </Space>
+      )}
     >
-      <Spin spinning={loading}>
-        <Table
-          columns={columns}
-          dataSource={antecedentes}
-          rowKey="id"
-          pagination={{ pageSize: 20 }}
-          locale={{ emptyText: 'No hay antecedentes gineco-obstétricos registrados' }}
-        />
-      </Spin>
+      <Table
+        columns={columns}
+        dataSource={listado.datos}
+        loading={listado.cargando}
+        rowKey="id"
+        pagination={listado.paginacion}
+        onChange={listado.onChange}
+        locale={{ emptyText: 'No hay antecedentes gineco-obstétricos con esa búsqueda' }}
+      />
     </Card>
   );
 };

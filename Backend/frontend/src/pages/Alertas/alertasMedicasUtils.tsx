@@ -6,8 +6,6 @@ import dayjs from 'dayjs';
 import { AlertaMedica } from '../../services/reportesService';
 
 export interface AlertasState {
-  alertas: AlertaMedica[];
-  loading: boolean;
   selectedAlerta: AlertaMedica | null;
   drawerVisible: boolean;
   searchText: string;

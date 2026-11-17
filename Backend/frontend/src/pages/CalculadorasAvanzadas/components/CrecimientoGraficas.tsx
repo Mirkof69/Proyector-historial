@@ -148,7 +148,7 @@ const CrecimientoGraficas: React.FC<CrecimientoGraficasProps> = ({ resultado, da
       <Table
         dataSource={historial}
         columns={columnsCrecimiento}
-        pagination={{ pageSize: 5 }}
+        pagination={{ defaultPageSize: 5 }}
         rowKey={(record) => record.fecha}
         size="small"
         scroll={{ x: true }}

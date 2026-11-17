@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Card, Table, Empty, Button, Form, Spin, Typography
 } from 'antd';
@@ -17,7 +17,7 @@ import AlertasMedicasGraficas from './components/AlertasMedicasGraficas';
 import AlertasMedicasFiltros from './components/AlertasMedicasFiltros';
 import AlertaMedicaDetalleDrawer from './components/AlertaMedicaDetalleDrawer';
 import NuevaAlertaModal from './components/NuevaAlertaModal';
-import { incluyeTexto } from '../../utils/texto';
+import { useListadoServidor } from '../../hooks/useListadoServidor';
 
 const { Title, Text } = Typography;
 
@@ -25,8 +25,6 @@ const AlertasMedicas: React.FC = () => {
   const {modal,  message } = useAntdApp();
   const navigate = useNavigate();
   const [state, setState] = useState<AlertasState>({
-    alertas: [] as AlertaMedica[],
-    loading: false,
     selectedAlerta: null as AlertaMedica | null,
     drawerVisible: false,
     searchText: '',
@@ -36,8 +34,6 @@ const AlertasMedicas: React.FC = () => {
     modalNuevaAlerta: false
   });
   const {
-    alertas,
-    loading,
     selectedAlerta,
     drawerVisible,
     searchText,
@@ -51,7 +47,31 @@ const AlertasMedicas: React.FC = () => {
   const filtrosAvanzadosVisibleRef = useRef(false);
   const [form] = Form.useForm();
 
-  const handleCrearAlerta = useCallback(async (values: any) => {
+  // Cifras y gráficos de TODAS las alertas (el listado trae solo la página visible).
+  const [resumen, setResumen] = useState<ResumenAlertas | null>(null);
+  const cargarResumen = useCallback(() => {
+    api.get<ResumenAlertas>('/reportes/alertas-medicas/estadisticas/').then(r => setResumen(r.data)).catch(() => setResumen(null));
+  }, []);
+
+  // En el servidor: antes se traían las primeras 200 y se filtraban aquí, así que
+  // una paciente con alertas más antiguas no aparecía al buscarla.
+  const listado = useListadoServidor<AlertaMedica>('/reportes/alertas-medicas/', {
+    busqueda: searchText,
+    tamanoInicial: 10,
+    filtros: {
+      prioridad: filterSeveridad === 'all' ? undefined : filterSeveridad,
+      estado: filterEstado === 'all' ? undefined : filterEstado,
+      fecha_desde: dateRange?.[0]?.format('YYYY-MM-DD'),
+      fecha_hasta: dateRange?.[1]?.format('YYYY-MM-DD'),
+    },
+  });
+  const alertas = listado.datos;
+  const loading = listado.cargando;
+  const cargarAlertas = () => { cargarResumen(); listado.recargar(); };
+
+  useEffect(() => { cargarResumen(); }, [cargarResumen]);
+
+  const handleCrearAlerta = async (values: any) => {
     try {
       await reportesService.crearAlerta({
         titulo: values.titulo,
@@ -71,65 +91,9 @@ const AlertasMedicas: React.FC = () => {
     } catch (error) {
       message.error('Error al crear la alerta');
     }
-    // eslint-disable-next-line react-doctor/exhaustive-deps
-  }, [form, message]);
+  };
 
-  // Cifras y gráficos de TODAS las alertas (el listado trae solo la primera página).
-  const [resumen, setResumen] = useState<ResumenAlertas | null>(null);
-
-  const cargarAlertas = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true }));
-    try {
-      const [data, estadisticas] = await Promise.all([
-        reportesService.listarAlertas(),
-        api.get<ResumenAlertas>('/reportes/alertas-medicas/estadisticas/').then(r => r.data).catch(() => null),
-      ]);
-      setResumen(estadisticas);
-      setState(prev => ({ ...prev, alertas: data }));
-    } catch (error) {
-      message.error('Error al cargar alertas');
-    } finally {
-      setState(prev => ({ ...prev, loading: false }));
-    }
-  }, [message]);
-
-  useEffect(() => {
-    cargarAlertas();
-    // eslint-disable-next-line react-doctor/exhaustive-deps
-  }, [cargarAlertas]);
-
-  const filteredAlertas = useMemo(() => {
-    let filtered = [...alertas];
-
-    // Filtro por texto
-    if (searchText) {
-      filtered = filtered.filter(alerta =>
-        incluyeTexto(alerta.paciente_nombre, searchText) ||
-        incluyeTexto(alerta.titulo, searchText) ||
-        incluyeTexto(alerta.descripcion, searchText)
-      );
-    }
-
-    // Filtro por prioridad
-    if (filterSeveridad !== 'all') {
-      filtered = filtered.filter(alerta => alerta.prioridad === filterSeveridad);
-    }
-
-    // Filtro por estado
-    if (filterEstado !== 'all') {
-      filtered = filtered.filter(alerta => alerta.estado === filterEstado);
-    }
-
-    // Filtro por rango de fechas
-    if (dateRange && dateRange[0] && dateRange[1]) {
-      filtered = filtered.filter(alerta => {
-        const fecha = dayjs(alerta.fecha_creacion);
-        return fecha.isAfter(dateRange[0]) && fecha.isBefore(dateRange[1]);
-      });
-    }
-
-    return filtered;
-  }, [alertas, searchText, filterSeveridad, filterEstado, dateRange]);
+  const filteredAlertas = alertas;
 
   const marcarResuelta = (id: number) => {
     modal.confirm({
@@ -151,15 +115,15 @@ const AlertasMedicas: React.FC = () => {
 
   const handleResolverTodas = () => {
     modal.confirm({
-      title: '¿Marcar todas como resueltas?',
-      content: '¿Está seguro de marcar todas las alertas pendientes (filtradas) como resueltas?',
+      title: '¿Marcar como resueltas las de esta página?',
+      content: '¿Está seguro de marcar como resueltas las alertas pendientes que se ven en esta página?',
       okText: 'Sí',
       cancelText: 'No',
       onOk: async () => {
         const pendientes = filteredAlertas.filter(a => a.estado !== 'resuelta' && a.estado !== 'descartada');
         try {
           await Promise.all(pendientes.map(a => reportesService.marcarAlertaResuelta(a.id)));
-          message.success('Todas las alertas filtradas marcadas como resueltas');
+          message.success('Alertas de esta página marcadas como resueltas');
           cargarAlertas();
         } catch (error) {
           message.error('Error al marcar algunas alertas como resueltas');
@@ -237,11 +201,8 @@ const AlertasMedicas: React.FC = () => {
               locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay alertas médicas registradas" /> }}
               loading={false}
               rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total) => `Total: ${total} alertas`
-              }}
+              pagination={listado.paginacion}
+              onChange={listado.onChange}
               rowClassName={(record) => record.estado === 'activa' && (record.prioridad === 'critica' || record.prioridad === 'emergencia') ? 'alerta-critica-row' : ''}
               scroll={{ x: 1100 }}
             />

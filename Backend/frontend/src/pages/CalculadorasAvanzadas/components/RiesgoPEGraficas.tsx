@@ -122,7 +122,7 @@ const RiesgoPEGraficas: React.FC<RiesgoPEGraficasProps> = ({ resultado, historia
       <Table
         dataSource={historial}
         columns={columnsRiesgoPE}
-        pagination={{ pageSize: 5 }}
+        pagination={{ defaultPageSize: 5 }}
         rowKey={(record) => record.fecha}
         size="small"
       />

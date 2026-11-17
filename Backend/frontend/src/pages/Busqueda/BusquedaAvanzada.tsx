@@ -115,7 +115,7 @@ const BusquedaAvanzada: React.FC = () => {
 
             {total > 0 && (
                 <Card title={`Resultados (${total})`}>
-                    <Table columns={columns} dataSource={resultados} rowKey="id" pagination={{ pageSize: 20 }} locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin resultados — ajuste los filtros de búsqueda" /> }} />
+                    <Table columns={columns} dataSource={resultados} rowKey="id" pagination={{ defaultPageSize: 20 }} locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin resultados — ajuste los filtros de búsqueda" /> }} />
                 </Card>
             )}
         </div>

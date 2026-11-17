@@ -215,7 +215,7 @@ export const ResultadosBienestarFetal: React.FC<ResultadosBienestarFetalProps> =
               <Line type="monotone" dataKey="bpp_score" stroke="var(--grafico-1)" name="BPP Score" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
-          <Table columns={columnasHistorial} dataSource={historial} rowKey={(record) => record.fecha} pagination={{ pageSize: 5 }} size="small" className="calc-bloque-arriba" />
+          <Table columns={columnasHistorial} dataSource={historial} rowKey={(record) => record.fecha} pagination={{ defaultPageSize: 5 }} size="small" className="calc-bloque-arriba" />
         </Card>
       )}
     </>

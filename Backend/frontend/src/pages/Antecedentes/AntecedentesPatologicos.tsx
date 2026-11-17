@@ -1,30 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Spin } from 'antd';
-import { ReloadOutlined, WarningOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Card, Input, Table, Tag, Button, Space } from 'antd';
+import { ReloadOutlined, SearchOutlined, WarningOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { antecedentesService, AntecedentePatologico } from '../../services/antecedentesService';
+import { AntecedentePatologico } from '../../services/antecedentesService';
+import { useListadoServidor } from '../../hooks/useListadoServidor';
 import './Antecedentes.css';
 
 const AntecedentesPatologicos: React.FC = () => {
-  const [antecedentes, setAntecedentes] = useState<AntecedentePatologico[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const listado = useListadoServidor<AntecedentePatologico>('/antecedentes/patologicos/', { busqueda });
   const navigate = useNavigate();
-
-  const cargarAntecedentes = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await antecedentesService.getPatologicos();
-      setAntecedentes(Array.isArray(data) ? data : []);
-    } catch {
-      setAntecedentes([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    cargarAntecedentes();
-  }, [cargarAntecedentes]);
 
   const columns = [
     { title: 'Paciente', key: 'paciente', render: (_: unknown, r: AntecedentePatologico) => r.paciente_info?.nombre_completo || `ID: ${r.paciente}` },
@@ -57,22 +42,25 @@ const AntecedentesPatologicos: React.FC = () => {
       title={<span><WarningOutlined className="antecedentes-icono" />Antecedentes Patológicos</span>}
       extra={(
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={cargarAntecedentes} loading={loading}>Recargar</Button>
+          <Input allowClear prefix={<SearchOutlined />} className="antecedentes-buscar"
+            aria-label="Buscar paciente por nombre o CI" placeholder="Buscar paciente por nombre o CI"
+            value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+          <Button icon={<ReloadOutlined />} onClick={listado.recargar} loading={listado.cargando}>Recargar</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/antecedentes/patologicos/nuevo')}>
             Nuevo
           </Button>
         </Space>
       )}
     >
-      <Spin spinning={loading}>
-        <Table
-          columns={columns}
-          dataSource={antecedentes}
-          rowKey="id"
-          pagination={{ pageSize: 20 }}
-          locale={{ emptyText: 'No hay antecedentes patológicos registrados' }}
-        />
-      </Spin>
+      <Table
+        columns={columns}
+        dataSource={listado.datos}
+        loading={listado.cargando}
+        rowKey="id"
+        pagination={listado.paginacion}
+        onChange={listado.onChange}
+        locale={{ emptyText: 'No hay antecedentes patológicos con esa búsqueda' }}
+      />
     </Card>
   );
 };

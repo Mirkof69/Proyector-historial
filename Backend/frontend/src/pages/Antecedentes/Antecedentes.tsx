@@ -13,16 +13,15 @@ import es from 'dayjs/locale/es';
 import StatsCards from './components/StatsCards';
 import SearchBar from './components/SearchBar';
 import AntecedentesFormFields from './components/AntecedentesFormFields';
-import { incluyeTexto } from '../../utils/texto';
+import { useListadoServidor } from '../../hooks/useListadoServidor';
+import api from '../../services/api';
 import './Antecedentes.css';
 
 dayjs.locale(es);
 
 const Antecedentes: React.FC = () => {
   const [state, setState] = useState({
-    antecedentes: [] as any[],
     pacientes: [] as any[],
-    loading: false,
     searchText: '',
     isModalVisible: false,
     editingId: null as number | null,
@@ -32,34 +31,31 @@ const Antecedentes: React.FC = () => {
     setState(prev => ({ ...prev, ...update }));
   }, []);
 
-  const { antecedentes, loading, searchText, isModalVisible, editingId } = state;
+  const { searchText, isModalVisible, editingId } = state;
   const { message, modal } = useAntdApp();
   const [form] = Form.useForm();
 
-  const antecedentesArray = Array.isArray(antecedentes) ? antecedentes : [];
+  // En el servidor: antes se traían los primeros 200 y se buscaba solo en ellos.
+  const listado = useListadoServidor<any>('/antecedentes/gineco-obstetricos/', { busqueda: searchText });
+  const loading = listado.cargando;
+  const [resumen, setResumen] = useState({ total: 0, con_gestas: 0, con_partos: 0, con_abortos: 0 });
   const stats = {
-    total: antecedentesArray.length,
-    conGestas: antecedentesArray.filter((a: any) => (a.gestas || 0) > 0).length,
-    conPartos: antecedentesArray.filter((a: any) => (a.partos || 0) > 0).length,
-    conAbortos: antecedentesArray.filter((a: any) => (a.abortos || 0) > 0).length,
+    total: resumen.total,
+    conGestas: resumen.con_gestas,
+    conPartos: resumen.con_partos,
+    conAbortos: resumen.con_abortos,
   };
 
-  const loadAntecedentes = useCallback(async () => {
-    updateState({ loading: true });
-    try {
-      const data = await antecedentesService.listar();
-      updateState({ antecedentes: Array.isArray(data) ? data : [] });
-    } catch (error) {
-      message.error('Error al cargar antecedentes');
-      updateState({ antecedentes: [] });
-    } finally {
-      updateState({ loading: false });
-    }
-  }, [message, updateState]);
+  const cargarResumen = useCallback(() => {
+    api.get('/antecedentes/gineco-obstetricos/resumen/').then((r) => setResumen(r.data)).catch(() => undefined);
+  }, []);
 
-  useEffect(() => {
-    loadAntecedentes();
-  }, [loadAntecedentes]);
+  useEffect(() => { cargarResumen(); }, [cargarResumen]);
+
+  const loadAntecedentes = () => {
+    cargarResumen();
+    listado.recargar();
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -114,11 +110,6 @@ const Antecedentes: React.FC = () => {
     // buscarlo aquí congelaba la pantalla varios segundos.
     return record.paciente_nombre || '-';
   };
-
-  const filteredAntecedentes = antecedentesArray.filter((ant: any) => {
-    if (!searchText) return true;
-    return incluyeTexto(getNombrePaciente(ant), searchText);
-  });
 
   const columns = [
     { title: 'Paciente', key: 'paciente_nombre', render: (_: any, record: any) => getNombrePaciente(record) },
@@ -193,9 +184,10 @@ const Antecedentes: React.FC = () => {
       <Spin spinning={loading}>
         <Table
           columns={columns}
-          dataSource={filteredAntecedentes}
+          dataSource={listado.datos}
           rowKey="id"
-          pagination={{ pageSize: 20 }}
+          pagination={listado.paginacion}
+          onChange={listado.onChange}
           locale={{ emptyText: <Empty description="Sin antecedentes gineco-obstétricos" /> }}
         />
       </Spin>

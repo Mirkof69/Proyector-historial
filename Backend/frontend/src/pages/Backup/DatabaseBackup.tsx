@@ -300,7 +300,7 @@ const DatabaseBackup: React.FC = () => {
                     dataSource={backups}
                     rowKey="filename"
                     loading={loading}
-                    pagination={{ pageSize: 10 }}
+                    pagination={{ defaultPageSize: 10 }}
                     locale={{
                         emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay backups disponibles" />
                     }}

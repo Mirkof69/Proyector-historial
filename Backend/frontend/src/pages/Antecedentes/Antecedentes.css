@@ -93,3 +93,8 @@
 .antecedentes-formulario {
   max-width: 800px;
 }
+
+.antecedentes-buscar {
+  width: 280px;
+  max-width: 100%;
+}

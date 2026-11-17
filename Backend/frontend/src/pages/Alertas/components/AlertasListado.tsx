@@ -98,7 +98,7 @@ const AlertasListado: React.FC<AlertasListadoProps> = ({
           itemLayout="vertical"
           dataSource={alertasFiltradas}
           pagination={{
-            pageSize: 10,
+            defaultPageSize: 10,
             showSizeChanger: true,
             showTotal: (total) => `Total ${total} alertas`,
           }}

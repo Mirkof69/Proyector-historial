@@ -43,6 +43,7 @@ const AlertasMedicasFiltros: React.FC<AlertasMedicasFiltrosProps> = ({
         <Select.Option value="media">Media</Select.Option>
         <Select.Option value="alta">Alta</Select.Option>
         <Select.Option value="critica">Crítica</Select.Option>
+        <Select.Option value="emergencia">Emergencia</Select.Option>
       </Select>
       <Select
         value={filterEstado}
@@ -79,7 +80,7 @@ const AlertasMedicasFiltros: React.FC<AlertasMedicasFiltrosProps> = ({
           icon={<CheckCircleOutlined />}
           onClick={handleResolverTodas}
         >
-          Resolver Todas
+          Resolver las de esta página
         </Button>
       )}
     </Space>

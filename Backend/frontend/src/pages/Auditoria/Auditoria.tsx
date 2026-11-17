@@ -310,7 +310,7 @@ const Auditoria: React.FC = () => {
             columns={moduloColumns}
             dataSource={statsModulo}
             rowKey="modulo"
-            pagination={{ pageSize: 15, hideOnSinglePage: true }}
+            pagination={{ defaultPageSize: 15, hideOnSinglePage: true }}
             size="small"
             locale={{ emptyText: 'Sin actividad registrada' }}
             scroll={{ x: 720 }}

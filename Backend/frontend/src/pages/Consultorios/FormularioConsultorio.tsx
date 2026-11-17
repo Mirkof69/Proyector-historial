@@ -23,10 +23,11 @@ const FormularioConsultorio: React.FC = () => {
   const { message } = useAntdApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const esEdicion = Boolean(id);
+  // Bloqueado hasta que llega el registro: lo escrito antes lo pisaban los datos al llegar.
+  const [cargando, setCargando] = useState(esEdicion);
 
   const cargarConsultorio = useCallback(async (consultorioId: number) => {
     setCargando(true);
@@ -84,6 +85,7 @@ const FormularioConsultorio: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          disabled={cargando}
           initialValues={{
             activo: true,
             tiene_camilla: false,

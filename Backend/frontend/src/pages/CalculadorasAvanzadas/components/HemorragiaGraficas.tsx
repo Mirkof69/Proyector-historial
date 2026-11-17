@@ -124,7 +124,7 @@ const HemorragiaGraficas: React.FC<HemorragiaGraficasProps> = ({ resultado, form
           columns={columnasHistorialHemorragia}
           dataSource={historial}
           rowKey={(record) => record.fecha}
-          pagination={{ pageSize: 5 }}
+          pagination={{ defaultPageSize: 5 }}
           size="small"
           className="calc-bloque-arriba"
         />

@@ -142,7 +142,7 @@ const AnalisisDosis: React.FC<AnalisisDosisProps> = ({ resultado, historial, too
       <Table
         dataSource={historial}
         columns={columnas}
-        pagination={{ pageSize: 5 }}
+        pagination={{ defaultPageSize: 5 }}
         rowKey={(record) => record.fecha}
         size="small"
         scroll={{ x: true }}

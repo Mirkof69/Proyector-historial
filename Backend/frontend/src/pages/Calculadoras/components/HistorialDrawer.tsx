@@ -67,7 +67,7 @@ const HistorialDrawer: React.FC<HistorialDrawerProps> = ({
           dataSource={historial}
           rowKey="id"
           size="small"
-          pagination={{ pageSize: 5 }}
+          pagination={{ defaultPageSize: 5 }}
           columns={[
             {
               title: 'Tipo',

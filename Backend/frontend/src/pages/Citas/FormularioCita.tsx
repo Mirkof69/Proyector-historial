@@ -253,6 +253,7 @@ const FormularioCita: React.FC = () => {
               form={form}
               layout="vertical"
               onFinish={handleSubmit}
+              disabled={state.loading && !!id}
               autoComplete="off"
               initialValues={{
                 duracion: 30,

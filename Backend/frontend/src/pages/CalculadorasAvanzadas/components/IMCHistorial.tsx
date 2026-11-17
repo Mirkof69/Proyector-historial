@@ -58,7 +58,7 @@ const IMCHistorial: React.FC<IMCHistorialProps> = ({ historial, promedioGanancia
         columns={columnsIMC}
         dataSource={historial}
         rowKey="id"
-        pagination={{ pageSize: 10 }}
+        pagination={{ defaultPageSize: 10 }}
         scroll={{ x: 800 }}
       />
     </Card>

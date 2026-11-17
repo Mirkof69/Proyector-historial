@@ -115,7 +115,7 @@ const RiesgoCromosomicoGraficas: React.FC<RiesgoCromosomicoGraficasProps> = ({ r
       <Table
         dataSource={historial}
         columns={columnsRiesgoCromosomico}
-        pagination={{ pageSize: 5 }}
+        pagination={{ defaultPageSize: 5 }}
         rowKey={(record) => record.fecha}
         size="small"
         scroll={{ x: true }}
