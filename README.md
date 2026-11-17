@@ -75,6 +75,16 @@ flowchart LR
     └── scripts/                 utilidades del lanzador
 ```
 
+### Ramas
+
+| Rama | Contenido |
+|---|---|
+| `main` | Versión estable del sistema (la que se instala) |
+| `develop` | Integración de los cambios antes de pasar a `main` |
+| `backend` | Desarrollo de la API, la base de datos y el servicio de IA (`Backend/`) |
+| `frontend` | Desarrollo de la interfaz React (`Backend/frontend/`) |
+| `automatizacion` | El sistema más la carpeta `automatizacion/`: pruebas con Selenium WebDriver, Selenium IDE, API y Locust, y el Capítulo 6 |
+
 ### Instalación en cualquier PC (Windows 10/11)
 
 Se necesitan unos **10 GB libres** y **8 GB de RAM** (16 GB recomendado). Con tarjeta NVIDIA la IA usa CUDA; sin ella
@@ -213,6 +223,11 @@ An AI microservice analyzes ultrasounds and cardiotocographies.
   cardiotocography and birth weight. Each model shows its measured metric in the *AI Guide*.
 - **Clinical calculators**, **appointments** per physician, **reports** and indicators, **live notifications**, Excel
   import of patients and lab results, daily database backup.
+
+### Branches
+
+`main` (stable system) · `develop` (integration) · `backend` (API, database, AI service) · `frontend` (React UI) ·
+`automatizacion` (the system plus the `automatizacion/` test automation folder and Chapter 6).
 
 ### Install on any PC (Windows 10/11)
 
