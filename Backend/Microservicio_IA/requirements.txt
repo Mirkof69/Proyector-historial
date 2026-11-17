@@ -1,7 +1,7 @@
 # Servir las redes (app/). Versiones exactas probadas: requirements.lock.txt.
 # torch: instalar antes la variante CPU o CUDA que corresponda al equipo.
-fastapi>=0.109
-uvicorn[standard]>=0.27
+fastapi>=0.163.0
+uvicorn[standard]>=0.54.0
 python-multipart>=0.0.9
 pydantic>=2.6
 torch>=2.2.0

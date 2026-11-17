@@ -2,8 +2,8 @@
 # y se midieron las redes (01/10/2026). torch: instalar la variante CPU o CUDA
 # que corresponda al equipo antes de este archivo.
 
-fastapi==0.136.1
-uvicorn==0.47.0
+fastapi==0.163.0
+uvicorn==0.54.0
 python-multipart==0.0.28
 pydantic==2.13.4
 torch==2.6.0+cu124
