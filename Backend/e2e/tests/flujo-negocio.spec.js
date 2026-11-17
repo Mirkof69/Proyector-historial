@@ -19,9 +19,9 @@ const BACKEND = path.join(__dirname, '..', '..');
 const PYTHON = process.env.E2E_PYTHON || path.join(BACKEND, '.venv', 'Scripts', 'python.exe');
 const ESQUEMA = process.env.E2E_SCHEMA || 'clinica_demo';
 const CUENTAS = {
-  recepcion: 'recep.flores@fetalmedical.bo',
-  enfermera: 'enf.mamani@fetalmedical.bo',
-  medico: 'dra.garcia@fetalmedical.bo',
+  recepcion: process.env.E2E_RECEPCION_EMAIL || 'recep.flores@fetalmedical.bo',
+  enfermera: process.env.E2E_ENFERMERIA_EMAIL || 'enf.mamani@fetalmedical.bo',
+  medico: process.env.E2E_MEDICO_EMAIL || 'dra.garcia@fetalmedical.bo',
 };
 const CI = String(9100000 + (Date.now() % 800000));
 

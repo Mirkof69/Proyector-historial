@@ -4,12 +4,14 @@ El entrenamiento real (2.113 registros, ~30 s) se ejecuta una vez por clase en
 una carpeta temporal: así se comprueba la MÉTRICA de verdad, no un modelo de
 juguete. Esperado vs obtenido en cada prueba.
 """
+import datetime
 import shutil
 import tempfile
 from pathlib import Path
 
 import numpy as np
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from ia_medica.ml import cardiotocografia as ctg
@@ -60,6 +62,18 @@ class EntrenamientoYApiTest(TestCase):
                                                  password="clave-de-prueba-123", rol="medico")
         cls.recepcion = Usuario.objects.create_user(email="rec.ctg@test.bo", nombre="Eva", apellido_paterno="Ctg",
                                                     password="clave-de-prueba-123", rol="recepcion")
+        cls.enfermera = Usuario.objects.create_user(email="enf.ctg@test.bo", nombre="Iris", apellido_paterno="Ctg",
+                                                    password="clave-de-prueba-123", rol="enfermera")
+        from embarazos.models import Embarazo
+        from pacientes.models import Paciente
+
+        cls.paciente = Paciente.objects.create(nombre="Rosa", apellido_paterno="Trazado", ci="7700401",
+                                               genero="femenino", fecha_nacimiento=datetime.date(1994, 3, 3))
+        cls.embarazo = Embarazo.objects.create(
+            paciente=cls.paciente, numero_gesta=1, numero_para=0, tipo_embarazo="simple", riesgo_embarazo="bajo",
+            medico_responsable=cls.medico, fecha_ultima_menstruacion=timezone.localdate() - datetime.timedelta(weeks=36))
+        cls.otra = Paciente.objects.create(nombre="Nora", apellido_paterno="Otra", ci="7700402",
+                                           genero="femenino", fecha_nacimiento=datetime.date(1990, 1, 1))
 
     def setUp(self):
         self.api = APIClient()
@@ -133,6 +147,72 @@ class EntrenamientoYApiTest(TestCase):
 
         self.api.post(URL, NORMAL, format="json")
         self.assertTrue(RegistroAuditoria.objects.filter(modulo="Cardiotocografia").exists())
+
+
+    def test_sin_paciente_clasifica_pero_no_guarda(self):
+        """ESPERADO: sin paciente el resultado llega igual, con guardado=false y ninguna fila nueva."""
+        from ia_medica.models import RegistroCardiotocografia
+
+        r = self.api.post(URL, NORMAL, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.json()["guardado"])
+        self.assertFalse(RegistroCardiotocografia.objects.exists())
+
+    def test_con_paciente_queda_en_su_historial(self):
+        """ESPERADO: con paciente se guarda una fila con sus valores, la clase, la semana del
+        embarazo activo (36) y quién la clasificó; y aparece solo en su lista."""
+        from ia_medica.models import RegistroCardiotocografia
+
+        r = self.api.post(URL, NORMAL | {"paciente_id": self.paciente.id}, format="json")
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertTrue(r.json()["guardado"])
+        fila = RegistroCardiotocografia.objects.get(pk=r.json()["registro_id"])
+        self.assertEqual((fila.paciente_id, fila.embarazo_id, fila.semana_gestacional, fila.clase),
+                         (self.paciente.id, self.embarazo.id, 36, r.json()["clase"]))
+        self.assertEqual(fila.valores["linea_base"], 132)
+        self.assertNotIn("paciente_id", fila.valores)
+        self.assertEqual(fila.realizado_por, self.medico)
+
+        lista = self.api.get(f"{URL[:-1]}s/", {"paciente_id": self.paciente.id}).json()
+        self.assertEqual(lista["count"], 1)
+        self.assertEqual(lista["results"][0]["paciente_nombre"], self.paciente.nombre_completo)
+        self.assertEqual(lista["results"][0]["realizado_por_nombre"], self.medico.nombre_completo)
+        self.assertEqual(lista["results"][0]["valores_etiquetados"][0],
+                         {"clave": "linea_base", "etiqueta": "Línea de base de la FCF", "unidad": "lpm", "valor": 132.0})
+        self.assertEqual(self.api.get(f"{URL[:-1]}s/", {"paciente_id": self.otra.id}).json()["count"], 0)
+
+    def test_busca_por_paciente_y_filtra_por_clase(self):
+        """ESPERADO: la lista general encuentra por apellido de la paciente (campo cifrado) y por clase."""
+        self.api.post(URL, NORMAL | {"paciente_id": self.paciente.id}, format="json")
+        self.api.post(URL, NORMAL | {"paciente_id": self.otra.id}, format="json")
+        lista = f"{URL[:-1]}s/"
+        self.assertEqual(self.api.get(lista).json()["count"], 2)
+        encontrados = self.api.get(lista, {"search": "Trazado"}).json()
+        self.assertEqual([f["paciente"] for f in encontrados["results"]], [self.paciente.id])
+        self.assertEqual(self.api.get(lista, {"clase": "patologica"}).json()["count"], 0)
+
+    def test_paciente_inexistente_no_guarda(self):
+        r = self.api.post(URL, NORMAL | {"paciente_id": 999999}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.json()["guardado"])
+
+    def test_enfermeria_lee_y_recepcion_no(self):
+        """ESPERADO: enfermería ve las cardiotocografías de la ficha (no clasifica); recepción, nada."""
+        self.api.post(URL, NORMAL | {"paciente_id": self.paciente.id}, format="json")
+        lista = f"{URL[:-1]}s/"
+        self.api.force_authenticate(self.enfermera)
+        self.assertEqual(self.api.get(lista).status_code, 200)
+        self.assertEqual(self.api.post(URL, NORMAL, format="json").status_code, 403)
+        self.api.force_authenticate(self.recepcion)
+        self.assertEqual(self.api.get(lista).status_code, 403)
+
+    def test_la_lista_no_se_modifica_por_la_api(self):
+        self.api.post(URL, NORMAL | {"paciente_id": self.paciente.id}, format="json")
+        from ia_medica.models import RegistroCardiotocografia
+
+        fila = RegistroCardiotocografia.objects.get()
+        self.assertEqual(self.api.delete(f"{URL[:-1]}s/{fila.id}/").status_code, 405)
+        self.assertEqual(self.api.patch(f"{URL[:-1]}s/{fila.id}/", {"clase": "normal"}, format="json").status_code, 405)
 
 
 class SinModeloTest(TestCase):

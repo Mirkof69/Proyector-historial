@@ -123,7 +123,7 @@ test.describe('Modelos de IA desde sus pantallas', () => {
     await subir('input[type=file]', CABEZA.archivo);
     await page.fill('#tamano-pixel', CABEZA.px);
     await medir('Plano anatómico + anomalías + CC (regresión)', '/ecografias/plano-anatomico/',
-      () => page.getByRole('button', { name: 'Analizar', exact: true }).click());
+      () => page.getByRole('button', { name: /^(scan )?Analizar$/ }).click());
     await expect(page.getByText('La imagen muestra')).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('body')).toContainText('cerebro fetal');
     await expect(page.getByText('Cribado de anomalías cerebrales')).toBeVisible();
@@ -131,20 +131,17 @@ test.describe('Modelos de IA desde sus pantallas', () => {
     await expect(page.getByText('Edad gestacional', { exact: true })).toBeVisible();
   });
 
-  /** Informe completo de la tarjeta de redes: devuelve el modal abierto. */
+  /** El análisis de la tarjeta de redes: devuelve la vista del resultado. */
   const informeCompleto = async (nombre, archivo, px) => {
     await subir('input[type=file]', archivo);
     await page.fill('#tamano-pixel', px || '');
     await medir(nombre, '/ecografias/analyze-with-ai/',
-      () => page.getByRole('button', { name: /Informe completo/ }).click());
-    const modal = page.getByRole('dialog', { name: /Análisis de la ecografía con redes medidas/ });
-    await expect(modal).toBeVisible({ timeout: 60_000 });
-    return modal;
+      () => page.getByRole('button', { name: /^(scan )?Analizar$/ }).click());
+    const resultado = page.locator('.ia-informe').first();
+    await expect(resultado).toBeVisible({ timeout: 60_000 });
+    return resultado;
   };
-  const cerrar = async (modal) => {
-    await modal.getByRole('button', { name: 'Cerrar', exact: true }).click();
-    await expect(modal).toBeHidden();
-  };
+  const cerrar = async () => {};
 
   test('3. U-Net de cabeza: CC y DBP en mm con su margen, y la imagen con lo que dibujó', async () => {
     test.skip(!CABEZA.archivo, 'no está la imagen de HC18');
@@ -186,7 +183,7 @@ test.describe('Modelos de IA desde sus pantallas', () => {
     await subir('input[type=file]', ANOMALIA);
     await page.fill('#tamano-pixel', '');
     await medir('Cribado de anomalías cerebrales', '/ecografias/anomalias-cerebrales/',
-      () => page.getByRole('button', { name: 'Analizar', exact: true }).click());
+      () => page.getByRole('button', { name: /^(scan )?Analizar$/ }).click());
     const tarjeta = page.locator('.ant-card').filter({ hasText: 'Cribado de anomalías cerebrales' }).last();
     await expect(tarjeta).toContainText('P(anomalía)', { timeout: 60_000 });
     await expect(tarjeta).toContainText(/sensibilidad en ecografías clínicas no se puede medir/);

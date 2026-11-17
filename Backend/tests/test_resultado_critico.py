@@ -58,7 +58,8 @@ class AvisoDeResultadoCriticoTest(TestCase):
 
     def test_sin_limites_criticos_usa_el_30_por_ciento_de_su_propio_rango(self):
         """ESPERADO: leucocitos 12 no es crítico (≤ 10 × 1,3); 14 sí."""
-        self._resultado(self.leu, 12)
+        self.assertFalse(self._resultado(self.leu, 12).es_critico)
         self.assertEqual(self._avisos(), 0)
-        self._resultado(self.leu, 14)
+        # La ficha dice lo mismo que el aviso (antes: aviso «CRÍTICO», ficha «fuera de rango»).
+        self.assertTrue(self._resultado(self.leu, 14).es_critico)
         self.assertEqual(self._avisos(), 1)

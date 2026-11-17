@@ -56,17 +56,21 @@ class EvaluacionDeResultadosTest(TestCase):
 
     def test_minimo_cero_no_desactiva_el_rango(self):
         basofilos = self._rango(valor_minimo=0, valor_maximo=1)
-        self.assertEqual(basofilos.evaluar_valor(5)["estado"], "anormal")
+        self.assertEqual(basofilos.evaluar_valor(1.2)["estado"], "anormal")
+        # Sin límites críticos configurados, pasar el máximo en más de un 30 % es crítico.
+        self.assertEqual(basofilos.evaluar_valor(5)["estado"], "critico_alto")
         self.assertEqual(basofilos.evaluar_valor(0)["estado"], "normal")
 
     def test_un_solo_limite(self):
         glucosa = self._rango(valor_maximo=92)
-        self.assertEqual(glucosa.evaluar_valor(130)["estado"], "anormal")
+        self.assertEqual(glucosa.evaluar_valor(100)["estado"], "anormal")
+        self.assertTrue(glucosa.evaluar_valor(130)["es_critico"])
         self.assertEqual(glucosa.evaluar_valor(80)["estado"], "normal")
-        self.assertEqual(self._rango(valor_minimo=3.5).evaluar_valor(2)["estado"], "anormal")
+        self.assertEqual(self._rango(valor_minimo=3.5).evaluar_valor(3)["estado"], "anormal")
+        self.assertEqual(self._rango(valor_minimo=3.5).evaluar_valor(2)["estado"], "critico_bajo")
 
     def test_cero_es_un_valor(self):
-        self.assertEqual(self._rango(valor_minimo=1, valor_maximo=4).evaluar_valor(0)["estado"], "anormal")
+        self.assertEqual(self._rango(valor_minimo=1, valor_maximo=4).evaluar_valor(0)["estado"], "critico_bajo")
         self.assertEqual(self._rango(valor_minimo=1, valor_maximo=4).evaluar_valor(None)["estado"], "sin_valor")
 
     def test_rango_texto(self):

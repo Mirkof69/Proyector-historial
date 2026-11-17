@@ -123,7 +123,7 @@ test.describe('Flujo clínico de punta a punta', () => {
     await page.goto(`/dashboard/ecografias/${ids.ecografia}`);
     await page.getByRole('tab', { name: /IA medida/ }).click();
     await page.fill('#tamano-pixel', '0.154');
-    await page.getByRole('button', { name: 'Analizar' }).click();
+    await page.getByRole('button', { name: /^(scan )?Analizar$/ }).click();
     await expect(page.getByText('La imagen muestra')).toBeVisible({ timeout: 60000 });
     await expect(page.locator('body')).toContainText('cerebro fetal');
     // La cabeza de prueba es normal: la red de anomalías no debe alarmar.

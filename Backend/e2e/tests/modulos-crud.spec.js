@@ -88,7 +88,9 @@ async function rellenarObligatorios(page) {
       if (!(await dentroDePantalla(page, cal))) fuera.push(campo);
       // La FUM de un embarazo de 20 semanas; la cita, mañana; el resto, hoy.
       // Los datos de demostración llenan la agenda dos meses: la cita va a 70 días.
-      const dias = valorPara({ fecha_ultima_menstruacion: 140, fecha_cita: -70 }, campo) || 0;
+      let dias = valorPara({ fecha_ultima_menstruacion: 140, fecha_cita: -70 }, campo) || 0;
+      // La agenda atiende de lunes a viernes: una cita en sábado se rechaza con razón.
+      while (campo === 'fecha_cita' && [0, 6].includes(new Date(Date.now() - dias * 864e5).getDay())) dias -= 1;
       await page.keyboard.type(fechaTecleada(dias));
       await page.keyboard.press('Enter');
     } else if (await item.locator('.ant-radio-group').count()) {

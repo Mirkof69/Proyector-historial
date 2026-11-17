@@ -56,7 +56,7 @@ test.describe('Ecografía ginecológica con IA', () => {
     await page.goto('/dashboard/ia-medica/imagenes?pestana=ginecologia');
     await page.getByRole('radio', { name: 'Masa ovárica' }).check();
     await page.locator('input[type=file]').setInputFiles(TERATOMA);
-    await page.getByRole('button', { name: 'Analizar' }).click();
+    await page.getByRole('button', { name: 'Analizar', exact: true }).click();
     await expect(page.getByText('Tipo probable')).toBeVisible({ timeout: 60_000 });
     // El recuadro de malignidad muestra la probabilidad y cuántos carcinomas detectó la red en la prueba
     const malignidad = page.locator('.ant-alert').filter({ hasText: 'alarma desde' });
@@ -70,7 +70,7 @@ test.describe('Ecografía ginecológica con IA', () => {
     test.skip(!MIOMA, 'no está la imagen de prueba de miomas extraída localmente');
     await page.getByRole('radio', { name: 'Mioma uterino' }).check();
     await page.locator('input[type=file]').setInputFiles(MIOMA);
-    await page.getByRole('button', { name: 'Analizar' }).click();
+    await page.getByRole('button', { name: 'Analizar', exact: true }).click();
     await expect(page.getByText(/no sirve para descartar/)).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText('Ancho del mioma (px)')).toBeVisible();
   });

@@ -449,3 +449,14 @@ class ConsentimientoObligatorioTest(TestCase):
         self.assertIn("consentimiento_datos_aceptado", str(r.content))
         r = c.post("/api/pacientes/", {**datos, "consentimiento_datos_aceptado": True}, format="json")
         self.assertEqual(r.status_code, 201, r.content[:200])
+
+
+class NacidaUn29DeFebreroTest(TestCase):
+    """Una paciente nacida el 29/02 se registra en un año no bisiesto (antes: 500)."""
+
+    def test_se_registra(self):
+        import datetime as dt
+
+        p = Paciente.objects.create(nombre="Bisi", apellido_paterno="Esta", apellido_materno="X",
+                                    fecha_nacimiento=dt.date(2000, 2, 29), genero="femenino", ci="7713229")
+        self.assertIsNotNone(p.pk)
