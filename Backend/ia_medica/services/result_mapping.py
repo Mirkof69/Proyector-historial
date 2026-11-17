@@ -267,8 +267,120 @@ def defaults_analisis_medido(informe: dict, usuario=None) -> dict[str, Any]:
         "shap_valores": None,
         "patologias": [anomalias.get("familia_sospechada")] if alarma else [],
         "sugerencia_diagnostica": {"informe": informe.get("informe_texto"),
+                                   "hallazgos": list(informe.get("hallazgos") or []),
+                                   "anomalias_cerebrales": anomalias or None,
                                    "modelos": [{"archivo": m.get("archivo"), "dataset": m.get("dataset")}
                                                for m in informe.get("modelos_usados", [])]},
         "tiempo_inferencia_ms": informe.get("tiempo_ms"),
         "tiempo_procesamiento_ms": informe.get("tiempo_ms") or 0,
+    }
+
+
+def defaults_analisis_ginecologico(nombre_tarea: str, datos: dict, usuario=None) -> dict[str, Any]:
+    """Campos de AnalisisCNN a partir de la respuesta de ecografía ginecológica.
+
+    Igual que en el cribado cerebral, una sospecha no se gradúa como «grave»: la
+    alarma de malignidad es «anomalia_moderada» y la confirma el especialista. No
+    encontrar lesión ni mioma no descarta nada: pide revisión, no sale «normal».
+    """
+    malignidad = datos.get("malignidad") or {}
+    alarma = bool(malignidad.get("alarma"))
+    categoria = datos.get("tipo_probable") or datos.get("categoria_probable")
+    if alarma:
+        resultado = "anomalia_moderada"
+    elif datos.get("lesion_encontrada") or datos.get("mioma_ubicado") or "poliqu" in (categoria or "").lower():
+        resultado = "anomalia_leve"
+    elif datos.get("categoria_probable"):
+        resultado = "normal"
+    else:
+        resultado = "requiere_revision"
+
+    probabilidades = datos.get("probabilidades") or []
+    confianza = max((float(p.get("probabilidad", 0)) for p in probabilidades), default=0.0)
+    hallazgos = list(datos.get("hallazgos") or [])
+    if alarma:
+        hallazgos.insert(0, "Alarma: rasgos compatibles con carcinoma seroso de alto grado "
+                            f"(probabilidad {float(malignidad.get('probabilidad', 0)) * 100:.1f} %). Lo confirma un especialista.")
+    modelos = [{"archivo": m.get("archivo"), "dataset": m.get("dataset")} for m in datos.get("modelos") or []]
+    return {
+        "realizado_por": usuario if getattr(usuario, "is_authenticated", False) else None,
+        "modelo_usado": "redes_medidas",
+        "version_modelo": f"ginecologia {datos.get('tarea')}",
+        "resultado": resultado,
+        "confianza": round(confianza, 4),
+        "score_general": round(confianza * 100, 1),
+        "predicciones": [{"clase": p.get("tipo") or p.get("categoria"), "confianza": p.get("probabilidad", 0)}
+                         for p in probabilidades],
+        "clases_detectadas": [f"{nombre_tarea}: {categoria}" if categoria else nombre_tarea],
+        "estructuras_detectadas": {},
+        "medidas_estimadas": datos.get("medidas") or None,
+        "anomalias_detectadas": [{"tipo": "carcinoma_seroso_alto_grado", "nombre": "Carcinoma seroso de alto grado",
+                                  "confianza": malignidad.get("probabilidad"), "severidad": "media"}] if alarma else [],
+        "alertas": list(datos.get("avisos") or []),
+        "recomendaciones": hallazgos or ["Sin hallazgos en lo evaluado."],
+        "mapa_calor": datos.get("superposicion_png") or None,
+        "nivel_riesgo": NIVEL_POR_RESULTADO.get(resultado, "MODERADO"),
+        "patologias": ["carcinoma_seroso_alto_grado"] if alarma else [],
+        "sugerencia_diagnostica": {"tarea": datos.get("tarea"), "hallazgos": hallazgos, "modelos": modelos,
+                                   "informe": f"{nombre_tarea}. Apoyo al diagnóstico: lo confirma un especialista."},
+        "tiempo_procesamiento_ms": 0,
+    }
+
+
+#: Recomendaciones que agrega `defaults_analisis_medido`: no son hallazgos de la red.
+_RECOMENDACIONES_FIJAS = {
+    "Revisar la imagen y repetir el corte si hace falta.",
+    "Sin hallazgos en lo evaluado: control prenatal de rutina.",
+}
+
+
+def informe_guardado(imagen, analisis) -> dict[str, Any]:
+    """El informe de un análisis ya guardado, con la forma del recién hecho.
+
+    Así la misma pantalla muestra un análisis nuevo o uno de cualquier paciente.
+    Los anteriores a guardar `hallazgos` y `anomalias_cerebrales` en la sugerencia
+    los recuperan de `recomendaciones` y `anomalias_detectadas`; de ellos solo se
+    sabe el cribado cerebral cuando dio alarma.
+    """
+    sugerencia = analisis.sugerencia_diagnostica if isinstance(analisis.sugerencia_diagnostica, dict) else {}
+    anomalias = sugerencia.get("anomalias_cerebrales")
+    # En ginecología la alarma no es del cribado cerebral: va como hallazgo.
+    if not anomalias and analisis.anomalias_detectadas and "tarea" not in sugerencia:
+        detectada = analisis.anomalias_detectadas[0]
+        anomalias = {"aplicable": True, "alarma_anomalia": True,
+                     "probabilidad_anomalia": detectada.get("confianza") or 0,
+                     "familia_sospechada": detectada.get("tipo"), "familia_sospechada_nombre": detectada.get("nombre")}
+    hallazgos = sugerencia.get("hallazgos")
+    if hallazgos is None:
+        hallazgos = [r for r in analisis.recomendaciones or [] if r not in _RECOMENDACIONES_FIJAS]
+    paciente = imagen.paciente
+    return {
+        "status": "success",
+        "fuente": "guardado",
+        "version_flujo": analisis.version_modelo,
+        "filename": imagen.nombre_original,
+        "plano": {
+            "plano": (analisis.clases_detectadas or ["sin dato"])[0],
+            "confianza": (analisis.score_general or 0) / 100,
+            "probabilidades": {p["clase"]: p.get("confianza", 0) for p in analisis.predicciones or [] if "clase" in p},
+            "avisos": [],
+        },
+        "medidas": analisis.medidas_estimadas or {},
+        "estructuras_vistas": {k: bool(v.get("vista")) for k, v in (analisis.estructuras_detectadas or {}).items()},
+        "anomalias_cerebrales": anomalias,
+        "hallazgos": hallazgos,
+        "avisos": list(analisis.alertas or []),
+        "requiere_revision": analisis.resultado == "requiere_revision",
+        "superposicion_url": f"data:image/png;base64,{analisis.mapa_calor}" if analisis.mapa_calor else None,
+        "modelos_usados": sugerencia.get("modelos") or [],
+        "informe_texto": sugerencia.get("informe") or "",
+        "tiempo_ms": analisis.tiempo_inferencia_ms or analisis.tiempo_procesamiento_ms or 0,
+        "resultado": analisis.resultado,
+        "nivel_riesgo": analisis.nivel_riesgo,
+        "fecha_analisis": analisis.fecha_analisis,
+        "realizado_por": str(analisis.realizado_por) if analisis.realizado_por else None,
+        "imagen_url": imagen.url_imagen,
+        "imagen_id": imagen.id,
+        "semana_gestacional": imagen.semana_gestacional,
+        "paciente": {"id": paciente.id, "nombre": paciente.nombre_completo, "ci": paciente.ci, "edad": paciente.edad},
     }

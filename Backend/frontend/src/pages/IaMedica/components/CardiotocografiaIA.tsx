@@ -6,6 +6,7 @@ import { ExperimentOutlined } from '@ant-design/icons';
 import api from '../../../services/api';
 import { useAntdApp } from '../../../hooks/useMessage';
 import { mensajeDeError } from '../../../services/partoDetalleService';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { Text, Paragraph } = Typography;
 
@@ -20,6 +21,7 @@ interface Resultado {
   clase_nombre: string;
   probabilidades: Record<string, number>;
   advertencias: string[];
+  guardado?: boolean;
 }
 
 const COLOR: Record<string, string> = { normal: 'success', sospechosa: 'warning', patologica: 'error' };
@@ -29,9 +31,10 @@ const pct = (v?: number) => (v === undefined ? '—' : `${(v * 100).toFixed(1)} 
  * Clasificador supervisado de cardiotocografía (ia_medica/ml/cardiotocografia.py).
  * El formulario se arma con las variables que pide el modelo EN USO
  * (GET /api/ia/cardiotocografia/), así nunca se desalinea si se reentrena.
- * Muestra siempre cuánto acertó el modelo en registros que no vio.
+ * Muestra siempre cuánto acertó el modelo en registros que no vio. Con una
+ * paciente elegida, la clasificación queda en su historial.
  */
-const CardiotocografiaIA: React.FC = () => {
+const CardiotocografiaIA: React.FC<{ onGuardado?: () => void }> = ({ onGuardado }) => {
   const { message } = useAntdApp();
   const { token } = theme.useToken();
   const colorBarra: Record<string, string> = {
@@ -42,6 +45,8 @@ const CardiotocografiaIA: React.FC = () => {
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [cargando, setCargando] = useState(true);
   const [clasificando, setClasificando] = useState(false);
+  const [paciente, setPaciente] = useState<{ id: number; nombre: string } | null>(null);
+  const [guardadoEn, setGuardadoEn] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -54,9 +59,15 @@ const CardiotocografiaIA: React.FC = () => {
   const clasificar = async (valores: Record<string, number>) => {
     setClasificando(true);
     try {
-      setResultado((await api.post('/ia/cardiotocografia/', valores)).data);
+      const { data } = await api.post<Resultado>('/ia/cardiotocografia/',
+        paciente ? { ...valores, paciente_id: paciente.id } : valores);
+      setResultado(data);
+      setGuardadoEn(data.guardado && paciente ? paciente.nombre : null);
+      if (data.guardado) onGuardado?.();
+      else if (paciente) message.warning('Se clasificó, pero no se pudo guardar en el historial de la paciente');
     } catch (e) {
       setResultado(null);
+      setGuardadoEn(null);
       message.error(mensajeDeError(e, 'No se pudo clasificar el registro'));
     } finally {
       setClasificando(false);
@@ -75,6 +86,16 @@ const CardiotocografiaIA: React.FC = () => {
           </Paragraph>
           {modelo?.error ? <Alert type="warning" showIcon message={modelo.error} /> : (
             <Form form={form} layout="vertical" onFinish={clasificar}>
+              <Form.Item label="Paciente" extra={paciente ? 'La clasificación quedará en su historial.' : 'Sin paciente se clasifica pero no se guarda.'}>
+                <PacienteSelect
+                  placeholder="Buscar paciente por nombre o CI"
+                  value={paciente?.id}
+                  onChange={(id, p) => {
+                    setPaciente(id ? { id, nombre: p?.nombre_completo ?? `Paciente ${id}` } : null);
+                    setGuardadoEn(null);
+                  }}
+                />
+              </Form.Item>
               <Row gutter={12}>
                 {variables.map((v) => (
                   <Col xs={24} sm={12} lg={8} key={v.clave}>
@@ -95,6 +116,7 @@ const CardiotocografiaIA: React.FC = () => {
         {resultado && (
           <Card title="Resultado" style={{ marginBottom: 16 }}>
             <Space direction="vertical" style={{ width: '100%' }}>
+              {guardadoEn && <Alert type="success" showIcon message={`Guardado en el historial de ${guardadoEn}`} />}
               <Tag color={COLOR[resultado.clase]} className="ia-ctg-clase">{resultado.clase_nombre}</Tag>
               {Object.entries(resultado.probabilidades).map(([clase, p]) => (
                 <div key={clase}>

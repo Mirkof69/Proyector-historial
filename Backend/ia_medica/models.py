@@ -895,3 +895,36 @@ class PrediccionPesoNacimiento(models.Model):
 
         self.fecha_cierre = timezone.now()
         self.save()
+
+
+class RegistroCardiotocografia(models.Model):
+    """Cada cardiotocografía clasificada para una paciente, con los valores que se usaron.
+
+    Antes la clasificación solo quedaba en la auditoría como texto: no se podía
+    ver en la ficha ni comparar un registro con el siguiente.
+    """
+
+    CLASES = [("normal", "Normal"), ("sospechosa", "Sospechosa"), ("patologica", "Patológica")]
+
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name="cardiotocografias")
+    embarazo = models.ForeignKey("embarazos.Embarazo", on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name="cardiotocografias")
+    semana_gestacional = models.PositiveSmallIntegerField(null=True, blank=True)
+    valores = models.JSONField(help_text="Variables del trazado tal como se clasificaron")
+    clase = models.CharField(max_length=12, choices=CLASES)
+    probabilidades = models.JSONField()
+    advertencias = models.JSONField(default=list, blank=True)
+    modelo_version = models.CharField(max_length=30, blank=True)
+    realizado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                      related_name="+")
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "ia_medica_cardiotocografia"
+        ordering = ["-fecha"]
+        indexes = [models.Index(fields=["paciente", "-fecha"], name="ia_ctg_paciente_fecha_idx")]
+        verbose_name = "Cardiotocografía clasificada"
+        verbose_name_plural = "Cardiotocografías clasificadas"
+
+    def __str__(self):
+        return f"CTG {self.get_clase_display()} (paciente {self.paciente_id})"

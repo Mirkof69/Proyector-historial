@@ -17,6 +17,8 @@ router.register(
 )
 router.register(r"modelos-cnn", views.ModeloCNNConfigViewSet, basename="modelo-cnn")
 router.register(r"consultas", views.ConsultaIAViewSet, basename="consulta-ia")
+router.register(r"cardiotocografias", views_cardiotocografia.RegistroCardiotocografiaViewSet,
+                basename="cardiotocografia-registro")
 
 urlpatterns = [
     # Interpretacion de laboratorio con los rangos propios del embarazo. El

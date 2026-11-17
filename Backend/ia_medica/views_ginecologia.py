@@ -7,7 +7,8 @@ POST /api/ia/ginecologia/<tarea>/   (multipart: file, tamano_pixel_mm opcional, 
     ovario-pco  ovario normal / folículo dominante / poliquístico
 
 Cada respuesta trae las métricas medidas de las redes; la imagen con la lesión
-dibujada vuelve como archivo (no en base64). Cada análisis queda auditado.
+dibujada vuelve como archivo (no en base64). Cada análisis queda auditado y, con
+paciente_id, también en su historial de análisis.
 """
 from __future__ import annotations
 
@@ -35,6 +36,33 @@ def _resumen(tarea: str, datos: dict) -> str:
     if tarea == "mioma":
         return "mioma ubicado" if datos.get("mioma_ubicado") else "sin mioma ubicado"
     return f"categoría probable {datos.get('categoria_probable')}"
+
+
+def _guardar_en_historial(request, archivo, paciente_id, tarea: str, datos: dict) -> int | None:
+    """Deja la imagen y el análisis en el historial de la paciente; devuelve la imagen.
+
+    Un fallo aquí no quita el resultado al médico: la respuesta dice `guardado: false`.
+    """
+    from pacientes.models import Paciente
+
+    from .models import AnalisisCNN, ImagenEcografica
+    from .services.result_mapping import defaults_analisis_ginecologico
+
+    try:
+        paciente = Paciente.objects.filter(pk=paciente_id).first()
+        if paciente is None:
+            return None
+        archivo.seek(0)
+        imagen = ImagenEcografica.objects.create(
+            paciente=paciente, subida_por=request.user, imagen=archivo, nombre_original=archivo.name,
+            tamanio_bytes=archivo.size, formato=archivo.name.rsplit(".", 1)[-1].lower(),
+            tipo_imagen="transvaginal", estado="analizada",
+        )
+        AnalisisCNN.objects.create(imagen=imagen, **defaults_analisis_ginecologico(TAREAS[tarea], datos, request.user))
+        return imagen.id
+    except Exception:
+        logger.exception("No se pudo guardar el análisis ginecológico en el historial")
+        return None
 
 
 @extend_schema(summary="Ecografía ginecológica: lesión ovárica, mioma u ovario poliquístico",
@@ -75,4 +103,7 @@ def analisis_ginecologico(request, tarea: str):
             request=request)
     except Exception:
         logger.warning("No se pudo auditar el análisis ginecológico", exc_info=True)
-    return Response(preparar_respuesta_ia(datos))
+    id_imagen = None
+    if request.data.get("paciente_id"):
+        id_imagen = _guardar_en_historial(request, archivo, request.data["paciente_id"], tarea, datos)
+    return Response({**preparar_respuesta_ia(datos), "guardado": id_imagen is not None, "imagen_id": id_imagen})

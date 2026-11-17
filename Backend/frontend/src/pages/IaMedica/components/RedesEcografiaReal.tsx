@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Card, Col, InputNumber, Progress, Row, Select, Space, Statistic, Tag, Upload } from 'antd';
+import { Alert, Button, Card, Col, InputNumber, Progress, Row, Select, Space, Spin, Statistic, Tag, Upload } from 'antd';
 import { ExperimentOutlined, InboxOutlined, ScanOutlined } from '@ant-design/icons';
 import {
   iaMedicaService, InformeRedesMedidas, ResultadoAnomaliasCerebrales, ResultadoCircunferencia, ResultadoPlano,
 } from '../../../services/iaMedicaService';
-import InformeAnalisisModal from './InformeAnalisisModal';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
+import { InformeAnalisisContenido } from './InformeAnalisisModal';
 import '../IaMedica.css';
 
 /**
  * Las redes entrenadas con ecografías reales anotadas por expertos.
- * - «Analizar»: plano anatómico (FETAL_PLANES_DB), cribado de anomalías
- *   cerebrales y, con el tamaño de píxel, circunferencia cefálica por regresión (HC18).
- * - «Informe completo»: el análisis de punta a punta (plano → U-Net de ese plano
- *   → medidas): cabeza (HC, DBP), tórax (índice cardiotorácico), abdomen (corte
- *   adecuado y CA por puntos) y fémur (LF por puntos). Antes este camino solo
- *   existía en la galería, después de elegir una paciente y subir la imagen.
+ * «Analizar» muestra de una vez la vista del análisis y su resultado:
+ * - de punta a punta (plano → U-Net de ese plano → medidas): cabeza (HC, DBP),
+ *   tórax (índice cardiotorácico), abdomen (corte adecuado y CA por puntos) y
+ *   fémur (LF por puntos), con la imagen y las estructuras que dibujó la red;
+ * - plano anatómico (FETAL_PLANES_DB), cribado de anomalías cerebrales y, con el
+ *   tamaño de píxel, circunferencia cefálica por regresión (HC18).
+ * Con una paciente elegida, la imagen y el análisis quedan en su historial.
  * Cada resultado muestra al lado el error medido en imágenes que la red no vio.
  */
 
@@ -127,6 +129,8 @@ export interface ImagenGuardada {
 interface RedesEcografiaRealProps {
   /** Si se pasan, se analizan estas imágenes en vez de pedir que se suba una. */
   imagenes?: ImagenGuardada[];
+  /** Un análisis quedó en el historial de una paciente. */
+  onGuardado?: () => void;
 }
 
 /** Descarga una imagen protegida de /media/ (con la cookie de sesión) como File. */
@@ -140,7 +144,7 @@ const descargarComoArchivo = async (img: ImagenGuardada): Promise<File> => {
   return new File([blob], archivo, { type: blob.type || 'image/png' });
 };
 
-const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => {
+const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes, onGuardado }) => {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [elegida, setElegida] = useState(0);
   const [tamanoPixel, setTamanoPixel] = useState<number | null>(null);
@@ -153,33 +157,40 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
   const [error, setError] = useState<string | null>(null);
   const [analizando, setAnalizando] = useState(false);
   const [informe, setInforme] = useState<InformeRedesMedidas | null>(null);
-  const [urlInforme, setUrlInforme] = useState('');
-  const [analizandoCompleto, setAnalizandoCompleto] = useState(false);
+  const [paciente, setPaciente] = useState<{ id: number; nombre: string } | null>(null);
+  // Volver a analizar el mismo archivo no debe subir otra copia a su historial.
+  const [imagenSubida, setImagenSubida] = useState<number | null>(null);
+  const [guardadoEn, setGuardadoEn] = useState<string | null>(null);
+  const [vistaPrevia, setVistaPrevia] = useState('');
 
   const guardadas = imagenes ?? [];
   const usaGuardadas = guardadas.length > 0;
 
   // La vista previa local del archivo se libera al cambiarla o al salir.
-  useEffect(() => () => { if (urlInforme.startsWith('blob:')) URL.revokeObjectURL(urlInforme); }, [urlInforme]);
+  useEffect(() => {
+    if (!archivo) return undefined;
+    const url = URL.createObjectURL(archivo);
+    setVistaPrevia(url);
+    return () => URL.revokeObjectURL(url);
+  }, [archivo]);
 
-  const limpiar = () => { setPlano(null); setCircunferencia(null); setAnomalias(null); setError(null); };
+  const limpiar = () => {
+    setPlano(null); setCircunferencia(null); setAnomalias(null); setError(null); setInforme(null); setGuardadoEn(null);
+  };
   const ficheroElegido = async (): Promise<File> =>
     (usaGuardadas ? descargarComoArchivo(guardadas[elegida]) : Promise.resolve(archivo as File));
 
-  const informeCompleto = async () => {
-    if (!archivo && !usaGuardadas) return;
-    setAnalizandoCompleto(true);
-    setError(null);
-    try {
-      const fichero = await ficheroElegido();
-      const r = await iaMedicaService.analyzeWithAI(fichero, undefined, tamanoPixel);
-      setUrlInforme(usaGuardadas ? guardadas[elegida].url : URL.createObjectURL(fichero));
-      setInforme(r.ai_analysis);
-    } catch (e: any) {
-      setError(mensajeDeError(e));
-    } finally {
-      setAnalizandoCompleto(false);
-    }
+  /** Deja la imagen en el historial de la paciente elegida y devuelve su id. */
+  const guardarImagen = async (fichero: File): Promise<number | null> => {
+    if (usaGuardadas || !paciente) return null;
+    if (imagenSubida) return imagenSubida;
+    const datos = new FormData();
+    datos.append('imagen', fichero);
+    datos.append('paciente', String(paciente.id));
+    datos.append('tipo_imagen', 'eco_2d');
+    const { id } = await iaMedicaService.uploadImagen(datos);
+    setImagenSubida(id);
+    return id;
   };
 
   const analizar = async () => {
@@ -188,15 +199,24 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
     limpiar();
     try {
       const fichero = await ficheroElegido();
-      const [rPlano, rCirc, rAnom] = await Promise.all([
+      const idImagen = await guardarImagen(fichero);
+      const [rInforme, rPlano, rCirc, rAnom] = await Promise.all([
+        idImagen
+          ? iaMedicaService.analyzeWithAI(undefined, String(idImagen), tamanoPixel)
+          : iaMedicaService.analyzeWithAI(fichero, undefined, tamanoPixel),
         iaMedicaService.clasificarPlano(fichero),
         tamanoPixel ? iaMedicaService.medirCircunferencia(fichero, tamanoPixel) : Promise.resolve(null),
         // Si la red de anomalías no está instalada (503), el resto sigue valiendo.
         iaMedicaService.detectarAnomaliasCerebrales(fichero).catch(() => null),
       ]);
+      setInforme(rInforme.ai_analysis);
       setPlano(rPlano);
       setCircunferencia(rCirc);
       setAnomalias(rAnom);
+      if (rInforme.guardado && paciente) {
+        setGuardadoEn(paciente.nombre);
+        onGuardado?.();
+      }
     } catch (e: any) {
       setError(mensajeDeError(e));
     } finally {
@@ -204,8 +224,10 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
     }
   };
 
+  // Los del informe ya salen dentro de él.
   const avisos = [...new Set([...(plano?.avisos ?? []), ...(circunferencia?.avisos ?? []),
-    ...(anomalias?.aplicable ? anomalias.avisos : [])])];
+    ...(anomalias?.aplicable ? anomalias.avisos : [])])].filter((a) => !informe?.avisos.includes(a));
+  const urlImagen = usaGuardadas ? guardadas[elegida]?.url : vistaPrevia;
 
   return (
     <Card
@@ -226,13 +248,30 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
               accept=".png,.jpg,.jpeg,.bmp,.tif,.dcm,.dicom"
               maxCount={1}
               showUploadList={false}
-              beforeUpload={(f) => { setArchivo(f); limpiar(); return false; }}
+              beforeUpload={(f) => { setArchivo(f); setImagenSubida(null); limpiar(); return false; }}
             >
               <p className="ant-upload-drag-icon"><InboxOutlined /></p>
               <p className="ant-upload-text">{archivo ? archivo.name : 'Arrastre una ecografía o haga clic'}</p>
               <p className="ant-upload-hint">PNG, JPG o DICOM · máx. 10 MB</p>
             </Upload.Dragger>
           </div>
+          )}
+          {!usaGuardadas && (
+            <div>
+              <label htmlFor="analisis-paciente" className="ia-redes-etiqueta">Paciente</label>
+              <PacienteSelect
+                placeholder="Buscar paciente por nombre o CI"
+                value={paciente?.id}
+                onChange={(id, p) => {
+                  setPaciente(id ? { id, nombre: p?.nombre_completo ?? `Paciente ${id}` } : null);
+                  setImagenSubida(null);
+                  setGuardadoEn(null);
+                }}
+              />
+              <p className="ia-ayuda">
+                {paciente ? 'El análisis quedará en su historial.' : 'Sin paciente se analiza pero no se guarda.'}
+              </p>
+            </div>
           )}
           <div>
             <label htmlFor="tamano-pixel" className="ia-redes-etiqueta">
@@ -253,42 +292,39 @@ const RedesEcografiaReal: React.FC<RedesEcografiaRealProps> = ({ imagenes }) => 
             )}
           </div>
           <Space direction="vertical" className="ia-ancho-completo">
-            <Button type="primary" block disabled={(!archivo && !usaGuardadas) || pixelInvalido}
+            <Button type="primary" block icon={<ScanOutlined />} disabled={(!archivo && !usaGuardadas) || pixelInvalido}
               loading={analizando} onClick={analizar}>
               Analizar
             </Button>
-            <Button block icon={<ScanOutlined />} disabled={(!archivo && !usaGuardadas) || pixelInvalido}
-              loading={analizandoCompleto} onClick={informeCompleto}>
-              Informe completo
-            </Button>
-            <p className="ia-ayuda">
-              «Analizar»: plano, cribado cerebral y circunferencia cefálica. «Informe completo»: la red del
-              plano dibuja las estructuras y mide (cabeza, tórax, abdomen o fémur).
-            </p>
           </Space>
         </Col>
         <Col xs={24} md={14} className="ia-redes-columna">
-          {error && <Alert type="error" showIcon message="No se pudo analizar" description={error} />}
-          {avisos.map((a) => <Alert key={a} type="warning" showIcon message={a} />)}
-          {plano && <TarjetaPlano r={plano} />}
-          {anomalias && <TarjetaAnomalias r={anomalias} />}
-          {circunferencia && <TarjetaCircunferencia r={circunferencia} />}
-          {!plano && !error && (
+          {urlImagen ? (
+            <img className="ia-vista-previa" src={urlImagen} alt="Ecografía elegida" />
+          ) : (
             <p className="ia-texto-secundario">
-              Reconoce el plano (abdomen, cerebro, fémur, tórax, cuello uterino u otro); en
-              los cortes de la cabeza busca anomalías cerebrales y, si indica el tamaño de
-              píxel, mide la circunferencia cefálica y calcula la edad gestacional. Es apoyo
-              a la decisión, no un diagnóstico.
+              Reconoce el plano (abdomen, cerebro, fémur, tórax, cuello uterino u otro), dibuja las
+              estructuras y mide; en los cortes de la cabeza busca anomalías cerebrales. Con el tamaño
+              de píxel da las medidas en milímetros y la edad gestacional. Es apoyo a la decisión,
+              no un diagnóstico.
             </p>
           )}
         </Col>
       </Row>
-      <InformeAnalisisModal
-        abierto={!!informe}
-        informe={informe}
-        imagenUrl={urlInforme}
-        onCerrar={() => setInforme(null)}
-      />
+      <div className="ia-resultado" aria-live="polite">
+        {analizando && <Spin tip="Analizando la imagen…"><div className="ia-resultado-espera" /></Spin>}
+        {error && <Alert type="error" showIcon message="No se pudo analizar" description={error} />}
+        {guardadoEn && <Alert type="success" showIcon message={`Guardado en el historial de ${guardadoEn}`} />}
+        {informe && <InformeAnalisisContenido informe={informe} imagenUrl={urlImagen} detalleAparte />}
+        {avisos.map((a) => <Alert key={a} type="warning" showIcon message={a} />)}
+        {(plano || anomalias || circunferencia) && (
+          <Row gutter={[16, 16]}>
+            {plano && <Col xs={24} lg={12}><TarjetaPlano r={plano} /></Col>}
+            {anomalias && <Col xs={24} lg={12}><TarjetaAnomalias r={anomalias} /></Col>}
+            {circunferencia && <Col xs={24} lg={12}><TarjetaCircunferencia r={circunferencia} /></Col>}
+          </Row>
+        )}
+      </div>
     </Card>
   );
 };

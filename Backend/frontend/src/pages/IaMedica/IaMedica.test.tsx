@@ -1,9 +1,10 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import IaMedica from './IaMedica';
 import { iaMedicaService } from '../../services/iaMedicaService';
+import api from '../../services/api';
 
 jest.mock('../../hooks/useMessage', () => ({
   useAntdApp: () => ({
@@ -18,7 +19,7 @@ jest.mock('../../services/iaMedicaService');
 // salía a la red de verdad y, lenta, se pasaba de los 5 s.
 jest.mock('../../services/api', () => ({
   __esModule: true,
-  default: { get: jest.fn().mockResolvedValue({ data: { results: [] } }), post: jest.fn() },
+  default: { get: jest.fn(), post: jest.fn() },
   API_URL: 'http://x/api',
 }));
 jest.mock('../../services/pacientesService', () => ({
@@ -56,11 +57,41 @@ const informe = (extra: Record<string, unknown>) => ({
 
 const renderPagina = () => render(<MemoryRouter><IaMedica /></MemoryRouter>);
 
+const guardada = { ...imagenMock, id: 2, estado: 'analizada' as const, tiene_analisis: true, paciente_nombre: 'Rosa Quispe',
+  analisis_resultado: { resultado: 'requiere_revision', confianza: 71.2, plano: 'abdomen fetal', fecha: '2026-06-02T00:00:00Z' } };
+
 describe('IaMedica - análisis con redes medidas', () => {
   beforeEach(() => {
-    (iaMedicaService.getImagenes as jest.Mock).mockResolvedValue({ results: [imagenMock] });
+    jest.clearAllMocks();
+    (api.get as jest.Mock).mockImplementation((url: string, config?: { params?: Record<string, unknown> }) => {
+      if (url !== '/ia/imagenes/') return Promise.resolve({ data: { results: [] } });
+      const filas = config?.params?.search === 'Quispe' ? [guardada] : [imagenMock, guardada];
+      return Promise.resolve({ data: { count: filas.length, results: filas } });
+    });
     (iaMedicaService.getEstadisticas as jest.Mock).mockResolvedValue({});
+    (iaMedicaService.clasificarPlano as jest.Mock).mockResolvedValue(null);
+    (iaMedicaService.detectarAnomaliasCerebrales as jest.Mock).mockResolvedValue(null);
+    // jsdom no implementa las URL de objeto: la vista previa local de la imagen las usa.
+    URL.createObjectURL = jest.fn(() => 'blob:vista-previa');
+    URL.revokeObjectURL = jest.fn();
   });
+
+  /** Espera a que la tabla termine de cargar: mientras tanto antd bloquea los clics. */
+  const clicEnFila = async (texto: string) => {
+    const boton = await screen.findByText(texto);
+    // eslint-disable-next-line testing-library/no-node-access
+    await waitFor(() => expect(document.querySelector('.ant-spin-blur')).toBeNull());
+    await userEvent.click(boton);
+  };
+
+  const elegirImagen = async () => {
+    // antd esconde el <input type=file>.
+    // eslint-disable-next-line testing-library/no-node-access
+    const entrada = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const archivo = new File(['png'], 'cabeza.png', { type: 'image/png' });
+    await userEvent.upload(entrada, archivo);
+    return archivo;
+  };
 
   it('muestra la medida con su margen medido y la red que la produjo', async () => {
     (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
@@ -68,7 +99,7 @@ describe('IaMedica - análisis con redes medidas', () => {
       superposicion_url: '/media/gradcams/seg_1.png',
     }));
     renderPagina();
-    await userEvent.click(await screen.findByText('Analizar con IA'));
+    await clicEnFila('Analizar con IA');
     expect(await screen.findByText('251.3 mm ± 4.41')).toBeInTheDocument();
     expect(screen.getByText('66.2 mm ± 1.61')).toBeInTheDocument();
     expect(screen.getByText('plano_anatomico_fetal_planes')).toBeInTheDocument();
@@ -80,7 +111,7 @@ describe('IaMedica - análisis con redes medidas', () => {
       medidas: { longitud_femur_mm: 52.4, margen_lf_mm: 1.29, circunferencia_abdominal_mm: 248.1, margen_ca_mm: 6.05 },
     }));
     renderPagina();
-    await userEvent.click(await screen.findByText('Analizar con IA'));
+    await clicEnFila('Analizar con IA');
     expect(await screen.findByText('52.4 mm ± 1.29')).toBeInTheDocument();
     expect(screen.getByText('248.1 mm ± 6.05')).toBeInTheDocument();
     expect(screen.getByText('Longitud del fémur')).toBeInTheDocument();
@@ -93,29 +124,68 @@ describe('IaMedica - análisis con redes medidas', () => {
       hallazgos: ['Para el plano «cuello uterino materno» no hay una red de medida validada: solo se informa el plano.'],
     }));
     renderPagina();
-    await userEvent.click(await screen.findByText('Analizar con IA'));
+    await clicEnFila('Analizar con IA');
     expect(await screen.findByText('Sin medidas para este plano')).toBeInTheDocument();
     expect(screen.queryByText(/mm ±/)).not.toBeInTheDocument();
   });
 
-  it('el informe completo se pide desde la tarjeta de redes, sin paciente, con el tamaño de píxel', async () => {
-    // jsdom no implementa las URL de objeto: la vista previa local de la imagen las usa.
-    URL.createObjectURL = jest.fn(() => 'blob:vista-previa');
-    URL.revokeObjectURL = jest.fn();
+  it('al poner la imagen muestra la vista del análisis y su resultado, sin guardar si no hay paciente', async () => {
     (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
       medidas: { circunferencia_cefalica_mm: 87.5, margen_hc_mm: 4.41 },
     }));
     renderPagina();
-    // antd esconde el <input type=file>; el primero es el de la tarjeta de redes (el de la galería pide paciente).
-    // eslint-disable-next-line testing-library/no-node-access
-    const entrada = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const archivo = new File(['png'], 'cabeza.png', { type: 'image/png' });
-    await userEvent.upload(entrada, archivo);
+    const archivo = await elegirImagen();
+    expect(await screen.findByAltText('Ecografía elegida')).toHaveAttribute('src', 'blob:vista-previa');
     await userEvent.type(screen.getByLabelText(/Tamaño de píxel/), '0.075');
-    await userEvent.click(screen.getByRole('button', { name: /Informe completo/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^(scan )?Analizar$/ }));
     expect(await screen.findByText('87.5 mm ± 4.41')).toBeInTheDocument();
+    expect(screen.getByText('Sin hallazgos en lo evaluado')).toBeInTheDocument();
+    expect(screen.getByAltText('Ecografía original')).toHaveAttribute('src', 'blob:vista-previa');
     expect(iaMedicaService.analyzeWithAI).toHaveBeenCalledWith(archivo, undefined, 0.075);
-    // Sin imagen guardada no se ofrece la redacción con el LLM local (necesita el id de la imagen).
-    expect(screen.queryByRole('button', { name: /Redactar informe/ })).not.toBeInTheDocument();
+    expect(iaMedicaService.uploadImagen).not.toHaveBeenCalled();
+    expect(screen.getByText('Sin paciente se analiza pero no se guarda.')).toBeInTheDocument();
+  });
+
+  it('el veredicto avisa si la red sospecha una anomalía', async () => {
+    (iaMedicaService.analyzeWithAI as jest.Mock).mockResolvedValue(informe({
+      anomalias_cerebrales: { aplicable: true, alarma_anomalia: true, probabilidad_anomalia: 0.8, umbral: 0.5,
+        familia_sospechada: 'fosa_posterior', familia_sospechada_nombre: 'Fosa posterior' },
+    }));
+    renderPagina();
+    await elegirImagen();
+    await userEvent.click(screen.getByRole('button', { name: /^(scan )?Analizar$/ }));
+    expect(await screen.findByText('Posible anomalía: Fosa posterior')).toBeInTheDocument();
+  });
+
+  it('el historial reabre el análisis guardado con los datos de la paciente', async () => {
+    (iaMedicaService.getInforme as jest.Mock).mockResolvedValue({
+      ...informe({ medidas: { longitud_femur_mm: 52.4, margen_lf_mm: 1.29 }, resultado: 'requiere_revision' }).ai_analysis,
+      paciente: { id: 1, nombre: 'Rosa Quispe', ci: '7700101', edad: 33 }, semana_gestacional: 22,
+      realizado_por: 'Dra. Ana', fecha_analisis: '2026-06-02T00:00:00Z', imagen_url: '/media/ecografias/2.jpg',
+    });
+    renderPagina();
+    await clicEnFila('Ver análisis');
+    expect(await screen.findByText('52.4 mm ± 1.29')).toBeInTheDocument();
+    expect(iaMedicaService.getInforme).toHaveBeenCalledWith(2);
+    expect(screen.getByText('7700101')).toBeInTheDocument();
+    expect(screen.getByText('Dra. Ana')).toBeInTheDocument();
+    expect(screen.getByText('Requiere revisión del médico')).toBeInTheDocument();
+  });
+
+  it('«requiere revisión» no se pinta como crítico', async () => {
+    renderPagina();
+    expect(await screen.findByText('Requiere revisión')).toBeInTheDocument();
+    expect(screen.queryByText('Crítico')).not.toBeInTheDocument();
+  });
+
+  it('el historial busca a la paciente en el servidor y pide de a 10', async () => {
+    renderPagina();
+    await screen.findByText('María Condori');
+    expect(api.get).toHaveBeenCalledWith('/ia/imagenes/', expect.objectContaining({
+      params: expect.objectContaining({ page: 1, page_size: 10 }),
+    }));
+    await userEvent.type(screen.getByLabelText('Buscar paciente por nombre o CI'), 'Quispe');
+    await waitFor(() => expect(screen.queryByText('María Condori')).not.toBeInTheDocument());
+    expect(screen.getByText('Rosa Quispe')).toBeInTheDocument();
   });
 });

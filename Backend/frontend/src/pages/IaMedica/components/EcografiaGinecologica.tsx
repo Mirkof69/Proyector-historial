@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert, Button, Card, Col, Descriptions, Image, InputNumber, Progress, Radio, Row, Space, Tag, Typography, Upload,
 } from 'antd';
@@ -7,6 +7,7 @@ import { UploadOutlined, WomanOutlined } from '@ant-design/icons';
 import api, { API_URL } from '../../../services/api';
 import { useAntdApp } from '../../../hooks/useMessage';
 import { mensajeDeError } from '../../../services/partoDetalleService';
+import { PacienteSelect } from '../../../components/clinico/SelectoresClinicos';
 
 const { Text, Paragraph } = Typography;
 
@@ -28,6 +29,7 @@ export interface ResultadoGinecologico {
   avisos: string[];
   superposicion_url?: string;
   modelos: ModeloUsado[];
+  guardado?: boolean;
 }
 
 const TAREAS: { valor: TareaGinecologica; nombre: string; ayuda: string }[] = [
@@ -48,14 +50,29 @@ const ETIQUETAS_MEDIDA: Record<string, string> = {
 /**
  * Ecografía ginecológica con redes entrenadas con datos reales (microservicio
  * de IA, app/ginecologia.py). Cada resultado muestra cuánto acertó la red en
- * pacientes que no vio, y sus límites.
+ * pacientes que no vio, y sus límites. Con una paciente elegida, la imagen y el
+ * análisis quedan en su historial.
  */
-const EcografiaGinecologica: React.FC = () => {
+const EcografiaGinecologica: React.FC<{ onGuardado?: () => void }> = ({ onGuardado }) => {
   const { message } = useAntdApp();
   const [tarea, setTarea] = useState<TareaGinecologica>('ovario');
   const [archivo, setArchivo] = useState<UploadFile | null>(null);
   const [pixel, setPixel] = useState<number | null>(null);
   const [resultado, setResultado] = useState<ResultadoGinecologico | null>(null);
+  const [paciente, setPaciente] = useState<{ id: number; nombre: string } | null>(null);
+  const [guardadoEn, setGuardadoEn] = useState<string | null>(null);
+  const [vistaPrevia, setVistaPrevia] = useState('');
+  const fichero = archivo?.originFileObj;
+
+  // La vista previa local del archivo se libera al cambiarla o al salir.
+  useEffect(() => {
+    if (!fichero) { setVistaPrevia(''); return undefined; }
+    const url = URL.createObjectURL(fichero);
+    setVistaPrevia(url);
+    return () => URL.revokeObjectURL(url);
+  }, [fichero]);
+
+  const limpiar = () => { setResultado(null); setGuardadoEn(null); };
   const [analizando, setAnalizando] = useState(false);
 
   const analizar = async () => {
@@ -63,13 +80,16 @@ const EcografiaGinecologica: React.FC = () => {
     const datos = new FormData();
     datos.append('file', archivo.originFileObj);
     if (pixel) datos.append('tamano_pixel_mm', String(pixel));
+    if (paciente) datos.append('paciente_id', String(paciente.id));
     setAnalizando(true);
     try {
       const { data } = await api.post<ResultadoGinecologico>(`/ia/ginecologia/${tarea}/`, datos,
         { headers: { 'Content-Type': 'multipart/form-data' } });
       setResultado(data);
+      setGuardadoEn(data.guardado && paciente ? paciente.nombre : null);
+      if (data.guardado) onGuardado?.();
     } catch (e) {
-      setResultado(null);
+      limpiar();
       message.error(mensajeDeError(e, 'No se pudo analizar la ecografía'));
     } finally {
       setAnalizando(false);
@@ -89,7 +109,7 @@ const EcografiaGinecologica: React.FC = () => {
               <Radio.Group
                 style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}
                 value={tarea}
-                onChange={(e) => { setTarea(e.target.value); setResultado(null); }}
+                onChange={(e) => { setTarea(e.target.value); limpiar(); }}
               >
                 {TAREAS.map((t) => <Radio key={t.valor} value={t.valor}>{t.nombre}</Radio>)}
               </Radio.Group>
@@ -100,10 +120,25 @@ const EcografiaGinecologica: React.FC = () => {
               maxCount={1}
               beforeUpload={() => false}
               fileList={archivo ? [archivo] : []}
-              onChange={({ fileList }) => { setArchivo(fileList[0] ?? null); setResultado(null); }}
+              onChange={({ fileList }) => { setArchivo(fileList[0] ?? null); limpiar(); }}
             >
               <Button icon={<UploadOutlined />}>Elegir la imagen de la ecografía</Button>
             </Upload>
+            {vistaPrevia && <img className="ia-vista-previa" src={vistaPrevia} alt="Ecografía elegida" />}
+            <div>
+              <Text>Paciente</Text>
+              <PacienteSelect
+                placeholder="Buscar paciente por nombre o CI"
+                value={paciente?.id}
+                onChange={(id, p) => {
+                  setPaciente(id ? { id, nombre: p?.nombre_completo ?? `Paciente ${id}` } : null);
+                  setGuardadoEn(null);
+                }}
+              />
+              <Paragraph type="secondary" className="ia-sin-margen">
+                {paciente ? 'El análisis quedará en su historial.' : 'Sin paciente se analiza pero no se guarda.'}
+              </Paragraph>
+            </div>
             {tarea !== 'ovario-pco' && (
               <div>
                 <Text>Milímetros por píxel (opcional)</Text>
@@ -133,6 +168,7 @@ const EcografiaGinecologica: React.FC = () => {
         ) : (
           <Card title="Resultado">
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              {guardadoEn && <Alert type="success" showIcon message={`Guardado en el historial de ${guardadoEn}`} />}
               {resultado.malignidad && (
                 <Alert
                   // Sin alarma no es «verde»: la red no detecta todos los carcinomas.
@@ -180,9 +216,15 @@ const EcografiaGinecologica: React.FC = () => {
                 </Descriptions>
               )}
 
-              {resultado.superposicion_url && (
-                <Image src={urlMedia(resultado.superposicion_url)} alt="Ecografía con la lesión dibujada" />
-              )}
+              <Row gutter={8}>
+                {vistaPrevia && <Col span={12}><Text type="secondary">Original</Text><Image src={vistaPrevia} alt="Ecografía original" /></Col>}
+                {resultado.superposicion_url && (
+                  <Col span={12}>
+                    <Text type="secondary">Lo que vio la red</Text>
+                    <Image src={urlMedia(resultado.superposicion_url)} alt="Ecografía con la lesión dibujada" />
+                  </Col>
+                )}
+              </Row>
 
               {resultado.avisos.map((a) => <Alert key={a} type="info" message={a} />)}
 

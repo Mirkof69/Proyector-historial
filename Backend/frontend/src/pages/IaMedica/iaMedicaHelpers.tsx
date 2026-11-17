@@ -6,34 +6,49 @@ import {
   CheckCircleOutlined, WarningOutlined, CloseCircleOutlined,
   InfoCircleOutlined, FileTextOutlined, ExclamationCircleOutlined,
 } from '@ant-design/icons';
-import { ReporteNarrativoIA } from '../../services/iaMedicaService';
+import { InformeRedesMedidas, ReporteNarrativoIA } from '../../services/iaMedicaService';
 
 // ── Helpers puros de presentación (nivel de módulo: identidad estable) ───────
 export const renderResultBadge = (resultado: string) => {
   switch (resultado) {
     case 'normal':
       return <Tag color="success" icon={<CheckCircleOutlined />}>Normal</Tag>;
-    case 'anomalia_leve':
-    case 'anomalia_moderada':
-      return <Tag color="warning" icon={<WarningOutlined />}>Anomalía</Tag>;
-    case 'anomalia_grave':
+    // «Requiere revisión» es un aviso para el médico: salía como «Crítico» en rojo.
     case 'requiere_revision':
-      return <Tag color="error" icon={<CloseCircleOutlined />}>Crítico</Tag>;
+      return <Tag color="warning" icon={<WarningOutlined />}>Requiere revisión</Tag>;
+    case 'anomalia_leve':
+      return <Tag color="warning" icon={<WarningOutlined />}>Anomalía leve</Tag>;
+    case 'anomalia_moderada':
+      return <Tag color="orange" icon={<WarningOutlined />}>Anomalía moderada</Tag>;
+    case 'anomalia_grave':
+      return <Tag color="error" icon={<CloseCircleOutlined />}>Anomalía grave</Tag>;
     default:
       return <Tag color="default">Indeterminado</Tag>;
   }
 };
 
-export const getResultIcon = (resultado: string) => {
-  if (resultado === 'normal') return <CheckCircleOutlined className="result-icon" />;
-  if (['anomalia_grave', 'requiere_revision'].includes(resultado)) return <CloseCircleOutlined className="result-icon" />;
-  return <WarningOutlined className="result-icon" />;
-};
-
-export const getResultClass = (resultado: string) => {
-  if (resultado === 'normal') return 'normal';
-  if (['anomalia_grave', 'requiere_revision'].includes(resultado)) return 'danger';
-  return 'warning';
+/** El resultado en una frase: lo primero que lee el médico. */
+export const veredictoDelInforme = (informe: InformeRedesMedidas): {
+  tipo: 'success' | 'warning' | 'error'; titulo: string; detalle: string;
+} => {
+  const rotulo = informe.version_flujo?.startsWith('ginecologia') ? 'Análisis' : 'Plano';
+  const plano = `${rotulo}: ${informe.plano.plano} (${(informe.plano.confianza * 100).toFixed(1)} %).`;
+  const apoyo = 'Es apoyo a la decisión: el diagnóstico lo hace el médico.';
+  const anomalias = informe.anomalias_cerebrales;
+  if (anomalias?.alarma_anomalia) {
+    return {
+      tipo: 'error',
+      titulo: `Posible anomalía: ${anomalias.familia_sospechada_nombre ?? 'revisar con un especialista'}`,
+      detalle: `${plano} Probabilidad de anomalía ${(anomalias.probabilidad_anomalia * 100).toFixed(1)} %. Lo confirma un especialista.`,
+    };
+  }
+  if (informe.requiere_revision || informe.resultado === 'requiere_revision') {
+    return { tipo: 'warning', titulo: 'Requiere revisión del médico', detalle: `${plano} ${apoyo}` };
+  }
+  if (informe.resultado?.startsWith('anomalia')) {
+    return { tipo: 'error', titulo: 'Posible anomalía: revisar con un especialista', detalle: `${plano} ${apoyo}` };
+  }
+  return { tipo: 'success', titulo: 'Sin hallazgos en lo evaluado', detalle: `${plano} ${apoyo}` };
 };
 
 // Reporte narrativo de IA local (LLM con visión, Ollama). Los campos

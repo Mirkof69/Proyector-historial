@@ -6,7 +6,7 @@ import api from '../../../services/api';
 
 const mockApp = { message: { success: jest.fn(), error: jest.fn() } };
 jest.mock('../../../hooks/useMessage', () => ({ useAntdApp: () => mockApp }));
-jest.mock('../../../services/api', () => ({ __esModule: true, default: { post: jest.fn() }, API_URL: 'http://x/api' }));
+jest.mock('../../../services/api', () => ({ __esModule: true, default: { post: jest.fn(), get: jest.fn().mockResolvedValue({ data: { results: [] } }) }, API_URL: 'http://x/api' }));
 
 const elegirImagen = async () => {
   // antd esconde el <input type=file> sin rótulo accesible: no hay otra forma de alcanzarlo.
@@ -18,7 +18,19 @@ const elegirImagen = async () => {
 };
 
 describe('EcografiaGinecologica', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // jsdom no implementa las URL de objeto: la vista previa local de la imagen las usa.
+    URL.createObjectURL = jest.fn(() => 'blob:vista-previa');
+    URL.revokeObjectURL = jest.fn();
+  });
+
+  it('muestra la imagen elegida y avisa que sin paciente no se guarda', async () => {
+    render(<EcografiaGinecologica />);
+    await elegirImagen();
+    expect(await screen.findByAltText('Ecografía elegida')).toHaveAttribute('src', 'blob:vista-previa');
+    expect(screen.getByText('Sin paciente se analiza pero no se guarda.')).toBeInTheDocument();
+  });
 
   it('muestra la alarma de malignidad con la sensibilidad medida y el tipo probable', async () => {
     (api.post as jest.Mock).mockResolvedValue({ data: {

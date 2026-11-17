@@ -5,7 +5,7 @@ import {
 import { DownloadOutlined, ExperimentOutlined, FileTextOutlined } from '@ant-design/icons';
 import { InformeRedesMedidas, ReporteNarrativoIA } from '../../../services/iaMedicaService';
 import { API_URL } from '../../../services/api';
-import { renderNarrativeReport } from '../iaMedicaHelpers';
+import { renderNarrativeReport, veredictoDelInforme } from '../iaMedicaHelpers';
 
 const { Text, Paragraph } = Typography;
 
@@ -20,7 +20,10 @@ interface Props {
   onCerrar: () => void;
 }
 
-const urlMedia = (url?: string) => (!url ? '' : url.startsWith('http') ? url : `${API_URL.replace(/\/api\/?$/, '')}${url}`);
+export const urlMedia = (url?: string | null) => {
+  if (!url) return '';
+  return /^(https?:|data:|blob:)/.test(url) ? url : `${API_URL.replace(/\/api\/?$/, '')}${url}`;
+};
 
 const ETIQUETAS_MEDIDA: Record<string, string> = {
   circunferencia_cefalica_mm: 'Circunferencia cefálica',
@@ -38,6 +41,14 @@ const ETIQUETAS_MEDIDA: Record<string, string> = {
   fl_px: 'Longitud del fémur (px, sin escala)',
   tad_px: 'Diámetro transverso (px, sin escala)',
   apad_px: 'Diámetro anteroposterior (px, sin escala)',
+  lesion_ancho_mm: 'Ancho de la lesión',
+  lesion_alto_mm: 'Alto de la lesión',
+  lesion_ancho_px: 'Ancho de la lesión (px, sin escala)',
+  lesion_alto_px: 'Alto de la lesión (px, sin escala)',
+  ancho_mm: 'Ancho del mioma',
+  alto_mm: 'Alto del mioma',
+  ancho_px: 'Ancho del mioma (px, sin escala)',
+  alto_px: 'Alto del mioma (px, sin escala)',
 };
 
 const valorMedida = (clave: string, v: unknown, informe: InformeRedesMedidas): React.ReactNode => {
@@ -56,12 +67,124 @@ const valorMedida = (clave: string, v: unknown, informe: InformeRedesMedidas): R
   return String(v);
 };
 
+/** De quién es el análisis, cuándo se hizo y quién lo pidió (solo los guardados lo traen). */
+const DatosDelRegistro: React.FC<{ informe: InformeRedesMedidas }> = ({ informe }) => {
+  const { paciente } = informe;
+  if (!paciente) return null;
+  return (
+    <Descriptions bordered size="small" column={{ xs: 1, sm: 2, lg: 3 }} className="ia-informe-registro">
+      <Descriptions.Item label="Paciente">{paciente.nombre}</Descriptions.Item>
+      {paciente.ci && <Descriptions.Item label="CI">{paciente.ci}</Descriptions.Item>}
+      {paciente.edad != null && <Descriptions.Item label="Edad">{paciente.edad} años</Descriptions.Item>}
+      {informe.semana_gestacional != null && (
+        <Descriptions.Item label="Semana gestacional">{informe.semana_gestacional}</Descriptions.Item>
+      )}
+      {informe.fecha_analisis && (
+        <Descriptions.Item label="Fecha del análisis">
+          {new Date(informe.fecha_analisis).toLocaleString('es-BO')}
+        </Descriptions.Item>
+      )}
+      {informe.realizado_por && <Descriptions.Item label="Realizado por">{informe.realizado_por}</Descriptions.Item>}
+    </Descriptions>
+  );
+};
+
+interface ContenidoProps {
+  informe: InformeRedesMedidas;
+  imagenUrl: string;
+  /** La pantalla ya muestra el plano y el cribado cerebral en sus propias tarjetas. */
+  detalleAparte?: boolean;
+  reporteNarrativo?: ReporteNarrativoIA | null;
+}
+
 /**
- * Informe del análisis con las redes medidas (reemplaza al modal de la
- * EfficientNet-B4). Muestra la imagen con las estructuras que dibujó la red,
- * para que el médico vea DE DÓNDE sale cada medida, y declara qué red se usó y
- * cuánto acertó en pacientes que no vio.
+ * La vista del análisis: el veredicto arriba, la imagen con las estructuras que
+ * dibujó la red, para que el médico vea DE DÓNDE sale cada medida, y qué red se
+ * usó y cuánto acertó en pacientes que no vio. Es la misma recién analizada y
+ * reabierta desde el historial.
  */
+export const InformeAnalisisContenido: React.FC<ContenidoProps> = ({
+  informe, imagenUrl, detalleAparte, reporteNarrativo,
+}) => {
+  const medidas = Object.entries(informe.medidas).filter(([k]) => k in ETIQUETAS_MEDIDA);
+  const anomalias = informe.anomalias_cerebrales;
+  const veredicto = veredictoDelInforme(informe);
+
+  return (
+    <div className="ia-informe">
+      <Alert type={veredicto.tipo} showIcon message={<Text strong>{veredicto.titulo}</Text>} description={veredicto.detalle} />
+      <DatosDelRegistro informe={informe} />
+      {informe.hallazgos.map((h) => <Alert key={h} type="warning" showIcon message={h} />)}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={11}>
+          <Image.PreviewGroup>
+            <Row gutter={8}>
+              <Col span={12}><Text type="secondary">Original</Text><Image src={imagenUrl} alt="Ecografía original" /></Col>
+              <Col span={12}>
+                <Text type="secondary">Lo que vio la red</Text>
+                {informe.superposicion_url
+                  ? <Image src={urlMedia(informe.superposicion_url)} alt="Estructuras segmentadas" />
+                  : <Paragraph type="secondary">Sin segmentación para este plano.</Paragraph>}
+              </Col>
+            </Row>
+          </Image.PreviewGroup>
+          {!detalleAparte && (
+            <>
+              <Divider orientation="left">{informe.version_flujo?.startsWith('ginecologia') ? 'Clasificación' : 'Plano anatómico'}</Divider>
+              <Space direction="vertical" className="ia-ancho-completo">
+                <Text strong>{informe.plano.plano} · {(informe.plano.confianza * 100).toFixed(1)} %</Text>
+                {Object.entries(informe.plano.probabilidades).slice(0, 4).map(([p, v]) => (
+                  <div key={p}><Text type="secondary">{p}</Text><Progress percent={Math.round(v * 1000) / 10} size="small" /></div>
+                ))}
+              </Space>
+            </>
+          )}
+        </Col>
+        <Col xs={24} md={13} className="ia-informe">
+          <Descriptions title="Medidas" bordered size="small" column={1}>
+            {medidas.length ? medidas.map(([k, v]) => (
+              <Descriptions.Item key={k} label={ETIQUETAS_MEDIDA[k]}>{valorMedida(k, v, informe)}</Descriptions.Item>
+            )) : <Descriptions.Item label="—">Sin medidas para este plano</Descriptions.Item>}
+          </Descriptions>
+          {Object.keys(informe.estructuras_vistas).length > 0 && (
+            <div>
+              <Text strong>Estructuras: </Text>
+              {Object.entries(informe.estructuras_vistas).map(([e, vista]) => (
+                <Tag key={e} color={vista ? 'green' : 'default'}>{e}{vista ? '' : ' (no vista)'}</Tag>
+              ))}
+            </div>
+          )}
+          {!detalleAparte && anomalias?.aplicable && (
+            <Alert showIcon type={anomalias.alarma_anomalia ? 'error' : 'success'}
+              message={anomalias.alarma_anomalia
+                ? `Cribado cerebral: posible ${anomalias.familia_sospechada_nombre}`
+                : 'Cribado cerebral: sin anomalía visible'}
+              description={`Probabilidad de anomalía ${(anomalias.probabilidad_anomalia * 100).toFixed(1)} %${
+                anomalias.umbral != null ? ` (umbral ${anomalias.umbral * 100} %)` : ''}. Lo confirma un especialista.`} />
+          )}
+          {informe.avisos.length > 0 && (
+            <List size="small" header={<Text strong>Avisos</Text>} bordered
+              dataSource={informe.avisos} renderItem={(a) => <List.Item>{a}</List.Item>} />
+          )}
+          <Divider orientation="left">Redes usadas y su fiabilidad medida</Divider>
+          <List size="small" dataSource={informe.modelos_usados} renderItem={(m) => (
+            <List.Item>
+              <Space direction="vertical" size={0}>
+                <Text strong>{m.archivo}</Text>
+                <Text type="secondary">{m.dataset}{m.sha256 ? ` · huella ${m.sha256.slice(0, 12)}` : ''}</Text>
+              </Space>
+            </List.Item>
+          )} />
+          {informe.informe_texto && <Paragraph type="secondary">{informe.informe_texto}</Paragraph>}
+          {informe.tiempo_ms > 0 && <Text type="secondary">Tiempo de análisis: {informe.tiempo_ms} ms</Text>}
+        </Col>
+      </Row>
+      {reporteNarrativo && renderNarrativeReport(reporteNarrativo)}
+    </div>
+  );
+};
+
+/** El informe en una ventana: para abrir un análisis desde el historial. */
 const InformeAnalisisModal: React.FC<Props> = ({
   abierto, informe, imagenUrl, reporteNarrativo, generandoNarrativa, onGenerarNarrativa, onCerrar,
 }) => {
@@ -74,9 +197,6 @@ const InformeAnalisisModal: React.FC<Props> = ({
     a.click();
     URL.revokeObjectURL(a.href);
   };
-
-  const medidas = informe ? Object.entries(informe.medidas).filter(([k]) => k in ETIQUETAS_MEDIDA) : [];
-  const anomalias = informe?.anomalias_cerebrales;
 
   return (
     <Modal
@@ -94,74 +214,7 @@ const InformeAnalisisModal: React.FC<Props> = ({
         <Button key="cerrar" type="primary" onClick={onCerrar}>Cerrar</Button>,
       ].filter(Boolean)}
     >
-      {informe && (
-        <>
-          {informe.requiere_revision && (
-            <Alert type="warning" showIcon style={{ marginBottom: 12 }} message="Requiere revisión del médico" />
-          )}
-          {informe.hallazgos.map((h) => <Alert key={h} type="error" showIcon style={{ marginBottom: 8 }} message={h} />)}
-          <Row gutter={[16, 16]}>
-            <Col xs={24} md={11}>
-              <Image.PreviewGroup>
-                <Row gutter={8}>
-                  <Col span={12}><Text type="secondary">Original</Text><Image src={imagenUrl} alt="Ecografía original" /></Col>
-                  <Col span={12}>
-                    <Text type="secondary">Lo que vio la red</Text>
-                    {informe.superposicion_url
-                      ? <Image src={urlMedia(informe.superposicion_url)} alt="Estructuras segmentadas" />
-                      : <Paragraph type="secondary">Sin segmentación para este plano.</Paragraph>}
-                  </Col>
-                </Row>
-              </Image.PreviewGroup>
-              <Divider orientation="left">Plano anatómico</Divider>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Text strong>{informe.plano.plano} · {(informe.plano.confianza * 100).toFixed(1)} %</Text>
-                {Object.entries(informe.plano.probabilidades).slice(0, 4).map(([p, v]) => (
-                  <div key={p}><Text type="secondary">{p}</Text><Progress percent={Math.round(v * 1000) / 10} size="small" /></div>
-                ))}
-              </Space>
-            </Col>
-            <Col xs={24} md={13}>
-              <Descriptions title="Medidas" bordered size="small" column={1}>
-                {medidas.length ? medidas.map(([k, v]) => (
-                  <Descriptions.Item key={k} label={ETIQUETAS_MEDIDA[k]}>{valorMedida(k, v, informe)}</Descriptions.Item>
-                )) : <Descriptions.Item label="—">Sin medidas para este plano</Descriptions.Item>}
-              </Descriptions>
-              {Object.keys(informe.estructuras_vistas).length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <Text strong>Estructuras: </Text>
-                  {Object.entries(informe.estructuras_vistas).map(([e, vista]) => (
-                    <Tag key={e} color={vista ? 'green' : 'default'}>{e}{vista ? '' : ' (no vista)'}</Tag>
-                  ))}
-                </div>
-              )}
-              {anomalias?.aplicable && (
-                <Alert style={{ marginTop: 12 }} showIcon type={anomalias.alarma_anomalia ? 'error' : 'success'}
-                  message={anomalias.alarma_anomalia
-                    ? `Cribado cerebral: posible ${anomalias.familia_sospechada_nombre}`
-                    : 'Cribado cerebral: sin anomalía visible'}
-                  description={`Probabilidad de anomalía ${(anomalias.probabilidad_anomalia * 100).toFixed(1)} % (umbral ${anomalias.umbral * 100} %). Lo confirma un especialista.`} />
-              )}
-              {informe.avisos.length > 0 && (
-                <List size="small" style={{ marginTop: 12 }} header={<Text strong>Avisos</Text>} bordered
-                  dataSource={informe.avisos} renderItem={(a) => <List.Item>{a}</List.Item>} />
-              )}
-              <Divider orientation="left">Redes usadas y su fiabilidad medida</Divider>
-              <List size="small" dataSource={informe.modelos_usados} renderItem={(m) => (
-                <List.Item>
-                  <Space direction="vertical" size={0}>
-                    <Text strong>{m.archivo}</Text>
-                    <Text type="secondary">{m.dataset}{m.sha256 ? ` · huella ${m.sha256.slice(0, 12)}` : ''}</Text>
-                  </Space>
-                </List.Item>
-              )} />
-              <Paragraph type="secondary" style={{ marginTop: 8 }}>{informe.informe_texto}</Paragraph>
-              <Text type="secondary">Tiempo de análisis: {informe.tiempo_ms} ms</Text>
-            </Col>
-          </Row>
-          {reporteNarrativo && renderNarrativeReport(reporteNarrativo)}
-        </>
-      )}
+      {informe && <InformeAnalisisContenido informe={informe} imagenUrl={imagenUrl} reporteNarrativo={reporteNarrativo} />}
     </Modal>
   );
 };

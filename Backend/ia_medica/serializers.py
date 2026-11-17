@@ -14,6 +14,7 @@ from .models import (
     EstadisticasIA,
     ImagenEcografica,
     ModeloCNNConfig,
+    RegistroCardiotocografia,
 )
 
 # ── Serializers originales ─────────────────────────────────────────────────
@@ -246,9 +247,13 @@ class ImagenEcograficaListSerializer(serializers.ModelSerializer):
     def get_analisis_resultado(self, obj):
         """Get analisis resultado"""
         if hasattr(obj, "analisis_cnn"):
+            analisis = obj.analisis_cnn
             return {
-                "resultado": obj.analisis_cnn.resultado,
-                "confianza": obj.analisis_cnn.confianza_porcentaje,
+                "resultado": analisis.resultado,
+                "confianza": analisis.confianza_porcentaje,
+                "plano": (analisis.clases_detectadas or [None])[0],
+                "nivel_riesgo": analisis.nivel_riesgo,
+                "fecha": analisis.fecha_analisis,
             }
         return None
 
@@ -378,3 +383,31 @@ class ModeloCNNConfigListSerializer(serializers.ModelSerializer):
             "version",
             "clases_detectables",
         ]
+
+
+class RegistroCardiotocografiaSerializer(serializers.ModelSerializer):
+    """Cardiotocografía guardada: lo que se midió, lo que salió y quién la clasificó."""
+
+    paciente_nombre = serializers.CharField(source="paciente.nombre_completo", read_only=True)
+    clase_nombre = serializers.CharField(source="get_clase_display", read_only=True)
+    realizado_por_nombre = serializers.SerializerMethodField()
+    valores_etiquetados = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RegistroCardiotocografia
+        fields = [
+            "id", "paciente", "paciente_nombre", "embarazo", "semana_gestacional", "valores",
+            "valores_etiquetados", "clase",
+            "clase_nombre", "probabilidades", "advertencias", "modelo_version", "realizado_por_nombre", "fecha",
+        ]
+        read_only_fields = fields
+
+    def get_realizado_por_nombre(self, obj):
+        return obj.realizado_por.nombre_completo if obj.realizado_por else None
+
+    def get_valores_etiquetados(self, obj):
+        """Los valores con su nombre clínico, en el orden del formulario."""
+        from .ml.cardiotocografia import VARIABLES
+
+        return [{"clave": clave, "etiqueta": etiqueta, "unidad": unidad, "valor": obj.valores[clave]}
+                for clave, etiqueta, unidad, *_ in VARIABLES.values() if clave in obj.valores]

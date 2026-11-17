@@ -96,6 +96,17 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
         if estado:
             qs = qs.filter(estado=estado)
 
+        resultado = self.request.query_params.get("resultado")
+        if resultado:
+            qs = qs.filter(analisis_cnn__resultado=resultado)
+
+        if self.request.query_params.get("analizadas"):
+            qs = qs.filter(analisis_cnn__isnull=False)
+
+        if self.action == "list":
+            # La imagen del análisis pesa cerca de 1 MB en base64: traerla por cada
+            # fila cargaba 200 MB en memoria para una galería que no la muestra.
+            qs = qs.defer("analisis_cnn__mapa_calor")
         return qs
 
     def get_serializer_class(self):
@@ -131,6 +142,15 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
                 else "jpg"
             )
             extra_data["formato"] = ext
+
+        # Sin semana indicada se toma la del embarazo activo: el historial la muestra.
+        paciente = serializer.validated_data["paciente"]
+        if not serializer.validated_data.get("semana_gestacional"):
+            embarazo = paciente.embarazos.filter(estado="activo").first()
+            if embarazo and embarazo.fecha_ultima_menstruacion:
+                semana = (timezone.localdate() - embarazo.fecha_ultima_menstruacion).days // 7
+                if 0 < semana <= 42:
+                    extra_data["semana_gestacional"] = semana
 
         # Guardar imagen
         instancia = serializer.save(**extra_data)
@@ -367,6 +387,20 @@ class ImagenEcograficaViewSet(viewsets.ModelViewSet):
                 "analisis": serializer.data,
             },
         )
+
+    @action(detail=True, methods=["get"], url_path="informe")
+    def informe(self, request, pk=None):
+        """El análisis guardado, con la misma forma que recién hecho, para reabrirlo."""
+        from .services.result_mapping import informe_guardado
+
+        instancia = self.get_object()
+        analisis = getattr(instancia, "analisis_cnn", None)
+        if analisis is None:
+            return Response(
+                {"error": "Esta imagen aún no ha sido analizada.", "estado": instancia.estado},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(informe_guardado(instancia, analisis))
 
     @action(detail=False, methods=["get"], url_path="estadisticas")
     def estadisticas(self, request):
