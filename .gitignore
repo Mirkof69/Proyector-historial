@@ -157,3 +157,8 @@ Backend/Microservicio_IA/entrenamiento/senales/salidas/*/*
 Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/*
 !Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/metricas.json
 !Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/historia.json
+
+# Acceso remoto: binarios descargados, sus registros y respaldos del .env (llevan secretos)
+tools_remoto/*.exe
+tools_remoto/logs/
+tools_remoto/.env.backup_remoto

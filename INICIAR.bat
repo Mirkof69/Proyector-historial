@@ -139,7 +139,15 @@ echo [8/8] Arrancando servicios...
 if /i "%MODO%"=="desarrollo" goto servicios_desarrollo
 :: API en waitress (WSGI): p95 < 200 ms medido. WebSockets en uvicorn con 1
 :: worker (con 2, en Windows, conexiones colgadas). DEBUG=False en produccion.
-start "Fetal Medical - API (8000)" /min cmd /k "cd /d "%BACK%" && set DEBUG=False&& set REDIS_URL=%REDIS_URL%&& .venv\Scripts\python.exe -m waitress --host=0.0.0.0 --port=8000 --threads=32 wsgi:application"
+:: --connection-limit=480: waitress acepta 100 conexiones por defecto y, con
+:: 100 abiertas (cada navegador deja las suyas vivas 120 s), deja de aceptar
+:: nuevas: en la prueba de carga del 29/10/2026 los usuarios 101 a 150 no
+:: pudieron ni iniciar sesion. 480 y no mas porque en Windows select() no
+:: admite mas de 512 sockets (quedan el de escucha y el de aviso).
+:: --trusted-proxy: waitress borra X-Forwarded-* de quien no es de confianza. Solo
+:: el proxy de este equipo (publicacion por tunel) puede indicar IP real y https;
+:: un equipo de la red que los invente no cambia nada.
+start "Fetal Medical - API (8000)" /min cmd /k "cd /d "%BACK%" && set DEBUG=False&& set REDIS_URL=%REDIS_URL%&& .venv\Scripts\python.exe -m waitress --host=0.0.0.0 --port=8000 --threads=32 --connection-limit=480 --trusted-proxy=127.0.0.1 --trusted-proxy-headers="x-forwarded-for x-forwarded-proto" wsgi:application"
 start "Fetal Medical - Notificaciones (8010)" /min cmd /k "cd /d "%BACK%" && set DEBUG=False&& set REDIS_URL=%REDIS_URL%&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 0.0.0.0 --port 8010 --workers 1"
 if not defined SIN_IA start "Fetal Medical - IA (8001)" /min cmd /k "cd /d "%BACK%\Microservicio_IA" && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
 start "Fetal Medical - Frontend (3000)" /min cmd /k "cd /d "%BACK%\frontend" && "%PY%" servir_produccion.py 3000"
