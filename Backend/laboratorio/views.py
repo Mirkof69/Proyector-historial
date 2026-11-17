@@ -65,7 +65,9 @@ class TipoExamenViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filtrar queryset según parámetros"""
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related("created_by", "updated_by").annotate(
+            total_examenes_anotado=Count("examenes"),
+        )
 
         # Filtrar solo activos si se especifica
         solo_activos = self.request.query_params.get("solo_activos", None)

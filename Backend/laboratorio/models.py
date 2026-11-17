@@ -515,6 +515,18 @@ class ValorReferencia(models.Model):
                 "es_normal": True,
                 "mensaje": "No hay rangos de referencia definidos",
             }
+        # Sin límites críticos configurados, crítico es caer un 30 % fuera del
+        # rango normal. Antes esa regla solo la usaba el aviso a la médica: el
+        # aviso decía «CRÍTICO» y la ficha del resultado, «fuera de rango».
+        sin_limites = self.es_critico_bajo is None and self.es_critico_alto is None
+        if sin_limites and ((minimo is not None and valor < float(minimo) * 0.7)
+                            or (maximo is not None and valor > float(maximo) * 1.3)):
+            return {
+                "estado": "critico_alto" if maximo is not None and valor > float(maximo) else "critico_bajo",
+                "es_critico": True,
+                "es_normal": False,
+                "mensaje": f"Valor crítico: {valor} (normal: {self.rango_texto()})",
+            }
         if (minimo is not None and valor < float(minimo)) or (maximo is not None and valor > float(maximo)):
             return {
                 "estado": "anormal",

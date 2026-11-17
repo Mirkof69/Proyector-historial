@@ -54,20 +54,42 @@ def validar_control(sender, instance, **kwargs):
             instance.peso_pregestacional = instance.embarazo.peso_pregestacional
 
 
+#: Gravedad máxima del control → (tipo, prioridad y título del aviso). Antes
+#: todo hallazgo era «Alerta Crítica»: 4.352 avisos críticos por 7.033 controles.
+AVISO_POR_GRAVEDAD = {
+    "emergencia": (TipoNotificacion.ALERTA_CRITICA, PrioridadNotificacion.CRITICA, "Alerta Crítica en Control Prenatal"),
+    "critica": (TipoNotificacion.ALERTA_CRITICA, PrioridadNotificacion.CRITICA, "Alerta Crítica en Control Prenatal"),
+    "alta": (TipoNotificacion.ALERTA_ADVERTENCIA, PrioridadNotificacion.ALTA, "Alerta en Control Prenatal"),
+    "media": (TipoNotificacion.ALERTA_ADVERTENCIA, PrioridadNotificacion.NORMAL, "Hallazgo en Control Prenatal"),
+}
+#: Hallazgos que vuelven de alto riesgo al embarazo: todo trastorno hipertensivo
+#: y lo que tenga gravedad alta o mayor. Una proteinuria de una cruz o un edema
+#: sin hipertensión se vigilan, pero no reclasifican.
+GRAVEDADES_DE_ALTO_RIESGO = ("alta", "critica", "emergencia")
+
+
+def _alertas_rf06(control):
+    return [a for a in control.get_alertas() if a["tipo"] == "critico"]
+
+
 @receiver(post_save, sender=ControlPrenatal)
 def detectar_anomalias_control(sender, instance, created, **kwargs):
-    """Notifica al médico ante alertas críticas del control (hipertensión, FCF, etc.)."""
-    alertas_criticas = [a for a in instance.get_alertas() if a["tipo"] == "critico"]
-    if not alertas_criticas:
+    """Notifica al médico las alertas del control con la prioridad de su gravedad."""
+    alertas = _alertas_rf06(instance)
+    if not alertas:
         return
+    from .models import ORDEN_GRAVEDAD
+
+    gravedad = max((a["gravedad"] for a in alertas), key=ORDEN_GRAVEDAD.index)
+    tipo, prioridad, titulo = AVISO_POR_GRAVEDAD.get(gravedad, AVISO_POR_GRAVEDAD["media"])
     nombre = getattr(getattr(instance, "paciente", None), "nombre_completo", "paciente")
-    detalle = "\n".join(f"- {a['mensaje']}: {a['valor']}" for a in alertas_criticas)
+    detalle = "\n".join(f"- {a['mensaje']}: {a['valor']}" for a in alertas)
     crear_notificacion_clinica(
         destinatario_preferido=_medico_del_control(instance),
-        tipo=TipoNotificacion.ALERTA_CRITICA,
-        prioridad=PrioridadNotificacion.CRITICA,
-        titulo="Alerta Crítica en Control Prenatal",
-        mensaje=f"Alertas críticas en el control de {nombre}:\n{detalle}",
+        tipo=tipo,
+        prioridad=prioridad,
+        titulo=titulo,
+        mensaje=f"Alertas en el control de {nombre}:\n{detalle}",
         entidad_tipo="control",
         entidad_id=instance.id,
         url=f"/dashboard/controles/{instance.id}",
@@ -97,8 +119,11 @@ def programar_proximo_control(control):
 
 @receiver(post_save, sender=ControlPrenatal)
 def actualizar_clasificacion_riesgo_embarazo(sender, instance, created, **kwargs):
-    """Si el control revela alertas críticas, reclasifica el embarazo a ALTO riesgo y avisa."""
-    if not instance.embarazo or not instance.tiene_alertas_criticas():
+    """Si el control revela un hallazgo de alto riesgo, reclasifica el embarazo y avisa."""
+    if not instance.embarazo:
+        return
+    if not any(a["categoria"] == "presion_arterial" or a["gravedad"] in GRAVEDADES_DE_ALTO_RIESGO
+               for a in _alertas_rf06(instance)):
         return
     if instance.embarazo.riesgo_embarazo != "alto":
         instance.embarazo.riesgo_embarazo = "alto"

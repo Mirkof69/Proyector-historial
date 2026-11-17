@@ -6,7 +6,6 @@ se solicita/completa o cuando un resultado es crítico. Antes estaban DESCONECTA
 notificaciones.services.crear_notificacion_clinica, que resuelve destinatario,
 audita y difunde.
 """
-from decimal import Decimal
 
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -130,20 +129,15 @@ def examen_completado(sender, instance, created, **kwargs):
 
 
 def verificar_resultado_critico(resultado):
-    """True si el resultado es crítico según SU parámetro.
+    """True si el resultado es crítico según SU parámetro: lo decide
+    `ValorReferencia.evaluar_valor` (límites críticos o, sin ellos, 30 % fuera
+    del rango), la misma regla que marca la ficha del resultado.
 
-    Con límites críticos configurados manda `es_critico` (lo calcula
-    `interpretar_resultado` con esos límites). Sin ellos, crítico es caer un
-    30 % fuera del rango normal del mismo parámetro. Antes se comparaba con el
-    primer parámetro del tipo de examen: una hemoglobina de 11,9 g/dL se medía
-    contra los basófilos (0-1 %) y salía «CRÍTICO».
+    Antes se comparaba con el primer parámetro del tipo de examen: una
+    hemoglobina de 11,9 g/dL se medía contra los basófilos (0-1 %) y salía
+    «CRÍTICO». Y después usaba una regla distinta a la de la ficha.
     """
     rango = getattr(resultado, "valor_referencia", None)
     if resultado.valor_numerico is None or not rango:
         return False
-    if rango.es_critico_bajo is not None or rango.es_critico_alto is not None:
-        return bool(resultado.es_critico)
-    valor = Decimal(str(resultado.valor_numerico))
-    if rango.valor_minimo is not None and valor < rango.valor_minimo * Decimal("0.7"):
-        return True
-    return bool(rango.valor_maximo is not None and valor > rango.valor_maximo * Decimal("1.3"))
+    return bool(rango.evaluar_valor(resultado.valor_numerico).get("es_critico"))

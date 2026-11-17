@@ -37,21 +37,58 @@ _MODELO_ENTIDAD = {
 }
 
 
-def enlace_de(obj, usuario=None) -> str:
-    """Ruta del frontend que abre lo que la notificación anuncia."""
+def entidades_existentes(notificaciones) -> dict:
+    """Qué registros enlazados siguen existiendo, en UNA consulta por tipo.
+
+    `enlace_de` preguntaba fila por fila (`exists()` o el examen del
+    resultado): una página de 200 notificaciones costaba 202 consultas. Esto
+    devuelve {entidad: {ids que existen}} y, para los resultados de
+    laboratorio, {"resultado_laboratorio": {resultado_id: examen_id}}.
+    """
+    ids: dict[str, set] = {}
+    for n in notificaciones:
+        if n.entidad_id and (n.entidad_tipo in _RUTA_ENTIDAD or n.entidad_tipo == "resultado_laboratorio"):
+            ids.setdefault(n.entidad_tipo, set()).add(n.entidad_id)
+    existentes: dict = {}
+    for entidad, grupo in ids.items():
+        if entidad == "resultado_laboratorio":
+            from laboratorio.models import ResultadoLaboratorio
+
+            existentes[entidad] = dict(
+                ResultadoLaboratorio.objects.filter(pk__in=grupo).values_list("pk", "examen_id"),
+            )
+        else:
+            modelo = apps.get_model(*_MODELO_ENTIDAD[entidad].split("."))
+            existentes[entidad] = set(modelo.objects.filter(pk__in=grupo).values_list("pk", flat=True))
+    return existentes
+
+
+def enlace_de(obj, usuario=None, existentes: dict | None = None) -> str:
+    """Ruta del frontend que abre lo que la notificación anuncia.
+
+    `existentes` (de `entidades_existentes`) evita consultar la base por cada
+    notificación de un listado; sin él se consulta esta sola.
+    """
 
     entidad, eid = obj.entidad_tipo, obj.entidad_id
     if entidad == "resultado_laboratorio" and eid:
-        from laboratorio.models import ResultadoLaboratorio
+        if existentes is not None:
+            examen = existentes.get(entidad, {}).get(eid)
+        else:
+            from laboratorio.models import ResultadoLaboratorio
 
-        examen = ResultadoLaboratorio.objects.filter(pk=eid).values_list("examen_id", flat=True).first()
+            examen = ResultadoLaboratorio.objects.filter(pk=eid).values_list("examen_id", flat=True).first()
         if examen:
             return f"/dashboard/laboratorio/{examen}"
     if entidad in _RUTA_ENTIDAD and eid:
         # Si el registro ya no existe (p. ej. lo borró la limpieza de pruebas),
         # se abre la bandeja en vez de una pantalla que da 404.
-        modelo = apps.get_model(*_MODELO_ENTIDAD[entidad].split("."))
-        if not modelo.objects.filter(pk=eid).exists():
+        if existentes is not None:
+            existe = eid in existentes.get(entidad, set())
+        else:
+            modelo = apps.get_model(*_MODELO_ENTIDAD[entidad].split("."))
+            existe = modelo.objects.filter(pk=eid).exists()
+        if not existe:
             return "/dashboard/notificaciones"
         if entidad == "paciente" and usuario is not None and not usuario.has_perm("controles.view_controlprenatal"):
             return f"/dashboard/pacientes/{eid}"  # recepción no abre la historia clínica
@@ -65,6 +102,18 @@ def enlace_de(obj, usuario=None) -> str:
     if url.startswith("/") and not url.startswith("/dashboard"):
         return "/dashboard" + url
     return url or "/dashboard/notificaciones"
+
+class _ListaConEnlaces(serializers.ListSerializer):
+    """Listado de notificaciones que resuelve los enlaces de toda la página junta."""
+
+    def to_representation(self, data):
+        filas = list(data.all() if hasattr(data, "all") else data)
+        self.child._existentes = entidades_existentes(filas)
+        try:
+            return [self.child.to_representation(fila) for fila in filas]
+        finally:
+            self.child._existentes = None
+
 
 class NotificacionSerializer(serializers.ModelSerializer):
     """Serializer completo para Notificaciones"""
@@ -83,6 +132,7 @@ class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
         """Meta"""
         model = Notificacion
+        list_serializer_class = _ListaConEnlaces
         fields = [
             "id",
             "usuario",
@@ -124,7 +174,7 @@ class NotificacionSerializer(serializers.ModelSerializer):
 
     def get_enlace(self, obj):
         request = self.context.get("request")
-        return enlace_de(obj, getattr(request, "user", None))
+        return enlace_de(obj, getattr(request, "user", None), getattr(self, "_existentes", None))
 
 
 class NotificacionListSerializer(serializers.ModelSerializer):
@@ -137,6 +187,7 @@ class NotificacionListSerializer(serializers.ModelSerializer):
     class Meta:
         """Meta"""
         model = Notificacion
+        list_serializer_class = _ListaConEnlaces
         fields = [
             "id",
             "tipo",
@@ -160,7 +211,7 @@ class NotificacionListSerializer(serializers.ModelSerializer):
 
     def get_enlace(self, obj):
         request = self.context.get("request")
-        return enlace_de(obj, getattr(request, "user", None))
+        return enlace_de(obj, getattr(request, "user", None), getattr(self, "_existentes", None))
 
 
 class NotificacionCreateSerializer(serializers.ModelSerializer):

@@ -5,7 +5,7 @@ ViewSets para antecedentes gineco-obstétricos y patológicos
 =============================================================================
 """
 
-from django.db.models import Q
+from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -61,6 +61,16 @@ class AntecedenteGinecoObstetricoViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Asigna usuario que modifica al actualizar"""
         serializer.save(modificado_por=self.request.user)
+
+    @action(detail=False, methods=["get"])
+    def resumen(self, _request):
+        """Cifras de TODOS los antecedentes (el listado trae solo la página visible)."""
+        return Response(AntecedenteGinecoObstetrico.objects.aggregate(
+            total=Count("id"),
+            con_gestas=Count("id", filter=Q(gestas__gt=0)),
+            con_partos=Count("id", filter=Q(partos__gt=0)),
+            con_abortos=Count("id", filter=Q(abortos__gt=0)),
+        ))
 
     @action(detail=False, methods=["get"])
     def by_paciente(self, request):

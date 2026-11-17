@@ -50,7 +50,10 @@ class TipoExamenSerializer(serializers.ModelSerializer):
 
     def get_total_examenes(self, obj):
         """Contar cuántos exámenes se han realizado de este tipo"""
-        return obj.examenes.count()
+        # El listado lo trae anotado (TipoExamenViewSet.get_queryset): contar
+        # aquí era una consulta por tipo de examen.
+        anotado = getattr(obj, "total_examenes_anotado", None)
+        return anotado if anotado is not None else obj.examenes.count()
 
     def get_created_by_nombre(self, obj):
         """Obtener nombre del usuario que creó"""

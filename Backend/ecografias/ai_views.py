@@ -188,6 +188,7 @@ def analyze_ultrasound_with_ai(request):
             # acababa en la ecografía de otra paciente. Ese guardado se quitó.
 
             # Guardar resultados en ia_medica.ImagenEcografica / AnalisisCNN
+            guardado = False
             if ecografia_id:
                 try:
                     from ia_medica.models import AnalisisCNN
@@ -205,6 +206,7 @@ def analyze_ultrasound_with_ai(request):
 
                     imagen_ia.estado = "analizada"
                     imagen_ia.save(update_fields=["estado"])
+                    guardado = True
 
                     logger.info(
                         "IA analysis saved to AnalisisCNN id=%s (resultado=%s, %s) "
@@ -253,6 +255,7 @@ def analyze_ultrasound_with_ai(request):
                     "status": "success",
                     "ai_analysis": preparar_respuesta_ia(ai_results),
                     "message": "Análisis de IA completado exitosamente",
+                    "guardado": guardado,
                 },
                 status=status.HTTP_200_OK,
             )

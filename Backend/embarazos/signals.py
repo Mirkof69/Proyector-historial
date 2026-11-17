@@ -70,16 +70,34 @@ def embarazo_finalizado(sender, instance, created, **_kwargs):
     )
 
 
+@receiver(pre_save, sender=Embarazo)
+def recordar_riesgo_anterior(sender, instance, **_kwargs):
+    """Guarda el riesgo con que estaba el embarazo, para avisar solo si cambia."""
+    instance._riesgo_anterior = (
+        Embarazo.objects.filter(pk=instance.pk).values_list("riesgo_embarazo", flat=True).first()
+        if instance.pk else None
+    )
+
+
 @receiver(post_save, sender=Embarazo)
-def alertar_embarazo_alto_riesgo(sender, instance, created, **_kwargs):
-    """Alerta crítica cuando el embarazo se clasifica de alto riesgo.
+def alertar_embarazo_alto_riesgo(sender, instance, created, update_fields=None, **_kwargs):
+    """Alerta crítica cuando el embarazo PASA a alto riesgo.
 
     Antes exigía `and instance.medico_responsable`: si el embarazo no tenía
     médico asignado, la alerta CRÍTICA simplemente no se emitía y nadie se
     enteraba. Ahora el destinatario se resuelve con fallback, que es
     justamente para lo que existe.
+
+    Y se emitía en CADA guardado de un embarazo ya de alto riesgo (al cerrarlo,
+    al editar una nota…): 1.620 avisos críticos repetidos en la carga. Ahora
+    solo al crearlo así o al cambiar a alto. Si lo reclasifica un control
+    (`update_fields={"riesgo_embarazo"}`), ese ya avisa con el motivo.
     """
     if instance.riesgo_embarazo != "alto":
+        return
+    if not created and getattr(instance, "_riesgo_anterior", None) == "alto":
+        return
+    if update_fields and set(update_fields) == {"riesgo_embarazo"}:
         return
     crear_notificacion_clinica(
         destinatario_preferido=instance.medico_responsable,

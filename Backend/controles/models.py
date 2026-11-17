@@ -44,6 +44,10 @@ PROTEINURIA_CHOICES = [
 ]
 
 
+#: De menor a mayor. La alerta médica y el aviso toman la prioridad de aquí.
+ORDEN_GRAVEDAD = ["baja", "media", "alta", "critica", "emergencia"]
+
+
 class ControlPrenatal(models.Model):
     """Modelo COMPLETO para registro de controles prenatales
     Almacena signos vitales, mediciones obstétricas y evaluación clínica
@@ -522,6 +526,11 @@ class ControlPrenatal(models.Model):
 
         return resultado
 
+    def hipertension_severa(self):
+        """PA ≥ 160/110: rango severo (criterio de preeclampsia con signos de gravedad)."""
+        return bool(self.presion_arterial_sistolica and self.presion_arterial_diastolica and (
+            self.presion_arterial_sistolica >= 160 or self.presion_arterial_diastolica >= 110))
+
     def get_alertas(self):
         """Retorna lista de alertas detectadas.
 
@@ -529,24 +538,40 @@ class ControlPrenatal(models.Model):
         proteinuria positiva, edema severo, movimientos ausentes): una PA de
         139/89 no alerta. La pre-hipertensión se alertaba aquí pero el listado
         decía «Sin alertas» (BUG-003).
+
+        Cada alerta lleva su `gravedad` (media, alta, critica o emergencia).
+        Antes todas valían lo mismo: una PA de 142/91 o una proteinuria de una
+        cruz llegaban como «crítica», igual que 170/115 o la ausencia de
+        movimientos fetales, y el 62 % de los embarazos acababa en alto riesgo.
         """
         alertas = []
+        hta = self.tiene_hipertension()
+        proteinuria = self.proteinuria in ["positiva_1", "positiva_2", "positiva_3", "positiva_4"]
 
-        if self.tiene_hipertension():
+        if hta:
+            if self.hipertension_severa():
+                gravedad, mensaje = "critica", "HIPERTENSIÓN SEVERA"
+            elif proteinuria:
+                gravedad, mensaje = "alta", "HIPERTENSIÓN CON PROTEINURIA"
+            else:
+                gravedad, mensaje = "media", "HIPERTENSIÓN DETECTADA"
             alertas.append(
                 {
                     "tipo": "critico",
+                    "gravedad": gravedad,
                     "categoria": "presion_arterial",
-                    "mensaje": "HIPERTENSIÓN DETECTADA",
+                    "mensaje": mensaje,
                     "valor": f"{self.presion_arterial_sistolica}/{self.presion_arterial_diastolica} mmHg",
                     "recomendacion": "Evaluar preeclampsia. Considerar hospitalización.",
                 },
             )
 
         if self.fcf_es_anormal():
+            extrema = self.frecuencia_cardiaca_fetal < 100 or self.frecuencia_cardiaca_fetal > 180
             alertas.append(
                 {
                     "tipo": "critico",
+                    "gravedad": "critica" if extrema else "alta",
                     "categoria": "fcf",
                     "mensaje": "FCF ANORMAL",
                     "valor": f"{self.frecuencia_cardiaca_fetal} lpm",
@@ -558,6 +583,7 @@ class ControlPrenatal(models.Model):
             alertas.append(
                 {
                     "tipo": "critico",
+                    "gravedad": "alta" if hta or self.edema == "generalizado" else "media",
                     "categoria": "edema",
                     "mensaje": "EDEMA SEVERO",
                     "valor": getattr(self, 'get_edema_display')(),
@@ -565,11 +591,12 @@ class ControlPrenatal(models.Model):
                 },
             )
 
-        if self.proteinuria in ["positiva_1", "positiva_2", "positiva_3", "positiva_4"]:
+        if proteinuria:
             nivel = getattr(self, 'get_proteinuria_display')()
             alertas.append(
                 {
                     "tipo": "critico",
+                    "gravedad": "alta" if hta or self.proteinuria in ("positiva_3", "positiva_4") else "media",
                     "categoria": "proteinuria",
                     "mensaje": f"PROTEINURIA POSITIVA ({nivel})",
                     "valor": nivel,
@@ -581,6 +608,7 @@ class ControlPrenatal(models.Model):
             alertas.append(
                 {
                     "tipo": "critico",
+                    "gravedad": "emergencia",
                     "categoria": "movimientos",
                     "mensaje": "MOVIMIENTOS FETALES AUSENTES",
                     "valor": "Ausentes",
@@ -615,6 +643,7 @@ class ControlPrenatal(models.Model):
             alertas.append(
                 {
                     "tipo": "critico",
+                    "gravedad": "alta" if float(self.temperatura) >= 39 else "media",
                     "categoria": "temperatura",
                     "mensaje": "FIEBRE",
                     "valor": f"{self.temperatura} °C",
@@ -629,6 +658,7 @@ class ControlPrenatal(models.Model):
                     "tipo": "critico"
                     if riesgo_pe["nivel"] == "ALTO"
                     else "advertencia",
+                    "gravedad": "alta" if riesgo_pe["nivel"] == "ALTO" else "media",
                     "categoria": "preeclampsia",
                     "mensaje": f"RIESGO {riesgo_pe['nivel']} DE PREECLAMPSIA",
                     "valor": f"{riesgo_pe['puntuacion']} puntos",
@@ -636,7 +666,14 @@ class ControlPrenatal(models.Model):
                 },
             )
 
+        for alerta in alertas:  # las nutricionales: baja
+            alerta.setdefault("gravedad", "baja")
         return alertas
+
+    def gravedad_maxima(self) -> str | None:
+        """La gravedad más alta de las alertas del control (None si no hay)."""
+        gravedades = [a["gravedad"] for a in self.get_alertas()]
+        return max(gravedades, key=ORDEN_GRAVEDAD.index) if gravedades else None
 
     def generar_reporte_completo(self):
         """Genera un reporte completo del control"""

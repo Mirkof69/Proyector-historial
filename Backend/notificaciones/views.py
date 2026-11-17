@@ -72,6 +72,12 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         prioridad = self.request.query_params.get("prioridad", None)
         leida = self.request.query_params.get("leida", None)
         archivada = self.request.query_params.get("archivada", None)
+        desde = self.request.query_params.get("fecha_desde", None)
+        hasta = self.request.query_params.get("fecha_hasta", None)
+        if desde:
+            queryset = queryset.filter(fecha_creacion__date__gte=desde)
+        if hasta:
+            queryset = queryset.filter(fecha_creacion__date__lte=hasta)
 
         if tipo:
             queryset = queryset.filter(tipo=tipo)
