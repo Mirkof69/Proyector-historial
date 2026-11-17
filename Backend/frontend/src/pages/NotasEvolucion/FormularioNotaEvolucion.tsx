@@ -348,6 +348,7 @@ const FormularioNotaEvolucion: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          disabled={loading}
           onValuesChange={handleValuesChange}
           autoComplete="off"
           initialValues={{

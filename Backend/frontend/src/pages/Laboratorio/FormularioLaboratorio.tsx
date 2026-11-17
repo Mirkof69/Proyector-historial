@@ -43,6 +43,8 @@ const FormularioLaboratorio: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [form] = Form.useForm();
   const isEditing = !!id;
+  // Bloqueado hasta que llega el registro: lo escrito antes lo pisaban los datos al llegar.
+  const [cargandoRegistro, setCargandoRegistro] = useState(isEditing);
 
   const [loading, setLoading] = useState(false);
   const loadingDataRef = useRef(isEditing);
@@ -115,6 +117,7 @@ const FormularioLaboratorio: React.FC = () => {
       navigate(FRONTEND_ROUTES.DASHBOARD.LABORATORIO);
     } finally {
       loadingDataRef.current = false;
+      setCargandoRegistro(false);
     }
   }, [id, navigate, handleTipoExamenChange, calcularEstadisticas, form]);
 
@@ -262,6 +265,7 @@ const FormularioLaboratorio: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={onFinish}
+          disabled={cargandoRegistro}
           initialValues={{
             fecha_solicitud: dayjs(),
             estado: 'solicitado',

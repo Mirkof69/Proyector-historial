@@ -73,7 +73,7 @@ const TiposVacuna: React.FC = () => {
           columns={columns}
           dataSource={tipos}
           rowKey="id"
-          pagination={{ pageSize: 20 }}
+          pagination={{ defaultPageSize: 20 }}
           locale={{ emptyText: 'No hay tipos de vacuna registrados' }}
           scroll={{ x: 760 }}
         />

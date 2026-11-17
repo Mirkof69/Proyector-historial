@@ -239,7 +239,7 @@ const TabTratamientos: React.FC<TabTratamientosProps> = ({ tratamientos, setModa
           ),
         }}
         pagination={{
-          pageSize: 10,
+          defaultPageSize: 10,
           showSizeChanger: true,
           showTotal: (total) => `Total: ${total} tratamientos`,
         }}

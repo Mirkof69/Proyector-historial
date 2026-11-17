@@ -61,7 +61,7 @@ const TiposExamen: React.FC = () => {
         dataSource={tipos}
         rowKey="id"
         loading={loading}
-        pagination={{ pageSize: 20 }}
+        pagination={{ defaultPageSize: 20 }}
         locale={{ emptyText: 'No hay tipos de examen registrados' }}
         scroll={{ x: 720 }}
       />

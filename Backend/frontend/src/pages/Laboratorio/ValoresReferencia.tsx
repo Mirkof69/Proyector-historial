@@ -69,7 +69,7 @@ const ValoresReferencia: React.FC = () => {
         dataSource={valores}
         rowKey={(r) => r.id || r.parametro}
         loading={loading}
-        pagination={{ pageSize: 20 }}
+        pagination={{ defaultPageSize: 20 }}
         locale={{ emptyText: 'No hay valores de referencia registrados' }}
         scroll={{ x: 720 }}
       />

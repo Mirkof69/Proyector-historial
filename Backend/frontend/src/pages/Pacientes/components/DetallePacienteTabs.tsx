@@ -1,12 +1,14 @@
 import React from 'react';
 import {
-  Card, Descriptions, Tabs, Button, Table, Tag, Timeline, Empty, Tooltip as AntTooltip,
+  Card, Descriptions, Tabs, Button, Table, Tag, Timeline, Empty, Space, Tooltip as AntTooltip,
 } from 'antd';
 import {
   MedicineBoxOutlined, DashboardOutlined, FileTextOutlined, SafetyOutlined,
   ScanOutlined, ExperimentOutlined, LineChartOutlined, RobotOutlined, EyeOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import HistorialAnalisisIA from '../../IaMedica/components/HistorialAnalisisIA';
+import HistorialCardiotocografias from '../../IaMedica/components/HistorialCardiotocografias';
 import { columnsEmbarazos, columnsTriajes, columnsNotas, columnsVacunas } from '../detallePacienteColumns';
 
 interface DetallePacienteTabsProps {
@@ -16,11 +18,12 @@ interface DetallePacienteTabsProps {
   vacunas: any[];
   antecedentes: any[];
   ecografias: any[];
+  pacienteId?: number;
   navigate: (path: string) => void;
 }
 
 const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
-  embarazos, triajes, notasEvolucion, vacunas, antecedentes, ecografias, navigate,
+  embarazos, triajes, notasEvolucion, vacunas, antecedentes, ecografias, pacienteId, navigate,
 }) => (
   <Card variant="borderless">
     <Tabs
@@ -38,7 +41,7 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
               dataSource={embarazos}
               columns={columnsEmbarazos}
               rowKey="id"
-              pagination={{ pageSize: 5 }}
+              pagination={{ defaultPageSize: 5 }}
               locale={{ emptyText: <Empty description="No hay embarazos registrados" /> }}
             />
           ),
@@ -55,7 +58,7 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
               dataSource={triajes}
               columns={columnsTriajes}
               rowKey="id"
-              pagination={{ pageSize: 10 }}
+              pagination={{ defaultPageSize: 10 }}
               locale={{ emptyText: <Empty description="No hay triajes registrados" /> }}
             />
           ),
@@ -72,7 +75,7 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
               dataSource={notasEvolucion}
               columns={columnsNotas}
               rowKey="id"
-              pagination={{ pageSize: 10 }}
+              pagination={{ defaultPageSize: 10 }}
               locale={{ emptyText: <Empty description="No hay notas de evolución registradas" /> }}
             />
           ),
@@ -89,7 +92,7 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
               dataSource={vacunas}
               columns={columnsVacunas}
               rowKey="id"
-              pagination={{ pageSize: 10 }}
+              pagination={{ defaultPageSize: 10 }}
               locale={{ emptyText: <Empty description="No hay vacunas registradas" /> }}
             />
           ),
@@ -178,12 +181,26 @@ const DetallePacienteTabs: React.FC<DetallePacienteTabsProps> = ({
                   ) },
               ]}
               rowKey="id"
-              pagination={{ pageSize: 5 }}
+              pagination={{ defaultPageSize: 5 }}
               locale={{ emptyText: <Empty description="No hay ecografías registradas" /> }}
               size="small"
             />
           ),
         },
+        ...(pacienteId ? [{
+          key: 'analisis-ia',
+          label: (
+            <span>
+              <RobotOutlined /> Análisis IA
+            </span>
+          ),
+          children: (
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <HistorialAnalisisIA pacienteId={pacienteId} />
+              <HistorialCardiotocografias pacienteId={pacienteId} />
+            </Space>
+          ),
+        }] : []),
         {
           key: '7',
           label: (

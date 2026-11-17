@@ -47,6 +47,8 @@ const FormularioParto: React.FC = () => {
   const [tipoEvento, setTipoEvento] = useState<'aborto' | 'parto' | null>(null);
   const [tipoEventoManual, setTipoEventoManual] = useState(false);
   const modoEdicion = !!id;
+  // Bloqueado hasta que llega el registro: lo escrito antes lo pisaban los datos al llegar.
+  const [cargandoRegistro, setCargandoRegistro] = useState(modoEdicion);
 
   // Memoizar calcularAlertasYRecomendaciones para evitar re-renders innecesarios
   const calcularAlertasYRecomendaciones = useCallback((edadGestacional: string) => {
@@ -173,7 +175,7 @@ const FormularioParto: React.FC = () => {
   // primera página): el selector busca en el servidor.
   const initializeData = useCallback(async () => {
     if (id) {
-      cargarParto(parseInt(id));
+      cargarParto(parseInt(id)).finally(() => setCargandoRegistro(false));
     } else if (embarazoId) {
       cargarEmbarazo(parseInt(embarazoId));
     } else {
@@ -287,7 +289,7 @@ const FormularioParto: React.FC = () => {
         <Button icon={ARROW_LEFT_ICON_6} onClick={() => navigate(-1)}>Volver</Button>
       </header>
       <Card>
-        <Form form={form} layout="vertical" onFinish={handleSave} initialValues={{ tipo_parto: 'vaginal_espontaneo', parto_finalizado: true }}>
+        <Form form={form} layout="vertical" onFinish={handleSave} disabled={cargandoRegistro} initialValues={{ tipo_parto: 'vaginal_espontaneo', parto_finalizado: true }}>
           <SeccionEmbarazoEvento
             embarazoId={embarazoId}
             tipoEvento={tipoEvento}

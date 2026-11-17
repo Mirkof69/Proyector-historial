@@ -127,7 +127,7 @@ const UsuariosTable: React.FC<UsuariosTableProps> = ({
       locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No hay usuarios registrados" /> }}
       rowKey="id"
       loading={loading}
-      pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `Total: ${total} usuarios` }}
+      pagination={{ defaultPageSize: 10, showSizeChanger: true, showTotal: (total) => `Total: ${total} usuarios` }}
       scroll={{ x: 1200 }}
     />
   );

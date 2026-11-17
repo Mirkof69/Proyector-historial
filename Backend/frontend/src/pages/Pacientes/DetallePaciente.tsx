@@ -226,6 +226,7 @@ const DetallePaciente: React.FC = () => {
             vacunas={vacunas}
             antecedentes={antecedentes}
             ecografias={ecografias}
+            pacienteId={id ? Number(id) : undefined}
             navigate={navigate}
           />
         </Col>

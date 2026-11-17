@@ -20,7 +20,7 @@ import NotificacionesFiltros from './components/NotificacionesFiltros';
 import { buildColumnsNotificaciones } from './components/columnsNotificaciones';
 import NotificacionesListView from './components/NotificacionesListView';
 import NotificacionDrawer from './components/NotificacionDrawer';
-import { incluyeTexto } from '../../utils/texto';
+import { useListadoServidor } from '../../hooks/useListadoServidor';
 
 dayjs.extend(relativeTime);
 dayjs.locale('es');
@@ -34,9 +34,7 @@ const RELOAD_ICON_3 = <ReloadOutlined />;
 const BELL_ICON_2 = <BellOutlined />;
 
   const Notificaciones: React.FC = () => {
-  const [notificaciones, setNotificaciones] = useState<Notificacion[] | undefined>(undefined);
   const { message } = useAntdApp();
-  const [loading, setLoading] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notificacion | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
@@ -52,41 +50,41 @@ const BELL_ICON_2 = <BellOutlined />;
   // contaban sobre la primera página (máx. 200) y las urgentes se buscaban por
   // tipos «error»/«warning» que el sistema no usa: salían 200, 200, 0 y 0.
   const [resumen, setResumen] = useState<ResumenNotificaciones | null>(null);
+
+  // En el servidor: antes se traían las primeras 200 y se buscaba solo en ellas.
+  const listado = useListadoServidor<Notificacion>('/notificaciones/', {
+    busqueda: filtros.searchText,
+    tamanoInicial: 10,
+    filtros: {
+      tipo: filtros.filterType,
+      leida: filtros.filterRead === 'nuevas' ? false : filtros.filterRead === 'leidas' ? true : undefined,
+      fecha_desde: filtros.dateRange?.[0]?.format('YYYY-MM-DD'),
+      fecha_hasta: filtros.dateRange?.[1]?.format('YYYY-MM-DD'),
+    },
+  });
+  const notificaciones = listado.datos;
+  const loading = listado.cargando;
+  const refrescar = () => {
+    notificacionesService.resumen().then(setResumen).catch(() => undefined);
+    listado.recargar();
+  };
+
   const stats = {
-    total: resumen?.total ?? notificaciones?.length ?? 0,
-    nuevas: resumen?.pendientes ?? notificaciones?.filter(n => !n.leida).length ?? 0,
+    total: resumen?.total ?? listado.total,
+    nuevas: resumen?.pendientes ?? notificaciones.filter(n => !n.leida).length,
     alertas: resumen?.urgentes_total ?? 0,
     info: resumen?.informativas ?? 0,
   };
 
   // eslint-disable-next-line react-doctor/no-initialize-state
   useEffect(() => {
-    loadNotificaciones();
+    notificacionesService.resumen().then(setResumen).catch(() => undefined);
   }, []);
-
-  const loadNotificaciones = async () => {
-    setLoading(true);
-    try {
-      notificacionesService.resumen().then(setResumen).catch(() => undefined);
-      const data = await notificacionesService.listar();
-      // Ordenar por fecha descendente
-      const sorted = data.sort((a, b) =>
-        new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime()
-      );
-      setNotificaciones(sorted);
-    } catch (error) {
-      message.error('Error al cargar notificaciones');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleMarkAsRead = async (id: number) => {
     try {
       await notificacionesService.marcarLeida(id);
-      setNotificaciones(prev =>
-        prev.map(n => n.id === id ? { ...n, leida: true } : n)
-      );
+      refrescar();
       message.success('Marcada como leída');
     } catch (error) {
       message.error('Error al actualizar');
@@ -96,7 +94,7 @@ const BELL_ICON_2 = <BellOutlined />;
   const handleDelete = async (id: number) => {
     try {
       await notificacionesService.eliminar(id);
-      setNotificaciones(prev => prev.filter(n => n.id !== id));
+      refrescar();
       message.success('Notificación eliminada');
     } catch (error) {
       message.error('Error al eliminar');
@@ -106,7 +104,7 @@ const BELL_ICON_2 = <BellOutlined />;
   const handleMarkAllAsRead = async () => {
     try {
       await notificacionesService.marcarTodasLeidas();
-      setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })));
+      refrescar();
       message.success('Todas marcadas como leídas');
     } catch (error) {
       message.error('Error al actualizar');
@@ -121,27 +119,7 @@ const BELL_ICON_2 = <BellOutlined />;
     }
   };
 
-  // Filtrado
-  const filteredNotificaciones = (notificaciones || []).filter(item => {
-    const matchesSearch = filtros.searchText
-      ? incluyeTexto(item.titulo, filtros.searchText) ||
-      incluyeTexto(item.mensaje, filtros.searchText)
-      : true;
-
-    const matchesType = filtros.filterType ? item.tipo === filtros.filterType : true;
-
-    let matchesRead = true;
-    if (filtros.filterRead === 'nuevas') matchesRead = !item.leida;
-    if (filtros.filterRead === 'leidas') matchesRead = item.leida;
-
-    let matchesDate = true;
-    if (filtros.dateRange && filtros.dateRange[0] && filtros.dateRange[1]) {
-      const itemDate = dayjs(item.fecha_creacion);
-      matchesDate = itemDate.isAfter(filtros.dateRange[0]) && itemDate.isBefore(filtros.dateRange[1]);
-    }
-
-    return matchesSearch && matchesType && matchesRead && matchesDate;
-  });
+  const filteredNotificaciones = notificaciones;
 
   const columns = buildColumnsNotificaciones({ handleViewDetails, handleMarkAsRead, handleDelete });
 
@@ -176,10 +154,10 @@ const BELL_ICON_2 = <BellOutlined />;
                 {
                   key: '3',
                   icon: DELETE_ICON_6,
-                  label: 'Eliminar todas leídas',
+                  label: 'Eliminar las leídas de esta página',
                   danger: true,
                   onClick: () => {
-                    for (const n of (notificaciones || []).filter(n => n.leida)) {
+                    for (const n of notificaciones.filter(n => n.leida)) {
                       handleDelete(n.id);
                     }
                   }
@@ -194,7 +172,7 @@ const BELL_ICON_2 = <BellOutlined />;
           </Dropdown>
           <Button
             icon={RELOAD_ICON_3}
-            onClick={loadNotificaciones}
+            onClick={refrescar}
             loading={loading}
           >
             Actualizar
@@ -215,7 +193,7 @@ const BELL_ICON_2 = <BellOutlined />;
       <NotificacionesFiltros
         filtros={filtros}
         dispatchFiltros={dispatchFiltros}
-        filteredCount={filteredNotificaciones.length}
+        filteredCount={listado.total}
         total={stats.total}
       />
 
@@ -226,11 +204,8 @@ const BELL_ICON_2 = <BellOutlined />;
             dataSource={filteredNotificaciones}
             rowKey="id"
             loading={loading}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showTotal: (total) => `Total ${total} items`
-            }}
+            pagination={listado.paginacion}
+            onChange={listado.onChange}
             rowClassName={(record) => !record.leida ? 'notification-row-unread' : ''}
             locale={{
               emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No se encontraron notificaciones" />
@@ -241,6 +216,8 @@ const BELL_ICON_2 = <BellOutlined />;
           <NotificacionesListView
             dataSource={filteredNotificaciones}
             loading={loading}
+            pagination={listado.paginacion}
+            onCambiarPagina={(current, pageSize) => listado.onChange({ current, pageSize }, {}, {})}
             handleViewDetails={handleViewDetails}
             handleMarkAsRead={handleMarkAsRead}
             handleDelete={handleDelete}

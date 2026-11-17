@@ -137,7 +137,7 @@ const AuditoriaReportes: React.FC = () => {
           columns={columns}
           dataSource={entries}
           rowKey="id"
-          pagination={{ pageSize: 20, showTotal: (t) => `Total ${t} registros` }}
+          pagination={{ defaultPageSize: 20, showTotal: (t) => `Total ${t} registros` }}
           locale={{ emptyText: 'No hay registros de auditoría' }}
         />
       </Spin>

@@ -8,6 +8,7 @@ import {
 import dayjs from 'dayjs';
 import { Ecografia, Embarazo } from '../types';
 import { verticalDivider } from '../historiaClinicaHelpers';
+import HistorialAnalisisIA from '../../IaMedica/components/HistorialAnalisisIA';
 import {
   ComposedChart, Line, XAxis, YAxis, CartesianGrid, RechartsTooltip, Legend,
   ResponsiveContainer, Area,
@@ -19,8 +20,9 @@ interface TabEcografiasProps {
   ecografias: Ecografia[];
   navigate: ReturnType<typeof useNavigate>;
   embarazoActivo: Embarazo | null;
+  pacienteId?: number;
 }
-const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, embarazoActivo }) => {
+const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, embarazoActivo, pacienteId }) => {
   const fetalGrowthData = ecografias
     .reduce((acc, e: any) => {
       if (e.peso_fetal_estimado && e.edad_gestacional_semanas) {
@@ -210,8 +212,9 @@ const TabEcografias: React.FC<TabEcografiasProps> = ({ ecografias, navigate, emb
             </div>
           ),
         }}
-        pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `Total: ${total} ecografías` }}
+        pagination={{ defaultPageSize: 10, showSizeChanger: true, showTotal: (total) => `Total: ${total} ecografías` }}
       />
+      {pacienteId && <HistorialAnalisisIA pacienteId={pacienteId} />}
     </div>
   );
 };

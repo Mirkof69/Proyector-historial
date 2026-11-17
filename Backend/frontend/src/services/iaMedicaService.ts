@@ -20,7 +20,10 @@ export interface ImagenEcografica {
   analisis_resultado?: {
     resultado: string;
     confianza: number;
-  };
+    plano?: string | null;
+    nivel_riesgo?: string | null;
+    fecha?: string;
+  } | null;
 }
 
 export interface SugerenciaDiagnostica {
@@ -101,7 +104,7 @@ export interface InformeRedesMedidas {
   medidas: Record<string, any>;
   estructuras_vistas: Record<string, boolean>;
   anomalias_cerebrales?: {
-    aplicable: boolean; alarma_anomalia: boolean; probabilidad_anomalia: number; umbral: number;
+    aplicable: boolean; alarma_anomalia: boolean; probabilidad_anomalia: number; umbral?: number;
     familia_sospechada: string | null; familia_sospechada_nombre: string | null;
   };
   hallazgos: string[];
@@ -111,6 +114,15 @@ export interface InformeRedesMedidas {
   modelos_usados: { archivo: string; dataset: string; sha256?: string; metricas_prueba?: Record<string, any> }[];
   informe_texto: string;
   tiempo_ms: number;
+  // Solo los análisis guardados (GET /ia/imagenes/{id}/informe/).
+  resultado?: string;
+  nivel_riesgo?: string | null;
+  fecha_analisis?: string;
+  realizado_por?: string | null;
+  imagen_url?: string;
+  imagen_id?: number;
+  semana_gestacional?: number | null;
+  paciente?: { id: number; nombre: string; ci?: string; edad?: number | null };
 }
 
 export interface ModeloCatalogo {
@@ -252,6 +264,12 @@ export const iaMedicaService = {
     return response.data;
   },
 
+  // El análisis guardado de una imagen, con la forma del recién hecho
+  getInforme: async (id: number): Promise<InformeRedesMedidas> => {
+    const response = await api.get(`/ia/imagenes/${id}/informe/`);
+    return response.data;
+  },
+
   // Obtener solo el resultado del análisis
   getResultadoAnalisis: async (id: number) => {
     const response = await api.get(`/ia/imagenes/${id}/resultado/`);
@@ -283,7 +301,7 @@ export const iaMedicaService = {
     file?: File,
     ecografiaId?: string,
     tamanoPixelMm?: number | null,
-  ): Promise<{ status: string; ai_analysis: InformeRedesMedidas; message: string }> => {
+  ): Promise<{ status: string; ai_analysis: InformeRedesMedidas; message: string; guardado?: boolean }> => {
     const formData = new FormData();
     if (file) {
       formData.append('file', file);

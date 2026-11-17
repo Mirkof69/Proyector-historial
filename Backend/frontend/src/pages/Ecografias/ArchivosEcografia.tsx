@@ -180,7 +180,7 @@ const ArchivosEcografia: React.FC = () => {
         dataSource={archivos}
         rowKey="id"
         loading={cargando}
-        pagination={{ pageSize: 10 }}
+        pagination={{ defaultPageSize: 10 }}
         locale={{ emptyText: 'Esta ecografía no tiene archivos adjuntos' }}
       />
       <Modal rootClassName="capa-clinica" open={!!vista} onCancel={() => setVista(null)} footer={null} width={800} title={vista?.nombre_archivo}>

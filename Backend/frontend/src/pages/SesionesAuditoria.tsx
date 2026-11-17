@@ -174,7 +174,7 @@ const SesionesAuditoria: React.FC = () => {
         dataSource={sesiones}
         loading={cargando}
         expandable={{ expandedRowRender: (s: Sesion) => <DetalleSesion sid={s.sesion_id} /> }}
-        pagination={{ current: pagina, total, pageSize: 20, showSizeChanger: false,
+        pagination={{ current: pagina, total, defaultPageSize: 20, showSizeChanger: false,
           showTotal: (t) => `${t} sesiones`, onChange: (n) => cargar(n) }}
         locale={{ emptyText: 'No hay sesiones en este periodo' }}
         scroll={{ x: 900 }}

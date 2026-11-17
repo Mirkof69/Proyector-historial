@@ -184,7 +184,7 @@ const TabLaboratorios: React.FC<TabLaboratoriosProps> = ({ laboratorios }) => {
             </div>
           ),
         }}
-        pagination={{ pageSize: 15, showSizeChanger: true, showTotal: (total) => `Total: ${total} exámenes` }}
+        pagination={{ defaultPageSize: 15, showSizeChanger: true, showTotal: (total) => `Total: ${total} exámenes` }}
       />
     </div>
   );

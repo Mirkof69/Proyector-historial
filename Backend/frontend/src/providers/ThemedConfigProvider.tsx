@@ -36,7 +36,7 @@ const ThemedConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const themeConfig = useAntdTheme();
 
   return (
-    <ConfigProvider locale={esES} theme={themeConfig} renderEmpty={renderEmpty}>
+    <ConfigProvider locale={esES} theme={themeConfig} renderEmpty={renderEmpty} pagination={{ showSizeChanger: true }}>
       {children}
     </ConfigProvider>
   );

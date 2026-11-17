@@ -1137,7 +1137,7 @@ const HistoriaClinica: React.FC = () => {
                 disabled: !embarazoActivo,
                 children: (
                   <div className="historia-tab-panel">
-                    <TabEcografias ecografias={ecografias} navigate={navigate} embarazoActivo={embarazoActivo} />
+                    <TabEcografias ecografias={ecografias} navigate={navigate} embarazoActivo={embarazoActivo} pacienteId={pacienteId ? Number(pacienteId) : undefined} />
                   </div>
                 ),
               },

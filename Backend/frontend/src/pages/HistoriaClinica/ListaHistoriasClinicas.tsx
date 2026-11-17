@@ -244,7 +244,7 @@ const ListaHistoriasClinicas: React.FC = () => {
           loading={loading}
           rowKey="id"
           pagination={{
-            pageSize: 20,
+            defaultPageSize: 20,
             showSizeChanger: true,
             showTotal: (total) => `Total: ${total} pacientes`,
           }}

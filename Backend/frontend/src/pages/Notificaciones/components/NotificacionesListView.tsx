@@ -1,4 +1,5 @@
 import React from 'react';
+import type { TablePaginationConfig } from 'antd';
 import { List, Button, Badge, Space, Empty, Avatar, Typography, Tooltip, Popconfirm, Tag } from 'antd';
 import {
   DeleteOutlined,
@@ -17,23 +18,21 @@ const DELETE_ICON_6 = <DeleteOutlined />;
 interface NotificacionesListViewProps {
   dataSource: Notificacion[];
   loading: boolean;
+  pagination: Pick<TablePaginationConfig, 'current' | 'pageSize' | 'total' | 'showSizeChanger' | 'pageSizeOptions' | 'showTotal'>;
+  onCambiarPagina: (pagina: number, tamano: number) => void;
   handleViewDetails: (notificacion: Notificacion) => void;
   handleMarkAsRead: (id: number) => void;
   handleDelete: (id: number) => void;
 }
 
 const NotificacionesListView: React.FC<NotificacionesListViewProps> = ({
-  dataSource, loading, handleViewDetails, handleMarkAsRead, handleDelete,
+  dataSource, loading, pagination, onCambiarPagina, handleViewDetails, handleMarkAsRead, handleDelete,
 }) => (
   <List
     itemLayout="horizontal"
     dataSource={dataSource}
+    pagination={{ ...pagination, onChange: onCambiarPagina }}
     loading={loading}
-    pagination={{
-      pageSize: 10,
-      showSizeChanger: true,
-      showTotal: (total) => `Total ${total} items`
-    }}
     locale={{
       emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No se encontraron notificaciones" />
     }}

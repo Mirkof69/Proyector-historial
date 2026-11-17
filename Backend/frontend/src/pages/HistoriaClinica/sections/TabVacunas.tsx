@@ -236,7 +236,7 @@ const TabVacunas: React.FC<TabVacunasProps> = ({ vacunas }) => {
           ),
         }}
         pagination={{
-          pageSize: 10,
+          defaultPageSize: 10,
           showSizeChanger: true,
           showTotal: (total) => `Total: ${total} vacunas`,
         }}

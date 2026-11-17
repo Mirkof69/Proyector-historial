@@ -183,7 +183,7 @@ const ImportarPacientesModal: React.FC<Props> = ({ open, onClose, onImportado })
             size="small"
             columns={columnas}
             dataSource={(final ?? previa)?.filas}
-            pagination={{ pageSize: 8, showSizeChanger: false }}
+            pagination={{ defaultPageSize: 8, showSizeChanger: false }}
             scroll={{ x: 760 }}
           />
         </>

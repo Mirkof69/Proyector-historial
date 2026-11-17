@@ -224,6 +224,7 @@ const FormularioVacuna: React.FC = () => {
             form={form}
             layout="vertical"
             onFinish={handleSubmit}
+            disabled={loading && !!id}
             initialValues={{
               fecha_aplicacion: dayjs(),
               numero_dosis: 1,

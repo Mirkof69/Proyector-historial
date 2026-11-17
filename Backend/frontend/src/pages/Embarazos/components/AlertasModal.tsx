@@ -122,7 +122,7 @@ const AlertasModal: React.FC<AlertasModalProps> = ({ visible, onClose, alertas, 
                 { key: '1', fecha: dayjs().format('DD/MM/YYYY'), paciente: 'María González', tipo: 'Recordatorio Cita', estado: 'enviado' },
                 { key: '2', fecha: dayjs().subtract(1, 'day').format('DD/MM/YYYY'), paciente: 'Ana Torres', tipo: 'Alerta Laboratorio', estado: 'enviado' }
               ]}
-              pagination={{ pageSize: 5 }}
+              pagination={{ defaultPageSize: 5 }}
             />
           ),
         },
