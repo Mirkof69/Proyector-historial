@@ -48,6 +48,9 @@ import duration from 'dayjs/plugin/duration';
 import 'dayjs/locale/es';
 import './HistoriaClinica.css';
 import { API_URL } from '../../services/api';
+import { notasEvolucionService } from '../../services/notasEvolucionService';
+import pacientesService from '../../services/pacientesService';
+import { useNotifications } from '../../contexts/NotificationsContext';
 import { antecedentesService,
   AntecedenteGinecoObstetrico,
   AntecedentePatologico
@@ -127,12 +130,72 @@ dayjs.extend(relativeTime);
 dayjs.extend(duration);
 dayjs.locale('es');
 
+/** Tipo de atención del formulario SOAP ↔ tipo_consulta del modelo NotaEvolucion. */
+const TIPO_NOTA_A_API: Record<string, string> = {
+  CONSULTA: 'control_prenatal', URGENCIA: 'urgencia', TELECONSULTA: 'seguimiento',
+};
+const TIPO_API_A_NOTA: Record<string, NotaEvolucion['tipo']> = {
+  control_prenatal: 'CONSULTA', urgencia: 'URGENCIA', seguimiento: 'EVOLUCION', interconsulta: 'JUNTA_MEDICA',
+  puerperio: 'EVOLUCION', otro: 'CONSULTA',
+};
+
+/** La API devuelve la nota con los campos del modelo (motivo_consulta, diagnosticos, plan_tratamiento…); la pestaña
+ *  de evolución la muestra en formato SOAP. Sin esta conversión las notas reales salían sin fecha, tipo ni texto. */
+const normalizarNota = (n: any): NotaEvolucion => ({
+  ...n,
+  fecha_hora: n.fecha_hora ?? n.fecha_consulta,
+  tipo: n.tipo ?? TIPO_API_A_NOTA[n.tipo_consulta] ?? 'CONSULTA',
+  subjetivo: n.subjetivo ?? n.motivo_consulta ?? '',
+  objetivo: n.objetivo ?? n.examen_fisico ?? '',
+  analisis: n.analisis ?? n.diagnosticos ?? '',
+  plan: n.plan ?? [n.plan_tratamiento, n.indicaciones].filter(Boolean).join('\n'),
+  autor: n.autor ?? { nombre_completo: n.medico_nombre },
+  presion_arterial: n.presion_arterial ?? undefined,
+  semanas_gestacion: n.semanas_gestacion ?? n.edad_gestacional_semanas,
+  dias_gestacion: n.dias_gestacion ?? n.edad_gestacional_dias,
+});
+
+/** Una prescripción se guarda como nota de evolución con el plan en este formato, para poder leerla de vuelta. */
+const PRESCRIPCION = /^Medicamento: (.+?) \| Dosis: (.*?) \| Frecuencia: (.*?) \| Duración: (.*)$/m;
+
+const tratamientosDeNotas = (notas: any[]): Tratamiento[] =>
+  notas.flatMap((n) => {
+    const m = PRESCRIPCION.exec(n.plan_tratamiento || '');
+    if (!m) return [];
+    const inicio = n.fecha_consulta || n.fecha_hora;
+    const dias = Number((/(\d+)\s*d/i.exec(m[4]) || /(\d+)/.exec(m[4]) || [])[1]) || 0;
+    const semanas = /seman/i.test(m[4]) ? 7 : 1;
+    const fin = dias ? dayjs(inicio).add(dias * semanas, 'day') : null;
+    return [{
+      id: n.id, medicamento: m[1], dosis: m[2], frecuencia: m[3], duracion: m[4], fecha_inicio: inicio,
+      fecha_prescripcion: inicio, fecha_fin: fin ? fin.format('YYYY-MM-DD') : undefined,
+      activo: fin ? !fin.isBefore(dayjs(), 'day') : true, indicaciones: n.indicaciones || undefined,
+      medico: { nombre_completo: n.medico_nombre } as any,
+    }];
+  });
+
+/** Todas las páginas de un listado (la API pagina de a 200). */
+const todasLasPaginas = async (url: string, headers?: Record<string, string>): Promise<AxiosResponse<any>> => {
+  const primera = await axios.get(url, { headers });
+  const datos = primera.data;
+  if (!datos || Array.isArray(datos) || !Array.isArray(datos.results)) return primera;
+  const filas = [...datos.results];
+  let siguiente: string | null = datos.next;
+  while (siguiente) {
+    const r = await axios.get(siguiente, { headers });
+    filas.push(...(r.data.results || []));
+    siguiente = r.data.next;
+  }
+  return { ...primera, data: filas };
+};
+
 
 const HistoriaClinica: React.FC = () => {
   const { message, notification, modal } = useAntdApp();
   const { id: pacienteId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getToken, hasPermission } = useAuth();
+  const { getToken, hasPermission, user } = useAuth();
+  const { notifications: notificacionesEnVivo } = useNotifications();
   const [formNota] = Form.useForm();
   const [formReceta] = Form.useForm();
   const mountedRef = React.useRef(false);
@@ -177,23 +240,6 @@ const HistoriaClinica: React.FC = () => {
   const [recordatorios, setRecordatorios] = useState<RecordatorioClinico[]>([]);
   const [busquedaFiltro, setBusquedaFiltro] = useState<BusquedaFiltro>({ texto: '', categoria: 'TODO' });
 
-  const handleAgregarRecordatorio = useCallback(() => {
-    setRecordatorios(prev => [
-      ...prev,
-      {
-        id: `rec-${crypto.randomUUID()}`,
-        tipo: 'CONTROL',
-        titulo: 'Recordatorio',
-        descripcion: 'Nuevo recordatorio',
-        fecha_programada: dayjs().add(7, 'days').format('YYYY-MM-DD'),
-        dias_restantes: 7,
-        completado: false,
-        prioridad: 'MEDIA',
-      },
-    ]);
-    message.success('Recordatorio agregado');
-  }, [message]);
-
   const resultadosCalculadoraRef = useRef<CalculadoraResultado[]>([]);
   const [tendenciasLaboratorio, setTendenciasLaboratorio] = useState<Array<{ examen: string; valores: Array<{ fecha: string; valor: number; referencia: string }>; tendencia: 'MEJORANDO' | 'EMPEORANDO' | 'ESTABLE' }>>([]);
 
@@ -205,9 +251,9 @@ const HistoriaClinica: React.FC = () => {
   // ==========================================
   // 4. CARGA DE DATOS (PARALLEL FETCHING)
   // ==========================================
-  const fetchHistoriaClinica = React.useCallback(async () => {
+  const fetchHistoriaClinica = React.useCallback(async (silencioso = false) => {
     if (!pacienteId) return;
-    setLoading(true);
+    if (!silencioso) setLoading(true);
     try {
       // Auth por cookie httpOnly (withCredentials global); si existiera un
       // token legado en memoria se mantiene el header por compatibilidad.
@@ -219,10 +265,8 @@ const HistoriaClinica: React.FC = () => {
       setPaciente(resPaciente.data);
 
       // 2. Buscar Embarazos
-      const resEmbarazos = await axios.get(`${API_URL}/embarazos/?paciente=${pacienteId}`, { headers });
-      const todosEmbarazos = Array.isArray(resEmbarazos.data.results || resEmbarazos.data)
-        ? (resEmbarazos.data.results || resEmbarazos.data)
-        : [];
+      const resEmbarazos = await todasLasPaginas(`${API_URL}/embarazos/?paciente=${pacienteId}`, headers);
+      const todosEmbarazos = Array.isArray(resEmbarazos.data) ? resEmbarazos.data : [];
 
       // Separar activo e historial
       const activo = todosEmbarazos.find((e: Embarazo) => e.estado === 'activo');
@@ -243,57 +287,36 @@ const HistoriaClinica: React.FC = () => {
       // de notas o vacunas cancelaba toda la carga: «No se pudo cargar la historia clínica completa».
       const vacio: AxiosResponse<any> = { data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} };
       const siPuede = (permiso: string, url: string): Promise<AxiosResponse<any>> =>
-        (hasPermission(permiso) ? axios.get(url, { headers }).catch(() => vacio) : Promise.resolve(vacio));
+        (hasPermission(permiso) ? todasLasPaginas(url, headers).catch(() => vacio) : Promise.resolve(vacio));
+      const lista = (url: string): Promise<AxiosResponse<any>> => todasLasPaginas(url, headers).catch(() => vacio);
+      // Las listas viven bajo la raíz de cada router: /vacunas/registros/, /citas/citas/ y /laboratorios/examenes/.
+      // Pedir la raíz devolvía el índice del router (status 200) y la pestaña salía vacía aunque hubiera datos.
       const promises: Promise<AxiosResponse<any>>[] = [
         siPuede('view_notaevolucion', `${API_URL}/notas-evolucion/?paciente=${pacienteId}`),
-        // "/vacunas/" es la RAÍZ del router, no la lista: devolvía el índice
-        // {"tipos-vacunas": ..., "registros": ...} con status 200, así que el
-        // array quedaba vacío y la tab Vacunas salía en blanco aunque la
-        // paciente tuviera dosis registradas. La lista está en /registros/.
         siPuede('view_registrovacuna', `${API_URL}/vacunas/registros/?paciente=${pacienteId}`),
-        axios.get(`${API_URL}/citas/?paciente=${pacienteId}`, { headers }).catch(err => ({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} })),
-        siPuede('view_parto', `${API_URL}/partos/?paciente=${pacienteId}`)
+        lista(`${API_URL}/citas/citas/?paciente=${pacienteId}`),
+        siPuede('view_parto', `${API_URL}/partos/?paciente=${pacienteId}`),
       ];
 
-      const emptyResponse = { data: [], status: 200, statusText: 'OK', headers: {}, config: {} as any, request: {} };
-
       if (embarazoParaMostrar) {
-        promises.push(
-          axios.get(`${API_URL}/controles/?embarazo=${embarazoParaMostrar.id}`, { headers })
-            .catch(() => emptyResponse)
-        );
-        promises.push(
-          axios.get(`${API_URL}/ecografias/?embarazo=${embarazoParaMostrar.id}`, { headers })
-            .catch(() => emptyResponse)
-        );
-        promises.push(
-          // Mismo caso que vacunas: "/laboratorios/" es la raíz del router.
-          // La lista de exámenes vive en /laboratorios/examenes/.
-          axios.get(`${API_URL}/laboratorios/examenes/?paciente=${pacienteId}&fecha_min=${embarazoParaMostrar.fecha_ultima_menstruacion}`, { headers })
-            .catch(() => emptyResponse)
-        );
-        // REMOVIDO: tratamientos endpoint no existe
-        // promises.push(
-        //   axios.get(`${API_URL}/tratamientos/?embarazo=${embarazoParaMostrar.id}`, { headers })
-        //     .catch(() => emptyResponse)
-        // );
+        promises.push(lista(`${API_URL}/controles/?embarazo=${embarazoParaMostrar.id}`));
+        promises.push(lista(`${API_URL}/ecografias/?embarazo=${embarazoParaMostrar.id}`));
+        promises.push(lista(
+          `${API_URL}/laboratorios/examenes/?paciente=${pacienteId}&fecha_min=${embarazoParaMostrar.fecha_ultima_menstruacion}`,
+        ));
       } else {
-        // Si no hay ningún embarazo, aún así intentar cargar datos generales
-        promises.push(Promise.resolve(emptyResponse));
-        promises.push(Promise.resolve(emptyResponse));
-        promises.push(
-          axios.get(`${API_URL}/laboratorios/examenes/?paciente=${pacienteId}&limit=10`, { headers })
-            .catch(() => emptyResponse)
-        );
-        // REMOVIDO: tratamientos endpoint no existe
-        // promises.push(Promise.resolve(emptyResponse));
+        promises.push(Promise.resolve(vacio));
+        promises.push(Promise.resolve(vacio));
+        promises.push(lista(`${API_URL}/laboratorios/examenes/?paciente=${pacienteId}`));
       }
 
       const [resNotas, resVacunas, resCitas, resPartos, resControles, resEcos, resLabs] = await Promise.all(promises);
 
       const notasData = resNotas.data.results || resNotas.data;
+      const notasCrudas = Array.isArray(notasData) ? notasData : [];
       if (isMounted.current) {
-        setNotas(Array.isArray(notasData) ? notasData : []);
+        setNotas(notasCrudas.map(normalizarNota));
+        setTratamientos(tratamientosDeNotas(notasCrudas));
       }
 
       const vacunasData = resVacunas.data.results || resVacunas.data;
@@ -328,7 +351,6 @@ const HistoriaClinica: React.FC = () => {
         setControles(controlesArray.sort((a: any, b: any) => new Date(a.fecha_control || a.fecha || 0).getTime() - new Date(b.fecha_control || b.fecha || 0).getTime()));
         setEcografias(Array.isArray(ecosData) ? ecosData : []);
         setLaboratorios(labsData);
-        setTratamientos([]);
       }
 
       // Cargar antecedentes médicos detallados
@@ -351,8 +373,11 @@ const HistoriaClinica: React.FC = () => {
     } catch (err: any) {
       // Sin este log el error real quedaba tragado y el diagnóstico era a ciegas.
       console.error('[HistoriaClinica] fallo la carga:', err);
-      setError("No se pudo cargar la historia clínica completa. Verifique su conexión o permisos.");
-      notification.error({ message: 'Error de Conexión', description: 'Algunos módulos clínicos no pudieron cargarse.' });
+      // Una actualización en segundo plano que falla no reemplaza la historia que ya se ve en pantalla.
+      if (!silencioso) {
+        setError("No se pudo cargar la historia clínica completa. Verifique su conexión o permisos.");
+        notification.error({ message: 'Error de Conexión', description: 'Algunos módulos clínicos no pudieron cargarse.' });
+      }
     } finally {
       if (isMounted.current) {
         setLoading(false);
@@ -369,7 +394,31 @@ const HistoriaClinica: React.FC = () => {
 
   useEffect(() => {
     fetchHistoriaClinica();
-  }, [fetchHistoriaClinica]); // Usar fetchHistoriaClinica como dependencia
+  }, [fetchHistoriaClinica]);
+
+  // Tiempo real: lo que otro usuario registra (control, laboratorio, cita…) aparece sin recargar la página.
+  // Se actualiza en silencio al llegar una notificación en vivo, al volver a la pestaña y cada minuto si está visible.
+  const ultimaNotificacion = notificacionesEnVivo[0]?.id;
+  const notificacionVista = useRef(ultimaNotificacion);
+  useEffect(() => {
+    if (ultimaNotificacion && ultimaNotificacion !== notificacionVista.current) {
+      notificacionVista.current = ultimaNotificacion;
+      fetchHistoriaClinica(true);
+    }
+  }, [ultimaNotificacion, fetchHistoriaClinica]);
+  useEffect(() => {
+    const refrescar = () => {
+      if (document.visibilityState === 'visible') fetchHistoriaClinica(true);
+    };
+    const intervalo = window.setInterval(refrescar, 60000);
+    window.addEventListener('focus', refrescar);
+    document.addEventListener('visibilitychange', refrescar);
+    return () => {
+      window.clearInterval(intervalo);
+      window.removeEventListener('focus', refrescar);
+      document.removeEventListener('visibilitychange', refrescar);
+    };
+  }, [fetchHistoriaClinica]);
 
   // ==========================================
   // 5. LÓGICA DE NEGOCIO Y CÁLCULOS
@@ -520,45 +569,129 @@ const HistoriaClinica: React.FC = () => {
   // 6. MANEJADORES (HANDLERS)
   // ==========================================
 
+  /** Mensaje legible de un error de validación de la API ({campo: [errores]} o {detail}). */
+  const errorDeApi = (e: any, porDefecto: string): string => {
+    const d = e?.response?.data;
+    if (!d) return porDefecto;
+    if (typeof d === 'string') return d.slice(0, 300);
+    if (d.detail) return String(d.detail);
+    const partes = Object.entries(d).map(([k, v]) => `${k === 'non_field_errors' ? '' : `${k}: `}${Array.isArray(v) ? v.join(' ') : v}`);
+    return partes.join(' · ') || porDefecto;
+  };
+
+  /** Datos comunes de una nota de evolución de esta paciente, firmada por quien la registra. */
+  const notaBase = useCallback((tipo: string) => ({
+    paciente: Number(pacienteId),
+    ...(embarazoActivo?.estado === 'activo' ? { embarazo: embarazoActivo.id } : {}),
+    medico: user?.id,
+    fecha_consulta: dayjs().format(),
+    tipo_consulta: tipo,
+  }), [pacienteId, embarazoActivo, user]);
+
   const handleAddNota = useCallback(async (values: any) => {
     setSaving(true);
     try {
-      const nuevaNota = { ...values, id: Date.now(), fecha_hora: new Date().toISOString(), autor: { username: 'dr_actual' } };
-      setNotas(prev => [nuevaNota, ...prev]);
-      message.success('Nota guardada exitosamente');
+      await notasEvolucionService.crearNota({
+        ...notaBase(TIPO_NOTA_A_API[values.tipo] ?? 'control_prenatal'),
+        motivo_consulta: values.subjetivo,
+        examen_fisico: values.objetivo || '',
+        diagnosticos: values.analisis || '',
+        plan_tratamiento: values.plan || '',
+        observaciones: values.tipo === 'TELECONSULTA' ? 'Atención por telemedicina' : '',
+      } as any);
+      message.success('Nota de evolución guardada en la historia clínica');
       formNota.resetFields();
       setDrawerNotasVisible(false);
+      await fetchHistoriaClinica(true);
     } catch (e) {
-      message.error('Error al guardar nota');
+      message.error(errorDeApi(e, 'No se pudo guardar la nota de evolución'));
     } finally {
       setSaving(false);
     }
-  }, [message, formNota]);
+  }, [message, formNota, notaBase, fetchHistoriaClinica]);
+
+  const imprimirReceta = useCallback(async (values: any) => {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Receta médica', 20, 20);
+    doc.setFontSize(11);
+    const lineas = [
+      `Paciente: ${paciente?.nombre_completo ?? ''}  (${paciente?.id_clinico ?? ''})`,
+      `Fecha: ${dayjs().format('DD/MM/YYYY HH:mm')}`,
+      `Médico: ${[user?.nombre, user?.apellido_paterno, user?.apellido_materno].filter(Boolean).join(' ')}`,
+      '',
+      `Medicamento: ${values.medicamento}`,
+      `Dosis: ${values.dosis || '-'}`,
+      `Frecuencia: ${values.frecuencia || '-'}`,
+      `Duración: ${values.duracion || '-'}`,
+    ];
+    lineas.forEach((l, i) => doc.text(l, 20, 34 + i * 8));
+    doc.save(`receta_${paciente?.id_clinico ?? pacienteId}_${dayjs().format('YYYYMMDD_HHmm')}.pdf`);
+  }, [paciente, user, pacienteId]);
 
   const handleAddTratamiento = useCallback(async (values: any) => {
-    setModalRecetaVisible(false);
-    message.success("Tratamiento prescrito correctamente");
-  }, [message]);
-
-  const handleExportarHistoria = useCallback((config: ExportConfig) => {
     setSaving(true);
     try {
-      notification.success({
-        message: 'Exportación Iniciada',
-        description: `Generando archivo ${config.formato}. Se descargará automáticamente.`
-      });
-
-      // Aquí iría la lógica real de exportación
-      setTimeout(() => {
-        message.success(`Historia clínica exportada en formato ${config.formato}`);
-        setModalExportarVisible(false);
-      }, 1500);
-    } catch (error) {
-      message.error('Error al exportar historia clínica');
+      await notasEvolucionService.crearNota({
+        ...notaBase('seguimiento'),
+        motivo_consulta: `Prescripción: ${values.medicamento}`,
+        examen_fisico: 'Registro de prescripción (sin examen físico en esta nota)',
+        diagnosticos: `Prescripción de ${values.medicamento}`,
+        plan_tratamiento: `Medicamento: ${values.medicamento} | Dosis: ${values.dosis || '-'} | `
+          + `Frecuencia: ${values.frecuencia || '-'} | Duración: ${values.duracion || '-'}`,
+      } as any);
+      if (values.imprimir) await imprimirReceta(values);
+      message.success('Tratamiento registrado en la historia clínica');
+      formReceta.resetFields();
+      setModalRecetaVisible(false);
+      await fetchHistoriaClinica(true);
+    } catch (e) {
+      message.error(errorDeApi(e, 'No se pudo registrar el tratamiento'));
     } finally {
       setSaving(false);
     }
-  }, [notification, message]);
+  }, [message, formReceta, notaBase, imprimirReceta, fetchHistoriaClinica]);
+
+  const descargar = (blob: Blob, nombre: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.setAttribute('download', nombre);
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleExportarHistoria = useCallback(async (config: ExportConfig) => {
+    if (!pacienteId) return;
+    setSaving(true);
+    const base = `historia_clinica_${paciente?.id_clinico ?? pacienteId}_${dayjs().format('YYYYMMDD_HHmm')}`;
+    try {
+      if (config.formato === 'PDF') {
+        descargar(await pacientesService.generarReportePDF(Number(pacienteId)), `${base}.pdf`);
+      } else if (config.formato === 'EXCEL') {
+        descargar(await pacientesService.exportarHistorialExcel(Number(pacienteId)), `${base}.xlsx`);
+      } else {
+        const secciones = config.secciones?.length ? config.secciones : ['datos_paciente', 'embarazo', 'controles',
+          'ecografias', 'laboratorios', 'notas', 'tratamientos', 'vacunas'];
+        const contenido: Record<string, unknown> = { generado: dayjs().format(), paciente_id: Number(pacienteId) };
+        const datos: Record<string, unknown> = {
+          datos_paciente: paciente, embarazo: embarazoActivo, controles, ecografias, laboratorios: laboratorios,
+          notas, tratamientos, vacunas,
+        };
+        secciones.forEach((s) => { contenido[s] = datos[s] ?? null; });
+        descargar(new Blob([JSON.stringify(contenido, null, 2)], { type: 'application/json' }), `${base}.json`);
+      }
+      message.success(`Historia clínica exportada en ${config.formato}`);
+      setModalExportarVisible(false);
+    } catch (e) {
+      message.error(errorDeApi(e, 'No se pudo exportar la historia clínica'));
+    } finally {
+      setSaving(false);
+    }
+  }, [pacienteId, paciente, embarazoActivo, controles, ecografias, laboratorios, notas, tratamientos, vacunas, message]);
 
   const handleCalcularRiesgo = useCallback(() => {
     if (!paciente || !embarazoActivo || controles.length === 0) {
@@ -1035,22 +1168,10 @@ const HistoriaClinica: React.FC = () => {
                         }))),
                         { type: 'divider' as const },
                         {
-                          key: 'agregar',
-                          label: 'Agregar recordatorio',
+                          key: 'generar',
+                          label: 'Calcular desde la historia',
                           icon: <PlusOutlined />,
-                          onClick: () => {
-                            modal.confirm({
-                              title: 'Agregar Recordatorio',
-                              content: (
-                                <Form>
-                                  <Form.Item label="Recordatorio">
-                                    <TextArea rows={3} placeholder="Escribe un recordatorio..." />
-                                  </Form.Item>
-                                </Form>
-                              ),
-                              onOk: handleAgregarRecordatorio,
-                            });
-                          }
+                          onClick: handleGenerarRecordatorios,
                         },
                         {
                           key: 'ver_todos',

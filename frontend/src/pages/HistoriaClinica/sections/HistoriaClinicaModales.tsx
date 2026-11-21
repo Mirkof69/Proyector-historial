@@ -106,16 +106,16 @@ const HistoriaClinicaModales: React.FC<HistoriaClinicaModalesProps> = ({
 
         <Divider orientation="left">Estructura SOAP</Divider>
 
-        <Form.Item name="subjetivo" label="Subjetivo (S)" tooltip="Lo que refiere la paciente" rules={[{ required: true }]}>
+        <Form.Item name="subjetivo" label="Subjetivo (S)" tooltip="Lo que refiere la paciente" rules={[{ required: true, whitespace: true, message: 'Escriba lo que refiere la paciente' }]}>
           <Input.TextArea rows={3} placeholder="Ej: Paciente refiere dolor pélvico leve..." />
         </Form.Item>
-        <Form.Item name="objetivo" label="Objetivo (O)" tooltip="Hallazgos del examen físico">
+        <Form.Item name="objetivo" label="Objetivo (O)" tooltip="Hallazgos del examen físico" rules={[{ required: true, whitespace: true, message: 'Registre el examen físico' }]}>
           <Input.TextArea rows={3} placeholder="Ej: PA 110/70, AU 24cm, LCF 140..." />
         </Form.Item>
-        <Form.Item name="analisis" label="Análisis (A)" tooltip="Diagnóstico o impresión clínica">
+        <Form.Item name="analisis" label="Análisis (A)" tooltip="Diagnóstico o impresión clínica" rules={[{ required: true, whitespace: true, message: 'Registre el diagnóstico o la impresión clínica' }]}>
           <Input.TextArea rows={2} placeholder="Ej: Embarazo de curso normal..." />
         </Form.Item>
-        <Form.Item name="plan" label="Plan (P)" tooltip="Conducta a seguir">
+        <Form.Item name="plan" label="Plan (P)" tooltip="Conducta a seguir" rules={[{ required: true, whitespace: true, message: 'Registre la conducta a seguir' }]}>
           <Input.TextArea rows={3} placeholder="Ej: Se solicita ecografía de control..." />
         </Form.Item>
 

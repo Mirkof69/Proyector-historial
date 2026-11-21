@@ -196,7 +196,16 @@ class NotaEvolucionListSerializer(serializers.ModelSerializer):
             "presion_arterial",
             "temperatura",
             "edad_gestacional_completa",
+            "edad_gestacional_semanas",
+            "edad_gestacional_dias",
+            "frecuencia_cardiaca",
+            "examen_fisico",
             "diagnosticos",
+            "plan_tratamiento",
+            "indicaciones",
+            "medico",
+            "embarazo",
+            "fecha_modificacion",
             "activo",
         ]
 
