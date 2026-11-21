@@ -394,6 +394,10 @@ def peso_al_nacer(s: requests.Session):
 
 
 def main():
+    # La consola de Windows usa cp1252: sin esto, la primera flecha «→» del informe cortaba el script.
+    for flujo in (sys.stdout, sys.stderr):
+        if hasattr(flujo, "reconfigure"):
+            flujo.reconfigure(encoding="utf-8", errors="replace")
     try:
         requests.get(API_IA.replace("/api", "/health"), timeout=10).raise_for_status()
     except requests.RequestException as e:
