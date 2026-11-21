@@ -21,41 +21,41 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="auditoriareporte",
             name="observaciones",
-            field=models.TextField(blank=True, verbose_name="📋 Observaciones"),
+            field=models.TextField(blank=True, verbose_name="Observaciones"),
         ),
         migrations.AddField(
             model_name="dashboardkpi",
             name="visible_administrador",
             field=models.BooleanField(
-                default=True, verbose_name="👔 ¿Visible para administradores?",
+                default=True, verbose_name="¿Visible para administradores?",
             ),
         ),
         migrations.AddField(
             model_name="dashboardkpi",
             name="visible_director",
             field=models.BooleanField(
-                default=True, verbose_name="🏢 ¿Visible para director?",
+                default=True, verbose_name="¿Visible para director?",
             ),
         ),
         migrations.AddField(
             model_name="dashboardkpi",
             name="visible_medico",
             field=models.BooleanField(
-                default=True, verbose_name="👨\u200d⚕️ ¿Visible para médicos?",
+                default=True, verbose_name="\u200d¿Visible para médicos?",
             ),
         ),
         migrations.AddField(
             model_name="reportegenerado",
             name="observaciones",
             field=models.TextField(
-                blank=True, verbose_name="📝 Observaciones adicionales",
+                blank=True, verbose_name="Observaciones adicionales",
             ),
         ),
         migrations.AddField(
             model_name="reportegenerado",
             name="total_registros",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="📊 Total de registros incluidos",
+                blank=True, null=True, verbose_name="Total de registros incluidos",
             ),
         ),
         migrations.AddField(
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=False,
                 help_text="Formato simple para importar en otros sistemas",
-                verbose_name="📋 ¿Disponible en CSV?",
+                verbose_name="¿Disponible en CSV?",
             ),
         ),
         migrations.AddField(
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=True,
                 help_text="Formato ideal para análisis de datos",
-                verbose_name="📊 ¿Disponible en Excel?",
+                verbose_name="¿Disponible en Excel?",
             ),
         ),
         migrations.AddField(
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=False,
                 help_text="Formato para integración con otros sistemas",
-                verbose_name="⚙️ ¿Disponible en JSON?",
+                verbose_name="¿Disponible en JSON?",
             ),
         ),
         migrations.AddField(
@@ -91,28 +91,28 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=True,
                 help_text="Formato ideal para imprimir y compartir",
-                verbose_name="📄 ¿Disponible en PDF?",
+                verbose_name="¿Disponible en PDF?",
             ),
         ),
         migrations.AddField(
             model_name="tiporeporte",
             name="incluir_fecha_fin",
             field=models.BooleanField(
-                default=True, verbose_name="📅 ¿Permitir filtrar por fecha de fin?",
+                default=True, verbose_name="¿Permitir filtrar por fecha de fin?",
             ),
         ),
         migrations.AddField(
             model_name="tiporeporte",
             name="incluir_fecha_inicio",
             field=models.BooleanField(
-                default=True, verbose_name="📅 ¿Permitir filtrar por fecha de inicio?",
+                default=True, verbose_name="¿Permitir filtrar por fecha de inicio?",
             ),
         ),
         migrations.AddField(
             model_name="tiporeporte",
             name="incluir_medico",
             field=models.BooleanField(
-                default=False, verbose_name="👨\u200d⚕️ ¿Permitir filtrar por médico?",
+                default=False, verbose_name="\u200d¿Permitir filtrar por médico?",
             ),
         ),
         migrations.AddField(
@@ -120,14 +120,14 @@ class Migration(migrations.Migration):
             name="incluir_paciente",
             field=models.BooleanField(
                 default=False,
-                verbose_name="👤 ¿Permitir filtrar por paciente específico?",
+                verbose_name="¿Permitir filtrar por paciente específico?",
             ),
         ),
         migrations.AddField(
             model_name="tiporeporte",
             name="incluir_servicio",
             field=models.BooleanField(
-                default=False, verbose_name="🏥 ¿Permitir filtrar por servicio médico?",
+                default=False, verbose_name="¿Permitir filtrar por servicio médico?",
             ),
         ),
         migrations.AddField(
@@ -135,7 +135,7 @@ class Migration(migrations.Migration):
             name="permitir_administrador",
             field=models.BooleanField(
                 default=True,
-                verbose_name="👔 ¿Los administradores pueden generar este reporte?",
+                verbose_name="¿Los administradores pueden generar este reporte?",
             ),
         ),
         migrations.AddField(
@@ -143,7 +143,7 @@ class Migration(migrations.Migration):
             name="permitir_director",
             field=models.BooleanField(
                 default=True,
-                verbose_name="🏢 ¿El director médico puede generar este reporte?",
+                verbose_name="¿El director médico puede generar este reporte?",
             ),
         ),
         migrations.AddField(
@@ -151,7 +151,7 @@ class Migration(migrations.Migration):
             name="permitir_enfermero",
             field=models.BooleanField(
                 default=False,
-                verbose_name="👩\u200d⚕️ ¿Los enfermeros pueden generar este reporte?",
+                verbose_name="\u200d¿Los enfermeros pueden generar este reporte?",
             ),
         ),
         migrations.AddField(
@@ -159,26 +159,26 @@ class Migration(migrations.Migration):
             name="permitir_medico",
             field=models.BooleanField(
                 default=True,
-                verbose_name="👨\u200d⚕️ ¿Los médicos pueden generar este reporte?",
+                verbose_name="\u200d¿Los médicos pueden generar este reporte?",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="accion_recomendada",
-            field=models.TextField(verbose_name="💡 Acción recomendada"),
+            field=models.TextField(verbose_name="Acción recomendada"),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="comentario_resolucion",
             field=models.TextField(
-                blank=True, verbose_name="💬 Comentario de resolución",
+                blank=True, verbose_name="Comentario de resolución",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="comentario_revision",
             field=models.TextField(
-                blank=True, verbose_name="💬 Comentario de revisión",
+                blank=True, verbose_name="Comentario de revisión",
             ),
         ),
         migrations.AlterField(
@@ -193,20 +193,20 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="alertamedica",
             name="descripcion",
-            field=models.TextField(verbose_name="📄 Descripción detallada"),
+            field=models.TextField(verbose_name="Descripción detallada"),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="embarazo_id",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="🤰 ID del Embarazo",
+                blank=True, null=True, verbose_name="ID del Embarazo",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="escalamiento_automatico",
             field=models.BooleanField(
-                default=False, verbose_name="🆙 ¿Escalamiento automático?",
+                default=False, verbose_name="¿Escalamiento automático?",
             ),
         ),
         migrations.AlterField(
@@ -214,36 +214,36 @@ class Migration(migrations.Migration):
             name="estado",
             field=models.CharField(
                 choices=[
-                    ("activa", "🔴 Activa"),
-                    ("revisada", "🟡 Revisada"),
-                    ("resuelta", "🟢 Resuelta"),
-                    ("descartada", "⚫ Descartada"),
-                    ("escalada", "🟠 Escalada"),
+                    ("activa", "Activa"),
+                    ("revisada", "Revisada"),
+                    ("resuelta", "Resuelta"),
+                    ("descartada", "Descartada"),
+                    ("escalada", "Escalada"),
                 ],
                 default="activa",
                 max_length=15,
-                verbose_name="📊 Estado actual",
+                verbose_name="Estado actual",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="fecha_creacion",
             field=models.DateTimeField(
-                auto_now_add=True, verbose_name="🕐 Fecha de creación",
+                auto_now_add=True, verbose_name="Fecha de creación",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="fecha_resolucion",
             field=models.DateTimeField(
-                blank=True, null=True, verbose_name="✅ Fecha de resolución",
+                blank=True, null=True, verbose_name="Fecha de resolución",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="fecha_revision",
             field=models.DateTimeField(
-                blank=True, null=True, verbose_name="👀 Fecha de revisión",
+                blank=True, null=True, verbose_name="Fecha de revisión",
             ),
         ),
         migrations.AlterField(
@@ -259,7 +259,7 @@ class Migration(migrations.Migration):
             field=models.IntegerField(
                 blank=True,
                 null=True,
-                verbose_name="👨\u200d⚕️ ID del Médico Responsable",
+                verbose_name="\u200dID del Médico Responsable",
             ),
         ),
         migrations.AlterField(
@@ -267,31 +267,31 @@ class Migration(migrations.Migration):
             name="modulo_origen",
             field=models.CharField(
                 choices=[
-                    ("pacientes", "👤 Módulo de Pacientes"),
-                    ("embarazos", "🤰 Módulo de Embarazos"),
-                    ("controles", "🩺 Controles Prenatales"),
-                    ("ecografias", "📻 Ecografías"),
-                    ("laboratorio", "🧪 Laboratorio"),
-                    ("calculadoras", "🧮 Calculadoras Médicas"),
-                    ("partos", "👶 Partos"),
-                    ("sistema", "⚙️ Sistema"),
+                    ("pacientes", "Módulo de Pacientes"),
+                    ("embarazos", "Módulo de Embarazos"),
+                    ("controles", "Controles Prenatales"),
+                    ("ecografias", "Ecografías"),
+                    ("laboratorio", "Laboratorio"),
+                    ("calculadoras", "Calculadoras Médicas"),
+                    ("partos", "Partos"),
+                    ("sistema", "Sistema"),
                 ],
                 max_length=50,
-                verbose_name="📂 Módulo de origen",
+                verbose_name="Módulo de origen",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="notificacion_enviada",
             field=models.BooleanField(
-                default=False, verbose_name="📧 ¿Notificación enviada?",
+                default=False, verbose_name="¿Notificación enviada?",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="paciente_id",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="👤 ID del Paciente",
+                blank=True, null=True, verbose_name="ID del Paciente",
             ),
         ),
         migrations.AlterField(
@@ -299,42 +299,42 @@ class Migration(migrations.Migration):
             name="prioridad",
             field=models.CharField(
                 choices=[
-                    ("baja", "🟢 Baja"),
-                    ("media", "🟡 Media"),
-                    ("alta", "🟠 Alta"),
-                    ("critica", "🔴 Crítica"),
-                    ("emergencia", "🚨 EMERGENCIA"),
+                    ("baja", "Baja"),
+                    ("media", "Media"),
+                    ("alta", "Alta"),
+                    ("critica", "Crítica"),
+                    ("emergencia", "EMERGENCIA"),
                 ],
                 max_length=15,
-                verbose_name="⚡ Prioridad",
+                verbose_name="Prioridad",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="protocolo_seguimiento",
             field=models.TextField(
-                blank=True, verbose_name="📋 Protocolo de seguimiento",
+                blank=True, verbose_name="Protocolo de seguimiento",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="recordatorio_enviado",
             field=models.BooleanField(
-                default=False, verbose_name="🔔 ¿Recordatorio enviado?",
+                default=False, verbose_name="¿Recordatorio enviado?",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="registro_origen_id",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="🔗 ID del registro relacionado",
+                blank=True, null=True, verbose_name="ID del registro relacionado",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="tiempo_escalamiento_horas",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="⏱️ Tiempo para escalamiento (horas)",
+                blank=True, null=True, verbose_name="⏱Tiempo para escalamiento (horas)",
             ),
         ),
         migrations.AlterField(
@@ -342,52 +342,52 @@ class Migration(migrations.Migration):
             name="tipo",
             field=models.CharField(
                 choices=[
-                    ("valor_critico", "🚨 Valor crítico detectado"),
+                    ("valor_critico", "Valor crítico detectado"),
                     ("seguimiento_vencido", "⏰ Seguimiento vencido"),
-                    ("medicamento_contraindicado", "💊 Medicamento contraindicado"),
-                    ("riesgo_alto", "⚠️ Riesgo alto detectado"),
-                    ("resultado_anormal", "📊 Resultado anormal"),
-                    ("cita_perdida", "📅 Cita perdida"),
-                    ("protocolo_incumplido", "📋 Protocolo no seguido"),
-                    ("auditoria", "🔍 Requiere auditoría"),
+                    ("medicamento_contraindicado", "Medicamento contraindicado"),
+                    ("riesgo_alto", "Riesgo alto detectado"),
+                    ("resultado_anormal", "Resultado anormal"),
+                    ("cita_perdida", "Cita perdida"),
+                    ("protocolo_incumplido", "Protocolo no seguido"),
+                    ("auditoria", "Requiere auditoría"),
                 ],
                 max_length=30,
-                verbose_name="🏷️ Tipo de alerta",
+                verbose_name="Tipo de alerta",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="titulo",
             field=models.CharField(
-                max_length=200, verbose_name="📢 Título de la alerta",
+                max_length=200, verbose_name="Título de la alerta",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="usuario_resolucion_id",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="👤 Usuario que resolvió",
+                blank=True, null=True, verbose_name="Usuario que resolvió",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="usuario_revision_id",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="👤 Usuario que revisó",
+                blank=True, null=True, verbose_name="Usuario que revisó",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="valor_actual",
             field=models.CharField(
-                blank=True, max_length=100, verbose_name="📊 Valor actual",
+                blank=True, max_length=100, verbose_name="Valor actual",
             ),
         ),
         migrations.AlterField(
             model_name="alertamedica",
             name="valor_umbral",
             field=models.CharField(
-                blank=True, max_length=100, verbose_name="⚠️ Valor umbral",
+                blank=True, max_length=100, verbose_name="Valor umbral",
             ),
         ),
         migrations.AlterField(
@@ -395,22 +395,22 @@ class Migration(migrations.Migration):
             name="accion",
             field=models.CharField(
                 choices=[
-                    ("generacion", "📄 Generación de reporte"),
-                    ("descarga", "📥 Descarga"),
-                    ("visualizacion", "👀 Visualización"),
-                    ("modificacion", "✏️ Modificación"),
-                    ("eliminacion", "🗑️ Eliminación"),
-                    ("compartir", "📤 Compartir"),
+                    ("generacion", "Generación de reporte"),
+                    ("descarga", "Descarga"),
+                    ("visualizacion", "Visualización"),
+                    ("modificacion", "Modificación"),
+                    ("eliminacion", "Eliminación"),
+                    ("compartir", "Compartir"),
                 ],
                 max_length=20,
-                verbose_name="⚡ Acción realizada",
+                verbose_name="Acción realizada",
             ),
         ),
         migrations.AlterField(
             model_name="auditoriareporte",
             name="cumple_ley_3871",
             field=models.BooleanField(
-                default=True, verbose_name="⚖️ ¿Cumple con la Ley 3871?",
+                default=True, verbose_name="¿Cumple con la Ley 3871?",
             ),
         ),
         migrations.AlterField(
@@ -425,20 +425,20 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="auditoriareporte",
             name="direccion_ip",
-            field=models.GenericIPAddressField(verbose_name="🌐 Dirección IP"),
+            field=models.GenericIPAddressField(verbose_name="Dirección IP"),
         ),
         migrations.AlterField(
             model_name="auditoriareporte",
             name="fecha_accion",
             field=models.DateTimeField(
-                auto_now_add=True, verbose_name="🕐 Fecha y hora",
+                auto_now_add=True, verbose_name="Fecha y hora",
             ),
         ),
         migrations.AlterField(
             model_name="auditoriareporte",
             name="justificacion_acceso",
             field=models.TextField(
-                blank=True, verbose_name="📝 Justificación del acceso",
+                blank=True, verbose_name="Justificación del acceso",
             ),
         ),
         migrations.AlterField(
@@ -447,47 +447,47 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 to="reportes.reportegenerado",
-                verbose_name="📊 Reporte",
+                verbose_name="Reporte",
             ),
         ),
         migrations.AlterField(
             model_name="auditoriareporte",
             name="user_agent",
-            field=models.TextField(verbose_name="💻 Navegador/Dispositivo"),
+            field=models.TextField(verbose_name="Navegador/Dispositivo"),
         ),
         migrations.AlterField(
             model_name="auditoriareporte",
             name="usuario_id",
-            field=models.IntegerField(verbose_name="👤 Usuario"),
+            field=models.IntegerField(verbose_name="Usuario"),
         ),
         migrations.AlterField(
             model_name="dashboardkpi",
             name="activo",
-            field=models.BooleanField(default=True, verbose_name="✅ ¿Está activo?"),
+            field=models.BooleanField(default=True, verbose_name="¿Está activo?"),
         ),
         migrations.AlterField(
             model_name="dashboardkpi",
             name="categoria",
             field=models.CharField(
                 choices=[
-                    ("pacientes", "👥 Pacientes"),
-                    ("embarazos", "🤰 Embarazos"),
-                    ("controles", "🩺 Controles Prenatales"),
-                    ("partos", "👶 Partos"),
-                    ("calculadoras", "🧮 Calculadoras Médicas"),
-                    ("calidad", "⭐ Calidad de Atención"),
-                    ("seguridad", "🛡️ Seguridad"),
-                    ("productividad", "📈 Productividad"),
+                    ("pacientes", "Pacientes"),
+                    ("embarazos", "Embarazos"),
+                    ("controles", "Controles Prenatales"),
+                    ("partos", "Partos"),
+                    ("calculadoras", "Calculadoras Médicas"),
+                    ("calidad", "Calidad de Atención"),
+                    ("seguridad", "Seguridad"),
+                    ("productividad", "Productividad"),
                 ],
                 max_length=20,
-                verbose_name="📂 Categoría",
+                verbose_name="Categoría",
             ),
         ),
         migrations.AlterField(
             model_name="dashboardkpi",
             name="codigo",
             field=models.CharField(
-                max_length=50, unique=True, verbose_name="🏷️ Código único",
+                max_length=50, unique=True, verbose_name="Código único",
             ),
         ),
         migrations.AlterField(
@@ -495,7 +495,7 @@ class Migration(migrations.Migration):
             name="consulta_sql",
             field=models.TextField(
                 help_text="Query SQL que obtiene el valor del KPI",
-                verbose_name="⚙️ Consulta para calcular el valor",
+                verbose_name="Consulta para calcular el valor",
             ),
         ),
         migrations.AlterField(
@@ -503,7 +503,7 @@ class Migration(migrations.Migration):
             name="descripcion",
             field=models.TextField(
                 help_text="Explica qué mide este indicador",
-                verbose_name="📄 Descripción",
+                verbose_name="Descripción",
             ),
         ),
         migrations.AlterField(
@@ -511,14 +511,14 @@ class Migration(migrations.Migration):
             name="frecuencia_actualizacion",
             field=models.CharField(
                 choices=[
-                    ("tiempo_real", "⚡ Tiempo real"),
-                    ("cada_hora", "🕐 Cada hora"),
-                    ("diario", "📅 Diario"),
-                    ("semanal", "📆 Semanal"),
+                    ("tiempo_real", "Tiempo real"),
+                    ("cada_hora", "Cada hora"),
+                    ("diario", "Diario"),
+                    ("semanal", "Semanal"),
                 ],
                 default="diario",
                 max_length=20,
-                verbose_name="🔄 ¿Con qué frecuencia se actualiza?",
+                verbose_name="¿Con qué frecuencia se actualiza?",
             ),
         ),
         migrations.AlterField(
@@ -528,7 +528,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 help_text="Nombre del icono (opcional)",
                 max_length=50,
-                verbose_name="🎨 Icono",
+                verbose_name="Icono",
             ),
         ),
         migrations.AlterField(
@@ -539,7 +539,7 @@ class Migration(migrations.Migration):
                 decimal_places=2,
                 max_digits=12,
                 null=True,
-                verbose_name="🎯 Meta mínima aceptable",
+                verbose_name="Meta mínima aceptable",
             ),
         ),
         migrations.AlterField(
@@ -550,7 +550,7 @@ class Migration(migrations.Migration):
                 decimal_places=2,
                 max_digits=12,
                 null=True,
-                verbose_name="🏆 Meta óptima",
+                verbose_name="Meta óptima",
             ),
         ),
         migrations.AlterField(
@@ -559,14 +559,14 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 help_text="Ej: Total de Pacientes Activos",
                 max_length=200,
-                verbose_name="📊 Nombre del Indicador",
+                verbose_name="Nombre del Indicador",
             ),
         ),
         migrations.AlterField(
             model_name="dashboardkpi",
             name="orden_dashboard",
             field=models.IntegerField(
-                default=0, verbose_name="📋 Orden en el dashboard",
+                default=0, verbose_name="Orden en el dashboard",
             ),
         ),
         migrations.AlterField(
@@ -592,14 +592,14 @@ class Migration(migrations.Migration):
             name="tipo",
             field=models.CharField(
                 choices=[
-                    ("numero", "🔢 Número simple"),
-                    ("porcentaje", "📊 Porcentaje"),
-                    ("tendencia", "📈 Tendencia"),
-                    ("ratio", "⚖️ Proporción"),
-                    ("tiempo", "⏱️ Tiempo promedio"),
+                    ("numero", "Número simple"),
+                    ("porcentaje", "Porcentaje"),
+                    ("tendencia", "Tendencia"),
+                    ("ratio", "Proporción"),
+                    ("tiempo", "⏱Tiempo promedio"),
                 ],
                 max_length=20,
-                verbose_name="📈 Tipo de indicador",
+                verbose_name="Tipo de indicador",
             ),
         ),
         migrations.AlterField(
@@ -609,7 +609,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 help_text="Ej: pacientes, %, minutos, días",
                 max_length=20,
-                verbose_name="📏 Unidad de medida",
+                verbose_name="Unidad de medida",
             ),
         ),
         migrations.AlterField(
@@ -620,7 +620,7 @@ class Migration(migrations.Migration):
                 decimal_places=2,
                 max_digits=12,
                 null=True,
-                verbose_name="📊 Valor actual",
+                verbose_name="Valor actual",
             ),
         ),
         migrations.AlterField(
@@ -631,13 +631,13 @@ class Migration(migrations.Migration):
                 decimal_places=2,
                 max_digits=12,
                 null=True,
-                verbose_name="📉 Valor anterior",
+                verbose_name="Valor anterior",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="accesos_descarga",
-            field=models.IntegerField(default=0, verbose_name="📥 Número de descargas"),
+            field=models.IntegerField(default=0, verbose_name="Número de descargas"),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
@@ -654,21 +654,21 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[
                     ("pendiente", "⏳ Pendiente"),
-                    ("procesando", "⚙️ Procesando"),
-                    ("completado", "✅ Completado"),
-                    ("error", "❌ Error"),
+                    ("procesando", "Procesando"),
+                    ("completado", "Completado"),
+                    ("error", "Error"),
                     ("expirado", "⏰ Expirado"),
                 ],
                 default="pendiente",
                 max_length=20,
-                verbose_name="📈 Estado del reporte",
+                verbose_name="Estado del reporte",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="fecha_completado",
             field=models.DateTimeField(
-                blank=True, null=True, verbose_name="✅ Fecha de completado",
+                blank=True, null=True, verbose_name="Fecha de completado",
             ),
         ),
         migrations.AlterField(
@@ -682,49 +682,49 @@ class Migration(migrations.Migration):
             model_name="reportegenerado",
             name="fecha_fin",
             field=models.DateField(
-                blank=True, null=True, verbose_name="📅 Fecha de fin del período",
+                blank=True, null=True, verbose_name="Fecha de fin del período",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="fecha_inicio",
             field=models.DateField(
-                blank=True, null=True, verbose_name="📅 Fecha de inicio del período",
+                blank=True, null=True, verbose_name="Fecha de inicio del período",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="fecha_procesamiento",
             field=models.DateTimeField(
-                blank=True, null=True, verbose_name="⚙️ Inicio de procesamiento",
+                blank=True, null=True, verbose_name="Inicio de procesamiento",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="fecha_solicitud",
             field=models.DateTimeField(
-                auto_now_add=True, verbose_name="🕐 Fecha de solicitud",
+                auto_now_add=True, verbose_name="Fecha de solicitud",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="filtro_medico",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="👨\u200d⚕️ Médico específico (ID)",
+                blank=True, null=True, verbose_name="\u200dMédico específico (ID)",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="filtro_paciente",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="👤 Paciente específico (ID)",
+                blank=True, null=True, verbose_name="Paciente específico (ID)",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="filtro_servicio",
             field=models.CharField(
-                blank=True, max_length=100, verbose_name="🏥 Servicio médico",
+                blank=True, max_length=100, verbose_name="Servicio médico",
             ),
         ),
         migrations.AlterField(
@@ -732,14 +732,14 @@ class Migration(migrations.Migration):
             name="formato",
             field=models.CharField(
                 choices=[
-                    ("pdf", "📄 PDF"),
-                    ("excel", "📊 Excel"),
-                    ("csv", "📋 CSV"),
-                    ("json", "⚙️ JSON"),
+                    ("pdf", "PDF"),
+                    ("excel", "Excel"),
+                    ("csv", "CSV"),
+                    ("json", "JSON"),
                 ],
                 default="pdf",
                 max_length=10,
-                verbose_name="📄 Formato de descarga",
+                verbose_name="Formato de descarga",
             ),
         ),
         migrations.AlterField(
@@ -748,13 +748,13 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 max_length=128,
-                verbose_name="🔐 Hash de seguridad del archivo",
+                verbose_name="Hash de seguridad del archivo",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="mensaje_error",
-            field=models.TextField(blank=True, verbose_name="❌ Mensaje de error"),
+            field=models.TextField(blank=True, verbose_name="Mensaje de error"),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
@@ -769,14 +769,14 @@ class Migration(migrations.Migration):
             model_name="reportegenerado",
             name="ruta_archivo",
             field=models.CharField(
-                blank=True, max_length=500, verbose_name="📁 Ruta del archivo",
+                blank=True, max_length=500, verbose_name="Ruta del archivo",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="tamaño_archivo",
             field=models.IntegerField(
-                blank=True, null=True, verbose_name="📏 Tamaño del archivo (bytes)",
+                blank=True, null=True, verbose_name="Tamaño del archivo (bytes)",
             ),
         ),
         migrations.AlterField(
@@ -785,7 +785,7 @@ class Migration(migrations.Migration):
             field=models.IntegerField(
                 blank=True,
                 null=True,
-                verbose_name="⏱️ Tiempo de procesamiento (segundos)",
+                verbose_name="⏱Tiempo de procesamiento (segundos)",
             ),
         ),
         migrations.AlterField(
@@ -794,20 +794,20 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 to="reportes.tiporeporte",
-                verbose_name="📊 Tipo de Reporte",
+                verbose_name="Tipo de Reporte",
             ),
         ),
         migrations.AlterField(
             model_name="reportegenerado",
             name="usuario_solicitante",
             field=models.IntegerField(
-                verbose_name="👤 Usuario que solicitó el reporte",
+                verbose_name="Usuario que solicitó el reporte",
             ),
         ),
         migrations.AlterField(
             model_name="tiporeporte",
             name="activo",
-            field=models.BooleanField(default=True, verbose_name="✅ ¿Está activo?"),
+            field=models.BooleanField(default=True, verbose_name="¿Está activo?"),
         ),
         migrations.AlterField(
             model_name="tiporeporte",
@@ -815,7 +815,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=False,
                 help_text="Si está activado, el reporte se generará según la frecuencia seleccionada",
-                verbose_name="🤖 ¿Generar automáticamente?",
+                verbose_name="¿Generar automáticamente?",
             ),
         ),
         migrations.AlterField(
@@ -833,15 +833,15 @@ class Migration(migrations.Migration):
             name="categoria",
             field=models.CharField(
                 choices=[
-                    ("estadistico", "📊 Estadísticas y Métricas"),
-                    ("paciente", "👤 Reportes de Pacientes"),
-                    ("institucional", "🏥 Reportes Institucionales"),
-                    ("regulatorio", "📋 Cumplimiento Regulatorio"),
-                    ("clinico", "🩺 Reportes Clínicos"),
-                    ("financiero", "💰 Reportes Financieros"),
+                    ("estadistico", "Estadísticas y Métricas"),
+                    ("paciente", "Reportes de Pacientes"),
+                    ("institucional", "Reportes Institucionales"),
+                    ("regulatorio", "Cumplimiento Regulatorio"),
+                    ("clinico", "Reportes Clínicos"),
+                    ("financiero", "Reportes Financieros"),
                 ],
                 max_length=20,
-                verbose_name="📂 Categoría del Reporte",
+                verbose_name="Categoría del Reporte",
             ),
         ),
         migrations.AlterField(
@@ -852,7 +852,7 @@ class Migration(migrations.Migration):
                 help_text="Código interno (se genera automáticamente si se deja vacío)",
                 max_length=50,
                 unique=True,
-                verbose_name="🔖 Código Único",
+                verbose_name="Código Único",
             ),
         ),
         migrations.AlterField(
@@ -861,7 +861,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=False,
                 help_text="Solo usuarios autorizados podrán ver este reporte",
-                verbose_name="🔒 ¿Es confidencial?",
+                verbose_name="¿Es confidencial?",
             ),
         ),
         migrations.AlterField(
@@ -869,7 +869,7 @@ class Migration(migrations.Migration):
             name="descripcion",
             field=models.TextField(
                 help_text="Describe qué información incluye este reporte",
-                verbose_name="📄 Descripción",
+                verbose_name="Descripción",
             ),
         ),
         migrations.AlterField(
@@ -887,12 +887,12 @@ class Migration(migrations.Migration):
             name="frecuencia",
             field=models.CharField(
                 choices=[
-                    ("bajo_demanda", "🔄 Generar cuando se necesite"),
-                    ("diario", "📅 Todos los días"),
-                    ("semanal", "📆 Cada semana"),
-                    ("mensual", "🗓️ Mensualmente"),
-                    ("trimestral", "📊 Cada 3 meses"),
-                    ("anual", "📈 Anualmente"),
+                    ("bajo_demanda", "Generar cuando se necesite"),
+                    ("diario", "Todos los días"),
+                    ("semanal", "Cada semana"),
+                    ("mensual", "Mensualmente"),
+                    ("trimestral", "Cada 3 meses"),
+                    ("anual", "Anualmente"),
                 ],
                 default="bajo_demanda",
                 max_length=20,
@@ -905,7 +905,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 help_text="Ej: Reporte de Pacientes del Mes",
                 max_length=200,
-                verbose_name="📝 Nombre del Reporte",
+                verbose_name="Nombre del Reporte",
             ),
         ),
         migrations.AlterField(
@@ -924,7 +924,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 help_text="Dejar vacío para usar la consulta predeterminada",
-                verbose_name="⚙️ Consulta SQL personalizada (Solo para expertos)",
+                verbose_name="Consulta SQL personalizada (Solo para expertos)",
             ),
         ),
         migrations.AlterField(
@@ -933,7 +933,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=False,
                 help_text="Indica si el usuario debe configurar parámetros específicos",
-                verbose_name="🔧 ¿Requiere parámetros adicionales?",
+                verbose_name="¿Requiere parámetros adicionales?",
             ),
         ),
         migrations.AlterField(

@@ -25,7 +25,7 @@ def revoke_auditlog_write_permissions(apps, schema_editor):
                 f'REVOKE UPDATE, DELETE ON TABLE auditoria_registros FROM "{db_user}";',
             )
         print(
-            f"✅ UPDATE/DELETE revocados en auditoria_registros para usuario '{db_user}'.",
+            f"UPDATE/DELETE revocados en auditoria_registros para usuario '{db_user}'.",
         )
     except Exception as e:
         print(f"WARN: REVOKE no aplicado (puede que ya estuviera revocado): {e}")

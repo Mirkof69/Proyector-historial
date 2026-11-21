@@ -10,8 +10,6 @@ Tareas asíncronas para:
 =============================================================================
 """
 
-# from citas.models import Cita  # Deferred
-# from laboratorio.models import ExamenLaboratorio  # Deferred
 import logging
 from datetime import timedelta
 

@@ -7,7 +7,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
-# from embarazos.models import Embarazo  # REMOVED to fix circular import
 from pacientes.models import Paciente
 from usuarios.models import Usuario
 

@@ -1,10 +1,4 @@
-"""=============================================================================
-MÓDULO: EMBARAZOS - VIEWSET V3.0 FINAL CORREGIDO
-=============================================================================
-Sin errores de prefetch_related
-Optimizado para el modelo real
-=============================================================================
-"""
+"""Embarazos: API de consulta, registro, seguimiento y estadísticas."""
 
 import contextlib
 import logging

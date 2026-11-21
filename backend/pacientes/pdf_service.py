@@ -91,11 +91,6 @@ class PDFService:
         """Agregar encabezado a cada página"""
         canvas.saveState()
 
-        # Logo (si existe)
-        # logo_path = os.path.join(settings.STATIC_ROOT, 'images', 'logo.png')
-        # if os.path.exists(logo_path):
-        #     canvas.drawImage(logo_path, 50, 750, width=100, height=50, preserveAspectRatio=True)
-
         # Nombre del centro médico
         canvas.setFont("Helvetica-Bold", 14)
         canvas.setFillColor(colors.HexColor("#1890f"))

@@ -204,25 +204,6 @@ class MOMConverter:
         # (factores 1.0). El resultado se marca como no ajustado en calcular_mom.
         referencia = _PlaceholderReferencia(marcador, eg_dias)
 
-        # # Buscar referencia exacta o más cercana
-        # try:
-        #     referencia = ReferenciaMOM.objects.get(
-        #         marcador=marcador,
-        #         edad_gestacional_dias=eg_dias
-        #     )
-        # except ReferenciaMOM.DoesNotExist:
-        #     # Buscar la más cercana (± 3 días)
-        #     referencia = ReferenciaMOM.objects.filter(
-        #         marcador=marcador,
-        #         edad_gestacional_dias__gte=eg_dias - 3,
-        #         edad_gestacional_dias__lte=eg_dias + 3
-        #     ).order_by('edad_gestacional_dias').first()
-        #
-        #     if not referencia:
-        #         raise ObjectDoesNotExist(
-        #             f"No reference found for {marcador} near {eg_dias} days"
-        #         )
-
         # Guardar en cache
         self.cache_referencias[cache_key] = referencia
 

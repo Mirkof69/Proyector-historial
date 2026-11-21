@@ -158,10 +158,10 @@ class Migration(migrations.Migration):
                     "severidad",
                     models.CharField(
                         choices=[
-                            ("leve", "🟢 Leve"),
-                            ("moderada", "🟡 Moderada"),
-                            ("severa", "🔴 Severa"),
-                            ("critica", "🚨 Crítica"),
+                            ("leve", "Leve"),
+                            ("moderada", "Moderada"),
+                            ("severa", "Severa"),
+                            ("critica", "Crítica"),
                         ],
                         default="leve",
                         max_length=20,

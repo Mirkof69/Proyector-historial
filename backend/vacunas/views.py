@@ -32,9 +32,6 @@ from .serializers import (
     TipoVacunaSerializer,
 )
 
-# from pacientes.models import Paciente  # REMOVED
-# from embarazos.models import Embarazo  # REMOVED
-
 
 # =============================================================================
 # TIPO VACUNA VIEWSET

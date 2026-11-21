@@ -277,29 +277,3 @@ class CalculadorMoM:
         # Asumiendo SD = 0.15 para log-MoM
         z_score = log_mom / 0.15
         return round(z_score, 2)
-
-
-# =============================================================================
-# EJEMPLO DE USO
-# =============================================================================
-
-if __name__ == "__main__":
-    # Ejemplo: Calcular MoM de PlGF
-    calculador = CalculadorMoM()
-
-    plgf_medido = 42.5  # pg/mL
-    mom_result = calculador.calcular_mom(
-        valor_medido=plgf_medido,
-        marcador="PLGF",
-        semanas=12,
-        peso_kg=75,
-        etnia="mestizo",
-        fumadora=False,
-        altitud_bolivia=True,
-    )
-
-    print(f"PlGF medido: {plgf_medido} pg/mL")
-    print(f"MoM: {mom_result}")
-    print(f"Clasificación: {calculador.clasificar_mom(float(mom_result))}")
-    print(f"Z-score: {calculador.calcular_zscore_desde_mom(float(mom_result))}")
-    print(f"Percentil: {calculador.calcular_percentil_desde_mom(float(mom_result))}")

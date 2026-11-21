@@ -42,9 +42,9 @@ def build_vigente() -> int:
 def dependencias() -> int:
     """node_modules vale si existe y npm lo instaló después del último cambio de package.json.
 
-    package-lock.json no se versiona (backend/.gitignore), así que `npm ci` no
-    sirve; y un equipo con node_modules viejo no recibía paquetes nuevos (p. ej.
-    las fuentes IBM Plex del 14/10/2026) y el build fallaba.
+    Un equipo con node_modules viejo no recibía paquetes nuevos (p. ej. las
+    fuentes IBM Plex del 14/10/2026) y el build fallaba: si package.json es más
+    nuevo que la última instalación, se vuelve a instalar.
     """
     marca = FRONTEND / "node_modules" / ".package-lock.json"
     if not marca.exists():

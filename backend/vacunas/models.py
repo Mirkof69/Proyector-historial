@@ -14,7 +14,6 @@ from django.utils import timezone
 
 from pacientes.models import Paciente
 
-# from embarazos.models import Embarazo  # REMOVED to fix circular import
 from usuarios.models import Usuario
 
 

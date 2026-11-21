@@ -46,7 +46,6 @@ from .serializers import (
 # ============================================================================
 
 
-
 def carpeta_reportes() -> Path:
     """Donde viven los archivos de reportes generados.
 
@@ -74,7 +73,6 @@ def ruta_de_reporte_segura(ruta: str | None) -> Path | None:
     except (OSError, ValueError):
         return None
     return destino if destino.is_relative_to(base) else None
-
 
 
 class TipoReporteViewSet(viewsets.ModelViewSet):
@@ -734,11 +732,6 @@ import contextlib
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-
-# from embarazos.models import Embarazo  # CIRCULAR_IMPORT_FIX
-# from pacientes.models import Paciente  # CIRCULAR_IMPORT_FIX
-# from controles.models import ControlPrenatal  # REMOVED
-# from partos.models import Parto  # REMOVED
 
 
 @api_view(["GET"])

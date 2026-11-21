@@ -4,7 +4,7 @@ SERVICIO CNN — Red Neuronal Convolucional para Análisis de Imágenes Fetales
 Arquitectura Circuit Breaker:
   1. Intenta análisis con Microservicio FastAPI real (TF ResNet50 + U-Net)
   2. Si el microservicio no está disponible → fallback Pillow local
-El sistema clínico funciona 100% aunque el módulo ML esté caído (req. CLAUDE.md).
+El sistema clínico funciona 100% aunque el módulo ML esté caído (requisito de disponibilidad).
 =============================================================================
 """
 
@@ -134,7 +134,7 @@ class CNNFetalService:
         Retorna error explícito si el microservicio no está disponible.
 
         SEGURIDAD CLÍNICA: Sin fallback con datos sintéticos. Un falso negativo
-        generado por RNG puede costar una vida (CLAUDE.md, spec técnica Bloque 1.5).
+        generado por RNG puede costar una vida (especificación técnica, bloque 1.5).
         """
         resultado_real = self._analizar_con_microservicio(imagen_path, modelo)
         if resultado_real is not None:

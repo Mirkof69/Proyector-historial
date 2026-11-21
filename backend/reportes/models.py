@@ -5,9 +5,6 @@ from django.db import models
 from django.utils import timezone
 
 # CIRCULAR IMPORT FIX: Commented out to use string references in ForeignKey
-# from usuarios.models import Usuario
-# from pacientes.models import Paciente
-# from embarazos.models import Embarazo
 
 
 class TipoReporte(models.Model):

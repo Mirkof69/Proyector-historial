@@ -81,7 +81,6 @@ class Command(BaseCommand):
 
                     # Update if different
                     if perm.name != new_name:
-                        # self.stdout.write(f"Renaming '{perm.name}' -> '{new_name}'")
                         perm.name = new_name
                         perm.save()
                         count += 1

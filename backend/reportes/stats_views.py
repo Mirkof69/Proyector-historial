@@ -9,11 +9,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 # CIRCULAR_IMPORT_FIX: Imports comentados - usar lazy imports en funciones
-# from embarazos.models import Embarazo
-# from pacientes.models import Paciente
-# from controles.models import ControlPrenatal
-# from citas.models import Cita
-# from partos.models import Parto
 
 
 @extend_schema(

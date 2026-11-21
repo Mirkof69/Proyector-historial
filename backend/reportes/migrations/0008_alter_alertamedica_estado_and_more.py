@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                     ("emergencia", "EMERGENCIA"),
                 ],
                 max_length=15,
-                verbose_name="⚡ Prioridad",
+                verbose_name="Prioridad",
             ),
         ),
         migrations.AlterField(
@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
                     ("auditoria", "Requiere auditoría"),
                 ],
                 max_length=30,
-                verbose_name="️ Tipo de alerta",
+                verbose_name="Tipo de alerta",
             ),
         ),
         migrations.CreateModel(

@@ -9,11 +9,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-# from pacientes.models import Paciente  # REMOVED
-# from embarazos.models import Embarazo  # REMOVED
-# from controles.models import ControlPrenatal  # REMOVED
-# from partos.models import Parto  # REMOVED
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

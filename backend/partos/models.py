@@ -12,8 +12,6 @@ from django.utils import timezone
 # IMPORTS NECESARIOS PARA FOREIGNKEY
 from pacientes.models import Paciente
 
-# from embarazos.models import Embarazo  # REMOVED to fix circular import
-
 
 def validar_edad_gestacional(value):
     """Valida formato de edad gestacional (ej: 39+2)
@@ -1554,7 +1552,7 @@ class PartogramaRegistro(models.Model):
     )
 
     # Ecografía intraparto: ángulo de progresión (medido a mano o por la red de
-    # IUGC, Microservicio_IA/app/angulo_progresion.py). ≥ 120° se asocia a parto
+    # IUGC, servicio-ia/app/angulo_progresion.py). ≥ 120° se asocia a parto
     # vaginal espontáneo.
     angulo_progresion = models.DecimalField(
         max_digits=5, decimal_places=1, null=True, blank=True,

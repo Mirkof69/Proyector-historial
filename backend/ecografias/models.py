@@ -10,7 +10,6 @@ from django.utils import timezone
 from core.nombres_archivo import ruta_imagen_ecografia
 from PIL import Image
 
-# from embarazos.models import Embarazo  # REMOVED to fix circular import
 from pacientes.models import Paciente
 from usuarios.models import Usuario
 

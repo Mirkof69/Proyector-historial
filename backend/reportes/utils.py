@@ -1,7 +1,4 @@
-# from pacientes.models import Paciente  #  CIRCULAR IMPORT FIX
 """Utils module."""
-# from usuarios.models import Usuario  #  CIRCULAR IMPORT FIX
-# from embarazos.models import Embarazo  #  CIRCULAR IMPORT FIX
 import logging
 
 from django.db import connection

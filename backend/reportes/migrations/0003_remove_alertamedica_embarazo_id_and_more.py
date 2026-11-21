@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 to="embarazos.embarazo",
-                verbose_name="🤰 Embarazo",
+                verbose_name="Embarazo",
             ),
         ),
         migrations.AddField(
@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="alertas_responsable",
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="👨\u200d⚕️ Médico Responsable",
+                verbose_name="\u200dMédico Responsable",
             ),
         ),
         migrations.AddField(
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 to="pacientes.paciente",
-                verbose_name="👤 Paciente",
+                verbose_name="Paciente",
             ),
         ),
         migrations.AddField(
@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="alertas_resueltas",
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="👤 Usuario que resolvió",
+                verbose_name="Usuario que resolvió",
             ),
         ),
         migrations.AddField(
@@ -106,7 +106,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="alertas_revisadas",
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="👤 Usuario que revisó",
+                verbose_name="Usuario que revisó",
             ),
         ),
         migrations.AddField(
@@ -116,7 +116,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="👤 Usuario",
+                verbose_name="Usuario",
             ),
         ),
         migrations.AlterField(
@@ -128,7 +128,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="reportes_filtrados",
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="👨\u200d⚕️ Médico específico",
+                verbose_name="\u200dMédico específico",
             ),
         ),
         migrations.AlterField(
@@ -139,7 +139,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 to="pacientes.paciente",
-                verbose_name="👤 Paciente específico",
+                verbose_name="Paciente específico",
             ),
         ),
         migrations.AlterField(
@@ -149,7 +149,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="reportes_solicitados",
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="👤 Usuario que solicitó el reporte",
+                verbose_name="Usuario que solicitó el reporte",
             ),
         ),
     ]

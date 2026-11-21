@@ -9,8 +9,6 @@ from .models import (
     ValorReferencia,
 )
 
-# from controles.models import ControlPrenatal  # REMOVED to fix circular import
-
 
 class TipoExamenSerializer(serializers.ModelSerializer):
     """Serializer para Tipos de Exámenes"""

@@ -9,7 +9,6 @@ from rest_framework import serializers
 from embarazos.models import Embarazo
 from pacientes.models import Paciente
 
-# from controles.models import ControlPrenatal  # REMOVED to fix circular import
 from usuarios.models import Usuario
 
 from .models import NotaEvolucion

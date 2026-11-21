@@ -143,8 +143,6 @@ class PartoViewSet(ExportarExcelMixin, viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Usa serializer completo para lista y detalle para asegurar datos en dashboard"""
-        # if self.action == 'list':
-        #     return PartoResumenSerializer
         return PartoSerializer
 
     def perform_create(self, serializer):

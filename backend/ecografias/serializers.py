@@ -9,8 +9,6 @@ from .models import (
     ImagenEcografia,
 )
 
-# from embarazos.models import Embarazo  # REMOVED to fix circular import
-
 
 class BiometriaFetalSerializer(serializers.ModelSerializer):
     """Serializer para Biometría Fetal"""

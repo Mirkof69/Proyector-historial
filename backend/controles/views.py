@@ -1,15 +1,4 @@
-"""=============================================================================
-MÓDULO: CONTROLES PRENATALES - VIEWSET COMPLETO V2.0 CORREGIDO
-=============================================================================
-CORRECCIONES V2.0:
-    pass
-- Fix: Usa ControlPrenatalSerializer en list para incluir paciente_nombre
-- Fix: Todos los filtros corregidos (negativa en lugar de negativo)
-- Fix: Select_related optimizado para evitar N+1 queries
-- Fix: Todos los endpoints extendidos con información completa
-- Nuevos endpoints para análisis y reportes avanzados
-=============================================================================
-"""
+"""Controles prenatales: API de consulta, filtros y reportes de cada control."""
 
 import contextlib
 from citas.flujo import atendida_por_control

@@ -9,7 +9,6 @@ from django.utils import timezone
 
 from pacientes.models import Paciente
 
-# from controles.models import ControlPrenatal  # REMOVED to fix circular import
 from usuarios.models import Usuario
 
 logger = logging.getLogger(__name__)

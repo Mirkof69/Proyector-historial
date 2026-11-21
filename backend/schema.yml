@@ -301,6 +301,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/AntecedenteGinecoObstetrico'
           description: ''
+  /api/antecedentes/gineco-obstetricos/resumen/:
+    get:
+      operationId: antecedentes_gineco_obstetricos_resumen_retrieve
+      description: Cifras de TODOS los antecedentes (el listado trae solo la página
+        visible).
+      tags:
+      - antecedentes
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AntecedenteGinecoObstetrico'
+          description: ''
   /api/antecedentes/patologicos/:
     get:
       operationId: antecedentes_patologicos_list
@@ -568,67 +585,6 @@ paths:
         Los registros se crean automáticamente mediante signals o el método registrar().
         Acceso restringido: solo médicos y administradores.
       parameters:
-      - in: query
-        name: accion
-        schema:
-          type: string
-          x-spec-enum-id: 9625ac9238d304d9
-          enum:
-          - ACCION_MASIVA_ADMIN
-          - ACTIVAR
-          - ANALISIS_CNN
-          - BACKUP
-          - CAMBIO_ROL
-          - CONSULTA_IA
-          - CREAR
-          - CUENTA_BLOQUEADA
-          - DESACTIVAR
-          - DESACTIVAR_PACIENTE
-          - EDITAR
-          - ELIMINAR_EMBARAZO
-          - EXPORTAR
-          - FIRMAR
-          - LOGIN
-          - LOGIN_FALLIDO
-          - LOGOUT
-          - MFA_ACTIVADO
-          - MFA_DESACTIVADO
-          - MFA_FALLIDO
-          - REABRIR
-          - VER
-          - actualizar
-          - crear
-          - eliminar
-        description: |-
-          * `LOGIN` - Inicio de sesión
-          * `LOGOUT` - Cierre de sesión
-          * `LOGIN_FALLIDO` - Intento de login fallido
-          * `MFA_ACTIVADO` - MFA activado
-          * `MFA_FALLIDO` - Intento MFA fallido
-          * `MFA_DESACTIVADO` - MFA desactivado
-          * `CUENTA_BLOQUEADA` - Cuenta bloqueada por intentos
-          * `crear` - Crear
-          * `actualizar` - Actualizar
-          * `eliminar` - Eliminar
-          * `CREAR` - Creación de registro
-          * `EDITAR` - Modificación de registro
-          * `VER` - Visualización de registro
-          * `DESACTIVAR` - Desactivación (soft delete)
-          * `ACTIVAR` - Reactivación de registro
-          * `EXPORTAR` - Exportación de datos
-          * `FIRMAR` - Firma de un documento clínico
-          * `REABRIR` - Reapertura de un documento firmado
-          * `CONSULTA_IA` - Consulta al chatbot IA
-          * `ANALISIS_CNN` - Análisis de imagen con CNN
-          * `CAMBIO_ROL` - Cambio de rol de usuario
-          * `BACKUP` - Respaldo de base de datos
-          * `DESACTIVAR_PACIENTE` - Desactivación de paciente
-          * `ELIMINAR_EMBARAZO` - Borrado de embarazo registrado por error
-          * `ACCION_MASIVA_ADMIN` - Acción masiva desde el admin
-      - in: query
-        name: modulo
-        schema:
-          type: string
       - name: ordering
         required: false
         in: query
@@ -920,6 +876,25 @@ paths:
           type: string
           description: Módulo/modelo afectado
         required: true
+      tags:
+      - auditoria
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistroAuditoria'
+          description: ''
+  /api/auditoria/opciones/:
+    get:
+      operationId: auditoria_opciones_retrieve
+      description: |-
+        Valores para los filtros del explorador: personas, acciones y módulos con registros.
+
+        Recorre toda la tabla (~500.000 filas, 9 s): se guarda 5 minutos en caché.
       tags:
       - auditoria
       security:
@@ -6738,7 +6713,7 @@ paths:
   /api/controles/:
     get:
       operationId: controles_list
-      description: '✅ FIX: Override list para usar ControlPrenatalSerializer completo'
+      description: 'FIX: Override list para usar ControlPrenatalSerializer completo'
       parameters:
       - in: query
         name: edema
@@ -6883,7 +6858,7 @@ paths:
           description: ''
     post:
       operationId: controles_create
-      description: '✅ EXTENDIDO: Crear control con validaciones y respuesta completa'
+      description: 'EXTENDIDO: Crear control con validaciones y respuesta completa'
       tags:
       - controles
       requestBody:
@@ -6960,7 +6935,7 @@ paths:
           description: ''
     put:
       operationId: controles_update
-      description: '✅ EXTENDIDO: Actualizar control con respuesta completa'
+      description: 'EXTENDIDO: Actualizar control con respuesta completa'
       parameters:
       - in: path
         name: id
@@ -7054,7 +7029,7 @@ paths:
           description: ''
     delete:
       operationId: controles_destroy
-      description: ✅ Eliminar control prenatal completamente de la base de datos
+      description: Eliminar control prenatal completamente de la base de datos
       parameters:
       - in: path
         name: id
@@ -7203,7 +7178,7 @@ paths:
   /api/controles/{id}/reporte_completo/:
     get:
       operationId: controles_reporte_completo_retrieve
-      description: '✅ EXTENDIDO: Reporte completo con información del embarazo'
+      description: 'EXTENDIDO: Reporte completo con información del embarazo'
       parameters:
       - in: path
         name: id
@@ -7226,7 +7201,7 @@ paths:
   /api/controles/alertas/:
     get:
       operationId: controles_alertas_retrieve
-      description: '✅ EXTENDIDO: Controles con alertas médicas agrupadas por tipo'
+      description: 'EXTENDIDO: Controles con alertas médicas agrupadas por tipo'
       tags:
       - controles
       security:
@@ -7274,7 +7249,7 @@ paths:
   /api/controles/estadisticas/:
     get:
       operationId: controles_estadisticas_retrieve
-      description: '✅ EXTENDIDO: Estadísticas completas con más métricas'
+      description: 'EXTENDIDO: Estadísticas completas con más métricas'
       tags:
       - controles
       security:
@@ -7290,7 +7265,7 @@ paths:
   /api/controles/evolucion/:
     get:
       operationId: controles_evolucion_retrieve
-      description: '✅ EXTENDIDO: Evolución de parámetros con análisis de tendencias'
+      description: 'EXTENDIDO: Evolución de parámetros con análisis de tendencias'
       tags:
       - controles
       security:
@@ -7322,7 +7297,7 @@ paths:
   /api/controles/por_embarazo/:
     get:
       operationId: controles_por_embarazo_retrieve
-      description: '✅ EXTENDIDO: Controles de un embarazo con estadísticas'
+      description: 'EXTENDIDO: Controles de un embarazo con estadísticas'
       tags:
       - controles
       security:
@@ -7338,7 +7313,7 @@ paths:
   /api/controles/por_paciente/:
     get:
       operationId: controles_por_paciente_retrieve
-      description: '✅ NUEVO: Todos los controles de un paciente (todos sus embarazos)'
+      description: 'NUEVO: Todos los controles de un paciente (todos sus embarazos)'
       tags:
       - controles
       security:
@@ -7382,7 +7357,7 @@ paths:
   /api/controles/proximos/:
     get:
       operationId: controles_proximos_retrieve
-      description: '✅ EXTENDIDO: Embarazos que requieren control próximo'
+      description: 'EXTENDIDO: Embarazos que requieren control próximo'
       tags:
       - controles
       security:
@@ -7398,7 +7373,7 @@ paths:
   /api/controles/recientes/:
     get:
       operationId: controles_recientes_retrieve
-      description: '✅ EXTENDIDO: Controles recientes con estadísticas'
+      description: 'EXTENDIDO: Controles recientes con estadísticas'
       tags:
       - controles
       security:
@@ -7437,7 +7412,7 @@ paths:
   /api/controles/riesgo_alto/:
     get:
       operationId: controles_riesgo_alto_retrieve
-      description: '✅ NUEVO: Controles de embarazos de alto riesgo'
+      description: 'NUEVO: Controles de embarazos de alto riesgo'
       tags:
       - controles
       security:
@@ -8776,7 +8751,7 @@ paths:
   /api/embarazos/{id}/controles/:
     get:
       operationId: embarazos_controles_retrieve
-      description: ✅ Controles del embarazo
+      description: Controles del embarazo
       parameters:
       - in: path
         name: id
@@ -8962,7 +8937,7 @@ paths:
   /api/embarazos/{id}/reactivar/:
     post:
       operationId: embarazos_reactivar_create
-      description: ✅ Reactivar embarazo
+      description: Reactivar embarazo
       parameters:
       - in: path
         name: id
@@ -8997,7 +8972,7 @@ paths:
   /api/embarazos/{id}/resumen_completo/:
     get:
       operationId: embarazos_resumen_completo_retrieve
-      description: ✅ Resumen completo
+      description: Resumen completo
       parameters:
       - in: path
         name: id
@@ -9066,7 +9041,7 @@ paths:
   /api/embarazos/activos/:
     get:
       operationId: embarazos_activos_retrieve
-      description: ✅ Embarazos activos
+      description: Embarazos activos
       tags:
       - embarazos
       security:
@@ -9082,7 +9057,7 @@ paths:
   /api/embarazos/alto_riesgo/:
     get:
       operationId: embarazos_alto_riesgo_retrieve
-      description: ✅ Embarazos de alto riesgo
+      description: Embarazos de alto riesgo
       tags:
       - embarazos
       security:
@@ -9233,7 +9208,7 @@ paths:
   /api/embarazos/multiples/:
     get:
       operationId: embarazos_multiples_retrieve
-      description: ✅ Embarazos múltiples
+      description: Embarazos múltiples
       tags:
       - embarazos
       security:
@@ -9249,7 +9224,7 @@ paths:
   /api/embarazos/por_paciente/:
     get:
       operationId: embarazos_por_paciente_retrieve
-      description: ✅ Embarazos de un paciente
+      description: Embarazos de un paciente
       tags:
       - embarazos
       security:
@@ -9265,7 +9240,7 @@ paths:
   /api/embarazos/primer_trimestre/:
     get:
       operationId: embarazos_primer_trimestre_retrieve
-      description: ✅ Embarazos en 1er trimestre
+      description: Embarazos en 1er trimestre
       tags:
       - embarazos
       security:
@@ -9281,7 +9256,7 @@ paths:
   /api/embarazos/proximos_partos/:
     get:
       operationId: embarazos_proximos_partos_retrieve
-      description: ✅ Próximos partos
+      description: Próximos partos
       tags:
       - embarazos
       security:
@@ -9326,7 +9301,7 @@ paths:
   /api/embarazos/segundo_trimestre/:
     get:
       operationId: embarazos_segundo_trimestre_retrieve
-      description: ✅ Embarazos en 2do trimestre
+      description: Embarazos en 2do trimestre
       tags:
       - embarazos
       security:
@@ -9342,7 +9317,7 @@ paths:
   /api/embarazos/tercer_trimestre/:
     get:
       operationId: embarazos_tercer_trimestre_retrieve
-      description: ✅ Embarazos en 3er trimestre
+      description: Embarazos en 3er trimestre
       tags:
       - embarazos
       security:
@@ -9599,6 +9574,71 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/ia/cardiotocografias/:
+    get:
+      operationId: ia_cardiotocografias_list
+      description: |-
+        Cardiotocografías guardadas, de la más reciente a la más antigua.
+
+        Filtros: `paciente_id`, `clase`; `search` busca por nombre o CI de la paciente.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - ia
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRegistroCardiotocografiaList'
+          description: ''
+  /api/ia/cardiotocografias/{id}/:
+    get:
+      operationId: ia_cardiotocografias_retrieve
+      description: |-
+        Cardiotocografías guardadas, de la más reciente a la más antigua.
+
+        Filtros: `paciente_id`, `clase`; `search` busca por nombre o CI de la paciente.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cardiotocografía
+          clasificada.
+        required: true
+      tags:
+      - ia
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistroCardiotocografia'
+          description: ''
   /api/ia/consultas/:
     get:
       operationId: ia_consultas_list
@@ -9745,6 +9785,35 @@ paths:
       - cookieAuth: []
       - jwtAuth: []
       - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/ia/ginecologia/{tarea}/:
+    post:
+      operationId: ia_ginecologia_create
+      summary: 'Ecografía ginecológica: lesión ovárica, mioma u ovario poliquístico'
+      parameters:
+      - in: path
+        name: tarea
+        schema:
+          type: string
+        required: true
+      tags:
+      - ia
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -10024,6 +10093,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/AnalisisCNN'
           description: ''
+  /api/ia/imagenes/{id}/informe/:
+    get:
+      operationId: ia_imagenes_informe_retrieve
+      description: El análisis guardado, con la misma forma que recién hecho, para
+        reabrirlo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Imagen Ecográfica
+          CNN.
+        required: true
+      tags:
+      - ia
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImagenEcograficaDetail'
+          description: ''
   /api/ia/imagenes/{id}/reporte-narrativo/:
     post:
       operationId: ia_imagenes_reporte_narrativo_create
@@ -10124,7 +10218,11 @@ paths:
   /api/ia/imagenes/modelos/:
     get:
       operationId: ia_imagenes_modelos_retrieve
-      description: Lista de modelos CNN disponibles.
+      description: |-
+        Modelos en servicio con su métrica medida, y los evaluados y descartados.
+
+        La Guía de IA (frontend/src/pages/GuiaIA) lee de aquí las cifras: no
+        las repite en el código de la pantalla.
       tags:
       - ia
       security:
@@ -10662,7 +10760,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/laboratorios/examenes/{id}/cambiar_estado/:
+  /api/laboratorios/examenes/{id}/cambiar-estado/:
     post:
       operationId: laboratorios_examenes_cambiar_estado_create
       description: |-
@@ -14069,7 +14167,7 @@ paths:
     get:
       operationId: pacientes_historia_clinica_retrieve
       description: |-
-        ✨ NUEVA FUNCIONALIDAD: Historia Clínica Integrada Completa
+        NUEVA FUNCIONALIDAD: Historia Clínica Integrada Completa
 
         Consolida TODOS los datos del embarazo en una vista Timeline:
             pass
@@ -14288,7 +14386,7 @@ paths:
     post:
       operationId: pacientes_busqueda_avanzada_create
       description: |-
-        ✨ BÚSQUEDA AVANZADA - Multi-criterio con fuzzy search
+        BÚSQUEDA AVANZADA - Multi-criterio con fuzzy search
 
         POST /api/pacientes/busqueda-avanzada/
         Body: {
@@ -14824,7 +14922,7 @@ paths:
           description: ''
     delete:
       operationId: partos_destroy
-      description: ✅ Eliminar parto completamente de la base de datos (hard delete)
+      description: Eliminar parto completamente de la base de datos (hard delete)
       parameters:
       - in: path
         name: id
@@ -17827,7 +17925,7 @@ paths:
         schema:
           type: string
           x-spec-enum-id: 7971f2524c8031d7
-          title: ' Estado actual'
+          title: Estado actual
           enum:
           - activa
           - descartada
@@ -17849,7 +17947,7 @@ paths:
         schema:
           type: string
           x-spec-enum-id: 6b906fde54b35439
-          title: ' Módulo de origen'
+          title: Módulo de origen
           enum:
           - calculadoras
           - controles
@@ -17895,7 +17993,6 @@ paths:
         schema:
           type: string
           x-spec-enum-id: d6b342e2282921f5
-          title: ⚡ Prioridad
           enum:
           - alta
           - baja
@@ -17908,18 +18005,12 @@ paths:
           * `alta` - Alta
           * `critica` - Crítica
           * `emergencia` - EMERGENCIA
-      - name: search
-        required: false
-        in: query
-        description: Un término de búsqueda.
-        schema:
-          type: string
       - in: query
         name: tipo
         schema:
           type: string
           x-spec-enum-id: 1ad4c85d2316128a
-          title: ️ Tipo de alerta
+          title: Tipo de alerta
           enum:
           - auditoria
           - cita_perdida
@@ -18270,8 +18361,8 @@ paths:
         name: accion
         schema:
           type: string
-          x-spec-enum-id: 393d6eeb14005e7d
-          title: ⚡ Acción realizada
+          x-spec-enum-id: 8dcdbafd02da1968
+          title: Acción realizada
           enum:
           - compartir
           - descarga
@@ -18283,8 +18374,8 @@ paths:
           * `generacion` -  Generación de reporte
           * `descarga` -  Descarga
           * `visualizacion` -  Visualización
-          * `modificacion` - ✏️ Modificación
-          * `eliminacion` - ️ Eliminación
+          * `modificacion` - Modificación
+          * `eliminacion` -  Eliminación
           * `compartir` -  Compartir
       - in: query
         name: fecha_accion
@@ -18694,7 +18785,7 @@ paths:
         schema:
           type: string
           x-spec-enum-id: db597fb7906a2c9b
-          title: ' Categoría'
+          title: Categoría
           enum:
           - calculadoras
           - calidad
@@ -18742,7 +18833,7 @@ paths:
         schema:
           type: string
           x-spec-enum-id: 8973b772373ddabb
-          title: ' Tipo de indicador'
+          title: Tipo de indicador
           enum:
           - numero
           - porcentaje
@@ -19088,6 +19179,25 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/reportes/indicadores-gestion/:
+    get:
+      operationId: reportes_indicadores_gestion_retrieve
+      description: Cobertura, calidad y resultados perinatales calculados con los
+        datos reales.
+      summary: Indicadores de gestión obstétrica con su meta (últimos 12 meses)
+      tags:
+      - reportes
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/reportes/laboratorios/:
     get:
       operationId: reportes_laboratorios_stats
@@ -19214,8 +19324,8 @@ paths:
         name: estado
         schema:
           type: string
-          x-spec-enum-id: b9c75b96c01ae607
-          title: ' Estado del reporte'
+          x-spec-enum-id: 983cbc78eb3d4235
+          title: Estado del reporte
           enum:
           - completado
           - error
@@ -19223,11 +19333,11 @@ paths:
           - pendiente
           - procesando
         description: |-
-          * `pendiente` - ⏳ Pendiente
-          * `procesando` - ⚙️ Procesando
-          * `completado` - ✅ Completado
-          * `error` - ❌ Error
-          * `expirado` - ⏰ Expirado
+          * `pendiente` - Pendiente
+          * `procesando` - Procesando
+          * `completado` - Completado
+          * `error` - Error
+          * `expirado` - Expirado
       - in: query
         name: fecha_completado
         schema:
@@ -19242,8 +19352,8 @@ paths:
         name: formato
         schema:
           type: string
-          x-spec-enum-id: 42e73a950fb9e284
-          title: ' Formato de descarga'
+          x-spec-enum-id: 92435156c74d0f80
+          title: Formato de descarga
           enum:
           - csv
           - excel
@@ -19253,7 +19363,7 @@ paths:
           * `pd` -  PDF
           * `excel` -  Excel
           * `csv` -  CSV
-          * `json` - ⚙️ JSON
+          * `json` - JSON
       - name: ordering
         required: false
         in: query
@@ -19930,6 +20040,30 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/reportes/tendencia-diaria/:
+    get:
+      operationId: reportes_tendencia_diaria_retrieve
+      description: |-
+        Pacientes nuevas, controles, citas atendidas y exámenes pedidos por día.
+
+        Solo conteos (ningún dato de una paciente), por eso lo ve todo el personal:
+        el Panel de cada rol muestra la misma actividad del establecimiento. Antes
+        el gráfico «Estadísticas y Alertas en Tiempo Real» ponía siempre 0 pacientes
+        y contaba las citas con campos que no existen: un único punto.
+      summary: Actividad por día de los últimos 30 días (para el Panel)
+      tags:
+      - reportes
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/reportes/tipos-reporte/:
     get:
       operationId: reportes_tipos_reporte_list
@@ -19948,7 +20082,7 @@ paths:
         schema:
           type: string
           x-spec-enum-id: e83551af4f519f93
-          title: ' Categoría del Reporte'
+          title: Categoría del Reporte
           enum:
           - clinico
           - estadistico
@@ -19971,8 +20105,8 @@ paths:
         name: frecuencia
         schema:
           type: string
-          x-spec-enum-id: f2f920677e82febf
-          title: ⏰ ¿Con qué frecuencia se genera
+          x-spec-enum-id: 1200a803aeb9b64a
+          title: ¿Con qué frecuencia se genera
           enum:
           - anual
           - bajo_demanda
@@ -19984,7 +20118,7 @@ paths:
           * `bajo_demanda` -  Generar cuando se necesite
           * `diario` -  Todos los días
           * `semanal` -  Cada semana
-          * `mensual` - ️ Mensualmente
+          * `mensual` -  Mensualmente
           * `trimestral` -  Cada 3 meses
           * `anual` -  Anualmente
       - name: ordering
@@ -20596,35 +20730,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/token/:
-    post:
-      operationId: token_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
-      tags:
-      - token
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPairRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPairRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPairRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenObtainPair'
-          description: ''
   /api/token/csrf/:
     get:
       operationId: token_csrf_retrieve
@@ -21064,7 +21169,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedUsuarioListList'
+                $ref: '#/components/schemas/PaginatedUsuarioListBasicoList'
           description: ''
     post:
       operationId: usuarios_create
@@ -21582,6 +21687,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsuarioDetail'
           description: ''
+  /api/usuarios/{id}/restablecer-mfa/:
+    post:
+      operationId: usuarios_restablecer_mfa_create
+      description: |-
+        El administrador borra el MFA de alguien que perdió o cambió el celular.
+
+        Sin esto, un médico sin su teléfono quedaba fuera para siempre: el MFA
+        es obligatorio para su rol y nadie podía quitárselo. Al entrar de nuevo
+        el sistema le pide configurarlo otra vez (con su contraseña).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Usuario.
+        required: true
+      tags:
+      - usuarios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UsuarioDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UsuarioDetailRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDetail'
+          description: ''
   /api/usuarios/enfermeros/:
     get:
       operationId: usuarios_enfermeros_retrieve
@@ -21829,6 +21974,8 @@ paths:
           description: Bad Request - Invalid input data
         '401':
           description: Unauthorized - Invalid credentials
+        '423':
+          description: Locked - cuenta bloqueada 15 min tras 5 intentos fallidos
   /api/usuarios/logout/:
     post:
       operationId: usuarios_logout_create
@@ -21892,6 +22039,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsuarioDetail'
           description: ''
+  /api/usuarios/mfa-confirmar-inicial/:
+    post:
+      operationId: usuarios_mfa_confirmar_inicial_create
+      description: Verifica el primer código TOTP, activa el MFA y abre la sesión
+        (cookies httpOnly).
+      summary: Activar MFA por primera vez y entrar
+      tags:
+      - Authentication
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: MFA activo y sesión abierta
+        '400':
+          description: Código inválido
+        '401':
+          description: Token inválido
+  /api/usuarios/mfa-setup-inicial/:
+    post:
+      operationId: usuarios_mfa_setup_inicial_create
+      description: 'Para quien su rol exige MFA y aún no lo tiene: con el temp_token
+        que devolvió el login (mfa_setup_required) genera el secreto y el QR.'
+      summary: Configurar MFA por primera vez (sin sesión)
+      tags:
+      - Authentication
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: QR y secreto
+        '401':
+          description: Token inválido
   /api/usuarios/mfa-verify/:
     post:
       operationId: usuarios_mfa_verify_create
@@ -21984,8 +22167,12 @@ paths:
   /api/usuarios/mfa/setup/:
     post:
       operationId: usuarios_mfa_setup_create
-      description: Genera secreto TOTP y QR para Google Authenticator. Confirmar con
-        /mfa/confirm/.
+      description: |-
+        Genera secreto TOTP y QR para Google Authenticator. Confirmar con /mfa/confirm/.
+
+        Con el MFA ya activo NO genera otro secreto (BUG-004): antes, con solo abrir /setup-mfa se guardaba una
+        clave nueva y el código del celular dejaba de servir, dejando la cuenta fuera. Para cambiar de celular se
+        desactiva primero (/mfa/disable/) o lo restablece el administrador.
       tags:
       - usuarios
       requestBody:
@@ -23188,11 +23375,11 @@ components:
           readOnly: true
         titulo:
           type: string
-          title: ' Título de la alerta'
+          title: Título de la alerta
           maxLength: 200
         descripcion:
           type: string
-          title: ' Descripción detallada'
+          title: Descripción detallada
         tipo:
           enum:
           - valor_critico
@@ -23214,7 +23401,7 @@ components:
             * `protocolo_incumplido` - Protocolo no seguido
             * `auditoria` - Requiere auditoría
           x-spec-enum-id: 1ad4c85d2316128a
-          title: ️ Tipo de alerta
+          title: Tipo de alerta
         tipo_display:
           type: string
           readOnly: true
@@ -23233,7 +23420,6 @@ components:
             * `critica` - Crítica
             * `emergencia` - EMERGENCIA
           x-spec-enum-id: d6b342e2282921f5
-          title: ⚡ Prioridad
         prioridad_display:
           type: string
           readOnly: true
@@ -23252,7 +23438,7 @@ components:
             * `descartada` - Descartada
             * `escalada` - Escalada
           x-spec-enum-id: 7971f2524c8031d7
-          title: ' Estado actual'
+          title: Estado actual
         estado_display:
           type: string
           readOnly: true
@@ -23270,7 +23456,7 @@ components:
         medico_responsable_id:
           type: integer
           nullable: true
-          title: ‍⚕️ Médico Responsable
+          title: Médico Responsable
           readOnly: true
         modulo_origen:
           enum:
@@ -23293,7 +23479,7 @@ components:
             * `partos` - Partos
             * `sistema` - Sistema
           x-spec-enum-id: 6b906fde54b35439
-          title: ' Módulo de origen'
+          title: Módulo de origen
         modulo_origen_display:
           type: string
           readOnly: true
@@ -23302,7 +23488,7 @@ components:
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
-          title: ' ID del registro relacionado'
+          title: ID del registro relacionado
         datos_contexto:
           title: Datos de Contexto (Interno)
           description: Datos internos de contexto
@@ -23311,65 +23497,64 @@ components:
           maxLength: 100
         valor_umbral:
           type: string
-          title: ⚠️ Valor umbral
           maxLength: 100
         accion_recomendada:
           type: string
-          title: ' Acción recomendada'
+          title: Acción recomendada
         protocolo_seguimiento:
           type: string
-          title: ' Protocolo de seguimiento'
+          title: Protocolo de seguimiento
         fecha_creacion:
           type: string
           format: date-time
           readOnly: true
-          title: ' Fecha de creación'
+          title: Fecha de creación
         fecha_vencimiento:
           type: string
           format: date-time
           nullable: true
-          title: ⏰ Fecha límite
+          title: Fecha límite
         fecha_revision:
           type: string
           format: date-time
           nullable: true
-          title: ' Fecha de revisión'
+          title: Fecha de revisión
         fecha_resolucion:
           type: string
           format: date-time
           nullable: true
-          title: ✅ Fecha de resolución
+          title: Fecha de resolución
         usuario_revision_id:
           type: integer
           nullable: true
-          title: ' Usuario que revisó'
+          title: Usuario que revisó
           readOnly: true
         usuario_resolucion_id:
           type: integer
           nullable: true
-          title: ' Usuario que resolvió'
+          title: Usuario que resolvió
           readOnly: true
         comentario_revision:
           type: string
-          title: ' Comentario de revisión'
+          title: Comentario de revisión
         comentario_resolucion:
           type: string
-          title: ' Comentario de resolución'
+          title: Comentario de resolución
         notificacion_enviada:
           type: boolean
-          title: ' ¿Notificación enviada'
+          title: ¿Notificación enviada
         recordatorio_enviado:
           type: boolean
-          title: ' ¿Recordatorio enviado'
+          title: ¿Recordatorio enviado
         escalamiento_automatico:
           type: boolean
-          title: ' ¿Escalamiento automático'
+          title: ¿Escalamiento automático
         tiempo_escalamiento_horas:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
-          title: ⏱️ Tiempo para escalamiento (horas)
+          title: Tiempo para escalamiento (horas)
         color_prioridad:
           type: string
           readOnly: true
@@ -23393,12 +23578,12 @@ components:
         titulo:
           type: string
           minLength: 1
-          title: ' Título de la alerta'
+          title: Título de la alerta
           maxLength: 200
         descripcion:
           type: string
           minLength: 1
-          title: ' Descripción detallada'
+          title: Descripción detallada
         tipo:
           enum:
           - valor_critico
@@ -23420,7 +23605,7 @@ components:
             * `protocolo_incumplido` - Protocolo no seguido
             * `auditoria` - Requiere auditoría
           x-spec-enum-id: 1ad4c85d2316128a
-          title: ️ Tipo de alerta
+          title: Tipo de alerta
         prioridad:
           enum:
           - baja
@@ -23436,7 +23621,6 @@ components:
             * `critica` - Crítica
             * `emergencia` - EMERGENCIA
           x-spec-enum-id: d6b342e2282921f5
-          title: ⚡ Prioridad
         estado:
           enum:
           - activa
@@ -23452,7 +23636,7 @@ components:
             * `descartada` - Descartada
             * `escalada` - Escalada
           x-spec-enum-id: 7971f2524c8031d7
-          title: ' Estado actual'
+          title: Estado actual
         modulo_origen:
           enum:
           - pacientes
@@ -23474,13 +23658,13 @@ components:
             * `partos` - Partos
             * `sistema` - Sistema
           x-spec-enum-id: 6b906fde54b35439
-          title: ' Módulo de origen'
+          title: Módulo de origen
         registro_origen_id:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
-          title: ' ID del registro relacionado'
+          title: ID del registro relacionado
         datos_contexto:
           title: Datos de Contexto (Interno)
           description: Datos internos de contexto
@@ -23489,51 +23673,50 @@ components:
           maxLength: 100
         valor_umbral:
           type: string
-          title: ⚠️ Valor umbral
           maxLength: 100
         accion_recomendada:
           type: string
           minLength: 1
-          title: ' Acción recomendada'
+          title: Acción recomendada
         protocolo_seguimiento:
           type: string
-          title: ' Protocolo de seguimiento'
+          title: Protocolo de seguimiento
         fecha_vencimiento:
           type: string
           format: date-time
           nullable: true
-          title: ⏰ Fecha límite
+          title: Fecha límite
         fecha_revision:
           type: string
           format: date-time
           nullable: true
-          title: ' Fecha de revisión'
+          title: Fecha de revisión
         fecha_resolucion:
           type: string
           format: date-time
           nullable: true
-          title: ✅ Fecha de resolución
+          title: Fecha de resolución
         comentario_revision:
           type: string
-          title: ' Comentario de revisión'
+          title: Comentario de revisión
         comentario_resolucion:
           type: string
-          title: ' Comentario de resolución'
+          title: Comentario de resolución
         notificacion_enviada:
           type: boolean
-          title: ' ¿Notificación enviada'
+          title: ¿Notificación enviada
         recordatorio_enviado:
           type: boolean
-          title: ' ¿Recordatorio enviado'
+          title: ¿Recordatorio enviado
         escalamiento_automatico:
           type: boolean
-          title: ' ¿Escalamiento automático'
+          title: ¿Escalamiento automático
         tiempo_escalamiento_horas:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
-          title: ⏱️ Tiempo para escalamiento (horas)
+          title: Tiempo para escalamiento (horas)
       required:
       - accion_recomendada
       - descripcion
@@ -23550,7 +23733,7 @@ components:
           readOnly: true
         titulo:
           type: string
-          title: ' Título de la alerta'
+          title: Título de la alerta
           maxLength: 200
         tipo:
           enum:
@@ -23573,7 +23756,7 @@ components:
             * `protocolo_incumplido` - Protocolo no seguido
             * `auditoria` - Requiere auditoría
           x-spec-enum-id: 1ad4c85d2316128a
-          title: ️ Tipo de alerta
+          title: Tipo de alerta
         prioridad:
           enum:
           - baja
@@ -23589,7 +23772,6 @@ components:
             * `critica` - Crítica
             * `emergencia` - EMERGENCIA
           x-spec-enum-id: d6b342e2282921f5
-          title: ⚡ Prioridad
         prioridad_display:
           type: string
           readOnly: true
@@ -23608,7 +23790,7 @@ components:
             * `descartada` - Descartada
             * `escalada` - Escalada
           x-spec-enum-id: 7971f2524c8031d7
-          title: ' Estado actual'
+          title: Estado actual
         estado_display:
           type: string
           readOnly: true
@@ -23640,20 +23822,26 @@ components:
             * `partos` - Partos
             * `sistema` - Sistema
           x-spec-enum-id: 6b906fde54b35439
-          title: ' Módulo de origen'
+          title: Módulo de origen
         modulo_origen_display:
           type: string
           readOnly: true
+        descripcion:
+          type: string
+          title: Descripción detallada
+        valor_actual:
+          type: string
+          maxLength: 100
         fecha_creacion:
           type: string
           format: date-time
           readOnly: true
-          title: ' Fecha de creación'
+          title: Fecha de creación
         fecha_vencimiento:
           type: string
           format: date-time
           nullable: true
-          title: ⏰ Fecha límite
+          title: Fecha límite
         color_prioridad:
           type: string
           readOnly: true
@@ -23661,6 +23849,7 @@ components:
           type: string
           readOnly: true
       required:
+      - descripcion
       - modulo_origen
       - prioridad
       - tipo
@@ -24950,7 +25139,7 @@ components:
           readOnly: true
         reporte_generado:
           type: integer
-          title: ' Reporte'
+          title: Reporte
         tipo_reporte_nombre:
           type: string
           readOnly: true
@@ -24971,11 +25160,11 @@ components:
             * `generacion` -  Generación de reporte
             * `descarga` -  Descarga
             * `visualizacion` -  Visualización
-            * `modificacion` - ✏️ Modificación
-            * `eliminacion` - ️ Eliminación
+            * `modificacion` - Modificación
+            * `eliminacion` -  Eliminación
             * `compartir` -  Compartir
-          x-spec-enum-id: 393d6eeb14005e7d
-          title: ⚡ Acción realizada
+          x-spec-enum-id: 8dcdbafd02da1968
+          title: Acción realizada
         accion_display:
           type: string
           readOnly: true
@@ -24983,22 +25172,22 @@ components:
           type: string
           format: date-time
           readOnly: true
-          title: ' Fecha y hora'
+          title: Fecha y hora
         direccion_ip:
           type: string
-          title: ' Dirección IP'
+          title: Dirección IP
         user_agent:
           type: string
-          title: ' Navegador/Dispositivo'
+          title: Navegador/Dispositivo
         detalles:
           title: Detalles de la Acción (Interno)
           description: Detalles internos de la acción
         cumple_ley_3871:
           type: boolean
-          title: ⚖️ ¿Cumple con la Ley 3871
+          title: ¿Cumple con la Ley 3871
         justificacion_acceso:
           type: string
-          title: ' Justificación del acceso'
+          title: Justificación del acceso
         observaciones:
           type: string
         fecha_solicitud_reporte:
@@ -27474,7 +27663,13 @@ components:
       - usuario
     Consultorio:
       type: object
-      description: Consultorioserializer
+      description: |-
+        Consultorio con los nombres que usa la pantalla.
+
+        El frontend se escribió con `tipo`, `area`, `estado` y `equipamiento` (nivel);
+        el modelo los llama `tipo_consultorio`, `edificio`, `activo`/`en_mantenimiento`
+        y `nivel_equipamiento`. Sin estos alias la tabla mostraba «—», todos los
+        consultorios como inactivos, y crear uno desde la pantalla fallaba.
       properties:
         id:
           type: integer
@@ -27485,6 +27680,35 @@ components:
         descripcion_completa:
           type: string
           readOnly: true
+        tipo:
+          enum:
+          - general
+          - ginecologia
+          - ecografia
+          - laboratorio
+          - procedimientos
+          - urgencias
+          type: string
+          description: |-
+            * `general` - Consulta General
+            * `ginecologia` - Ginecología
+            * `ecografia` - Ecografía
+            * `laboratorio` - Laboratorio
+            * `procedimientos` - Procedimientos
+            * `urgencias` - Urgencias
+          x-spec-enum-id: f9d029f320818a74
+        tipo_display:
+          type: string
+          readOnly: true
+        area:
+          type: string
+          nullable: true
+        equipamiento:
+          type: string
+          nullable: true
+        equipamiento_detalle:
+          type: string
+          nullable: true
         nombre:
           type: string
           description: 'Nombre identificador del consultorio (ej: ''Consultorio 1'')'
@@ -27536,10 +27760,32 @@ components:
           type: boolean
         tiene_ecografo:
           type: boolean
-        equipamiento:
+        tiene_escritorio:
+          type: boolean
+        tiene_computadora:
+          type: boolean
+        tiene_lavamanos:
+          type: boolean
+        tiene_oxigeno:
+          type: boolean
+        tiene_aspirador:
+          type: boolean
+        nivel_equipamiento:
+          enum:
+          - basico
+          - intermedio
+          - avanzado
+          - quirurgico
+          - ''
           type: string
-          nullable: true
-          description: Lista de equipamiento disponible
+          description: |-
+            * `basico` - Básico
+            * `intermedio` - Intermedio
+            * `avanzado` - Avanzado
+            * `quirurgico` - Quirúrgico
+          x-spec-enum-id: d40a1d4b5f6e89bb
+        descripcion:
+          type: string
         activo:
           type: boolean
           description: Consultorio disponible para asignación
@@ -27571,8 +27817,58 @@ components:
       - ubicacion
     ConsultorioRequest:
       type: object
-      description: Consultorioserializer
+      description: |-
+        Consultorio con los nombres que usa la pantalla.
+
+        El frontend se escribió con `tipo`, `area`, `estado` y `equipamiento` (nivel);
+        el modelo los llama `tipo_consultorio`, `edificio`, `activo`/`en_mantenimiento`
+        y `nivel_equipamiento`. Sin estos alias la tabla mostraba «—», todos los
+        consultorios como inactivos, y crear uno desde la pantalla fallaba.
       properties:
+        tipo:
+          enum:
+          - general
+          - ginecologia
+          - ecografia
+          - laboratorio
+          - procedimientos
+          - urgencias
+          type: string
+          description: |-
+            * `general` - Consulta General
+            * `ginecologia` - Ginecología
+            * `ecografia` - Ecografía
+            * `laboratorio` - Laboratorio
+            * `procedimientos` - Procedimientos
+            * `urgencias` - Urgencias
+          x-spec-enum-id: f9d029f320818a74
+        area:
+          type: string
+          nullable: true
+        equipamiento:
+          type: string
+          nullable: true
+        equipamiento_detalle:
+          type: string
+          nullable: true
+        estado:
+          enum:
+          - disponible
+          - ocupado
+          - mantenimiento
+          - limpieza
+          - reservado
+          - inactivo
+          type: string
+          description: |-
+            * `disponible` - disponible
+            * `ocupado` - ocupado
+            * `mantenimiento` - mantenimiento
+            * `limpieza` - limpieza
+            * `reservado` - reservado
+            * `inactivo` - inactivo
+          x-spec-enum-id: bf82d354472d934a
+          writeOnly: true
         nombre:
           type: string
           minLength: 1
@@ -27626,10 +27922,32 @@ components:
           type: boolean
         tiene_ecografo:
           type: boolean
-        equipamiento:
+        tiene_escritorio:
+          type: boolean
+        tiene_computadora:
+          type: boolean
+        tiene_lavamanos:
+          type: boolean
+        tiene_oxigeno:
+          type: boolean
+        tiene_aspirador:
+          type: boolean
+        nivel_equipamiento:
+          enum:
+          - basico
+          - intermedio
+          - avanzado
+          - quirurgico
+          - ''
           type: string
-          nullable: true
-          description: Lista de equipamiento disponible
+          description: |-
+            * `basico` - Básico
+            * `intermedio` - Intermedio
+            * `avanzado` - Avanzado
+            * `quirurgico` - Quirúrgico
+          x-spec-enum-id: d40a1d4b5f6e89bb
+        descripcion:
+          type: string
         activo:
           type: boolean
           description: Consultorio disponible para asignación
@@ -28779,16 +29097,16 @@ components:
           readOnly: true
         nombre:
           type: string
-          title: ' Nombre del Indicador'
+          title: Nombre del Indicador
           description: 'Ej: Total de Pacientes Activos'
           maxLength: 200
         codigo:
           type: string
-          title: ️ Código único
+          title: Código único
           maxLength: 50
         descripcion:
           type: string
-          title: ' Descripción'
+          title: Descripción
           description: Explica qué mide este indicador
         categoria:
           enum:
@@ -28811,7 +29129,7 @@ components:
             * `seguridad` - Seguridad
             * `productividad` - Productividad
           x-spec-enum-id: db597fb7906a2c9b
-          title: ' Categoría'
+          title: Categoría
         categoria_display:
           type: string
           readOnly: true
@@ -28830,13 +29148,13 @@ components:
             * `ratio` - Proporción
             * `tiempo` - Tiempo promedio
           x-spec-enum-id: 8973b772373ddabb
-          title: ' Tipo de indicador'
+          title: Tipo de indicador
         tipo_display:
           type: string
           readOnly: true
         consulta_sql:
           type: string
-          title: ⚙️ Consulta para calcular el valor
+          title: Consulta para calcular el valor
           description: Query SQL que obtiene el valor del KPI
         parametros_calculo:
           title: Parámetros de Cálculo (Interno)
@@ -28854,7 +29172,7 @@ components:
             * `diario` - Diario
             * `semanal` - Semanal
           x-spec-enum-id: 706ae7b15ef33e46
-          title: ' ¿Con qué frecuencia se actualiza'
+          title: ¿Con qué frecuencia se actualiza
         frecuencia_display:
           type: string
           readOnly: true
@@ -28873,16 +29191,16 @@ components:
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
           nullable: true
-          title: ' Meta mínima aceptable'
+          title: Meta mínima aceptable
         meta_optima:
           type: string
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
           nullable: true
-          title: ' Meta óptima'
+          title: Meta óptima
         unidad_medida:
           type: string
-          title: ' Unidad de medida'
+          title: Unidad de medida
           description: 'Ej: pacientes, %, minutos, días'
           maxLength: 20
         color_normal:
@@ -28903,19 +29221,19 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: ' Orden en el dashboard'
+          title: Orden en el dashboard
         activo:
           type: boolean
-          title: ✅ ¿Está activo
+          title: ¿Está activo
         visible_medico:
           type: boolean
-          title: ‍⚕️ ¿Visible para médicos
+          title: ¿Visible para médicos
         visible_administrador:
           type: boolean
-          title: ' ¿Visible para administradores'
+          title: ¿Visible para administradores
         visible_director:
           type: boolean
-          title: ' ¿Visible para director'
+          title: ¿Visible para director
         roles_autorizados:
           readOnly: true
           title: Roles Autorizados (Interno)
@@ -28958,18 +29276,18 @@ components:
         nombre:
           type: string
           minLength: 1
-          title: ' Nombre del Indicador'
+          title: Nombre del Indicador
           description: 'Ej: Total de Pacientes Activos'
           maxLength: 200
         codigo:
           type: string
           minLength: 1
-          title: ️ Código único
+          title: Código único
           maxLength: 50
         descripcion:
           type: string
           minLength: 1
-          title: ' Descripción'
+          title: Descripción
           description: Explica qué mide este indicador
         categoria:
           enum:
@@ -28992,7 +29310,7 @@ components:
             * `seguridad` - Seguridad
             * `productividad` - Productividad
           x-spec-enum-id: db597fb7906a2c9b
-          title: ' Categoría'
+          title: Categoría
         tipo:
           enum:
           - numero
@@ -29008,11 +29326,11 @@ components:
             * `ratio` - Proporción
             * `tiempo` - Tiempo promedio
           x-spec-enum-id: 8973b772373ddabb
-          title: ' Tipo de indicador'
+          title: Tipo de indicador
         consulta_sql:
           type: string
           minLength: 1
-          title: ⚙️ Consulta para calcular el valor
+          title: Consulta para calcular el valor
           description: Query SQL que obtiene el valor del KPI
         parametros_calculo:
           title: Parámetros de Cálculo (Interno)
@@ -29030,7 +29348,7 @@ components:
             * `diario` - Diario
             * `semanal` - Semanal
           x-spec-enum-id: 706ae7b15ef33e46
-          title: ' ¿Con qué frecuencia se actualiza'
+          title: ¿Con qué frecuencia se actualiza
         valor_actual:
           type: string
           format: decimal
@@ -29046,16 +29364,16 @@ components:
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
           nullable: true
-          title: ' Meta mínima aceptable'
+          title: Meta mínima aceptable
         meta_optima:
           type: string
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
           nullable: true
-          title: ' Meta óptima'
+          title: Meta óptima
         unidad_medida:
           type: string
-          title: ' Unidad de medida'
+          title: Unidad de medida
           description: 'Ej: pacientes, %, minutos, días'
           maxLength: 20
         color_normal:
@@ -29079,19 +29397,19 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: ' Orden en el dashboard'
+          title: Orden en el dashboard
         activo:
           type: boolean
-          title: ✅ ¿Está activo
+          title: ¿Está activo
         visible_medico:
           type: boolean
-          title: ‍⚕️ ¿Visible para médicos
+          title: ¿Visible para médicos
         visible_administrador:
           type: boolean
-          title: ' ¿Visible para administradores'
+          title: ¿Visible para administradores
         visible_director:
           type: boolean
-          title: ' ¿Visible para director'
+          title: ¿Visible para director
       required:
       - categoria
       - codigo
@@ -29108,12 +29426,12 @@ components:
           readOnly: true
         nombre:
           type: string
-          title: ' Nombre del Indicador'
+          title: Nombre del Indicador
           description: 'Ej: Total de Pacientes Activos'
           maxLength: 200
         codigo:
           type: string
-          title: ️ Código único
+          title: Código único
           maxLength: 50
         categoria:
           enum:
@@ -29136,7 +29454,7 @@ components:
             * `seguridad` - Seguridad
             * `productividad` - Productividad
           x-spec-enum-id: db597fb7906a2c9b
-          title: ' Categoría'
+          title: Categoría
         categoria_display:
           type: string
           readOnly: true
@@ -29147,7 +29465,7 @@ components:
           nullable: true
         unidad_medida:
           type: string
-          title: ' Unidad de medida'
+          title: Unidad de medida
           description: 'Ej: pacientes, %, minutos, días'
           maxLength: 20
         tendencia:
@@ -29167,7 +29485,7 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: ' Orden en el dashboard'
+          title: Orden en el dashboard
       required:
       - categoria
       - codigo
@@ -30716,7 +31034,7 @@ components:
       - tipo_ecografia
     Embarazo:
       type: object
-      description: ✅ Serializer completo - SOLO CAMPOS DEL MODELO REAL
+      description: Serializer completo - SOLO CAMPOS DEL MODELO REAL
       properties:
         id:
           type: integer
@@ -30875,7 +31193,7 @@ components:
       - paciente
     EmbarazoCreateUpdate:
       type: object
-      description: ✅ Serializer para crear/actualizar - SOLO CAMPOS EDITABLES
+      description: Serializer para crear/actualizar - SOLO CAMPOS EDITABLES
       properties:
         paciente:
           type: integer
@@ -30970,7 +31288,7 @@ components:
       - paciente
     EmbarazoCreateUpdateRequest:
       type: object
-      description: ✅ Serializer para crear/actualizar - SOLO CAMPOS EDITABLES
+      description: Serializer para crear/actualizar - SOLO CAMPOS EDITABLES
       properties:
         paciente:
           type: integer
@@ -31065,7 +31383,7 @@ components:
       - paciente
     EmbarazoList:
       type: object
-      description: ✅ Serializer optimizado para listados - INCLUYE TODOS LOS CAMPOS
+      description: Serializer optimizado para listados - INCLUYE TODOS LOS CAMPOS
         PARA EDICIÓN
       properties:
         id:
@@ -31187,7 +31505,7 @@ components:
       - paciente
     EmbarazoRequest:
       type: object
-      description: ✅ Serializer completo - SOLO CAMPOS DEL MODELO REAL
+      description: Serializer completo - SOLO CAMPOS DEL MODELO REAL
       properties:
         paciente:
           type: integer
@@ -31947,7 +32265,6 @@ components:
         fecha_solicitud:
           type: string
           format: date-time
-          readOnly: true
           title: Fecha de Solicitud
         fecha_muestra:
           type: string
@@ -32060,6 +32377,10 @@ components:
           type: integer
           nullable: true
           title: Médico Solicitante
+        fecha_solicitud:
+          type: string
+          format: date-time
+          title: Fecha de Solicitud
         fecha_muestra:
           type: string
           format: date-time
@@ -32128,8 +32449,12 @@ components:
         fecha_solicitud:
           type: string
           format: date-time
-          readOnly: true
           title: Fecha de Solicitud
+        fecha_muestra:
+          type: string
+          format: date-time
+          nullable: true
+          title: Fecha de Toma de Muestra
         fecha_resultado:
           type: string
           format: date-time
@@ -32166,6 +32491,12 @@ components:
           type: string
           readOnly: true
         resultados_anormales:
+          type: string
+          readOnly: true
+        resumen:
+          type: string
+          readOnly: true
+        resultados:
           type: string
           readOnly: true
         dias_desde_solicitud:
@@ -35672,6 +36003,9 @@ components:
           title: Texto del Botón
           description: 'Texto del botón de acción (ej: Ver Detalle, Ir a Cita)'
           maxLength: 100
+        enlace:
+          type: string
+          readOnly: true
         leida:
           type: boolean
           title: Leída
@@ -36023,6 +36357,9 @@ components:
           title: Título
           description: Título breve de la notificación
           maxLength: 200
+        mensaje:
+          type: string
+          description: Contenido detallado de la notificación
         icono:
           type: string
           description: 'Nombre del icono para UI (ej: bell, alert-circle, check-circle)'
@@ -36031,6 +36368,14 @@ components:
           type: string
           description: 'Color para UI (ej: blue, red, green, yellow)'
           maxLength: 20
+        url_texto:
+          type: string
+          title: Texto del Botón
+          description: 'Texto del botón de acción (ej: Ver Detalle, Ir a Cita)'
+          maxLength: 100
+        enlace:
+          type: string
+          readOnly: true
         leida:
           type: boolean
           title: Leída
@@ -36047,6 +36392,7 @@ components:
           type: string
           readOnly: true
       required:
+      - mensaje
       - tipo
       - titulo
     NotificacionRequest:
@@ -38256,6 +38602,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RegistroAuditoriaList'
+    PaginatedRegistroCardiotocografiaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegistroCardiotocografia'
     PaginatedRegistroVacunaListList:
       type: object
       required:
@@ -38532,7 +38901,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TriajeEnfermeria'
-    PaginatedUsuarioListList:
+    PaginatedUsuarioListBasicoList:
       type: object
       required:
       - count
@@ -38554,7 +38923,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/UsuarioList'
+            $ref: '#/components/schemas/UsuarioListBasico'
     PaginatedValorReferenciaList:
       type: object
       required:
@@ -38580,7 +38949,7 @@ components:
             $ref: '#/components/schemas/ValorReferencia'
     Parto:
       type: object
-      description: ✅ Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD
+      description: Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD
         FRONTEND
       properties:
         id:
@@ -38990,7 +39359,7 @@ components:
       - paciente
     PartoRequest:
       type: object
-      description: ✅ Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD
+      description: Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD
         FRONTEND
       properties:
         paciente:
@@ -39611,12 +39980,12 @@ components:
         titulo:
           type: string
           minLength: 1
-          title: ' Título de la alerta'
+          title: Título de la alerta
           maxLength: 200
         descripcion:
           type: string
           minLength: 1
-          title: ' Descripción detallada'
+          title: Descripción detallada
         tipo:
           enum:
           - valor_critico
@@ -39638,7 +40007,7 @@ components:
             * `protocolo_incumplido` - Protocolo no seguido
             * `auditoria` - Requiere auditoría
           x-spec-enum-id: 1ad4c85d2316128a
-          title: ️ Tipo de alerta
+          title: Tipo de alerta
         prioridad:
           enum:
           - baja
@@ -39654,7 +40023,6 @@ components:
             * `critica` - Crítica
             * `emergencia` - EMERGENCIA
           x-spec-enum-id: d6b342e2282921f5
-          title: ⚡ Prioridad
         estado:
           enum:
           - activa
@@ -39670,7 +40038,7 @@ components:
             * `descartada` - Descartada
             * `escalada` - Escalada
           x-spec-enum-id: 7971f2524c8031d7
-          title: ' Estado actual'
+          title: Estado actual
         modulo_origen:
           enum:
           - pacientes
@@ -39692,13 +40060,13 @@ components:
             * `partos` - Partos
             * `sistema` - Sistema
           x-spec-enum-id: 6b906fde54b35439
-          title: ' Módulo de origen'
+          title: Módulo de origen
         registro_origen_id:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
-          title: ' ID del registro relacionado'
+          title: ID del registro relacionado
         datos_contexto:
           title: Datos de Contexto (Interno)
           description: Datos internos de contexto
@@ -39707,51 +40075,50 @@ components:
           maxLength: 100
         valor_umbral:
           type: string
-          title: ⚠️ Valor umbral
           maxLength: 100
         accion_recomendada:
           type: string
           minLength: 1
-          title: ' Acción recomendada'
+          title: Acción recomendada
         protocolo_seguimiento:
           type: string
-          title: ' Protocolo de seguimiento'
+          title: Protocolo de seguimiento
         fecha_vencimiento:
           type: string
           format: date-time
           nullable: true
-          title: ⏰ Fecha límite
+          title: Fecha límite
         fecha_revision:
           type: string
           format: date-time
           nullable: true
-          title: ' Fecha de revisión'
+          title: Fecha de revisión
         fecha_resolucion:
           type: string
           format: date-time
           nullable: true
-          title: ✅ Fecha de resolución
+          title: Fecha de resolución
         comentario_revision:
           type: string
-          title: ' Comentario de revisión'
+          title: Comentario de revisión
         comentario_resolucion:
           type: string
-          title: ' Comentario de resolución'
+          title: Comentario de resolución
         notificacion_enviada:
           type: boolean
-          title: ' ¿Notificación enviada'
+          title: ¿Notificación enviada
         recordatorio_enviado:
           type: boolean
-          title: ' ¿Recordatorio enviado'
+          title: ¿Recordatorio enviado
         escalamiento_automatico:
           type: boolean
-          title: ' ¿Escalamiento automático'
+          title: ¿Escalamiento automático
         tiempo_escalamiento_horas:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
-          title: ⏱️ Tiempo para escalamiento (horas)
+          title: Tiempo para escalamiento (horas)
     PatchedAntecedenteGinecoObstetricoRequest:
       type: object
       description: Serializer para antecedentes gineco-obstétricos
@@ -40681,8 +41048,58 @@ components:
           description: 'Hora de fin del modo no molestar (ej: 08:00)'
     PatchedConsultorioRequest:
       type: object
-      description: Consultorioserializer
+      description: |-
+        Consultorio con los nombres que usa la pantalla.
+
+        El frontend se escribió con `tipo`, `area`, `estado` y `equipamiento` (nivel);
+        el modelo los llama `tipo_consultorio`, `edificio`, `activo`/`en_mantenimiento`
+        y `nivel_equipamiento`. Sin estos alias la tabla mostraba «—», todos los
+        consultorios como inactivos, y crear uno desde la pantalla fallaba.
       properties:
+        tipo:
+          enum:
+          - general
+          - ginecologia
+          - ecografia
+          - laboratorio
+          - procedimientos
+          - urgencias
+          type: string
+          description: |-
+            * `general` - Consulta General
+            * `ginecologia` - Ginecología
+            * `ecografia` - Ecografía
+            * `laboratorio` - Laboratorio
+            * `procedimientos` - Procedimientos
+            * `urgencias` - Urgencias
+          x-spec-enum-id: f9d029f320818a74
+        area:
+          type: string
+          nullable: true
+        equipamiento:
+          type: string
+          nullable: true
+        equipamiento_detalle:
+          type: string
+          nullable: true
+        estado:
+          enum:
+          - disponible
+          - ocupado
+          - mantenimiento
+          - limpieza
+          - reservado
+          - inactivo
+          type: string
+          description: |-
+            * `disponible` - disponible
+            * `ocupado` - ocupado
+            * `mantenimiento` - mantenimiento
+            * `limpieza` - limpieza
+            * `reservado` - reservado
+            * `inactivo` - inactivo
+          x-spec-enum-id: bf82d354472d934a
+          writeOnly: true
         nombre:
           type: string
           minLength: 1
@@ -40736,10 +41153,32 @@ components:
           type: boolean
         tiene_ecografo:
           type: boolean
-        equipamiento:
+        tiene_escritorio:
+          type: boolean
+        tiene_computadora:
+          type: boolean
+        tiene_lavamanos:
+          type: boolean
+        tiene_oxigeno:
+          type: boolean
+        tiene_aspirador:
+          type: boolean
+        nivel_equipamiento:
+          enum:
+          - basico
+          - intermedio
+          - avanzado
+          - quirurgico
+          - ''
           type: string
-          nullable: true
-          description: Lista de equipamiento disponible
+          description: |-
+            * `basico` - Básico
+            * `intermedio` - Intermedio
+            * `avanzado` - Avanzado
+            * `quirurgico` - Quirúrgico
+          x-spec-enum-id: d40a1d4b5f6e89bb
+        descripcion:
+          type: string
         activo:
           type: boolean
           description: Consultorio disponible para asignación
@@ -40990,18 +41429,18 @@ components:
         nombre:
           type: string
           minLength: 1
-          title: ' Nombre del Indicador'
+          title: Nombre del Indicador
           description: 'Ej: Total de Pacientes Activos'
           maxLength: 200
         codigo:
           type: string
           minLength: 1
-          title: ️ Código único
+          title: Código único
           maxLength: 50
         descripcion:
           type: string
           minLength: 1
-          title: ' Descripción'
+          title: Descripción
           description: Explica qué mide este indicador
         categoria:
           enum:
@@ -41024,7 +41463,7 @@ components:
             * `seguridad` - Seguridad
             * `productividad` - Productividad
           x-spec-enum-id: db597fb7906a2c9b
-          title: ' Categoría'
+          title: Categoría
         tipo:
           enum:
           - numero
@@ -41040,11 +41479,11 @@ components:
             * `ratio` - Proporción
             * `tiempo` - Tiempo promedio
           x-spec-enum-id: 8973b772373ddabb
-          title: ' Tipo de indicador'
+          title: Tipo de indicador
         consulta_sql:
           type: string
           minLength: 1
-          title: ⚙️ Consulta para calcular el valor
+          title: Consulta para calcular el valor
           description: Query SQL que obtiene el valor del KPI
         parametros_calculo:
           title: Parámetros de Cálculo (Interno)
@@ -41062,7 +41501,7 @@ components:
             * `diario` - Diario
             * `semanal` - Semanal
           x-spec-enum-id: 706ae7b15ef33e46
-          title: ' ¿Con qué frecuencia se actualiza'
+          title: ¿Con qué frecuencia se actualiza
         valor_actual:
           type: string
           format: decimal
@@ -41078,16 +41517,16 @@ components:
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
           nullable: true
-          title: ' Meta mínima aceptable'
+          title: Meta mínima aceptable
         meta_optima:
           type: string
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
           nullable: true
-          title: ' Meta óptima'
+          title: Meta óptima
         unidad_medida:
           type: string
-          title: ' Unidad de medida'
+          title: Unidad de medida
           description: 'Ej: pacientes, %, minutos, días'
           maxLength: 20
         color_normal:
@@ -41111,19 +41550,19 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: ' Orden en el dashboard'
+          title: Orden en el dashboard
         activo:
           type: boolean
-          title: ✅ ¿Está activo
+          title: ¿Está activo
         visible_medico:
           type: boolean
-          title: ‍⚕️ ¿Visible para médicos
+          title: ¿Visible para médicos
         visible_administrador:
           type: boolean
-          title: ' ¿Visible para administradores'
+          title: ¿Visible para administradores
         visible_director:
           type: boolean
-          title: ' ¿Visible para director'
+          title: ¿Visible para director
     PatchedDisponibilidadRequest:
       type: object
       description: Serializer para Disponibilidades
@@ -41532,7 +41971,7 @@ components:
           nullable: true
     PatchedEmbarazoCreateUpdateRequest:
       type: object
-      description: ✅ Serializer para crear/actualizar - SOLO CAMPOS EDITABLES
+      description: Serializer para crear/actualizar - SOLO CAMPOS EDITABLES
       properties:
         paciente:
           type: integer
@@ -42740,7 +43179,7 @@ components:
             para la recoleccion y tratamiento de sus datos personales.'
     PatchedPartoRequest:
       type: object
-      description: ✅ Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD
+      description: Serializer COMPLETO para partos con ForeignKey + COMPATIBILIDAD
         FRONTEND
       properties:
         paciente:
@@ -43401,10 +43840,10 @@ components:
       properties:
         tipo_reporte:
           type: integer
-          title: ' Tipo de Reporte'
+          title: Tipo de Reporte
         usuario_solicitante:
           type: integer
-          title: ' Usuario que solicitó el reporte'
+          title: Usuario que solicitó el reporte
         formato:
           enum:
           - pd
@@ -43416,9 +43855,9 @@ components:
             * `pd` -  PDF
             * `excel` -  Excel
             * `csv` -  CSV
-            * `json` - ⚙️ JSON
-          x-spec-enum-id: 42e73a950fb9e284
-          title: ' Formato de descarga'
+            * `json` - JSON
+          x-spec-enum-id: 92435156c74d0f80
+          title: Formato de descarga
         parametros:
           title: Parámetros del Reporte (Interno)
           description: Parámetros internos del reporte
@@ -43426,27 +43865,27 @@ components:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de inicio del período'
+          title: Fecha de inicio del período
         fecha_fin:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de fin del período'
+          title: Fecha de fin del período
         filtro_paciente:
           type: integer
           nullable: true
-          title: ' Paciente específico'
+          title: Paciente específico
         filtro_medico:
           type: integer
           nullable: true
-          title: ‍⚕️ Médico específico
+          title: Médico específico
         filtro_servicio:
           type: string
-          title: ' Servicio médico'
+          title: Servicio médico
           maxLength: 100
         observaciones:
           type: string
-          title: ' Observaciones adicionales'
+          title: Observaciones adicionales
     PatchedResultadoLaboratorioCreateUpdateRequest:
       type: object
       description: Serializer para crear/actualizar resultados
@@ -43925,13 +44364,13 @@ components:
         nombre:
           type: string
           minLength: 1
-          title: ' Nombre del Reporte'
+          title: Nombre del Reporte
           description: 'Ej: Reporte de Pacientes del Mes'
           maxLength: 200
         descripcion:
           type: string
           minLength: 1
-          title: ' Descripción'
+          title: Descripción
           description: Describe qué información incluye este reporte
         categoria:
           enum:
@@ -43950,7 +44389,7 @@ components:
             * `clinico` -  Reportes Clínicos
             * `financiero` -  Reportes Financieros
           x-spec-enum-id: e83551af4f519f93
-          title: ' Categoría del Reporte'
+          title: Categoría del Reporte
         frecuencia:
           enum:
           - bajo_demanda
@@ -43964,69 +44403,69 @@ components:
             * `bajo_demanda` -  Generar cuando se necesite
             * `diario` -  Todos los días
             * `semanal` -  Cada semana
-            * `mensual` - ️ Mensualmente
+            * `mensual` -  Mensualmente
             * `trimestral` -  Cada 3 meses
             * `anual` -  Anualmente
-          x-spec-enum-id: f2f920677e82febf
-          title: ⏰ ¿Con qué frecuencia se genera
+          x-spec-enum-id: 1200a803aeb9b64a
+          title: ¿Con qué frecuencia se genera
         automatico:
           type: boolean
-          title: ' ¿Generar automáticamente'
+          title: ¿Generar automáticamente
           description: Si está activado, el reporte se generará según la frecuencia
             seleccionada
         requiere_parametros:
           type: boolean
-          title: ' ¿Requiere parámetros adicionales'
+          title: ¿Requiere parámetros adicionales
           description: Indica si el usuario debe configurar parámetros específicos
         confidencial:
           type: boolean
-          title: ' ¿Es confidencial'
+          title: ¿Es confidencial
           description: Solo usuarios autorizados podrán ver este reporte
         activo:
           type: boolean
-          title: ✅ ¿Está activo
+          title: ¿Está activo
         incluir_fecha_inicio:
           type: boolean
-          title: ' ¿Permitir filtrar por fecha de inicio'
+          title: ¿Permitir filtrar por fecha de inicio
         incluir_fecha_fin:
           type: boolean
-          title: ' ¿Permitir filtrar por fecha de fin'
+          title: ¿Permitir filtrar por fecha de fin
         incluir_paciente:
           type: boolean
-          title: ' ¿Permitir filtrar por paciente específico'
+          title: ¿Permitir filtrar por paciente específico
         incluir_medico:
           type: boolean
-          title: ‍⚕️ ¿Permitir filtrar por médico
+          title: ¿Permitir filtrar por médico
         incluir_servicio:
           type: boolean
-          title: ' ¿Permitir filtrar por servicio médico'
+          title: ¿Permitir filtrar por servicio médico
         permitir_medico:
           type: boolean
-          title: ‍⚕️ ¿Los médicos pueden generar este reporte
+          title: ¿Los médicos pueden generar este reporte
         permitir_enfermero:
           type: boolean
-          title: ‍⚕️ ¿Los enfermeros pueden generar este reporte
+          title: ¿Los enfermeros pueden generar este reporte
         permitir_administrador:
           type: boolean
-          title: ' ¿Los administradores pueden generar este reporte'
+          title: ¿Los administradores pueden generar este reporte
         permitir_director:
           type: boolean
-          title: ' ¿El director médico puede generar este reporte'
+          title: ¿El director médico puede generar este reporte
         formato_pdf:
           type: boolean
-          title: ' ¿Disponible en PDF'
+          title: ¿Disponible en PDF
           description: Formato ideal para imprimir y compartir
         formato_excel:
           type: boolean
-          title: ' ¿Disponible en Excel'
+          title: ¿Disponible en Excel
           description: Formato ideal para análisis de datos
         formato_csv:
           type: boolean
-          title: ' ¿Disponible en CSV'
+          title: ¿Disponible en CSV
           description: Formato simple para importar en otros sistemas
         formato_json:
           type: boolean
-          title: ⚙️ ¿Disponible en JSON
+          title: ¿Disponible en JSON
           description: Formato para integración con otros sistemas
         parametros_esquema:
           title: Parámetros Esquema (Interno)
@@ -44798,6 +45237,7 @@ components:
           - MFA_ACTIVADO
           - MFA_FALLIDO
           - MFA_DESACTIVADO
+          - MFA_RESTABLECIDO
           - CUENTA_BLOQUEADA
           - crear
           - actualizar
@@ -44825,6 +45265,7 @@ components:
             * `MFA_ACTIVADO` - MFA activado
             * `MFA_FALLIDO` - Intento MFA fallido
             * `MFA_DESACTIVADO` - MFA desactivado
+            * `MFA_RESTABLECIDO` - MFA restablecido por un administrador
             * `CUENTA_BLOQUEADA` - Cuenta bloqueada por intentos
             * `crear` - Crear
             * `actualizar` - Actualizar
@@ -44844,7 +45285,7 @@ components:
             * `DESACTIVAR_PACIENTE` - Desactivación de paciente
             * `ELIMINAR_EMBARAZO` - Borrado de embarazo registrado por error
             * `ACCION_MASIVA_ADMIN` - Acción masiva desde el admin
-          x-spec-enum-id: 9625ac9238d304d9
+          x-spec-enum-id: 4358aeeefce184f4
         accion_display:
           type: string
           readOnly: true
@@ -44876,7 +45317,8 @@ components:
       - accion
     RegistroAuditoriaList:
       type: object
-      description: Serializer simplificado para listados (sin datos completos)
+      description: 'Listado del explorador: quién, qué, dónde, cuándo, desde qué IP
+        y con qué navegador.'
       properties:
         id:
           type: integer
@@ -44893,6 +45335,7 @@ components:
           - MFA_ACTIVADO
           - MFA_FALLIDO
           - MFA_DESACTIVADO
+          - MFA_RESTABLECIDO
           - CUENTA_BLOQUEADA
           - crear
           - actualizar
@@ -44920,6 +45363,7 @@ components:
             * `MFA_ACTIVADO` - MFA activado
             * `MFA_FALLIDO` - Intento MFA fallido
             * `MFA_DESACTIVADO` - MFA desactivado
+            * `MFA_RESTABLECIDO` - MFA restablecido por un administrador
             * `CUENTA_BLOQUEADA` - Cuenta bloqueada por intentos
             * `crear` - Crear
             * `actualizar` - Actualizar
@@ -44939,7 +45383,7 @@ components:
             * `DESACTIVAR_PACIENTE` - Desactivación de paciente
             * `ELIMINAR_EMBARAZO` - Borrado de embarazo registrado por error
             * `ACCION_MASIVA_ADMIN` - Acción masiva desde el admin
-          x-spec-enum-id: 9625ac9238d304d9
+          x-spec-enum-id: 4358aeeefce184f4
         accion_display:
           type: string
           readOnly: true
@@ -44951,6 +45395,12 @@ components:
           allOf:
           - $ref: '#/components/schemas/UsuarioAuditoria'
           readOnly: true
+        usuario_nombre:
+          type: string
+          maxLength: 200
+        usuario_rol:
+          type: string
+          maxLength: 20
         fecha:
           type: string
           format: date-time
@@ -44960,8 +45410,75 @@ components:
         sesion_id:
           type: string
           maxLength: 32
+        ip_address:
+          type: string
+          nullable: true
+        user_agent:
+          type: string
+        detalle:
+          type: string
+        modulo_legible:
+          type: string
+          readOnly: true
       required:
       - accion
+    RegistroCardiotocografia:
+      type: object
+      description: 'Cardiotocografía guardada: lo que se midió, lo que salió y quién
+        la clasificó.'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        paciente:
+          type: integer
+          readOnly: true
+        paciente_nombre:
+          type: string
+          readOnly: true
+        embarazo:
+          type: integer
+          readOnly: true
+          nullable: true
+        semana_gestacional:
+          type: integer
+          readOnly: true
+          nullable: true
+        valores:
+          readOnly: true
+          description: Variables del trazado tal como se clasificaron
+        valores_etiquetados:
+          type: string
+          readOnly: true
+        clase:
+          enum:
+          - normal
+          - sospechosa
+          - patologica
+          type: string
+          description: |-
+            * `normal` - Normal
+            * `sospechosa` - Sospechosa
+            * `patologica` - Patológica
+          x-spec-enum-id: f64eedc8ba98da4c
+          readOnly: true
+        clase_nombre:
+          type: string
+          readOnly: true
+        probabilidades:
+          readOnly: true
+        advertencias:
+          readOnly: true
+        modelo_version:
+          type: string
+          readOnly: true
+        realizado_por_nombre:
+          type: string
+          readOnly: true
+        fecha:
+          type: string
+          format: date-time
+          readOnly: true
     RegistroVacuna:
       type: object
       description: |-
@@ -45427,7 +45944,7 @@ components:
           readOnly: true
         tipo_reporte:
           type: integer
-          title: ' Tipo de Reporte'
+          title: Tipo de Reporte
         tipo_reporte_nombre:
           type: string
           readOnly: true
@@ -45436,7 +45953,7 @@ components:
           readOnly: true
         usuario_solicitante:
           type: integer
-          title: ' Usuario que solicitó el reporte'
+          title: Usuario que solicitó el reporte
         estado:
           enum:
           - pendiente
@@ -45446,14 +45963,14 @@ components:
           - expirado
           type: string
           description: |-
-            * `pendiente` - ⏳ Pendiente
-            * `procesando` - ⚙️ Procesando
-            * `completado` - ✅ Completado
-            * `error` - ❌ Error
-            * `expirado` - ⏰ Expirado
-          x-spec-enum-id: b9c75b96c01ae607
+            * `pendiente` - Pendiente
+            * `procesando` - Procesando
+            * `completado` - Completado
+            * `error` - Error
+            * `expirado` - Expirado
+          x-spec-enum-id: 983cbc78eb3d4235
           readOnly: true
-          title: ' Estado del reporte'
+          title: Estado del reporte
         estado_display:
           type: string
           readOnly: true
@@ -45468,9 +45985,9 @@ components:
             * `pd` -  PDF
             * `excel` -  Excel
             * `csv` -  CSV
-            * `json` - ⚙️ JSON
-          x-spec-enum-id: 42e73a950fb9e284
-          title: ' Formato de descarga'
+            * `json` - JSON
+          x-spec-enum-id: 92435156c74d0f80
+          title: Formato de descarga
         formato_display:
           type: string
           readOnly: true
@@ -45481,88 +45998,88 @@ components:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de inicio del período'
+          title: Fecha de inicio del período
         fecha_fin:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de fin del período'
+          title: Fecha de fin del período
         filtro_paciente:
           type: integer
           nullable: true
-          title: ' Paciente específico'
+          title: Paciente específico
         filtro_medico:
           type: integer
           nullable: true
-          title: ‍⚕️ Médico específico
+          title: Médico específico
         filtro_servicio:
           type: string
-          title: ' Servicio médico'
+          title: Servicio médico
           maxLength: 100
         fecha_solicitud:
           type: string
           format: date-time
           readOnly: true
-          title: ' Fecha de solicitud'
+          title: Fecha de solicitud
         fecha_procesamiento:
           type: string
           format: date-time
           readOnly: true
           nullable: true
-          title: ⚙️ Inicio de procesamiento
+          title: Inicio de procesamiento
         fecha_completado:
           type: string
           format: date-time
           readOnly: true
           nullable: true
-          title: ✅ Fecha de completado
+          title: Fecha de completado
         fecha_expiracion:
           type: string
           format: date-time
           readOnly: true
           nullable: true
-          title: ⏰ Fecha de expiración
+          title: Fecha de expiración
         ruta_archivo:
           type: string
           readOnly: true
-          title: ' Ruta del archivo'
+          title: Ruta del archivo
         tamano_archivo:
           type: integer
           readOnly: true
           nullable: true
-          title: ' Tamaño del archivo (bytes)'
+          title: Tamaño del archivo (bytes)
         tamano_archivo_display:
           type: string
           readOnly: true
         hash_archivo:
           type: string
           readOnly: true
-          title: ' Hash de seguridad del archivo'
+          title: Hash de seguridad del archivo
         accesos_descarga:
           type: integer
           readOnly: true
-          title: ' Número de descargas'
+          title: Número de descargas
         total_registros:
           type: integer
           readOnly: true
           nullable: true
-          title: ' Total de registros incluidos'
+          title: Total de registros incluidos
         datos_resumen:
           readOnly: true
           title: Datos de Resumen (Interno)
           description: Resumen interno de los datos
         observaciones:
           type: string
-          title: ' Observaciones adicionales'
+          title: Observaciones adicionales
         mensaje_error:
           type: string
           readOnly: true
-          title: ❌ Mensaje de error
+          title: Mensaje de error
         tiempo_procesamiento:
           type: integer
           readOnly: true
           nullable: true
-          title: ⏱️ Tiempo de procesamiento (segundos)
+          title: Tiempo de procesamiento (segundos)
         tiempo_procesamiento_display:
           type: string
           readOnly: true
@@ -45583,7 +46100,7 @@ components:
           readOnly: true
         tipo_reporte:
           type: integer
-          title: ' Tipo de Reporte'
+          title: Tipo de Reporte
         formato:
           enum:
           - pd
@@ -45595,30 +46112,30 @@ components:
             * `pd` -  PDF
             * `excel` -  Excel
             * `csv` -  CSV
-            * `json` - ⚙️ JSON
-          x-spec-enum-id: 42e73a950fb9e284
-          title: ' Formato de descarga'
+            * `json` - JSON
+          x-spec-enum-id: 92435156c74d0f80
+          title: Formato de descarga
         fecha_inicio:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de inicio del período'
+          title: Fecha de inicio del período
         fecha_fin:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de fin del período'
+          title: Fecha de fin del período
         filtro_paciente:
           type: integer
           nullable: true
-          title: ' Paciente específico'
+          title: Paciente específico
         filtro_medico:
           type: integer
           nullable: true
-          title: ‍⚕️ Médico específico
+          title: Médico específico
         filtro_servicio:
           type: string
-          title: ' Servicio médico'
+          title: Servicio médico
           maxLength: 100
         parametros:
           title: Parámetros del Reporte (Interno)
@@ -45633,7 +46150,7 @@ components:
       properties:
         tipo_reporte:
           type: integer
-          title: ' Tipo de Reporte'
+          title: Tipo de Reporte
         formato:
           enum:
           - pd
@@ -45645,30 +46162,30 @@ components:
             * `pd` -  PDF
             * `excel` -  Excel
             * `csv` -  CSV
-            * `json` - ⚙️ JSON
-          x-spec-enum-id: 42e73a950fb9e284
-          title: ' Formato de descarga'
+            * `json` - JSON
+          x-spec-enum-id: 92435156c74d0f80
+          title: Formato de descarga
         fecha_inicio:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de inicio del período'
+          title: Fecha de inicio del período
         fecha_fin:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de fin del período'
+          title: Fecha de fin del período
         filtro_paciente:
           type: integer
           nullable: true
-          title: ' Paciente específico'
+          title: Paciente específico
         filtro_medico:
           type: integer
           nullable: true
-          title: ‍⚕️ Médico específico
+          title: Médico específico
         filtro_servicio:
           type: string
-          title: ' Servicio médico'
+          title: Servicio médico
           maxLength: 100
         parametros:
           title: Parámetros del Reporte (Interno)
@@ -45683,10 +46200,10 @@ components:
       properties:
         tipo_reporte:
           type: integer
-          title: ' Tipo de Reporte'
+          title: Tipo de Reporte
         usuario_solicitante:
           type: integer
-          title: ' Usuario que solicitó el reporte'
+          title: Usuario que solicitó el reporte
         formato:
           enum:
           - pd
@@ -45698,9 +46215,9 @@ components:
             * `pd` -  PDF
             * `excel` -  Excel
             * `csv` -  CSV
-            * `json` - ⚙️ JSON
-          x-spec-enum-id: 42e73a950fb9e284
-          title: ' Formato de descarga'
+            * `json` - JSON
+          x-spec-enum-id: 92435156c74d0f80
+          title: Formato de descarga
         parametros:
           title: Parámetros del Reporte (Interno)
           description: Parámetros internos del reporte
@@ -45708,27 +46225,27 @@ components:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de inicio del período'
+          title: Fecha de inicio del período
         fecha_fin:
           type: string
           format: date
           nullable: true
-          title: ' Fecha de fin del período'
+          title: Fecha de fin del período
         filtro_paciente:
           type: integer
           nullable: true
-          title: ' Paciente específico'
+          title: Paciente específico
         filtro_medico:
           type: integer
           nullable: true
-          title: ‍⚕️ Médico específico
+          title: Médico específico
         filtro_servicio:
           type: string
-          title: ' Servicio médico'
+          title: Servicio médico
           maxLength: 100
         observaciones:
           type: string
-          title: ' Observaciones adicionales'
+          title: Observaciones adicionales
       required:
       - tipo_reporte
       - usuario_solicitante
@@ -45741,7 +46258,7 @@ components:
           readOnly: true
         tipo_reporte:
           type: integer
-          title: ' Tipo de Reporte'
+          title: Tipo de Reporte
         tipo_reporte_nombre:
           type: string
           readOnly: true
@@ -45750,7 +46267,7 @@ components:
           readOnly: true
         usuario_solicitante:
           type: integer
-          title: ' Usuario que solicitó el reporte'
+          title: Usuario que solicitó el reporte
         estado:
           enum:
           - pendiente
@@ -45760,13 +46277,13 @@ components:
           - expirado
           type: string
           description: |-
-            * `pendiente` - ⏳ Pendiente
-            * `procesando` - ⚙️ Procesando
-            * `completado` - ✅ Completado
-            * `error` - ❌ Error
-            * `expirado` - ⏰ Expirado
-          x-spec-enum-id: b9c75b96c01ae607
-          title: ' Estado del reporte'
+            * `pendiente` - Pendiente
+            * `procesando` - Procesando
+            * `completado` - Completado
+            * `error` - Error
+            * `expirado` - Expirado
+          x-spec-enum-id: 983cbc78eb3d4235
+          title: Estado del reporte
         estado_display:
           type: string
           readOnly: true
@@ -45781,9 +46298,9 @@ components:
             * `pd` -  PDF
             * `excel` -  Excel
             * `csv` -  CSV
-            * `json` - ⚙️ JSON
-          x-spec-enum-id: 42e73a950fb9e284
-          title: ' Formato de descarga'
+            * `json` - JSON
+          x-spec-enum-id: 92435156c74d0f80
+          title: Formato de descarga
         formato_display:
           type: string
           readOnly: true
@@ -45791,12 +46308,12 @@ components:
           type: string
           format: date-time
           readOnly: true
-          title: ' Fecha de solicitud'
+          title: Fecha de solicitud
         fecha_completado:
           type: string
           format: date-time
           nullable: true
-          title: ✅ Fecha de completado
+          title: Fecha de completado
         tamano_archivo_display:
           type: string
           readOnly: true
@@ -47310,17 +47827,17 @@ components:
           readOnly: true
         nombre:
           type: string
-          title: ' Nombre del Reporte'
+          title: Nombre del Reporte
           description: 'Ej: Reporte de Pacientes del Mes'
           maxLength: 200
         codigo:
           type: string
           readOnly: true
-          title: ' Código Único'
+          title: Código Único
           description: Código interno (se genera automáticamente si se deja vacío)
         descripcion:
           type: string
-          title: ' Descripción'
+          title: Descripción
           description: Describe qué información incluye este reporte
         categoria:
           enum:
@@ -47339,7 +47856,7 @@ components:
             * `clinico` -  Reportes Clínicos
             * `financiero` -  Reportes Financieros
           x-spec-enum-id: e83551af4f519f93
-          title: ' Categoría del Reporte'
+          title: Categoría del Reporte
         frecuencia:
           enum:
           - bajo_demanda
@@ -47353,69 +47870,69 @@ components:
             * `bajo_demanda` -  Generar cuando se necesite
             * `diario` -  Todos los días
             * `semanal` -  Cada semana
-            * `mensual` - ️ Mensualmente
+            * `mensual` -  Mensualmente
             * `trimestral` -  Cada 3 meses
             * `anual` -  Anualmente
-          x-spec-enum-id: f2f920677e82febf
-          title: ⏰ ¿Con qué frecuencia se genera
+          x-spec-enum-id: 1200a803aeb9b64a
+          title: ¿Con qué frecuencia se genera
         automatico:
           type: boolean
-          title: ' ¿Generar automáticamente'
+          title: ¿Generar automáticamente
           description: Si está activado, el reporte se generará según la frecuencia
             seleccionada
         requiere_parametros:
           type: boolean
-          title: ' ¿Requiere parámetros adicionales'
+          title: ¿Requiere parámetros adicionales
           description: Indica si el usuario debe configurar parámetros específicos
         confidencial:
           type: boolean
-          title: ' ¿Es confidencial'
+          title: ¿Es confidencial
           description: Solo usuarios autorizados podrán ver este reporte
         activo:
           type: boolean
-          title: ✅ ¿Está activo
+          title: ¿Está activo
         incluir_fecha_inicio:
           type: boolean
-          title: ' ¿Permitir filtrar por fecha de inicio'
+          title: ¿Permitir filtrar por fecha de inicio
         incluir_fecha_fin:
           type: boolean
-          title: ' ¿Permitir filtrar por fecha de fin'
+          title: ¿Permitir filtrar por fecha de fin
         incluir_paciente:
           type: boolean
-          title: ' ¿Permitir filtrar por paciente específico'
+          title: ¿Permitir filtrar por paciente específico
         incluir_medico:
           type: boolean
-          title: ‍⚕️ ¿Permitir filtrar por médico
+          title: ¿Permitir filtrar por médico
         incluir_servicio:
           type: boolean
-          title: ' ¿Permitir filtrar por servicio médico'
+          title: ¿Permitir filtrar por servicio médico
         permitir_medico:
           type: boolean
-          title: ‍⚕️ ¿Los médicos pueden generar este reporte
+          title: ¿Los médicos pueden generar este reporte
         permitir_enfermero:
           type: boolean
-          title: ‍⚕️ ¿Los enfermeros pueden generar este reporte
+          title: ¿Los enfermeros pueden generar este reporte
         permitir_administrador:
           type: boolean
-          title: ' ¿Los administradores pueden generar este reporte'
+          title: ¿Los administradores pueden generar este reporte
         permitir_director:
           type: boolean
-          title: ' ¿El director médico puede generar este reporte'
+          title: ¿El director médico puede generar este reporte
         formato_pdf:
           type: boolean
-          title: ' ¿Disponible en PDF'
+          title: ¿Disponible en PDF
           description: Formato ideal para imprimir y compartir
         formato_excel:
           type: boolean
-          title: ' ¿Disponible en Excel'
+          title: ¿Disponible en Excel
           description: Formato ideal para análisis de datos
         formato_csv:
           type: boolean
-          title: ' ¿Disponible en CSV'
+          title: ¿Disponible en CSV
           description: Formato simple para importar en otros sistemas
         formato_json:
           type: boolean
-          title: ⚙️ ¿Disponible en JSON
+          title: ¿Disponible en JSON
           description: Formato para integración con otros sistemas
         parametros_esquema:
           title: Parámetros Esquema (Interno)
@@ -47459,13 +47976,13 @@ components:
         nombre:
           type: string
           minLength: 1
-          title: ' Nombre del Reporte'
+          title: Nombre del Reporte
           description: 'Ej: Reporte de Pacientes del Mes'
           maxLength: 200
         descripcion:
           type: string
           minLength: 1
-          title: ' Descripción'
+          title: Descripción
           description: Describe qué información incluye este reporte
         categoria:
           enum:
@@ -47484,7 +48001,7 @@ components:
             * `clinico` -  Reportes Clínicos
             * `financiero` -  Reportes Financieros
           x-spec-enum-id: e83551af4f519f93
-          title: ' Categoría del Reporte'
+          title: Categoría del Reporte
         frecuencia:
           enum:
           - bajo_demanda
@@ -47498,69 +48015,69 @@ components:
             * `bajo_demanda` -  Generar cuando se necesite
             * `diario` -  Todos los días
             * `semanal` -  Cada semana
-            * `mensual` - ️ Mensualmente
+            * `mensual` -  Mensualmente
             * `trimestral` -  Cada 3 meses
             * `anual` -  Anualmente
-          x-spec-enum-id: f2f920677e82febf
-          title: ⏰ ¿Con qué frecuencia se genera
+          x-spec-enum-id: 1200a803aeb9b64a
+          title: ¿Con qué frecuencia se genera
         automatico:
           type: boolean
-          title: ' ¿Generar automáticamente'
+          title: ¿Generar automáticamente
           description: Si está activado, el reporte se generará según la frecuencia
             seleccionada
         requiere_parametros:
           type: boolean
-          title: ' ¿Requiere parámetros adicionales'
+          title: ¿Requiere parámetros adicionales
           description: Indica si el usuario debe configurar parámetros específicos
         confidencial:
           type: boolean
-          title: ' ¿Es confidencial'
+          title: ¿Es confidencial
           description: Solo usuarios autorizados podrán ver este reporte
         activo:
           type: boolean
-          title: ✅ ¿Está activo
+          title: ¿Está activo
         incluir_fecha_inicio:
           type: boolean
-          title: ' ¿Permitir filtrar por fecha de inicio'
+          title: ¿Permitir filtrar por fecha de inicio
         incluir_fecha_fin:
           type: boolean
-          title: ' ¿Permitir filtrar por fecha de fin'
+          title: ¿Permitir filtrar por fecha de fin
         incluir_paciente:
           type: boolean
-          title: ' ¿Permitir filtrar por paciente específico'
+          title: ¿Permitir filtrar por paciente específico
         incluir_medico:
           type: boolean
-          title: ‍⚕️ ¿Permitir filtrar por médico
+          title: ¿Permitir filtrar por médico
         incluir_servicio:
           type: boolean
-          title: ' ¿Permitir filtrar por servicio médico'
+          title: ¿Permitir filtrar por servicio médico
         permitir_medico:
           type: boolean
-          title: ‍⚕️ ¿Los médicos pueden generar este reporte
+          title: ¿Los médicos pueden generar este reporte
         permitir_enfermero:
           type: boolean
-          title: ‍⚕️ ¿Los enfermeros pueden generar este reporte
+          title: ¿Los enfermeros pueden generar este reporte
         permitir_administrador:
           type: boolean
-          title: ' ¿Los administradores pueden generar este reporte'
+          title: ¿Los administradores pueden generar este reporte
         permitir_director:
           type: boolean
-          title: ' ¿El director médico puede generar este reporte'
+          title: ¿El director médico puede generar este reporte
         formato_pdf:
           type: boolean
-          title: ' ¿Disponible en PDF'
+          title: ¿Disponible en PDF
           description: Formato ideal para imprimir y compartir
         formato_excel:
           type: boolean
-          title: ' ¿Disponible en Excel'
+          title: ¿Disponible en Excel
           description: Formato ideal para análisis de datos
         formato_csv:
           type: boolean
-          title: ' ¿Disponible en CSV'
+          title: ¿Disponible en CSV
           description: Formato simple para importar en otros sistemas
         formato_json:
           type: boolean
-          title: ⚙️ ¿Disponible en JSON
+          title: ¿Disponible en JSON
           description: Formato para integración con otros sistemas
         parametros_esquema:
           title: Parámetros Esquema (Interno)
@@ -47578,12 +48095,12 @@ components:
           readOnly: true
         nombre:
           type: string
-          title: ' Nombre del Reporte'
+          title: Nombre del Reporte
           description: 'Ej: Reporte de Pacientes del Mes'
           maxLength: 200
         codigo:
           type: string
-          title: ' Código Único'
+          title: Código Único
           description: Código interno (se genera automáticamente si se deja vacío)
           maxLength: 50
         categoria:
@@ -47603,7 +48120,7 @@ components:
             * `clinico` -  Reportes Clínicos
             * `financiero` -  Reportes Financieros
           x-spec-enum-id: e83551af4f519f93
-          title: ' Categoría del Reporte'
+          title: Categoría del Reporte
         categoria_display:
           type: string
           readOnly: true
@@ -47620,26 +48137,26 @@ components:
             * `bajo_demanda` -  Generar cuando se necesite
             * `diario` -  Todos los días
             * `semanal` -  Cada semana
-            * `mensual` - ️ Mensualmente
+            * `mensual` -  Mensualmente
             * `trimestral` -  Cada 3 meses
             * `anual` -  Anualmente
-          x-spec-enum-id: f2f920677e82febf
-          title: ⏰ ¿Con qué frecuencia se genera
+          x-spec-enum-id: 1200a803aeb9b64a
+          title: ¿Con qué frecuencia se genera
         frecuencia_display:
           type: string
           readOnly: true
         automatico:
           type: boolean
-          title: ' ¿Generar automáticamente'
+          title: ¿Generar automáticamente
           description: Si está activado, el reporte se generará según la frecuencia
             seleccionada
         confidencial:
           type: boolean
-          title: ' ¿Es confidencial'
+          title: ¿Es confidencial
           description: Solo usuarios autorizados podrán ver este reporte
         activo:
           type: boolean
-          title: ✅ ¿Está activo
+          title: ¿Está activo
       required:
       - categoria
       - nombre
@@ -47812,29 +48329,6 @@ components:
       required:
       - descripcion
       - nombre
-    TokenObtainPair:
-      type: object
-      properties:
-        access:
-          type: string
-          readOnly: true
-        refresh:
-          type: string
-          readOnly: true
-    TokenObtainPairRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          writeOnly: true
-          minLength: 1
-        password:
-          type: string
-          writeOnly: true
-          minLength: 1
-      required:
-      - email
-      - password
     TriajeEnfermeria:
       type: object
       description: Triajeenfermeriaserializer
@@ -48514,17 +49008,15 @@ components:
       - email
       - nombre
       - rol
-    UsuarioList:
+    UsuarioListBasico:
       type: object
-      description: Serializer simplificado para listas
+      description: |-
+        Listado para quien no es administrador: lo justo para elegir a un profesional (médico de una cita o de un
+        embarazo), sin correo, teléfono ni banderas de administración (BUG-002).
       properties:
         id:
           type: integer
           readOnly: true
-        email:
-          type: string
-          format: email
-          maxLength: 254
         nombre:
           type: string
           maxLength: 100
@@ -48556,9 +49048,6 @@ components:
         rol_display:
           type: string
           readOnly: true
-        cargo:
-          type: integer
-          nullable: true
         cargo_nombre:
           type: string
           readOnly: true
@@ -48566,36 +49055,13 @@ components:
           type: string
           nullable: true
           maxLength: 150
-        telefono:
-          type: string
-          nullable: true
-          title: Teléfono
-          maxLength: 20
-        foto:
-          type: string
-          format: uri
-          nullable: true
-          title: Foto de Perfil
-          description: Imagen de perfil del usuario
         foto_url:
           type: string
           readOnly: true
         activo:
           type: boolean
-        is_staff:
-          type: boolean
-          title: Es staf
-        is_superuser:
-          type: boolean
-          title: Es superusuario
-        fecha_creacion:
-          type: string
-          format: date-time
-          readOnly: true
-          title: Fecha de Creación
       required:
       - apellido_paterno
-      - email
       - nombre
       - rol
     UsuarioSimple:
@@ -49040,7 +49506,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT Bearer token authentication. Obtain token via POST /api/token/
+      description: JWT Bearer token authentication. Obtain token via POST /api/usuarios/login/
         with {email, password}. Refresh token via POST /api/token/refresh/ with {refresh_token}.
 servers:
 - url: http://localhost:8000

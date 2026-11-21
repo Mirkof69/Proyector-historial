@@ -9,8 +9,6 @@ from django.db import models
 
 from pacientes.models import Paciente
 
-# from embarazos.models import Embarazo  # REMOVED to fix circular import
-# from controles.models import ControlPrenatal  # REMOVED to fix circular import
 from usuarios.models import Usuario
 
 

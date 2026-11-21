@@ -1,10 +1,4 @@
-"""=============================================================================
-MÓDULO: EMBARAZOS - SERIALIZERS V3.0 FINAL CORREGIDO
-=============================================================================
-BASADO EN EL MODELO REAL - SOLO CAMPOS QUE EXISTEN
-Sin errores de campos inexistentes
-=============================================================================
-"""
+"""Serializadores de embarazos: datos del embarazo, edad gestacional y resumen clínico."""
 
 from datetime import timedelta
 from typing import Any, cast
