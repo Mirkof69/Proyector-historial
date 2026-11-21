@@ -67,6 +67,19 @@ export const backupService = {
     },
 
     /**
+     * Cargar un respaldo .sql desde otro equipo (por ejemplo, uno descargado antes) para poder restaurarlo.
+     */
+    async cargar(archivo: File): Promise<CrearBackupResult> {
+        const datos = new FormData();
+        datos.append('archivo', archivo);
+        const response = await api.post<CrearBackupResult>('/reportes/configuracion/backups/cargar/', datos, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 0,
+        });
+        return response.data;
+    },
+
+    /**
      * Descargar un backup
      */
     async descargar(filename: string): Promise<Blob> {

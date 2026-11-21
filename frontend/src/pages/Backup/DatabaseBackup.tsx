@@ -3,7 +3,7 @@ import { backupService, Backup } from '../../services/backupService';
 import {
     Table, Button, Tooltip, Space,
     Card, Statistic, Empty, Spin,
-    Popconfirm, Input, Alert, Typography
+    Popconfirm, Input, Alert, Typography, Upload
 } from 'antd';
 import { useAntdApp } from '../../hooks/useMessage';
 import {
@@ -14,6 +14,7 @@ import {
     HistoryOutlined,
     HddOutlined,
     PlusOutlined,
+    UploadOutlined,
     WarningOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -31,12 +32,14 @@ interface BackupState {
     backups: Backup[];
     loading: boolean;
     creating: boolean;
+    uploading: boolean;
     restoring: string | null;
 }
 
 type BackupAction =
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SET_CREATING'; payload: boolean }
+    | { type: 'SET_UPLOADING'; payload: boolean }
     | { type: 'SET_RESTORING'; payload: string | null }
     | { type: 'SET_BACKUPS'; payload: Backup[] };
 
@@ -44,6 +47,7 @@ const initialState: BackupState = {
     backups: [],
     loading: false,
     creating: false,
+    uploading: false,
     restoring: null,
 };
 
@@ -53,6 +57,8 @@ function backupReducer(state: BackupState, action: BackupAction): BackupState {
             return { ...state, loading: action.payload };
         case 'SET_CREATING':
             return { ...state, creating: action.payload };
+        case 'SET_UPLOADING':
+            return { ...state, uploading: action.payload };
         case 'SET_RESTORING':
             return { ...state, restoring: action.payload };
         case 'SET_BACKUPS':
@@ -65,7 +71,7 @@ function backupReducer(state: BackupState, action: BackupAction): BackupState {
 const DatabaseBackup: React.FC = () => {
     const { modal, message } = useAntdApp();
     const [state, dispatch] = useReducer(backupReducer, initialState);
-    const { backups, loading, creating, restoring } = state;
+    const { backups, loading, creating, uploading, restoring } = state;
 
     const loadData = React.useCallback(async () => {
         dispatch({ type: 'SET_LOADING', payload: true });
@@ -92,6 +98,19 @@ const DatabaseBackup: React.FC = () => {
             message.error(error?.response?.data?.message || error?.response?.data?.error || 'Error al crear backup');
         } finally {
             dispatch({ type: 'SET_CREATING', payload: false });
+        }
+    };
+
+    const handleUpload = async (archivo: File) => {
+        dispatch({ type: 'SET_UPLOADING', payload: true });
+        try {
+            const resultado = await backupService.cargar(archivo);
+            message.success(`Respaldo cargado: ${resultado.filename}. Ya se puede restaurar desde la lista.`);
+            loadData();
+        } catch (error: any) {
+            message.error(error?.response?.data?.error || 'No se pudo cargar el respaldo');
+        } finally {
+            dispatch({ type: 'SET_UPLOADING', payload: false });
         }
     };
 
@@ -259,6 +278,18 @@ const DatabaseBackup: React.FC = () => {
                     >
                         Actualizar
                     </Button>
+                    <Upload
+                        accept=".sql"
+                        showUploadList={false}
+                        beforeUpload={(archivo) => {
+                            handleUpload(archivo as File);
+                            return false;
+                        }}
+                    >
+                        <Button icon={<UploadOutlined />} loading={uploading}>
+                            Cargar respaldo
+                        </Button>
+                    </Upload>
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
