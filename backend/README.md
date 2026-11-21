@@ -1,89 +1,52 @@
-# Fetal Medical System
+# backend
 
-Sistema integral de gestión médica materno-fetal con inteligencia artificial para asistencia diagnóstica.
+API clínica de Fetal Medical Bolivia: Django 6 con Django REST Framework, django-tenants (un esquema de PostgreSQL
+por clínica) y Django Channels para las notificaciones en vivo.
 
-## 🚀 Características Principales
+## Cómo corre
 
-- **Gestión Clínica Completa**: Pacientes, Embarazos, Controles Prenatales, Partos.
-- **Inteligencia Artificial**: Asistente médico integrado para análisis de riesgos (Preeclampsia, Diabetes, RCIU) y soporte de decisiones.
-- **Dashboard Avanzado**: Estadísticas en tiempo real y visualización de datos con gráficos interactivos.
-- **Módulos Especializados**:
-  - Ecografías y visualización DICOM.
-  - Laboratorio y análisis de resultados.
-  - Calculadoras clínicas avanzadas.
-- **Seguridad**: Gestión de roles y permisos granulares.
+| Proceso | Comando (lo arranca `INICIAR.bat` desde la raíz) | Puerto |
+|---|---|---|
+| API REST (WSGI) | `.venv\Scripts\python -m waitress ... wsgi:application` | 8000 |
+| Notificaciones en vivo (ASGI) | `.venv\Scripts\python -m uvicorn asgi:application` | 8010 |
 
-## 🛠️ Tecnologías
+La API llama al servicio de IA (`../servicio-ia`, puerto 8001) por `AI_SERVICE_URL` y lee los modelos tabulares
+(cardiotocografía y peso al nacer) de `../modelos-ia/tabulares` (`ML_MODELOS_DIR`). Las rutas del resto del
+repositorio están en `settings.py` (`REPO_DIR`, `FRONTEND_DIR`, `DATASETS_DIR`, `ENTRENAMIENTO_IA_DIR`).
 
-- **Backend**: Django REST Framework (Python)
-- **Frontend**: React + TypeScript + Vite + Ant Design
-- **Microservicio IA**: FastAPI + Scikit-learn/TensorFlow
-- **Base de Datos**: PostgreSQL
-- **Infraestructura**: Docker & Docker Compose
+## Módulos
 
-## 📋 Requisitos Previos
+| Carpeta | Qué contiene |
+|---|---|
+| `pacientes/`, `antecedentes/`, `embarazos/`, `controles/`, `triaje/` | Registro de la paciente, embarazo y controles prenatales con alertas |
+| `laboratorio/`, `ecografias/`, `ecografias_archivos/` | Exámenes con rangos de referencia, ecografías, biometría y archivos |
+| `partos/`, `evoluciones/`, `notas_evolucion/`, `vacunas/` | Parto, partograma, recién nacido, epicrisis, evolución y vacunas |
+| `citas/`, `consultorios/`, `clientes/` | Agenda por médico, consultorios y clínicas (tenants) |
+| `calculadoras/`, `calculadoras_avanzadas/` | Calculadoras clínicas (Bishop, preeclampsia, crecimiento, riesgo cromosómico, dosis) |
+| `ia_medica/` | Integración con el servicio de IA, cardiotocografía, peso al nacer y Guía de IA |
+| `reportes/`, `graficos/`, `notificaciones/`, `notifications_websocket/` | Reportes, indicadores, alertas y WebSockets |
+| `usuarios/`, `roles/`, `auditoria/`, `core/`, `monitoring/`, `soporte/` | Cuentas, doble factor, permisos, auditoría inmutable, salud del sistema |
+| `cache_utils/`, `seeders/` | Caché y carga de catálogos |
+| `tests/`, `e2e/` | Pruebas de la API (pytest) y de punta a punta (Playwright) |
+| `scripts/` | Utilidades del lanzador (`arranque.py`), muestras de IA y recifrado de datos |
 
-- Docker y Docker Compose
-- Node.js 18+ (para desarrollo local)
-- Python 3.11+ (para desarrollo local)
+## Entorno
 
-## 🔧 Instalación y Despliegue
-
-### Usando Docker (Recomendado)
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone <repo-url>
-   cd fetal-medical-system
-   ```
-
-2. **Iniciar servicios**
-   ```bash
-   docker-compose up -d --build
-   ```
-
-3. **Acceder a la aplicación**
-   - Frontend: `http://localhost`
-   - Backend API: `http://localhost:8000`
-   - IA Service: `http://localhost:5000`
-
-### Desarrollo Local
-
-#### Backend
-```bash
-cd backend
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+copy .env.example .env      # completar las claves (ver el README de la raíz)
+.venv\Scripts\python manage.py migrate_schemas --noinput
 ```
 
-#### Microservicio IA
-```bash
-cd backend/ia_microservice
-pip install -r requirements.txt
-uvicorn server:app --reload --port 5000
+## Pruebas
+
+```powershell
+.venv\Scripts\python -m pytest
 ```
 
-#### Frontend
-```bash
-cd backend/frontend
-npm install
-npm run dev
-```
+Las pruebas de punta a punta (`e2e/`) necesitan el sistema en marcha: `cd e2e` y `npx playwright test`.
 
-## 📚 Estructura del Proyecto
+## Datos que no se versionan
 
-```
-/backend
-  /controles       # Módulo de Controles Prenatales
-  /embarazos       # Módulo de Embarazos
-  /frontend        # Aplicación React
-  /ia_microservice # Servicio de Inteligencia Artificial
-  /pacientes       # Gestión de Pacientes
-  /reportes        # Sistema de Reportes
-  ...
-```
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+`media/` (archivos de las pacientes), `backups/` (respaldos de la base), `logs/`, `.env` y `reportes_generados/`.
