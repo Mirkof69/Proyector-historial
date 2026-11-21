@@ -151,6 +151,37 @@ class DatabaseBackupService:
             raise BackupError(f"El backup '{nombre_seguro}' no existe")
         return filepath
 
+    #: Un respaldo cargado tiene que ser un pg_dump en texto plano: es lo único que restore_backup sabe restaurar.
+    MARCA_PG_DUMP = b"PostgreSQL database dump"
+    TAMANO_MAXIMO_CARGA = 4 * 1024 ** 3
+
+    def guardar_cargado(self, archivo) -> dict:
+        """Guarda un respaldo subido desde otro equipo para poder restaurarlo después.
+
+        Acepta solo un .sql generado por pg_dump en texto plano (la marca está en las primeras líneas) y le da un
+        nombre propio, así nunca reemplaza un respaldo existente ni sale de la carpeta de respaldos.
+        """
+        import re
+
+        nombre = os.path.basename(getattr(archivo, "name", "") or "")
+        if not nombre.lower().endswith(".sql"):
+            raise BackupError("El archivo debe ser un respaldo .sql")
+        if archivo.size == 0 or archivo.size > self.TAMANO_MAXIMO_CARGA:
+            raise BackupError("El respaldo está vacío o supera los 4 GB")
+        cabecera = archivo.read(4096)
+        archivo.seek(0)
+        if self.MARCA_PG_DUMP not in cabecera:
+            raise BackupError("El archivo no es un respaldo de PostgreSQL generado con pg_dump")
+        base = re.sub(r"[^A-Za-z0-9_-]+", "_", os.path.splitext(nombre)[0]).strip("_")[:60] or "respaldo"
+        destino = f"backup_cargado_{datetime.now():%Y%m%d_%H%M%S}_{base}.sql"
+        ruta = os.path.join(self.backup_dir, destino)
+        with open(ruta, "wb") as salida:
+            for trozo in archivo.chunks():
+                salida.write(trozo)
+        logger.info("Respaldo cargado: %s (%s bytes)", destino, os.path.getsize(ruta))
+        return {"success": True, "filename": destino, "size": os.path.getsize(ruta),
+                "message": "Respaldo cargado correctamente"}
+
     def restore_backup(self, filename: str):
         """Restaura la base de datos completa desde un backup real con psql.
 

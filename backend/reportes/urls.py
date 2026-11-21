@@ -14,6 +14,7 @@ from .views import (
     TipoReporteViewSet,
 )
 from .views_config import (
+    cargar_backup,
     configuracion_alertas,
     configuracion_general,
     crear_backup,
@@ -129,6 +130,7 @@ urlpatterns = [
     path("configuracion/horarios/", horarios_atencion, name="config-horarios"),
     path("configuracion/backups/", listar_backups, name="listar-backups"),
     path("configuracion/backups/create/", crear_backup, name="crear-backup"),
+    path("configuracion/backups/cargar/", cargar_backup, name="cargar-backup"),
     path(
         "configuracion/backups/<str:filename>/",
         descargar_backup,

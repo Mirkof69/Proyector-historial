@@ -58,3 +58,90 @@ class RestaurarQuedaAuditadoTest(APITestCase):
         self.assertEqual(registro.usuario, admin)
         self.assertIn("backup_manual_x.sql", registro.detalle)
         self.assertIn("backup_pre_restore_y.sql", registro.detalle)
+
+
+class AlertasLasCambianMedicoYAdministradorTest(APITestCase):
+    """Los umbrales de alertas son de todo el sistema: los lee cualquiera, los cambian médico y administrador.
+
+    Regresión (21/11/2026): la vista exigía solo estar autenticado, y una recepcionista podía subir el umbral de
+    presión arterial con un POST.
+    """
+
+    def _usuario(self, rol):
+        return Usuario.objects.create_user(
+            email=f"{rol}@alertas.test", nombre="Prueba", apellido_paterno=rol.title(),
+            password="Clave-de-prueba-123!", rol=rol,
+        )
+
+    def test_todos_los_roles_la_leen_y_solo_medico_y_administrador_la_cambian(self):
+        ruta = "/api/reportes/configuracion/alertas/"
+        for rol in ("enfermera", "laboratorista", "recepcion"):
+            with self.subTest(rol=rol):
+                self.client.force_authenticate(self._usuario(rol))
+                self.assertEqual(self.client.get(ruta).status_code, 200)
+                self.assertEqual(self.client.post(ruta, {}, format="json").status_code, 403)
+        for rol in ("medico", "administrador"):
+            with self.subTest(rol=rol):
+                self.client.force_authenticate(self._usuario(rol))
+                self.assertEqual(self.client.post(ruta, {}, format="json").status_code, 200)
+
+
+class CargarRespaldoTest(APITestCase):
+    """Un respaldo descargado se puede volver a cargar desde otro equipo para restaurarlo."""
+
+    def setUp(self):
+        import tempfile
+
+        from django.test import override_settings
+
+        self.carpeta = tempfile.TemporaryDirectory()
+        self.ajustes = override_settings(BASE_DIR=__import__("pathlib").Path(self.carpeta.name))
+        self.ajustes.enable()
+        self.admin = Usuario.objects.create_user(
+            email="carga@config.test", nombre="Prueba", apellido_paterno="Admin",
+            password="Clave-de-prueba-123!", rol="administrador",
+        )
+
+    def tearDown(self):
+        self.ajustes.disable()
+        self.carpeta.cleanup()
+
+    @staticmethod
+    def _archivo(nombre, contenido):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        return SimpleUploadedFile(nombre, contenido, content_type="application/sql")
+
+    def test_carga_un_pg_dump_y_queda_en_la_lista(self):
+        import os
+
+        self.client.force_authenticate(self.admin)
+        dump = b"--\n-- PostgreSQL database dump\n--\nSET statement_timeout = 0;\n"
+        r = self.client.post("/api/reportes/configuracion/backups/cargar/",
+                             {"archivo": self._archivo("copia del hospital.sql", dump)}, format="multipart")
+        self.assertEqual(r.status_code, 201, r.content)
+        nombre = r.json()["filename"]
+        self.assertTrue(nombre.startswith("backup_cargado_") and nombre.endswith("_copia_del_hospital.sql"))
+        self.assertTrue(os.path.exists(os.path.join(self.carpeta.name, "backups", nombre)))
+        lista = self.client.get("/api/reportes/configuracion/backups/").json()
+        self.assertIn(nombre, [b["filename"] for b in lista])
+
+    def test_rechaza_lo_que_no_es_un_respaldo(self):
+        self.client.force_authenticate(self.admin)
+        for nombre, contenido in (("respaldo.txt", b"-- PostgreSQL database dump"),
+                                  ("respaldo.sql", b"DROP TABLE pacientes;"),
+                                  ("vacio.sql", b"")):
+            with self.subTest(nombre=nombre):
+                r = self.client.post("/api/reportes/configuracion/backups/cargar/",
+                                     {"archivo": self._archivo(nombre, contenido)}, format="multipart")
+                self.assertEqual(r.status_code, 400, r.content)
+
+    def test_solo_el_administrador_carga(self):
+        medico = Usuario.objects.create_user(
+            email="medico-carga@config.test", nombre="Prueba", apellido_paterno="Medico",
+            password="Clave-de-prueba-123!", rol="medico",
+        )
+        self.client.force_authenticate(medico)
+        r = self.client.post("/api/reportes/configuracion/backups/cargar/",
+                             {"archivo": self._archivo("r.sql", b"-- PostgreSQL database dump")}, format="multipart")
+        self.assertEqual(r.status_code, 403)

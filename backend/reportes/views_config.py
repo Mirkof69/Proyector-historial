@@ -1,17 +1,14 @@
-"""=============================================================================
-VIEWS PARA CONFIGURACIÓN DEL SISTEMA
-=============================================================================
-"""
+"""Configuración del sistema: datos generales, umbrales de alertas, horarios de atención y respaldos de la base."""
 
 import logging
 
 from drf_spectacular.utils import extend_schema, inline_serializer
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import EsSoloAdministrador
+from core.permissions import EsSoloAdministrador, EsSoloMedico
 from rest_framework.response import Response
 
 from .models_config import ConfiguracionAlertas, HorarioAtencion, SistemaConfiguracion
@@ -21,6 +18,7 @@ from .serializers_config import (
     SistemaConfiguracionSerializer,
 )
 from .services import DatabaseBackupService
+from .services.backup_service import BackupError
 
 logger = logging.getLogger(__name__)
 
@@ -73,14 +71,19 @@ def configuracion_general(request):
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def configuracion_alertas(request):
-    """GET: Obtener configuración actual de umbrales y notificaciones de alertas.
-    POST: Actualizar configuración de alertas.
+    """GET: Obtener configuración actual de umbrales y notificaciones de alertas (todos los roles la usan).
+    POST: Actualizar configuración de alertas: médico o administrador, los mismos que ven la pantalla
+    (permiso change_alertamedica); los umbrales clínicos son de todo el sistema.
     """
     config = ConfiguracionAlertas.get_configuracion()
 
     if request.method == "GET":
         serializer = ConfiguracionAlertasSerializer(config)
         return Response(serializer.data)
+
+    if not EsSoloMedico().has_permission(request, None):
+        return Response({"detail": "Solo médicos y administradores pueden cambiar la configuración de alertas."},
+                        status=status.HTTP_403_FORBIDDEN)
 
     serializer = ConfiguracionAlertasSerializer(
         config, data=request.data, partial=True,
@@ -209,6 +212,39 @@ def crear_backup(request):
             {"success": False, "message": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+@extend_schema(
+    operation_id="reportes_configuracion_cargar_backup",
+    request=inline_serializer("cargar_backup_request", fields={"archivo": serializers.FileField()}),
+    responses={201: dict},
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, EsSoloAdministrador])
+@parser_classes([MultiPartParser])
+def cargar_backup(request):
+    """Carga un respaldo .sql desde otro equipo (por ejemplo, el que se descargó antes) para poder restaurarlo."""
+    archivo = request.FILES.get("archivo")
+    if archivo is None:
+        return Response({"error": "Falta el archivo del respaldo (campo «archivo»)"},
+                        status=status.HTTP_400_BAD_REQUEST)
+    try:
+        result = DatabaseBackupService().guardar_cargado(archivo)
+    except BackupError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        from auditoria.models import RegistroAuditoria
+
+        RegistroAuditoria.registrar(
+            usuario=request.user,
+            accion="BACKUP",
+            modulo="Sistema",
+            detalle=f"Respaldo cargado desde otro equipo: {result['filename']}",
+            request=request,
+        )
+    except Exception:
+        logger.warning("No se pudo auditar la carga del respaldo", exc_info=True)
+    return Response(result, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(

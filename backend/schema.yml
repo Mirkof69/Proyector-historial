@@ -18522,8 +18522,9 @@ paths:
     get:
       operationId: reportes_configuracion_alertas_retrieve
       description: |-
-        GET: Obtener configuración actual de umbrales y notificaciones de alertas.
-        POST: Actualizar configuración de alertas.
+        GET: Obtener configuración actual de umbrales y notificaciones de alertas (todos los roles la usan).
+        POST: Actualizar configuración de alertas: médico o administrador, los mismos que ven la pantalla
+        (permiso change_alertamedica); los umbrales clínicos son de todo el sistema.
       tags:
       - reportes
       security:
@@ -18540,8 +18541,9 @@ paths:
     post:
       operationId: reportes_configuracion_alertas_create
       description: |-
-        GET: Obtener configuración actual de umbrales y notificaciones de alertas.
-        POST: Actualizar configuración de alertas.
+        GET: Obtener configuración actual de umbrales y notificaciones de alertas (todos los roles la usan).
+        POST: Actualizar configuración de alertas: médico o administrador, los mismos que ven la pantalla
+        (permiso change_alertamedica); los umbrales clínicos son de todo el sistema.
       tags:
       - reportes
       security:
@@ -18640,6 +18642,30 @@ paths:
       - jwtAuth: []
       responses:
         '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/reportes/configuracion/backups/cargar/:
+    post:
+      operationId: reportes_configuracion_cargar_backup
+      description: Carga un respaldo .sql desde otro equipo (por ejemplo, el que se
+        descargó antes) para poder restaurarlo.
+      tags:
+      - reportes
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/cargar_backup_requestRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
           content:
             application/json:
               schema:
@@ -49497,6 +49523,14 @@ components:
       - edad_materna
       - semanas
       - translucencia_nucal_mm
+    cargar_backup_requestRequest:
+      type: object
+      properties:
+        archivo:
+          type: string
+          format: binary
+      required:
+      - archivo
   securitySchemes:
     cookieAuth:
       type: apiKey
