@@ -6,7 +6,7 @@ project-excludes = [
     "**/__pycache__/**",
     "**/tests/**",
     "**/migrations/**",
-    "**/Microservicio_IA/**",
+    "**/servicio-ia/**",
     "**/admin.py",
     "**/pdf_*.py",
     "**/excel_*.py",

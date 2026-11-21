@@ -1,0 +1,429 @@
+import api from './api';
+
+export interface ImagenEcografica {
+  id: number;
+  paciente: number;
+  paciente_nombre: string;
+  url_imagen: string;
+  nombre_original: string;
+  tipo_imagen: string;
+  estado: 'pendiente' | 'procesando' | 'analizada' | 'error';
+  semana_gestacional?: number;
+  fecha_captura?: string;
+  fecha_subida: string;
+  tamanio_mb: number;
+  resolucion_ancho: number;
+  resolucion_alto: number;
+  es_principal: boolean;
+  descripcion?: string;
+  tiene_analisis: boolean;
+  analisis_resultado?: {
+    resultado: string;
+    confianza: number;
+    plano?: string | null;
+    nivel_riesgo?: string | null;
+    fecha?: string;
+  } | null;
+}
+
+export interface SugerenciaDiagnostica {
+  patologia: string;
+  confianza: number;
+  descripcion: string;
+  icd10: string;
+  recomendacion: string;
+}
+
+export interface AnalisisCNN {
+  id: number;
+  modelo_usado: string;
+  resultado: string;
+  confianza: number;
+  confianza_porcentaje: number;
+  score_general: number;
+  predicciones: any[];
+  clases_detectadas: string[];
+  bounding_boxes?: any[];
+  estructuras_detectadas: Record<string, any>;
+  medidas_estimadas?: Record<string, any>;
+  anomalias_detectadas: any[];
+  alertas: any[];
+  recomendaciones: string[];
+  fecha_analisis: string;
+  es_normal: boolean;
+  requiere_atencion: boolean;
+  sugerencia_diagnostica_data?: SugerenciaDiagnostica;
+  mapa_calor?: string;
+  patologias?: string[];
+  shap_valores?: Record<string, number>;
+  tiempo_inferencia_ms?: number;
+  nivel_riesgo?: string;
+}
+
+// ── Tipos del Microservicio IA (EfficientNet-B4 FastAPI) ──────────────────────
+export interface ReporteNarrativoIA {
+  clasificacion_clinica: string;
+  tipo_embarazo: string;
+  edad_gestacional: string;
+  trimestre: string;
+  tipo_imagen: string;
+  biometria: {
+    LCC_CRL: string | null;
+    DBP: string | null;
+    CC: string | null;
+    CA: string | null;
+    LF: string | null;
+    TN: string | null;
+    LA: string;
+    placenta: string;
+    FCF: string | null;
+    peso_estimado: string | null;
+  };
+  patologias_detectadas: string[];
+  clasificacion_riesgo: string;
+  tipo_seguimiento: string;
+  descripcion_ecografia: string;
+  hallazgos: string[];
+  signos_normales: string[];
+  signos_alarma: string[];
+  hallazgos_visuales_complementarios: string[];
+  recomendaciones: string[];
+  diagnostico_presuntivo: string;
+  pronostico: string;
+  nota_tecnica: string;
+  _error_llm?: string;
+}
+
+/** Informe del análisis con las redes medidas (servicio-ia/app/analisis_ecografia.py). */
+export interface InformeRedesMedidas {
+  status: string;
+  fuente: string;
+  version_flujo: string;
+  filename?: string;
+  plano: { plano: string; confianza: number; probabilidades: Record<string, number>; avisos: string[] };
+  medidas: Record<string, any>;
+  estructuras_vistas: Record<string, boolean>;
+  anomalias_cerebrales?: {
+    aplicable: boolean; alarma_anomalia: boolean; probabilidad_anomalia: number; umbral?: number;
+    familia_sospechada: string | null; familia_sospechada_nombre: string | null;
+  };
+  hallazgos: string[];
+  avisos: string[];
+  requiere_revision: boolean;
+  superposicion_url?: string;
+  modelos_usados: { archivo: string; dataset: string; sha256?: string; metricas_prueba?: Record<string, any> }[];
+  informe_texto: string;
+  tiempo_ms: number;
+  // Solo los análisis guardados (GET /ia/imagenes/{id}/informe/).
+  resultado?: string;
+  nivel_riesgo?: string | null;
+  fecha_analisis?: string;
+  realizado_por?: string | null;
+  imagen_url?: string;
+  imagen_id?: number;
+  semana_gestacional?: number | null;
+  paciente?: { id: number; nombre: string; ci?: string; edad?: number | null };
+}
+
+export interface ModeloCatalogo {
+  codigo: string;
+  nombre: string;
+  tipo: string;
+  origen: 'microservicio' | 'backend';
+  disponible: boolean;
+  metrica_principal: string | null;
+  datos_reales: boolean;
+  /** Con qué datos se entrenó y midió (nombre del dataset). */
+  datos?: string | null;
+  version?: string;
+  huella?: string | null;
+}
+
+/** Modelo que se entrenó, se midió y NO pasó a servicio (ia_medica/services/catalogo_modelos.py). */
+export interface ModeloDescartado {
+  codigo: string;
+  nombre: string;
+  tipo: string;
+  datos: string;
+  metrica: string;
+  motivo: string;
+}
+
+/** GET /api/ia/imagenes/modelos/ */
+export interface RespuestaModelos {
+  modelos_builtin: ModeloCatalogo[];
+  modelos_descartados?: ModeloDescartado[];
+  total: number;
+}
+
+export interface EstadisticasIA {
+  total_imagenes: number;
+  total_analisis: number;
+  analisis_normales: number;
+  analisis_anomalias: number;
+  confianza_promedio: number;
+  por_tipo_imagen: Record<string, number>;
+  por_estado: Record<string, number>;
+  por_resultado_cnn: Record<string, number>;
+  modelos_disponibles: ModeloCatalogo[];
+}
+
+export interface MetricasPrueba {
+  imagenes_prueba: number;
+  madres_prueba: number;
+  [clave: string]: number;
+}
+
+export interface ResultadoPlano {
+  plano: string;
+  confianza: number;
+  probabilidades: Record<string, number>;
+  avisos: string[];
+  modelo: { archivo: string; dataset: string; metricas_prueba: MetricasPrueba };
+}
+
+export interface ResultadoCircunferencia {
+  circunferencia_cefalica_mm: number;
+  margen_mm: number;
+  edad_gestacional_semanas: number | null;
+  formula_edad: string;
+  plano_detectado: string | null;
+  avisos: string[];
+  modelo: { archivo: string; dataset: string; metricas_prueba: MetricasPrueba };
+}
+
+interface ValorConIc { valor: number; ic95: [number, number] | null }
+
+/** Métricas medidas de la red de anomalías cerebrales (viajan dentro del modelo). */
+export interface MetricasAnomaliasCerebrales {
+  umbral: number;
+  todas_fuera_de_pliegue: Record<string, ValorConIc | number>;
+  solo_roboflow: Record<string, ValorConIc | number>;
+  externa_falsos_positivos: { valor: number; ic95: [number, number] | null; fp: number; n: number };
+  otro_hospital_hc18?: { valor: number; ic95: [number, number] | null; fp: number; n: number };
+  n: { anomalias: number; normales_roboflow: number; normales_fetal_planes: number; externas: number; pacientes_externos: number };
+}
+
+export interface ResultadoAnomaliasCerebrales {
+  aplicable: boolean;
+  alarma_anomalia?: boolean;
+  probabilidad_anomalia?: number;
+  umbral?: number;
+  familia_sospechada?: string | null;
+  familia_sospechada_nombre?: string | null;
+  probabilidades?: Record<string, number>;
+  plano_detectado: string | null;
+  avisos: string[];
+  uso: string;
+  modelo: { archivo: string; dataset: string; metricas_prueba: MetricasAnomaliasCerebrales };
+}
+
+export interface PrediccionPeso {
+  peso_previsto_g: number;
+  clase: string;
+  margen_g: number | null;
+  peso_hadlock_proyectado_g: number | null;
+  semanas_objetivo: number;
+  semanas_ecografia: number;
+  modelo: { version: string; algoritmo: string; r2_validacion: number | null; entrenado_con_datos_sinteticos: boolean };
+  advertencias: string[];
+}
+
+export const iaMedicaService = {
+  // Obtener lista paginada de imágenes
+  getImagenes: async (params?: { paciente_id?: number; tipo_imagen?: string; estado?: string }) => {
+    const response = await api.get('/ia/imagenes/', { params });
+    return response.data;
+  },
+
+  // Obtener detalle de imagen con su análisis
+  getImagenDetalle: async (id: number) => {
+    const response = await api.get(`/ia/imagenes/${id}/`);
+    return response.data;
+  },
+
+  // Subir nueva imagen ecográfica
+  uploadImagen: async (data: FormData) => {
+    const response = await api.post('/ia/imagenes/', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  // Eliminar imagen
+  deleteImagen: async (id: number) => {
+    const response = await api.delete(`/ia/imagenes/${id}/`);
+    return response.data;
+  },
+
+  // Ejecutar análisis CNN
+  analizarImagen: async (id: number, modelo: string = 'resnet50') => {
+    const response = await api.post(`/ia/imagenes/${id}/analizar/`, { modelo });
+    return response.data;
+  },
+
+  // El análisis guardado de una imagen, con la forma del recién hecho
+  getInforme: async (id: number): Promise<InformeRedesMedidas> => {
+    const response = await api.get(`/ia/imagenes/${id}/informe/`);
+    return response.data;
+  },
+
+  // Obtener solo el resultado del análisis
+  getResultadoAnalisis: async (id: number) => {
+    const response = await api.get(`/ia/imagenes/${id}/resultado/`);
+    return response.data;
+  },
+
+  // Reporte narrativo de IA local (LLM con visión, Ollama) — grounded en el
+  // resultado real del CNN, requiere que la imagen ya tenga analisis_cnn.
+  generarReporteNarrativo: async (id: number): Promise<ReporteNarrativoIA> => {
+    const response = await api.post(`/ia/imagenes/${id}/reporte-narrativo/`);
+    return response.data;
+  },
+
+  // Obtener estadísticas globales
+  getEstadisticas: async () => {
+    const response = await api.get('/ia/imagenes/estadisticas/');
+    return response.data;
+  },
+
+  // Obtener modelos configurados
+  getModelos: async (): Promise<RespuestaModelos> => {
+    const response = await api.get<RespuestaModelos>('/ia/imagenes/modelos/');
+    return response.data;
+  },
+
+  // Análisis completo con las redes medidas: plano → U-Net de ese plano → medidas.
+  // Con el tamaño de píxel (del ecógrafo o del DICOM) las medidas salen en mm.
+  analyzeWithAI: async (
+    file?: File,
+    ecografiaId?: string,
+    tamanoPixelMm?: number | null,
+  ): Promise<{ status: string; ai_analysis: InformeRedesMedidas; message: string; guardado?: boolean }> => {
+    const formData = new FormData();
+    if (file) {
+      formData.append('file', file);
+    }
+    if (ecografiaId) {
+      formData.append('ecografia_id', ecografiaId);
+    }
+    if (tamanoPixelMm) {
+      formData.append('tamano_pixel_mm', String(tamanoPixelMm));
+    }
+    const response = await api.post('/ecografias/analyze-with-ai/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
+  // Exportar dataset
+  exportarDataset: async () => {
+    const response = await api.get('/ia/imagenes/exportar/', {
+      responseType: 'blob',
+    });
+    
+    // Trigger file download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `dataset_cnn_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    
+    return true;
+  },
+
+  // Subir imagen y disparar análisis CNN inmediatamente
+  subirYAnalizarImagen: async (
+    imagenFile: File,
+    pacienteId: number,
+    opciones?: { semanaGestacional?: number; tipoImagen?: string; modelo?: string }
+  ) => {
+    const formData = new FormData();
+    formData.append('imagen', imagenFile);
+    formData.append('paciente', String(pacienteId));
+    if (opciones?.semanaGestacional)
+      formData.append('semana_gestacional', String(opciones.semanaGestacional));
+    if (opciones?.tipoImagen)
+      formData.append('tipo_imagen', opciones.tipoImagen);
+
+    // Subir imagen
+    const uploadRes = await api.post('/ia/imagenes/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    const imagenId: number = uploadRes.data.id;
+
+    // Disparar análisis CNN en la imagen recién subida
+    const modelo = opciones?.modelo ?? 'efficientnet';
+    const analisisRes = await api.post(
+      `/ia/imagenes/${imagenId}/analizar/`,
+      { modelo }
+    );
+
+    return { imagen: uploadRes.data, analisis: analisisRes.data };
+  },
+
+  // Vincular imagen IA a una Ecografía del módulo ecografias
+  vincularAEcografia: async (imagenIaId: number, pacienteId: number) => {
+    const response = await api.post('/ecografias/crear-desde-ia/', {
+      imagen_ia_id: imagenIaId,
+      paciente_id: pacienteId,
+    });
+    return response.data;
+  },
+
+  // Modelo supervisado de peso al nacer (ia_medica/ml/servicio_peso.py)
+  predecirPesoNacer: async (ecografiaId: number, semanasObjetivo: number): Promise<PrediccionPeso> => {
+    const response = await api.post('/ia/prediccion-peso/', {
+      ecografia_id: ecografiaId, semanas_objetivo: semanasObjetivo,
+    });
+    return response.data;
+  },
+
+  // Redes entrenadas con ecografías reales (HC18, FETAL_PLANES_DB, anomalías cerebrales)
+  clasificarPlano: async (file: File): Promise<ResultadoPlano> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/ecografias/plano-anatomico/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
+  medirCircunferencia: async (file: File, tamanoPixelMm: number): Promise<ResultadoCircunferencia> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('tamano_pixel_mm', String(tamanoPixelMm));
+    const response = await api.post('/ecografias/circunferencia-cefalica/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
+  detectarAnomaliasCerebrales: async (file: File): Promise<ResultadoAnomaliasCerebrales> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/ecografias/anomalias-cerebrales/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
+  // Consulta IA (NLP) - Mantener compatibilidad con módulo original
+  consultarIA: async (payload: any) => {
+    // Si envían string, convertir a objeto para mantener compatibilidad antigua
+    const body = typeof payload === 'string' ? { consulta: payload } : payload;
+
+    const response = await api.post('/ia/consultas/consultar/', body);
+    return response.data;
+  },
+};
+
+

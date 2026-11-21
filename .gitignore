@@ -1,8 +1,8 @@
-# ═══════════════════════════════════════════════════════════
-# .GITIGNORE - Fetal Medical System
-# ═══════════════════════════════════════════════════════════
+# Fetal Medical: sistema de historia clínica gineco-obstétrica
+# Estructura: backend/ (Django), frontend/ (React), servicio-ia/ (FastAPI), redes-neuronales/ (entrenamiento y
+# datos), modelos-ia/ (pesos entrenados), infraestructura/, scripts/, docs/ y material-academico/ (local).
 
-# ─── Python ───
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -13,166 +13,127 @@ dist/
 build/
 .eggs/
 *.egg
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
-# Virtual environments
+# Entornos virtuales
 **/.venv/
 **/.venv_gpu/
 **/venv/
 **/env/
 **/ENV/
-Backend/.venv/
-venv/
-env/
-ENV/
 *.env.local
 
-# ─── Node.js ───
-Backend/frontend/node_modules/
-Backend/frontend/build/
-Backend/frontend/dist/
-Backend/frontend/.next/
+# Node.js
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.next/
+frontend/coverage/
 
-# ─── Django ───
-Backend/staticfiles/
-Backend/logs/
+# Django
+backend/staticfiles/
+backend/logs/
+backend/reportes_generados/
 *.log
 *.err
 *.bak
 *.sqlite3
-
-# ─── Archivo histórico local (no se commitea) ───
-_archive/
-
-# ─── Media & Uploads ───
-Backend/media/
 *.tmp
 *.temp
+*.pid
 
-# ─── IDE ───
+# Archivos subidos (datos de pacientes) y respaldos de la base: nunca al repositorio
+backend/media/
+backend/backups/
+/media/
+
+# Variables de entorno (llevan secretos)
+.env
+.env.local
+.env.production
+.env.*.local
+.env.respaldo*
+!.env.example
+
+# IDE y sistema operativo
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# ─── OS ───
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ─── Environment ──
-.env
-.env.local
-.env.production
-.env.*.local
-
-# ─── Docker ───
-docker-compose.override.yml
-
-# ─── ML/AI ───
-Backend/Microservicio_IA/temp/
-Backend/Microservicio_IA/datasets/
-Backend/Microservicio_IA/datasets_pathology/
-Backend/Microservicio_IA/*.keras
-Backend/Microservicio_IA/trained_models/
-*.h5
-*.pt
-*.pth
-
-# ─── Documentation ───
-Backend/docs/*.pdf
-
-# ─── Datasets pesados ───
-zip/*.zip
-zip/*.rar
-*.zip
-*.rar
-docs/referencia/docs/diagrama uml png/*.png
-docs/referencia/material de investigacion/
-
-# ─── Datos locales / workspace (NUNCA commitear) ───
-nuveos data seeds/
-Backend/backups/
-Backend/Microservicio_IA/training_logs/
+# Herramientas de agentes (configuración local)
 .claude/
 **/.claude/
 **/.agents/
-
-# ─── Reportes de diagnóstico generados ───
-Backend/frontend/diagnostics_*.txt
-Backend/frontend/doctor_verbose*.txt
-Backend/frontend/react-doctor-report.json
-Backend/Microservicio_IA/datasets_pathology_v2/
-
-# modelos entrenados del sistema (pickle): se regeneran con entrenar_modelo_peso
-Backend/ml_modelos/
-
-# Datos de IA (GB de imágenes y zips): fuera de git salvo el catálogo.
-Backend/Microservicio_IA/datos/*
-!Backend/Microservicio_IA/datos/CATALOGO.md
-Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/imagenes/
-Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/modelos/*.pth
-Backend/Microservicio_IA/entrenamiento/legado/training_logs/
-Backend/Microservicio_IA/entrenamiento/legado/*.log
-Backend/Microservicio_IA/entrenamiento/legado/*.err
-Backend/Microservicio_IA/entrenamiento/*/salidas/*
-# Lo pequeño que permite auditar los resultados sí se versiona
-!Backend/Microservicio_IA/entrenamiento/*/salidas/metricas.json
-!Backend/Microservicio_IA/entrenamiento/*/salidas/manifiesto.csv
-!Backend/Microservicio_IA/entrenamiento/*/salidas/predicciones_*.csv
-!Backend/Microservicio_IA/entrenamiento/*/salidas/historia.json
-!Backend/Microservicio_IA/entrenamiento/*/salidas/prueba_estilo.json
-
-# Archivos subidos (pueden ser datos de pacientes): nunca al repositorio
-/media/
-Backend/media/
-# Respaldos de .env (llevan secretos) y carpetas de herramientas locales
-.env.respaldo*
-Backend/.env.respaldo*
 .kilo/
-# Segmentación: las salidas van por tarea (salidas/<tarea>/); se versionan las métricas, no los pesos.
-!Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/
-Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/*
-!Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/metricas.json
-!Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/historia.json
-!Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/prueba_medidas.csv
-!Backend/Microservicio_IA/entrenamiento/segmentacion/salidas/*/externa_hc18.csv
-# Ginecología: igual que segmentación (métricas, predicciones y auditoría de datos sí; pesos y matrices no).
-!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/
-Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/*
-!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/auditoria.json
-!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/metricas*.json
-!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/historia.json
-!Backend/Microservicio_IA/entrenamiento/ginecologia/salidas/*/predicciones_*.csv
-# Biometría y señales: métricas, historia y medidas de prueba sí; pesos, modelos y rasgos no.
-!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/
-Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/*
-!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/metricas.json
-!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/historia.json
-!Backend/Microservicio_IA/entrenamiento/biometria/salidas/*/prueba_medidas.csv
-!Backend/Microservicio_IA/entrenamiento/senales/salidas/*/
-Backend/Microservicio_IA/entrenamiento/senales/salidas/*/*
-!Backend/Microservicio_IA/entrenamiento/senales/salidas/*/metricas.json
-!Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/
-Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/*
-!Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/metricas.json
-!Backend/Microservicio_IA/entrenamiento/translucencia/salidas/*/historia.json
 
-# Acceso remoto: binarios descargados, sus registros y respaldos del .env (llevan secretos)
-tools_remoto/*.exe
-tools_remoto/logs/
-tools_remoto/.env.backup_remoto
+# Archivos comprimidos
+*.zip
+*.rar
 
-# Solo el sistema en el repositorio: documentos, automatización de pruebas y material de trabajo van aparte
-# (los documentos se publican en Releases; la automatización en Proyecto-Automatizacion-TQA)
+# Modelos entrenados (se publican en los Releases): pesos de las redes y modelos tabulares
+modelos-ia/
+*.h5
+*.keras
+*.pt
+*.pth
+
+# Datos de entrenamiento (GB de imágenes y zips): fuera de git salvo el catálogo
+redes-neuronales/datos/*
+!redes-neuronales/datos/CATALOGO.md
+redes-neuronales/entrenamiento/redes_ecografia_real/imagenes/
+redes-neuronales/entrenamiento/redes_ecografia_real/modelos/*.pth
+redes-neuronales/entrenamiento/redes_ecografia_real/Guia_notebook_modelos.docx
+redes-neuronales/entrenamiento/*/salidas/*
+.ipynb_checkpoints
+# Lo pequeño que permite auditar los resultados sí se versiona
+!redes-neuronales/entrenamiento/*/salidas/metricas.json
+!redes-neuronales/entrenamiento/*/salidas/manifiesto.csv
+!redes-neuronales/entrenamiento/*/salidas/predicciones_*.csv
+!redes-neuronales/entrenamiento/*/salidas/historia.json
+!redes-neuronales/entrenamiento/*/salidas/prueba_estilo.json
+!redes-neuronales/entrenamiento/segmentacion/salidas/*/
+redes-neuronales/entrenamiento/segmentacion/salidas/*/*
+!redes-neuronales/entrenamiento/segmentacion/salidas/*/metricas.json
+!redes-neuronales/entrenamiento/segmentacion/salidas/*/historia.json
+!redes-neuronales/entrenamiento/segmentacion/salidas/*/prueba_medidas.csv
+!redes-neuronales/entrenamiento/segmentacion/salidas/*/externa_hc18.csv
+!redes-neuronales/entrenamiento/ginecologia/salidas/*/
+redes-neuronales/entrenamiento/ginecologia/salidas/*/*
+!redes-neuronales/entrenamiento/ginecologia/salidas/auditoria.json
+!redes-neuronales/entrenamiento/ginecologia/salidas/*/metricas*.json
+!redes-neuronales/entrenamiento/ginecologia/salidas/*/historia.json
+!redes-neuronales/entrenamiento/ginecologia/salidas/*/predicciones_*.csv
+!redes-neuronales/entrenamiento/biometria/salidas/*/
+redes-neuronales/entrenamiento/biometria/salidas/*/*
+!redes-neuronales/entrenamiento/biometria/salidas/*/metricas.json
+!redes-neuronales/entrenamiento/biometria/salidas/*/historia.json
+!redes-neuronales/entrenamiento/biometria/salidas/*/prueba_medidas.csv
+!redes-neuronales/entrenamiento/senales/salidas/*/
+redes-neuronales/entrenamiento/senales/salidas/*/*
+!redes-neuronales/entrenamiento/senales/salidas/*/metricas.json
+!redes-neuronales/entrenamiento/translucencia/salidas/*/
+redes-neuronales/entrenamiento/translucencia/salidas/*/*
+!redes-neuronales/entrenamiento/translucencia/salidas/*/metricas.json
+!redes-neuronales/entrenamiento/translucencia/salidas/*/historia.json
+
+# Infraestructura: certificados, binarios del túnel, sus registros y respaldos (llevan secretos)
+infraestructura/mtls/certs/
+*.key
+*.csr
+infraestructura/tunel/
+
+# Solo el sistema en el repositorio: documentos y material académico van aparte (se publican en Releases)
 docs/
-quality-assurance/
-documento/
-automatizacion/
-_archive/
-video errores/
-tools_remoto/
-PUBLICAR_WEB.bat
-COMO_INICIAR_Y_CARGAR_DATOS.md
-PROMPT_INSTALACION.md
-Backend/Microservicio_IA/entrenamiento/redes_ecografia_real/Guia_notebook_modelos.docx
+material-academico/
+
+# Publicación con túnel (lleva datos del túnel): local
+scripts/PUBLICAR_WEB.bat

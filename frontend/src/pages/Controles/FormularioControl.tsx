@@ -1,0 +1,556 @@
+/**
+ * Formulario para crear o editar un control prenatal, con validación de rangos clínicos
+ * (talla, presión arterial, altura uterina) y confirmación antes de salir con cambios sin guardar.
+ */
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAntdApp } from "../../hooks/useMessage";
+import {Form,
+  Input,
+  Button,
+  Card,
+  Space,
+  Typography} from "antd";
+import {
+  SaveOutlined,
+  CloseOutlined,
+  ArrowLeftOutlined,
+  MedicineBoxOutlined,
+} from '@ant-design/icons';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { leerContextoClinico } from '../../components/clinico/SelectoresClinicos';
+import { controlesService } from '../../services/controlesService';
+import { embarazosService, Embarazo } from '../../services/embarazosService';
+import { Paciente } from '../../services/pacientesService';
+import { FRONTEND_ROUTES } from '../../config/routes';
+import dayjs from 'dayjs';
+import { getNombrePaciente } from './formularioControlUtils';
+import FormControlAlertasHeader from './components/FormControlAlertasHeader';
+import SeccionDatosControl from './components/SeccionDatosControl';
+import AlertaEdadGestacional from './components/AlertaEdadGestacional';
+import SeccionEdadGestacional from './components/SeccionEdadGestacional';
+import SeccionSignosVitales from './components/SeccionSignosVitales';
+import SeccionExamenObstetrico from './components/SeccionExamenObstetrico';
+import ModalConfirmacionSalida from './components/ModalConfirmacionSalida';
+import '../Embarazos/paginaClinica.css';
+import './Controles.css';
+import { imcRedondeado } from '../../utils/imc';
+import { decimalesANumero } from '../../utils/decimales';
+
+const { Title } = Typography;
+const { TextArea } = Input;
+
+const FormularioControl: React.FC = () => {
+  const { modal, message } = useAntdApp();
+  const { id } = useParams<{ id: string }>();
+  const [busqueda] = useSearchParams();
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [embarazos, setEmbarazos] = useState<Embarazo[]>([]);
+  // El nombre sale de paciente_info del embarazo; ya no se cargan todas las pacientes.
+  const [pacientes] = useState<Paciente[]>([]);
+  const [selectedEmbarazo, setSelectedEmbarazo] = useState<Embarazo | null>(null);
+  const [imcCalculado, setImcCalculado] = useState<string>('');
+  const [pamCalculada, setPamCalculada] = useState<string>('');
+  const [gananciaCalculada, setGananciaCalculada] = useState<string>('');
+  const [alertasPreliminares, setAlertasPreliminares] = useState<string[]>([]);
+  const [edadGestacionalInfo, setEdadGestacionalInfo] = useState<string>('');
+
+  const formModifiedRef = useRef(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  const [semanasGestacion, setSemanasGestacion] = useState<number>(0);
+
+  // ========== Refs para callbacks usados antes de su definición ==========
+  const recalcularTodoRef = useRef<() => void>(() => {});
+  const handleCancelRef = useRef<() => void>(() => {});
+  const calcularSemanasGestacionRef = useRef<(id: number, e?: Embarazo) => void>(() => {});
+
+  const isEditing = !!id;
+  // Bloqueado hasta que llega el registro: lo escrito antes lo pisaban los datos al llegar.
+  const [cargandoRegistro, setCargandoRegistro] = useState(isEditing);
+
+  const loadControl = useCallback(async (controlId: number, currentEmbarazos?: Embarazo[]) => {
+    try {
+      const data = await controlesService.getById(controlId);
+      const listToSearch = currentEmbarazos || [];
+      // El embarazo del control puede no estar entre los cargados: se pide.
+      const embarazo = listToSearch.find((e) => e.id === data.embarazo)
+        ?? await embarazosService.obtener(data.embarazo).catch(() => undefined);
+      if (embarazo) setEmbarazos((prev) => (prev.some((e) => e.id === embarazo.id) ? prev : [embarazo, ...prev]));
+      setSelectedEmbarazo(embarazo || null);
+      const formValues = {
+        embarazo: data.embarazo,
+        numero_control: data.numero_control,
+        fecha_control: data.fecha_control ? dayjs(data.fecha_control) : null,
+        edad_gestacional_semanas: data.edad_gestacional_semanas,
+        edad_gestacional_dias: data.edad_gestacional_dias || 0,
+        peso_actual: data.peso_actual,
+        peso_pregestacional: data.peso_pregestacional,
+        talla: data.talla,
+        presion_arterial_sistolica: data.presion_arterial_sistolica,
+        presion_arterial_diastolica: data.presion_arterial_diastolica,
+        frecuencia_cardiaca: data.frecuencia_cardiaca,
+        temperatura: data.temperatura,
+        altura_uterina: data.altura_uterina,
+        frecuencia_cardiaca_fetal: data.frecuencia_cardiaca_fetal,
+        presentacion_fetal: data.presentacion_fetal,
+        movimientos_fetales: data.movimientos_fetales || 'presentes',
+        edema: data.edema || 'no',
+        proteinuria: data.proteinuria || 'negativa',
+        observaciones: data.observaciones,
+      };
+      // Los decimales llegan como texto y la regla de rango los rechazaba al editar.
+      form.setFieldsValue(decimalesANumero(formValues, ['peso_actual', 'peso_pregestacional', 'talla', 'temperatura', 'altura_uterina']));
+      setTimeout(() => {
+        recalcularTodoRef.current();
+      }, 100);
+      message.success('Control cargado correctamente para edición');
+    } catch (error: any) {
+      message.error('Error al cargar datos del control');
+      handleCancelRef.current();
+    } finally {
+      setCargandoRegistro(false);
+    }
+  }, [form, message]);
+
+  useEffect(() => {
+    // Ya no se descargan todas las pacientes y embarazos (solo llegaba la
+    // primera página): el selector busca en el servidor. Desde la historia
+    // clínica se llega con ?embarazo= o ?paciente= y el embarazo queda elegido.
+    const cargarTodo = async () => {
+      try {
+        if (isEditing && id) {
+          await loadControl(parseInt(id), []);
+          return;
+        }
+        const { embarazoId, pacienteId } = leerContextoClinico(busqueda);
+        let embarazo: Embarazo | undefined;
+        if (embarazoId) {
+          embarazo = await embarazosService.obtener(embarazoId);
+        } else if (pacienteId) {
+          [embarazo] = await embarazosService.listar({ paciente: pacienteId, estado: 'activo' });
+        }
+        if (embarazo?.id) calcularSemanasGestacionRef.current(embarazo.id, embarazo);
+      } catch (error) {
+        message.error('No se pudo cargar el embarazo indicado');
+      }
+    };
+    cargarTodo();
+  }, [id, isEditing, loadControl, busqueda, message]);
+
+  // ========== CALCULAR EDAD GESTACIONAL ==========
+  const calcularSemanasGestacion = (embarazoId: number, embarazoCargado?: Embarazo) => {
+    const embarazo = embarazoCargado ?? embarazos.find((e) => e.id === embarazoId);
+    if (embarazoCargado) {
+      setEmbarazos((prev) => (prev.some((e) => e.id === embarazoId) ? prev : [embarazoCargado, ...prev]));
+    }
+    setSelectedEmbarazo(embarazo || null);
+
+    // Asegurar que el valor de embarazo se establece en el formulario
+    form.setFieldValue('embarazo', embarazoId);
+
+    if (embarazo && embarazo.fecha_ultima_menstruacion) {
+      const hoy = dayjs();
+      const fum = dayjs(embarazo.fecha_ultima_menstruacion);
+      const diasDiferencia = hoy.diff(fum, 'day');
+      const semanas = Math.floor(diasDiferencia / 7);
+      const dias = diasDiferencia % 7;
+
+      form.setFieldsValue({
+        edad_gestacional_semanas: semanas,
+        edad_gestacional_dias: dias,
+      });
+
+      const trimestre = semanas < 13 ? 1 : semanas < 28 ? 2 : 3;
+      setEdadGestacionalInfo(`${semanas} semanas + ${dias} días (${trimestre}° Trimestre)`);
+
+      // Guardar semanas para validación condicional
+      setSemanasGestacion(semanas);
+
+      // Auto-rellenar peso pregestacional y talla si existen
+      if (embarazo.peso_pregestacional) {
+        form.setFieldsValue(decimalesANumero({ peso_pregestacional: embarazo.peso_pregestacional }, ['peso_pregestacional']));
+      }
+      if (embarazo.talla_materna) {
+        form.setFieldsValue(decimalesANumero({ talla: embarazo.talla_materna }, ['talla']));
+      }
+    }
+
+    formModifiedRef.current = true;
+  };
+
+  calcularSemanasGestacionRef.current = calcularSemanasGestacion;
+
+  // ========== CALCULAR IMC ==========
+  const calcularIMC = useCallback(() => {
+    const peso = form.getFieldValue('peso_actual');
+    const talla = form.getFieldValue('talla');
+
+    if (peso && talla && peso > 0 && talla > 0) {
+      const tallaM = talla / 100;
+      const imc = imcRedondeado(peso, tallaM);
+      let clasificacion = '';
+
+      if (imc < 18.5) {
+        clasificacion = 'Bajo peso';
+      } else if (imc < 25) {
+        clasificacion = 'Normal';
+      } else if (imc < 30) {
+        clasificacion = 'Sobrepeso';
+      } else {
+        clasificacion = 'Obesidad';
+      }
+
+      setImcCalculado(`${imc.toFixed(2)} kg/m² - ${clasificacion}`);
+      return { valor: imc, clasificacion };
+    }
+    setImcCalculado('');
+    return null;
+  }, [form]);
+
+  // ========== CALCULAR GANANCIA DE PESO ==========
+  const calcularGananciaPeso = useCallback(() => {
+    const pesoActual = form.getFieldValue('peso_actual');
+    const pesoPregestacional = form.getFieldValue('peso_pregestacional');
+
+    if (pesoActual && pesoPregestacional) {
+      const ganancia = pesoActual - pesoPregestacional;
+      const signo = ganancia > 0 ? '+' : '';
+      setGananciaCalculada(`${signo}${ganancia.toFixed(1)} kg`);
+      return ganancia;
+    }
+    setGananciaCalculada('');
+    return null;
+  }, [form]);
+
+  // ========== CALCULAR PAM ==========
+  const calcularPAM = useCallback(() => {
+    const sistolica = form.getFieldValue('presion_arterial_sistolica');
+    const diastolica = form.getFieldValue('presion_arterial_diastolica');
+
+    if (sistolica && diastolica) {
+      const pam = (sistolica + 2 * diastolica) / 3;
+      setPamCalculada(`PAM: ${pam.toFixed(1)} mmHg`);
+      return pam;
+    }
+    setPamCalculada('');
+    return null;
+  }, [form]);
+
+  // ========== EVALUAR ALERTAS ==========
+  const evaluarAlertas = useCallback(() => {
+    const alertas: string[] = [];
+
+    const sistolica = form.getFieldValue('presion_arterial_sistolica');
+    const diastolica = form.getFieldValue('presion_arterial_diastolica');
+
+    if (sistolica && diastolica) {
+      // RF-06: solo PA ≥ 140/90 es alerta; 139/89 no lo es (BUG-003).
+      if (sistolica >= 140 || diastolica >= 90) {
+        alertas.push('HIPERTENSIÓN ARTERIAL - Riesgo de preeclampsia');
+      }
+    }
+
+    const fcf = form.getFieldValue('frecuencia_cardiaca_fetal');
+    if (fcf) {
+      if (fcf < 110) {
+        alertas.push('BRADICARDIA FETAL (<110 lpm) - URGENTE');
+      } else if (fcf > 160) {
+        alertas.push('TAQUICARDIA FETAL (>160 lpm)');
+      }
+    }
+
+    const edema = form.getFieldValue('edema');
+    if (edema === 'severo' || edema === 'generalizado') {
+      alertas.push('Edema severo/generalizado - Evaluar preeclampsia');
+    }
+
+    const proteinuria = form.getFieldValue('proteinuria');
+    if (proteinuria && !['negativa', 'trazas'].includes(proteinuria)) {
+      alertas.push('PROTEINURIA POSITIVA');
+    }
+
+    const movimientos = form.getFieldValue('movimientos_fetales');
+    if (movimientos === 'ausentes') {
+      alertas.push('MOVIMIENTOS FETALES AUSENTES - EMERGENCIA');
+    } else if (movimientos === 'disminuidos') {
+      alertas.push('Movimientos fetales disminuidos');
+    }
+
+    const temperatura = form.getFieldValue('temperatura');
+    if (temperatura && temperatura >= 38) {
+      alertas.push('FIEBRE MATERNA (≥38°C)');
+    }
+
+    const imc = calcularIMC();
+    if (imc) {
+      if (imc.valor < 18.5) {
+        alertas.push('Bajo peso materno');
+      } else if (imc.valor >= 30) {
+        alertas.push('Obesidad materna');
+      }
+    }
+
+    setAlertasPreliminares(alertas);
+  }, [calcularIMC, form]);
+
+  // ========== RECALCULAR TODO ==========
+  const recalcularTodo = useCallback(() => {
+    calcularIMC();
+    calcularGananciaPeso();
+    calcularPAM();
+    evaluarAlertas();
+  }, [calcularIMC, calcularGananciaPeso, calcularPAM, evaluarAlertas]);
+
+  useEffect(() => {
+    recalcularTodoRef.current = recalcularTodo;
+  }, [recalcularTodo]);
+
+  const handleValuesChange = () => {
+    formModifiedRef.current = true;
+    recalcularTodo();
+  };
+
+  const handleCancelWithConfirmation = useCallback(() => {
+    if (formModifiedRef.current) {
+      setShowExitModal(true);
+    } else {
+      navigate(FRONTEND_ROUTES.DASHBOARD.CONTROLES);
+    }
+  }, [navigate]);
+
+  const confirmExit = () => {
+    form.resetFields();
+    formModifiedRef.current = false;
+    setShowExitModal(false);
+    navigate(FRONTEND_ROUTES.DASHBOARD.CONTROLES);
+  };
+
+  const cancelExit = () => {
+    setShowExitModal(false);
+  };
+
+  // ========== GUARDAR CONTROL ==========
+  const onFinish = async (values: any) => {
+    setLoading(true);
+
+    try {
+      // Limpiar datos antes de enviar
+      const dataToSend: any = {
+        embarazo: values.embarazo,
+        paciente: selectedEmbarazo?.paciente,  // Campo requerido por el backend
+        numero_control: values.numero_control,
+        fecha_control: values.fecha_control
+          ? dayjs(values.fecha_control).format('YYYY-MM-DD')
+          : undefined,
+        edad_gestacional_semanas: values.edad_gestacional_semanas,
+        semanas_gestacion: values.edad_gestacional_semanas,  // Campo requerido por el backend
+        edad_gestacional_dias: values.edad_gestacional_dias || 0,
+        peso_actual: values.peso_actual || undefined,
+        peso_pregestacional: values.peso_pregestacional || undefined,
+        talla: values.talla || undefined,
+        presion_arterial_sistolica: values.presion_arterial_sistolica || undefined,
+        presion_arterial_diastolica: values.presion_arterial_diastolica || undefined,
+        frecuencia_cardiaca: values.frecuencia_cardiaca || undefined,
+        temperatura: values.temperatura || undefined,
+        altura_uterina: values.altura_uterina || undefined,
+        frecuencia_cardiaca_fetal: values.frecuencia_cardiaca_fetal || undefined,
+        presentacion_fetal: values.presentacion_fetal || undefined,
+        movimientos_fetales: values.movimientos_fetales || 'presentes',
+        edema: values.edema || 'no',
+        proteinuria: values.proteinuria || 'negativa',
+        observaciones: values.observaciones || '',
+      };
+
+      // Remover campos undefined para evitar enviar null al backend
+      Object.keys(dataToSend).forEach(key => {
+        if (dataToSend[key] === undefined) {
+          delete dataToSend[key];
+        }
+      });
+
+
+      if (isEditing) {
+        await controlesService.update(parseInt(id!), dataToSend);
+        message.success('Control prenatal actualizado correctamente');
+      } else {
+        await controlesService.create(dataToSend);
+        message.success('Control prenatal creado correctamente');
+      }
+
+      if (alertasPreliminares.length > 0) {
+        message.warning(`Se detectaron ${alertasPreliminares.length} alerta(s) clínica(s)`);
+      }
+
+      formModifiedRef.current = false;
+
+      navigate(FRONTEND_ROUTES.DASHBOARD.CONTROLES);
+    } catch (error: any) {
+
+      if (error.response?.data) {
+        const errorData = error.response?.data;
+
+        // Si hay errores específicos por campo
+        if (typeof errorData === 'object' && !errorData.message && !errorData.detail && !errorData.errores) {
+          const errorList = Object.entries(errorData).map(([field, msgs]: [string, any]) => {
+            const msgArray = Array.isArray(msgs) ? msgs : [msgs];
+            return `${field}: ${msgArray.join(', ')}`;
+          });
+
+          modal.error({
+            title: 'Error al Guardar Control',
+            content: (
+              <div>
+                <p><strong>Se encontraron los siguientes errores:</strong></p>
+                <ul className="u-mt-3">
+                  {errorList.map((err) => (
+                    <li key={err} className="u-mb-2">{err}</li>
+                  ))}
+                </ul>
+              </div>
+            ),
+            width: 500,
+          });
+        } else if (errorData.errores) {
+          const errores = errorData.errores;
+          const fieldErrors = Object.keys(errores).map((field) => ({
+            name: field,
+            errors: Array.isArray(errores[field]) ? errores[field] : [errores[field]],
+          }));
+          form.setFields(fieldErrors);
+          message.error('Por favor corrija los errores en el formulario');
+        } else {
+          const msg = errorData.detail || errorData.message || 'Error desconocido';
+          modal.error({
+            title: 'Error al Guardar Control',
+            content: msg,
+          });
+        }
+      } else {
+        modal.error({
+          title: 'Error al Guardar Control',
+          content: error.message || 'Error desconocido',
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ========== CANCELAR (MANTENER PARA COMPATIBILIDAD) ==========
+  const handleCancel = useCallback(() => {
+    handleCancelWithConfirmation();
+  }, [handleCancelWithConfirmation]);
+
+  useEffect(() => {
+    handleCancelRef.current = handleCancel;
+  }, [handleCancel]);
+
+  const nombrePacienteSel = selectedEmbarazo
+    ? getNombrePaciente(selectedEmbarazo.id!, embarazos, pacientes)
+    : '';
+
+  return (
+    <div className="pagina-clinica controles-formulario">
+      <div className="pc-cabecera">
+        <div className="pc-cabecera__texto">
+          <Title level={2} className="pc-cabecera__titulo">
+            <MedicineBoxOutlined className="pc-cabecera__icono" />
+            {isEditing ? 'Editar Control Prenatal' : 'Nuevo Control Prenatal'}
+          </Title>
+          <p className="pc-cabecera__descripcion">
+            Signos vitales, examen obstétrico y alertas clínicas del control.
+          </p>
+        </div>
+        <div className="pc-cabecera__acciones">
+          <Button icon={<ArrowLeftOutlined />} onClick={handleCancelWithConfirmation}>
+            Volver a la lista
+          </Button>
+          <Button
+            type="text"
+            icon={<CloseOutlined />}
+            onClick={handleCancelWithConfirmation}
+            danger
+            title="Cerrar formulario"
+            aria-label="Cerrar formulario"
+          />
+        </div>
+      </div>
+
+      <Card>
+        <FormControlAlertasHeader
+          selectedEmbarazo={selectedEmbarazo}
+          nombrePacienteSel={nombrePacienteSel}
+          edadGestacionalInfo={edadGestacionalInfo}
+          alertasPreliminares={alertasPreliminares}
+        />
+
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          disabled={cargandoRegistro}
+          initialValues={{
+            fecha_control: dayjs(),
+            numero_control: 1,
+            edad_gestacional_dias: 0,
+            edema: 'no',
+            proteinuria: 'negativa',
+            movimientos_fetales: 'presentes',
+          }}
+          onValuesChange={handleValuesChange}
+        >
+          <SeccionDatosControl
+            isEditing={isEditing}
+            calcularSemanasGestacion={calcularSemanasGestacion}
+          />
+
+          <AlertaEdadGestacional semanasGestacion={semanasGestacion} />
+
+          <SeccionEdadGestacional />
+
+          <SeccionSignosVitales
+            gananciaCalculada={gananciaCalculada}
+            imcCalculado={imcCalculado}
+            pamCalculada={pamCalculada}
+            modal={modal}
+          />
+
+          <SeccionExamenObstetrico semanasGestacion={semanasGestacion} />
+
+          <Form.Item name="observaciones" label="Observaciones">
+            <TextArea rows={4} placeholder="Notas adicionales..." />
+          </Form.Item>
+
+          <Form.Item>
+            <Space className="u-ancho u-fin">
+              <Button onClick={handleCancelWithConfirmation} size="large">
+                Cancelar
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                loading={loading}
+                size="large"
+              >
+                Guardar Control
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
+
+      {/* ========== MODAL DE CONFIRMACIÓN DE SALIDA ========== */}
+      <ModalConfirmacionSalida
+        open={showExitModal}
+        onOk={confirmExit}
+        onCancel={cancelExit}
+      />
+    </div>
+  );
+};
+
+export default FormularioControl;

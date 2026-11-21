@@ -50,8 +50,8 @@ jobs:
           python-version: "3.13"
           cache: "pip"
           cache-dependency-path: |
-            Backend/requirements.txt
-            Backend/Microservicio_IA/requirements.txt
+            backend/requirements.txt
+            servicio-ia/requirements.txt
 
       - name: Install linters
         run: |
@@ -62,32 +62,32 @@ jobs:
       # Está en 0 errores; cualquier error nuevo detiene el merge.
       - name: Run ruff (Backend)
         run: |
-          cd Backend
+          cd backend
           ruff check .
 
       # Gate BLOQUEANTE: E9 (errores de sintaxis) y F82 (nombres indefinidos,
       # incluye F821). Atrapa crashes como imports faltantes antes del merge.
       - name: Run flake8 (Backend)
         run: |
-          cd Backend
+          cd backend
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics \
             --exclude=.venv,.venv_gpu,node_modules,__pycache__,migrations,staticfiles,media,logs
 
       - name: Run black --check (Backend)
         run: |
-          cd Backend
+          cd backend
           black --check --diff --exclude="(.venv|node_modules|__pycache__|migrations|staticfiles|media|logs)" .
         continue-on-error: true
 
       - name: Run flake8 (AI Service)
         run: |
-          cd Backend/Microservicio_IA
+          cd servicio-ia
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics \
             --exclude=.venv,.venv_gpu,__pycache__,temp,trained_models,datasets
 
       - name: Run black --check (AI Service)
         run: |
-          cd Backend/Microservicio_IA
+          cd servicio-ia
           black --check --diff --exclude="(__pycache__|temp|trained_models|datasets)" .
         continue-on-error: true
 
@@ -107,15 +107,15 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: Backend/frontend/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        working-directory: Backend/frontend
+        working-directory: frontend
         run: npm ci
 
       # Gate BLOQUEANTE: el typecheck debe pasar (0 errores hoy).
       - name: Run TypeScript type check
-        working-directory: Backend/frontend
+        working-directory: frontend
         run: npx tsc --noEmit
 
       # Gate BLOQUEANTE. Antes iba con continue-on-error por el ruido de las
@@ -131,7 +131,7 @@ jobs:
       # 28 dependencias de hooks (que hay que revisar una a una, cambiarlas
       # a ciegas puede introducir bucles de render) y 37 variables sueltas.
       - name: Run ESLint
-        working-directory: Backend/frontend
+        working-directory: frontend
         run: npx eslint src --ext .ts,.tsx --max-warnings 56
 
   # ──────────────────────────────────────────────
@@ -166,7 +166,7 @@ jobs:
         with:
           python-version: "3.13"
           cache: "pip"
-          cache-dependency-path: Backend/requirements.txt
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install system dependencies
         run: |
@@ -174,7 +174,7 @@ jobs:
           sudo apt-get install -y libpq-dev
 
       - name: Install Python dependencies
-        working-directory: Backend
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -188,14 +188,14 @@ jobs:
           done
 
       - name: Run Django checks
-        working-directory: Backend
+        working-directory: backend
         env:
           DB_HOST: localhost
           DB_PORT: 5432
         run: python manage.py check
 
       - name: Run Django migrations
-        working-directory: Backend
+        working-directory: backend
         env:
           DB_HOST: localhost
           DB_PORT: 5432
@@ -210,7 +210,7 @@ jobs:
       # recoge los tests de tests/ y de cada app. Incluye el quality gate de
       # tests/test_rutas_sin_500.py (ninguna de las ~330 rutas GET da 500).
       - name: Run backend tests with coverage
-        working-directory: Backend
+        working-directory: backend
         env:
           DB_HOST: localhost
           DB_PORT: 5432
@@ -223,7 +223,7 @@ jobs:
       # que la clinica A no ve pacientes de la clinica B. Es la propiedad mas
       # critica del sistema, asi que se ejecuta aparte y contra PostgreSQL.
       - name: Run multi-tenant isolation tests (PostgreSQL)
-        working-directory: Backend
+        working-directory: backend
         env:
           DB_HOST: localhost
           DB_PORT: 5432
@@ -236,8 +236,8 @@ jobs:
         with:
           name: backend-coverage
           path: |
-            Backend/coverage-backend.xml
-            Backend/coverage-backend-html/
+            backend/coverage-backend.xml
+            backend/coverage-backend-html/
           retention-days: 14
 
       - name: Upload test results
@@ -246,7 +246,7 @@ jobs:
         with:
           name: backend-test-results
           path: |
-            Backend/test-results.xml
+            backend/test-results.xml
           retention-days: 14
           if-no-files-found: ignore
 
@@ -266,15 +266,15 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: Backend/frontend/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        working-directory: Backend/frontend
+        working-directory: frontend
         run: npm ci
 
       # Gate BLOQUEANTE: antes llevaba "2>/dev/null || true" y nunca fallaba.
       - name: Run frontend tests with coverage
-        working-directory: Backend/frontend
+        working-directory: frontend
         run: |
           CI=true npm test -- --coverage --watchAll=false --passWithNoTests
 
@@ -284,7 +284,7 @@ jobs:
         with:
           name: frontend-coverage
           path: |
-            Backend/frontend/coverage/
+            frontend/coverage/
           retention-days: 14
 
       - name: Upload frontend test results
@@ -293,7 +293,7 @@ jobs:
         with:
           name: frontend-test-results
           path: |
-            Backend/frontend/test-report.xml
+            frontend/test-report.xml
           retention-days: 14
           if-no-files-found: ignore
 
@@ -313,7 +313,7 @@ jobs:
         with:
           python-version: "3.13"
           cache: "pip"
-          cache-dependency-path: Backend/Microservicio_IA/requirements.txt
+          cache-dependency-path: servicio-ia/requirements.txt
 
       - name: Install system dependencies
         run: |
@@ -322,19 +322,19 @@ jobs:
 
       # torch en versión CPU: la de CUDA pesa varios GB y el CI no tiene GPU.
       - name: Install AI service dependencies
-        working-directory: Backend/Microservicio_IA
+        working-directory: servicio-ia
         run: |
           python -m pip install --upgrade pip
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install -r requirements.txt pytest httpx
 
       - name: Validate Python syntax
-        working-directory: Backend/Microservicio_IA
+        working-directory: servicio-ia
         run: |
           python -m compileall -q app
 
       - name: Validate FastAPI app imports
-        working-directory: Backend/Microservicio_IA
+        working-directory: servicio-ia
         run: |
           python -c "from app.main import app; print('FastAPI app imported successfully')"
 
@@ -343,8 +343,8 @@ jobs:
       # verdad) y los umbrales calibrados. Los tests que necesitan los pesos
       # entrenados (no van en el repositorio) se saltan solos.
       - name: Run AI service tests
-        working-directory: Backend/Microservicio_IA
-        run: python -m pytest -q -p no:cacheprovider test_ia_honesta.py test_safety_checks.py test_umbrales_calibrados.py test_ecografia_real.py
+        working-directory: servicio-ia
+        run: python -m pytest -q -p no:cacheprovider
 
   # ──────────────────────────────────────────────
   # SECURITY SCAN
@@ -361,7 +361,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "fs"
-          scan-ref: "./Backend"
+          scan-ref: "./backend"
           format: "sarif"
           output: "trivy-backend-results.sarif"
           severity: "CRITICAL,HIGH"

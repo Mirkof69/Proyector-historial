@@ -8,7 +8,6 @@ setlocal EnableExtensions
 ::   INICIAR.bat desarrollo   para programar: recarga automatica y React dev
 ::   INICIAR.bat detener      cierra los servicios del sistema (3000, 8000, 8001, 8010)
 ::
-:: Reemplaza a INICIAR_SISTEMA.bat e INICIAR_PRODUCCION.bat (02/10/2026).
 :: Cada paso comprueba que funciono; si algo falla se detiene y dice que hacer.
 :: Por que cada pieza esta como esta: docs\sistema\11_despliegue_y_operacion.md
 :: ============================================================================
@@ -16,7 +15,9 @@ title Fetal Medical Bolivia
 color 0A
 cd /d "%~dp0"
 set "RAIZ=%~dp0"
-set "BACK=%RAIZ%Backend"
+set "BACK=%RAIZ%backend"
+set "FRONT=%RAIZ%frontend"
+set "IA=%RAIZ%servicio-ia"
 set "PY=%BACK%\.venv\Scripts\python.exe"
 set "PGBIN=C:\Program Files\PostgreSQL\18\bin"
 set "PGDATA=C:\Program Files\PostgreSQL\18\data"
@@ -30,8 +31,8 @@ echo    FETAL MEDICAL BOLIVIA
 echo ================================================================
 
 if not exist "%PY%" (
-    echo ERROR: falta el entorno del backend ^(Backend\.venv^).
-    echo   Crearlo:  cd Backend ^&^& python -m venv .venv ^&^& .venv\Scripts\pip install -r requirements.txt
+    echo ERROR: falta el entorno del backend ^(backend\.venv^).
+    echo   Crearlo:  cd backend ^&^& python -m venv .venv ^&^& .venv\Scripts\pip install -r requirements.txt
     goto fallo
 )
 
@@ -48,7 +49,7 @@ echo [1/8] Requisitos...
 python -c "import torch, fastapi, timm, uvicorn" >nul 2>&1
 if errorlevel 1 (
     echo     AVISO: el Python del sistema no tiene torch/fastapi: la IA no arrancara.
-    echo       Instalar:  pip install -r Backend\Microservicio_IA\requirements.txt
+    echo       Instalar:  pip install -r servicio-ia\requirements.txt
     set "SIN_IA=1"
 ) else (echo     OK)
 
@@ -57,7 +58,7 @@ echo [2/8] Cerrando servicios anteriores del sistema...
 "%PY%" "%BACK%\scripts\arranque.py" detener
 
 :: -- 3. PostgreSQL ------------------------------------------------
-:: Debe ser el SERVICIO de Windows (con APLICAR_AJUSTES_POSTGRES.bat). Si no se
+:: Debe ser el SERVICIO de Windows (con scripts\APLICAR_AJUSTES_POSTGRES.bat). Si no se
 :: puede (sin permisos de administrador) se arranca con pg_ctl, que funciona
 :: pero puede colgar conexiones (error 487): sirve para probar, no para el hospital.
 echo [3/8] PostgreSQL...
@@ -101,7 +102,7 @@ echo [5/8] Base de datos al dia (todas las clinicas)...
 cd /d "%BACK%"
 "%PY%" manage.py migrate_schemas --noinput > logs\migraciones.log 2>&1
 if errorlevel 1 (
-    echo ERROR en las migraciones: ver Backend\logs\migraciones.log
+    echo ERROR en las migraciones: ver backend\logs\migraciones.log
     goto fallo
 )
 :: Citas de dias pasados que nadie atendio: quedan como "No asistio" (no detiene el arranque).
@@ -117,12 +118,12 @@ echo [6/8] Frontend compilado...
 "%PY%" "%BACK%\scripts\arranque.py" build-vigente
 if not errorlevel 1 goto front_ok
 echo     Compilando ^(unos minutos^)...
-cd /d "%BACK%\frontend"
+cd /d "%FRONT%"
 "%PY%" "%BACK%\scripts\arranque.py" dependencias
 if errorlevel 1 call npm install --no-audit --no-fund
 call npm run build > "%BACK%\logs\build_frontend.log" 2>&1
 if errorlevel 1 (
-    echo ERROR al compilar el frontend: ver Backend\logs\build_frontend.log
+    echo ERROR al compilar el frontend: ver backend\logs\build_frontend.log
     goto fallo
 )
 cd /d "%BACK%"
@@ -149,14 +150,14 @@ if /i "%MODO%"=="desarrollo" goto servicios_desarrollo
 :: un equipo de la red que los invente no cambia nada.
 start "Fetal Medical - API (8000)" /min cmd /k "cd /d "%BACK%" && set DEBUG=False&& set REDIS_URL=%REDIS_URL%&& .venv\Scripts\python.exe -m waitress --host=0.0.0.0 --port=8000 --threads=32 --connection-limit=480 --trusted-proxy=127.0.0.1 --trusted-proxy-headers="x-forwarded-for x-forwarded-proto" wsgi:application"
 start "Fetal Medical - Notificaciones (8010)" /min cmd /k "cd /d "%BACK%" && set DEBUG=False&& set REDIS_URL=%REDIS_URL%&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 0.0.0.0 --port 8010 --workers 1"
-if not defined SIN_IA start "Fetal Medical - IA (8001)" /min cmd /k "cd /d "%BACK%\Microservicio_IA" && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
-start "Fetal Medical - Frontend (3000)" /min cmd /k "cd /d "%BACK%\frontend" && "%PY%" servir_produccion.py 3000"
+if not defined SIN_IA start "Fetal Medical - IA (8001)" /min cmd /k "cd /d "%IA%" && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
+start "Fetal Medical - Frontend (3000)" /min cmd /k "cd /d "%FRONT%" && "%PY%" servir_produccion.py 3000"
 goto comprobar
 
 :servicios_desarrollo
 start "Fetal Medical - Backend dev (8000)" /min cmd /k "cd /d "%BACK%" && set REDIS_URL=%REDIS_URL%&& .venv\Scripts\python.exe -m uvicorn asgi:application --host 127.0.0.1 --port 8000 --reload"
-if not defined SIN_IA start "Fetal Medical - IA (8001)" /min cmd /k "cd /d "%BACK%\Microservicio_IA" && python -m uvicorn app.main:app --host 127.0.0.1 --port 8001"
-start "Fetal Medical - Frontend dev (3000)" /min cmd /k "cd /d "%BACK%\frontend" && set BROWSER=none&& npm start"
+if not defined SIN_IA start "Fetal Medical - IA (8001)" /min cmd /k "cd /d "%IA%" && python -m uvicorn app.main:app --host 127.0.0.1 --port 8001"
+start "Fetal Medical - Frontend dev (3000)" /min cmd /k "cd /d "%FRONT%" && set BROWSER=none&& npm start"
 
 :comprobar
 echo.

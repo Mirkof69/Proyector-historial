@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Django
+*.log
+*.err
+logs/
+staticfiles/
+media/
+db.sqlite3
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.production
+!.env.example
+!.env.docker.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Respaldos de la base y archivos subidos (datos de pacientes)
+backups/
+
+# Docker
+*.pid
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Generated documentation
+docs/*.pdf
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+# Claves privadas
+*.key
+*.csr
+
+# reportes generados (datos clínicos): no se versionan
+reportes_generados/

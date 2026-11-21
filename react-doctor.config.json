@@ -1,5 +1,5 @@
 {
-  "entry": ["Backend/frontend/src/index.tsx"],
+  "entry": ["frontend/src/index.tsx"],
   "ignore": {
     "files": [
       "**/build/**",
